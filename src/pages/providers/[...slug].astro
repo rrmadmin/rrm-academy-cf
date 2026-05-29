@@ -217,9 +217,9 @@ const jsonLd = {
                 </span>
               )}
               {p.confidence === 'verified' && (
-                <span class="pill pill--verified">
-                  <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
-                  Verified
+                <span class="pill pill--npi" title="Identity confirmed in the U.S. National Provider Identifier (NPI) registry">
+                  <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><polyline points="9 12 11 14 15 10"/></svg>
+                  NPI verified
                 </span>
               )}
               {p.isSurgeon && <span class="pill pill--surgeon">Surgeon</span>}
@@ -242,17 +242,6 @@ const jsonLd = {
               {p.specialty && <p class="pp-specialty">Specialty: {p.specialty}</p>}
             </section>
           )}
-
-          <section class="pp-block" aria-label="About this listing">
-            <h2 class="pp-label">About this listing</h2>
-            <p class="pp-prose">
-              This profile was compiled from publicly available restorative reproductive
-              medicine and fertility-awareness directories{p.sourceCount > 1 ? `, corroborated across ${p.sourceCount} sources` : ''}. Some details may be out of date.
-            </p>
-            <p class="pp-fineprint">
-              {p.lastVerified && (<span>Last verified {p.lastVerified.slice(0, 10)}. </span>)}See something that needs fixing? <a href={claimUrl}>Update this listing</a>.
-            </p>
-          </section>
         </main>
 
         <aside class="pp-aside" aria-label="Contact">
@@ -405,7 +394,7 @@ const jsonLd = {
     white-space: nowrap;
   }
   .pill--tele { background: var(--green-100); color: var(--green-700); }
-  .pill--verified { background: var(--green-100); color: var(--green-700); }
+  .pill--npi { background: var(--amber-100); color: var(--amber-700); }
   .pill--surgeon { background: var(--rose-100); color: var(--rose-700); }
 
   /* Body grid: typographic main column + one contact panel */
@@ -465,20 +454,6 @@ const jsonLd = {
     color: var(--text-secondary);
     margin: var(--space-4) 0 0;
   }
-  .pp-prose {
-    font-size: 0.9375rem;
-    color: var(--text-secondary);
-    line-height: 1.65;
-    margin: 0;
-    max-width: 62ch;
-  }
-  .pp-fineprint {
-    font-size: 0.8125rem;
-    color: var(--text-muted);
-    line-height: 1.6;
-    margin: var(--space-3) 0 0;
-  }
-  .pp-fineprint a { color: var(--accent); font-weight: 500; }
 
   /* Contact panel — the one element that earns a container */
   .pp-panel {
