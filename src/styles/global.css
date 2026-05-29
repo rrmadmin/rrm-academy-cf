@@ -92,16 +92,16 @@
   --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.12);
   --shadow-lg: 0 4px 16px rgba(0, 0, 0, 0.08);
 
-  /* Footer (always dark in light mode) */
-  --footer-bg: #313131;
-  --footer-text: #adaba9;
-  --footer-heading: #ffffff;
-  --footer-link: #adaba9;
-  --footer-link-hover: #ffffff;
-  --footer-accent: #c9b8d3;
-  --footer-accent-hover: #e8ddef;
-  --footer-muted: #b5b3b1;
-  --footer-border: rgba(255, 255, 255, 0.1);
+  /* Footer (light warm panel in light mode) */
+  --footer-bg: #efe8e0;
+  --footer-text: #636261;
+  --footer-heading: #313131;
+  --footer-link: #636261;
+  --footer-link-hover: #725e7e;
+  --footer-accent: #725e7e;
+  --footer-accent-hover: #4c3e54;
+  --footer-muted: #949392;
+  --footer-border: rgba(0, 0, 0, 0.1);
 
   /* Error */
   --color-error: #c0392b;
