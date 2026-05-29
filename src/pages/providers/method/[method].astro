@@ -5,6 +5,7 @@ import {
   COLLECTION_METHODS,
   getProvidersByMethod,
   methodLabel,
+  NON_STATE_REGIONS,
   type Provider,
 } from '../../../lib/providers';
 
@@ -23,7 +24,7 @@ const label = methodLabel(method);
 const providers = getProvidersByMethod(method);
 
 // Counts line inputs.
-const stateSet = new Set(providers.filter((p) => p.region !== 'INTL').map((p) => p.region));
+const stateSet = new Set(providers.filter((p) => !NON_STATE_REGIONS.has(p.region)).map((p) => p.region));
 const teleProviders = providers.filter((p) => p.telehealth === 'yes');
 
 // Telehealth strip: surface up to 8 telehealth-available providers first.
