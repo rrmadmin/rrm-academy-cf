@@ -31,6 +31,7 @@ export const PRIVATE_EXCLUDE = new Set([
   'ask',
   'saved',
   'providers',
+  'community',
   'agent-auth',
   'webhooks',
   'openapi',
