@@ -1,6 +1,6 @@
 ---
 import type { Provider } from '../lib/providers';
-import { typeBadgeClass, locationLine } from '../lib/providers';
+import { typeBadgeClass, locationLine, splitCredentials } from '../lib/providers';
 import ProviderAvatar from './ProviderAvatar.astro';
 
 interface Props {
@@ -9,6 +9,7 @@ interface Props {
 }
 const { provider: p, basePath = '/providers/' } = Astro.props;
 const href = `${basePath}${p.slug}/`;
+const { primary: primaryCred, rest: restCreds } = splitCredentials(p.credentials);
 
 const typeClass = typeBadgeClass(p);
 const loc = locationLine(p);
@@ -25,8 +26,8 @@ const verifiedYear = p.lastVerified ? p.lastVerified.slice(0, 4) : '';
   <div class="provider-card__top">
     <ProviderAvatar provider={p} size="sm" />
     <div class="provider-card__heading">
-      <h3 class="provider-card__name">{p.name}</h3>
-      {p.credentials && <p class="provider-card__creds">{p.credentials}</p>}
+      <h3 class="provider-card__name">{p.name}{primaryCred ? `, ${primaryCred}` : ''}</h3>
+      {restCreds.length > 0 && <p class="provider-card__creds">{restCreds.join(', ')}</p>}
     </div>
   </div>
 
