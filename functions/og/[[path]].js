@@ -27,11 +27,24 @@ const BRAND_C     = '#725e7e'; // --purple-700, solid brand band
 const BRAND_TINT  = '#e8ddef'; // --purple-100, URL text on band
 const ON_BRAND_C  = '#f7f5f3'; // wordmark on band
 
+// Provider-card badge tokens (mirror the detail-page hero pills + global.css).
+const NPI_BG      = '#fef3c7'; // --amber-100
+const NPI_FG      = '#b45309'; // --amber-700
+const TELE_BG     = '#e8f5e9'; // --green-100
+const TELE_FG     = '#2e7d32'; // --green-700
+const LOC_C       = '#8a8784'; // muted location line
+
 // Fallback card copy (shown for unknown slugs and all error paths)
 const FALLBACK = {
   title: 'RRM Academy',
   description: 'Evidence-based education in Restorative Reproductive Medicine.',
 };
+
+// Branded fallback card render. Centralizes the fallback tree so every unknown
+// slug / malformed path returns the same title + description card.
+function renderFallback(env, start) {
+  return renderCard(env, buildTree(FALLBACK.title, FALLBACK.description), FALLBACK.title, 'fallback', start);
+}
 
 // Font CDN URLs. These are fetched once, CF-edge-cached for 1 year.
 const CORMORANT_600_URL = 'https://cdn.jsdelivr.net/npm/@fontsource/cormorant-garamond@5.1.1/files/cormorant-garamond-latin-600-normal.woff';
@@ -148,47 +161,153 @@ function buildTree(title, description) {
           },
         },
         // Brand band: 132px solid --purple-700, full-bleed.
+        brandBand(),
+      ],
+    },
+  };
+}
+
+// Brand band (shared between the default card and the provider card). Returns
+// the 132px solid --purple-700 footer with the wordmark + domain.
+function brandBand() {
+  return {
+    type: 'div',
+    props: {
+      style: {
+        display: 'flex',
+        width: '1200px',
+        height: '132px',
+        backgroundColor: BRAND_C,
+        padding: '0 60px',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+      },
+      children: [
+        {
+          type: 'span',
+          props: {
+            style: { fontSize: '44px', fontWeight: 600, color: ON_BRAND_C, fontFamily: 'Cormorant Garamond' },
+            children: 'RRM Academy',
+          },
+        },
+        {
+          type: 'span',
+          props: {
+            style: { fontSize: '24px', fontWeight: 500, color: BRAND_TINT, letterSpacing: '0.04em', fontFamily: 'Inter' },
+            children: 'rrmacademy.org',
+          },
+        },
+      ],
+    },
+  };
+}
+
+// One pill badge for the provider card. bg/fg are token hexes; label is text.
+function badgePill(label, bg, fg) {
+  return {
+    type: 'div',
+    props: {
+      style: {
+        display: 'flex',
+        alignItems: 'center',
+        backgroundColor: bg,
+        color: fg,
+        fontSize: '24px',
+        fontWeight: 600,
+        fontFamily: 'Inter',
+        padding: '8px 20px',
+        borderRadius: '999px',
+        marginRight: '16px',
+      },
+      children: label,
+    },
+  };
+}
+
+// Build the satori tree for a provider detail card (kind:'provider') or the
+// provider hub (kind:'provider-hub'). Renders the provider name in Cormorant
+// Garamond, a subtitle (specialty / methods) in Inter, a muted location line,
+// and a badge row (NPI verified amber, Telehealth green). All strings are
+// pre-clamped before this call.
+function buildProviderTree(entry) {
+  const isHub = entry.kind === 'provider-hub';
+  const name = entry.title || FALLBACK.title;
+  const subtitle = entry.subtitle || '';
+  const location = isHub ? '' : (entry.location || '');
+
+  const len = name.length;
+  const fontSize = len <= 24 ? 96 : len <= 40 ? 80 : len <= 60 ? 64 : 54;
+
+  const children = [
+    {
+      type: 'span',
+      props: {
+        style: { fontSize: `${fontSize}px`, fontWeight: 600, color: TITLE_C, lineHeight: 1.15, fontFamily: 'Cormorant Garamond' },
+        children: name,
+      },
+    },
+  ];
+
+  if (subtitle) {
+    children.push({
+      type: 'span',
+      props: {
+        style: { fontSize: '32px', fontWeight: 400, color: DESC_C, lineHeight: 1.4, marginTop: '18px', fontFamily: 'Inter' },
+        children: subtitle,
+      },
+    });
+  }
+
+  if (location) {
+    children.push({
+      type: 'span',
+      props: {
+        style: { fontSize: '28px', fontWeight: 500, color: LOC_C, lineHeight: 1.3, marginTop: '12px', fontFamily: 'Inter' },
+        children: location,
+      },
+    });
+  }
+
+  const badges = [];
+  if (!isHub && entry.verified) badges.push(badgePill('NPI verified', NPI_BG, NPI_FG));
+  if (!isHub && entry.telehealth) badges.push(badgePill('Telehealth', TELE_BG, TELE_FG));
+  if (badges.length > 0) {
+    children.push({
+      type: 'div',
+      props: {
+        style: { display: 'flex', marginTop: '32px' },
+        children: badges,
+      },
+    });
+  }
+
+  return {
+    type: 'div',
+    props: {
+      style: {
+        width: '1200px',
+        height: '630px',
+        backgroundColor: BG,
+        display: 'flex',
+        flexDirection: 'column',
+        fontFamily: 'Cormorant Garamond',
+      },
+      children: [
         {
           type: 'div',
           props: {
             style: {
               display: 'flex',
-              width: '1200px',
-              height: '132px',
-              backgroundColor: BRAND_C,
-              padding: '0 60px',
-              alignItems: 'center',
-              justifyContent: 'space-between',
+              flexDirection: 'column',
+              flexGrow: 1,
+              justifyContent: 'center',
+              padding: '60px',
+              overflow: 'hidden',
             },
-            children: [
-              {
-                type: 'span',
-                props: {
-                  style: {
-                    fontSize: '44px',
-                    fontWeight: 600,
-                    color: ON_BRAND_C,
-                    fontFamily: 'Cormorant Garamond',
-                  },
-                  children: 'RRM Academy',
-                },
-              },
-              {
-                type: 'span',
-                props: {
-                  style: {
-                    fontSize: '24px',
-                    fontWeight: 500,
-                    color: BRAND_TINT,
-                    letterSpacing: '0.04em',
-                    fontFamily: 'Inter',
-                  },
-                  children: 'rrmacademy.org',
-                },
-              },
-            ],
+            children,
           },
         },
+        brandBand(),
       ],
     },
   };
@@ -222,13 +341,13 @@ export async function onRequest(context) {
 
   // Guard: empty path segments indicate a malformed URL -> fallback (B6)
   if (pathParts.length === 0) {
-    return renderCard(env, FALLBACK.title, FALLBACK.description, 'fallback', start);
+    return renderFallback(env, start);
   }
 
   // Strip .png extension from the last segment
   const lastRaw = pathParts[pathParts.length - 1] || '';
   if (!lastRaw.endsWith('.png')) {
-    return renderCard(env, FALLBACK.title, FALLBACK.description, 'fallback', start);
+    return renderFallback(env, start);
   }
   const lastClean = lastRaw.slice(0, -4);
 
@@ -238,7 +357,7 @@ export async function onRequest(context) {
 
   // Guard: empty or dangerous slug -> fallback (B1, B6)
   if (!slug || slug.length > 300) {
-    return renderCard(env, FALLBACK.title, FALLBACK.description, 'fallback', start);
+    return renderFallback(env, start);
   }
 
   // --- Lookup ---
@@ -253,20 +372,38 @@ export async function onRequest(context) {
   }
   if (!entry) {
     logRender(env, slug, 'fallback', Date.now() - start);
-    return renderCard(env, FALLBACK.title, FALLBACK.description, 'fallback', start);
+    return renderFallback(env, start);
   }
 
   // Clamp at the function boundary as a defense-in-depth guard (B3, B5).
   // build-og-index.mjs already clamps, but this protects against direct og-index.json edits.
   const title       = clamp(entry.title || FALLBACK.title, 200);
+
+  // Provider directory entries (kind:'provider' / 'provider-hub') get a
+  // dedicated card layout: name + subtitle + location + verified/telehealth
+  // badge. Everything else uses the default title + description card.
+  if (entry.kind === 'provider' || entry.kind === 'provider-hub') {
+    const provEntry = {
+      kind: entry.kind,
+      title,
+      subtitle: entry.subtitle ? clamp(entry.subtitle, 240) : '',
+      location: entry.location ? clamp(entry.location, 80) : '',
+      verified: Boolean(entry.verified),
+      telehealth: Boolean(entry.telehealth),
+    };
+    return renderCard(env, buildProviderTree(provEntry), title, statusLabel, start);
+  }
+
   const description = entry.description ? clamp(entry.description, 240) : null;
 
-  return renderCard(env, title, description, statusLabel, start);
+  return renderCard(env, buildTree(title, description), title, statusLabel, start);
 }
 
-// Renders and returns the PNG. All error paths return the fallback card, never
-// a JSON error or a 500 (B7). Font failures gracefully degrade (B4).
-async function renderCard(env, title, description, statusLabel, start) {
+// Renders and returns the PNG from a pre-built satori tree. `logSlug` is the
+// short string used for Analytics Engine logging. All error paths return the
+// fallback card, never a JSON error or a 500 (B7). Font failures gracefully
+// degrade (B4).
+async function renderCard(env, tree, logSlug, statusLabel, start) {
   try {
     // Load fonts in parallel; per-font .catch(() => null) so one CDN 503
     // never kills the whole response. Satori uses its internal Roboto fallback
@@ -288,15 +425,13 @@ async function renderCard(env, title, description, statusLabel, start) {
       fonts.push({ name: 'Inter', data: inter500Data, weight: 500, style: 'normal' });
     }
 
-    const tree = buildTree(title, description);
-
     const img = new ImageResponse(tree, {
       width: 1200,
       height: 630,
       fonts,
     });
 
-    logRender(env, title.slice(0, 80), statusLabel, Date.now() - start);
+    logRender(env, String(logSlug || '').slice(0, 80), statusLabel, Date.now() - start);
 
     // Rewrap to force correct Content-Type + cache headers.
     // workers-og's ImageResponse defaults to text/html even though the body is PNG bytes.
@@ -313,7 +448,7 @@ async function renderCard(env, title, description, statusLabel, start) {
     // Log the error silently and return the fallback card.
     // If we're already rendering the fallback card and satori throws again,
     // the recursive call will also fail and we'll hit the catch below.
-    logRender(env, title.slice(0, 80), 'error', Date.now() - start);
+    logRender(env, String(logSlug || '').slice(0, 80), 'error', Date.now() - start);
 
     // Return a minimal valid 1x1 transparent PNG as the last-resort fallback.
     // This ensures we never return a non-image response on this endpoint.

@@ -12,6 +12,8 @@
 //   /commentary/<slug>      -> "commentary-<slug>"
 //   /faqs/<slug>            -> "faqs-<slug>"
 //   /courses/<slug>         -> "courses-<slug>"
+//   /providers/<slug>       -> "providers-<slug>"
+//   /providers              -> "providers"
 //   /what-is-rrm            -> "what-is-rrm"
 //   ...
 //
@@ -229,7 +231,7 @@ function extractGlossaryDescription(bodyHtml) {
 function main() {
   const PILLAR_ENTRIES = loadPillarEntries();
   const index = { ...STATIC_PAGES, ...PILLAR_ENTRIES };
-  const counts = { static: Object.keys(STATIC_PAGES).length, pillars: Object.keys(PILLAR_ENTRIES).length, library: 0, commentary: 0, faqs: 0, courses: 0, glossary: 0 };
+  const counts = { static: Object.keys(STATIC_PAGES).length, pillars: Object.keys(PILLAR_ENTRIES).length, library: 0, commentary: 0, faqs: 0, courses: 0, glossary: 0, providers: 0 };
 
   const articles = readJsonSafely('articles.json');
   if (Array.isArray(articles)) {
@@ -295,13 +297,63 @@ function main() {
     counts.glossary += 1;
   }
 
+  // Provider directory. Detail pages render at /providers/<slug>/ which routes
+  // to og slug `providers-<slug>` in BaseLayout.routeToOgSlug(). The hub at
+  // /providers/ routes to `providers`. Without these entries every provider
+  // unfurl renders the branded fallback card. Entries carry kind:'provider' so
+  // functions/og/[[path]].js renders the dedicated provider-card layout
+  // (name + subtitle + location + verified/telehealth badge).
+  const providers = readJsonSafely('providers.json');
+  if (Array.isArray(providers)) {
+    for (const p of providers) {
+      if (!p || !p.slug) continue;
+      // Subtitle: lead with specialty when present, else the top one or two
+      // methods. Practices fall back to their type label. Skip the internal
+      // dash-slug specialties (e.g. "fertilitycare-practitioner") that are not
+      // human-facing.
+      let subtitle = '';
+      if (p.specialty && !/-/.test(p.specialty)) {
+        subtitle = p.specialty;
+      } else if (Array.isArray(p.methodLabels) && p.methodLabels.length > 0) {
+        subtitle = p.methodLabels.slice(0, 2).join(' · ');
+      } else if (p.typeLabel) {
+        subtitle = p.typeLabel;
+      }
+      // Location line: "City, ST" for US, "City, Country" for international.
+      const locParts = [];
+      if (p.city) locParts.push(p.city);
+      if (p.region !== 'INTL' && p.state) locParts.push(p.state);
+      else if (p.stateName) locParts.push(p.stateName);
+      let location = locParts.join(', ');
+      if (p.region === 'INTL' && p.countryName) location += (location ? ', ' : '') + p.countryName;
+
+      index[`providers-${p.slug}`] = {
+        kind: 'provider',
+        title: clamp(p.displayName || p.name || 'Provider', MAX_TITLE_LEN),
+        subtitle: clamp(subtitle, MAX_DESC_LEN),
+        location: clamp(location, 80),
+        // Mirror the detail-page hero badge logic: "verified" confidence shows
+        // the NPI-verified badge; telehealth shows the telehealth badge.
+        verified: p.confidence === 'verified',
+        telehealth: p.telehealth === 'yes',
+      };
+      counts.providers += 1;
+    }
+    // Hub card. Static, single entry.
+    index['providers'] = {
+      kind: 'provider-hub',
+      title: 'Find a Restorative Reproductive Medicine Provider',
+      subtitle: `${providers.length.toLocaleString()} fertility-awareness and RRM practitioners`,
+    };
+  }
+
   // Minimum-count assertions. Match deploy.yml CI floors so a corrupt input
   // that produces an empty content-type bucket fails the build loudly instead
   // of shipping a degraded og-index.json (every social share of that type
   // rendering the fallback card, cached at the edge for 24h). If a content
   // type is genuinely absent (initial deploy), the floor blocks; treat that
   // as a one-time override via FLOOR_OVERRIDE_<type>=0 env vars.
-  const FLOORS = { library: 2500, commentary: 5, faqs: 10, courses: 1, glossary: 100 };
+  const FLOORS = { library: 2500, commentary: 5, faqs: 10, courses: 1, glossary: 100, providers: 1000 };
   const failures = [];
   for (const [type, floor] of Object.entries(FLOORS)) {
     const override = process.env[`FLOOR_OVERRIDE_${type.toUpperCase()}`];
@@ -321,7 +373,7 @@ function main() {
   console.log(
     `[build-og-index] wrote ${Object.keys(index).length} entries (${sizeKb} KB): ` +
     `${counts.static} static, ${counts.pillars} pillars, ${counts.library} library, ${counts.commentary} commentary, ` +
-    `${counts.faqs} faqs, ${counts.courses} courses, ${counts.glossary} glossary`
+    `${counts.faqs} faqs, ${counts.courses} courses, ${counts.glossary} glossary, ${counts.providers} providers`
   );
 }
 
