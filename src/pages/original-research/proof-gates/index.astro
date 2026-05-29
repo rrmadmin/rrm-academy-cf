@@ -1,0 +1,94 @@
+---
+import BaseLayout from '../../../layouts/BaseLayout.astro';
+import LastUpdated from '../../../components/LastUpdated.astro';
+import pageDates from '../../../data/page-dates.json';
+import { safeJsonLd } from '../../../lib/jsonld';
+
+const PAGE_PATH = '/original-research/proof-gates/';
+const LAST_MODIFIED = pageDates.dates[PAGE_PATH] || '2026-05-28';
+
+const pageSchema = {
+  '@context': 'https://schema.org',
+  '@graph': [
+    {
+      '@type': 'ScholarlyArticle',
+      '@id': 'https://rrmacademy.org/original-research/proof-gates/#paper',
+      headline: 'Proof Gates: Sycophancy-Resistant Self-Verification via Agent-Authored Postconditions',
+      name: 'Proof Gates: Sycophancy-Resistant Self-Verification via Agent-Authored Postconditions',
+      description: 'A verification discipline in which an LLM agent writes deterministic postcondition checks per task, runs them against its own work product, and quotes the observable output as proof, with fix-before-pass-through semantics at a workflow boundary.',
+      author: { '@type': 'Person', name: 'Brian Whittaker' },
+      publisher: { '@id': 'https://rrmacademy.org/#organization' },
+      datePublished: '2026-05-23',
+      dateModified: LAST_MODIFIED,
+      url: 'https://rrmacademy.org/original-research/proof-gates/',
+      keywords: ['proof gates', 'agent-authored postconditions', 'LLM agent self-verification', 'sycophancy resistance', 'distribution skew', 'fabrication-vs-gaming', 'workflow boundary verification', 'AI alignment'],
+      isBasedOn: { '@id': 'https://rrmacademy.org/original-research/proof-gates/patterns/#artifact' },
+      mainEntityOfPage: {
+        '@type': 'WebPage',
+        '@id': 'https://rrmacademy.org/original-research/proof-gates/',
+      },
+    },
+  ],
+};
+---
+
+<BaseLayout
+  title="Proof Gates"
+  description="Proof Gates: Sycophancy-Resistant Self-Verification via Agent-Authored Postconditions (Whittaker 2026). A verification discipline in which an LLM agent writes per-task postcondition checks against its own work product."
+  canonicalUrl="https://rrmacademy.org/original-research/proof-gates/"
+  jsonLd={safeJsonLd(pageSchema)}
+>
+  <main class="container research-landing">
+    <nav class="breadcrumb" aria-label="Breadcrumb">
+      <a href="/">Home</a> &rsaquo; <a href="/original-research/">Research</a> &rsaquo; <span aria-current="page">Proof Gates</span>
+    </nav>
+
+    <header class="research-header" id="paper">
+      <h1>Proof Gates</h1>
+      <p class="lead">Sycophancy-Resistant Self-Verification via Agent-Authored Postconditions. A discipline in which an LLM agent writes deterministic postcondition checks per task, runs them against its own work product, and quotes the observable output as proof.</p>
+      <p class="byline">RRM Academy &middot; Whittaker 2026 &middot; Preprint forthcoming</p>
+    </header>
+
+    <section id="overview" aria-labelledby="overview-h">
+      <h2 id="overview-h">What the paper argues</h2>
+      <p>A <em>proof gate</em> is deterministic verification code that an LLM agent writes per task, runs against its own work product, and quotes as proof, with hard fix-before-pass-through semantics at a workflow boundary. The agent does not merely run a pre-existing test, lint, or hook (those are operator-authored sibling patterns); it writes the specific verification snippet for the work in front of it.</p>
+      <p>The paper develops the dual-failure-mode argument (sycophancy plus overtraining/undertraining distribution skew), the fabrication-versus-gaming distinction that scopes where the discipline applies, and a six-property positioning matrix that locates proof gates among adjacent verification regimes such as pre-commit linters, lifecycle hooks, and evaluator commands.</p>
+    </section>
+
+    <section id="artifacts" aria-labelledby="artifacts-h">
+      <h2 id="artifacts-h">Reproducibility artifacts</h2>
+      <ul>
+        <li><strong>Pattern library:</strong> <a href="/original-research/proof-gates/patterns/">proof-gate-patterns</a> is the central reproducibility artifact. It documents the discipline through annotated prompt fragments, three canonical pattern types (grep, quote, read), worked examples from production, and operator-facing background docs.</li>
+        <li><strong>Operator-authored sibling:</strong> <a href="/original-research/lint-identity/">lint-identity</a> is a pre-commit linter that validates identity references against a single source of truth. It sits in the operator-authored quadrant of the positioning matrix, on the same observable-output-as-proof axis.</li>
+      </ul>
+    </section>
+
+    <section id="cite" aria-labelledby="cite-h">
+      <h2 id="cite-h">Cite the paper</h2>
+      <p>The preprint is forthcoming; the reproducibility artifacts are published on GitHub now. Until an arXiv identifier is assigned, cite:</p>
+      <pre><code>Whittaker, B. (2026). Proof Gates: Sycophancy-Resistant
+Self-Verification via Agent-Authored Postconditions.
+Preprint forthcoming. Artifacts:
+https://github.com/rrmadmin/proof-gate-patterns
+</code></pre>
+    </section>
+
+    <LastUpdated date={LAST_MODIFIED} />
+  </main>
+
+  <style>
+    .research-landing { max-width: var(--max-width-article); padding-block: var(--space-8); }
+    .breadcrumb { font-size: 0.8125rem; margin-bottom: var(--space-4); color: var(--text-secondary); }
+    .breadcrumb a { color: var(--accent); text-decoration: none; }
+    .breadcrumb a:hover { text-decoration: underline; }
+    .research-header { margin-bottom: var(--space-8); }
+    .research-header .lead { font-size: 1.25rem; margin-block: var(--space-3); color: var(--text-primary); }
+    .research-header .byline { color: var(--text-secondary); font-size: 0.8125rem; }
+    .research-landing section { margin-block: var(--space-8); }
+    .research-landing ul { padding-left: var(--space-5); }
+    .research-landing li { margin-block: var(--space-3); }
+    .research-landing a { color: var(--accent); }
+    .research-landing pre { background: var(--bg-surface); padding: var(--space-4); border-radius: var(--radius-md); overflow-x: auto; font-size: 0.8125rem; }
+    .research-landing code { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; }
+  </style>
+</BaseLayout>
