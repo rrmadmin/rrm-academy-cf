@@ -5,7 +5,7 @@ import pageDates from '../../data/page-dates.json';
 import { safeJsonLd } from '../../lib/jsonld';
 
 const PAGE_PATH = '/original-research/';
-const LAST_MODIFIED = pageDates.dates[PAGE_PATH] || '2026-05-28';
+const LAST_MODIFIED = (pageDates.dates as Record<string, string>)[PAGE_PATH] || '2026-05-28';
 
 const pageSchema = {
   '@context': 'https://schema.org',
