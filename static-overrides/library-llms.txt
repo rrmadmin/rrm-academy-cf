@@ -5,7 +5,7 @@
 > Last updated: 2026-05-05
 > Crawl permission: Granted for all article pages. Excluded paths in robots.txt.
 
-The RRM Research Library is a physician-curated, freely accessible collection of 4,030+ peer-reviewed academic references related to restorative reproductive medicine (RRM). It is the largest such collection available online. Curation is led by Dr. Naomi Whittaker, MD (board-certified OBGYN, MIGS, NFPMC, FCI, ORCID 0000-0003-3706-3112).
+The RRM Research Library is a physician-curated, freely accessible collection of 4,050+ peer-reviewed academic references related to restorative reproductive medicine (RRM). It is the largest such collection available online. Curation is led by Dr. Naomi Whittaker, MD (board-certified OBGYN, MIGS, NFPMC, FCI, ORCID 0000-0003-3706-3112).
 
 ## What is here
 
