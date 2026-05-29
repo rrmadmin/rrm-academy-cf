@@ -1,0 +1,97 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import LastUpdated from '../../components/LastUpdated.astro';
+import pageDates from '../../data/page-dates.json';
+import { safeJsonLd } from '../../lib/jsonld';
+
+const PAGE_PATH = '/original-research/';
+const LAST_MODIFIED = pageDates.dates[PAGE_PATH] || '2026-05-28';
+
+const pageSchema = {
+  '@context': 'https://schema.org',
+  '@graph': [
+    {
+      '@type': 'CollectionPage',
+      '@id': 'https://rrmacademy.org/original-research/#page',
+      name: 'Original Research',
+      description: 'Engineering and methods artifacts authored at RRM Academy and published as citable research: verification disciplines for LLM agents and SSOT-validated editorial-integrity tooling.',
+      url: 'https://rrmacademy.org/original-research/',
+      publisher: { '@id': 'https://rrmacademy.org/#organization' },
+      dateModified: LAST_MODIFIED,
+      hasPart: [
+        { '@id': 'https://rrmacademy.org/original-research/proof-gates/patterns/#artifact' },
+        { '@id': 'https://rrmacademy.org/original-research/lint-identity/#artifact' },
+      ],
+    },
+    {
+      '@type': 'ItemList',
+      '@id': 'https://rrmacademy.org/original-research/#artifacts',
+      itemListOrder: 'https://schema.org/ItemListUnordered',
+      itemListElement: [
+        {
+          '@type': 'ListItem',
+          position: 1,
+          url: 'https://rrmacademy.org/original-research/proof-gates/patterns/',
+          name: 'proof-gate-patterns',
+        },
+        {
+          '@type': 'ListItem',
+          position: 2,
+          url: 'https://rrmacademy.org/original-research/lint-identity/',
+          name: 'lint-identity',
+        },
+      ],
+    },
+  ],
+};
+---
+
+<BaseLayout
+  title="Original Research"
+  description="Engineering and methods artifacts authored at RRM Academy and published as citable research: agent-authored proof gates and SSOT-validated editorial-integrity tooling."
+  canonicalUrl="https://rrmacademy.org/original-research/"
+  jsonLd={safeJsonLd(pageSchema)}
+>
+  <main class="container research-landing">
+    <nav class="breadcrumb" aria-label="Breadcrumb">
+      <a href="/">Home</a> &rsaquo; <span aria-current="page">Research</span>
+    </nav>
+
+    <header class="research-header">
+      <h1>Original Research</h1>
+      <p class="lead">Engineering and methods artifacts authored at RRM Academy and published as citable research. Each documents a verification discipline we run in production to keep AI-assisted work accurate.</p>
+      <p class="byline">RRM Academy</p>
+    </header>
+
+    <section id="artifacts" aria-labelledby="artifacts-h">
+      <h2 id="artifacts-h">Artifacts</h2>
+      <ul class="artifact-list">
+        <li>
+          <h3><a href="/original-research/proof-gates/patterns/">proof-gate-patterns</a></h3>
+          <p>A pattern library for skill authors who want to add agent-authored proof gates to their LLM agents: deterministic verification code the agent writes per task, runs against its own work product, and quotes as proof, with fix-before-pass-through semantics at a workflow boundary. Reproducibility artifact for the paper <a href="/original-research/proof-gates/">Proof Gates</a> (Whittaker 2026).</p>
+        </li>
+        <li>
+          <h3><a href="/original-research/lint-identity/">lint-identity</a></h3>
+          <p>An operator-authored pre-commit linter that validates references to specific people (canonical name, byline format, credentials, identifier aliases) against a single source of truth. The operator-authored sibling to agent-authored proof gates, on the same observable-output-as-proof axis.</p>
+        </li>
+      </ul>
+    </section>
+
+    <LastUpdated date={LAST_MODIFIED} />
+  </main>
+
+  <style>
+    .research-landing { max-width: var(--max-width-article); padding-block: var(--space-8); }
+    .breadcrumb { font-size: 0.8125rem; margin-bottom: var(--space-4); color: var(--text-secondary); }
+    .breadcrumb a { color: var(--accent); text-decoration: none; }
+    .breadcrumb a:hover { text-decoration: underline; }
+    .research-header { margin-bottom: var(--space-8); }
+    .research-header .lead { font-size: 1.25rem; margin-block: var(--space-3); color: var(--text-primary); }
+    .research-header .byline { color: var(--text-secondary); font-size: 0.8125rem; }
+    .research-landing section { margin-block: var(--space-8); }
+    .artifact-list { list-style: none; padding: 0; display: grid; gap: var(--space-6); }
+    .artifact-list h3 { margin-bottom: var(--space-2); }
+    .artifact-list a { color: var(--accent); text-decoration: none; }
+    .artifact-list a:hover { text-decoration: underline; }
+  </style>
+</BaseLayout>
