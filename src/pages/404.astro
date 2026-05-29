@@ -1,5 +1,12 @@
 ---
 import BaseLayout from '../layouts/BaseLayout.astro';
+import { buildKnownPages } from '../lib/known-pages.js';
+
+const pageKeys = [
+  ...Object.keys(import.meta.glob('/src/pages/*.astro')),
+  ...Object.keys(import.meta.glob('/src/pages/*/index.astro')),
+];
+const knownPages = buildKnownPages(pageKeys);
 ---
 <BaseLayout
   title="Page Not Found | It seems there was a little mix-up"
@@ -16,6 +23,7 @@ import BaseLayout from '../layouts/BaseLayout.astro';
       <span class="not-found__code">404</span>
       <h1>It seems there was a little mix-up</h1>
       <p class="not-found__subtitle">We can't find that page. Can we help you find what you're looking for?</p>
+      <div class="not-found__suggest" id="nf-suggest" hidden></div>
       <div class="not-found__search" id="nf-search">
         <div class="nf-search-box">
           <svg class="nf-search-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
@@ -311,6 +319,37 @@ import BaseLayout from '../layouts/BaseLayout.astro';
   .not-found__links a:hover {
     color: var(--accent-hover);
   }
+
+  /* Did-you-mean suggestions (above the search box) */
+  .not-found__suggest {
+    position: relative;
+    z-index: 1;
+    margin-bottom: var(--space-6);
+  }
+  .nf-suggest__label {
+    font-size: 0.8125rem;
+    color: var(--text-tertiary);
+    margin: 0 0 var(--space-2);
+  }
+  .nf-suggest__links {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: var(--space-2);
+  }
+  .nf-suggest__link {
+    color: var(--accent);
+    font-size: 0.9375rem;
+    font-weight: 500;
+  }
+  .nf-suggest__link--primary {
+    font-family: 'Cormorant Garamond', 'Georgia', serif;
+    font-size: 1.25rem;
+    font-weight: 600;
+  }
+  .nf-suggest__link:hover {
+    color: var(--accent-hover);
+  }
 </style>
 
 <script is:inline>
@@ -478,4 +517,43 @@ import BaseLayout from '../layouts/BaseLayout.astro';
   input.addEventListener('input', onInput);
   input.addEventListener('focus', function() { ensurePagefind().catch(function(){}); }, { once: true });
 })();
+</script>
+
+<script type="application/json" id="nf-known-pages" set:html={JSON.stringify(knownPages).replace(/</g, '\\u003c')}></script>
+
+<script>
+  import { bestMatches } from '../lib/url-match.js';
+
+  (function () {
+    const el = document.getElementById('nf-suggest');
+    const dataEl = document.getElementById('nf-known-pages');
+    if (!el || !dataEl) return;
+
+    let index;
+    try {
+      index = JSON.parse(dataEl.textContent || '[]');
+    } catch {
+      return;
+    }
+
+    const matches = bestMatches(location.pathname, index);
+    if (!matches.length) return;
+
+    const label = document.createElement('p');
+    label.className = 'nf-suggest__label';
+    label.textContent = 'Did you mean:';
+    el.appendChild(label);
+
+    const list = document.createElement('div');
+    list.className = 'nf-suggest__links';
+    matches.forEach((m, i) => {
+      const a = document.createElement('a');
+      a.href = m.path;
+      a.className = i === 0 ? 'nf-suggest__link nf-suggest__link--primary' : 'nf-suggest__link';
+      a.textContent = m.title;
+      list.appendChild(a);
+    });
+    el.appendChild(list);
+    el.hidden = false;
+  })();
 </script>
