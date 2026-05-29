@@ -1,7 +1,7 @@
 # RRM Academy — Style Guide
 
 > Canonical reference for `rrmacademy.org`. Every pattern documented here is live in production.
-> Last updated: 2026-02-22.
+> Last updated: 2026-05-29.
 
 ---
 
@@ -118,19 +118,19 @@ Both have dark mode variants defined in `[data-theme="dark"]`.
 
 #### Footer Tokens
 
-The footer is **always dark** in light mode. It uses its own token set to prevent theme inversion from flipping it.
+The footer uses its own token set (not the theme-inverting semantic aliases) so its palette is controlled independently per theme. In **light mode** it is a soft warm-cream panel with dark text; dark and e-ink modes keep a dark footer.
 
-| Token | Value |
+| Token | Value (light) |
 |-------|-------|
-| `--footer-bg` | `#313131` |
-| `--footer-text` | `#adaba9` |
-| `--footer-heading` | `#ffffff` |
-| `--footer-link` | `#adaba9` |
-| `--footer-link-hover` | `#ffffff` |
-| `--footer-accent` | `#c9b8d3` |
-| `--footer-accent-hover` | `#e8ddef` |
-| `--footer-muted` | `#b5b3b1` |
-| `--footer-border` | `rgba(255,255,255,0.1)` |
+| `--footer-bg` | `#efe8e0` |
+| `--footer-text` | `#636261` |
+| `--footer-heading` | `#313131` |
+| `--footer-link` | `#636261` |
+| `--footer-link-hover` | `#725e7e` |
+| `--footer-accent` | `#725e7e` |
+| `--footer-accent-hover` | `#4c3e54` |
+| `--footer-muted` | `#949392` |
+| `--footer-border` | `rgba(0,0,0,0.1)` |
 
 ### Dark Theme
 
@@ -827,7 +827,7 @@ Stroke-based Lucide-style SVG icons are used in both the mobile nav menu and the
 
 ### Structure
 
-Always dark background. Uses `--footer-*` tokens.
+Soft cream panel in light mode (dark in dark/e-ink). Uses `--footer-*` tokens.
 
 ```
 .site-footer
@@ -873,7 +873,7 @@ Mobile: single column.
 | Accent | `#725e7e` (dark purple) | `#b8a3c4` (light purple) |
 | Grain blend | `multiply` | `soft-light` |
 | Shadows | Lighter | Heavier |
-| Footer | Always dark | Subtly darker than body |
+| Footer | Cream panel, dark text | Dark, subtly darker than body |
 
 ### What NOT to override
 
