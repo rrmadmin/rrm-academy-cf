@@ -1,27 +1,32 @@
 ---
 import BaseLayout from '../../layouts/BaseLayout.astro';
-import NewsletterSignup from '../../components/NewsletterSignup.astro';
 
-const pageTitle = 'RRM Providers';
-const pageDescription = 'A coming directory of clinicians who practice restorative reproductive medicine. Be the first to know when it launches.';
+const pageTitle = 'Help Build the RRM Provider Directory';
+const pageDescription = 'Support the rebuild of the RRM Provider Directory. Every listing verified, more clinicians added, kept current. A one-time gift to the RRM Foundation makes it possible.';
 const canonical = 'https://rrmacademy.org/providers/';
+
+// $10,000 goal. The live thermometer fetches real dollars raised from
+// /api/fund-progress (campaign='provider-directory'); these are the honest
+// server-rendered defaults shown until that fetch resolves.
+const GOAL_CENTS = 1000000;
 
 const jsonLd = {
   '@context': 'https://schema.org',
-  '@type': 'WebPage',
-  name: pageTitle,
+  '@type': 'DonateAction',
+  name: 'Help Build the RRM Provider Directory',
   description: pageDescription,
   url: canonical,
-  isPartOf: {
-    '@type': 'WebSite',
-    '@id': 'https://rrmacademy.org/#website',
-    name: 'RRM Academy',
-    url: 'https://rrmacademy.org/',
+  recipient: {
+    '@type': 'NGO',
+    name: 'Restorative Reproductive Medicine Foundation Inc.',
+    url: 'https://rrmacademy.org',
+    taxID: '93-4594315',
+    nonprofitStatus: 'Nonprofit501c3',
   },
 };
 ---
 <BaseLayout
-  title={`${pageTitle} | RRM Academy`}
+  title={pageTitle}
   description={pageDescription}
   canonicalUrl={canonical}
   jsonLd={jsonLd}
@@ -29,53 +34,521 @@ const jsonLd = {
 >
   <div class="page-wrapper">
     <div class="container container--narrow">
-      <header class="providers-hero">
-        <p class="eyebrow">Coming soon</p>
-        <h1>RRM Providers</h1>
-        <p class="lead">
-          A directory of clinicians trained in restorative reproductive medicine,
-          searchable by location, specialty, and the conditions they treat. We
-          are building this now.
-        </p>
-        <p>
-          While the directory is in development, the curated path to finding a
-          provider lives at <a href="/what-is-rrm/#get-started">/what-is-rrm/#get-started</a>.
-        </p>
+
+      <!-- Hero -->
+      <header class="fund-hero">
+        <p class="fund-eyebrow">RRM Provider Directory</p>
+        <h1 class="fund-title">Help us build the directory that connects families to the right care</h1>
+        <p class="fund-subhead">Every listing verified. Every clinician confirmed. A resource the RRM community can trust.</p>
       </header>
 
-      <section class="providers-signup">
-        <NewsletterSignup
-          heading="Get notified when it launches"
-          subtext="Drop your email and we will send you one note the day the RRM Providers directory goes live. No other messages."
-        />
+      <!-- Live thermometer + give widget -->
+      <section class="fund-panel card" aria-labelledby="fund-give-heading">
+        <h2 id="fund-give-heading" class="sr-only">Donate to the provider directory rebuild</h2>
+
+        <div
+          class="fund-thermo"
+          id="fund-thermo"
+          role="progressbar"
+          aria-valuemin="0"
+          aria-valuemax={GOAL_CENTS}
+          aria-valuenow="0"
+          aria-label="Raised toward our $10,000 goal"
+        >
+          <div class="fund-thermo__head">
+            <span class="fund-thermo__raised" id="fund-raised">$0</span>
+            <span class="fund-thermo__goal">raised of $10,000 goal</span>
+          </div>
+          <div class="fund-thermo__track">
+            <div class="fund-thermo__fill" id="fund-fill"></div>
+          </div>
+          <p class="fund-thermo__meta" id="fund-supporters" hidden></p>
+        </div>
+
+        <div class="fund-give">
+          <div class="fund-amounts" role="group" aria-label="Choose a gift amount">
+            <button type="button" class="fund-amount-btn" data-amount="2500">$25</button>
+            <button type="button" class="fund-amount-btn active" data-amount="5000">$50</button>
+            <button type="button" class="fund-amount-btn" data-amount="10000">$100</button>
+            <button type="button" class="fund-amount-btn" data-amount="25000">$250</button>
+          </div>
+          <div class="fund-custom">
+            <label for="fund-custom-amount" class="form-label">Or enter another amount</label>
+            <div class="fund-custom-wrap">
+              <span class="fund-currency" aria-hidden="true">$</span>
+              <input type="number" id="fund-custom-amount" class="form-input" min="5" max="999999" inputmode="numeric" placeholder="Enter amount" />
+            </div>
+          </div>
+          <button type="button" id="fund-give-btn" class="btn btn--primary btn--lg fund-give-btn">Give $50 to the directory</button>
+          <p id="fund-error" class="fund-error" hidden></p>
+          <p class="fund-onetime-note">This is a one-time gift. You will not be enrolled in a recurring charge.</p>
+        </div>
       </section>
+
+      <!-- The ask -->
+      <section class="fund-section">
+        <p class="fund-ask">We are raising $10,000 in one-time gifts to fund this rebuild. If restorative reproductive care has mattered to you, or to someone you love, a gift to the RRM Foundation makes this resource possible. Every dollar goes directly to verification, expansion, and maintenance of the directory.</p>
+      </section>
+
+      <!-- Why your gift matters -->
+      <section class="fund-section" aria-labelledby="fund-why-heading">
+        <h2 id="fund-why-heading">Where your gift goes</h2>
+        <div class="fund-why-grid">
+          <div class="fund-why-card card">
+            <h3>Verification</h3>
+            <p>Each clinician listing is cross-checked against training credentials, contact data, and practice status. No ghost listings. No outdated phone numbers.</p>
+          </div>
+          <div class="fund-why-card card">
+            <h3>Expansion</h3>
+            <p>We are adding providers trained in NaProTechnology, FEMM, and related methods who have never appeared in any single directory. More clinicians, more regions, more methods.</p>
+          </div>
+          <div class="fund-why-card card">
+            <h3>Maintenance</h3>
+            <p>A directory that goes stale in 18 months helps no one. We are building the infrastructure to keep it current.</p>
+          </div>
+        </div>
+      </section>
+
+      <!-- Story -->
+      <section class="fund-section" aria-labelledby="fund-story-heading">
+        <h2 id="fund-story-heading">Why we took it offline</h2>
+        <p>Finding an RRM-trained clinician is hard. The directories that exist are scattered, outdated, or incomplete. Couples doing the work of restorative care, charting cycles, tracking hormones, pursuing diagnosis, deserve a resource that is accurate and current. That is what we are rebuilding.</p>
+        <p>We pulled the RRM Provider Directory offline to do this right. Every provider listing is being verified. We are expanding coverage, adding clinicians trained in NaProTechnology, FEMM, and related methods, and building the infrastructure to keep it current. The goal is a searchable, trustworthy resource that works the first time someone needs it.</p>
+        <p>That work costs money. Verification, data infrastructure, ongoing maintenance. We are asking supporters who believe in restorative care to fund it directly.</p>
+      </section>
+
+      <!-- Patient escape hatch -->
+      <aside class="fund-patient" aria-label="For patients seeking care">
+        <p>If you landed here looking for a clinician trained in restorative care, you are in the right place. <a href="/what-is-rrm/#get-started">Learn about what RRM is and how to get started.</a></p>
+      </aside>
+
+      <!-- Donor FAQ -->
+      <section class="fund-section" aria-labelledby="fund-faq-heading">
+        <h2 id="fund-faq-heading">Questions</h2>
+        <div class="fund-faq">
+          <details class="fund-faq-item">
+            <summary>Who receives my gift?</summary>
+            <p>Your gift goes to the RRM Foundation (EIN 93-4594315), the 501(c)(3) public charity that supports RRM Academy's educational mission. RRM Academy is the educational platform. The Foundation is the charitable entity that receives donations.</p>
+          </details>
+          <details class="fund-faq-item">
+            <summary>Is this a one-time gift or a recurring charge?</summary>
+            <p>This campaign accepts one-time gifts only. You will not be enrolled in a recurring payment.</p>
+          </details>
+          <details class="fund-faq-item">
+            <summary>How will my gift be used?</summary>
+            <p>Funds go directly to provider verification, directory expansion, and the infrastructure needed to keep listings current. No administrative overhead. The directory is the deliverable.</p>
+          </details>
+        </div>
+      </section>
+
+      <p class="fund-trust">
+        Gifts go to the RRM Foundation, a registered 501(c)(3) nonprofit (EIN 93-4594315).
+        Contributions are tax-deductible to the extent permitted by law.
+      </p>
+
     </div>
   </div>
+
+  <script is:inline define:vars={{ GOAL_CENTS }}>
+    (function () {
+      // ---- Live thermometer ----
+      var fillEl = document.getElementById('fund-fill');
+      var raisedEl = document.getElementById('fund-raised');
+      var supportersEl = document.getElementById('fund-supporters');
+      var thermoEl = document.getElementById('fund-thermo');
+
+      function fmtDollars(cents) {
+        var dollars = Math.round(cents / 100);
+        return '$' + dollars.toLocaleString();
+      }
+
+      fetch('/api/fund-progress', { credentials: 'omit' })
+        .then(function (r) { return r.json(); })
+        .then(function (data) {
+          if (!data || typeof data.raised_cents !== 'number') return;
+          var goal = typeof data.goal_cents === 'number' && data.goal_cents > 0 ? data.goal_cents : GOAL_CENTS;
+          var raised = Math.max(0, data.raised_cents);
+          var pct = Math.min(100, Math.round((raised / goal) * 100));
+
+          raisedEl.textContent = fmtDollars(raised);
+          fillEl.style.width = pct + '%';
+          thermoEl.setAttribute('aria-valuenow', String(raised));
+
+          if (typeof data.supporters === 'number' && data.supporters > 0) {
+            supportersEl.textContent = data.supporters === 1
+              ? '1 supporter so far'
+              : data.supporters.toLocaleString() + ' supporters so far';
+            supportersEl.hidden = false;
+          }
+        })
+        .catch(function () { /* fail-soft: leave $0 / 0% rendered */ });
+
+      // ---- Give widget ----
+      var amountBtns = document.querySelectorAll('.fund-amount-btn');
+      var customInput = document.getElementById('fund-custom-amount');
+      var giveBtn = document.getElementById('fund-give-btn');
+      var errorEl = document.getElementById('fund-error');
+      var selectedCents = 5000;
+
+      var entryReferrer = sessionStorage.getItem('entry_ref') || '';
+      var entryUrl = sessionStorage.getItem('entry_url') || '';
+
+      function setButtonLabel(cents) {
+        var dollars = Math.round(cents / 100);
+        giveBtn.textContent = 'Give $' + dollars.toLocaleString() + ' to the directory';
+      }
+
+      function selectAmount(cents) {
+        selectedCents = cents;
+        setButtonLabel(cents);
+        amountBtns.forEach(function (b) {
+          b.classList.toggle('active', parseInt(b.dataset.amount, 10) === cents);
+        });
+      }
+
+      amountBtns.forEach(function (btn) {
+        btn.addEventListener('click', function () {
+          customInput.value = '';
+          selectAmount(parseInt(btn.dataset.amount, 10));
+        });
+      });
+
+      customInput.addEventListener('input', function () {
+        var val = parseFloat(customInput.value);
+        if (val && val >= 5) {
+          selectedCents = Math.round(val * 100);
+          giveBtn.textContent = 'Give $' + val.toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: 2 }) + ' to the directory';
+          amountBtns.forEach(function (b) { b.classList.remove('active'); });
+        }
+      });
+
+      giveBtn.addEventListener('click', function () {
+        if (selectedCents < 500) {
+          errorEl.textContent = 'Minimum gift is $5.';
+          errorEl.hidden = false;
+          return;
+        }
+        errorEl.hidden = true;
+        giveBtn.disabled = true;
+        var label = giveBtn.textContent;
+        giveBtn.textContent = 'Redirecting...';
+
+        fetch('/api/create-checkout', {
+          method: 'POST',
+          credentials: 'same-origin',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            mode: 'payment',
+            amount: selectedCents,
+            campaign: 'provider-directory',
+            entry_referrer: entryReferrer,
+            entry_url: entryUrl,
+          }),
+        })
+          .then(function (r) { return r.json(); })
+          .then(function (data) {
+            if (data.ok && data.url) {
+              window.location.href = data.url;
+            } else {
+              errorEl.textContent = data.error || 'Something went wrong. Please try again.';
+              errorEl.hidden = false;
+              giveBtn.disabled = false;
+              giveBtn.textContent = label;
+            }
+          })
+          .catch(function () {
+            errorEl.textContent = 'Connection error. Please try again.';
+            errorEl.hidden = false;
+            giveBtn.disabled = false;
+            giveBtn.textContent = label;
+          });
+      });
+    })();
+  </script>
 </BaseLayout>
 
 <style>
-  .providers-hero {
-    padding: 3rem 0 2rem;
-    text-align: left;
+  /* Hero */
+  .fund-hero {
+    text-align: center;
+    padding: var(--space-8) 0 var(--space-6);
   }
-  .providers-hero .eyebrow {
+  .fund-eyebrow {
     text-transform: uppercase;
     letter-spacing: 0.08em;
     font-size: 0.8125rem;
     font-weight: 600;
+    color: var(--accent);
+    margin: 0 0 var(--space-3);
+  }
+  .fund-title {
+    margin: 0 0 var(--space-4);
+  }
+  .fund-subhead {
+    font-size: 1.0625rem;
+    line-height: 1.7;
     color: var(--text-secondary);
-    margin: 0 0 0.75rem;
+    max-width: 540px;
+    margin: 0 auto;
   }
-  .providers-hero h1 {
-    margin: 0 0 1rem;
+
+  /* Panel: thermometer + give */
+  .fund-panel {
+    max-width: 560px;
+    margin: 0 auto var(--space-10);
+    padding: var(--space-6);
   }
-  .providers-hero .lead {
-    font-size: 1.125rem;
-    line-height: 1.6;
+
+  /* Thermometer */
+  .fund-thermo {
+    margin-bottom: var(--space-6);
+  }
+  .fund-thermo__head {
+    display: flex;
+    align-items: baseline;
+    gap: var(--space-2);
+    margin-bottom: var(--space-3);
+  }
+  .fund-thermo__raised {
+    font-family: 'Cormorant Garamond', 'Georgia', serif;
+    font-size: 2.25rem;
+    font-weight: 600;
+    line-height: 1;
+    color: var(--accent);
+    font-variant-numeric: tabular-nums;
+  }
+  .fund-thermo__goal {
+    font-size: 0.9375rem;
+    color: var(--text-tertiary);
+  }
+  .fund-thermo__track {
+    height: 14px;
+    background: var(--border-light);
+    border-radius: var(--radius-pill);
+    overflow: hidden;
+  }
+  .fund-thermo__fill {
+    height: 100%;
+    width: 0;
+    background: var(--accent);
+    border-radius: var(--radius-pill);
+    /* one-time fill transition after the live fetch resolves */
+    transition: width 0.6s ease-out;
+  }
+  .fund-thermo__meta {
+    margin: var(--space-3) 0 0;
+    font-size: 0.8125rem;
+    color: var(--text-tertiary);
+  }
+
+  /* Give widget */
+  .fund-amounts {
+    display: flex;
+    gap: var(--space-3);
+    flex-wrap: wrap;
+    justify-content: center;
+    margin-bottom: var(--space-5);
+  }
+  .fund-amount-btn {
+    flex: 1 1 auto;
+    min-width: 72px;
+    padding: 10px 18px;
+    border: 1.5px solid var(--border-color);
+    border-radius: var(--radius-pill);
+    background: var(--bg-surface);
     color: var(--text-primary);
-    margin: 0 0 1rem;
+    font-size: 1rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: border-color 0.15s, background 0.15s, color 0.15s;
   }
-  .providers-signup {
-    padding: 1rem 0 4rem;
+  .fund-amount-btn:hover {
+    border-color: var(--accent);
+    color: var(--accent);
+  }
+  .fund-amount-btn:focus-visible {
+    outline: none;
+    box-shadow: 0 0 0 3px var(--focus-ring);
+  }
+  .fund-amount-btn.active {
+    background: var(--accent);
+    border-color: var(--accent);
+    color: var(--white);
+  }
+
+  .fund-custom {
+    max-width: 260px;
+    margin: 0 auto var(--space-5);
+  }
+  .fund-custom .form-label {
+    display: block;
+    text-align: center;
+    margin-bottom: var(--space-2);
+    font-size: 0.8125rem;
+    font-weight: 500;
+    color: var(--text-secondary);
+  }
+  .fund-custom-wrap {
+    position: relative;
+  }
+  .fund-currency {
+    position: absolute;
+    left: 16px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--text-tertiary);
+    font-weight: 500;
+  }
+  .fund-custom .form-input {
+    width: 100%;
+    padding-left: 32px;
+    box-sizing: border-box;
+    text-align: center;
+  }
+
+  .fund-give-btn {
+    display: block;
+    width: 100%;
+  }
+  .fund-error {
+    color: var(--color-error);
+    font-size: 0.8125rem;
+    text-align: center;
+    margin: var(--space-3) 0 0;
+  }
+  .fund-onetime-note {
+    font-size: 0.8125rem;
+    color: var(--text-tertiary);
+    text-align: center;
+    margin: var(--space-4) 0 0;
+  }
+
+  /* Sections */
+  .fund-section {
+    margin: 0 auto var(--space-10);
+  }
+  .fund-section h2 {
+    font-size: 1.5rem;
+    margin-bottom: var(--space-5);
+  }
+  .fund-section p {
+    font-size: 0.9375rem;
+    line-height: 1.8;
+    color: var(--text-secondary);
+    margin: 0 0 var(--space-4);
+  }
+  .fund-ask {
+    font-size: 1.0625rem !important;
+    line-height: 1.8;
+    color: var(--text-primary) !important;
+    border-left: 3px solid var(--accent);
+    padding-left: var(--space-5);
+    margin: 0 !important;
+  }
+
+  /* Why grid */
+  .fund-why-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: var(--space-4);
+  }
+  .fund-why-card {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-2);
+    padding: var(--space-5);
+  }
+  .fund-why-card h3 {
+    font-size: 1.125rem;
+    margin: 0;
+    color: var(--text-primary);
+  }
+  .fund-why-card p {
+    font-size: 0.875rem;
+    line-height: 1.7;
+    color: var(--text-secondary);
+    margin: 0;
+  }
+
+  /* Patient escape hatch */
+  .fund-patient {
+    background: var(--purple-50, #f4f1f8);
+    border-radius: var(--radius-md);
+    padding: var(--space-5) var(--space-6);
+    margin: 0 auto var(--space-10);
+  }
+  .fund-patient p {
+    font-size: 0.9375rem;
+    line-height: 1.7;
+    color: var(--text-secondary);
+    margin: 0;
+  }
+  .fund-patient a {
+    color: var(--accent);
+    text-decoration: underline;
+  }
+  .fund-patient a:hover {
+    color: var(--accent-hover);
+  }
+
+  /* Donor FAQ */
+  .fund-faq {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-3);
+  }
+  .fund-faq-item {
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-md);
+    padding: var(--space-4) var(--space-5);
+    background: var(--bg-surface);
+  }
+  .fund-faq-item summary {
+    cursor: pointer;
+    font-weight: 600;
+    font-size: 0.9375rem;
+    color: var(--text-primary);
+    list-style: none;
+  }
+  .fund-faq-item summary::-webkit-details-marker {
+    display: none;
+  }
+  .fund-faq-item summary::after {
+    content: '+';
+    float: right;
+    color: var(--accent);
+    font-weight: 600;
+  }
+  .fund-faq-item[open] summary::after {
+    content: '\2013';
+  }
+  .fund-faq-item p {
+    font-size: 0.875rem;
+    line-height: 1.7;
+    color: var(--text-secondary);
+    margin: var(--space-3) 0 0;
+  }
+
+  /* Trust line */
+  .fund-trust {
+    font-size: 0.8125rem;
+    line-height: 1.6;
+    color: var(--text-tertiary);
+    text-align: center;
+    max-width: 480px;
+    margin: 0 auto var(--space-10);
+  }
+
+  /* Responsive */
+  @media (min-width: 640px) {
+    .fund-why-grid {
+      grid-template-columns: repeat(3, 1fr);
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .fund-thermo__fill {
+      transition: none;
+    }
   }
 </style>
