@@ -170,7 +170,7 @@ Worked examples:
   fallback. **Every brand/acronym slug must have an override** - the titlecased fallback
   violates the repo's canonical-names rule (it would render "Neofertility", "Openapi"). Seed:
   `what-is-rrm` -> "What is RRM", `naprotechnology` -> "NaProTechnology", `femm` -> "FEMM",
-  `neofertility` -> "NeoFertility", `faqs` -> "FAQs", `pcos` -> "PCOS", `openapi` -> "OpenAPI",
+  `neofertility` -> "NeoFertility", `faqs` -> "FAQs", `pcos` -> "PCOS",
   `common-questions-about-rrm` -> "Common Questions About RRM",
   `save-the-uterus-club` -> "Save the Uterus Club",
   `endo-survey` -> "Endometriosis Self-Survey",
@@ -307,8 +307,9 @@ Also assert:
 - `bestMatches` returns at most `limit`; results are sorted descending by score; ties break
   deterministically (raw similarity, then length, then lexicographic).
 - `normalize` handles `%`-encoded and uppercase input, and reorders strip-before-decode
-  (`/foo%23bar` normalizes to `foo` not a longer string; `/foo%2Fabout` does not become a
-  spurious match for `/about`).
+  (`/foo%23bar` normalizes to `foo#bar`, i.e. the encoded `#` is kept as a literal slug
+  character rather than truncating the path; `/foo%2Fabout` does not become a spurious
+  match for `/about`).
 - **No excluded page (any name in `PRIVATE_EXCLUDE`) is ever returned by `bestMatches`** for a
   near-miss of its slug (pins invariant 7).
 
@@ -357,7 +358,7 @@ no-op without the matcher).
 | 5 | MED | Section-floor fires for flat depth-1 pages | §4.1 section rule removed (prefix rule covers the real case); #3 excludes the auth/utility ones |
 | 6 | MED | Unit test gates only the auto-merge path | §8 "Test wiring": add `node --test` to `deploy.yml` |
 | 7 | MED | JSON `set:html` omits `</script>`/`<` escape | §4.2 `.replace(/</g, '\\u003c')` + paired close; invariant 4 |
-| 8 | MED | `TITLE_OVERRIDES` drift -> wrong brand titles | §4.2 add `neofertility`/`openapi`; invariant 6 reworded (path vs display) |
+| 8 | MED | `TITLE_OVERRIDES` drift -> wrong brand titles | §4.2 add `neofertility` (openapi is excluded, no override needed); invariant 6 reworded (path vs display) |
 | 9 | LOW | `normalize` decode ordering + decode-failure claim | §4.1 strip-before-decode; §6 row corrected |
 | 10 | LOW | Tie-break by length not relevance | §4.1 tie-break now: raw similarity, then length, then lexicographic |
 | 11 | LOW | Soft-404 depends on undocumented `<title>` coupling | §3 precondition 1 coupling note |
