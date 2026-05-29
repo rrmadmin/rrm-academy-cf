@@ -278,35 +278,20 @@ const definedTermSetSchema = {
         <p class="pillar-lead"><strong>This glossary defines the clinical terms, methods, and conditions used in restorative reproductive medicine (RRM), drawn from peer-reviewed research and active clinical practice, and maintained by RRM Academy for patients and clinicians.</strong></p>
         <details class="glossary-howto">
           <summary>How to use this glossary</summary>
-          <p>Every published term is listed below in one searchable, alphabetical directory. Use the search box to find a term by name or wording, or filter by topic area: <strong>Core RRM principles</strong>, <strong>fertility awareness-based methods (FABMs)</strong> and cycle charting, <strong>clinical approaches</strong> including NaProTechnology, <strong>diagnostic tools</strong> and hormone testing, reproductive <strong>surgical techniques</strong>, key <strong>conditions</strong> such as endometriosis, PCOS, infertility, and recurrent miscarriage, <strong>overlapping disciplines</strong> in endocrinology and reproductive health, and the broader RRM <strong>framework</strong>. Each definition leads with an answer-first summary; tap "Show more" to read the full entry.<sup><a href="#ref-1">1</a></sup></p>
+          <p>Every published term is listed below in one searchable, alphabetical directory. Use the search box to find a term by name or wording, or filter by topic area: <strong>Core RRM principles</strong>, <strong>fertility awareness-based methods (FABMs)</strong> and cycle charting, <strong>clinical approaches</strong> including NaProTechnology, <strong>diagnostic tools</strong> and hormone testing, reproductive <strong>surgical techniques</strong>, key <strong>conditions</strong> such as endometriosis, PCOS, infertility, and recurrent miscarriage, <strong>overlapping disciplines</strong> in endocrinology and reproductive health, and the broader RRM <strong>framework</strong>. Each definition leads with an answer-first summary; open the full entry for the complete definition, references, and related terms.<sup><a href="#ref-1">1</a></sup></p>
         </details>
       </section>
 
-      {/* Always-visible A-Z jump strip (no disclosure / never collapsible).
-          Renders a compact, tappable, horizontally-scrollable letter row.
-          When SHELL_ENABLED, the right rail holds the same nav for DESKTOP, so
-          the `az-index--shell-mobile` modifier hides THIS strip ≥901px (rail
-          covers it) but keeps it visible on mobile, where the rail is
-          display:none. When shell is off, the strip is visible at every
-          viewport. Empty letters dim live via data-az-letter as the client
-          filter runs. */}
-      <nav
-        class:list={['az-index', { 'az-index--shell-mobile': SHELL_ENABLED }]}
-        aria-label="Jump to a letter"
-      >
-        <span class="az-index__label" aria-hidden="true">Jump to</span>
-        <ol class="az-index__letters">
-          {azLetters.map(letter => (
-            <li><a href={`#letter-${letter}`} data-az-letter={letter}>{letter}</a></li>
-          ))}
-        </ol>
-      </nav>
+      {/* Control order (top -> bottom): search box -> A-Z letter strip ->
+          topic pills -> "Showing N of N" count -> list.
 
-      {/* Sticky control bar: search + topic chips + live count.
-          Progressive enhancement — filters operate over the already-rendered
-          DOM (client-side only). No-JS users still get the full crawlable
-          alphabetical directory below. */}
-      <div class="glossary-controls" data-glossary-controls>
+          Sticky container holds ONLY the search box + A-Z letter strip — they
+          pin under the 48px site header on scroll (top: var(--glossary-sticky-top)).
+          The topic pills DELIBERATELY live OUTSIDE this container so they scroll
+          away with the page. Progressive enhancement — filters operate over the
+          already-rendered DOM (client-side only). No-JS users still get the full
+          crawlable alphabetical directory below. */}
+      <div class="glossary-sticky" data-glossary-controls>
         <div class="glossary-search">
           <svg class="search-icon" aria-hidden="true" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
           <input
@@ -319,14 +304,58 @@ const definedTermSetSchema = {
           />
           <button class="search-clear hidden" id="glossary-search-clear" type="button" aria-label="Clear search">✕</button>
         </div>
-        <div class="glossary-chips" role="group" aria-label="Filter glossary by topic area">
+
+        {/* Always-visible A-Z jump strip (no disclosure / never collapsible).
+            Compact, tappable, horizontally-scrollable letter row. When
+            SHELL_ENABLED, the right rail holds the same nav for DESKTOP, so the
+            `az-index--shell-mobile` modifier hides THIS strip >=901px (rail
+            covers it) but keeps it visible on mobile, where the rail is
+            display:none. When shell is off, the strip is visible at every
+            viewport. Empty letters dim live via data-az-letter as the client
+            filter runs. */}
+        <nav
+          class:list={['az-index', { 'az-index--shell-mobile': SHELL_ENABLED }]}
+          aria-label="Jump to a letter"
+        >
+          <span class="az-index__label" aria-hidden="true">Jump to</span>
+          <ol class="az-index__letters">
+            {azLetters.map(letter => (
+              <li><a href={`#letter-${letter}`} data-az-letter={letter}>{letter}</a></li>
+            ))}
+          </ol>
+        </nav>
+      </div>
+
+      {/* Topic pills — NOT sticky (scroll away). Horizontally scrollable; left/
+          right chevron buttons + edge fade gradients reveal the overflow. */}
+      <div class="glossary-pills" data-glossary-pills>
+        <button
+          class="glossary-pills__chevron glossary-pills__chevron--left"
+          type="button"
+          data-pills-scroll="left"
+          aria-label="Scroll topic filters left"
+          hidden
+        >
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.25" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="15 18 9 12 15 6"/></svg>
+        </button>
+        <div class="glossary-pills__scroller" role="group" aria-label="Filter glossary by topic area" data-pills-scroller>
           <button class="sr-chip sr-chip--active" type="button" data-topic="all" aria-pressed="true">All<span class="sr-chip-count">{terms.length}</span></button>
           {PARTS.map(p => (
             <button class="sr-chip" type="button" data-topic={p.topic} aria-pressed="false">{p.topic}<span class="sr-chip-count">{terms.filter(t => t.part === p.part).length}</span></button>
           ))}
         </div>
-        <p class="glossary-count" id="glossary-count" aria-live="polite" data-total={terms.length}>Showing {terms.length} of {terms.length}</p>
+        <button
+          class="glossary-pills__chevron glossary-pills__chevron--right"
+          type="button"
+          data-pills-scroll="right"
+          aria-label="Scroll topic filters right"
+          hidden
+        >
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.25" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="9 18 15 12 9 6"/></svg>
+        </button>
       </div>
+
+      <p class="glossary-count" id="glossary-count" aria-live="polite" data-total={terms.length}>Showing {terms.length} of {terms.length}</p>
 
       <!-- Single-column directory (no sticky internal TOC: the search + chips
            bar above is the navigation). -->
@@ -342,9 +371,12 @@ const definedTermSetSchema = {
 
           {/* Alphabetical directory with build-time letter dividers replacing
               the 8 Part sections. Each term carries data-part / data-topic /
-              data-search so the client filter can hide/show + auto-expand on
-              match. The FULL body stays in the DOM (collapsed via CSS/JS, never
-              removed) for AEO + Pagefind. */}
+              data-search so the client filter can hide/show on match. Each
+              entry renders ONLY its answer-first lead paragraph (leadOnly) plus
+              the "Open full entry ->" link; the full definition lives on the
+              spoke page. data-search still indexes the full body text (built
+              server-side from t.bodyHtml) so search matches words that aren't
+              in the visible lead. */}
           <div class="glossary-list" data-glossary-list>
             {azGroups.map(group => (
               <section class="glossary-letter-group" data-letter-group={group.letter}>
@@ -360,7 +392,7 @@ const definedTermSetSchema = {
                     <span class="glossary-entry__tag" data-topic-tag={PART_TO_TOPIC[t.part]}>
                       <button type="button" class="glossary-entry__tag-btn" data-tag-filter={PART_TO_TOPIC[t.part]} aria-label={`Filter by ${PART_TO_TOPIC[t.part]}`}>{PART_TO_TOPIC[t.part]}</button>
                     </span>
-                    <GlossaryTerm term={t} headingLevel="h3" mode="pillar" />
+                    <GlossaryTerm term={t} headingLevel="h3" mode="pillar" leadOnly />
                   </div>
                 ))}
               </section>
@@ -626,15 +658,26 @@ const definedTermSetSchema = {
     .az-index--shell-mobile { display: none; }
   }
 
-  /* ── Sticky control bar ── */
-  .glossary-controls {
+  /* ── Sticky container: search box + A-Z letter strip ──
+     Pins under the 48px site header on scroll. The topic pills live OUTSIDE
+     this container (below it) so they scroll away. --glossary-sticky-top is the
+     site-header offset; the default Header is `position: sticky; top: 0` with a
+     48px inner bar (Header.astro), so a sticky element below it pins at 48px.
+     (Glossary is shell-OFF in production, so the default Header always applies.) */
+  .glossary-sticky {
+    --glossary-sticky-top: 48px;
     position: sticky;
-    top: 0;
+    top: var(--glossary-sticky-top);
     z-index: 20;
     background: var(--bg-body);
-    padding: var(--space-4) 0 var(--space-3);
-    margin-bottom: var(--space-5);
+    padding: var(--space-3) 0;
+    margin-bottom: var(--space-3);
     border-bottom: 1px solid var(--border-light);
+  }
+  /* The A-Z strip inside the sticky container drops its own top margin so the
+     sticky block stays compact (search input + one letter row). */
+  .glossary-sticky .az-index {
+    margin: var(--space-3) 0 0;
   }
 
   .glossary-search {
@@ -642,7 +685,6 @@ const definedTermSetSchema = {
     display: flex;
     align-items: center;
     width: 100%;
-    margin-bottom: var(--space-3);
   }
   .glossary-search .search-icon {
     position: absolute;
@@ -703,17 +745,87 @@ const definedTermSetSchema = {
   }
   .glossary-search .search-clear.hidden { display: none; }
 
-  /* Topic chip row — horizontally scrollable on mobile, reuses .sr-chip look. */
-  .glossary-chips {
+  /* ── Topic pills row (NOT sticky) ──
+     A horizontally-scrollable pill scroller flanked by chevron buttons, with a
+     soft fade gradient at each scrollable edge. Chevrons + fades reveal/hide
+     via [data-at-start] / [data-at-end] toggled by the client script. */
+  .glossary-pills {
+    position: relative;
+    display: flex;
+    align-items: center;
+    gap: var(--space-1);
+    margin-bottom: var(--space-3);
+  }
+  .glossary-pills__scroller {
     display: flex;
     gap: 6px;
     overflow-x: auto;
     -webkit-overflow-scrolling: touch;
     scrollbar-width: none;
-    padding-bottom: 2px;
+    padding: 2px 0;
+    flex: 1 1 auto;
+    min-width: 0;
+    scroll-behavior: smooth;
   }
-  .glossary-chips::-webkit-scrollbar { display: none; }
-  .glossary-chips .sr-chip {
+  .glossary-pills__scroller::-webkit-scrollbar { display: none; }
+
+  /* Edge fade gradients — sit above the scroller, below the chevrons. Each
+     fades in only when there's overflow in that direction. */
+  .glossary-pills::before,
+  .glossary-pills::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    width: var(--space-8);
+    pointer-events: none;
+    z-index: 1;
+    opacity: 0;
+    transition: opacity 0.18s ease;
+  }
+  .glossary-pills::before {
+    left: 0;
+    background: linear-gradient(to right, var(--bg-body) 20%, transparent);
+  }
+  .glossary-pills::after {
+    right: 0;
+    background: linear-gradient(to left, var(--bg-body) 20%, transparent);
+  }
+  .glossary-pills[data-overflow-left]::before { opacity: 1; }
+  .glossary-pills[data-overflow-right]::after { opacity: 1; }
+
+  /* Chevron scroll buttons — rounded, subtle; accent on hover. Hidden when the
+     scroller is at that edge (toggled via `hidden` by the script). */
+  .glossary-pills__chevron {
+    flex-shrink: 0;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 32px;
+    height: 32px;
+    padding: 0;
+    border: 1px solid var(--border-color);
+    border-radius: 50%;
+    background: var(--bg-surface);
+    color: var(--text-secondary);
+    cursor: pointer;
+    z-index: 2;
+    box-shadow: var(--shadow-sm);
+    transition: color 0.15s, border-color 0.15s, background 0.15s;
+  }
+  .glossary-pills__chevron:hover {
+    color: #fff;
+    background: var(--accent);
+    border-color: var(--accent);
+  }
+  .glossary-pills__chevron:focus-visible {
+    outline: none;
+    box-shadow: 0 0 0 3px var(--focus-ring);
+  }
+  .glossary-pills__chevron[hidden] { display: none; }
+  .glossary-pills__chevron svg { display: block; }
+
+  .glossary-pills .sr-chip {
     flex-shrink: 0;
     display: inline-flex;
     align-items: center;
@@ -730,15 +842,15 @@ const definedTermSetSchema = {
     white-space: nowrap;
     transition: color 0.15s, border-color 0.15s, background 0.15s;
   }
-  .glossary-chips .sr-chip:hover {
+  .glossary-pills .sr-chip:hover {
     color: var(--accent);
     border-color: var(--accent);
   }
-  .glossary-chips .sr-chip:focus-visible {
+  .glossary-pills .sr-chip:focus-visible {
     outline: none;
     box-shadow: 0 0 0 3px var(--focus-ring);
   }
-  .glossary-chips .sr-chip-count {
+  .glossary-pills .sr-chip-count {
     display: inline-flex;
     align-items: center;
     justify-content: center;
@@ -752,22 +864,29 @@ const definedTermSetSchema = {
     border-radius: 8px;
     font-variant-numeric: tabular-nums;
   }
-  .glossary-chips .sr-chip--active {
+  .glossary-pills .sr-chip--active {
     color: #fff;
     background: var(--accent);
     border-color: var(--accent);
   }
-  .glossary-chips .sr-chip--active:hover {
+  .glossary-pills .sr-chip--active:hover {
     color: #fff;
     border-color: var(--accent);
   }
-  .glossary-chips .sr-chip--active .sr-chip-count {
+  .glossary-pills .sr-chip--active .sr-chip-count {
     color: var(--accent);
     background: #fff;
   }
 
+  @media (prefers-reduced-motion: reduce) {
+    .glossary-pills__scroller { scroll-behavior: auto; }
+    .glossary-pills::before,
+    .glossary-pills::after,
+    .glossary-pills__chevron { transition: none; }
+  }
+
   .glossary-count {
-    margin: var(--space-3) 0 0;
+    margin: 0 0 var(--space-5);
     font-size: 0.75rem;
     font-weight: 500;
     color: var(--text-tertiary);
@@ -786,7 +905,7 @@ const definedTermSetSchema = {
   .glossary-part-anchors span {
     display: block;
     height: 0;
-    scroll-margin-top: 140px;
+    scroll-margin-top: 180px;
   }
 
   .glossary-letter-group {
@@ -800,7 +919,7 @@ const definedTermSetSchema = {
     margin: var(--space-8) 0 var(--space-4);
     padding-bottom: var(--space-2);
     border-bottom: 2px solid var(--border-light);
-    scroll-margin-top: 140px;
+    scroll-margin-top: 180px;
   }
   .glossary-letter-group:first-child .glossary-letter {
     margin-top: 0;
@@ -808,7 +927,7 @@ const definedTermSetSchema = {
 
   .glossary-entry {
     margin-bottom: var(--space-8);
-    scroll-margin-top: 140px;
+    scroll-margin-top: 180px;
   }
   /* Topic tag next to the term name (click-to-filter control). */
   .glossary-entry__tag {
@@ -851,44 +970,10 @@ const definedTermSetSchema = {
     margin-top: 0;
   }
 
-  /* ── Clamp / Show-more (JS-enhanced; no-JS shows full body) ──
-     The "is-clamped" class is added by JS only when an entry has more than its
-     first paragraph. Default (no-JS) state shows everything. */
-  .glossary-entry.is-clamped :global(.glossary-clamp-hidden) {
-    display: none;
-  }
-  .glossary-entry.is-expanded :global(.glossary-clamp-hidden) {
-    display: revert;
-  }
-  .glossary-show-more {
-    display: inline-flex;
-    align-items: center;
-    gap: 6px;
-    margin-top: var(--space-2);
-    padding: 6px 14px;
-    font-family: 'Inter', sans-serif;
-    font-size: 0.8125rem;
-    font-weight: 500;
-    color: var(--accent);
-    background: transparent;
-    border: 1px solid var(--border-color);
-    border-radius: var(--radius-pill);
-    cursor: pointer;
-    transition: color 0.15s, border-color 0.15s, background 0.15s;
-  }
-  .glossary-show-more:hover {
-    border-color: var(--accent);
-    background: var(--purple-50);
-  }
-  .glossary-show-more:focus-visible {
-    outline: none;
-    box-shadow: 0 0 0 3px var(--focus-ring);
-  }
-  .glossary-show-more__chevron {
-    transition: transform 0.2s ease;
-  }
-  .glossary-entry.is-expanded .glossary-show-more__chevron {
-    transform: rotate(180deg);
+  /* Spoke-link "Open full entry ->" sits right under the lead paragraph now that
+     the index is lead-only. */
+  .glossary-entry :global(.term-spoke-link) {
+    margin-top: var(--space-3);
   }
 
   .glossary-no-matches {
@@ -971,9 +1056,6 @@ const definedTermSetSchema = {
     }
   }
 
-  @media (prefers-reduced-motion: reduce) {
-    .glossary-show-more__chevron { transition: none; }
-  }
 </style>
 
 <script>
@@ -981,15 +1063,15 @@ const definedTermSetSchema = {
   // Glossary directory client enhancement. Operates ENTIRELY over the
   // already-rendered DOM — never re-fetches or re-renders the term list.
   //
-  //  1. Clamp: every entry with more than its first <p> block gets collapsed to
-  //     its first paragraph + a "Show more" disclosure. Single-paragraph terms
-  //     are left fully visible. The full body always stays in the DOM (display
-  //     toggled, never removed) for AEO + Pagefind.
-  //  2. Search: hides entries whose data-search haystack doesn't contain the
-  //     query; auto-expands a clamped entry when the match is in the hidden part.
-  //  3. Topic chips + tag buttons: set the active topic; non-matching entries
-  //     hide. Search + topic compose (AND).
-  //  4. Empty letter dividers hide; A-Z jump letters dim.
+  //  1. Search: hides entries whose data-search haystack doesn't contain the
+  //     query. data-search indexes the FULL body text (server-stamped), so a
+  //     match can hit words not visible in the lead-only card — that's fine; the
+  //     visitor opens the full entry to see them.
+  //  2. Topic pills + per-term tag buttons: set the active topic; non-matching
+  //     entries hide. Search + topic compose (AND).
+  //  3. Empty letter dividers hide; A-Z jump letters dim.
+  //  4. Topic-pill row: chevron scroll buttons + edge fade gradients reveal the
+  //     horizontal overflow; they hide at each respective scroll extreme.
   (function () {
     var list = document.querySelector('[data-glossary-list]');
     if (!list) return;
@@ -998,7 +1080,7 @@ const definedTermSetSchema = {
     var countEl = document.getElementById('glossary-count');
     var noMatchEl = document.getElementById('glossary-no-matches');
     var resetLink = document.getElementById('glossary-reset');
-    var chips = Array.prototype.slice.call(document.querySelectorAll('.glossary-chips .sr-chip'));
+    var chips = Array.prototype.slice.call(document.querySelectorAll('.glossary-pills .sr-chip'));
     var azLetterLinks = Array.prototype.slice.call(document.querySelectorAll('[data-az-letter]'));
     var groups = Array.prototype.slice.call(document.querySelectorAll('.glossary-letter-group'));
     var entries = Array.prototype.slice.call(document.querySelectorAll('[data-glossary-entry]'));
@@ -1006,81 +1088,6 @@ const definedTermSetSchema = {
 
     var activeTopic = 'all';
     var query = '';
-
-    // ── Clamp setup ──
-    // The GlossaryTerm body renders as sibling blocks after the
-    // .glossary-term__header (and after a possible <slot name="post-heading">,
-    // which the pillar doesn't use). We collapse every block AFTER the first
-    // <p>/<ul>/<ol> content block up to (but not including) the
-    // .term-spoke-link paragraph, which must always stay visible.
-    function clampEntry(entry) {
-      var header = entry.querySelector('.glossary-term__header');
-      if (!header) return;
-      // Walk forward from the header to collect body blocks.
-      var node = header.nextElementSibling;
-      var blocks = [];
-      while (node) {
-        if (node.classList && node.classList.contains('term-spoke-link')) break;
-        blocks.push(node);
-        node = node.nextElementSibling;
-      }
-      if (blocks.length <= 1) return; // first paragraph only — nothing to clamp
-      // Hide every block after the first.
-      var spokeLink = entry.querySelector('.term-spoke-link');
-      for (var i = 1; i < blocks.length; i++) {
-        blocks[i].classList.add('glossary-clamp-hidden');
-      }
-      entry.classList.add('is-clamped');
-
-      // Build the Show-more button. Inserted right before the spoke link (or
-      // appended) so it reads as the disclosure control for the collapsed body.
-      var btn = document.createElement('button');
-      btn.type = 'button';
-      btn.className = 'glossary-show-more';
-      btn.setAttribute('aria-expanded', 'false');
-      var labelSpan = document.createElement('span');
-      labelSpan.className = 'glossary-show-more__label';
-      labelSpan.textContent = 'Show more';
-      var chev = document.createElement('span');
-      chev.className = 'glossary-show-more__chevron';
-      chev.setAttribute('aria-hidden', 'true');
-      chev.textContent = '▾';
-      btn.appendChild(labelSpan);
-      btn.appendChild(chev);
-      btn.addEventListener('click', function () {
-        var expanded = entry.classList.toggle('is-expanded');
-        entry.classList.toggle('is-clamped', !expanded);
-        btn.setAttribute('aria-expanded', expanded ? 'true' : 'false');
-        labelSpan.textContent = expanded ? 'Show less' : 'Show more';
-      });
-      entry._glossaryShowMore = btn;
-      entry._glossaryClampable = true;
-      if (spokeLink) spokeLink.parentNode.insertBefore(btn, spokeLink);
-      else entry.appendChild(btn);
-    }
-
-    entries.forEach(clampEntry);
-
-    function expandEntry(entry) {
-      if (!entry._glossaryClampable) return;
-      entry.classList.add('is-expanded');
-      entry.classList.remove('is-clamped');
-      if (entry._glossaryShowMore) {
-        entry._glossaryShowMore.setAttribute('aria-expanded', 'true');
-        var lbl = entry._glossaryShowMore.querySelector('.glossary-show-more__label');
-        if (lbl) lbl.textContent = 'Show less';
-      }
-    }
-    function recollapseEntry(entry) {
-      if (!entry._glossaryClampable) return;
-      entry.classList.remove('is-expanded');
-      entry.classList.add('is-clamped');
-      if (entry._glossaryShowMore) {
-        entry._glossaryShowMore.setAttribute('aria-expanded', 'false');
-        var lbl = entry._glossaryShowMore.querySelector('.glossary-show-more__label');
-        if (lbl) lbl.textContent = 'Show more';
-      }
-    }
 
     // ── Filtering ──
     function applyFilters() {
@@ -1100,13 +1107,6 @@ const definedTermSetSchema = {
           shown++;
           var grp = entry.closest('.glossary-letter-group');
           if (grp) letterHasVisible[grp.getAttribute('data-letter-group')] = true;
-          // Auto-expand a clamped entry when the match is inside its hidden body
-          // (not just the first paragraph / name). Recollapse when query clears.
-          if (q && entry._glossaryClampable) {
-            expandEntry(entry);
-          } else if (!q && entry._glossaryClampable) {
-            recollapseEntry(entry);
-          }
         }
       }
 
@@ -1144,7 +1144,7 @@ const definedTermSetSchema = {
       input.focus();
     });
 
-    // ── Topic chip wiring ──
+    // ── Topic pill wiring ──
     function setTopic(topic) {
       activeTopic = topic;
       for (var i = 0; i < chips.length; i++) {
@@ -1159,7 +1159,8 @@ const definedTermSetSchema = {
         setTopic(chip.getAttribute('data-topic'));
       });
     });
-    // Per-term tag buttons act as topic filters too.
+    // Per-term tag buttons act as topic filters too. Scroll the sticky controls
+    // back into view so the active filter is visible after the jump.
     document.querySelectorAll('[data-tag-filter]').forEach(function (tagBtn) {
       tagBtn.addEventListener('click', function () {
         setTopic(tagBtn.getAttribute('data-tag-filter'));
@@ -1175,6 +1176,42 @@ const definedTermSetSchema = {
       if (clearBtn) clearBtn.classList.add('hidden');
       setTopic('all');
     });
+
+    // ── Topic-pill horizontal scroll affordance (chevrons + edge fades) ──
+    (function () {
+      var pills = document.querySelector('[data-glossary-pills]');
+      var scroller = document.querySelector('[data-pills-scroller]');
+      if (!pills || !scroller) return;
+      var btnLeft = pills.querySelector('[data-pills-scroll="left"]');
+      var btnRight = pills.querySelector('[data-pills-scroll="right"]');
+
+      function updateAffordance() {
+        // 1px slack so sub-pixel rounding doesn't strand a chevron.
+        var maxScroll = scroller.scrollWidth - scroller.clientWidth;
+        var atStart = scroller.scrollLeft <= 1;
+        var atEnd = scroller.scrollLeft >= maxScroll - 1;
+        var hasOverflow = maxScroll > 1;
+        if (btnLeft) btnLeft.hidden = !hasOverflow || atStart;
+        if (btnRight) btnRight.hidden = !hasOverflow || atEnd;
+        if (hasOverflow && !atStart) pills.setAttribute('data-overflow-left', '');
+        else pills.removeAttribute('data-overflow-left');
+        if (hasOverflow && !atEnd) pills.setAttribute('data-overflow-right', '');
+        else pills.removeAttribute('data-overflow-right');
+      }
+
+      function scrollByStep(dir) {
+        var step = Math.max(120, Math.round(scroller.clientWidth * 0.7));
+        scroller.scrollBy({ left: dir * step, behavior: 'smooth' });
+      }
+      if (btnLeft) btnLeft.addEventListener('click', function () { scrollByStep(-1); });
+      if (btnRight) btnRight.addEventListener('click', function () { scrollByStep(1); });
+
+      scroller.addEventListener('scroll', updateAffordance, { passive: true });
+      window.addEventListener('resize', updateAffordance);
+      // Re-measure after fonts settle (pill widths shift on font load).
+      if (document.fonts && document.fonts.ready) document.fonts.ready.then(updateAffordance);
+      updateAffordance();
+    })();
 
     // Apply once on load (no-op unless a value was prefilled).
     applyFilters();

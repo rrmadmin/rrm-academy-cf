@@ -47,6 +47,15 @@ interface Props {
   /** "spoke" rewrites href="#xxx" to absolute URLs; "pillar" leaves anchors as-is. */
   mode: 'pillar' | 'spoke';
   /**
+   * Pillar/index-only. When true, render ONLY the term's first top-level body
+   * block (the answer-first AEO lead paragraph) instead of the full body, and
+   * suppress the inline cited-refs / authoritative-sources sections. The full
+   * definition lives only on the spoke page (`/glossary/<slug>/`). The
+   * "Open full entry ->" link still renders so the lead is a self-contained
+   * citable card. No effect in spoke mode.
+   */
+  leadOnly?: boolean;
+  /**
    * On spoke pages that render their own per-term references list (Sources
    * block), pass true so href="#ref-N" stays as a same-page jump instead of
    * being rewritten to the pillar's master ref list at /glossary/#ref-N.
@@ -62,7 +71,37 @@ interface Props {
   knownSlugs?: Set<string>;
 }
 
-const { term, headingLevel, mode, keepLocalRefAnchors = false, includeCitedReferences = false, knownSlugs } = Astro.props;
+const { term, headingLevel, mode, keepLocalRefAnchors = false, includeCitedReferences = false, knownSlugs, leadOnly = false } = Astro.props;
+
+// leadOnly extraction (pillar/index card view). Returns the first top-level
+// HTML block of the body — the answer-first lead paragraph — by walking the
+// markup with a tag-depth counter so nested inline tags (<a>, <sup>, <strong>)
+// never short-circuit the close. Falls back to the whole body if no clean
+// top-level element boundary is found (defensive — every published term opens
+// with a single top-level block today). Self-closing/void tags can't be a lead
+// block in this corpus, so they're not special-cased.
+function firstTopLevelBlock(html: string): string {
+  const trimmed = html.trimStart();
+  const open = trimmed.match(/^<([a-zA-Z][\w-]*)\b[^>]*>/);
+  if (!open) return trimmed; // no leading element — return as-is
+  const tag = open[1].toLowerCase();
+  const tagRe = new RegExp(`<(/?)${tag}\\b[^>]*?(/?)>`, 'gi');
+  tagRe.lastIndex = open[0].length;
+  let depth = 1;
+  let m: RegExpExecArray | null;
+  while ((m = tagRe.exec(trimmed)) !== null) {
+    const isClose = m[1] === '/';
+    const isSelfClose = m[2] === '/';
+    if (isSelfClose) continue;
+    if (isClose) {
+      depth--;
+      if (depth === 0) return trimmed.slice(0, tagRe.lastIndex);
+    } else {
+      depth++;
+    }
+  }
+  return trimmed; // unbalanced — defensive fallback
+}
 
 // Cross-ref rewrite for spoke pages.
 //   #ref-N                       -> /glossary/#ref-N         (jump back to pillar's references list,
@@ -155,9 +194,14 @@ const localRefMap = useLocalRefs
         .map((globalNum, i) => [globalNum, i + 1])
     )
   : new Map<number, number>();
-const renderedBody = useLocalRefs
+const renderedBodyFull = useLocalRefs
   ? applyLocalRefNumbers(renderedBodyAfterCrossLinks, localRefMap)
   : renderedBodyAfterCrossLinks;
+// Pillar index card: collapse to the lead block only. Spokes always render the
+// full body. leadOnly is ignored in spoke mode.
+const renderedBody = leadOnly && mode === 'pillar'
+  ? firstTopLevelBlock(renderedBodyFull)
+  : renderedBodyFull;
 const HeadingTag = headingLevel;
 
 // PROOF GATES for definition sources (enforced at render time):
