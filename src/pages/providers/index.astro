@@ -1,711 +1,81 @@
 ---
 import BaseLayout from '../../layouts/BaseLayout.astro';
-import ProviderCard from '../../components/ProviderCard.astro';
-import {
-  getAllProviders,
-  buildFacets,
-  COLLECTION_METHODS,
-  statesWithProviders,
-  methodLabel,
-} from '../../lib/providers';
+import NewsletterSignup from '../../components/NewsletterSignup.astro';
 
-const providers = getAllProviders();
-const facets = buildFacets();
-const states = statesWithProviders();
-
-const PER_PAGE = 24;
-const firstPage = providers.slice(0, PER_PAGE);
-const totalPages = Math.ceil(facets.total / PER_PAGE);
-
+const pageTitle = 'RRM Providers';
+const pageDescription = 'A coming directory of clinicians who practice restorative reproductive medicine. Be the first to know when it launches.';
 const canonical = 'https://rrmacademy.org/providers/';
-const pageTitle = 'Find a Restorative Reproductive Medicine Provider | RRM Academy';
-const pageDescription =
-  `A method-agnostic directory of ${facets.total.toLocaleString()} fertility-awareness and restorative reproductive medicine practitioners, unified from public method-specific sources. Browse by method, state, or telehealth availability.`;
-
-// FAQ content (AEO). Concise, restorative-framed, no over-promising.
-const faqs = [
-  {
-    q: 'How do I find a NaProTechnology doctor near me?',
-    a: 'Use the search box above or open the NaProTechnology collection to see every NaProTechnology-trained provider in this directory, then filter by your state. You can also browse by state to see all restorative reproductive medicine providers located near you, including those who offer telehealth consultations across state lines.',
-  },
-  {
-    q: 'What is the difference between NaProTechnology and IVF?',
-    a: 'NaProTechnology is a restorative approach that works to diagnose and treat the underlying causes of infertility or reproductive health problems, so that conception can occur naturally. IVF bypasses those underlying causes by fertilizing eggs in a laboratory. The providers in this directory practice restorative methods that aim to identify and correct the root cause rather than circumvent it.',
-  },
-  {
-    q: 'Is fertility-awareness-based care covered by insurance?',
-    a: 'Coverage varies by plan, provider, and the specific service. Some medical visits and diagnostic work-ups with restorative reproductive medicine physicians may be billed to insurance, while method instruction is often paid out of pocket. Contact the individual provider to confirm what they accept and what your plan covers.',
-  },
-];
 
 const jsonLd = {
   '@context': 'https://schema.org',
-  '@graph': [
-    {
-      '@type': 'WebSite',
-      '@id': 'https://rrmacademy.org/#website',
-      url: 'https://rrmacademy.org/',
-      name: 'RRM Academy',
-      potentialAction: {
-        '@type': 'SearchAction',
-        target: {
-          '@type': 'EntryPoint',
-          urlTemplate: 'https://rrmacademy.org/providers/?q={search_term_string}',
-        },
-        'query-input': 'required name=search_term_string',
-      },
-    },
-    {
-      '@type': 'ItemList',
-      '@id': `${canonical}#providers`,
-      name: 'Restorative Reproductive Medicine Providers',
-      numberOfItems: facets.total,
-      itemListElement: firstPage.map((p, i) => ({
-        '@type': 'ListItem',
-        position: i + 1,
-        url: `https://rrmacademy.org/providers/${p.slug}/`,
-        name: p.displayName,
-      })),
-    },
-    {
-      '@type': 'BreadcrumbList',
-      '@id': `${canonical}#breadcrumb`,
-      itemListElement: [
-        { '@type': 'ListItem', position: 1, name: 'Home', item: 'https://rrmacademy.org/' },
-        { '@type': 'ListItem', position: 2, name: 'Providers', item: canonical },
-      ],
-    },
-    {
-      '@type': 'FAQPage',
-      '@id': `${canonical}#faq`,
-      mainEntity: faqs.map((f) => ({
-        '@type': 'Question',
-        name: f.q,
-        acceptedAnswer: { '@type': 'Answer', text: f.a },
-      })),
-    },
-  ],
+  '@type': 'WebPage',
+  name: pageTitle,
+  description: pageDescription,
+  url: canonical,
+  isPartOf: {
+    '@type': 'WebSite',
+    '@id': 'https://rrmacademy.org/#website',
+    name: 'RRM Academy',
+    url: 'https://rrmacademy.org/',
+  },
 };
 ---
 <BaseLayout
-  bodyClass="page-providers"
-  title={pageTitle}
+  title={`${pageTitle} | RRM Academy`}
   description={pageDescription}
   canonicalUrl={canonical}
   jsonLd={jsonLd}
-  noindex={false}
+  noindex={true}
 >
-  <section class="prov-hero" data-pagefind-ignore="all">
-    <div class="container">
-      <h1>Find a Restorative Reproductive Medicine Provider</h1>
-      <p class="prov-hero__intro">
-        A directory of restorative reproductive medicine and fertility-awareness providers across every major method, in one searchable place.
-      </p>
-
-      <p class="prov-counts tabular">
-        {facets.total.toLocaleString()} providers
-        <span aria-hidden="true">&middot;</span>
-        {facets.telehealthCount.toLocaleString()} offer telehealth
-        <span aria-hidden="true">&middot;</span>
-        {facets.methods.length} methods covered
-      </p>
-
-      <div class="prov-search">
-        <div class="prov-search__box">
-          <svg class="prov-search__icon" aria-hidden="true" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
-          <input
-            type="search"
-            class="prov-search__input"
-            id="prov-search-input"
-            placeholder="Search by name, city, method, or state"
-            autocomplete="off"
-            aria-label="Search providers"
-            aria-controls="prov-search-results"
-            aria-expanded="false"
-          />
-          <button class="prov-search__clear hidden" id="prov-search-clear" type="button" aria-label="Clear search">&#10005;</button>
-          <div class="prov-search__results" id="prov-search-results" role="listbox" aria-label="Provider search results"></div>
-        </div>
-      </div>
-
-      <div class="prov-chips" aria-label="Filter providers">
-        <a href="/providers/telehealth/" class="prov-chip prov-chip--tele" title={`${facets.telehealthCount.toLocaleString()} providers offer virtual consultations, often across state lines.`}>
-          <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2" ry="2"/></svg>
-          Telehealth
-        </a>
-        {COLLECTION_METHODS.map((m) => (
-          <a href={`/providers/method/${m}/`} class="prov-chip">{methodLabel(m)}</a>
-        ))}
-        <a href="#by-state" class="prov-chip prov-chip--ghost">Browse by state &darr;</a>
-      </div>
-    </div>
-  </section>
-
-  <section class="prov-results" aria-labelledby="prov-results-heading">
-    <div class="container">
-      <header class="prov-section-head">
-        <h2 id="prov-results-heading" class="prov-section-label">Browse providers</h2>
-        <a href="/providers/page/2/" class="prov-link-arrow">See all {facets.total.toLocaleString()} providers &rarr;</a>
-      </header>
-
-      <div class="prov-grid" data-pagefind-ignore="all">
-        {firstPage.map((p) => <ProviderCard provider={p} />)}
-      </div>
-
-      {totalPages > 1 && (
-        <nav class="prov-pager" aria-label="Provider pagination">
-          <span class="prov-pager__status tabular">Page 1 of {totalPages}</span>
-          <a href="/providers/page/2/" class="prov-pager__next">Next &raquo;</a>
-        </nav>
-      )}
-    </div>
-  </section>
-
-  <section class="prov-section prov-section--alt" data-pagefind-ignore="all" aria-labelledby="prov-method-heading">
-    <div class="container">
-      <header class="prov-section-head">
-        <h2 id="prov-method-heading" class="prov-section-label">Browse by method</h2>
-      </header>
-      <ul class="prov-tile-grid" role="list">
-        {COLLECTION_METHODS.map((m) => (
-          <li>
-            <a href={`/providers/method/${m}/`} class="prov-tile">
-              <span class="prov-tile__name">{methodLabel(m)}</span>
-              <span class="prov-tile__cta" aria-hidden="true">View &rarr;</span>
-            </a>
-          </li>
-        ))}
-      </ul>
-    </div>
-  </section>
-
-  <section id="by-state" class="prov-section" data-pagefind-ignore="all" aria-labelledby="prov-state-heading">
-    <div class="container">
-      <header class="prov-section-head">
-        <h2 id="prov-state-heading" class="prov-section-label">Browse by state</h2>
-      </header>
-      <ul class="prov-tile-grid prov-tile-grid--states" role="list">
-        {states.map((s) => (
-          <li>
-            <a href={`/providers/state/${s.code}/`} class="prov-tile prov-tile--state">
-              <span class="prov-tile__name">{s.name}</span>
-              <span class="prov-tile__count tabular">{s.count.toLocaleString()}</span>
-            </a>
-          </li>
-        ))}
-      </ul>
-    </div>
-  </section>
-
-  <section class="prov-section prov-section--alt" data-pagefind-ignore="all" aria-labelledby="prov-faq-heading">
+  <div class="page-wrapper">
     <div class="container container--narrow">
-      <h2 id="prov-faq-heading" class="prov-faq-heading">Frequently asked questions</h2>
-      <div class="prov-faq">
-        {faqs.map((f) => (
-          <details class="prov-faq__item">
-            <summary class="prov-faq__q">{f.q}</summary>
-            <p class="prov-faq__a">{f.a}</p>
-          </details>
-        ))}
-      </div>
-    </div>
-  </section>
+      <header class="providers-hero">
+        <p class="eyebrow">Coming soon</p>
+        <h1>RRM Providers</h1>
+        <p class="lead">
+          A directory of clinicians trained in restorative reproductive medicine,
+          searchable by location, specialty, and the conditions they treat. We
+          are building this now.
+        </p>
+        <p>
+          While the directory is in development, the curated path to finding a
+          provider lives at <a href="/what-is-rrm/#get-started">/what-is-rrm/#get-started</a>.
+        </p>
+      </header>
 
-  <section id="methodology" class="prov-section" data-pagefind-ignore="all">
-    <div class="container container--narrow">
-      <div class="prov-footer-cta">
-        <a href="/providers/claim/" class="prov-footer-cta__link">Is this your listing? Update it &rarr;</a>
-        <a href="/partners/" class="prov-footer-cta__link">Become an educational partner &rarr;</a>
-        <a href="#methodology" class="prov-footer-cta__link">How this directory is built &rarr;</a>
-      </div>
-      <p class="prov-methodology">
-        This directory is compiled from publicly available method-specific and certifying-body
-        directories, then unified into a single method-agnostic listing. Records are
-        cross-referenced against multiple public sources where possible, and each card shows how
-        many sources confirm the listing and when it was last verified. Listings are informational
-        and do not constitute an endorsement. Providers can request a correction or update through
-        the claim link above.
-      </p>
+      <section class="providers-signup">
+        <NewsletterSignup
+          heading="Get notified when it launches"
+          subtext="Drop your email and we will send you one note the day the RRM Providers directory goes live. No other messages."
+        />
+      </section>
     </div>
-  </section>
+  </div>
 </BaseLayout>
 
-<script>
-// @ts-nocheck
-// Provider-scoped Pagefind search. Mirrors the SearchBar.astro init style
-// (runtime-computed module path, blob-URL fallback for MIME-stripping
-// browsers, single shared promise). Results are scoped to provider detail
-// pages via the content_type filter so only /providers/<slug>/ pages appear.
-(function () {
-  var input = document.getElementById('prov-search-input');
-  var clearBtn = document.getElementById('prov-search-clear');
-  var resultsEl = document.getElementById('prov-search-results');
-  if (!input || !resultsEl) return;
-
-  var pagefindReady = null;
-  var debounceTimer = null;
-  var currentQuery = '';
-
-  function ensurePagefind() {
-    if (!pagefindReady) {
-      var pfModulePath = '/' + 'pagefind/pagefind.js';
-      pagefindReady = import(/* @vite-ignore */ pfModulePath)
-        .catch(function () {
-          return fetch('/pagefind/pagefind.js')
-            .then(function (r) { return r.text(); })
-            .then(function (js) {
-              var blob = new Blob([js], { type: 'application/javascript' });
-              return import(URL.createObjectURL(blob));
-            });
-        })
-        .then(function (pf) {
-          return pf
-            .options({ basePath: '/pagefind/' })
-            .then(function () { return pf.init(); })
-            .then(function () { return pf; });
-        })
-        .catch(function (err) {
-          pagefindReady = null;
-          throw err;
-        });
-    }
-    return pagefindReady;
-  }
-
-  function escHtml(s) {
-    var d = document.createElement('div');
-    d.textContent = s == null ? '' : String(s);
-    return d.innerHTML;
-  }
-
-  function clearResults() {
-    resultsEl.innerHTML = '';
-    input.setAttribute('aria-expanded', 'false');
-  }
-
-  function onInput() {
-    var q = input.value.trim();
-    clearBtn.classList.toggle('hidden', !q);
-    clearTimeout(debounceTimer);
-    if (!q) {
-      currentQuery = '';
-      clearResults();
-      return;
-    }
-    currentQuery = q;
-    debounceTimer = setTimeout(function () { doSearch(q); }, 150);
-  }
-
-  async function doSearch(query) {
-    resultsEl.innerHTML = '<p class="prov-sr-loading">Searching…</p>';
-    input.setAttribute('aria-expanded', 'true');
-    try {
-      var pf = await ensurePagefind();
-      // Scope to provider detail pages only.
-      var search = await pf.search(query, { filters: { content_type: 'provider' } });
-      if (query !== currentQuery) return;
-      var top = search.results.slice(0, 12);
-      var loaded = (await Promise.all(
-        top.map(function (r) { return r.data().catch(function () { return null; }); })
-      )).filter(Boolean);
-      if (query !== currentQuery) return;
-      renderResults(loaded);
-    } catch (e) {
-      if (query !== currentQuery) return;
-      resultsEl.innerHTML = '<p class="prov-sr-empty">Search is unavailable right now.</p>';
-      input.setAttribute('aria-expanded', 'true');
-    }
-  }
-
-  function renderResults(items) {
-    resultsEl.innerHTML = '';
-    if (!items.length) {
-      resultsEl.innerHTML =
-        '<p class="prov-sr-empty">No providers found for "' + escHtml(currentQuery) + '".</p>';
-      input.setAttribute('aria-expanded', 'true');
-      return;
-    }
-    input.setAttribute('aria-expanded', 'true');
-    var count = document.createElement('p');
-    count.className = 'prov-sr-count';
-    count.textContent = items.length + (items.length === 1 ? ' provider' : ' providers');
-    resultsEl.appendChild(count);
-
-    for (var i = 0; i < items.length; i++) {
-      var d = items[i];
-      var a = document.createElement('a');
-      a.className = 'prov-sr-item';
-      a.href = d.url;
-      a.setAttribute('role', 'option');
-
-      var h = document.createElement('span');
-      h.className = 'prov-sr-title';
-      h.textContent = (d.meta && d.meta.title) ? d.meta.title : 'Provider';
-      a.appendChild(h);
-
-      var ex = (d.excerpt || '').replace(/<\/?mark>/g, '');
-      if (ex) {
-        var p = document.createElement('span');
-        p.className = 'prov-sr-excerpt';
-        p.textContent = ex;
-        a.appendChild(p);
-      }
-      resultsEl.appendChild(a);
-    }
-  }
-
-  clearBtn.addEventListener('click', function () {
-    clearTimeout(debounceTimer);
-    input.value = '';
-    currentQuery = '';
-    clearBtn.classList.add('hidden');
-    clearResults();
-    input.focus();
-  });
-
-  input.addEventListener('input', onInput);
-  // Warm Pagefind on first keystroke (not focus) so audit tools don't pull it
-  // onto the LCP critical path.
-  input.addEventListener('input', function () { ensurePagefind().catch(function () {}); }, { once: true });
-
-  // Honor ?q= deep link so the WebSite SearchAction target works.
-  var params = new URLSearchParams(window.location.search);
-  var urlQ = params.get('q');
-  if (urlQ) {
-    input.value = urlQ;
-    currentQuery = urlQ;
-    clearBtn.classList.remove('hidden');
-    setTimeout(function () { doSearch(urlQ); }, 100);
-  }
-})();
-</script>
-
 <style>
-  .prov-hero {
-    padding: var(--space-12) 0 var(--space-8);
-  }
-  .prov-hero h1 {
-    line-height: 1.1;
-    letter-spacing: -0.02em;
-    margin: 0 0 var(--space-4);
-  }
-  .prov-hero__intro {
-    max-width: 64ch;
-    margin: 0 0 var(--space-5);
-    color: var(--text-secondary);
-    font-size: 1.0625rem;
-    line-height: 1.6;
-  }
-  .prov-counts {
-    margin: 0 0 var(--space-6);
-    font-size: 0.9375rem;
-    font-weight: 500;
-    color: var(--text-primary);
-    font-variant-numeric: tabular-nums;
-  }
-  .prov-counts span { color: var(--text-muted); margin: 0 var(--space-1); }
-
-
-  /* Search */
-  .prov-search { max-width: 620px; margin-bottom: var(--space-5); }
-  .prov-search__box { position: relative; display: flex; align-items: center; width: 100%; }
-  .prov-search__icon { position: absolute; left: 14px; color: var(--text-muted); pointer-events: none; }
-  .prov-search__input {
-    width: 100%;
-    padding: 12px 40px 12px 42px;
-    font-size: 16px;
-    font-family: 'Inter', sans-serif;
-    border: 1px solid var(--border-light);
-    border-radius: var(--radius-pill);
-    outline: none;
-    background: var(--bg-surface);
-    color: var(--text-primary);
-    box-shadow: var(--shadow-sm);
-    transition: border-color 0.15s, box-shadow 0.15s;
-  }
-  .prov-search__input:focus {
-    border-color: var(--accent);
-    box-shadow: 0 0 0 3px var(--focus-ring);
-  }
-  .prov-search__input::placeholder { color: var(--text-muted); }
-  .prov-search__input::-webkit-search-cancel-button { -webkit-appearance: none; display: none; }
-  .prov-search__clear {
-    position: absolute;
-    right: 12px;
-    width: 24px;
-    height: 24px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    border: none;
-    background: transparent;
-    color: var(--text-tertiary);
-    font-size: 13px;
-    cursor: pointer;
-    border-radius: var(--radius-pill);
-  }
-  .prov-search__clear:hover { color: var(--text-primary); background: var(--border-light); }
-  .prov-search__clear.hidden { display: none; }
-
-  .prov-search__results {
-    position: absolute;
-    top: calc(100% + 6px);
-    left: 0;
-    right: 0;
+  .providers-hero {
+    padding: 3rem 0 2rem;
     text-align: left;
-    padding: 0 var(--space-4) var(--space-3);
-    background: var(--bg-surface);
-    border: 1px solid var(--border-color);
-    border-radius: var(--radius-md);
-    max-height: 60vh;
-    overflow-y: auto;
-    box-shadow: var(--shadow-md);
-    z-index: 20;
   }
-  .prov-search__results:empty { display: none; }
-  .prov-sr-count {
-    font-size: 0.75rem;
-    font-weight: 500;
-    color: var(--text-tertiary);
-    text-transform: uppercase;
-    letter-spacing: 0.04em;
-    padding: var(--space-3) 0 var(--space-1);
-    margin: 0;
-  }
-  .prov-sr-loading, .prov-sr-empty {
-    font-size: 0.875rem;
-    color: var(--text-tertiary);
-    padding: var(--space-4) 0;
-    margin: 0;
-  }
-  .prov-sr-item {
-    display: flex;
-    flex-direction: column;
-    gap: 2px;
-    padding: var(--space-3) 0;
-    border-top: 1px solid var(--border-light);
-    text-decoration: none;
-  }
-  .prov-sr-item:hover { text-decoration: none; }
-  .prov-sr-title {
-    font-family: 'Cormorant Garamond', 'Georgia', serif;
-    font-size: 1.0625rem;
-    font-weight: 600;
-    color: var(--text-primary);
-    line-height: 1.25;
-  }
-  .prov-sr-item:hover .prov-sr-title { color: var(--accent); }
-  .prov-sr-excerpt {
-    font-size: 0.8125rem;
-    line-height: 1.5;
-    color: var(--text-secondary);
-    display: -webkit-box;
-    -webkit-line-clamp: 2;
-    -webkit-box-orient: vertical;
-    overflow: hidden;
-  }
-
-  /* Filter chips */
-  .prov-chips { display: flex; flex-wrap: wrap; gap: var(--space-2); }
-  .prov-chip {
-    display: inline-flex;
-    align-items: center;
-    gap: 5px;
-    padding: 6px 14px;
-    font-size: 0.8125rem;
-    font-weight: 500;
-    color: var(--text-secondary);
-    background: var(--bg-surface);
-    border: 1px solid var(--border-color);
-    border-radius: var(--radius-pill);
-    text-decoration: none;
-    transition: border-color 0.15s, color 0.15s, background-color 0.15s;
-  }
-  .prov-chip:hover {
-    border-color: var(--accent);
-    color: var(--text-primary);
-    background: var(--purple-50);
-    text-decoration: none;
-  }
-  .prov-chip--tele {
-    color: var(--green-700);
-    background: var(--green-100);
-    border-color: var(--green-100);
-  }
-  .prov-chip--tele:hover { border-color: var(--green-700); background: var(--green-100); color: var(--green-700); }
-  .prov-chip--ghost { color: var(--text-tertiary); }
-
-  /* Sections */
-  .prov-results { padding: var(--space-8) 0; }
-  .prov-section { padding: var(--space-10) 0; }
-  .prov-section--alt { background: var(--bg-surface); }
-  .prov-section-head {
-    display: flex;
-    align-items: baseline;
-    justify-content: space-between;
-    flex-wrap: wrap;
-    gap: var(--space-2);
-    margin-bottom: var(--space-5);
-  }
-  .prov-section-label {
-    font-size: 0.75rem;
-    font-family: 'Inter', sans-serif;
-    font-weight: 600;
+  .providers-hero .eyebrow {
     text-transform: uppercase;
     letter-spacing: 0.08em;
-    color: var(--text-secondary);
-    margin: 0;
-  }
-  .prov-link-arrow {
     font-size: 0.8125rem;
-    font-weight: 500;
-    color: var(--accent);
-    white-space: nowrap;
-    text-decoration: none;
-  }
-  .prov-link-arrow:hover { text-decoration: underline; }
-
-  /* Results grid */
-  .prov-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-    gap: var(--space-4);
-  }
-
-  /* Pager */
-  .prov-pager {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: var(--space-4);
-    margin-top: var(--space-6);
-    padding-top: var(--space-5);
-    border-top: 1px solid var(--border-light);
-  }
-  .prov-pager__status { font-size: 0.8125rem; color: var(--text-tertiary); font-variant-numeric: tabular-nums; }
-  .prov-pager__next {
-    font-size: 0.875rem;
-    font-weight: 500;
-    color: var(--accent);
-    text-decoration: none;
-    padding: 8px 18px;
-    border: 1px solid var(--border-color);
-    border-radius: var(--radius-pill);
-    background: var(--bg-surface);
-    transition: border-color 0.15s, color 0.15s;
-  }
-  .prov-pager__next:hover { border-color: var(--accent); text-decoration: none; }
-
-  /* Tile grids (method + state) */
-  .prov-tile-grid {
-    list-style: none;
-    padding: 0;
-    margin: 0;
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
-    gap: var(--space-3);
-  }
-  .prov-tile-grid--states { grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); }
-  .prov-tile {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: var(--space-2);
-    padding: var(--space-4);
-    background: var(--bg-surface);
-    border: 1px solid var(--border-color);
-    border-radius: var(--radius-md);
-    text-decoration: none;
-    color: inherit;
-    min-width: 0;
-    transition: border-color 0.15s, transform 0.15s, box-shadow 0.2s;
-  }
-  .prov-section--alt .prov-tile { background: var(--bg-body); }
-  .prov-tile:hover {
-    border-color: var(--accent);
-    transform: translateY(-2px);
-    box-shadow: var(--shadow-md);
-    text-decoration: none;
-  }
-  .prov-tile:focus-visible { outline: 0; border-color: var(--purple-700); box-shadow: 0 0 0 3px var(--focus-ring); }
-  .prov-tile__name {
-    font-family: 'Cormorant Garamond', 'Georgia', serif;
     font-weight: 600;
+    color: var(--text-secondary);
+    margin: 0 0 0.75rem;
+  }
+  .providers-hero h1 {
+    margin: 0 0 1rem;
+  }
+  .providers-hero .lead {
     font-size: 1.125rem;
-    line-height: 1.2;
-    color: var(--text-primary);
-    min-width: 0;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-  }
-  .prov-tile__cta { font-size: 0.75rem; font-weight: 500; color: var(--accent); flex-shrink: 0; }
-  .prov-tile__count {
-    font-size: 0.8125rem;
-    font-weight: 600;
-    color: var(--text-tertiary);
-    font-variant-numeric: tabular-nums;
-    flex-shrink: 0;
-  }
-
-  /* FAQ */
-  .prov-faq-heading { margin: 0 0 var(--space-5); }
-  .prov-faq { display: flex; flex-direction: column; gap: var(--space-2); }
-  .prov-faq__item {
-    border: 1px solid var(--border-color);
-    border-radius: var(--radius-md);
-    background: var(--bg-body);
-    padding: var(--space-4) var(--space-5);
-  }
-  .prov-section--alt .prov-faq__item { background: var(--bg-body); }
-  .prov-faq__q {
-    font-family: 'Inter', sans-serif;
-    font-weight: 600;
-    font-size: 1rem;
-    color: var(--text-primary);
-    cursor: pointer;
-    list-style: none;
-  }
-  .prov-faq__q::-webkit-details-marker { display: none; }
-  .prov-faq__q::after {
-    content: '+';
-    float: right;
-    color: var(--text-tertiary);
-    font-weight: 400;
-    margin-left: var(--space-3);
-  }
-  .prov-faq__item[open] .prov-faq__q::after { content: '\2212'; }
-  .prov-faq__a {
-    margin: var(--space-3) 0 0;
-    font-size: 0.9375rem;
     line-height: 1.6;
-    color: var(--text-secondary);
+    color: var(--text-primary);
+    margin: 0 0 1rem;
   }
-
-  /* Footer CTAs + methodology */
-  .prov-footer-cta {
-    display: flex;
-    flex-wrap: wrap;
-    gap: var(--space-4) var(--space-6);
-    margin-bottom: var(--space-5);
-  }
-  .prov-footer-cta__link {
-    font-size: 0.875rem;
-    font-weight: 500;
-    color: var(--accent);
-    text-decoration: none;
-  }
-  .prov-footer-cta__link:hover { text-decoration: underline; }
-  .prov-methodology {
-    margin: 0;
-    font-size: 0.8125rem;
-    line-height: 1.6;
-    color: var(--text-tertiary);
-  }
-
-  @media (max-width: 639px) {
-    .prov-hero { padding: var(--space-8) 0 var(--space-6); }
-    .prov-grid { grid-template-columns: 1fr; }
-    .prov-tile-grid, .prov-tile-grid--states { grid-template-columns: 1fr; }
+  .providers-signup {
+    padding: 1rem 0 4rem;
   }
 </style>
