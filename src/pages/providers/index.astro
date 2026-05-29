@@ -214,10 +214,19 @@ const jsonLd = {
       });
 
       customInput.addEventListener('input', function () {
-        var val = parseFloat(customInput.value);
-        if (val && val >= 5) {
+        var raw = customInput.value.trim();
+        if (raw === '') {
+          selectAmount(5000);
+          return;
+        }
+        var val = parseFloat(raw);
+        if (val >= 5) {
           selectedCents = Math.round(val * 100);
           giveBtn.textContent = 'Give $' + val.toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: 2 }) + ' to the directory';
+          amountBtns.forEach(function (b) { b.classList.remove('active'); });
+        } else {
+          selectedCents = Math.round((val || 0) * 100);
+          giveBtn.textContent = 'Give to the directory';
           amountBtns.forEach(function (b) { b.classList.remove('active'); });
         }
       });
