@@ -86,6 +86,54 @@ const METHOD_LABELS = {
 };
 const methodLabel = (m) => METHOD_LABELS[m] || String(m).replace(/-/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase());
 
+// Decode the handful of pre-encoded HTML entities that upstream sometimes
+// stores in display strings. Astro re-escapes already-encoded text at render
+// time, so "&amp;" / "&#039;" would surface as literal mojibake. Decode ONCE
+// here; never at render time.
+const ENTITY_MAP = {
+  '&amp;': '&', '&quot;': '"', '&lt;': '<', '&gt;': '>',
+  '&#039;': "'", '&#39;': "'", '&apos;': "'", '&#8217;': '’', '&#34;': '"',
+};
+const decodeEntities = (s) => typeof s === 'string'
+  ? s.replace(/&(?:amp|quot|lt|gt|apos|#0?39|#34|#8217);/g, (m) => ENTITY_MAP[m] || m)
+  : s;
+
+// A "machine slug" specialty is an internal lowercase token (or comma/dash
+// joined list of them) that was never meant to face a human, e.g.
+// "fertilitycare-practitioner" or "obgyn,ophthalmologist". Rendered verbatim it
+// reads as garbage and title-casing it produces "Obgyn"/"Cfcmc", so we drop it
+// instead. Mirrors build-og-index.mjs's dash-slug guard, but tightened so
+// genuinely human values that merely contain a hyphen ("NFP-only OB/GYN",
+// "Speech-Language Pathologist") survive.
+function isMachineSpecialty(v) {
+  if (typeof v !== 'string') return false;
+  const t = v.replace(/[,\s]+$/, '').trim();
+  if (!t) return false;
+  if (/^[a-z0-9]+(?:-[a-z0-9]+)+$/.test(t)) return true; // single dash-slug
+  if (t.includes(',')) {
+    const toks = t.split(',').map((x) => x.trim()).filter(Boolean);
+    if (toks.length > 1 && toks.every((x) => /^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(x))) return true;
+    if (toks.some((x) => /^[a-z0-9]+-[a-z0-9-]+$/.test(x))) return true;
+  }
+  return false;
+}
+
+// Slugs flow into URLs and the claim-page prefill regex /^[a-z0-9-]{1,120}$/.
+// A valid all-lowercase-hyphen slug MUST pass through unchanged (changing it
+// moves a live URL). Only genuinely-invalid slugs (underscores, email-domain
+// fragments, stray chars) are sanitized.
+function sanitizeSlug(slug) {
+  if (typeof slug !== 'string' || /^[a-z0-9-]{1,120}$/.test(slug)) return slug;
+  return slug
+    .toLowerCase()
+    .replace(/[^a-z0-9-]/g, '-')
+    .replace(/-{2,}/g, '-')
+    .replace(/^-+|-+$/g, '')
+    .replace(/-(com|org|net|edu)$/, '')
+    .replace(/-+$/, '')
+    .slice(0, 120);
+}
+
 // practitioner_type -> {label, group}. group drives the badge palette family.
 const TYPE_MAP = {
   medical: { label: 'Medical', group: 'clinical' },
@@ -114,6 +162,7 @@ const US_STATES = {
   OR: 'Oregon', PA: 'Pennsylvania', RI: 'Rhode Island', SC: 'South Carolina',
   SD: 'South Dakota', TN: 'Tennessee', TX: 'Texas', UT: 'Utah', VT: 'Vermont',
   VA: 'Virginia', WA: 'Washington', WV: 'West Virginia', WI: 'Wisconsin', WY: 'Wyoming', DC: 'Washington, DC',
+  PR: 'Puerto Rico', VI: 'U.S. Virgin Islands', GU: 'Guam', AS: 'American Samoa', MP: 'Northern Mariana Islands',
 };
 const COUNTRY_NAMES = {
   US: 'United States', IE: 'Ireland', GB: 'United Kingdom', UK: 'United Kingdom',
@@ -133,9 +182,14 @@ function confidenceOf(tier) {
 
 const DOCTORATE = /\b(MD|DO|MBBS|PhD|PsyD|DPT|PharmD|DC|ND|NMD|DNP|DrPH|EdD|DDS|DMD)\b/;
 
+function normalizeCreds(creds) {
+  if (!creds) return '';
+  return String(creds).split(',').map((s) => s.trim()).filter(Boolean).join(', ');
+}
+
 function displayName(r) {
   let name = r.name || '';
-  const creds = r.credentials || '';
+  const creds = normalizeCreds(r.credentials);
   const hasDoc = DOCTORATE.test(creds) || DOCTORATE.test(name);
   if (!hasDoc) name = name.replace(/^Dr\.?\s+/i, '');
   if (creds && !name.includes(creds)) name += ', ' + creds;
@@ -195,8 +249,18 @@ for (const r of records) {
     correctionsApplied++;
   }
 
-  // guarantee unique slug (source has none today, but defend against it)
-  let slug = r.slug;
+  // decode pre-encoded HTML entities + normalize credential token list ONCE,
+  // before any field is read for display, JSON-LD, or slug derivation.
+  r.name = decodeEntities(r.name);
+  r.credentials = normalizeCreds(decodeEntities(r.credentials)) || null;
+  r.practice_name = decodeEntities(r.practice_name);
+  r.specialty = decodeEntities(r.specialty);
+  if (Array.isArray(r.telehealth_states)) r.telehealth_states = r.telehealth_states.map(decodeEntities);
+
+  // sanitize then guarantee unique slug (source has none today, but defend
+  // against it). Sanitization is a no-op on already-valid lowercase-hyphen
+  // slugs, so existing URLs never move.
+  let slug = sanitizeSlug(r.slug);
   if (seenSlugs.has(slug)) { slugCollisions++; let n = 2; while (seenSlugs.has(`${slug}-${n}`)) n++; slug = `${slug}-${n}`; }
   seenSlugs.add(slug);
 
@@ -207,11 +271,16 @@ for (const r of records) {
   const country = (r.country || '').toUpperCase();
   const countryName = COUNTRY_NAMES[country] || r.country_name || r.country || '';
   const usState = country === 'US' && US_STATES[(r.state || '').toUpperCase()] ? (r.state || '').toUpperCase() : null;
+  // A US record whose state is null/unrecognized must never read as INTL. It
+  // gets the US-OTHER sentinel (kept out of state tiles, never labeled
+  // international); a non-US record is INTL.
+  const region = usState || (country === 'US' ? 'US-OTHER' : 'INTL');
   const conf = confidenceOf(r.verification_tier);
   const sources = (r._all_sources && r._all_sources.length ? r._all_sources : [r.source]).filter(Boolean);
 
-  // specialty: keep upstream value; fall back to authoritative NPPES taxonomy when blank
-  let specialty = r.specialty || null;
+  // specialty: keep upstream value; fall back to authoritative NPPES taxonomy
+  // when blank. Drop internal machine-slug values (they render as mojibake).
+  let specialty = r.specialty && !isMachineSpecialty(r.specialty) ? r.specialty.replace(/[,\s]+$/, '').trim() : null;
   if (!specialty) {
     const ns = nppesSpecialty(r.npi_number);
     if (ns) { specialty = ns; nppesSpecialtyFilled++; }
@@ -235,14 +304,14 @@ for (const r of records) {
     telehealth: r.telehealth || 'unknown',
     telehealthStates: Array.isArray(r.telehealth_states) ? r.telehealth_states : [],
     city: r.city || null,
-    state: r.state || null,
-    stateName: usState ? US_STATES[usState] : (r.state_name || r.state || null),
+    state: usState || null,
+    stateName: usState ? US_STATES[usState] : (country === 'US' ? null : (r.state_name || r.state || null)),
     country: country || null,
     countryName: countryName || null,
-    region: usState || (country && country !== 'US' ? 'INTL' : (usState ? usState : 'INTL')),
+    region,
     zip: r.zip || null,
     phone: r.phone || null,
-    email: r.email && r.email_public !== false ? r.email : null,
+    email: r.email && r.email_public === true ? r.email : null,
     website: r.website && !websiteDead ? r.website : null,
     schedulingLink: r.scheduling_link || null,
     languages: Array.isArray(r.languages) ? r.languages : [],
@@ -258,6 +327,53 @@ for (const r of records) {
     dataQualityScore: typeof r.data_quality_score === 'number' ? r.data_quality_score : null,
   });
 }
+
+// ---- NPI dedup ------------------------------------------------------------
+// One physician occasionally survives the launch-scope filter as two slugs
+// (e.g. "stephen-hilgers" + "steven-hilgers", same NPI). Slug-dedup above can't
+// see this; merge by valid 10-digit npi_number. The richer twin (higher
+// dataQualityScore, then more methods, then more complete fields, then slug)
+// is canonical and KEEPS its slug; methods + telehealthStates are unioned and
+// telehealth becomes 'yes' if either twin is 'yes'. No NPI-bearing record is
+// dropped without folding its data into the survivor; records without a valid
+// NPI are never merged. Deterministic + order-independent.
+const validNpi = (n) => (typeof n === 'string' && /^\d{10}$/.test(n)) || (typeof n === 'number' && /^\d{10}$/.test(String(n))) ? String(n) : null;
+const completeness = (p) => Object.values(p).filter((v) => v != null && !(Array.isArray(v) && v.length === 0) && v !== '').length;
+function richer(a, b) {
+  const da = a.dataQualityScore || 0, db = b.dataQualityScore || 0;
+  if (da !== db) return da > db ? a : b;
+  if (a.methods.length !== b.methods.length) return a.methods.length > b.methods.length ? a : b;
+  const ca = completeness(a), cb = completeness(b);
+  if (ca !== cb) return ca > cb ? a : b;
+  return String(a.slug).localeCompare(String(b.slug)) <= 0 ? a : b;
+}
+function mergeNpiTwins(canon, other) {
+  const methods = Array.from(new Set([...canon.methods, ...other.methods]));
+  const telehealthStates = Array.from(new Set([...(canon.telehealthStates || []), ...(other.telehealthStates || [])]));
+  return {
+    ...canon,
+    methods,
+    methodLabels: methods.map(methodLabel),
+    telehealthStates,
+    telehealth: (canon.telehealth === 'yes' || other.telehealth === 'yes') ? 'yes' : canon.telehealth,
+  };
+}
+let npiMerges = 0;
+const byNpi = new Map();
+const deduped = [];
+for (const p of out) {
+  const npi = validNpi(p.npi);
+  if (!npi) { deduped.push(p); continue; }
+  const idx = byNpi.get(npi);
+  if (idx === undefined) { byNpi.set(npi, deduped.length); deduped.push(p); continue; }
+  const existing = deduped[idx];
+  const canon = richer(existing, p);
+  const loser = canon === existing ? p : existing;
+  deduped[idx] = mergeNpiTwins(canon, loser);
+  npiMerges++;
+}
+out.length = 0;
+out.push(...deduped);
 
 // sort: verified first, then data quality, then telehealth, then name — deterministic
 const CONF_RANK = { verified: 2, multi: 1, single: 0 };
@@ -277,11 +393,11 @@ const byMethod = {};
 for (const p of out) for (const m of p.methods) byMethod[m] = (byMethod[m] || 0) + 1;
 const byType = {};
 for (const p of out) { const k = p.typeLabel || 'Unknown'; byType[k] = (byType[k] || 0) + 1; }
-const usStates = new Set(out.filter((p) => p.region !== 'INTL').map((p) => p.region));
+const usStates = new Set(out.filter((p) => p.region !== 'INTL' && p.region !== 'US-OTHER').map((p) => p.region));
 
 console.log(`[build-providers] source: ${SOURCE}`);
 console.log(`[build-providers] wrote ${out.length} providers -> ${path.relative(REPO, OUT)}`);
-console.log(`  slug collisions resolved: ${slugCollisions}  legacy-only dropped: ${droppedLegacyOnly}  name/cred corrections applied: ${correctionsApplied}  NPPES specialty fills: ${nppesSpecialtyFilled}`);
+console.log(`  slug collisions resolved: ${slugCollisions}  legacy-only dropped: ${droppedLegacyOnly}  name/cred corrections applied: ${correctionsApplied}  NPPES specialty fills: ${nppesSpecialtyFilled}  NPI twins merged: ${npiMerges}`);
 console.log(`  R1: ${count((p) => p.relevance === 'R1')}  R2: ${count((p) => p.relevance === 'R2')}`);
 console.log(`  practices: ${count((p) => p.isPractice)}  telehealth=yes: ${count((p) => p.telehealth === 'yes')}`);
 console.log(`  verified: ${count((p) => p.confidence === 'verified')}  multi: ${count((p) => p.confidence === 'multi')}  single: ${count((p) => p.confidence === 'single')}`);

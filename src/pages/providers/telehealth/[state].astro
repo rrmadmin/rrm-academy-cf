@@ -5,6 +5,7 @@ import {
   getTelehealthProviders,
   stateName,
   US_STATE_NAMES,
+  NON_STATE_REGIONS,
   type Provider,
 } from '../../../lib/providers';
 
@@ -33,7 +34,7 @@ export async function getStaticPaths() {
   const tele = getTelehealthProviders();
   const codes = new Set<string>();
   for (const p of tele) {
-    if (p.region !== 'INTL') codes.add(p.region);
+    if (!NON_STATE_REGIONS.has(p.region)) codes.add(p.region);
     for (const c of codesFor(p)) if (US_STATE_NAMES[c]) codes.add(c);
   }
   return [...codes].sort().map((code) => ({
