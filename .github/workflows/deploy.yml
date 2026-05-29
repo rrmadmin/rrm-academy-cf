@@ -391,6 +391,12 @@ jobs:
       - name: Verify mobile search-expand animation invariants
         run: npm run verify-search-expand
 
+      - name: Unit tests (404 matcher + index)
+        run: node --test test/url-match.test.js test/known-pages.test.js
+
+      - name: Check 404 suggestion coverage
+        run: node scripts/check-suggest-coverage.mjs
+
       - name: Build site
         env:
           PUBLIC_SHELL_ROUTES: ${{ vars.PUBLIC_SHELL_ROUTES || '' }}
