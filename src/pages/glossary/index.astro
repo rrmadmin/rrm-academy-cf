@@ -279,22 +279,25 @@ const definedTermSetSchema = {
         <p>Every published term is listed below in one searchable, alphabetical directory. Use the search box to find a term by name or wording, or filter by topic area: <strong>Core RRM principles</strong>, <strong>fertility awareness-based methods (FABMs)</strong> and cycle charting, <strong>clinical approaches</strong> including NaProTechnology, <strong>diagnostic tools</strong> and hormone testing, reproductive <strong>surgical techniques</strong>, key <strong>conditions</strong> such as endometriosis, PCOS, infertility, and recurrent miscarriage, <strong>overlapping disciplines</strong> in endocrinology and reproductive health, and the broader RRM <strong>framework</strong>. Each definition leads with an answer-first summary; tap "Show more" to read the full entry.<sup><a href="#ref-1">1</a></sup></p>
       </section>
 
-      {/* Collapsible A-Z jump nav (no-JS friendly). When SHELL_ENABLED, the
-          rail holds the jump nav instead, so this is suppressed to avoid
-          duplication. Empty letters dim live via data-az-letter as the
-          client filter runs. */}
-      {!SHELL_ENABLED && (
-        <details class="az-index">
-          <summary>Jump to a letter</summary>
-          <nav aria-label="Jump to a letter">
-            <ol class="az-index__letters">
-              {azLetters.map(letter => (
-                <li><a href={`#letter-${letter}`} data-az-letter={letter}>{letter}</a></li>
-              ))}
-            </ol>
-          </nav>
-        </details>
-      )}
+      {/* Always-visible A-Z jump strip (no disclosure / never collapsible).
+          Renders a compact, tappable, horizontally-scrollable letter row.
+          When SHELL_ENABLED, the right rail holds the same nav for DESKTOP, so
+          the `az-index--shell-mobile` modifier hides THIS strip ≥901px (rail
+          covers it) but keeps it visible on mobile, where the rail is
+          display:none. When shell is off, the strip is visible at every
+          viewport. Empty letters dim live via data-az-letter as the client
+          filter runs. */}
+      <nav
+        class:list={['az-index', { 'az-index--shell-mobile': SHELL_ENABLED }]}
+        aria-label="Jump to a letter"
+      >
+        <span class="az-index__label" aria-hidden="true">Jump to</span>
+        <ol class="az-index__letters">
+          {azLetters.map(letter => (
+            <li><a href={`#letter-${letter}`} data-az-letter={letter}>{letter}</a></li>
+          ))}
+        </ol>
+      </nav>
 
       {/* Sticky control bar: search + topic chips + live count.
           Progressive enhancement — filters operate over the already-rendered
@@ -487,24 +490,24 @@ const definedTermSetSchema = {
     margin-bottom: var(--space-4);
   }
 
-  /* ── Collapsible A-Z jump nav (shell-off) ── */
+  /* ── Always-visible A-Z jump strip (in-body; never collapsible) ──
+     Compact, tappable letter chips in a single row. Wraps on desktop;
+     horizontally scrolls on mobile so it never forces page overflow and never
+     eats vertical space. */
   .az-index {
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
     margin: var(--space-4) 0 var(--space-5);
-    border: 1px solid var(--border-color);
-    border-radius: var(--radius-md);
-    background: var(--bg-surface);
   }
-  .az-index summary {
-    padding: var(--space-3) var(--space-4);
-    cursor: pointer;
+  .az-index__label {
+    flex-shrink: 0;
+    font-family: 'Inter', sans-serif;
+    font-size: 0.6875rem;
     font-weight: 600;
-    font-size: 0.9375rem;
-  }
-  .az-index[open] summary {
-    border-bottom: 1px solid var(--border-color);
-  }
-  .az-index nav {
-    padding: var(--space-4);
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--text-tertiary);
   }
   .az-index__letters {
     list-style: none;
@@ -513,6 +516,7 @@ const definedTermSetSchema = {
     display: flex;
     flex-wrap: wrap;
     gap: var(--space-2);
+    min-width: 0;
   }
   .az-index__letters li { margin: 0; }
   .az-index__letters a {
@@ -537,6 +541,41 @@ const definedTermSetSchema = {
   .az-index__letters a[data-az-empty] {
     opacity: 0.3;
     pointer-events: none;
+  }
+
+  /* Mobile: keep the strip on ONE compact, horizontally-scrollable line so it
+     never consumes large vertical space and never causes page overflow. The
+     "Jump to" label stays pinned; the chips scroll under it. */
+  @media (max-width: 640px) {
+    .az-index {
+      gap: var(--space-1);
+    }
+    .az-index__letters {
+      flex-wrap: nowrap;
+      overflow-x: auto;
+      -webkit-overflow-scrolling: touch;
+      scrollbar-width: none;
+      gap: 5px;
+      padding-bottom: 2px;
+      /* Bleed the scroll edge to the container gutter so the last chip can be
+         scrolled fully into view without clipping. */
+      scroll-padding-inline: var(--space-2);
+    }
+    .az-index__letters::-webkit-scrollbar { display: none; }
+    .az-index__letters a {
+      min-width: 38px;
+      height: 38px;
+      flex-shrink: 0;
+    }
+  }
+
+  /* Shell-on: the right rail holds the A-Z nav for desktop, so hide the
+     in-body strip ≥901px to avoid duplication. On mobile (≤900px) the rail is
+     display:none, so the in-body strip stays visible — this is the ONLY A-Z
+     nav a shell-on mobile visitor gets. */
+  .az-index--shell-mobile { display: flex; }
+  @media (min-width: 901px) {
+    .az-index--shell-mobile { display: none; }
   }
 
   /* ── Sticky control bar ── */
