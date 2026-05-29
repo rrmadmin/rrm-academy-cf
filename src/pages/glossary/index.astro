@@ -276,7 +276,10 @@ const definedTermSetSchema = {
            alphabetical layout. -->
       <section id="overview" class="glossary-intro">
         <p class="pillar-lead"><strong>This glossary defines the clinical terms, methods, and conditions used in restorative reproductive medicine (RRM), drawn from peer-reviewed research and active clinical practice, and maintained by RRM Academy for patients and clinicians.</strong></p>
-        <p>Every published term is listed below in one searchable, alphabetical directory. Use the search box to find a term by name or wording, or filter by topic area: <strong>Core RRM principles</strong>, <strong>fertility awareness-based methods (FABMs)</strong> and cycle charting, <strong>clinical approaches</strong> including NaProTechnology, <strong>diagnostic tools</strong> and hormone testing, reproductive <strong>surgical techniques</strong>, key <strong>conditions</strong> such as endometriosis, PCOS, infertility, and recurrent miscarriage, <strong>overlapping disciplines</strong> in endocrinology and reproductive health, and the broader RRM <strong>framework</strong>. Each definition leads with an answer-first summary; tap "Show more" to read the full entry.<sup><a href="#ref-1">1</a></sup></p>
+        <details class="glossary-howto">
+          <summary>How to use this glossary</summary>
+          <p>Every published term is listed below in one searchable, alphabetical directory. Use the search box to find a term by name or wording, or filter by topic area: <strong>Core RRM principles</strong>, <strong>fertility awareness-based methods (FABMs)</strong> and cycle charting, <strong>clinical approaches</strong> including NaProTechnology, <strong>diagnostic tools</strong> and hormone testing, reproductive <strong>surgical techniques</strong>, key <strong>conditions</strong> such as endometriosis, PCOS, infertility, and recurrent miscarriage, <strong>overlapping disciplines</strong> in endocrinology and reproductive health, and the broader RRM <strong>framework</strong>. Each definition leads with an answer-first summary; tap "Show more" to read the full entry.<sup><a href="#ref-1">1</a></sup></p>
+        </details>
       </section>
 
       {/* Always-visible A-Z jump strip (no disclosure / never collapsible).
@@ -488,6 +491,51 @@ const definedTermSetSchema = {
   }
   .glossary-intro p {
     margin-bottom: var(--space-4);
+  }
+
+  /* ── "How to use this glossary" collapsible ──
+     P2 (the keyword-rich topic-area paragraph) is wrapped in <details> so it
+     loads collapsed. The keywords + footnote stay in the DOM (crawlable) even
+     when collapsed. Summary reads as a subtle link affordance, not a chrome
+     disclosure widget. */
+  .glossary-howto {
+    margin-bottom: var(--space-4);
+  }
+  .glossary-howto > summary {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-2);
+    min-height: 40px;
+    cursor: pointer;
+    font-family: 'Inter', sans-serif;
+    font-size: 0.875rem;
+    font-weight: 500;
+    color: var(--accent);
+    list-style: none;
+    user-select: none;
+    transition: color 0.15s;
+  }
+  .glossary-howto > summary::-webkit-details-marker {
+    display: none;
+  }
+  .glossary-howto > summary:hover {
+    color: var(--text-primary);
+  }
+  /* Own disclosure indicator (▸) that rotates to point down on open. */
+  .glossary-howto > summary::before {
+    content: '▸';
+    display: inline-block;
+    font-size: 0.75rem;
+    line-height: 1;
+    color: var(--text-secondary);
+    transition: transform 0.15s ease;
+  }
+  .glossary-howto[open] > summary::before {
+    transform: rotate(90deg);
+  }
+  .glossary-howto > p {
+    margin: var(--space-2) 0 0;
+    line-height: 1.7;
   }
 
   /* ── Always-visible A-Z jump strip (in-body; never collapsible) ──
