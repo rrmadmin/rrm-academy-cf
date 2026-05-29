@@ -51,6 +51,8 @@ async function handleCheckout(request, env, waitUntil) {
   if (typeof body !== 'object' || body === null || Array.isArray(body)) return json({ ok: false, error: 'Invalid payload' }, 400);
 
   const { mode, amount, tier } = body;
+  const campaignRaw = typeof body.campaign === 'string' ? body.campaign : '';
+  const campaign = (campaignRaw && campaignRaw.length <= 64 && /^[a-z0-9-]+$/.test(campaignRaw)) ? campaignRaw : '';
   const entry_referrer = typeof body.entry_referrer === 'string' ? body.entry_referrer.slice(0, 2048) : undefined;
   const entry_url = typeof body.entry_url === 'string' ? body.entry_url.slice(0, 2048) : undefined;
 
@@ -148,7 +150,7 @@ async function handleCheckout(request, env, waitUntil) {
     sessionParams.payment_intent_data = {
       description: 'Donation to RRM Foundation',
       statement_descriptor_suffix: 'DONATION',
-      metadata: { type: 'donation' },
+      metadata: { type: 'donation', ...(campaign && { campaign }) },
     };
 
     if (stripeCustomerId) {
@@ -168,6 +170,7 @@ async function handleCheckout(request, env, waitUntil) {
       ...(gaCampaign && { ga_campaign: gaCampaign }),
       ...(entry_category && { ga_entry_category: entry_category }),
       ...(entry_platform && { ga_entry_platform: entry_platform }),
+      ...(campaign && { campaign }),
     };
 
     let checkoutSession;
