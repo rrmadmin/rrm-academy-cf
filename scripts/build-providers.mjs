@@ -25,6 +25,21 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const REPO = path.resolve(__dirname, '..');
 const OUT = path.join(REPO, 'src/data/providers.json');
 
+// Slug-keyed name/credential corrections, applied to the source record before
+// mapping. The upstream pipeline (normalize-all.py) mis-parsed some records,
+// stuffing the surname + marketing prose into `credentials` and leaving `name`
+// as a bare first name (e.g. "Monique" / "MD, ... Ruberu, FACOG"). Rather than
+// edit the regenerated unified-v2.json (clobbered on the next pipeline run),
+// corrections live here keyed by source slug. Each value overrides name and/or
+// credentials. `credentials: null` clears the field. Every correction only
+// rearranges/normalizes tokens already present upstream — no invented data.
+// TODO(upstream): port these into normalize-all.py so new records parse clean.
+const CORRECTIONS = (() => {
+  try {
+    return JSON.parse(fs.readFileSync(path.join(REPO, 'src/data/provider-name-corrections.json'), 'utf8'));
+  } catch { return {}; }
+})();
+
 const DEFAULT_SOURCES = [
   process.env.RRM_PROVIDER_SOURCE,
   path.resolve(REPO, '../rrm-provider-directory/data/unified-v2.json'),
@@ -141,6 +156,7 @@ const isLegacyOnly = (r) => {
 const seenSlugs = new Set();
 let slugCollisions = 0;
 let droppedLegacyOnly = 0;
+let correctionsApplied = 0;
 const out = [];
 
 for (const r of records) {
@@ -148,6 +164,14 @@ for (const r of records) {
   if (!LISTABLE.has(r.listability)) continue;
   if (!r.slug || !r.name) continue;
   if (isLegacyOnly(r)) { droppedLegacyOnly++; continue; }
+
+  // apply manual name/credential corrections (keyed by source slug)
+  const fix = CORRECTIONS[r.slug];
+  if (fix) {
+    if (typeof fix.name === 'string' && fix.name.trim()) r.name = fix.name;
+    if ('credentials' in fix) r.credentials = fix.credentials; // may be null -> cleared
+    correctionsApplied++;
+  }
 
   // guarantee unique slug (source has none today, but defend against it)
   let slug = r.slug;
@@ -228,7 +252,7 @@ const usStates = new Set(out.filter((p) => p.region !== 'INTL').map((p) => p.reg
 
 console.log(`[build-providers] source: ${SOURCE}`);
 console.log(`[build-providers] wrote ${out.length} providers -> ${path.relative(REPO, OUT)}`);
-console.log(`  slug collisions resolved: ${slugCollisions}  legacy-only dropped: ${droppedLegacyOnly}`);
+console.log(`  slug collisions resolved: ${slugCollisions}  legacy-only dropped: ${droppedLegacyOnly}  name/cred corrections applied: ${correctionsApplied}`);
 console.log(`  R1: ${count((p) => p.relevance === 'R1')}  R2: ${count((p) => p.relevance === 'R2')}`);
 console.log(`  practices: ${count((p) => p.isPractice)}  telehealth=yes: ${count((p) => p.telehealth === 'yes')}`);
 console.log(`  verified: ${count((p) => p.confidence === 'verified')}  multi: ${count((p) => p.confidence === 'multi')}  single: ${count((p) => p.confidence === 'single')}`);
