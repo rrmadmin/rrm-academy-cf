@@ -529,47 +529,47 @@
       },
       "footer": {
         "bg": {
-          "value": "#313131",
+          "value": "#efe8e0",
           "type": "color",
           "cssVariable": "--footer-bg"
         },
         "text": {
-          "value": "#adaba9",
+          "value": "#636261",
           "type": "color",
           "cssVariable": "--footer-text"
         },
         "heading": {
-          "value": "#ffffff",
+          "value": "#313131",
           "type": "color",
           "cssVariable": "--footer-heading"
         },
         "link": {
-          "value": "#adaba9",
+          "value": "#636261",
           "type": "color",
           "cssVariable": "--footer-link"
         },
         "link-hover": {
-          "value": "#ffffff",
+          "value": "#725e7e",
           "type": "color",
           "cssVariable": "--footer-link-hover"
         },
         "accent": {
-          "value": "#c9b8d3",
+          "value": "#725e7e",
           "type": "color",
           "cssVariable": "--footer-accent"
         },
         "accent-hover": {
-          "value": "#e8ddef",
+          "value": "#4c3e54",
           "type": "color",
           "cssVariable": "--footer-accent-hover"
         },
         "muted": {
-          "value": "#b5b3b1",
+          "value": "#949392",
           "type": "color",
           "cssVariable": "--footer-muted"
         },
         "border": {
-          "value": "rgba(255, 255, 255, 0.1)",
+          "value": "rgba(0, 0, 0, 0.1)",
           "type": "color",
           "cssVariable": "--footer-border"
         }
