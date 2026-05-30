@@ -49,7 +49,7 @@ function detectAiBot(userAgent) {
   return null;
 }
 
-const CSP_VALUE = "default-src 'self'; script-src 'self' 'unsafe-inline' 'wasm-unsafe-eval' blob: https://challenges.cloudflare.com https://embed.cloudflarestream.com https://static.cloudflareinsights.com; style-src 'self' 'unsafe-inline'; img-src 'self' https: data:; font-src 'self'; connect-src 'self' https://challenges.cloudflare.com https://cloudflareinsights.com; frame-src https://challenges.cloudflare.com https://customer-99owhsi4yh33gohc.cloudflarestream.com; object-src 'none'; base-uri 'self'; form-action 'self'";
+const CSP_VALUE = "default-src 'self'; script-src 'self' 'unsafe-inline' 'wasm-unsafe-eval' blob: https://challenges.cloudflare.com https://embed.cloudflarestream.com https://static.cloudflareinsights.com; style-src 'self' 'unsafe-inline'; img-src 'self' https: data:; font-src 'self'; connect-src 'self' https://challenges.cloudflare.com https://cloudflareinsights.com; frame-src https://challenges.cloudflare.com https://customer-99owhsi4yh33gohc.cloudflarestream.com; object-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors 'self'; upgrade-insecure-requests";
 
 /**
  * Inject the standard 6 security headers onto any Response. Returns a new
@@ -67,6 +67,10 @@ function withSecurityHeaders(response) {
   headers.set('Content-Signal', 'ai-train=yes, search=yes, ai-input=yes');
   if (!headers.has('Content-Security-Policy')) {
     headers.set('Content-Security-Policy', CSP_VALUE);
+  }
+  const ct = headers.get('content-type') || '';
+  if (ct.startsWith('text/html')) {
+    headers.append('Link', '</sitemap-index.xml>; rel="sitemap"; type="application/xml", </llms.txt>; rel="describedby"; type="text/plain", </openapi.json>; rel="service-desc"; type="application/vnd.oai.openapi+json;version=3.1", </.well-known/api-catalog>; rel="api-catalog"; type="application/linkset+json"');
   }
   return new Response(response.body, {
     status: response.status,
@@ -323,7 +327,7 @@ export async function onRequest(context) {
 
   if (needsAuth) {
     if (!env.DB) {
-      return withSecurityHeaders(new Response('Service Unavailable', { status: 503 }));
+      return withSecurityHeaders(new Response('Service Unavailable', { status: 503, headers: { 'Retry-After': '120' } }));
     }
     // Static assets under protected prefixes don't need session validation;
     // their parent HTML page already validated.
@@ -368,7 +372,7 @@ export async function onRequest(context) {
   const isAdminPage = pathnameLower === '/admin' || pathnameLower.startsWith('/admin/');
   if (isAdminPage) {
     if (!env.DB) {
-      return withSecurityHeaders(new Response('Service Unavailable', { status: 503 }));
+      return withSecurityHeaders(new Response('Service Unavailable', { status: 503, headers: { 'Retry-After': '120' } }));
     }
     // Static assets under admin prefixes don't need session validation.
     const isStaticAdmin = /\.(?:js|mjs|css|png|jpg|jpeg|webp|svg|woff2?|ico|json|map|gif|avif)(?:\?|$)/i.test(url.pathname);
@@ -451,6 +455,29 @@ export async function onRequest(context) {
   // Security headers were previously in _headers /* catch-all, but that rule
   // corrupted CF Pages' internal 301 trailing-slash redirects into 200 with
   // empty body. Applying them here avoids that bug.
-  const response = await context.next();
+  let response;
+  try {
+    response = await context.next();
+  } catch (err) {
+    response = await (async () => {
+      const errorHeaders = new Headers({
+        'Content-Type': 'text/html; charset=utf-8',
+        'X-Robots-Tag': 'noindex',
+      });
+      try {
+        if (context.env?.ASSETS) {
+          const asset = await context.env.ASSETS.fetch(new Request(new URL('/500.html', request.url)));
+          if (asset.ok) {
+            return new Response(asset.body, { status: 500, headers: errorHeaders });
+          }
+        }
+      } catch {
+        // fall through to inline fallback
+      }
+      const inlineHtml = '<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="robots" content="noindex"><title>Something went wrong | RRM Academy</title><style>body{font-family:Georgia,serif;display:flex;align-items:center;justify-content:center;min-height:100vh;margin:0;background:#faf9f7;color:#1a1a1a;text-align:center;padding:2rem}.box{max-width:480px}.code{font-size:5rem;font-weight:600;color:#c9b99a;line-height:1;margin-bottom:1rem}h1{font-size:1.5rem;margin:0 0 .75rem}p{color:#555;margin:0 0 1.5rem}a{color:#8b5e3c;font-weight:500}</style></head><body><div class="box"><div class="code">500</div><h1>Something went wrong on our end</h1><p>We hit an unexpected error. It is not you, it is us, and we are looking into it.</p><a href="/">Back to homepage</a></div></body></html>';
+      return new Response(inlineHtml, { status: 500, headers: errorHeaders });
+    })();
+    return withSecurityHeaders(response);
+  }
   return withSecurityHeaders(response);
 }

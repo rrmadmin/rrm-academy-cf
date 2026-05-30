@@ -579,6 +579,37 @@ blockquote a {
   border-width: 0;
 }
 
+/* Skip link: visually hidden (same clip technique as .sr-only) until it
+   receives keyboard focus, then revealed as a pill in the top-left. */
+.skip-link {
+  position: absolute;
+  top: var(--space-2);
+  left: var(--space-2);
+  z-index: 1000;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: 0;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  background: var(--bg-surface);
+  color: var(--accent);
+  font-weight: 600;
+  font-size: 0.9375rem;
+  text-decoration: none;
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-md);
+}
+.skip-link:focus {
+  width: auto;
+  height: auto;
+  clip: auto;
+  padding: var(--space-2) var(--space-4);
+  outline: 2px solid var(--focus-ring);
+  outline-offset: 2px;
+}
+
 /* Breadcrumb */
 .breadcrumb {
   font-size: 0.8125rem;

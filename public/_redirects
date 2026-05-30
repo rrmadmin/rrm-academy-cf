@@ -48,6 +48,10 @@
 # Static-file targets need _redirects to preserve the literal path.
 /.well-known/agent.json /.well-known/agent-card.json 301
 
+# RFC 8615 well-known: point password-change clients (Apple Keychain, 1Password,
+# Chrome) at the account page where users manage their password.
+/.well-known/change-password /account/ 302
+
 
 # Site-wide redirects (301/410) live in the rrm-router worker, not here.
 # Reason: rrm-router intercepts requests via service binding to CF Pages,
