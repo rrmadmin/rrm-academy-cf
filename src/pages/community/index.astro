@@ -1724,6 +1724,7 @@ const SHELL_ENABLED = isShellEnabled('community');
         areas: [],          // active areas (ordered)
         joinedAreas: {},    // areaId -> true
         joinedProjects: {}, // projectId -> true
+        pendingOwnership: {}, // areaId -> true (caller's own pending volunteer-to-lead request)
         activeAreaSlug: '', // current pill filter ('' = All)
       };
 
@@ -1825,6 +1826,23 @@ const SHELL_ENABLED = isShellEnabled('community');
         }
       }
 
+      // --- Volunteer to lead / withdraw (members only, ownerless areas) ---
+      function volunteerToggle(areaId, isPending) {
+        fetch('/api/community/areas/volunteer', {
+          method: isPending ? 'DELETE' : 'POST',
+          credentials: 'same-origin',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ areaId: areaId }),
+        })
+          .then(function (r) { return r.json(); })
+          .then(function (data) {
+            if (!data || !data.ok) return;
+            state.pendingOwnership[areaId] = !isPending;
+            renderAreas();
+          })
+          .catch(function () {});
+      }
+
       // --- Action Areas row ---
       function renderAreas() {
         var frag = document.createDocumentFragment();
@@ -1876,6 +1894,32 @@ const SHELL_ENABLED = isShellEnabled('community');
               owner.appendChild(document.createTextNode('Owner TBC'));
             }
             bodyEl.appendChild(owner);
+
+            // Volunteer to lead (members only, ownerless areas) — admin approves
+            if (state.isMember && !area.ownerName) {
+              var vol = document.createElement('div');
+              vol.className = 'hub-volunteer';
+              if (state.pendingOwnership[area.id]) {
+                var pend = document.createElement('span');
+                pend.className = 'hub-volunteer__pending';
+                pend.textContent = 'Volunteer request pending';
+                vol.appendChild(pend);
+                var wd = document.createElement('button');
+                wd.type = 'button';
+                wd.className = 'hub-volunteer__withdraw';
+                wd.textContent = 'Withdraw';
+                wd.addEventListener('click', function () { volunteerToggle(area.id, true); });
+                vol.appendChild(wd);
+              } else {
+                var vbtn = document.createElement('button');
+                vbtn.type = 'button';
+                vbtn.className = 'hub-volunteer__btn';
+                vbtn.textContent = 'Volunteer to lead';
+                vbtn.addEventListener('click', function () { volunteerToggle(area.id, false); });
+                vol.appendChild(vbtn);
+              }
+              bodyEl.appendChild(vol);
+            }
 
             // Footer: count (gated) OR "Get involved"; plus member Join / non-member link
             var foot = document.createElement('div');
@@ -2110,6 +2154,9 @@ const SHELL_ENABLED = isShellEnabled('community');
             }
             if (Array.isArray(memResp.projects)) {
               for (var n = 0; n < memResp.projects.length; n++) state.joinedProjects[memResp.projects[n].projectId] = true;
+            }
+            if (Array.isArray(memResp.pendingOwnership)) {
+              for (var po = 0; po < memResp.pendingOwnership.length; po++) state.pendingOwnership[memResp.pendingOwnership[po]] = true;
             }
           }
 
@@ -3222,6 +3269,49 @@ const SHELL_ENABLED = isShellEnabled('community');
     background: var(--sage-100);
     border-color: var(--sage-700);
   }
+
+  /* Volunteer-to-lead control (ownerless areas, members only) */
+  .hub-volunteer {
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+    flex-wrap: wrap;
+    margin-bottom: var(--space-3);
+  }
+  .hub-volunteer__btn {
+    font: inherit;
+    font-size: 0.76rem;
+    font-weight: 600;
+    border: 1px solid var(--accent);
+    background: transparent;
+    color: var(--accent);
+    padding: 4px 11px;
+    border-radius: var(--radius-pill);
+    cursor: pointer;
+    white-space: nowrap;
+    transition: background 0.1s, color 0.1s;
+  }
+  .hub-volunteer__btn:hover { background: var(--accent); color: #fff; }
+  .hub-volunteer__pending {
+    font-size: 0.74rem;
+    font-weight: 600;
+    color: var(--sage-700);
+    background: var(--sage-100);
+    border: 1px solid var(--sage-500);
+    padding: 3px 10px;
+    border-radius: var(--radius-pill);
+  }
+  .hub-volunteer__withdraw {
+    font: inherit;
+    font-size: 0.72rem;
+    font-weight: 600;
+    background: none;
+    border: none;
+    color: var(--text-tertiary);
+    cursor: pointer;
+    padding: 0;
+  }
+  .hub-volunteer__withdraw:hover { text-decoration: underline; color: var(--text-secondary); }
 
   /* ── Active Projects rail ── */
   .hub-rail {

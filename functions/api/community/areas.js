@@ -39,9 +39,11 @@ export async function onRequestGet({ request, env, waitUntil }) {
           a.owner_user_id,
           a.sort_order,
           a.created_at,
-          COUNT(p.id) AS projectCount
+          COUNT(p.id) AS projectCount,
+          uo.name AS owner_name
         FROM action_area a
         LEFT JOIN project p ON p.area_id = a.id AND p.status NOT IN ('archived')
+        LEFT JOIN user uo ON uo.id = a.owner_user_id
         WHERE a.status = 'active'
         GROUP BY a.id
         ORDER BY a.sort_order
@@ -76,6 +78,7 @@ export async function onRequestGet({ request, env, waitUntil }) {
       description: a.description || null,
       icon: a.icon || null,
       ownerUserId: a.owner_user_id || null,
+      ownerName: a.owner_name || null,
       sortOrder: a.sort_order,
       projectCount: a.projectCount,
       createdAt: a.created_at,
