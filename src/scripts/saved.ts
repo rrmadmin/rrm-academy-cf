@@ -559,6 +559,38 @@ function paintToggle(btn: HTMLElement, isSaved: boolean): void {
 }
 
 /**
+ * Move the Save toggle onto the page's breadcrumb line so it integrates with the
+ * existing page furniture (crumbs left, Save right) instead of floating alone at
+ * the top of the content column. Every saveable page type (article, commentary,
+ * faq, glossary, pillar, condition) leads with a `.breadcrumb`, so this is the
+ * one universal anchor. Wraps the breadcrumb + button in a `.breadcrumb-bar`
+ * flex row (CSS in app-shell.css) and drops the now-empty `.shell-save-row`
+ * placeholder. Idempotent; fully defensive. If no breadcrumb is found the button
+ * stays in `.shell-save-row` (right-aligned fallback) so the feature never
+ * silently disappears. Runs while the button is still `hidden`, so no flash.
+ */
+function relocateSaveIntoBreadcrumb(btn: HTMLElement): void {
+  try {
+    if (btn.closest('.breadcrumb-bar')) return; // already relocated
+    const main = document.querySelector('.app-shell-main');
+    if (!main) return;
+    const bc = main.querySelector('.breadcrumb');
+    if (!bc || !bc.parentElement) return; // no anchor — keep fallback placement
+    const bar = document.createElement('div');
+    bar.className = 'breadcrumb-bar';
+    bar.setAttribute('data-pagefind-ignore', 'all');
+    bc.parentElement.insertBefore(bar, bc);
+    bar.appendChild(bc); // crumbs first (left)
+    bar.appendChild(btn); // Save second (right)
+    // Drop the now-empty top placeholder so it leaves no dead vertical space.
+    const row = document.querySelector('.shell-save-row');
+    if (row && !row.contains(btn)) row.remove();
+  } catch {
+    /* keep the fallback placement */
+  }
+}
+
+/**
  * Initialize the shell Save toggle + badge + cross-tab listener + pending flush.
  * Idempotent-ish: safe to call once per shell page.
  */
@@ -580,6 +612,8 @@ export function initSavedShell(): void {
   }
 
   if (btn && url && type) {
+    // Integrate into the breadcrumb row BEFORE revealing (no flash).
+    relocateSaveIntoBreadcrumb(btn);
     btn.hidden = false;
     let isSaved = readSaved().some((it) => it.url === url);
     paintToggle(btn, isSaved);
