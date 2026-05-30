@@ -14,6 +14,7 @@ import {
 } from './_shared.js';
 import { notifyNewPost, notifyEventShareLink } from './_email.js';
 import { withIdempotency } from '../_idempotency.js';
+import { validateAreaId, resolveActiveAreaIdBySlug } from './_areas-shared.js';
 
 const VALID_CHANNELS = ['stuc', 'members', 'masterclass'];
 
@@ -140,6 +141,17 @@ export async function onRequestGet({ request, env, waitUntil }) {
       return json({ ok: false, error: 'Not authorized for this channel' }, 403);
     }
 
+    // Optional ?area=<slug> filter — resolve to area_id; fall through to All stream if unknown/archived
+    const areaSlugParam = url.searchParams.get('area');
+    let areaIdFilter = null;
+    if (areaSlugParam !== null) {
+      if (typeof areaSlugParam !== 'string' || areaSlugParam.length > 100) {
+        return json({ ok: false, error: 'invalid_area' }, 400);
+      }
+      areaIdFilter = await resolveActiveAreaIdBySlug(env, areaSlugParam);
+      // If slug is unknown or archived, areaIdFilter stays null → fall through to All stream (G-AREA-1)
+    }
+
     let sql, params;
 
     if (type === 'event') {
@@ -150,6 +162,10 @@ export async function onRequestGet({ request, env, waitUntil }) {
       if (before) {
         eventWhere += ' AND p.event_date < ?';
         params.push(before);
+      }
+      if (areaIdFilter) {
+        eventWhere += ' AND p.area_id = ?';
+        params.push(areaIdFilter);
       }
       sql = `
         SELECT p.*, u.name as author_name, u.first_name, u.last_name, u.role as author_role, u.avatar_url as author_avatar,
@@ -177,6 +193,10 @@ export async function onRequestGet({ request, env, waitUntil }) {
       if (before) {
         whereClause += ' AND p.created_at < ? AND p.pinned = 0';
         params.push(before);
+      }
+      if (areaIdFilter) {
+        whereClause += ' AND p.area_id = ?';
+        params.push(areaIdFilter);
       }
 
       sql = `
@@ -239,6 +259,7 @@ export async function onRequestGet({ request, env, waitUntil }) {
       slug: r.slug || null,
       ogImageUrl: r.og_image_url || null,
       speaker: r.speaker || null,
+      areaId: r.area_id || null,
       authorId: r.author_id,
       authorName: r.author_name || displayName(r),
       authorRole: r.author_role,
@@ -278,7 +299,7 @@ async function _handlePost({ request, env, waitUntil }) {
     }
     if (typeof body !== 'object' || body === null || Array.isArray(body)) return json({ ok: false, error: 'Invalid payload' }, 400);
 
-    const { type, title, body: postBody, eventDate, eventLink, resourceUrl, channel: reqChannel, slug: reqSlug, ogImageUrl: reqOgImageUrl, speaker: reqSpeaker } = body;
+    const { type, title, body: postBody, eventDate, eventLink, resourceUrl, channel: reqChannel, slug: reqSlug, ogImageUrl: reqOgImageUrl, speaker: reqSpeaker, area_id: reqAreaId } = body;
 
     // Validate channel
     const channel = reqChannel || 'stuc';
@@ -331,6 +352,19 @@ async function _handlePost({ request, env, waitUntil }) {
       const trimmedSpeaker = reqSpeaker.trim();
       if (trimmedSpeaker.length === 0 || trimmedSpeaker.length > 200) return json({ ok: false, error: 'invalid_speaker' }, 400);
       finalSpeaker = trimmedSpeaker;
+    }
+
+    // Optional area_id — validate if present (G-AREA-3)
+    let finalAreaId = null;
+    if (reqAreaId !== undefined && reqAreaId !== null) {
+      if (typeof reqAreaId !== 'string' || reqAreaId.length > 100) {
+        return json({ ok: false, error: 'invalid_area_id' }, 400);
+      }
+      const areaValid = await validateAreaId(env, reqAreaId);
+      if (!areaValid) {
+        return json({ ok: false, error: 'invalid_area_id' }, 400);
+      }
+      finalAreaId = reqAreaId;
     }
 
     const id = generateId();
@@ -405,12 +439,12 @@ async function _handlePost({ request, env, waitUntil }) {
 
     try {
       await db.prepare(`
-        INSERT INTO community_post (id, author_id, type, title, content, event_date, event_link, resource_url, channel, slug, og_image_url, speaker)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        INSERT INTO community_post (id, author_id, type, title, content, event_date, event_link, resource_url, channel, slug, og_image_url, speaker, area_id)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
       `).bind(
         id, user.id, type, titleForInsert, contentToStore,
         eventDate || null, eventLink || null, resourceUrl || null, channel,
-        finalSlug, finalOgImageUrl, finalSpeaker
+        finalSlug, finalOgImageUrl, finalSpeaker, finalAreaId
       ).run();
     } catch (err) {
       if (err.message?.includes('UNIQUE constraint')) {
@@ -439,6 +473,7 @@ async function _handlePost({ request, env, waitUntil }) {
         pinned: false, eventDate, eventLink, resourceUrl,
         slug: finalSlug, ogImageUrl: finalOgImageUrl,
         speaker: finalSpeaker,
+        areaId: finalAreaId,
         createdAt: new Date().toISOString().replace('T', ' ').slice(0, 19),
         authorId: user.id,
         authorName: displayName(user),
