@@ -98,6 +98,6 @@ Disallow: /
 
 Sitemap: https://rrmacademy.org/sitemap-index.xml
 
-# NLWeb Schema Feeds: library-feed.jsonl + schemamap.xml are advertised via
-# HTTP Link headers on / (see public/_headers). Removed from robots.txt 2026-05-15
-# because `Schemamap:` is not a valid robots directive and Lighthouse flagged it.
+# NLWeb Schema Feed: library-feed.jsonl is advertised via HTTP Link headers on /
+# (see public/_headers). Not listed here because feed URLs are not valid robots
+# directives and Lighthouse flagged the non-standard line.

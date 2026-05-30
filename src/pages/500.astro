@@ -1,0 +1,84 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+---
+<BaseLayout
+  title="Something went wrong | RRM Academy"
+  description="We hit an unexpected error. Please try again, or head back to the homepage while we look into it."
+  noindex
+>
+  <section class="server-error">
+    <div class="server-error__inner">
+      <span class="server-error__code">500</span>
+      <h1>Something went wrong on our end</h1>
+      <p class="server-error__subtitle">
+        We hit an unexpected error while loading this page. It is not you, it is us, and we are looking into it.
+      </p>
+      <div class="server-error__actions">
+        <a class="btn btn--primary" href="/" data-track-cta="500-home">Back to homepage</a>
+        <a class="btn btn--secondary" href="javascript:location.reload()" data-track-cta="500-retry">Try again</a>
+      </div>
+      <nav class="server-error__links" aria-label="Helpful links">
+        <ul>
+          <li><a href="/library/">Research Library</a></li>
+          <li><a href="/commentary/">Commentary</a></li>
+          <li><a href="/contact/">Contact us</a></li>
+        </ul>
+      </nav>
+    </div>
+  </section>
+</BaseLayout>
+
+<style>
+  .server-error {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 60vh;
+    text-align: center;
+    padding: var(--space-16) var(--space-4) var(--space-12);
+  }
+  .server-error__inner {
+    max-width: 520px;
+  }
+  .server-error__code {
+    display: block;
+    font-family: 'Cormorant Garamond', 'Georgia', serif;
+    font-size: 6rem;
+    font-weight: 600;
+    line-height: 1;
+    color: var(--sand-300);
+    margin-bottom: var(--space-3);
+  }
+  .server-error h1 {
+    font-size: 1.75rem;
+    margin-bottom: var(--space-3);
+  }
+  .server-error__subtitle {
+    color: var(--text-secondary);
+    margin-bottom: var(--space-8);
+  }
+  .server-error__actions {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: var(--space-3);
+    margin-bottom: var(--space-8);
+  }
+  .server-error__links ul {
+    list-style: none;
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: var(--space-6);
+    padding: 0;
+    margin: 0;
+  }
+  .server-error__links a {
+    color: var(--accent);
+    font-size: 0.875rem;
+    font-weight: 500;
+  }
+  .server-error__links a:hover {
+    color: var(--accent-hover);
+  }
+</style>
