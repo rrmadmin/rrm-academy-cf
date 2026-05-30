@@ -201,6 +201,18 @@
 /index.md
   Content-Type: text/markdown; charset=utf-8
 
+# Per-page Markdown source twins (agent-readiness). Static endpoints emit
+# /commentary/<slug>.md, /faqs/<slug>.md, and /glossary.md; CF Pages does not
+# preserve a prerendered endpoint's Response Content-Type, so set it here.
+/commentary/*.md
+  Content-Type: text/markdown; charset=utf-8
+
+/faqs/*.md
+  Content-Type: text/markdown; charset=utf-8
+
+/glossary.md
+  Content-Type: text/markdown; charset=utf-8
+
 /site.webmanifest
   Content-Type: application/manifest+json; charset=utf-8
 
