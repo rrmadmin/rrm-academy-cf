@@ -236,9 +236,15 @@
 /* Universal "Save page" toggle — top of the main content column. Outlined pill
    matching the iconbtn / id-pill affordance language; fills on the saved state. */
 .shell-save-row {
+  margin-bottom: var(--space-3);
+}
+/* The inner .container.container--narrow matches the page/article body column
+   (global.css: max-width var(--max-width-article)) on every shell context, so
+   the button's right edge tracks the content edge instead of pinning to the
+   full main-column corner. */
+.shell-save-row > .container {
   display: flex;
   justify-content: flex-end;
-  margin-bottom: var(--space-3);
 }
 .shell-save-toggle {
   display: inline-flex;
