@@ -192,6 +192,10 @@ if (!jsonLd) {
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <meta name="format-detection" content="telephone=no" />
+  {/* Browser chrome matches the page surface, not the accent. Values are the
+      light/dark page-background tokens (--bg-body) from global.css. */}
+  <meta name="theme-color" content="#f7f5f3" media="(prefers-color-scheme: light)" />
+  <meta name="theme-color" content="#1e1a16" media="(prefers-color-scheme: dark)" />
   <meta name="google-site-verification" content="ZtExK_IcUmuRdhaefa20cx5PauMLnRRc4JFwDfmBv0w" />
   {noindex && <meta name="robots" content="noindex, nofollow" />}
   <title>{fullTitle}</title>
@@ -214,24 +218,31 @@ if (!jsonLd) {
     // sessionStorage: tab-scoped, used by checkout pages for Stripe metadata.
     // Cookies: sent with every request, read server-side by buildSourceParams
     // so ALL GA4 conversion events get correct source attribution automatically.
-    if (!sessionStorage.getItem('entry_ref') && !document.cookie.includes('entry_ref=')) {
-      var r = document.referrer, u = location.href;
-      sessionStorage.setItem('entry_ref', r);
-      sessionStorage.setItem('entry_url', u);
-      document.cookie = 'entry_ref=' + encodeURIComponent(r) + ';path=/;SameSite=Lax;Secure';
-      document.cookie = 'entry_url=' + encodeURIComponent(u) + ';path=/;SameSite=Lax;Secure';
-    }
-    // list_source: non-UTM custom param appended to email links so we can
-    // attribute conversions back to the original subscriber-acquisition surface
-    // (endo-survey signup, course page, etc.). 30-day cookie survives internal
-    // navigations; buildSourceParams() picks it up on every GA4 event.
-    try {
-      var lsParam = new URLSearchParams(location.search).get('list_source');
-      if (lsParam && !document.cookie.includes('list_source=')) {
-        document.cookie = 'list_source=' + encodeURIComponent(lsParam) +
-          ';max-age=2592000;path=/;SameSite=Lax;Secure';
+    //
+    // Global Privacy Control: when the browser signals GPC the attribution
+    // cookie writes are skipped entirely. The property may be undefined; only an
+    // explicit `=== true` opts out, so behavior is unchanged when GPC is
+    // unset/false.
+    if (navigator.globalPrivacyControl !== true) {
+      if (!sessionStorage.getItem('entry_ref') && !document.cookie.includes('entry_ref=')) {
+        var r = document.referrer, u = location.href;
+        sessionStorage.setItem('entry_ref', r);
+        sessionStorage.setItem('entry_url', u);
+        document.cookie = 'entry_ref=' + encodeURIComponent(r) + ';path=/;SameSite=Lax;Secure';
+        document.cookie = 'entry_url=' + encodeURIComponent(u) + ';path=/;SameSite=Lax;Secure';
       }
-    } catch (_) { /* opaque URL; skip silently */ }
+      // list_source: non-UTM custom param appended to email links so we can
+      // attribute conversions back to the original subscriber-acquisition surface
+      // (endo-survey signup, course page, etc.). 30-day cookie survives internal
+      // navigations; buildSourceParams() picks it up on every GA4 event.
+      try {
+        var lsParam = new URLSearchParams(location.search).get('list_source');
+        if (lsParam && !document.cookie.includes('list_source=')) {
+          document.cookie = 'list_source=' + encodeURIComponent(lsParam) +
+            ';max-age=2592000;path=/;SameSite=Lax;Secure';
+        }
+      } catch (_) { /* opaque URL; skip silently */ }
+    }
   </script>
   <meta name="description" content={description} />
   <link rel="canonical" href={canonical} />
@@ -239,6 +250,14 @@ if (!jsonLd) {
   <link rel="alternate" hreflang="x-default" href={canonical} />
   {markdownUrl && <link rel="alternate" type="text/markdown" href={markdownUrl} title="Markdown" />}
   {rssFeed && <link rel="alternate" type="application/rss+xml" href={rssFeed.href} title={rssFeed.title} />}
+  {/* Site-wide feed autodiscovery so EVERY page advertises both feeds. Skip the
+      one already emitted by rssFeed above to avoid a duplicate <link>. */}
+  {rssFeed?.href !== '/library/rss.xml' && (
+    <link rel="alternate" type="application/rss+xml" href="/library/rss.xml" title="RRM Academy Research Library" />
+  )}
+  {rssFeed?.href !== '/commentary/rss.xml' && (
+    <link rel="alternate" type="application/rss+xml" href="/commentary/rss.xml" title="RRM Academy Commentary" />
+  )}
 
   <!-- Open Graph -->
   <meta property="og:title" content={fullTitle} />
@@ -292,8 +311,17 @@ if (!jsonLd) {
   <link rel="preload" href={inter600} as="font" type="font/woff2" crossorigin />
 
   <!-- Favicon -->
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
   <link rel="icon" type="image/x-icon" href="/favicon.ico" />
   <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png" />
+  <link rel="manifest" href="/site.webmanifest" />
+
+  <!-- NLWeb conversational endpoint discovery -->
+  <link rel="nlweb" href="/ask" />
+
+  <!-- Cloudflare Stream preconnect (pages embedding Stream media) -->
+  <link rel="preconnect" href="https://customer-99owhsi4yh33gohc.cloudflarestream.com" crossorigin />
+  <link rel="dns-prefetch" href="https://customer-99owhsi4yh33gohc.cloudflarestream.com" />
 
   {jsonLd ? (
     <script type="application/ld+json" set:html={safeJsonLd(jsonLd)} />
@@ -307,6 +335,10 @@ if (!jsonLd) {
   <!-- rrm-fingerprint-worker client snippet (cookie + localStorage redundancy). -->
   <script is:inline>
     (async () => {
+      // Global Privacy Control: skip visitor identification (the /identify fetch
+      // and the rrm_vid write) when the browser signals GPC. The property may be
+      // undefined; only an explicit `=== true` opts out.
+      if (navigator.globalPrivacyControl === true) return;
       if (sessionStorage.getItem('fp_in_flight') === '1') return;
       sessionStorage.setItem('fp_in_flight', '1');
       const fire = async () => {
@@ -355,12 +387,13 @@ if (!jsonLd) {
   </script>
 </head>
 <body class:list={[bodyClass]} data-track-scroll-page={trackScroll ? '' : undefined}>
+  <a href="#main-content" class="skip-link">Skip to main content</a>
   {chrome === 'shell' ? (
     <slot />
   ) : (
     <>
       <Header />
-      <main>
+      <main id="main-content">
         <slot />
       </main>
       <Footer />
