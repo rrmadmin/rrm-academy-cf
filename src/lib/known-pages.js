@@ -38,6 +38,7 @@ export const PRIVATE_EXCLUDE = new Set([
   'connect',
   'mcp',
   'linkinbio',
+  '500',
 ]);
 
 export function deriveRoute(fileKey) {
