@@ -172,6 +172,7 @@ async function runPillarChecks() {
   // 5. Cross-ref resolution
   const crossRefs = [...html.matchAll(/<a[^>]*href="#([a-z0-9\-]+)"/g)].map((m) => m[1]);
   const sectionAnchors = new Set([
+    'main-content', // global skip-link target (BaseLayout / AppShellChrome <main id="main-content">)
     'overview', 'abbreviations', 'references', 'key-takeaways',
     'core-rrm-principles', 'fertility-awareness', 'clinical-approaches',
     'diagnostic-tools', 'surgical-techniques', 'conditions',
