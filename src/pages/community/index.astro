@@ -21,6 +21,32 @@ const SHELL_ENABLED = isShellEnabled('community');
         <p>Loading...</p>
       </div>
 
+      <!-- Action Areas hub structure (shared: members + non-members; populated by JS).
+           Empty by default; each section reveals itself only when its data + display floor allow.
+           Zero active areas => stays entirely empty and the legacy feed renders unchanged. -->
+      <div id="hub-structure" class="hub-structure" hidden>
+        <!-- This Month impact strip -->
+        <section id="hub-impact-section" class="hub-section" hidden>
+          <div class="hub-sec-head"><h2 class="hub-h2">This month</h2></div>
+          <div class="hub-impact">
+            <div class="hub-impact__t">What the club moved this month</div>
+            <div id="hub-impact-grid" class="hub-impact-grid"></div>
+          </div>
+        </section>
+
+        <!-- Action Areas row -->
+        <section id="hub-areas-section" class="hub-section" hidden>
+          <div class="hub-sec-head"><h2 class="hub-h2">Action Areas</h2><span class="hub-sec-hint">Where do you fit?</span></div>
+          <div id="hub-areas-grid" class="hub-areas"></div>
+        </section>
+
+        <!-- Active Projects rail -->
+        <section id="hub-projects-section" class="hub-section" hidden>
+          <div class="hub-sec-head"><h2 class="hub-h2">Active projects</h2><span class="hub-sec-hint">What can you do?</span></div>
+          <div id="hub-projects-rail" class="hub-rail"></div>
+        </section>
+      </div>
+
       <!-- Gate: non-members -->
       <div id="community-gate" hidden>
         <div class="gate-hero">
@@ -31,6 +57,20 @@ const SHELL_ENABLED = isShellEnabled('community');
           </div>
           <div class="gate-instagram">
             <p>Not ready to join? <a href="https://www.instagram.com/direct/t/7768750249851959/" target="_blank" rel="noopener noreferrer">Join our free Uterus Allies group on Instagram</a></p>
+          </div>
+        </div>
+
+        <!-- Stream lock: shown in the gate (non-members) where the conversation would be.
+             Only rendered when there is at least one active area (otherwise the gate is hero-only). -->
+        <div id="gate-stream-lock" class="hub-stream-lock" hidden>
+          <div class="hub-stream-lock__icon" aria-hidden="true">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="11" x="3" y="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+          </div>
+          <h3 class="hub-stream-lock__heading">Join to see the conversation</h3>
+          <p class="hub-stream-lock__text">The Action Areas and projects above are open to browse. The live member conversation is for Save the Uterus Club members.</p>
+          <div class="hub-stream-lock__actions">
+            <a class="btn btn--primary" href="/save-the-uterus-club/">Join the Club</a>
+            <a class="btn btn--secondary" href="/login?redirect=/community">Log in</a>
           </div>
         </div>
       </div>
@@ -60,6 +100,9 @@ const SHELL_ENABLED = isShellEnabled('community');
           <button class="feed-tab" role="tab" data-type="discussion">Discussions</button>
           <a class="feed-tab feed-tab--link" href="/courses/">Courses</a>
         </div>
+
+        <!-- Area filter pills (additional filter dimension; populated by JS, hidden when no active areas) -->
+        <div id="hub-area-pills" class="hub-pills" role="tablist" aria-label="Filter by Action Area" hidden></div>
 
         <!-- Compose trigger -->
         <div class="compose-trigger" id="compose-trigger">
@@ -282,6 +325,8 @@ const SHELL_ENABLED = isShellEnabled('community');
           loadingEl.hidden = true;
           if (!data.ok || !data.user) {
             gateEl.hidden = false;
+            // Hub structure (impact / areas / projects) for logged-out visitors — read-only.
+            if (window.__stucHub) window.__stucHub.boot(false);
             return;
           }
           if (data.access === 'member') {
@@ -289,6 +334,8 @@ const SHELL_ENABLED = isShellEnabled('community');
             userNameEl.textContent = currentUser.name || 'Member';
             setupFeed();
             feedEl.hidden = false;
+            // Hub structure (impact / areas / projects) for members — interactive (Join toggles).
+            if (window.__stucHub) window.__stucHub.boot(true);
 
             // Init notification bell
             if (notifBell) {
@@ -316,6 +363,8 @@ const SHELL_ENABLED = isShellEnabled('community');
             }
           } else {
             gateEl.hidden = false;
+            // Logged-in but non-member: same read-only hub structure as logged-out.
+            if (window.__stucHub) window.__stucHub.boot(false);
           }
         })
         .catch(function () {
@@ -436,10 +485,23 @@ const SHELL_ENABLED = isShellEnabled('community');
         })(tabs[i]);
       }
 
+      // Exposed so the Action Area pills (separate bundled module) can re-run the
+      // feed query with the current area filter without touching the existing tab logic.
+      window.__stucReloadFeed = function () {
+        lastCreatedAt = null;
+        allPostsLoaded = false;
+        postListEl.innerHTML = '';
+        postsEmpty.hidden = true;
+        loadPosts(false);
+      };
+
       // --- Load posts ---
       function loadPosts(append) {
         var url = '/api/community/posts?channel=stuc&limit=' + PAGE_SIZE;
         if (activeType) url += '&type=' + encodeURIComponent(activeType);
+        // Additional area-filter dimension (set by the Action Area pills; empty = All)
+        var areaSlug = (window.__stucHub && window.__stucHub.activeAreaSlug) || '';
+        if (areaSlug) url += '&area=' + encodeURIComponent(areaSlug);
         if (append && lastCreatedAt) url += '&before=' + encodeURIComponent(lastCreatedAt);
 
         loadMoreBtn.disabled = true;
@@ -635,6 +697,12 @@ const SHELL_ENABLED = isShellEnabled('community');
         timeEl.className = 'post-time';
         timeEl.textContent = timeAgo(post.createdAt);
         header.appendChild(timeEl);
+
+        // Area chip — only when the post's areaId maps to an ACTIVE area (else no chip)
+        if (window.__stucHub) {
+          var areaChipEl = window.__stucHub.areaChip(post.areaId);
+          if (areaChipEl) header.appendChild(areaChipEl);
+        }
 
         if (isAdmin || isMod) {
           var controls = document.createElement('div');
@@ -1614,6 +1682,466 @@ const SHELL_ENABLED = isShellEnabled('community');
 
     })();
   </script>
+
+  <!-- ── STUC Action Areas hub (Phase 6) ──
+       Separate bundled module (NOT is:inline) so it can import the display-floors SSOT.
+       Renders the shared structure (impact strip / areas row / projects rail / area pills)
+       for BOTH members and logged-out visitors. Exposes window.__stucHub, which the inline
+       feed script calls via boot(), areaChip(), and activeAreaSlug. Touches none of the
+       existing feed / compose / comments / reactions / edit / delete logic. -->
+  <script>
+    import {
+      showImpactStrip,
+      showProjectCount,
+      showMemberCount,
+    } from '../../lib/stuc-display-floors.ts';
+
+    (function () {
+      // Token-based area accent colors (purple brand first; rose is community-semantic only).
+      var AREA_COLORS = ['var(--accent)', 'var(--rose-500)', 'var(--sage-500)', 'var(--green-700)'];
+      var STATUS_LABELS = {
+        recruiting: 'Recruiting',
+        in_progress: 'In progress',
+        paused: 'Paused',
+        done: 'Done',
+      };
+
+      var els = {
+        structure: document.getElementById('hub-structure'),
+        impactSection: document.getElementById('hub-impact-section'),
+        impactGrid: document.getElementById('hub-impact-grid'),
+        areasSection: document.getElementById('hub-areas-section'),
+        areasGrid: document.getElementById('hub-areas-grid'),
+        projectsSection: document.getElementById('hub-projects-section'),
+        projectsRail: document.getElementById('hub-projects-rail'),
+        pills: document.getElementById('hub-area-pills'),
+        streamLock: document.getElementById('gate-stream-lock'),
+      };
+
+      var state = {
+        isMember: false,
+        areaMap: {},        // areaId -> { area, color }
+        areas: [],          // active areas (ordered)
+        joinedAreas: {},    // areaId -> true
+        joinedProjects: {}, // projectId -> true
+        activeAreaSlug: '', // current pill filter ('' = All)
+      };
+
+      function esc(str) {
+        var div = document.createElement('div');
+        div.appendChild(document.createTextNode(str == null ? '' : String(str)));
+        return div.innerHTML;
+      }
+
+      function initials(name) {
+        if (!name) return '?';
+        var parts = String(name).trim().split(/\s+/);
+        if (parts.length === 1) return parts[0].charAt(0).toUpperCase();
+        return (parts[0].charAt(0) + parts[parts.length - 1].charAt(0)).toUpperCase();
+      }
+
+      function getJSON(url) {
+        return fetch(url, { credentials: 'same-origin' })
+          .then(function (r) { return r.json(); })
+          .catch(function () { return null; });
+      }
+
+      // --- Public: area chip element for a post (null if areaId not an active area) ---
+      function areaChip(areaId) {
+        if (!areaId) return null;
+        var entry = state.areaMap[areaId];
+        if (!entry) return null;
+        var chip = document.createElement('span');
+        chip.className = 'hub-chip';
+        chip.style.borderLeftColor = entry.color;
+        var icon = entry.area.icon || '';
+        chip.textContent = (icon ? icon + ' ' : '') + entry.area.name;
+        return chip;
+      }
+
+      // --- Impact strip (gated by showImpactStrip floor) ---
+      function renderImpact(impact) {
+        if (!Array.isArray(impact) || !showImpactStrip(impact.length)) {
+          els.impactSection.hidden = true;
+          return;
+        }
+        var frag = document.createDocumentFragment();
+        for (var i = 0; i < impact.length; i++) {
+          var it = impact[i];
+          var entry = it.areaId ? state.areaMap[it.areaId] : null;
+          var item = document.createElement('div');
+          item.className = 'hub-impact-item';
+          var ic = document.createElement('span');
+          ic.className = 'hub-impact-item__ic';
+          ic.textContent = (entry && entry.area.icon) ? entry.area.icon : '✨';
+          var txt = document.createElement('div');
+          var h = document.createElement('div');
+          h.className = 'hub-impact-item__h';
+          h.textContent = it.title || '';
+          txt.appendChild(h);
+          if (it.detail) {
+            var d = document.createElement('div');
+            d.className = 'hub-impact-item__d';
+            d.textContent = it.detail;
+            txt.appendChild(d);
+          }
+          item.appendChild(ic);
+          item.appendChild(txt);
+          frag.appendChild(item);
+        }
+        els.impactGrid.innerHTML = '';
+        els.impactGrid.appendChild(frag);
+        els.impactSection.hidden = false;
+      }
+
+      // --- Area join / leave toggle (members only) ---
+      function toggleAreaMembership(areaId, btn) {
+        var joined = !!state.joinedAreas[areaId];
+        var path = joined ? '/api/community/areas/leave' : '/api/community/areas/join';
+        btn.disabled = true;
+        fetch(path, {
+          method: 'POST',
+          credentials: 'same-origin',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ areaId: areaId }),
+        })
+          .then(function (r) { return r.json(); })
+          .then(function (data) {
+            btn.disabled = false;
+            if (!data || !data.ok) return;
+            state.joinedAreas[areaId] = !joined;
+            paintAreaJoinBtn(btn, !joined);
+          })
+          .catch(function () { btn.disabled = false; });
+      }
+
+      function paintAreaJoinBtn(btn, joined) {
+        if (joined) {
+          btn.classList.add('hub-btn-join--joined');
+          btn.textContent = 'Joined ✓';
+        } else {
+          btn.classList.remove('hub-btn-join--joined');
+          btn.textContent = 'Join';
+        }
+      }
+
+      // --- Action Areas row ---
+      function renderAreas() {
+        var frag = document.createDocumentFragment();
+        for (var i = 0; i < state.areas.length; i++) {
+          (function (area, color) {
+            var card = document.createElement('div');
+            card.className = 'hub-area-card';
+
+            var bar = document.createElement('div');
+            bar.className = 'hub-area-card__bar';
+            bar.style.background = color;
+            card.appendChild(bar);
+
+            var bodyEl = document.createElement('div');
+            bodyEl.className = 'hub-area-card__body';
+
+            if (area.icon) {
+              var ic = document.createElement('div');
+              ic.className = 'hub-area-card__ic';
+              ic.textContent = area.icon;
+              bodyEl.appendChild(ic);
+            }
+
+            var h3 = document.createElement('h3');
+            h3.className = 'hub-area-card__h';
+            h3.textContent = area.name;
+            bodyEl.appendChild(h3);
+
+            if (area.tagline) {
+              var tag = document.createElement('div');
+              tag.className = 'hub-area-card__tag';
+              tag.textContent = area.tagline;
+              bodyEl.appendChild(tag);
+            }
+
+            // Owner (or "Owner TBC")
+            var owner = document.createElement('div');
+            owner.className = 'hub-owner';
+            var ava = document.createElement('span');
+            ava.className = 'hub-owner__ava';
+            if (area.ownerName) {
+              ava.textContent = initials(area.ownerName);
+              owner.appendChild(ava);
+              owner.appendChild(document.createTextNode('Led by ' + area.ownerName));
+            } else {
+              owner.classList.add('hub-owner--tbc');
+              ava.textContent = '?';
+              owner.appendChild(ava);
+              owner.appendChild(document.createTextNode('Owner TBC'));
+            }
+            bodyEl.appendChild(owner);
+
+            // Footer: count (gated) OR "Get involved"; plus member Join / non-member link
+            var foot = document.createElement('div');
+            foot.className = 'hub-area-card__foot';
+
+            if (showProjectCount(area.projectCount)) {
+              var count = document.createElement('span');
+              count.className = 'hub-count-badge';
+              count.textContent = area.projectCount + (area.projectCount === 1 ? ' project' : ' projects');
+              foot.appendChild(count);
+            } else {
+              var ci = document.createElement('a');
+              ci.className = 'hub-get-involved';
+              ci.href = state.isMember ? ('#area-' + esc(area.slug)) : '/save-the-uterus-club/';
+              ci.textContent = 'Get involved →';
+              foot.appendChild(ci);
+            }
+
+            if (state.isMember) {
+              var joinBtn = document.createElement('button');
+              joinBtn.type = 'button';
+              joinBtn.className = 'hub-btn-join';
+              paintAreaJoinBtn(joinBtn, !!state.joinedAreas[area.id]);
+              joinBtn.addEventListener('click', function () {
+                toggleAreaMembership(area.id, joinBtn);
+              });
+              foot.appendChild(joinBtn);
+            } else {
+              var joinLink = document.createElement('a');
+              joinLink.className = 'hub-join-out';
+              joinLink.href = '/save-the-uterus-club/';
+              joinLink.textContent = 'Join the Club →';
+              foot.appendChild(joinLink);
+            }
+
+            bodyEl.appendChild(foot);
+            card.appendChild(bodyEl);
+            frag.appendChild(card);
+          })(state.areas[i], AREA_COLORS[i % AREA_COLORS.length]);
+        }
+        els.areasGrid.innerHTML = '';
+        els.areasGrid.appendChild(frag);
+        els.areasSection.hidden = false;
+      }
+
+      // --- Project join / leave toggle (members only) ---
+      function toggleProjectMembership(projectId, btn) {
+        var joined = !!state.joinedProjects[projectId];
+        var path = joined ? '/api/community/projects/leave' : '/api/community/projects/join';
+        btn.disabled = true;
+        fetch(path, {
+          method: 'POST',
+          credentials: 'same-origin',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ projectId: projectId }),
+        })
+          .then(function (r) { return r.json(); })
+          .then(function (data) {
+            btn.disabled = false;
+            if (!data || !data.ok) return;
+            state.joinedProjects[projectId] = !joined;
+            paintProjectJoinBtn(btn, !joined);
+          })
+          .catch(function () { btn.disabled = false; });
+      }
+
+      function paintProjectJoinBtn(btn, joined) {
+        if (joined) {
+          btn.classList.add('hub-btn-sm--joined');
+          btn.textContent = 'Joined ✓';
+        } else {
+          btn.classList.remove('hub-btn-sm--joined');
+          btn.textContent = 'Join';
+        }
+      }
+
+      // --- Active Projects rail (suppressed when 0 active projects) ---
+      function renderProjects(projects) {
+        var active = (projects || []).filter(function (p) {
+          return p.status !== 'archived' && p.status !== 'done';
+        });
+        if (active.length === 0) {
+          els.projectsSection.hidden = true;
+          return;
+        }
+        var frag = document.createDocumentFragment();
+        for (var i = 0; i < active.length; i++) {
+          (function (p) {
+            var entry = p.areaId ? state.areaMap[p.areaId] : null;
+            var card = document.createElement('div');
+            card.className = 'hub-proj';
+
+            var top = document.createElement('div');
+            top.className = 'hub-proj__top';
+            if (entry) {
+              var chip = document.createElement('span');
+              chip.className = 'hub-chip';
+              chip.style.borderLeftColor = entry.color;
+              chip.textContent = (entry.area.icon ? entry.area.icon + ' ' : '') + (p.areaName || entry.area.name);
+              top.appendChild(chip);
+            }
+            var status = document.createElement('span');
+            status.className = 'hub-status hub-status--' + p.status;
+            status.textContent = STATUS_LABELS[p.status] || p.status;
+            top.appendChild(status);
+            card.appendChild(top);
+
+            var h4 = document.createElement('h4');
+            h4.className = 'hub-proj__h';
+            h4.textContent = p.title || '';
+            card.appendChild(h4);
+
+            if (p.summary) {
+              var sum = document.createElement('p');
+              sum.className = 'hub-proj__sum';
+              sum.textContent = p.summary;
+              card.appendChild(sum);
+            }
+
+            var foot = document.createElement('div');
+            foot.className = 'hub-proj__foot';
+
+            if (p.workspaceUrl) {
+              var ws = document.createElement('a');
+              ws.className = 'hub-ws-link';
+              ws.href = p.workspaceUrl;
+              ws.target = '_blank';
+              ws.rel = 'noopener noreferrer';
+              ws.textContent = 'Open workspace ↗';
+              foot.appendChild(ws);
+            }
+
+            if (state.isMember && p.status !== 'done') {
+              var joinBtn = document.createElement('button');
+              joinBtn.type = 'button';
+              joinBtn.className = 'hub-btn-sm';
+              paintProjectJoinBtn(joinBtn, !!state.joinedProjects[p.id]);
+              joinBtn.addEventListener('click', function () {
+                toggleProjectMembership(p.id, joinBtn);
+              });
+              foot.appendChild(joinBtn);
+            }
+
+            if (foot.childNodes.length) card.appendChild(foot);
+            frag.appendChild(card);
+          })(active[i]);
+        }
+        els.projectsRail.innerHTML = '';
+        els.projectsRail.appendChild(frag);
+        els.projectsSection.hidden = false;
+      }
+
+      // --- Area filter pills (member feed) ---
+      function renderPills() {
+        if (!state.isMember || !els.pills) return;
+        var frag = document.createDocumentFragment();
+
+        var all = document.createElement('button');
+        all.type = 'button';
+        all.className = 'hub-pill hub-pill--on';
+        all.setAttribute('role', 'tab');
+        all.setAttribute('data-area', '');
+        all.textContent = 'All';
+        frag.appendChild(all);
+
+        for (var i = 0; i < state.areas.length; i++) {
+          var a = state.areas[i];
+          var pill = document.createElement('button');
+          pill.type = 'button';
+          pill.className = 'hub-pill';
+          pill.setAttribute('role', 'tab');
+          pill.setAttribute('data-area', a.slug);
+          pill.textContent = (a.icon ? a.icon + ' ' : '') + a.name;
+          frag.appendChild(pill);
+        }
+
+        els.pills.innerHTML = '';
+        els.pills.appendChild(frag);
+        els.pills.hidden = false;
+
+        els.pills.addEventListener('click', function (e) {
+          var pill = e.target.closest('.hub-pill');
+          if (!pill) return;
+          var pills = els.pills.querySelectorAll('.hub-pill');
+          for (var j = 0; j < pills.length; j++) pills[j].classList.remove('hub-pill--on');
+          pill.classList.add('hub-pill--on');
+          state.activeAreaSlug = pill.getAttribute('data-area') || '';
+          if (typeof window.__stucReloadFeed === 'function') window.__stucReloadFeed();
+        });
+      }
+
+      // --- Boot: fetch structure data + render (called by the inline feed script) ---
+      var booted = false;
+      function boot(isMember) {
+        if (booted) return;
+        booted = true;
+        state.isMember = !!isMember;
+
+        var reqs = [
+          getJSON('/api/community/areas'),
+          getJSON('/api/community/impact'),
+          getJSON('/api/community/projects'),
+        ];
+        if (state.isMember) reqs.push(getJSON('/api/community/memberships'));
+
+        Promise.all(reqs).then(function (res) {
+          var areasResp = res[0], impactResp = res[1], projectsResp = res[2], memResp = res[3];
+
+          var areas = (areasResp && areasResp.ok && Array.isArray(areasResp.areas)) ? areasResp.areas : [];
+
+          // ZERO-ACTIVE-AREAS FALLBACK: render none of the hub furniture.
+          if (areas.length === 0) {
+            els.structure.hidden = true;
+            if (els.streamLock) els.streamLock.hidden = true;
+            return;
+          }
+
+          state.areas = areas;
+          for (var i = 0; i < areas.length; i++) {
+            state.areaMap[areas[i].id] = {
+              area: areas[i],
+              color: AREA_COLORS[i % AREA_COLORS.length],
+            };
+            // Seed joined state from the public areas payload (isMember flag) when present.
+            if (state.isMember && areas[i].isMember) state.joinedAreas[areas[i].id] = true;
+          }
+
+          // Overlay authoritative membership data when available.
+          if (memResp && memResp.ok) {
+            if (Array.isArray(memResp.areas)) {
+              for (var m = 0; m < memResp.areas.length; m++) state.joinedAreas[memResp.areas[m].areaId] = true;
+            }
+            if (Array.isArray(memResp.projects)) {
+              for (var n = 0; n < memResp.projects.length; n++) state.joinedProjects[memResp.projects[n].projectId] = true;
+            }
+          }
+
+          var impact = (impactResp && impactResp.ok && Array.isArray(impactResp.impact)) ? impactResp.impact : [];
+          var projects = (projectsResp && projectsResp.ok && Array.isArray(projectsResp.projects)) ? projectsResp.projects : [];
+
+          // Project isMember overlay (when memberships endpoint absent / partial)
+          for (var pi = 0; pi < projects.length; pi++) {
+            if (state.isMember && projects[pi].isMember) state.joinedProjects[projects[pi].id] = true;
+          }
+
+          els.structure.hidden = false;
+          renderImpact(impact);
+          renderAreas();
+          renderProjects(projects);
+          renderPills();
+
+          // Stream lock for non-members (where the conversation would be).
+          if (!state.isMember && els.streamLock) els.streamLock.hidden = false;
+        });
+      }
+
+      window.__stucHub = {
+        boot: boot,
+        areaChip: areaChip,
+        // showMemberCount is imported and available; no endpoint currently returns a
+        // public member count, so nothing renders one. Kept wired for when it does.
+        _showMemberCount: showMemberCount,
+        get activeAreaSlug() { return state.activeAreaSlug; },
+      };
+    })();
+  </script>
 </BaseLayout>
 
 <style is:global>
@@ -2488,4 +3016,389 @@ const SHELL_ENABLED = isShellEnabled('community');
     color: var(--text-primary);
   }
   .event-join-btn { margin-top: var(--space-2); }
+
+  /* ════════════════════════════════════════════════════════
+     STUC Action Areas hub (Phase 6) — additive, mobile-first.
+     Lives inside the existing 600px .container column; grids
+     collapse via minmax(min(Xpx,100%),1fr) — no horizontal overflow.
+     Brand accent = var(--accent) purple; rose is community-semantic only.
+     ════════════════════════════════════════════════════════ */
+  .hub-structure {
+    padding: var(--space-4) 16px var(--space-2);
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-6);
+  }
+  .hub-structure[hidden] { display: none; }
+  .hub-section { margin: 0; }
+  .hub-section[hidden] { display: none; }
+  .hub-sec-head {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: var(--space-2);
+    margin-bottom: var(--space-3);
+    flex-wrap: wrap;
+  }
+  .hub-h2 {
+    font-family: 'Cormorant Garamond', Georgia, serif;
+    font-weight: 600;
+    font-size: 1.5rem;
+    letter-spacing: -0.01em;
+    margin: 0;
+    line-height: 1.15;
+    color: var(--text-primary);
+  }
+  .hub-sec-hint {
+    font-size: 13px;
+    color: var(--text-tertiary);
+  }
+
+  /* ── This Month impact strip (purple gradient per mockup) ── */
+  .hub-impact {
+    background: linear-gradient(135deg, var(--accent) 0%, var(--accent-hover) 100%);
+    color: #fff;
+    border-radius: var(--radius-lg);
+    padding: var(--space-5) var(--space-5);
+    box-shadow: var(--shadow-md);
+  }
+  .hub-impact__t {
+    font-size: 0.72rem;
+    font-weight: 600;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--purple-100);
+    margin-bottom: var(--space-4);
+  }
+  .hub-impact-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(min(220px, 100%), 1fr));
+    gap: var(--space-4);
+  }
+  .hub-impact-item {
+    display: flex;
+    gap: 11px;
+    align-items: flex-start;
+  }
+  .hub-impact-item__ic {
+    font-size: 1.3rem;
+    line-height: 1.1;
+    flex: none;
+  }
+  .hub-impact-item__h {
+    font-weight: 600;
+    font-size: 0.93rem;
+    line-height: 1.3;
+  }
+  .hub-impact-item__d {
+    font-size: 0.82rem;
+    color: var(--purple-100);
+    margin-top: 2px;
+    line-height: 1.35;
+  }
+
+  /* ── Action Areas row ── */
+  .hub-areas {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(min(240px, 100%), 1fr));
+    gap: var(--space-4);
+  }
+  .hub-area-card {
+    background: var(--bg-surface);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-sm);
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+  }
+  .hub-area-card__bar { height: 5px; }
+  .hub-area-card__body {
+    padding: var(--space-4);
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+  }
+  .hub-area-card__ic {
+    font-size: 1.5rem;
+    margin-bottom: var(--space-2);
+  }
+  .hub-area-card__h {
+    font-family: 'Inter', sans-serif;
+    font-weight: 600;
+    font-size: 1.02rem;
+    margin: 0 0 3px;
+    color: var(--text-primary);
+  }
+  .hub-area-card__tag {
+    font-size: 0.84rem;
+    color: var(--text-secondary);
+    line-height: 1.4;
+    margin-bottom: var(--space-3);
+    flex: 1;
+  }
+  .hub-owner {
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    font-size: 0.78rem;
+    color: var(--text-secondary);
+    margin-bottom: var(--space-3);
+  }
+  .hub-owner__ava {
+    width: 22px;
+    height: 22px;
+    border-radius: 50%;
+    background: var(--purple-100);
+    color: var(--accent-hover);
+    font-size: 0.66rem;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex: none;
+  }
+  .hub-owner--tbc {
+    color: var(--text-tertiary);
+    font-style: italic;
+  }
+  .hub-owner--tbc .hub-owner__ava {
+    background: var(--neutral-200);
+    color: var(--text-secondary);
+    font-style: normal;
+  }
+  .hub-area-card__foot {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--space-2);
+    border-top: 1px solid var(--border-color);
+    padding-top: 11px;
+    flex-wrap: wrap;
+  }
+  .hub-count-badge {
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: var(--accent-hover);
+  }
+  .hub-get-involved {
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: var(--accent);
+    text-decoration: none;
+  }
+  .hub-get-involved:hover { text-decoration: underline; }
+  .hub-join-out {
+    font-size: 0.78rem;
+    font-weight: 600;
+    color: var(--accent);
+    text-decoration: none;
+    margin-left: auto;
+  }
+  .hub-join-out:hover { text-decoration: underline; }
+
+  /* Join toggle buttons (areas) */
+  .hub-btn-join {
+    font: inherit;
+    font-size: 0.76rem;
+    font-weight: 600;
+    border: 1px solid var(--accent);
+    background: var(--accent);
+    color: #fff;
+    padding: 5px 12px;
+    border-radius: var(--radius-pill);
+    cursor: pointer;
+    white-space: nowrap;
+    transition: background 0.1s, border-color 0.1s, color 0.1s;
+  }
+  .hub-btn-join:hover:not(:disabled) { background: var(--accent-hover); border-color: var(--accent-hover); }
+  .hub-btn-join:disabled { opacity: 0.6; cursor: default; }
+  .hub-btn-join--joined {
+    background: var(--sage-100);
+    border-color: var(--sage-500);
+    color: var(--sage-700);
+  }
+  .hub-btn-join--joined:hover:not(:disabled) {
+    background: var(--sage-100);
+    border-color: var(--sage-700);
+  }
+
+  /* ── Active Projects rail ── */
+  .hub-rail {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(min(260px, 100%), 1fr));
+    gap: var(--space-3);
+  }
+  .hub-proj {
+    background: var(--bg-surface);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-md);
+    box-shadow: var(--shadow-sm);
+    padding: var(--space-4);
+    display: flex;
+    flex-direction: column;
+  }
+  .hub-proj__top {
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+    margin-bottom: var(--space-2);
+    flex-wrap: wrap;
+  }
+  .hub-proj__h {
+    font-family: 'Inter', sans-serif;
+    font-weight: 600;
+    font-size: 0.98rem;
+    margin: 0 0 4px;
+    color: var(--text-primary);
+  }
+  .hub-proj__sum {
+    font-size: 0.83rem;
+    color: var(--text-secondary);
+    margin: 0 0 var(--space-3);
+    line-height: 1.45;
+    flex: 1;
+  }
+  .hub-proj__foot {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--space-2);
+    flex-wrap: wrap;
+  }
+  .hub-ws-link {
+    font-size: 0.76rem;
+    font-weight: 600;
+    color: var(--accent);
+    text-decoration: none;
+  }
+  .hub-ws-link:hover { text-decoration: underline; }
+  .hub-btn-sm {
+    font: inherit;
+    font-size: 0.74rem;
+    font-weight: 600;
+    border: 1px solid var(--accent);
+    background: var(--bg-surface);
+    color: var(--accent);
+    padding: 4px 11px;
+    border-radius: var(--radius-pill);
+    cursor: pointer;
+    white-space: nowrap;
+    transition: background 0.1s, color 0.1s;
+  }
+  .hub-btn-sm:hover:not(:disabled) { background: var(--purple-50); }
+  .hub-btn-sm:disabled { opacity: 0.6; cursor: default; }
+  .hub-btn-sm--joined {
+    background: var(--sage-100);
+    border-color: var(--sage-500);
+    color: var(--sage-700);
+  }
+
+  /* ── Status badge ── */
+  .hub-status {
+    font-size: 0.66rem;
+    font-weight: 700;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    padding: 3px 8px;
+    border-radius: 6px;
+    white-space: nowrap;
+  }
+  .hub-status--recruiting { background: var(--sage-100); color: var(--sage-700); }
+  .hub-status--in_progress { background: var(--purple-50); color: var(--accent-hover); }
+  .hub-status--paused { background: var(--neutral-100); color: var(--text-secondary); }
+  .hub-status--done { background: var(--green-100); color: var(--green-700); }
+
+  /* ── Area chip (projects + posts); per-chip accent set inline via style.borderLeftColor ── */
+  .hub-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    font-size: 0.7rem;
+    font-weight: 600;
+    padding: 3px 9px;
+    border-radius: var(--radius-pill);
+    background: var(--purple-50);
+    color: var(--accent-hover);
+    white-space: nowrap;
+    border: 1px solid transparent;
+    border-left: 3px solid var(--accent);
+  }
+
+  /* ── Area filter pills (member feed) ── */
+  .hub-pills {
+    display: flex;
+    gap: 7px;
+    overflow-x: auto;
+    padding: 12px 16px;
+    border-bottom: 1px solid var(--border-color);
+    -webkit-overflow-scrolling: touch;
+  }
+  .hub-pills[hidden] { display: none; }
+  .hub-pill {
+    flex: none;
+    font: inherit;
+    font-size: 0.78rem;
+    font-weight: 600;
+    padding: 5px 13px;
+    border-radius: var(--radius-pill);
+    background: var(--neutral-100);
+    border: 1px solid var(--border-color);
+    color: var(--text-secondary);
+    cursor: pointer;
+    white-space: nowrap;
+    transition: background 0.1s, color 0.1s, border-color 0.1s;
+  }
+  .hub-pill:hover { color: var(--text-primary); }
+  .hub-pill--on {
+    background: var(--accent);
+    border-color: var(--accent);
+    color: #fff;
+  }
+
+  /* ── Stream lock (logged-out / non-member, in the gate) ── */
+  .hub-stream-lock {
+    text-align: center;
+    padding: var(--space-10) var(--space-6);
+    border-top: 1px solid var(--border-color);
+    margin-top: var(--space-4);
+  }
+  .hub-stream-lock[hidden] { display: none; }
+  .hub-stream-lock__icon {
+    width: 52px;
+    height: 52px;
+    border-radius: 50%;
+    background: var(--purple-50);
+    color: var(--accent);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto var(--space-3);
+  }
+  .hub-stream-lock__heading {
+    font-family: 'Cormorant Garamond', Georgia, serif;
+    font-weight: 600;
+    font-size: 1.5rem;
+    margin: 0 0 var(--space-2);
+    color: var(--text-primary);
+  }
+  .hub-stream-lock__text {
+    font-size: 0.92rem;
+    color: var(--text-secondary);
+    max-width: 42ch;
+    margin: 0 auto var(--space-4);
+    line-height: 1.5;
+  }
+  .hub-stream-lock__actions {
+    display: flex;
+    gap: var(--space-2);
+    justify-content: center;
+    flex-wrap: wrap;
+  }
+
+  @media (max-width: 600px) {
+    .hub-structure { padding: var(--space-4) 12px var(--space-2); }
+    .hub-pills { padding: 10px 12px; }
+    .hub-h2 { font-size: 1.35rem; }
+  }
 </style>
