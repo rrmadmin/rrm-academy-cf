@@ -24,6 +24,28 @@ A 6-agent verification sweep ran the v3 spec against current `main` (2026-05-29)
 5. **`isSafeUrl()` is posts.js-local (lines 28-35), NOT a `_shared.js` export.** Phase 3.1 must HOIST it into `_shared.js` (alongside the new `validateAreaId`), then re-import from `posts.js`. Do not assume it is already shared.
 6. **Live D1 collision pre-check (Phase 1.1) needs CF auth.** Wrangler is unauthenticated in subagents and 1P token sourcing is classifier-blocked there; run the `SELECT name FROM sqlite_master … IN ('action_area','project',…)` from the main interactive session (token via 1P) BEFORE writing/applying the migration. `schema.sql` (regenerated from live 2026-05-27, 60 tables) shows none of the 5 tables and no `community_post.area_id`, but the generic `project` name still demands the live check.
 
+## Pre-execution contract (2026-05-29 — `brian` review required modifications)
+
+The `brian` standards reviewer returned **CONDITIONALLY APPROVE**; these are binding before/while executing.
+
+**HUMAN-GATE steps (run by the interactive controller, NOT a subagent):**
+- **Phase 1.1 (live collision check)** and **Phase 1.5 (remote migration apply)** require an authenticated wrangler (CF token via 1P) that subagents cannot reach. The interactive session runs both. **ABORT the whole pipeline if 1.1 is skipped or returns ANY rows** (the generic `project` name risks collision). The subagent pipeline does not advance past Phase 1 until the controller confirms 1.1 = zero rows and 1.5 applied.
+
+**Complete autonomous revert contract (state before Phase 1):**
+- New tables drop cleanly: `wrangler d1 execute rrm-auth --remote --command "DROP INDEX IF EXISTS idx_community_post_area; DROP TABLE IF EXISTS impact_entry; DROP TABLE IF EXISTS project_membership; DROP TABLE IF EXISTS area_membership; DROP TABLE IF EXISTS project; DROP TABLE IF EXISTS action_area;"`
+- `community_post.area_id` is LEFT IN PLACE (nullable, inert) — NEVER `DROP COLUMN`.
+- Page/endpoint revert = `git revert <merge-sha>` + CF Pages redeploy. Feature also self-disables via the empty-`action_area` server check (zero active rows → legacy feed), so dropping the tables disables the hub furniture even without a code deploy.
+
+**Guard invariant — exact new string (Phase 2.3; do NOT let the coder agent author it):** re-scope `scripts/guard.mjs`'s `/community` assertion to require ALL THREE genuinely member-only sub-paths to remain referenced: `middleware.includes('/community/events') && middleware.includes('/community/members') && middleware.includes('/community/post')`. The controller reviews the `guard.mjs` diff before `guard:update` (no self-certification on the invariant change). Pair with the behavioral e2e test (Addendum #3).
+
+**D0-4 indexability — LOCKED (no longer a Phase 7 open item):** area detail page is `noindex` when the area has ZERO active projects; index when ≥1 active project (mirrors the `word_count < 30` thin-page pattern).
+
+**D0-7 abort condition:** if the other CC instance's parked status on the STUC/community lane cannot be confirmed before Phase 2, HALT before touching `_middleware.js`, `posts.js`, or `community/index.astro` and page Brian — do not edit the shared hot files on an unconfirmed lane.
+
+**Visual verification (Phase 9.3 correction):** use **Playwright against a local `npx wrangler pages dev dist`** at desktop (1280px) + mobile (393×852), screenshotting BOTH logged-out and logged-in — NOT claude-in-chrome (Brian's personal Comet profile, not a sandbox; memory `claude-in-chrome-shares-personal-identity`).
+
+**Type safety:** after creating `src/lib/stuc-display-floors.ts`, run `npm run check-types` (a new type error silently blocks the CI deploy via the type-check baseline). Phase 6.8 `design-tokens:audit` failure = ABORT and fix phantom tokens before continuing (do not push).
+
 **Goal:** Turn `/community/` from a lecture-driven feed into a "do tank" hub where Save the Uterus Club members self-sort into Action Areas and projects, with the early-stage small numbers hidden behind growth thresholds.
 
 **Architecture:** Additive D1 migration (5 new tables + one nullable `community_post.area_id`) on `rrm-auth`; a `_middleware.js` carve-out so the hub structure is a logged-out recruiting surface while live conversation stays members-only; new public + member + admin community endpoints (sibling `{ ok, ... }` shape); the existing `community/index.astro` hub restyled into one consolidated chat-style stream with Action Areas furniture layered on top; display of counts gated behind "looks healthy" floors.
@@ -80,13 +102,13 @@ These are decisions, not code tasks. Resolve each with Brian (and Naomi where no
 
 **Files:** `migrations/025-stuc-action-areas.sql` (create), `schema.sql` (verify/regenerate).
 
-- [ ] **1.1 — Pre-apply collision check.** Run against live `rrm-auth`:
+- [ ] **1.1 — Pre-apply collision check. [HUMAN GATE — controller runs interactively; see Pre-execution contract]** Run against live `rrm-auth`:
   `wrangler d1 execute rrm-auth --remote --command "SELECT name FROM sqlite_master WHERE type='table' AND name IN ('action_area','project','area_membership','project_membership','impact_entry')"`
-  Expected: zero rows. `CREATE TABLE IF NOT EXISTS` would silently no-op against a pre-existing generic `project` — abort if any exist.
+  Expected: zero rows. `CREATE TABLE IF NOT EXISTS` would silently no-op against a pre-existing generic `project` — **ABORT the whole pipeline if any exist OR if this check is skipped.**
 - [ ] **1.2 — Confirm migration number** (`ls migrations/ | sort | tail -1`; expect `024-p0-community-stripe-indexes.sql`, use `025`).
 - [ ] **1.3 — Write `migrations/025-stuc-action-areas.sql`** with the exact DDL from the spec §Data model (verbatim — the 5 `CREATE TABLE IF NOT EXISTS`, the `ALTER TABLE community_post ADD COLUMN area_id`, and all 9 indexes). Key invariants baked into the DDL: `slug … UNIQUE COLLATE NOCASE`, every enum a `CHECK (… IN (…))`, FKs are decorative (D1 ignores them).
 - [ ] **1.4 — Apply to a local/preview D1 first**, then verify `PRAGMA table_info(community_post)` shows `area_id` added and all existing columns retained (G-AREA-6).
-- [ ] **1.5 — Apply to remote** `rrm-auth` once verified.
+- [ ] **1.5 — Apply to remote** `rrm-auth` once verified. **[HUMAN GATE — controller runs interactively with a 1P-sourced CF token; subagents cannot reach authenticated wrangler.]**
 - [ ] **1.6 — Regenerate `schema.sql` from live** (one-liner in the file header) so the mirror stays faithful. Commit migration + schema together.
 
 **Proof gates this phase must satisfy:** G-AREA-6 (additive, no DROP, existing rows/columns retained), G-AREA-9 (all enum columns carry CHECK).
@@ -101,7 +123,7 @@ These are decisions, not code tasks. Resolve each with Brian (and Naomi where no
 
 - [ ] **2.1 — Read the current `needsAuth` predicate** (lines **317-322**; line 320 matches `/community` exact + `/community/*`). Per Addendum #2, the older "~line-186" note is the AE-suppression matcher (184-189), NOT auth — do not edit it for the carve-out (decide the AE-list separately).
 - [ ] **2.2 — Carve out the public paths:** `/community` (exact), `/community/areas`, `/community/areas/*` become public. KEEP gated: `/community/events`, `/community/members`, `/community/post/*`, and the live-stream/compose/join APIs.
-- [ ] **2.3 — Re-scope the security-guard invariant.** The guard asserts `_middleware.js` must protect `/account` and `/community`. Re-scope the `/community` assertion to the genuinely member-only sub-paths (`/community/events`, `/community/members`, `/community/post`). Update `scripts/guard.mjs`'s Phase 2 check accordingly.
+- [ ] **2.3 — Re-scope the security-guard invariant.** The guard asserts `_middleware.js` must protect `/account` and `/community` (currently a loose `includes('/community')` substring check). Re-scope per the **exact string in the Pre-execution contract**: require `includes('/community/events') && includes('/community/members') && includes('/community/post')`. Do NOT let the coder agent author the invariant text; the controller reviews the `guard.mjs` diff before `guard:update`. Also add the behavioral e2e test (logged-out `/community/` → 200; `/community/events|members|post/*` → 302).
 - [ ] **2.4 — `npm run guard:update`**, commit `_middleware.js` + `guard.mjs` (if changed) + `guard-manifest.json` together. Document the invariant change in the commit body.
 - [ ] **2.5 — Verify G-AREA-4:** logged-out GET `/community/` returns 200 (not a 302 to `/login`). Defer the full render check to Phase 6.
 
@@ -166,7 +188,7 @@ These are decisions, not code tasks. Resolve each with Brian (and Naomi where no
 - [ ] **6.5 — Consolidated chat-style stream:** restyle the existing feed into ONE chat-style stream (composer on top), area filter pills, per-post area chip (chip shows only when its area resolves active, G-AREA-7). Default view = All (no predicate). Member counts never displayed below `MEMBER_COUNT_FLOOR`.
 - [ ] **6.6 — Logged-out join gate:** for logged-out / non-member visitors, the stream slot renders a "Join to see the conversation" gate; structure (impact/areas/projects) renders from public GETs. Compose/join/stream APIs stay `requireMember()`.
 - [ ] **6.7 — Zero-active-areas fallback:** when `action_area` has no active rows, suppress all area furniture (row, pills, chips, rail) and render the verbatim legacy feed; the chat restyle still ships.
-- [ ] **6.8 — `npm run design-tokens:audit` (MUST pass)** + visual check deferred to Phase 9.
+- [ ] **6.8 — `npm run design-tokens:audit` (MUST pass; failure = ABORT + fix phantom tokens, do not push)** + `npm run check-types` after creating `stuc-display-floors.ts` + visual check deferred to Phase 9.
 
 **Proof gates:** G-AREA-1, G-AREA-4 (logged-out render), G-AREA-7, G-AREA-12 (display gating + single-source floors).
 
@@ -177,7 +199,7 @@ These are decisions, not code tasks. Resolve each with Brian (and Naomi where no
 **Files:** `src/pages/community/areas/[...slug].astro` (create).
 
 - [ ] **7.1 — Render** one area's projects + impact + a filtered slice of the same stream (`?area=<slug>`). Archived/unknown slug → **404** (consistent with `/areas` listing active only).
-- [ ] **7.2 — Indexability** per D0-4 (`noindex` until min content, mirroring `word_count`, or always-index).
+- [ ] **7.2 — Indexability** per D0-4 (LOCKED): `noindex` when the area has ZERO active projects; index when ≥1 active project (mirrors the `word_count < 30` thin-page pattern).
 - [ ] **7.3 — Reserved-slug safety:** area/project slugs are blocked from `areas`/`events`/`members`/`post` at write time (Phase 4 validation); confirm routing does not shadow existing `/community/*` routes.
 
 **Proof gates:** active-parent resolution (G-AREA-7); reserved-slug blocklist (spec §SQL discipline).
@@ -200,7 +222,7 @@ These are decisions, not code tasks. Resolve each with Brian (and Naomi where no
 
 - [ ] **9.1 — Proof-gate sweep:** confirm G-AREA-1 through G-AREA-12 (spec §Proof gates) each hold. Add the formal assertions to a test/e2e file where practical.
 - [ ] **9.2 — `/arise --deep`** on the full changeset (auth + membership + D1 mutation surface → deep is the right default).
-- [ ] **9.3 — Visual verify in claude-in-chrome at desktop + mobile (393×852), BOTH logged-out and logged-in.**
+- [ ] **9.3 — Visual verify with Playwright against a local `npx wrangler pages dev dist`** at desktop (1280px) + mobile (393×852), screenshotting BOTH logged-out and logged-in. (NOT claude-in-chrome — Brian's personal Comet profile, per memory `claude-in-chrome-shares-personal-identity`.)
 - [ ] **9.4 — `npm run design-tokens:audit`, `npm run check-types`, security guard green.**
 - [ ] **9.5 — Deploy** via standard `claude/` branch → CI auto-build + merge. Verify the live hub renders both states. Confirm the migration applied to remote `rrm-auth` BEFORE the page deploy (or the page degrades to the zero-active-areas fallback gracefully).
 
