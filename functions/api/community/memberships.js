@@ -1,10 +1,11 @@
 /**
  * GET /api/community/memberships — caller's area and project memberships
  *
- * MEMBER-ONLY. Returns the authenticated caller's area_membership rows and
- * project_membership rows. user_id is always sourced from the session (Rule 9).
+ * MEMBER-ONLY. Returns the authenticated caller's area_membership rows,
+ * project_membership rows, and pending ownership volunteer requests.
+ * user_id is always sourced from the session (Rule 9).
  *
- * Response: { ok: true, areas: [{areaId, role}], projects: [{projectId, role}] }
+ * Response: { ok: true, areas: [{areaId, role}], projects: [{projectId, role}], pendingOwnership: [areaId, ...] }
  */
 import { json, optionsResponse } from '../auth/_shared.js';
 import { log } from '../_log.js';
@@ -27,6 +28,7 @@ export async function onRequestGet({ request, env, waitUntil }) {
 
     let areaMemberships;
     let projectMemberships;
+    let pendingOwnershipRows;
 
     try {
       const areaResult = await db.prepare(
@@ -48,10 +50,21 @@ export async function onRequestGet({ request, env, waitUntil }) {
       return json({ ok: false, error: 'Internal error' }, 500);
     }
 
+    try {
+      const pendingResult = await db.prepare(
+        "SELECT area_id FROM area_ownership_request WHERE user_id = ? AND status = 'pending'"
+      ).bind(userId).all();
+      pendingOwnershipRows = pendingResult.results;
+    } catch (err) {
+      log(env, waitUntil, 'community', 'memberships_error', 'error', `pending ownership query: ${err.message}`, 0, 500);
+      return json({ ok: false, error: 'Internal error' }, 500);
+    }
+
     return json({
       ok: true,
       areas: areaMemberships.map(r => ({ areaId: r.area_id, role: r.role })),
       projects: projectMemberships.map(r => ({ projectId: r.project_id, role: r.role })),
+      pendingOwnership: pendingOwnershipRows.map(r => r.area_id),
     });
   } catch (err) {
     log(env, waitUntil, 'community', 'memberships_error', 'error', err.message, 0, 500);
