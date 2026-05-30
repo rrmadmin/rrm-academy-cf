@@ -546,8 +546,12 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
 </style>
 
 <script>
+  // Shared shapes for the survey scoring + symptom payloads.
+  interface SurveyScore { tier1: number; tier2: number; tier3: number; total: number; }
+  interface SurveySymptoms { tier1: string[]; tier2: string[]; tier3: string[]; }
+
   // ── Survey event tracking ──
-  function trackSurveyEvent(action) {
+  function trackSurveyEvent(action: string) {
     try {
       navigator.sendBeacon('/api/survey/event', JSON.stringify({
         action,
@@ -576,8 +580,8 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
       const data = await resp.json();
 
       if (data.valid) {
-        gateLoading.hidden = true;
-        surveyContent.hidden = false;
+        if (gateLoading) gateLoading.hidden = true;
+        if (surveyContent) surveyContent.hidden = false;
       } else if (data.reason === 'used') {
         showInvalid('This survey link has already been used. Each link can only be used once.');
       } else {
@@ -588,72 +592,85 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
     }
   })();
 
-  function showInvalid(msg) {
-    gateLoading.hidden = true;
-    gateReason.textContent = msg;
-    gateInvalid.hidden = false;
+  function showInvalid(msg: string) {
+    if (gateLoading) gateLoading.hidden = true;
+    if (gateReason) gateReason.textContent = msg;
+    if (gateInvalid) gateInvalid.hidden = false;
   }
 
   // ── Tier count updates ──
-  document.querySelectorAll('.tier-items input[type="checkbox"]').forEach(cb => {
+  document.querySelectorAll<HTMLInputElement>('.tier-items input[type="checkbox"]').forEach(cb => {
     cb.addEventListener('change', () => {
-      const tier = cb.closest('[data-tier]').dataset.tier;
+      const tier = (cb.closest('[data-tier]') as HTMLElement | null)?.dataset.tier;
+      if (!tier) return;
       const count = document.querySelectorAll(`[data-tier="${tier}"] input:checked`).length;
-      document.querySelector(`[data-tier-count="${tier}"]`).textContent = count;
+      const countEl = document.querySelector(`[data-tier-count="${tier}"]`);
+      if (countEl) countEl.textContent = String(count);
     });
   });
 
   // ── Consent checkbox enables calculate button ──
-  const consentCheck = document.getElementById('consent-check');
-  consentCheck.addEventListener('change', () => {
-    document.getElementById('calculate-btn').disabled = !consentCheck.checked;
+  const consentCheck = document.getElementById('consent-check') as HTMLInputElement | null;
+  consentCheck?.addEventListener('change', () => {
+    const calcBtn = document.getElementById('calculate-btn') as HTMLButtonElement | null;
+    if (calcBtn) calcBtn.disabled = !consentCheck.checked;
   });
 
   // ── Calculate ──
-  const calculateBtn = document.getElementById('calculate-btn');
+  const calculateBtn = document.getElementById('calculate-btn') as HTMLButtonElement | null;
   const resultsSection = document.getElementById('results-section');
 
-  calculateBtn.addEventListener('click', async () => {
-    const t1Checked = Array.from(document.querySelectorAll('input[name="t1"]:checked'));
-    const t2Checked = Array.from(document.querySelectorAll('input[name="t2"]:checked'));
-    const t3Checked = Array.from(document.querySelectorAll('input[name="t3"]:checked'));
+  calculateBtn?.addEventListener('click', async () => {
+    const t1Checked = Array.from(document.querySelectorAll<HTMLInputElement>('input[name="t1"]:checked'));
+    const t2Checked = Array.from(document.querySelectorAll<HTMLInputElement>('input[name="t2"]:checked'));
+    const t3Checked = Array.from(document.querySelectorAll<HTMLInputElement>('input[name="t3"]:checked'));
 
     trackSurveyEvent('calculate');
 
-    const score = {
+    const score: SurveyScore = {
       tier1: t1Checked.length * 3,
       tier2: t2Checked.length * 2,
       tier3: t3Checked.length * 1,
       total: (t1Checked.length * 3) + (t2Checked.length * 2) + (t3Checked.length * 1),
     };
 
-    const symptoms = {
+    const symptoms: SurveySymptoms = {
       tier1: t1Checked.map(cb => cb.value),
       tier2: t2Checked.map(cb => cb.value),
       tier3: t3Checked.map(cb => cb.value),
     };
 
     // Display scores
-    document.getElementById('score-total').textContent = score.total;
-    document.getElementById('score-t1').textContent = score.tier1;
-    document.getElementById('score-t2').textContent = score.tier2;
-    document.getElementById('score-t3').textContent = score.tier3;
+    const setText = (id: string, val: number) => {
+      const el = document.getElementById(id);
+      if (el) el.textContent = String(val);
+    };
+    setText('score-total', score.total);
+    setText('score-t1', score.tier1);
+    setText('score-t2', score.tier2);
+    setText('score-t3', score.tier3);
 
     // Animate bars
-    document.getElementById('bar-t1').style.width = `${(score.tier1 / 45) * 100}%`;
-    document.getElementById('bar-t2').style.width = `${(score.tier2 / 30) * 100}%`;
-    document.getElementById('bar-t3').style.width = `${(score.tier3 / 6) * 100}%`;
+    const setBar = (id: string, pct: number) => {
+      const el = document.getElementById(id);
+      if (el) el.style.width = `${pct}%`;
+    };
+    setBar('bar-t1', (score.tier1 / 45) * 100);
+    setBar('bar-t2', (score.tier2 / 30) * 100);
+    setBar('bar-t3', (score.tier3 / 6) * 100);
 
     // Interpretation text (Gianna voice)
     const interp = document.getElementById('interpretation');
-    interp.innerHTML = getInterpretation(score, t1Checked.length, t2Checked.length, t3Checked.length);
+    if (interp) interp.innerHTML = getInterpretation(score, t1Checked.length, t2Checked.length, t3Checked.length);
 
     // Show results
-    resultsSection.hidden = false;
-    resultsSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    if (resultsSection) {
+      resultsSection.hidden = false;
+      resultsSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
 
     // Disable checkboxes and button after submission
-    document.querySelectorAll('.tier-items input[type="checkbox"]').forEach(cb => cb.disabled = true);
+    document.querySelectorAll<HTMLInputElement>('.tier-items input[type="checkbox"]').forEach(cb => cb.disabled = true);
     calculateBtn.disabled = true;
     calculateBtn.textContent = 'Score Calculated';
 
@@ -680,7 +697,7 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
     setupCopyForAI(score, symptoms);
   });
 
-  function getInterpretation(score, t1Count, t2Count, t3Count) {
+  function getInterpretation(score: SurveyScore, t1Count: number, t2Count: number, t3Count: number) {
     let html = '';
 
     if (score.total === 0) {
@@ -713,8 +730,9 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
   }
 
   // ── PDF Generation (jsPDF) ──
-  function setupPdfDownload(score, symptoms) {
-    const btn = document.getElementById('download-pdf');
+  function setupPdfDownload(score: SurveyScore, symptoms: SurveySymptoms) {
+    const btn = document.getElementById('download-pdf') as HTMLButtonElement | null;
+    if (!btn) return;
     btn.addEventListener('click', async () => {
       trackSurveyEvent('download_pdf');
       btn.disabled = true;
@@ -785,7 +803,7 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
         doc.setFillColor(230, 230, 230);
         doc.roundedRect(margin, y, maxW, 3, 1.5, 1.5, 'F');
         if (tier.pts > 0) {
-          doc.setFillColor(...tier.color);
+          doc.setFillColor(tier.color[0], tier.color[1], tier.color[2]);
           doc.roundedRect(margin, y, maxW * (tier.pts / tier.max), 3, 1.5, 1.5, 'F');
         }
         y += 7;
@@ -933,9 +951,10 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
   }
 
   // ── Copy Results for AI ──
-  function setupCopyForAI(score, symptoms) {
+  function setupCopyForAI(score: SurveyScore, symptoms: SurveySymptoms) {
     const btn = document.getElementById('copy-for-ai');
     const label = document.getElementById('copy-for-ai-label');
+    if (!btn || !label) return;
 
     btn.addEventListener('click', async () => {
       trackSurveyEvent('copy_for_ai');
@@ -958,13 +977,13 @@ Score: ${score.total} / 81
   Tier 3 (Suspicion): ${score.tier3} / 6 (${symptoms.tier3.length} symptom${symptoms.tier3.length !== 1 ? 's' : ''})`;
 
       if (symptoms.tier1.length > 0) {
-        text += `\n\nTier 1 symptoms reported:\n${symptoms.tier1.map(s => `- ${s}`).join('\n')}`;
+        text += `\n\nTier 1 symptoms reported:\n${symptoms.tier1.map((s: string) => `- ${s}`).join('\n')}`;
       }
       if (symptoms.tier2.length > 0) {
-        text += `\n\nTier 2 symptoms reported:\n${symptoms.tier2.map(s => `- ${s}`).join('\n')}`;
+        text += `\n\nTier 2 symptoms reported:\n${symptoms.tier2.map((s: string) => `- ${s}`).join('\n')}`;
       }
       if (symptoms.tier3.length > 0) {
-        text += `\n\nTier 3 symptoms reported:\n${symptoms.tier3.map(s => `- ${s}`).join('\n')}`;
+        text += `\n\nTier 3 symptoms reported:\n${symptoms.tier3.map((s: string) => `- ${s}`).join('\n')}`;
       }
 
       text += `\n\nScoring context: Tier 1 symptoms carry 3 points each and reflect patterns most strongly associated with endometriosis in clinical evaluation. Tier 2 symptoms (2 points each) are frequently observed alongside endometriosis. Tier 3 symptoms (1 point each) are associated but less specific. This survey is educational and does not constitute a diagnosis. Endometriosis can only be confirmed through surgery.
