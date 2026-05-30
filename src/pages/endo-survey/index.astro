@@ -1,29 +1,91 @@
 ---
 import BaseLayout from '../../layouts/BaseLayout.astro';
+import { getPersonJsonLd } from '../../lib/identity';
+
+const SITE = 'https://rrmacademy.org';
+const pageUrl = `${SITE}/endo-survey/`;
+const ORG_ID = `${SITE}/#organization`;
+// Naomi's Person node (the E-E-A-T anchor). Org + WebSite are emitted globally
+// by BaseLayout, so we reference #organization by @id and embed only Naomi.
+const naomiRaw = getPersonJsonLd(`${SITE}/#naomi-whittaker`);
+const naomi = naomiRaw
+  ? (() => { const { ['@context']: _c, ...rest } = naomiRaw as Record<string, unknown>; return rest; })()
+  : null;
+const naomiId = (naomi as { '@id'?: string } | null)?.['@id'];
+
+// FAQ content — kept in one array so the visible block and the FAQPage schema
+// never drift (Google requires verbatim parity).
+const faqs = [
+  {
+    q: 'Can you self-diagnose endometriosis?',
+    a: 'No. Endometriosis can only be confirmed through surgery, when a surgeon sees and removes the disease and a pathologist examines the tissue. But you can assess your symptoms. A structured self-assessment helps you recognize whether your symptom pattern matches the ones clinicians associate with endometriosis, so you can decide whether to seek a thorough evaluation. Think of it as a starting point, not an answer: a way to put language to what you have been feeling before your next appointment.',
+  },
+  {
+    q: 'What are the most common symptoms of endometriosis?',
+    a: 'The symptoms most strongly associated with endometriosis involve pain: severe period pain that interferes with daily life, pain during or after deep intercourse, stabbing rectal pain, and pain that radiates to the back or legs. Many women also report heavy or tail-end brown bleeding, bladder and bowel symptoms that mimic IBS or interstitial cystitis, severe bloating, and infertility, sometimes labeled unexplained. Symptoms vary widely from person to person, and severity does not always track with the extent of disease.',
+  },
+  {
+    q: 'How long does it take to get diagnosed with endometriosis?',
+    a: 'On average, seven to ten years pass between a woman’s first symptoms and a confirmed endometriosis diagnosis. Pain is often dismissed as normal cramping, masked with suppressive medication, or attributed to other conditions, while the disease continues quietly. That delay is one of the main reasons a symptom self-assessment matters: naming the pattern early can help you advocate for a proper evaluation years sooner than you might otherwise.',
+  },
+  {
+    q: 'Is there an at-home test for endometriosis?',
+    a: 'There is no at-home lab test or blood test that can diagnose endometriosis. Imaging like ultrasound or MRI can suggest it but cannot rule it out, and only surgery confirms it. A symptom self-assessment is the closest tool you have at home: it does not diagnose anything, but it organizes your symptoms into a clear picture you can bring to a knowledgeable provider.',
+  },
+  {
+    q: 'What should I do if my self-assessment suggests endometriosis?',
+    a: 'Bring your results to a provider who takes endometriosis seriously and is experienced in its surgical evaluation. When endometriosis is treated, the goal is complete excision of the disease, which removes it at the root, rather than approaches that only mask symptoms. You can find restorative reproductive medicine providers through our directory. A high symptom score is not a diagnosis, but it is exactly the kind of picture that warrants a thorough look.',
+  },
+];
 
 const jsonLd = {
   '@context': 'https://schema.org',
-  '@type': 'Quiz',
-  name: 'Free Endometriosis Self-Assessment Tool',
-  description: 'An evidence-based self-assessment tool developed by Dr. Naomi Whittaker, board-certified OB/GYN, to help identify symptoms associated with endometriosis.',
-  author: {
-    '@type': 'Person',
-    name: 'Dr. Naomi Whittaker',
-    jobTitle: 'Board-Certified OB/GYN',
-    affiliation: {
-      '@type': 'EducationalOrganization',
-      name: 'RRM Academy',
+  '@graph': [
+    // KEEP — the only signal tying this URL to the interactive-tool intent.
+    {
+      '@type': 'Quiz',
+      '@id': `${pageUrl}#quiz`,
+      name: 'Free Endometriosis Self-Assessment Tool',
+      description: 'An evidence-based self-assessment tool developed by Dr. Naomi Whittaker, board-certified OB/GYN, to help identify symptoms associated with endometriosis.',
+      url: pageUrl,
+      educationalLevel: 'Patient Education',
+      author: naomiId ? { '@id': naomiId } : { '@type': 'Person', name: 'Dr. Naomi Whittaker' },
+      provider: { '@id': ORG_ID },
+      about: { '@type': 'MedicalCondition', name: 'Endometriosis' },
     },
-  },
-  provider: {
-    '@type': 'EducationalOrganization',
-    '@id': 'https://rrmacademy.org/#organization',
-  },
-  educationalLevel: 'Patient Education',
-  about: {
-    '@type': 'MedicalCondition',
-    name: 'Endometriosis',
-  },
+    // E-E-A-T anchor for a medical tool page (absent on the old page).
+    {
+      '@type': 'MedicalWebPage',
+      '@id': `${pageUrl}#webpage`,
+      url: pageUrl,
+      name: 'Endometriosis Symptom Self-Assessment',
+      description: 'A free, confidential endometriosis symptom self-assessment from a board-certified OB/GYN. 36 symptoms across three tiers of clinical suspicion.',
+      about: { '@type': 'MedicalCondition', name: 'Endometriosis' },
+      ...(naomiId ? { reviewedBy: { '@id': naomiId } } : {}),
+      publisher: { '@id': ORG_ID },
+      mainEntity: { '@id': `${pageUrl}#quiz` },
+    },
+    // FAQ block — built from the same `faqs` array rendered on the page.
+    {
+      '@type': 'FAQPage',
+      '@id': `${pageUrl}#faq`,
+      mainEntity: faqs.map((f) => ({
+        '@type': 'Question',
+        name: f.q,
+        acceptedAnswer: { '@type': 'Answer', text: f.a },
+      })),
+    },
+    {
+      '@type': 'BreadcrumbList',
+      '@id': `${pageUrl}#breadcrumb`,
+      itemListElement: [
+        { '@type': 'ListItem', position: 1, name: 'Home', item: `${SITE}/` },
+        { '@type': 'ListItem', position: 2, name: 'Endometriosis', item: `${SITE}/endometriosis/` },
+        { '@type': 'ListItem', position: 3, name: 'Symptom Self-Assessment', item: pageUrl },
+      ],
+    },
+    ...(naomi ? [naomi] : []),
+  ],
 };
 ---
 <BaseLayout
@@ -32,69 +94,98 @@ const jsonLd = {
   canonicalUrl="https://rrmacademy.org/endo-survey"
   jsonLd={jsonLd}
 >
+  <!-- ── Hero: empathetic lead (left) + editorial stat rail (right) ── -->
   <section class="survey-hero">
-    <div class="container container--narrow">
-      <div class="survey-hero__ribbon" aria-hidden="true">
-        <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#F5C842" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
-          <path d="M12 11.22C11 9.997 10 9 10 8a2 2 0 0 1 4 0c0 1-.998 2.002-2.01 3.22"/>
-          <path d="m12 18 2.57-3.5"/>
-          <path d="M6.243 9.016a7 7 0 0 1 11.507-.009"/>
-          <path d="M9.35 14.53 12 11.22"/>
-          <path d="M9.35 14.53C7.728 12.246 6 10.221 6 7a6 5 0 0 1 12 0c-.005 3.22-1.778 5.235-3.43 7.5l3.557 4.527a1 1 0 0 1-.203 1.43l-1.894 1.36a1 1 0 0 1-1.384-.215L12 18l-2.679 3.593a1 1 0 0 1-1.39.213l-1.865-1.353a1 1 0 0 1-.203-1.422z"/>
-        </svg>
+    <div class="container survey-hero__grid">
+      <div class="survey-hero__lead">
+        <p class="survey-hero__eyebrow">Free Self-Assessment</p>
+        <h1 class="survey-hero__title">Endometriosis Symptom Self-Assessment</h1>
+        <p class="survey-hero__tagline">
+          If your pain has been brushed aside for years, you are not imagining it,
+          and you are not alone. This confidential assessment helps you put language
+          to what you are experiencing and decide on your next step.
+        </p>
+        <div class="survey-hero__meta">
+          <span class="survey-hero__chip">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+            Confidential
+          </span>
+          <span class="survey-hero__chip">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+            About 5 minutes
+          </span>
+          <span class="survey-hero__chip">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6L9 17l-5-5"/></svg>
+            36 clinical symptoms
+          </span>
+        </div>
       </div>
-      <p class="survey-hero__eyebrow">Free Assessment</p>
-      <h1>3-Tier Endometriosis<br>Symptom Self-Survey</h1>
-      <p class="survey-hero__tagline">Developed by Dr. Naomi Whittaker, MD, Board-Certified OBGYN, MIGS, NFPMC, FCI</p>
+
+      <aside class="survey-hero__stats" aria-label="Endometriosis by the numbers">
+        <figure class="stat">
+          <div class="stat__num">1 in 10</div>
+          <figcaption class="stat__label">women and girls of reproductive age are affected</figcaption>
+        </figure>
+        <figure class="stat">
+          <div class="stat__num">7&ndash;10 yrs</div>
+          <figcaption class="stat__label">the average wait from first symptoms to diagnosis</figcaption>
+        </figure>
+        <figure class="stat">
+          <div class="stat__num">190M</div>
+          <figcaption class="stat__label">people live with endometriosis worldwide</figcaption>
+        </figure>
+      </aside>
     </div>
   </section>
 
   <div class="page-body">
     <section class="survey-intro">
       <div class="container container--narrow">
-        <h2 class="survey-intro__heading">Can You Self-Diagnose Endometriosis?</h2>
-        <p class="survey-intro__lead">
-          Too many women spend years being told their pain is normal. It is not.
-        </p>
-        <p>
-          You cannot self-diagnose endometriosis -- only surgery can confirm it. But you can assess your symptoms. I developed this self-assessment based on the endometriosis symptom patterns I constantly see in my practice. It uses a 3-tier scoring system to help you evaluate your level of suspicion, from symptoms most strongly associated with endometriosis down to those that raise general concern.
-        </p>
-        <p>
-          This is not a diagnosis. But this assessment can give you language for what you are experiencing, and it can help you walk into your next appointment with a clearer picture.
-        </p>
+        <!-- H2 kept verbatim: exact-match to a load-bearing query (pos 9). -->
+        <h2 class="survey-section__title">Can You Self-Diagnose Endometriosis?</h2>
+        <div class="survey-note">
+          <p class="survey-note__lead">You cannot self-diagnose endometriosis, only surgery can confirm it. But you can assess your symptoms.</p>
+          <p>
+            I built this self-assessment around the symptom patterns I see again and again in my
+            practice. It uses a three-tier scoring system, from the symptoms most strongly
+            associated with endometriosis down to those that raise general concern, so you can
+            gauge your level of suspicion.
+          </p>
+          <p>
+            This is not a diagnosis. But it can give you language for what you are feeling and
+            help you walk into your next appointment with a clearer picture.
+          </p>
+          <p class="survey-note__sig">Dr. Naomi Whittaker, MD &middot; Board-Certified OBGYN, MIGS, NFPMC, FCI</p>
+        </div>
 
+        <!-- How it works — connected numbered flow -->
         <div class="survey-how">
-          <h2>How it works</h2>
-          <ol class="survey-steps">
-            <li>
-              <span class="survey-steps__num">1</span>
-              <div>
-                <strong>Enter your email below</strong>
-                <p>We will send you a private link to take the survey.</p>
-              </div>
+          <h2 class="survey-how__title">How it works</h2>
+          <ol class="flow">
+            <li class="flow__step">
+              <span class="flow__num flow__num--1">1</span>
+              <h3 class="flow__heading">Enter your email</h3>
+              <p class="flow__text">We send a private link to take the survey, just for you.</p>
             </li>
-            <li>
-              <span class="survey-steps__num">2</span>
-              <div>
-                <strong>Check the symptoms that apply to you</strong>
-                <p>36 symptoms across three tiers of clinical suspicion.</p>
-              </div>
+            <li class="flow__step">
+              <span class="flow__num flow__num--2">2</span>
+              <h3 class="flow__heading">Check what applies</h3>
+              <p class="flow__text">36 symptoms across three tiers of clinical suspicion.</p>
             </li>
-            <li>
-              <span class="survey-steps__num">3</span>
-              <div>
-                <strong>Get your personalized results</strong>
-                <p>Your score, a breakdown by tier, and a PDF you can take to your doctor.</p>
-              </div>
+            <li class="flow__step">
+              <span class="flow__num flow__num--3">3</span>
+              <h3 class="flow__heading">Get your results</h3>
+              <p class="flow__text">Your score, a tier breakdown, and a PDF for your doctor.</p>
             </li>
           </ol>
         </div>
 
+        <!-- Email gate — the conversion point. IDs + script preserved verbatim. -->
         <div class="survey-gate" id="survey-gate">
-          <h2>Get your survey link</h2>
+          <h2 class="survey-gate__title">Get your survey link</h2>
+          <p class="survey-gate__sub">Enter your email and we will send your private link right away.</p>
           <form id="email-form" class="survey-form">
             <div class="survey-form__row">
-              <label for="email-input" class="sr-only">Email address</label>
               <input
                 type="email"
                 id="email-input"
@@ -119,10 +210,137 @@ const jsonLd = {
             <p>We sent a survey link to <strong id="sent-email"></strong>. It may take a minute to arrive. Check your spam folder if you do not see it.</p>
           </div>
 
-          <div id="error-msg" class="survey-error"
-               role="alert" aria-live="assertive"
-               data-empty="true">
+          <div id="error-msg" class="survey-error" hidden>
             <p id="error-text"></p>
+          </div>
+        </div>
+
+        <!-- ── Deep content (below the gate): topical depth for SEO + AEO ── -->
+        <div class="survey-content">
+          <section class="survey-block">
+            <h2>What are the symptoms of endometriosis?</h2>
+            <p>
+              Endometriosis symptoms cluster in a few recognizable patterns. The strongest
+              signals are pain related: severe period pain that interferes with daily life,
+              pain during or after deep intercourse, stabbing rectal pain, pain that radiates
+              to the back or legs, and cramping so intense it brings ER visits or the need to
+              curl into a fetal position. Many women find that birth control and over-the-counter
+              medication never fully touch this pain.
+            </p>
+            <p>
+              Bleeding patterns matter too: heavy menstrual bleeding, sometimes with iron
+              deficiency, and recurrent tail-end brown bleeding that lingers for days. Because
+              endometriosis can involve the bladder and bowel, it is frequently mistaken for
+              IBS or interstitial cystitis, and severe bloating before or during your period is
+              common. For many women the first clue is infertility, including the kind labeled
+              unexplained, especially alongside a history of painful periods.
+            </p>
+            <p>
+              Endometriosis also has systemic signs that are easy to overlook on their own:
+              fatigue, migraines, severe PMS, a personal history of autoimmune conditions, and a
+              family history of the disease. No single symptom confirms endometriosis, and
+              severity does not always reflect how much disease is present. It is the overall
+              pattern that matters, which is exactly what this self-assessment is built to surface.
+            </p>
+          </section>
+
+          <section class="survey-block">
+            <h2>The 3-Tier Endometriosis Symptom Self-Survey, explained</h2>
+            <p>
+              The assessment sorts 36 symptoms into three tiers by how strongly each is associated
+              with endometriosis, for a maximum score of 81 points.
+            </p>
+            <ul class="survey-tiers">
+              <li>
+                <span class="survey-tier__dot survey-tier__dot--1" aria-hidden="true"></span>
+                <strong>Tier 1: Very High Suspicion.</strong> 15 symptoms worth 3 points each.
+                These are the patterns most strongly tied to endometriosis, like debilitating
+                period pain, pain with deep intercourse, and pain unrelieved by standard treatment.
+              </li>
+              <li>
+                <span class="survey-tier__dot survey-tier__dot--2" aria-hidden="true"></span>
+                <strong>Tier 2: High Suspicion.</strong> 15 symptoms worth 2 points each.
+                These are frequently seen alongside endometriosis, including bladder and bowel
+                symptoms, heavy bleeding, severe bloating, and infertility.
+              </li>
+              <li>
+                <span class="survey-tier__dot survey-tier__dot--3" aria-hidden="true"></span>
+                <strong>Tier 3: Suspicion.</strong> 6 symptoms worth 1 point each. These are
+                associated but less specific, such as fatigue, family history, and autoimmune history.
+              </li>
+            </ul>
+            <p>
+              A higher score reflects a stronger pattern of suspicion, not a diagnosis. Even a
+              lower score is not a dismissal: a few of these symptoms, especially when they
+              disrupt your life, are worth discussing with a knowledgeable provider.
+            </p>
+          </section>
+
+          <section class="survey-block">
+            <h2>How do I know if I have endometriosis?</h2>
+            <p>
+              You cannot know for certain without surgery, but you can recognize the pattern.
+              If your periods are severe enough to interrupt work, school, or daily life, if pain
+              persists despite birth control or pain relievers, if intercourse hurts, or if you
+              are facing infertility alongside painful periods, endometriosis is worth
+              investigating. The
+              <a href="/endometriosis/">endometriosis guide</a> explains how the disease is
+              evaluated and treated, and this self-assessment turns your symptoms into a clear
+              summary you can take to a provider. The earlier you recognize the pattern, the
+              sooner you can get real answers.
+            </p>
+          </section>
+
+          <section class="survey-block">
+            <h2>Why does endometriosis take 7 to 10 years to diagnose?</h2>
+            <p>
+              On average, seven to ten years pass between first symptoms and a confirmed
+              diagnosis. Period pain is normalized from a young age, so women are told their
+              symptoms are just bad cramps. Suppressive medication is often prescribed to mask
+              symptoms without investigating the cause, which can hide the disease while it
+              continues. And because endometriosis can only be confirmed surgically, it is easy
+              for it to go unrecognized for years. Dr. Whittaker built this tool to close that
+              gap. You can read the story behind it in
+              <a href="/commentary/free-endometriosis-symptom-self-survey/">Ten Years Is Too Long</a>.
+            </p>
+          </section>
+
+          <section class="survey-block">
+            <h2>Can you test for endometriosis at home?</h2>
+            <p>
+              There is no at-home test, blood test, or scan that can diagnose endometriosis.
+              Ultrasound and MRI can sometimes suggest it but cannot rule it out, and only
+              surgery confirms it. A symptom self-assessment is the closest thing to an at-home
+              tool: it does not diagnose anything, but it organizes your symptoms into a picture
+              you can act on. For definitions of the terms you will encounter, the
+              <a href="/glossary/endometriosis/">glossary entry on endometriosis</a> is a good
+              reference.
+            </p>
+          </section>
+
+          <section class="survey-block">
+            <h2>Frequently asked questions</h2>
+            <div class="survey-faq">
+              {faqs.map((f) => (
+                <details class="survey-faq__item">
+                  <summary class="survey-faq__q">{f.q}</summary>
+                  <div class="survey-faq__a"><p>{f.a}</p></div>
+                </details>
+              ))}
+            </div>
+          </section>
+
+          <!-- Repeat CTA for scroll-readers; anchors back to the gate (no duplicate IDs). -->
+          <div class="survey-recap">
+            <h2 class="survey-recap__title">Ready to assess your symptoms?</h2>
+            <p class="survey-recap__text">
+              Five minutes, completely confidential. Understanding your symptoms is where
+              getting answers begins.
+            </p>
+            <a href="#survey-gate" class="btn btn--primary btn--lg survey-recap__btn">Get my survey link</a>
+            <p class="survey-recap__providers">
+              Already know you need help? <a href="/providers/">Find a restorative reproductive medicine provider</a>.
+            </p>
           </div>
         </div>
 
@@ -137,40 +355,27 @@ const jsonLd = {
 </BaseLayout>
 
 <style>
-  /* Hero */
+  /* ── Hero ───────────────────────────────────────────────────────── */
   .survey-hero {
-    padding: var(--space-8) 0 var(--space-6);
-    text-align: center;
-    background: radial-gradient(circle at 15% 84%, rgba(114,94,126,0) 0%, rgba(152,125,168,0) 39.84%, rgba(201,184,211,0.3) 66.40%, rgba(218,211,231,0.6) 90.19%);
+    padding: var(--space-12) 0 var(--space-10);
+    background: linear-gradient(162deg, var(--purple-50) 0%, var(--cream) 64%);
   }
   [data-theme="dark"] .survey-hero {
-    background: radial-gradient(circle at 15% 84%, rgba(114,94,126,0) 0%, rgba(100,82,110,0) 39.84%, rgba(61,51,69,0.3) 66.40%, rgba(46,38,54,0.6) 90.19%);
+    background: linear-gradient(162deg, rgba(76,62,84,0.45) 0%, rgba(49,49,49,0) 64%);
   }
-  .survey-hero__ribbon {
-    display: flex;
+  .survey-hero__grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: var(--space-8);
     align-items: center;
-    justify-content: center;
-    width: 56px;
-    height: 56px;
-    margin: 0 auto var(--space-3);
-    background: #FDF6E3;
-    border-radius: 50%;
   }
-  .survey-hero__ribbon svg {
-    width: 36px;
-    height: 36px;
-  }
-  @media (min-width: 769px) {
-    .survey-hero__ribbon {
-      width: 72px;
-      height: 72px;
-      margin-bottom: var(--space-4);
-    }
-    .survey-hero__ribbon svg {
-      width: 48px;
-      height: 48px;
+  @media (min-width: 880px) {
+    .survey-hero__grid {
+      grid-template-columns: 1.15fr 0.85fr;
+      gap: var(--space-12);
     }
   }
+  .survey-hero__lead { min-width: 0; }
   .survey-hero__eyebrow {
     font-family: 'Inter', sans-serif;
     font-size: 0.75rem;
@@ -180,102 +385,134 @@ const jsonLd = {
     color: var(--accent);
     margin-bottom: var(--space-3);
   }
-  .survey-hero h1 {
-    font-size: clamp(2rem, 1.25rem + 2.5vw, 3.25rem);
-    margin-bottom: var(--space-3);
-    line-height: 1.2;
+  .survey-hero__title {
+    font-size: clamp(2.25rem, 1.5rem + 2.8vw, 3.25rem);
+    line-height: 1.1;
+    letter-spacing: -0.015em;
+    margin: 0 0 var(--space-4);
+    text-wrap: balance;
   }
   .survey-hero__tagline {
-    font-family: 'Cormorant Garamond', 'Georgia', serif;
-    font-size: 1.25rem;
+    font-size: 1.1875rem;
+    line-height: 1.65;
     color: var(--text-secondary);
-    font-style: italic;
-    margin-bottom: 0;
+    max-width: 42ch;
+    margin: 0;
+    text-wrap: pretty;
   }
-  @media (min-width: 769px) {
-    .survey-hero {
-      /* spacing matches other interior pages */
-    }
-    .survey-hero h1 {
-      /* fluid via clamp — no override needed */
-    }
-    .survey-hero__tagline {
-      font-size: 1.5rem;
-    }
-  }
-
-  /* Intro */
-  .survey-intro {
-    padding: 0;
-  }
-  .survey-intro__heading {
-    font-size: 1.75rem;
-    margin-bottom: var(--space-4);
-  }
-  .survey-intro__lead {
-    font-size: 1.125rem;
-    line-height: 1.75;
-    font-weight: 500;
-    color: var(--text-primary);
-  }
-  .survey-intro p {
-    font-size: 1rem;
-    line-height: 1.75;
-    color: var(--text-primary);
-  }
-
-  /* How it works */
-  .survey-how {
-    margin-top: var(--space-8);
-    background: var(--sage-50);
-    padding: var(--space-6);
-    border-radius: var(--radius-md);
-  }
-  .survey-how h2 {
-    font-size: 1.5rem;
-    margin-bottom: var(--space-4);
-  }
-  .survey-steps {
-    list-style: none;
-    counter-reset: none;
-  }
-  .survey-steps li {
+  .survey-hero__meta {
+    margin-top: var(--space-6);
     display: flex;
-    gap: var(--space-4);
-    align-items: flex-start;
-    padding: var(--space-4) 0;
+    flex-wrap: wrap;
+    gap: var(--space-3);
+  }
+  .survey-hero__chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 5px var(--space-3);
+    background: var(--bg-card);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-pill);
+    font-size: 0.8125rem;
+    font-weight: 500;
+    color: var(--text-secondary);
+  }
+  .survey-hero__chip svg { color: var(--accent); flex-shrink: 0; }
+
+  /* Editorial stat rail */
+  .survey-hero__stats {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-5);
+    min-width: 0;
+    padding: var(--space-8);
+    background: var(--bg-card);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-md);
+  }
+  .stat {
+    margin: 0;
+    padding-bottom: var(--space-5);
     border-bottom: 1px solid var(--border-light);
   }
-  .survey-steps li:last-child {
-    border-bottom: none;
-  }
-  .survey-steps__num {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    flex-shrink: 0;
-    width: 32px;
-    height: 32px;
-    border-radius: 50%;
-    background: var(--accent);
-    color: #fff;
-    font-family: 'Inter', sans-serif;
-    font-size: 0.875rem;
+  .stat:last-child { padding-bottom: 0; border-bottom: none; }
+  .stat__num {
+    font-family: var(--font-display);
+    font-size: clamp(2.25rem, 1.6rem + 2vw, 2.875rem);
     font-weight: 600;
+    line-height: 1;
+    color: var(--accent);
+    letter-spacing: -0.01em;
   }
-  .survey-steps li:nth-child(1) .survey-steps__num { background: var(--tier1-accent); }
-  .survey-steps li:nth-child(2) .survey-steps__num { background: var(--tier2-accent); }
-  .survey-steps li:nth-child(3) .survey-steps__num { background: var(--tier3-accent); }
-  .survey-steps strong {
-    display: block;
-    margin-bottom: var(--space-1);
-    color: var(--text-primary);
-  }
-  .survey-steps p {
-    font-size: 0.875rem;
+  .stat__label {
+    margin-top: var(--space-2);
+    font-size: 0.9375rem;
+    line-height: 1.5;
     color: var(--text-secondary);
-    margin: 0;
   }
+
+  /* ── Body ───────────────────────────────────────────────────────── */
+  .page-body { padding: var(--space-12) 0; }
+  .survey-intro { padding: 0; }
+  .survey-section__title {
+    font-size: 1.625rem;
+    margin: 0 0 var(--space-5);
+  }
+
+  /* Note from Naomi */
+  .survey-note__lead {
+    font-family: var(--font-display);
+    font-size: clamp(1.375rem, 1.1rem + 1.1vw, 1.75rem);
+    line-height: 1.35;
+    color: var(--text-primary);
+    margin: 0 0 var(--space-5);
+    text-wrap: balance;
+  }
+  .survey-note p {
+    font-size: 1.0625rem;
+    line-height: 1.75;
+    color: var(--text-secondary);
+    margin: 0 0 var(--space-4);
+  }
+  .survey-note__sig {
+    font-size: 0.875rem !important;
+    font-weight: 500;
+    color: var(--text-tertiary) !important;
+    margin-top: var(--space-5) !important;
+    padding-top: var(--space-4);
+    border-top: 1px solid var(--border-light);
+  }
+
+  /* How it works — connected numbered flow */
+  .survey-how { margin-top: var(--space-10); }
+  .survey-how__title { font-size: 1.5rem; text-align: center; margin: 0 0 var(--space-8); }
+  .flow {
+    list-style: none; margin: 0; padding: 0;
+    display: grid; grid-template-columns: 1fr; gap: var(--space-8);
+  }
+  @media (min-width: 680px) { .flow { grid-template-columns: repeat(3, 1fr); gap: var(--space-6); } }
+  .flow__step { position: relative; text-align: center; padding: 0 var(--space-2); }
+  @media (min-width: 680px) {
+    .flow__step::after {
+      content: ''; position: absolute; top: 20px; left: calc(50% + 28px);
+      width: calc(100% - 56px); height: 2px; background: var(--border-color);
+    }
+    .flow__step:last-child::after { display: none; }
+  }
+  .flow__num {
+    position: relative; z-index: 1;
+    display: inline-flex; align-items: center; justify-content: center;
+    width: 40px; height: 40px; color: #fff; border-radius: var(--radius-pill);
+    font-family: var(--font-display); font-weight: 600; font-size: 1.25rem;
+    margin-bottom: var(--space-4); box-shadow: 0 0 0 6px var(--bg-body);
+  }
+  .flow__num--1 { background: var(--tier1-accent); }
+  .flow__num--2 { background: var(--tier2-accent); }
+  .flow__num--3 { background: var(--tier3-accent); }
+  .flow__heading { font-size: 1.0625rem; margin: 0 0 var(--space-2); color: var(--text-primary); }
+  .flow__text { font-size: 0.9375rem; line-height: 1.6; color: var(--text-secondary); margin: 0 auto; max-width: 28ch; }
 
   /* Email gate */
   .survey-gate {
@@ -283,141 +520,168 @@ const jsonLd = {
     padding: var(--space-8);
     background: var(--bg-surface);
     border: 1px solid var(--sand-300);
-    border-radius: var(--radius-md);
-  }
-  .survey-gate h2 {
-    font-size: 1.5rem;
-    margin-bottom: var(--space-4);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-sm);
     text-align: center;
   }
-  .survey-form__row {
-    display: flex;
-    gap: var(--space-3);
-  }
+  .survey-gate__title { font-size: 1.625rem; margin: 0 0 var(--space-2); }
+  .survey-gate__sub { font-size: 1rem; color: var(--text-secondary); margin: 0 auto var(--space-6); max-width: 44ch; }
+  .survey-form { text-align: left; max-width: 520px; margin: 0 auto; }
+  .survey-form__row { display: flex; gap: var(--space-3); }
   .survey-form__input {
-    flex: 1;
-    padding: var(--space-3) var(--space-4);
-    border: 1px solid var(--border-light);
-    border-radius: var(--radius-pill);
-    font-family: 'Inter', sans-serif;
-    font-size: 1rem;
-    background: var(--bg-body);
-    color: var(--text-primary);
-    outline: none;
-    transition: border-color 0.15s;
+    flex: 1; padding: var(--space-3) var(--space-4);
+    border: 1px solid var(--border-light); border-radius: var(--radius-pill);
+    font-family: 'Inter', sans-serif; font-size: 1rem;
+    background: var(--bg-body); color: var(--text-primary);
+    outline: none; transition: border-color 0.15s, box-shadow 0.15s;
   }
-  .survey-form__input:focus {
-    border-color: var(--accent);
-  }
-  .survey-form__input::placeholder {
-    color: var(--text-tertiary);
-  }
-  .survey-form__btn {
-    white-space: nowrap;
-    flex-shrink: 0;
-  }
-  .survey-intro .survey-form__note {
-    font-size: 0.75rem;
-    color: var(--text-secondary);
-    margin-top: var(--space-3);
-    margin-bottom: 0;
-  }
+  .survey-form__input:focus { border-color: var(--accent); box-shadow: 0 0 0 3px var(--purple-100); }
+  .survey-form__input::placeholder { color: var(--text-tertiary); }
+  .survey-form__btn { white-space: nowrap; flex-shrink: 0; }
+  .survey-form__note { font-size: 0.75rem; color: var(--text-secondary); margin-top: var(--space-3); margin-bottom: 0; text-align: center; }
   @media (max-width: 520px) {
-    .survey-form__row {
-      flex-direction: column;
-    }
-    .survey-form__btn {
-      width: 100%;
-    }
+    .survey-form__row { flex-direction: column; }
+    .survey-form__btn { width: 100%; }
   }
 
-  /* Success / Error states */
-  .survey-success {
-    text-align: center;
-    padding: var(--space-6) 0;
-  }
+  /* Success / Error */
+  .survey-success { text-align: center; padding: var(--space-4) 0 0; }
   .survey-success__icon {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    width: 48px;
-    height: 48px;
-    border-radius: 50%;
-    background: var(--green-700);
-    color: #fff;
-    font-size: 1.5rem;
-    margin-bottom: var(--space-4);
+    display: inline-flex; align-items: center; justify-content: center;
+    width: 48px; height: 48px; border-radius: 50%;
+    background: var(--green-700); color: #fff; font-size: 1.5rem; margin-bottom: var(--space-4);
   }
-  .survey-success h3 {
-    font-size: 1.25rem;
-    margin-bottom: var(--space-2);
-  }
-  .survey-success p {
-    font-size: 0.875rem;
-    color: var(--text-secondary);
-    margin: 0;
-  }
-  .survey-error[data-empty="true"] {
-    position: absolute;
-    left: -9999px;
-  }
+  .survey-success h3 { font-size: 1.25rem; margin-bottom: var(--space-2); }
+  .survey-success p { font-size: 0.875rem; color: var(--text-secondary); margin: 0; }
   .survey-error {
-    margin-top: var(--space-4);
-    padding: var(--space-3) var(--space-4);
-    background: var(--rose-100);
-    border: 1px solid var(--rose-300);
-    border-radius: var(--radius-sm);
+    margin-top: var(--space-4); padding: var(--space-3) var(--space-4);
+    background: var(--rose-100); border: 1px solid var(--rose-300);
+    border-radius: var(--radius-sm); text-align: left;
   }
-  .survey-error p {
-    font-size: 0.875rem;
-    color: var(--color-error);
-    margin: 0;
+  .survey-error p { font-size: 0.875rem; color: var(--color-error); margin: 0; }
+
+  /* ── Deep content ───────────────────────────────────────────────── */
+  .survey-content { margin-top: var(--space-12); }
+  .survey-block { margin-bottom: var(--space-10); }
+  .survey-block h2 {
+    font-size: 1.5rem;
+    margin: 0 0 var(--space-4);
+    color: var(--text-primary);
+    text-wrap: balance;
   }
+  .survey-block p {
+    font-size: 1.0625rem;
+    line-height: 1.75;
+    color: var(--text-secondary);
+    margin: 0 0 var(--space-4);
+  }
+  .survey-block p:last-child { margin-bottom: 0; }
+  .survey-block a { color: var(--accent); text-decoration: underline; text-underline-offset: 2px; }
+  .survey-block a:hover { color: var(--purple-900); }
+
+  /* Tier list */
+  .survey-tiers { list-style: none; margin: 0 0 var(--space-4); padding: 0; display: flex; flex-direction: column; gap: var(--space-4); }
+  .survey-tiers li {
+    position: relative;
+    padding-left: var(--space-6);
+    font-size: 1.0625rem;
+    line-height: 1.7;
+    color: var(--text-secondary);
+  }
+  .survey-tier__dot {
+    position: absolute; left: 0; top: 9px;
+    width: 12px; height: 12px; border-radius: 50%;
+  }
+  .survey-tier__dot--1 { background: var(--tier1-accent); }
+  .survey-tier__dot--2 { background: var(--tier2-accent); }
+  .survey-tier__dot--3 { background: var(--tier3-accent); }
+  .survey-tiers strong { color: var(--text-primary); }
+
+  /* FAQ */
+  .survey-faq { display: flex; flex-direction: column; gap: var(--space-2); }
+  .survey-faq__item {
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-md);
+    background: var(--bg-card);
+    overflow: hidden;
+  }
+  .survey-faq__q {
+    list-style: none; cursor: pointer;
+    padding: var(--space-4) var(--space-5);
+    font-family: var(--font-display);
+    font-size: 1.1875rem;
+    font-weight: 600;
+    color: var(--text-primary);
+    display: flex; align-items: center; justify-content: space-between; gap: var(--space-3);
+    transition: color 0.15s;
+  }
+  .survey-faq__q::-webkit-details-marker { display: none; }
+  .survey-faq__q::after {
+    content: '+'; flex-shrink: 0;
+    font-family: 'Inter', sans-serif; font-weight: 400;
+    font-size: 1.5rem; line-height: 1; color: var(--accent);
+    transition: transform 0.2s ease;
+  }
+  .survey-faq__item[open] .survey-faq__q::after { transform: rotate(45deg); }
+  .survey-faq__q:hover { color: var(--accent); }
+  .survey-faq__a { padding: 0 var(--space-5) var(--space-5); }
+  .survey-faq__a p { font-size: 1rem; line-height: 1.7; color: var(--text-secondary); margin: 0; }
+
+  /* Repeat CTA */
+  .survey-recap {
+    margin-top: var(--space-12);
+    padding: var(--space-10) var(--space-8);
+    border-radius: var(--radius-lg);
+    text-align: center;
+    background: radial-gradient(120% 140% at 50% 0%, var(--purple-700) 0%, var(--purple-900) 100%);
+  }
+  .survey-recap__title { font-size: clamp(1.5rem, 1.2rem + 1.2vw, 2rem); margin: 0 0 var(--space-3); color: #fff; text-wrap: balance; }
+  .survey-recap__text { font-size: 1.0625rem; line-height: 1.7; color: var(--purple-200); margin: 0 auto var(--space-6); max-width: 44ch; }
+  .survey-recap__btn { background: #fff; color: var(--purple-800); border: none; }
+  .survey-recap__btn:hover { background: var(--purple-50); color: var(--purple-900); transform: translateY(-1px); }
+  .survey-recap__providers { font-size: 0.875rem; color: var(--purple-300); margin: var(--space-5) 0 0; }
+  .survey-recap__providers a { color: #fff; text-decoration: underline; text-underline-offset: 2px; }
 
   /* Disclaimer */
-  .survey-disclaimer {
-    margin-top: var(--space-8);
-    padding-top: var(--space-4);
-    border-top: 1px solid var(--border-light);
+  .survey-disclaimer { margin-top: var(--space-10); padding-top: var(--space-4); border-top: 1px solid var(--border-light); }
+  .survey-disclaimer p { font-size: 0.75rem; line-height: 1.6; color: var(--text-secondary); margin: 0; }
+
+  @media (max-width: 879px) {
+    .survey-hero { padding: var(--space-10) 0 var(--space-8); }
+    .survey-hero__tagline { max-width: none; }
   }
-  .survey-disclaimer p {
-    font-size: 0.75rem;
-    line-height: 1.6;
-    color: var(--text-secondary);
-    margin: 0;
+  @media (prefers-reduced-motion: reduce) {
+    .survey-recap__btn:hover { transform: none; }
+    .survey-faq__item[open] .survey-faq__q::after { transition: none; }
   }
 </style>
 
 <script>
-  const form = document.getElementById('email-form');
-  const input = document.getElementById('email-input');
-  const submitBtn = document.getElementById('submit-btn');
+  const form = document.getElementById('email-form') as HTMLFormElement | null;
+  const input = document.getElementById('email-input') as HTMLInputElement | null;
+  const submitBtn = document.getElementById('submit-btn') as HTMLButtonElement | null;
   const successMsg = document.getElementById('success-msg');
   const errorMsg = document.getElementById('error-msg');
   const errorText = document.getElementById('error-text');
   const sentEmail = document.getElementById('sent-email');
 
-  function clearErrorState() {
-    if (!errorMsg || !errorText) return;
-    errorText.textContent = '';
-    errorMsg.querySelectorAll('a').forEach(function (a) { a.remove(); });
-    errorMsg.setAttribute('data-empty', 'true');
-  }
+  if (form && input && submitBtn && successMsg && errorMsg && errorText && sentEmail) {
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      errorMsg.hidden = true;
+      submitBtn.disabled = true;
+      submitBtn.textContent = 'Sending...';
 
-  form.addEventListener('submit', async (e) => {
-    e.preventDefault();
-    clearErrorState();
-    submitBtn.disabled = true;
-    submitBtn.textContent = 'Sending...';
+      const email = input.value.trim();
+      if (!email) return;
 
-    const email = input.value.trim();
-    if (!email) return;
-
-    // Carry through tracking params
-    const params = new URLSearchParams(window.location.search);
-    const payload = { email };
-    if (params.get('userorigin')) payload.userorigin = params.get('userorigin');
-    if (params.get('utm_source')) payload.utm_source = params.get('utm_source');
+      // Carry through tracking params
+      const params = new URLSearchParams(window.location.search);
+      const payload: Record<string, string> = { email };
+      const userorigin = params.get('userorigin');
+      const utmSource = params.get('utm_source');
+      if (userorigin) payload.userorigin = userorigin;
+      if (utmSource) payload.utm_source = utmSource;
 
     try {
       const resp = await fetch('/api/survey/request', {
@@ -433,8 +697,8 @@ const jsonLd = {
         successMsg.hidden = false;
       } else if (data.suggestion) {
         errorText.textContent = data.error;
-        errorMsg.setAttribute('data-empty', 'false');
-        const emailInput = form.querySelector('input[type="email"]');
+        errorMsg.hidden = false;
+        const emailInput = form.querySelector('input[type="email"]') as HTMLInputElement | null;
         if (emailInput) {
           const useLink = document.createElement('a');
           useLink.href = '#';
@@ -443,20 +707,21 @@ const jsonLd = {
           useLink.addEventListener('click', function (ev) {
             ev.preventDefault();
             emailInput.value = data.suggestion;
-            clearErrorState();
+            errorMsg.hidden = true;
           });
           errorMsg.appendChild(useLink);
         }
       } else {
         errorText.textContent = data.error || 'Something went wrong. Please try again.';
-        errorMsg.setAttribute('data-empty', 'false');
+        errorMsg.hidden = false;
       }
     } catch (error) {
       errorText.textContent = 'Network error. Please try again.';
-      errorMsg.setAttribute('data-empty', 'false');
+      errorMsg.hidden = false;
     } finally {
       submitBtn.disabled = false;
       submitBtn.textContent = 'Get My Survey Link';
     }
-  });
+    });
+  }
 </script>
