@@ -930,33 +930,35 @@ const definedTermSetSchema = {
     margin-bottom: var(--space-8);
     scroll-margin-top: 180px;
   }
-  /* Topic tag next to the term name (click-to-filter control). */
+  /* Topic eyebrow above the term name (click-to-filter control). Quiet,
+     background-less label matching the site eyebrow pattern (cf. term-rail__eyebrow)
+     so it scans rather than competes with the term title. */
   .glossary-entry__tag {
     display: block;
-    margin-bottom: 2px;
+    margin-bottom: var(--space-1);
   }
   .glossary-entry__tag-btn {
     display: inline-flex;
     align-items: center;
-    padding: 2px 9px;
+    padding: 0;
     font-family: 'Inter', sans-serif;
-    font-size: 0.625rem;
+    font-size: 0.6875rem;
     font-weight: 600;
     text-transform: uppercase;
-    letter-spacing: 0.05em;
-    color: var(--sand-700);
-    background: var(--sand-300);
-    border: 1px solid transparent;
-    border-radius: var(--radius-pill);
+    letter-spacing: 0.06em;
+    color: var(--text-tertiary);
+    background: none;
+    border: none;
+    border-radius: 0;
     cursor: pointer;
-    transition: color 0.15s, background 0.15s, border-color 0.15s;
+    transition: color 0.15s;
   }
   .glossary-entry__tag-btn:hover {
-    color: #fff;
-    background: var(--accent);
+    color: var(--accent);
   }
   .glossary-entry__tag-btn:focus-visible {
     outline: none;
+    border-radius: var(--radius-sm);
     box-shadow: 0 0 0 3px var(--focus-ring);
   }
 
