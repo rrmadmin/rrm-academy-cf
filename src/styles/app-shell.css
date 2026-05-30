@@ -233,18 +233,40 @@
 .app-shell-nav__iconbtn { position: relative; }
 .app-shell-nav__count.has-items { display: block; }
 
-/* Universal "Save page" toggle — top of the main content column. Outlined pill
-   matching the iconbtn / id-pill affordance language; fills on the saved state. */
+/* Universal "Save page" toggle. Outlined pill matching the iconbtn / id-pill
+   affordance language; fills on the saved state.
+
+   Placement: the button ships hidden inside .shell-save-row and `initSavedShell`
+   (saved.ts) relocates it onto the page's breadcrumb line (.breadcrumb-bar) so
+   the action integrates with existing page furniture instead of floating alone
+   at the top of the column. .shell-save-row is only the pre-JS holder + the
+   no-breadcrumb fallback; on every real page JS removes it after relocating. */
 .shell-save-row {
   margin-bottom: var(--space-3);
 }
-/* The inner .container.container--narrow matches the page/article body column
-   (global.css: max-width var(--max-width-article)) on every shell context, so
-   the button's right edge tracks the content edge instead of pinning to the
-   full main-column corner. */
 .shell-save-row > .container {
   display: flex;
   justify-content: flex-end;
+}
+/* Breadcrumb action row: crumbs on the left, Save on the right, one line. The
+   wrapper owns the breadcrumb's former bottom margin; the breadcrumb truncates
+   so a long title never pushes the Save pill off-screen on narrow viewports. */
+.breadcrumb-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-4);
+  margin-bottom: var(--space-6);
+}
+.breadcrumb-bar > .breadcrumb {
+  margin-bottom: 0;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.breadcrumb-bar > .shell-save-toggle {
+  flex-shrink: 0;
 }
 .shell-save-toggle {
   display: inline-flex;
