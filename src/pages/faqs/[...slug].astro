@@ -81,6 +81,7 @@ const jsonLd = {
   title={pageTitle}
   description={metaDescription}
   canonicalUrl={canonicalUrl}
+  markdownUrl={`/faqs/${faq.slug}.md`}
   jsonLd={jsonLd}
   speakable={['.faq-title', '.prose p']}
   chrome={SHELL_ENABLED ? 'shell' : 'default'}
