@@ -310,19 +310,21 @@ const NAV_ICONS: Record<string, string> = {
         gate and wires optimistic localStorage + server mirror + badge. */}
     {isSaveable && (
       <div class="shell-save-row" data-pagefind-ignore="all">
-        <button
-          type="button"
-          id="shell-save-toggle"
-          class="shell-save-toggle"
-          aria-pressed="false"
-          aria-label="Save this page"
-          title="Save page"
-          data-save-title={saveTitle || undefined}
-          hidden
-        >
-          <svg class="shell-save-toggle__icon" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m19 21-7-4-7 4V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v16z"/></svg>
-          <span class="shell-save-toggle__label">Save page</span>
-        </button>
+        <div class="container container--narrow">
+          <button
+            type="button"
+            id="shell-save-toggle"
+            class="shell-save-toggle"
+            aria-pressed="false"
+            aria-label="Save this page"
+            title="Save page"
+            data-save-title={saveTitle || undefined}
+            hidden
+          >
+            <svg class="shell-save-toggle__icon" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m19 21-7-4-7 4V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v16z"/></svg>
+            <span class="shell-save-toggle__label">Save page</span>
+          </button>
+        </div>
       </div>
     )}
     <slot />
