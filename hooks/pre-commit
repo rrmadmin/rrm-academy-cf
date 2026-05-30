@@ -118,6 +118,20 @@ if echo "$STAGED" | grep -qE '^scripts/migrate-courses-to-d1\.sql$|^functions/ap
   fi
 fi
 
+# --- Share button gates: any staged change to ArticleHero or the slug page ---
+#     SB1: navigator.share is primary branch. SB2: .catch() on writeText.
+#     SB3: aria-label="Share". SB4: .action-label visible in .copied state.
+if echo "$STAGED" | grep -qE '^src/components/ArticleHero\.astro$|^src/pages/library/\[\.\.\.slug\]\.astro$|^scripts/gates/validate-share-button\.mjs$'; then
+  node scripts/gates/validate-share-button.mjs
+  if [ $? -ne 0 ]; then
+    echo ""
+    echo "Commit blocked by share button gates."
+    echo "navigator.share primary path, .catch() on clipboard, aria-label, or .copied CSS drifted."
+    echo "Fix the failures above, or bypass with --no-verify."
+    exit 1
+  fi
+fi
+
 # --- Removed-ID consumer-mismatch gate: any staged change to a shared
 #     component or layout that removes an id="X" still referenced by JS in
 #     src/, functions/, or public/. Closes the "remove an id, downstream
