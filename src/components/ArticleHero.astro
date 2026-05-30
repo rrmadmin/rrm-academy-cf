@@ -117,7 +117,7 @@ const accessKind: 'restricted' | 'open' | 'free' | 'none' =
       <p class="article-hero__venue" data-pagefind-weight="2">{journalLine}</p>
     )}
     <div class="article-hero__icon-actions" role="toolbar" aria-label="Article actions">
-      <button class="icon-action" id="share-btn" type="button" aria-label="Copy link" title="Copy link">
+      <button class="icon-action" id="share-btn" type="button" aria-label="Share" title="Share">
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>
         <span class="action-label" id="share-label"></span>
       </button>
@@ -349,9 +349,17 @@ const accessKind: 'restricted' | 'open' | 'free' | 'none' =
   .icon-action.copied {
     border-color: var(--accent);
     color: var(--accent);
+    width: auto;
+    padding: 0 6px;
+    gap: 4px;
   }
   .action-label {
     display: none;
+    font-size: 0.75rem;
+    white-space: nowrap;
+  }
+  .icon-action.copied .action-label {
+    display: inline;
   }
 
   /* Title */

@@ -1158,44 +1158,52 @@ const citationMeta = {
 </style>
 
 <script is:inline>
-  // Share / copy link button
+  // Share button — native share sheet with clipboard-copy fallback
   (function() {
     var shareBtn = document.getElementById('share-btn');
     var shareLabel = document.getElementById('share-label');
     if (!shareBtn) return;
     shareBtn.addEventListener('click', function() {
       var url = window.location.href;
-      // GA4 share_click via the global bridge (track-auto.ts). network='copy-link'
-      // since this surface is the copy-URL action (no social share API today).
+      var title = document.title;
       try {
         if (window.__rrmTrack__) window.__rrmTrack__('share_click', {
           surface: 'library-article',
-          network: 'copy-link',
+          network: navigator.share ? 'native-share' : 'copy-link',
         });
       } catch (e) {}
-      if (navigator.clipboard && navigator.clipboard.writeText) {
-        navigator.clipboard.writeText(url).then(function() {
-          shareBtn.classList.add('copied');
-          shareLabel.textContent = 'Copied!';
-          setTimeout(function() {
-            shareBtn.classList.remove('copied');
-            shareLabel.textContent = '';
-          }, 2000);
-        });
-      } else {
-        // Fallback
-        var input = document.createElement('input');
-        input.value = url;
-        document.body.appendChild(input);
-        input.select();
-        document.execCommand('copy');
-        document.body.removeChild(input);
+
+      function showCopied() {
         shareBtn.classList.add('copied');
         shareLabel.textContent = 'Copied!';
         setTimeout(function() {
           shareBtn.classList.remove('copied');
           shareLabel.textContent = '';
         }, 2000);
+      }
+
+      function copyFallback() {
+        if (navigator.clipboard && navigator.clipboard.writeText) {
+          navigator.clipboard.writeText(url).then(showCopied).catch(execFallback);
+        } else {
+          execFallback();
+        }
+      }
+
+      function execFallback() {
+        var input = document.createElement('input');
+        input.value = url;
+        document.body.appendChild(input);
+        input.select();
+        try { document.execCommand('copy'); } catch(e) {}
+        document.body.removeChild(input);
+        showCopied();
+      }
+
+      if (navigator.share) {
+        navigator.share({ title: title, url: url }).catch(function() {});
+      } else {
+        copyFallback();
       }
     });
   })();
