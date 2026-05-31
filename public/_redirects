@@ -1,6 +1,9 @@
 # SPA catch-all: community post detail page (client-side routing)
 /community/post/* /community/post/placeholder/ 200
 
+# SPA catch-all: community Action Area detail page (client-side routing)
+/community/areas/* /community/areas/placeholder/ 200
+
 /sitemap.xml /sitemap-index.xml 301
 
 # Legacy URL retired 2026-04-27 -- 301 now that destination is canonical
