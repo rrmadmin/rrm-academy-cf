@@ -93,7 +93,7 @@ export async function onRequestPut(context) {
   }
 
   const normalizedTermSlug = body.term_slug !== undefined
-    ? ((typeof body.term_slug === 'string' && body.term_slug.trim()) ? body.term_slug.trim() : null)
+    ? ((typeof body.term_slug === 'string' && body.term_slug.trim()) ? body.term_slug.trim().toLowerCase() : null)
     : undefined;
 
   if (normalizedTermSlug !== undefined && normalizedTermSlug !== null) {

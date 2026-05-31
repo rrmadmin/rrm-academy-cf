@@ -495,6 +495,10 @@ async function main() {
     console.error('enrich-glossary: glossary.json not found or malformed; skipping.');
     return;
   }
+  if (!Array.isArray(glossary.terms) || glossary.terms.length < 100) {
+    console.error(`enrich-glossary: terms count too low (${glossary.terms?.length ?? 0}, expected >= 100); aborting`);
+    process.exit(1);
+  }
   if (!Array.isArray(glossary.references) || glossary.references.length < 30) {
     console.error(`enrich-glossary: references count too low (${glossary.references?.length ?? 0}, expected >= 30); aborting`);
     process.exit(1);

@@ -75,7 +75,7 @@ export async function onRequestPost(context) {
   }
   const resolvedSortOrder = typeof sort_order === 'number' ? sort_order : 0;
 
-  const normalizedTermSlug = (typeof term_slug === 'string' && term_slug.trim()) ? term_slug.trim() : null;
+  const normalizedTermSlug = (typeof term_slug === 'string' && term_slug.trim()) ? term_slug.trim().toLowerCase() : null;
   if (normalizedTermSlug !== null) {
     try {
       const exists = await env.DB.prepare(
