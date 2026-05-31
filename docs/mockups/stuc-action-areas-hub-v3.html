@@ -1,0 +1,376 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>STUC Action Areas Hub — v3 preview</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    /* RRM design-system SSOT tokens (light theme) */
+    --accent:#725e7e; --accent-dark:#4c3e54; --accent-50:#f5f0f8; --accent-100:#e8ddef; --accent-200:#d5c6de; --accent-300:#c9b8d3;
+    --cream:#f7f5f3; --white:#fff;
+    --n-200:#dddbd8; --n-300:#c6c4c2; --n-500:#949392; --n-600:#7b7a78; --n-700:#636261; --n-900:#313131;
+    /* rose = SEMANTIC community accent only (never brand accent) */
+    --rose-50:#fef8fa; --rose-100:#fdf0f4; --rose-300:#f5cdda; --rose-500:#eb9fb8; --rose-700:#b0778a;
+    --sage-100:#e9efe7; --sage-500:#8aa884; --sage-700:#5f7a59;
+    --gold-100:#f3ecdd; --gold-700:#8a6d3b;
+    --display:'Cormorant Garamond',Georgia,serif;
+    --ui:'Inter','Helvetica Neue',Arial,sans-serif;
+    --shadow-sm:0 1px 2px rgba(49,49,49,.06),0 1px 3px rgba(49,49,49,.09);
+    --shadow-md:0 4px 6px rgba(49,49,49,.05),0 10px 24px rgba(49,49,49,.08);
+    --radius:14px; --radius-sm:10px; --radius-pill:999px;
+  }
+  /* --- web-page-qa starter reset --- */
+  *,*::before,*::after{box-sizing:border-box}
+  html,body{margin:0;overflow-x:hidden}
+  body{font-family:var(--ui);color:var(--n-900);background:var(--cream);line-height:1.5;overflow-wrap:break-word;-webkit-font-smoothing:antialiased}
+  img,svg,video{max-width:100%;height:auto}
+  a{color:inherit}
+  .wrap{max-width:1080px;margin:0 auto;padding:0 20px}
+
+  /* --- preview control bar (mockup chrome, not part of the page) --- */
+  .ctl{position:sticky;top:0;z-index:50;background:var(--n-900);color:#fff;padding:10px 20px;font-size:.8rem;display:flex;flex-wrap:wrap;gap:10px 18px;align-items:center}
+  .ctl b{font-weight:600;letter-spacing:.02em}
+  .ctl .grp{display:flex;gap:6px;align-items:center;flex-wrap:wrap}
+  .ctl .lbl{color:#b9b6c2;font-size:.72rem;text-transform:uppercase;letter-spacing:.08em}
+  .ctl button{font:inherit;font-size:.78rem;font-weight:600;border:1px solid #4a4955;background:#26252c;color:#cfc9d6;padding:5px 11px;border-radius:var(--radius-pill);cursor:pointer}
+  .ctl button.on{background:var(--accent);border-color:var(--accent);color:#fff}
+  .ctl .note{color:#8d8a97;font-size:.72rem;margin-left:auto}
+
+  /* --- faux site header --- */
+  .site{background:var(--white);border-bottom:1px solid var(--n-200)}
+  .site .row{display:flex;align-items:center;justify-content:space-between;padding:14px 0;gap:12px}
+  .brand{font-family:var(--display);font-weight:700;font-size:1.35rem;color:var(--accent-dark);white-space:nowrap}
+  .brand span{color:var(--accent)}
+  .site nav{display:flex;gap:18px;font-size:.85rem;color:var(--n-700);font-weight:500}
+  .site nav a{text-decoration:none}
+  .hdr-cta{display:inline-flex;align-items:center;gap:7px;font-size:.82rem;font-weight:600;padding:8px 15px;border-radius:var(--radius-pill);background:var(--accent);color:#fff;text-decoration:none;white-space:nowrap}
+  @media(max-width:720px){.site nav{display:none}}
+
+  /* --- hub header (mission-first) --- */
+  .hub-head{padding:40px 0 26px}
+  .eyebrow{font-size:.72rem;font-weight:600;letter-spacing:.13em;text-transform:uppercase;color:var(--accent)}
+  h1{font-family:var(--display);font-weight:600;font-size:clamp(2.1rem,1.3rem+3vw,3.1rem);line-height:1.07;letter-spacing:-.01em;margin:.2em 0 .12em;color:var(--n-900)}
+  .hub-head .lede{font-size:1.06rem;color:var(--n-700);max-width:60ch}
+  .member-count{display:inline-flex;align-items:center;gap:6px;margin-top:14px;font-size:.82rem;font-weight:500;color:var(--n-600);background:var(--white);border:1px solid var(--n-200);padding:5px 12px;border-radius:var(--radius-pill)}
+
+  section{padding:26px 0}
+  .sec-head{display:flex;align-items:baseline;justify-content:space-between;gap:10px;margin-bottom:14px}
+  h2{font-family:var(--display);font-weight:600;font-size:1.6rem;letter-spacing:-.01em;margin:0;color:var(--n-900)}
+  .sec-head .hint{font-size:.78rem;color:var(--n-500)}
+
+  /* --- This Month impact strip --- */
+  .impact{background:linear-gradient(135deg,var(--accent) 0%,var(--accent-dark) 100%);color:#fff;border-radius:var(--radius);padding:20px 22px;box-shadow:var(--shadow-md)}
+  .impact .t{font-size:.72rem;font-weight:600;letter-spacing:.12em;text-transform:uppercase;color:var(--accent-100);margin-bottom:14px}
+  .impact-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(220px,100%),1fr));gap:16px}
+  .impact-item{display:flex;gap:11px;align-items:flex-start}
+  .impact-item .ic{font-size:1.3rem;line-height:1.1;flex:none}
+  .impact-item .h{font-weight:600;font-size:.93rem}
+  .impact-item .d{font-size:.82rem;color:var(--accent-100);margin-top:1px}
+  .impact-empty{display:none;font-size:.85rem;color:var(--n-500);border:1px dashed var(--n-300);border-radius:var(--radius);padding:14px 16px;background:var(--white)}
+
+  /* --- Action Areas row --- */
+  .areas{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(240px,100%),1fr));gap:16px}
+  .area-card{background:var(--white);border:1px solid var(--n-200);border-radius:var(--radius);box-shadow:var(--shadow-sm);overflow:hidden;display:flex;flex-direction:column}
+  .area-card .bar{height:5px}
+  .area-card .body{padding:16px 16px 15px;display:flex;flex-direction:column;flex:1}
+  .area-card .ic{font-size:1.5rem;margin-bottom:7px}
+  .area-card h3{font-family:var(--ui);font-weight:600;font-size:1.02rem;margin:0 0 3px}
+  .area-card .tag{font-size:.84rem;color:var(--n-600);line-height:1.4;margin-bottom:12px;flex:1}
+  .owner{display:flex;align-items:center;gap:7px;font-size:.78rem;color:var(--n-600);margin-bottom:12px}
+  .ava{width:22px;height:22px;border-radius:50%;background:var(--accent-100);color:var(--accent-dark);font-size:.66rem;font-weight:700;display:flex;align-items:center;justify-content:center;flex:none}
+  .owner.tbc{color:var(--n-500);font-style:italic}
+  .area-foot{display:flex;align-items:center;justify-content:space-between;gap:8px;border-top:1px solid var(--n-200);padding-top:11px}
+  .count-badge{font-size:.8rem;font-weight:600;color:var(--accent-dark)}
+  .get-involved{display:none;font-size:.8rem;font-weight:600;color:var(--accent);text-decoration:none}
+  .btn-join{font:inherit;font-size:.76rem;font-weight:600;border:1px solid var(--accent);background:var(--accent);color:#fff;padding:5px 12px;border-radius:var(--radius-pill);cursor:pointer;white-space:nowrap}
+  .btn-join.joined{background:var(--sage-100);border-color:var(--sage-500);color:var(--sage-700)}
+  .area-card .join-out{display:none;font-size:.78rem;font-weight:600;color:var(--accent)}
+
+  /* --- Active Projects rail --- */
+  .rail{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(280px,100%),1fr));gap:14px}
+  .proj{background:var(--white);border:1px solid var(--n-200);border-radius:var(--radius-sm);box-shadow:var(--shadow-sm);padding:15px 15px 14px;display:flex;flex-direction:column}
+  .proj-top{display:flex;align-items:center;gap:8px;margin-bottom:8px;flex-wrap:wrap}
+  .chip{display:inline-flex;align-items:center;gap:5px;font-size:.7rem;font-weight:600;padding:3px 9px;border-radius:var(--radius-pill);background:var(--accent-50);color:var(--accent-dark);white-space:nowrap}
+  .status{font-size:.66rem;font-weight:700;letter-spacing:.05em;text-transform:uppercase;padding:3px 8px;border-radius:6px}
+  .status.recruiting{background:var(--sage-100);color:var(--sage-700)}
+  .status.in_progress{background:var(--gold-100);color:var(--gold-700)}
+  .proj h4{font-family:var(--ui);font-weight:600;font-size:.98rem;margin:0 0 4px}
+  .proj p{font-size:.83rem;color:var(--n-600);margin:0 0 12px;line-height:1.45;flex:1}
+  .proj-foot{display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap}
+  .proj .members{font-size:.76rem;color:var(--n-500)}
+  .ws-link{font-size:.76rem;font-weight:600;color:var(--accent);text-decoration:none}
+  .btn-sm{font:inherit;font-size:.74rem;font-weight:600;border:1px solid var(--accent);background:var(--white);color:var(--accent);padding:4px 11px;border-radius:var(--radius-pill);cursor:pointer}
+
+  /* --- Conversation --- */
+  .convo{background:var(--white);border:1px solid var(--n-200);border-radius:var(--radius);box-shadow:var(--shadow-sm);overflow:hidden}
+  .pills{display:flex;gap:7px;overflow-x:auto;padding:13px 15px;border-bottom:1px solid var(--n-200);-webkit-overflow-scrolling:touch}
+  .pill{flex:none;font-size:.78rem;font-weight:600;padding:5px 13px;border-radius:var(--radius-pill);background:var(--cream);border:1px solid var(--n-200);color:var(--n-700);cursor:pointer}
+  .pill.on{background:var(--accent);border-color:var(--accent);color:#fff}
+  .composer{display:flex;gap:10px;align-items:center;padding:14px 15px;border-bottom:1px solid var(--n-200)}
+  .composer .ava{width:32px;height:32px;font-size:.78rem;background:var(--rose-100);color:var(--rose-700)}
+  .composer .fake-input{flex:1;min-width:0;font-size:.86rem;color:var(--n-500);background:var(--cream);border:1px solid var(--n-200);border-radius:var(--radius-pill);padding:9px 15px}
+  .composer .btn-join{flex:none}
+  .feed{padding:6px 15px 15px}
+  .post{display:flex;gap:11px;padding:14px 0;border-bottom:1px solid var(--n-200)}
+  .post:last-child{border-bottom:0}
+  .post .ava{width:38px;height:38px;font-size:.82rem;background:var(--rose-100);color:var(--rose-700)}
+  .post .pb{flex:1;min-width:0}
+  .post .meta{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:4px}
+  .post .who{font-weight:600;font-size:.88rem}
+  .badge-tier{font-size:.62rem;font-weight:700;letter-spacing:.05em;text-transform:uppercase;padding:2px 7px;border-radius:5px;background:var(--accent-100);color:var(--accent-dark)}
+  .badge-tier.host{background:var(--gold-100);color:var(--gold-700)}
+  .post .when{font-size:.74rem;color:var(--n-500)}
+  .post .text{font-size:.9rem;color:var(--n-700);line-height:1.5}
+  .post .react{display:flex;gap:16px;margin-top:9px;font-size:.78rem;color:var(--n-500)}
+  .post .react span{display:inline-flex;align-items:center;gap:5px}
+
+  /* --- logged-out join gate --- */
+  .gate{display:none;text-align:center;padding:42px 24px}
+  .gate .lock{width:52px;height:52px;border-radius:50%;background:var(--accent-50);color:var(--accent);display:flex;align-items:center;justify-content:center;font-size:1.4rem;margin:0 auto 14px}
+  .gate h3{font-family:var(--display);font-weight:600;font-size:1.5rem;margin:0 0 6px}
+  .gate p{font-size:.92rem;color:var(--n-600);max-width:42ch;margin:0 auto 18px}
+  .gate .row{display:flex;gap:10px;justify-content:center;flex-wrap:wrap}
+  .btn-ghost{font:inherit;font-size:.84rem;font-weight:600;border:1px solid var(--n-300);background:var(--white);color:var(--n-700);padding:9px 17px;border-radius:var(--radius-pill);cursor:pointer;text-decoration:none}
+  .btn-solid{font:inherit;font-size:.84rem;font-weight:600;border:1px solid var(--accent);background:var(--accent);color:#fff;padding:9px 17px;border-radius:var(--radius-pill);cursor:pointer;text-decoration:none}
+
+  /* --- annotations --- */
+  .anno{margin-top:18px;background:var(--accent-50);border:1px solid var(--accent-200);border-radius:var(--radius);padding:18px 20px}
+  .anno h3{font-family:var(--ui);font-size:.95rem;font-weight:700;margin:0 0 10px;color:var(--accent-dark)}
+  .anno ul{margin:0;padding-left:18px}
+  .anno li{font-size:.84rem;color:var(--n-700);margin-bottom:6px;line-height:1.45}
+  .anno code{font-family:ui-monospace,Menlo,monospace;font-size:.78rem;background:var(--white);border:1px solid var(--accent-200);border-radius:5px;padding:1px 5px;overflow-wrap:anywhere}
+  .tagstate{font-size:.7rem;font-weight:700;padding:2px 8px;border-radius:5px;background:var(--gold-100);color:var(--gold-700)}
+
+  footer{padding:30px 0 50px;color:var(--n-500);font-size:.78rem;text-align:center}
+
+  /* ============ STATE-DRIVEN VISIBILITY ============ */
+  /* view: logged-out vs member */
+  body[data-view="out"] .member-only{display:none !important}
+  body[data-view="out"] .gate{display:block}
+  body[data-view="out"] .join-out{display:inline-flex !important}
+  body[data-view="out"] .area-foot .btn-join{display:none}
+  body[data-view="member"] .logged-out-only{display:none !important}
+  body[data-view="member"] .join-out{display:none !important}
+
+  /* state: early (sparse) vs healthy (grown) — sparse-state display gating (v3 / G-AREA-12) */
+  body[data-state="early"] .count-badge{display:none}
+  body[data-state="early"] .get-involved{display:inline-flex}
+  body[data-state="early"] .member-count{display:none}
+  body[data-state="early"] .impact{display:none}
+  body[data-state="early"] .impact-empty{display:block}
+  body[data-state="early"] .grown-only{display:none}        /* extra projects shown only when grown */
+  body[data-state="early"] .rail-count{display:none}
+  body[data-state="healthy"] .impact-empty{display:none}
+  body[data-state="healthy"] .early-note{display:none}
+</style>
+</head>
+<body data-view="member" data-state="early">
+
+<!-- preview controls (mockup chrome) -->
+<div class="ctl">
+  <b>STUC hub · v3 preview</b>
+  <div class="grp"><span class="lbl">View</span>
+    <button id="v-out" onclick="setView('out')">Logged-out</button>
+    <button id="v-mem" class="on" onclick="setView('member')">Member</button>
+  </div>
+  <div class="grp"><span class="lbl">Club size</span>
+    <button id="s-early" class="on" onclick="setState('early')">Early-stage (today)</button>
+    <button id="s-grown" onclick="setState('healthy')">Grown</button>
+  </div>
+  <span class="note">mockup · placeholder copy + emoji icons · not the live site</span>
+</div>
+
+<!-- faux site header -->
+<div class="site"><div class="wrap"><div class="row">
+  <div class="brand">RRM <span>Academy</span></div>
+  <nav><a>Research Library</a><a>Commentary</a><a>Learn</a><a>Save the Uterus Club</a></nav>
+  <a class="hdr-cta logged-out-only" href="#">Join the Club</a>
+  <a class="hdr-cta member-only" href="#" style="background:var(--white);color:var(--accent);border:1px solid var(--n-200)">Hi, Maria ▾</a>
+</div></div></div>
+
+<div class="wrap">
+
+  <!-- hub header: mission-first -->
+  <header class="hub-head">
+    <div class="eyebrow">Save the Uterus Club</div>
+    <h1>A do-tank for restorative women's health.</h1>
+    <p class="lede">Members don't just watch lectures. They pick an Action Area, join a project, and move the work forward together. Here's where you fit and what you can do.</p>
+    <div class="member-count">👥 1,240 members across 4 Action Areas</div>
+  </header>
+
+  <!-- This Month impact strip -->
+  <section>
+    <div class="sec-head"><h2>This month</h2><span class="hint">curated impact · <code>GET /api/community/impact</code></span></div>
+    <div class="impact">
+      <div class="t">What the club moved this month</div>
+      <div class="impact-grid">
+        <div class="impact-item"><span class="ic">🎓</span><div><div class="h">Surgical management of endometriosis</div><div class="d">Live webinar · 214 members attended</div></div></div>
+        <div class="impact-item"><span class="ic">📄</span><div><div class="h">Outcomes registry protocol submitted to IRB</div><div class="d">Research · milestone</div></div></div>
+        <div class="impact-item"><span class="ic">🏛️</span><div><div class="h">Testimony filed on state insurance-coverage bill</div><div class="d">Patient Advocacy · legal</div></div></div>
+      </div>
+    </div>
+    <div class="impact-empty">“This month” strip is <b>hidden</b> right now: it appears once there are <b>≥ 2 curated entries</b> in the current month. Below that floor the club leads with mission, not a thin list. (Sparse-state gating, G-AREA-12.)</div>
+  </section>
+
+  <!-- Action Areas row -->
+  <section>
+    <div class="sec-head"><h2>Action Areas</h2><span class="hint">where do I fit · <code>GET /api/community/areas</code></span></div>
+    <div class="areas">
+      <!-- Research -->
+      <div class="area-card"><div class="bar" style="background:var(--accent)"></div><div class="body">
+        <div class="ic">🔬</div><h3>Research</h3>
+        <div class="tag">Turn clinical questions into published evidence.</div>
+        <div class="owner"><span class="ava">B</span> Led by Bailey</div>
+        <div class="area-foot">
+          <span class="count-badge">6 projects</span>
+          <a class="get-involved" href="#">Get involved →</a>
+          <button class="btn-join member-only">Join</button>
+          <span class="join-out">Join the Club →</span>
+        </div>
+      </div></div>
+      <!-- Patient Advocacy -->
+      <div class="area-card"><div class="bar" style="background:var(--rose-500)"></div><div class="body">
+        <div class="ic">🤝</div><h3>Patient Advocacy</h3>
+        <div class="tag">Change policy, access, and the public conversation.</div>
+        <div class="owner tbc"><span class="ava" style="background:var(--n-200);color:var(--n-600)">?</span> Owner TBC</div>
+        <div class="area-foot">
+          <span class="count-badge">4 projects</span>
+          <a class="get-involved" href="#">Get involved →</a>
+          <button class="btn-join joined member-only">Joined ✓</button>
+          <span class="join-out">Join the Club →</span>
+        </div>
+      </div></div>
+      <!-- Education -->
+      <div class="area-card"><div class="bar" style="background:var(--sage-500)"></div><div class="body">
+        <div class="ic">📚</div><h3>Education</h3>
+        <div class="tag">Build the courses, talks, and explainers patients actually find.</div>
+        <div class="owner tbc"><span class="ava" style="background:var(--n-200);color:var(--n-600)">?</span> Owner TBC</div>
+        <div class="area-foot">
+          <span class="count-badge">3 projects</span>
+          <a class="get-involved" href="#">Get involved →</a>
+          <button class="btn-join member-only">Join</button>
+          <span class="join-out">Join the Club →</span>
+        </div>
+      </div></div>
+      <!-- Community -->
+      <div class="area-card"><div class="bar" style="background:var(--gold-700)"></div><div class="body">
+        <div class="ic">🌱</div><h3>Community</h3>
+        <div class="tag">Welcome new members and keep the club alive between calls.</div>
+        <div class="owner tbc"><span class="ava" style="background:var(--n-200);color:var(--n-600)">?</span> Owner TBC</div>
+        <div class="area-foot">
+          <span class="count-badge">5 projects</span>
+          <a class="get-involved" href="#">Get involved →</a>
+          <button class="btn-join member-only">Join</button>
+          <span class="join-out">Join the Club →</span>
+        </div>
+      </div></div>
+    </div>
+  </section>
+
+  <!-- Active Projects rail -->
+  <section>
+    <div class="sec-head"><h2>Active projects</h2><span class="hint">what can I do · <code>GET /api/community/projects</code></span></div>
+    <div class="rail">
+      <div class="proj">
+        <div class="proj-top"><span class="chip">🔬 Research</span><span class="status in_progress">In progress</span></div>
+        <h4>Endometriosis outcomes registry</h4>
+        <p>Standardize post-excision outcome tracking across NaPro surgeons. Data leads + chart abstractors needed.</p>
+        <div class="proj-foot"><span class="members rail-count">7 members</span><a class="ws-link" href="#">Open workspace ↗</a></div>
+      </div>
+      <div class="proj">
+        <div class="proj-top"><span class="chip" style="background:var(--rose-100);color:var(--rose-700)">🤝 Patient Advocacy</span><span class="status recruiting">Recruiting</span></div>
+        <h4>Insurance appeal letter library</h4>
+        <p>Crowd-source templated appeal letters for denied restorative care. Looking for members who've won appeals.</p>
+        <div class="proj-foot"><span class="members rail-count">3 members</span><a class="ws-link" href="#">Open workspace ↗</a></div>
+      </div>
+      <div class="proj grown-only">
+        <div class="proj-top"><span class="chip" style="background:var(--sage-100);color:var(--sage-700)">📚 Education</span><span class="status in_progress">In progress</span></div>
+        <h4>Patient explainer video series</h4>
+        <p>Short, sourced explainers on PCOS, endo, and luteal-phase defect for the academy library.</p>
+        <div class="proj-foot"><span class="members rail-count">5 members</span><a class="ws-link" href="#">Open workspace ↗</a></div>
+      </div>
+      <div class="proj grown-only">
+        <div class="proj-top"><span class="chip" style="background:var(--gold-100);color:var(--gold-700)">🌱 Community</span><span class="status recruiting">Recruiting</span></div>
+        <h4>New-member welcome crew</h4>
+        <p>Greet new members, answer first-week questions, and run the monthly intro call.</p>
+        <div class="proj-foot"><span class="members rail-count">4 members</span><a class="ws-link" href="#">Open workspace ↗</a></div>
+      </div>
+    </div>
+    <p class="early-note" style="font-size:.82rem;color:var(--n-500);margin-top:12px">Early-stage: projects show as named <b>opportunities</b> (no member counts, no “N projects” headers) until the club grows past the display floors. Same API data, gated presentation.</p>
+  </section>
+
+  <!-- Conversation -->
+  <section>
+    <div class="sec-head"><h2>The conversation</h2><span class="hint">one stream · area filters · <code>GET /api/community/posts?area=</code></span></div>
+    <div class="convo">
+      <!-- member: pills + composer + feed -->
+      <div class="pills member-only">
+        <span class="pill on">All</span><span class="pill">🔬 Research</span><span class="pill">🤝 Patient Advocacy</span><span class="pill">📚 Education</span><span class="pill">🌱 Community</span>
+      </div>
+      <div class="composer member-only">
+        <span class="ava">M</span><div class="fake-input">Share something with the club…</div><button class="btn-join">Post</button>
+      </div>
+      <div class="feed member-only">
+        <div class="post"><span class="ava">DW</span><div class="pb">
+          <div class="meta"><span class="who">Dr. Whittaker</span><span class="badge-tier host">Host</span><span class="chip" style="background:var(--accent-50)">🔬 Research</span><span class="when">2h</span></div>
+          <div class="text">Registry IRB packet is in. If you abstract charts, comment here and I'll add you to the workspace.</div>
+          <div class="react"><span>❤️ 28</span><span>💬 9</span><span>↗ Share</span></div>
+        </div></div>
+        <div class="post"><span class="ava">JL</span><div class="pb">
+          <div class="meta"><span class="who">Jenna L.</span><span class="badge-tier">Lead</span><span class="chip" style="background:var(--rose-100);color:var(--rose-700)">🤝 Advocacy</span><span class="when">5h</span></div>
+          <div class="text">Won my insurer appeal for excision surgery — happy to share the letter for the template library.</div>
+          <div class="react"><span>❤️ 41</span><span>💬 14</span><span>↗ Share</span></div>
+        </div></div>
+        <div class="post"><span class="ava">SR</span><div class="pb">
+          <div class="meta"><span class="who">Sofia R.</span><span class="chip">general</span><span class="when">yesterday</span></div>
+          <div class="text">New here after the last webinar — which Action Area is best if I want to help with patient resources?</div>
+          <div class="react"><span>❤️ 12</span><span>💬 6</span><span>↗ Share</span></div>
+        </div></div>
+      </div>
+      <!-- logged-out: join gate in the stream slot -->
+      <div class="gate">
+        <div class="lock">🔒</div>
+        <h3>Join to see the conversation</h3>
+        <p>The Action Areas and projects above are open to browse. The live member conversation is for Save the Uterus Club members.</p>
+        <div class="row"><a class="btn-solid" href="#">Join the Club</a><a class="btn-ghost" href="#">Log in</a></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- annotation: what's wired -->
+  <div class="anno">
+    <h3>What this preview maps to (built &amp; live vs held)</h3>
+    <ul>
+      <li><span class="tagstate">LIVE</span> Migration 025 applied to prod <code>rrm-auth</code>: <code>action_area</code>, <code>project</code>, <code>area_membership</code>, <code>project_membership</code>, <code>impact_entry</code> + <code>community_post.area_id</code>.</li>
+      <li><span class="tagstate">BUILT</span> Read endpoints back each section: areas row → <code>/areas</code>, projects rail → <code>/projects</code>, this-month strip → <code>/impact</code>, “Joined ✓” → <code>/memberships</code>.</li>
+      <li><span class="tagstate">BUILT</span> Write endpoints: area/project <code>join</code>/<code>leave</code> (the Join buttons) + admin CRUD for areas/projects/impact.</li>
+      <li><span class="tagstate" style="background:var(--rose-100);color:var(--rose-700)">HELD</span> This page itself (Phase 6 hub redesign), the <code>?area=</code> stream filter (Phase 5), and the <code>/community</code> logged-out carve-out (Phase 2) edit shared files — held until the other session parks the lane.</li>
+      <li><span class="tagstate" style="background:var(--rose-100);color:var(--rose-700)">DRAFT</span> Taglines + the 4-area set shown here are my proposal for your review; Naomi confirms final copy + the non-Research owners before seeding.</li>
+    </ul>
+  </div>
+
+  <footer>STUC Action Areas hub — v3 preview · representative data · purple <code>#725e7e</code> brand accent, rose as community-semantic only</footer>
+</div>
+
+<script>
+  function setView(v){
+    document.body.dataset.view=v;
+    document.getElementById('v-out').classList.toggle('on',v==='out');
+    document.getElementById('v-mem').classList.toggle('on',v==='member');
+  }
+  function setState(s){
+    document.body.dataset.state=s;
+    document.getElementById('s-early').classList.toggle('on',s==='early');
+    document.getElementById('s-grown').classList.toggle('on',s==='healthy');
+  }
+  // simple pill toggle for feel
+  document.querySelectorAll('.pill').forEach(p=>p.addEventListener('click',()=>{
+    document.querySelectorAll('.pill').forEach(x=>x.classList.remove('on'));p.classList.add('on');
+  }));
+</script>
+</body>
+</html>

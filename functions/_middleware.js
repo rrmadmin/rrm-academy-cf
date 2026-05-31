@@ -185,9 +185,16 @@ async function sendAiBotEvent(request, env) {
   if (!isHighSignalCrawl && /\.[a-z0-9]{1,10}$/i.test(url.pathname)) return;
 
   const lowerPath = url.pathname.toLowerCase();
+  // Mirror the auth carve-out: the now-public STUC hub + Action Area pages should get
+  // crawl analytics; the still-gated community sub-paths stay suppressed.
+  const isPublicCommunityCrawl =
+    lowerPath === '/community' ||
+    lowerPath === '/community/' ||
+    lowerPath === '/community/areas' ||
+    lowerPath.startsWith('/community/areas/');
   if (
     lowerPath === '/account' || lowerPath.startsWith('/account/') ||
-    lowerPath === '/community' || lowerPath.startsWith('/community/') ||
+    ((lowerPath === '/community' || lowerPath.startsWith('/community/')) && !isPublicCommunityCrawl) ||
     lowerPath === '/ask' || lowerPath.startsWith('/ask/') ||
     lowerPath.startsWith('/save-the-uterus-club/migrate')
   ) return;
@@ -319,9 +326,17 @@ export async function onRequest(context) {
   }
 
   const pathnameLower = url.pathname.toLowerCase();
+  // STUC do-tank: the hub (/community) and Action Area pages (/community/areas/*) are a
+  // public recruiting surface. Everything else under /community (events, members, post,
+  // and any future sub-path) stays member-only — fail closed.
+  const isPublicCommunity =
+    pathnameLower === '/community' ||
+    pathnameLower === '/community/' ||
+    pathnameLower === '/community/areas' ||
+    pathnameLower.startsWith('/community/areas/');
   const needsAuth =
     pathnameLower === '/account' || pathnameLower.startsWith('/account/') ||
-    pathnameLower === '/community' || pathnameLower.startsWith('/community/') ||
+    ((pathnameLower === '/community' || pathnameLower.startsWith('/community/')) && !isPublicCommunity) ||
     pathnameLower === '/ask' || pathnameLower.startsWith('/ask/') ||
     pathnameLower === '/save-the-uterus-club/migrate' || pathnameLower.startsWith('/save-the-uterus-club/migrate/');
 

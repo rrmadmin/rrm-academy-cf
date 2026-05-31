@@ -71,7 +71,7 @@
       "note": "HMAC-SHA256 magic-link token for Wix-to-Stripe donor migration"
     },
     "functions/_middleware.js": {
-      "hash": "51cc33829fee151c812664561ab5376f3c613cc7ebfa08f9c109a04de8066db7",
+      "hash": "91e68bbe89c9ca56be4b3484683d80b00fdc13ce81a80cf3e1a70f8c76e06b96",
       "note": "Auth gating"
     },
     "wrangler.toml": {
@@ -139,7 +139,7 @@
       "note": "Admin endpoint: manually link wix_subscription to CF user (Layer 4 reconciliation)"
     },
     "scripts/guard.mjs": {
-      "hash": "9cbf0783cd36fb4db9f770ee6830f623e8456ae241f678dac5da5693c5e4c8f2",
+      "hash": "0f795e0027ae82ec57dcfcf399e3c88b1c7f79a40ef05258bb8ac2389e928883",
       "note": "Guard script (self-guarding)"
     },
     "functions/api/auth/verify-email.js": {
