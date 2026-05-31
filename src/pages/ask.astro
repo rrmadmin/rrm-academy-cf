@@ -3,8 +3,41 @@ import BaseLayout from '../layouts/BaseLayout.astro';
 import MaybeShell from '../components/MaybeShell.astro';
 import { isShellEnabled } from '../lib/shell-routes';
 import { TURNSTILE_SITE_KEY } from '../lib/turnstile';
+import libraryStats from '../data/library-stats.json';
 
 const SHELL_ENABLED = isShellEnabled('ask');
+
+// Exact, build-synced count of research pages in the library
+// (written by scripts/sync-library-count.mjs at build time).
+const PAGE_COUNT = (libraryStats?.count ?? 0).toLocaleString('en-US');
+
+// Empty-state starter questions, grouped by category (bv4 layout).
+const ASK_CATEGORIES = [
+  {
+    name: 'Conditions',
+    questions: [
+      'What does RRM say about PCOS and progesterone?',
+      'How is endometriosis treated in RRM?',
+      'What causes recurrent miscarriage?',
+    ],
+  },
+  {
+    name: 'Treatments & approaches',
+    questions: [
+      'How does excision surgery compare to ablation?',
+      'How does NaProTechnology treat infertility?',
+      'How does RRM differ from IVF?',
+    ],
+  },
+  {
+    name: 'Cycle & charting',
+    questions: [
+      'Can FABMs help identify ovulatory dysfunction?',
+      'What does luteal phase support do?',
+      'What can a charted cycle reveal?',
+    ],
+  },
+];
 ---
 <BaseLayout
   title="Ask RRM Academy"
@@ -39,6 +72,20 @@ const SHELL_ENABLED = isShellEnabled('ask');
           <button type="submit" class="btn btn--primary" id="ask-submit">Ask</button>
         </div>
       </form>
+
+      <div class="ask-empty" id="ask-empty">
+        <p class="ask-source">Synthesized from <b>{PAGE_COUNT}</b> pages across the RRM Academy research library</p>
+        <div class="ask-cats">
+          {ASK_CATEGORIES.map((cat) => (
+            <div class="ask-cat">
+              <div class="ask-cat__name"><span class="ask-cat__dot"></span>{cat.name}</div>
+              {cat.questions.map((q) => (
+                <button type="button" class="ask-cat__q" data-ask={q}>{q}</button>
+              ))}
+            </div>
+          ))}
+        </div>
+      </div>
 
       <p class="ask-footnote">
         This is AI-generated and still learning. Always verify against the cited library sources.
@@ -137,6 +184,7 @@ const SHELL_ENABLED = isShellEnabled('ask');
       var thread = document.getElementById('ask-thread');
       var submit = document.getElementById('ask-submit');
       var count = document.getElementById('ask-count');
+      var askEmpty = document.getElementById('ask-empty');
 
       function updateCount() { count.textContent = input.value.length + ' / 500'; }
       input.addEventListener('input', updateCount);
@@ -370,6 +418,8 @@ const SHELL_ENABLED = isShellEnabled('ask');
         if (message.length < 2) return;
 
         lastQuestion = message;
+        // Hide the empty-state (starter columns) the moment a question is asked.
+        if (askEmpty) askEmpty.hidden = true;
         appendMessage('user', message, null);
         // Clear the composer once the question is in-flight (it now lives in the thread).
         input.value = '';
@@ -438,6 +488,16 @@ const SHELL_ENABLED = isShellEnabled('ask');
         e.preventDefault();
         runAsk(input.value);
       });
+
+      // Starter questions (empty-state category columns) run the ask directly.
+      if (askEmpty) {
+        askEmpty.addEventListener('click', function (e) {
+          var btn = e.target.closest('.ask-cat__q');
+          if (!btn) return;
+          e.preventDefault();
+          runAsk(btn.getAttribute('data-ask') || btn.textContent || '');
+        });
+      }
 
       // \u2500\u2500 Inline auth modal \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500
       // Opened on a 401 from /api/ask. Preserves the typed question and replays it
@@ -836,6 +896,35 @@ const SHELL_ENABLED = isShellEnabled('ask');
   .ask-footnote { max-width: 720px; margin: 0 auto; text-align: center; font-size: 0.8125rem; color: var(--text-muted); }
   .ask-footnote a { color: var(--accent); text-decoration: underline; }
   .ask-footnote__saved { display: inline-block; margin-top: var(--space-2); }
+
+  /* ── Empty-state: source line + category starter columns (bv4) ── */
+  .ask-empty { max-width: 900px; margin: 0 auto var(--space-12); }
+  .ask-empty[hidden] { display: none; }
+  .ask-source {
+    text-align: center; font-size: 0.75rem; color: var(--text-muted);
+    margin: 0 auto var(--space-8);
+  }
+  .ask-source b { color: var(--accent); font-weight: 600; }
+  .ask-cats { display: grid; grid-template-columns: repeat(3, 1fr); gap: var(--space-10); }
+  .ask-cat__name {
+    display: flex; align-items: center; gap: 8px;
+    font-size: 0.75rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.07em;
+    color: var(--text-muted);
+    padding-bottom: var(--space-2); margin-bottom: var(--space-2);
+    border-bottom: 1px solid var(--border-color);
+  }
+  .ask-cat__dot { width: 7px; height: 7px; border-radius: 50%; background: var(--accent); flex-shrink: 0; }
+  .ask-cat__q {
+    display: block; width: 100%; text-align: left;
+    background: none; border: none; cursor: pointer;
+    font-family: 'Inter', sans-serif; font-size: 0.9375rem; color: var(--text-secondary);
+    padding: 9px 0; line-height: 1.4;
+    transition: color 0.12s, padding-left 0.12s;
+  }
+  .ask-cat__q:hover { color: var(--accent); padding-left: 5px; }
+  @media (max-width: 720px) {
+    .ask-cats { grid-template-columns: 1fr; gap: var(--space-8); max-width: 480px; margin: 0 auto; }
+  }
 
   /* Action bar (Save / Copy link / Open) under each assistant message */
   .ask-actions {
