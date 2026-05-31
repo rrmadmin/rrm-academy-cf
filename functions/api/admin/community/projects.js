@@ -115,14 +115,24 @@ export async function onRequestPost(context) {
   const finalSortOrder = (typeof sort_order === 'number') ? sort_order : 0;
 
   try {
-    await db.prepare(
+    const insertProject = db.prepare(
       'INSERT INTO project(id, area_id, slug, title, summary, description, status, owner_user_id, workspace_url, pinned, sort_order) VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)'
     ).bind(
       id, area_id, slug, title.trim(),
       summary ?? null, description ?? null, status,
       resolvedOwnerId, workspace_url ?? null,
       finalPinned, finalSortOrder
-    ).run();
+    );
+    if (resolvedOwnerId) {
+      await db.batch([
+        insertProject,
+        db.prepare(
+          "INSERT INTO project_membership (user_id, project_id, role) VALUES (?, ?, 'owner') ON CONFLICT(user_id, project_id) DO UPDATE SET role = 'owner'"
+        ).bind(resolvedOwnerId, id),
+      ]);
+    } else {
+      await insertProject.run();
+    }
   } catch (err) {
     if (err.message?.includes('UNIQUE constraint')) {
       return json({ ok: false, error: 'slug_already_exists' }, 409);
@@ -266,11 +276,24 @@ export async function onRequestPut(context) {
   setClauses.push("updated_at = datetime('now')");
   bindings.push(id);
 
+  const newOwnerId = (owner_user_id !== undefined && owner_user_id !== null) ? owner_user_id : null;
+
   try {
-    const result = await db.prepare(
+    const updateProject = db.prepare(
       `UPDATE project SET ${setClauses.join(', ')} WHERE id = ?`
-    ).bind(...bindings).run();
-    if (result.meta.changes === 0) return json({ ok: false, error: 'not_found' }, 404);
+    ).bind(...bindings);
+    let results;
+    if (newOwnerId) {
+      results = await db.batch([
+        updateProject,
+        db.prepare(
+          "INSERT INTO project_membership (user_id, project_id, role) VALUES (?, ?, 'owner') ON CONFLICT(user_id, project_id) DO UPDATE SET role = 'owner'"
+        ).bind(newOwnerId, id),
+      ]);
+    } else {
+      results = [await updateProject.run()];
+    }
+    if (results[0].meta.changes === 0) return json({ ok: false, error: 'not_found' }, 404);
   } catch (err) {
     if (err.message?.includes('UNIQUE constraint')) {
       return json({ ok: false, error: 'slug_already_exists' }, 409);
