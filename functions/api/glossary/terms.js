@@ -77,7 +77,7 @@ export async function onRequestGet(context) {
 
     try {
       const { results } = await env.DB.prepare(
-        "SELECT * FROM glossary_term WHERE status = 'published' AND part = ? ORDER BY sort_order ASC"
+        "SELECT * FROM glossary_term WHERE status = 'published' AND part = ? ORDER BY sort_order ASC, slug ASC"
       ).bind(part).all();
 
       return json({ ok: true, results: (results || []).map(mapTerm) });
@@ -90,7 +90,7 @@ export async function onRequestGet(context) {
   try {
     const [{ results: terms }, { results: refs }, { results: abbrs }] = await Promise.all([
       env.DB.prepare(
-        "SELECT * FROM glossary_term WHERE status = 'published' ORDER BY part ASC, sort_order ASC"
+        "SELECT * FROM glossary_term WHERE status = 'published' ORDER BY part ASC, sort_order ASC, slug ASC"
       ).all(),
       env.DB.prepare(
         'SELECT * FROM glossary_reference ORDER BY ref_num ASC'

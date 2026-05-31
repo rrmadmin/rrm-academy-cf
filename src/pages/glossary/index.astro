@@ -422,7 +422,7 @@ const definedTermSetSchema = {
                     <tr>
                       <td>{a.abbreviation}</td>
                       <td>{a.termSlug
-                        ? <a href={`#${a.termSlug}`}>{a.fullTerm}</a>
+                        ? <a href={`#${a.termSlug.toLowerCase()}`}>{a.fullTerm}</a>
                         : a.fullTerm}</td>
                     </tr>
                   ))}
@@ -443,7 +443,7 @@ const definedTermSetSchema = {
                       href={safeUrl}
                       rel={safeUrl.startsWith('https://rrmacademy.org') ? undefined : 'noopener'}
                       target={safeUrl.startsWith('https://rrmacademy.org') ? undefined : '_blank'}
-                    >{r.anchorText}</a>.{r.journal ? <em>{r.journal}</em> : r.publisher}.
+                    >{r.anchorText}</a>.{(r.journal || r.publisher) ? <>{' '}{r.journal ? <em>{r.journal}</em> : r.publisher}.</> : null}
                   </li>
                 );
               })}

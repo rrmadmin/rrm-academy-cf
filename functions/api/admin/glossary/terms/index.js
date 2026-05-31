@@ -120,28 +120,42 @@ export async function onRequestPost(context) {
   if (sort_order !== undefined && (!Number.isInteger(sort_order) || sort_order < 0 || sort_order > 10000)) {
     return json({ ok: false, error: 'sort_order_invalid' }, 400);
   }
-  const resolvedSortOrder = typeof sort_order === 'number' ? sort_order : 0;
   const id = 'term_' + trimmedSlug.toLowerCase();
+  const normalizedSlug = trimmedSlug.toLowerCase();
+  const normalizedName = name.trim();
+  const normalizedPillarLink = pillar_link !== undefined && pillar_link !== null && pillar_link !== '' ? pillar_link : null;
+  const wc = body_html ? body_html.replace(/<[^>]*>/g, ' ').replace(/\s+/g, ' ').trim().split(' ').filter(Boolean).length : 0;
 
   try {
-    const row = await env.DB.prepare(
-      `INSERT OR IGNORE INTO glossary_term (id, slug, name, part, sort_order, body_html, abbreviation, pillar_link, status)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?) RETURNING *`
-    ).bind(
-      id,
-      trimmedSlug.toLowerCase(),
-      name.trim(),
-      part,
-      resolvedSortOrder,
-      body_html ?? null,
-      abbreviation ?? null,
-      pillar_link !== undefined && pillar_link !== null && pillar_link !== '' ? pillar_link : null,
-      resolvedStatus
-    ).first();
+    let resolvedSortOrder;
+    if (typeof sort_order === 'number') {
+      resolvedSortOrder = sort_order;
+      const row = await env.DB.prepare(
+        `INSERT OR IGNORE INTO glossary_term (id, slug, name, part, sort_order, body_html, abbreviation, pillar_link, status, word_count)
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?) RETURNING *`
+      ).bind(
+        id, normalizedSlug, normalizedName, part, resolvedSortOrder,
+        body_html ?? null, abbreviation ?? null, normalizedPillarLink, resolvedStatus, wc
+      ).first();
+      if (!row) return json({ ok: false, error: 'slug_already_exists' }, 409);
+      return json({ ok: true, data: row, created: true }, 201);
+    }
 
-    if (!row) {
+    const [insertResult] = await env.DB.batch([
+      env.DB.prepare(
+        `INSERT OR IGNORE INTO glossary_term (id, slug, name, part, sort_order, body_html, abbreviation, pillar_link, status, word_count)
+         VALUES (?, ?, ?, ?, (SELECT COALESCE(MAX(sort_order), 0) + 1 FROM glossary_term WHERE part = ?), ?, ?, ?, ?, ?)`
+      ).bind(
+        id, normalizedSlug, normalizedName, part, part,
+        body_html ?? null, abbreviation ?? null, normalizedPillarLink, resolvedStatus, wc
+      ),
+    ]);
+
+    if (insertResult.meta.changes === 0) {
       return json({ ok: false, error: 'slug_already_exists' }, 409);
     }
+
+    const row = await env.DB.prepare('SELECT * FROM glossary_term WHERE id = ?').bind(id).first();
     return json({ ok: true, data: row, created: true }, 201);
   } catch (err) {
     log(env, waitUntil, 'admin-glossary', 'term_create_error', 'error', err.message, 0, 500);
