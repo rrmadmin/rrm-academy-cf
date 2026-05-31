@@ -46,9 +46,22 @@ export function sanitizeHtml(html) {
     if (isDangerousUri(src)) return prefix + '""';
     return prefix + `"${escapeAttr(src)}"`;
   });
+  // Generalize dangerous-URI neutralization to URI-bearing attributes on ANY
+  // tag the strips below don't catch: data= (object), action= (form),
+  // xlink:href= (svg <a>), and any remaining href= (e.g. svg <a href>). Only
+  // neutralizes dangerous values; safe URIs are left untouched (escaped).
+  result = result.replace(/(\s(?:xlink:href|href|src|data|action)\s*=\s*)("([^"]*)"|'([^']*)'|([^\s>]+))/gi, (m, prefix, _q, dq, sq, uq) => {
+    const uri = dq ?? sq ?? uq ?? '';
+    if (isDangerousUri(uri)) return prefix + '"#"';
+    return m; // safe: passes 1/2 already escaped href/src; xlink:href/data/action need no re-escape (no raw quote can be captured)
+  });
 
   // Strip <script> blocks entirely (editorial content should never have these).
   result = result.replace(/<script\b[^>]*>[\s\S]*?<\/script>/gi, '');
+  // Strip high-risk embedding tags entirely (editorial content never has these).
+  // <iframe>/<object>/<form> get their full block removed; <embed> is void.
+  result = result.replace(/<(iframe|object|form)\b[^>]*>[\s\S]*?<\/\1>/gi, '');
+  result = result.replace(/<\/?(iframe|object|form|embed)\b[^>]*>/gi, '');
   // Strip on* event handler attributes (quoted or unquoted).
   result = result.replace(/[\s/]on[a-z]+\s*=\s*("[^"]*"|'[^']*'|[^\s>]+)/gi, ' ');
 
@@ -80,6 +93,7 @@ const DIRTY_PATTERNS = [
   /<p>\s*(?:&nbsp;|<br\s*\/?>)?\s*<\/p>/i,
   /(?:&nbsp;){2,}/,
   /<script\b/i,
+  /<(?:iframe|object|embed|form)\b/i,
   /[\s/]on[a-z]+\s*=/i,
   /javascript:/i,
 ];
