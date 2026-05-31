@@ -40,9 +40,10 @@ export async function onRequestGet({ request, env, waitUntil }) {
           a.sort_order,
           a.created_at,
           COUNT(p.id) AS projectCount,
+          (SELECT COUNT(*) FROM area_membership am WHERE am.area_id = a.id) AS memberCount,
           uo.name AS owner_name
         FROM action_area a
-        LEFT JOIN project p ON p.area_id = a.id AND p.status NOT IN ('archived')
+        LEFT JOIN project p ON p.area_id = a.id AND p.status NOT IN ('archived','done')
         LEFT JOIN user uo ON uo.id = a.owner_user_id
         WHERE a.status = 'active'
         GROUP BY a.id
@@ -81,6 +82,7 @@ export async function onRequestGet({ request, env, waitUntil }) {
       ownerName: a.owner_name || null,
       sortOrder: a.sort_order,
       projectCount: a.projectCount,
+      memberCount: a.memberCount,
       createdAt: a.created_at,
       ...(userId !== null ? { isMember: membershipSet.has(a.id) } : {}),
     }));
