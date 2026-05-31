@@ -47,6 +47,10 @@ async function fetchSingle(recordId) {
   });
 
   if (!res.ok) {
+    if (res.status === 404) {
+      console.log(`Term ${recordId} not found (deleted); falling back to full fetch to reconcile references.`);
+      return fetchAll();
+    }
     const err = await res.text();
     throw new Error(`Glossary API ${res.status}: ${err}`);
   }
@@ -76,18 +80,8 @@ async function fetchSingle(recordId) {
   const basePayload = { references, abbreviations, generatedAt: new Date().toISOString() };
 
   if (term.status !== 'published') {
-    console.log(`Removed non-published term (status: ${term.status}): ${term.slug || term.id}`);
-    const archivedSlug = (term.slug || '').toLowerCase();
-    const updatedAbbreviations = archivedSlug
-      ? abbreviations.map(a =>
-          a.termSlug && a.termSlug.toLowerCase() === archivedSlug
-            ? { ...a, termSlug: null }
-            : a
-        )
-      : abbreviations;
-    writeAtomic({ terms: filtered, references, abbreviations: updatedAbbreviations, generatedAt: basePayload.generatedAt });
-    console.log(`Wrote ${filtered.length} terms to ${OUTPUT_PATH}`);
-    return;
+    console.log(`Term left published set (status: ${term.status}): ${term.slug || term.id}; falling back to full fetch to reconcile references.`);
+    return fetchAll();
   }
 
   filtered.push(term);
@@ -102,7 +96,7 @@ function sortTerms(a, b) {
   const pa = partOrder.indexOf(a.part);
   const pb = partOrder.indexOf(b.part);
   if (pa !== pb) return pa - pb;
-  return (a.sortOrder ?? 0) - (b.sortOrder ?? 0);
+  return (a.sortOrder ?? 0) - (b.sortOrder ?? 0) || (a.slug || '').localeCompare(b.slug || '');
 }
 
 async function fetchAll() {
@@ -139,6 +133,9 @@ async function fetchAll() {
   }
   const { terms: rawTerms = [], references = [], abbreviations = [] } = body.results;
   const terms = rawTerms.map(cleanTerm);
+  if (terms.length < 100) {
+    throw new Error(`Glossary terms floor breached: ${terms.length} < 100`);
+  }
   console.log(`Fetched ${terms.length} terms (sanitized) + ${references.length} references + ${abbreviations.length} abbreviations`);
 
   terms.sort(sortTerms);
