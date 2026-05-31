@@ -1,0 +1,1308 @@
+---
+import BaseLayout from '../../../layouts/BaseLayout.astro';
+import MaybeShell from '../../../components/MaybeShell.astro';
+import { isShellEnabled } from '../../../lib/shell-routes';
+
+// Areas are seeded at RUNTIME (not known at build), so we cannot enumerate slugs
+// in getStaticPaths the way a content collection would. We follow the exact
+// pattern of community/post/[...id].astro: emit ONE placeholder param so Astro
+// produces a single static HTML shell, then client-render by reading the slug
+// from window.location. The dynamic segment is resolved entirely on the client
+// against the live /api/community/areas endpoint.
+export function getStaticPaths() {
+  return [{ params: { slug: 'placeholder' } }];
+}
+
+const SHELL_ENABLED = isShellEnabled('community');
+---
+<BaseLayout
+  title="Action Area"
+  description="A Save the Uterus Club action area — projects, impact, and the member conversation."
+  noindex
+  chrome={SHELL_ENABLED ? 'shell' : 'default'}
+>
+  <MaybeShell enabled={SHELL_ENABLED} context="page" currentPath={Astro.url.pathname}>
+  <section class="area-page">
+    <div class="container container--narrow">
+
+      <!-- Back nav -->
+      <nav class="back-nav">
+        <a href="/community/">&larr; Back to Community</a>
+      </nav>
+
+      <!-- Loading -->
+      <div id="area-loading" class="area-loading">
+        <p>Loading area...</p>
+      </div>
+
+      <!-- Not found (unknown / archived / inactive slug) -->
+      <div id="area-not-found" hidden>
+        <div class="area-empty-card">
+          <h1>Area Not Found</h1>
+          <p>This action area doesn't exist or has been archived.</p>
+          <a href="/community/" class="btn btn--secondary">Back to Community</a>
+        </div>
+      </div>
+
+      <!-- Error -->
+      <div id="area-error" hidden>
+        <div class="area-empty-card">
+          <h1>Something Went Wrong</h1>
+          <p id="area-error-text">Unable to load this area. Please try again.</p>
+          <a href="/community/" class="btn btn--secondary">Back to Community</a>
+        </div>
+      </div>
+
+      <!-- Area content -->
+      <div id="area-content" hidden>
+
+        <!-- Area header -->
+        <header class="area-head">
+          <div class="area-head__bar" id="area-head-bar"></div>
+          <div class="area-head__body">
+            <div class="area-head__ic" id="area-head-ic" hidden></div>
+            <h1 class="area-head__h" id="area-head-name"></h1>
+            <p class="area-head__tag" id="area-head-tagline" hidden></p>
+            <div class="area-head__meta">
+              <span class="area-owner" id="area-owner">
+                <span class="area-owner__ava" id="area-owner-ava"></span>
+                <span id="area-owner-label"></span>
+              </span>
+              <span class="area-member-count" id="area-member-count" hidden></span>
+            </div>
+            <!-- Member-only Join / Joined toggle + Volunteer-to-lead (ownerless areas) -->
+            <div class="area-head__actions" id="area-head-actions" hidden>
+              <button type="button" class="hub-btn-join" id="area-join-btn">Join</button>
+              <span class="area-volunteer" id="area-volunteer"></span>
+            </div>
+          </div>
+        </header>
+
+        <!-- Description -->
+        <div class="area-desc" id="area-desc" hidden></div>
+
+        <!-- Projects in <Area> -->
+        <section class="area-section" id="area-projects-section" hidden>
+          <div class="area-sec-head">
+            <h2 class="area-h2">Projects in <span id="area-projects-name"></span></h2>
+          </div>
+          <div class="hub-rail" id="area-projects-rail"></div>
+        </section>
+
+        <!-- Empty projects note (members only; non-members just see no section) -->
+        <p class="area-projects-empty" id="area-projects-empty" hidden>No active projects in this area yet.</p>
+
+        <!-- This month, in <Area> (impact filtered to this area) -->
+        <section class="area-section" id="area-impact-section" hidden>
+          <div class="area-sec-head">
+            <h2 class="area-h2">This month, in <span id="area-impact-name"></span></h2>
+          </div>
+          <div class="hub-impact">
+            <div class="hub-impact__t">What this area moved this month</div>
+            <div class="hub-impact-grid" id="area-impact-grid"></div>
+          </div>
+        </section>
+
+        <!-- Conversation in <Area> (a FILTERED slice of the one stream, not a room) -->
+        <section class="area-section" id="area-convo-section">
+          <div class="area-sec-head">
+            <h2 class="area-h2">Conversation in <span id="area-convo-name"></span></h2>
+            <span class="area-sec-hint">A filtered lens on the club conversation, not a separate room.</span>
+          </div>
+
+          <!-- Member composer ("Post to <Area>...") -->
+          <div class="area-compose" id="area-compose" hidden>
+            <div class="area-compose__trigger" id="area-compose-trigger">
+              <span class="area-compose__avatar" id="area-compose-avatar"></span>
+              <span class="area-compose__text" id="area-compose-trigger-text">Post to this area...</span>
+            </div>
+            <div class="area-compose__card" id="area-compose-card" hidden>
+              <textarea class="area-compose__input" id="area-compose-body" rows="4" maxlength="10000" placeholder="Share something with this area..."></textarea>
+              <div class="area-compose__feedback" id="area-compose-error" hidden>
+                <p id="area-compose-error-text"></p>
+              </div>
+              <div class="area-compose__actions">
+                <button type="button" class="btn btn--secondary btn--sm" id="area-compose-cancel">Cancel</button>
+                <button type="button" class="btn btn--primary btn--sm" id="area-compose-submit">Post</button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Stream lock for logged-out / non-members -->
+          <div class="hub-stream-lock" id="area-stream-lock" hidden>
+            <div class="hub-stream-lock__icon" aria-hidden="true">
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="11" x="3" y="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+            </div>
+            <h3 class="hub-stream-lock__heading">Join to see the conversation</h3>
+            <p class="hub-stream-lock__text">The projects and impact above are open to browse. The live member conversation is for Save the Uterus Club members.</p>
+            <div class="hub-stream-lock__actions">
+              <a class="btn btn--primary" href="/save-the-uterus-club/">Join the Club</a>
+              <a class="btn btn--secondary" href="/login?redirect=/community">Log in</a>
+            </div>
+          </div>
+
+          <!-- Filtered post list (members) -->
+          <div class="area-post-list" id="area-post-list" hidden></div>
+          <div class="area-posts-empty" id="area-posts-empty" hidden>
+            <p>No posts in this area yet. Be the first to start the conversation.</p>
+          </div>
+          <div class="area-load-more" id="area-load-more" hidden>
+            <button type="button" class="btn btn--secondary" id="area-load-more-btn">Load more</button>
+          </div>
+        </section>
+
+      </div>
+
+    </div>
+  </section>
+  </MaybeShell>
+
+  <script is:inline>
+    (function () {
+      // Token-based area accent colors (purple brand first; rose/sage/green are
+      // community-semantic only). Mirrors AREA_COLORS in community/index.astro so
+      // an area's accent stays consistent between the hub and this detail page.
+      var AREA_COLORS = ['var(--accent)', 'var(--rose-500)', 'var(--sage-500)', 'var(--green-700)'];
+      var STATUS_LABELS = {
+        recruiting: 'Recruiting',
+        in_progress: 'In progress',
+        paused: 'Paused',
+        done: 'Done',
+      };
+      var PAGE_SIZE = 20;
+
+      // --- DOM refs ---
+      var loadingEl = document.getElementById('area-loading');
+      var notFoundEl = document.getElementById('area-not-found');
+      var errorEl = document.getElementById('area-error');
+      var errorTextEl = document.getElementById('area-error-text');
+      var contentEl = document.getElementById('area-content');
+
+      var headBar = document.getElementById('area-head-bar');
+      var headIc = document.getElementById('area-head-ic');
+      var headName = document.getElementById('area-head-name');
+      var headTagline = document.getElementById('area-head-tagline');
+      var ownerEl = document.getElementById('area-owner');
+      var ownerAva = document.getElementById('area-owner-ava');
+      var ownerLabel = document.getElementById('area-owner-label');
+      var memberCountEl = document.getElementById('area-member-count');
+      var headActions = document.getElementById('area-head-actions');
+      var joinBtn = document.getElementById('area-join-btn');
+      var volunteerSlot = document.getElementById('area-volunteer');
+      var descEl = document.getElementById('area-desc');
+
+      var projectsSection = document.getElementById('area-projects-section');
+      var projectsName = document.getElementById('area-projects-name');
+      var projectsRail = document.getElementById('area-projects-rail');
+      var projectsEmpty = document.getElementById('area-projects-empty');
+
+      var impactSection = document.getElementById('area-impact-section');
+      var impactName = document.getElementById('area-impact-name');
+      var impactGrid = document.getElementById('area-impact-grid');
+
+      var convoName = document.getElementById('area-convo-name');
+      var composeEl = document.getElementById('area-compose');
+      var composeTrigger = document.getElementById('area-compose-trigger');
+      var composeTriggerText = document.getElementById('area-compose-trigger-text');
+      var composeAvatar = document.getElementById('area-compose-avatar');
+      var composeCard = document.getElementById('area-compose-card');
+      var composeBody = document.getElementById('area-compose-body');
+      var composeError = document.getElementById('area-compose-error');
+      var composeErrorText = document.getElementById('area-compose-error-text');
+      var composeCancel = document.getElementById('area-compose-cancel');
+      var composeSubmit = document.getElementById('area-compose-submit');
+
+      var streamLock = document.getElementById('area-stream-lock');
+      var postListEl = document.getElementById('area-post-list');
+      var postsEmpty = document.getElementById('area-posts-empty');
+      var loadMoreWrap = document.getElementById('area-load-more');
+      var loadMoreBtn = document.getElementById('area-load-more-btn');
+
+      // --- State ---
+      // Read the slug from the URL (last non-empty path segment), matching how
+      // community/post/[...id].astro reads its dynamic segment from the pathname.
+      var slug = (function () {
+        var parts = window.location.pathname.split('/community/areas/');
+        var raw = parts.length > 1 ? parts[1] : '';
+        raw = decodeURIComponent(raw).replace(/\/+$/, '');
+        return raw;
+      })();
+
+      var currentUser = null;
+      var isMember = false;
+      var area = null;
+      var areaColor = AREA_COLORS[0];
+      var joined = false;
+      var pendingForArea = false; // caller has a pending volunteer-to-lead request for this area
+      var lastCreatedAt = null;
+      var allPostsLoaded = false;
+
+      // --- Helpers ---
+
+      function escapeHtml(str) {
+        var div = document.createElement('div');
+        div.appendChild(document.createTextNode(str == null ? '' : String(str)));
+        return div.innerHTML;
+      }
+
+      function initials(name) {
+        if (!name) return '?';
+        var p = String(name).trim().split(/\s+/);
+        if (p.length === 1) return p[0].charAt(0).toUpperCase();
+        return (p[0].charAt(0) + p[p.length - 1].charAt(0)).toUpperCase();
+      }
+
+      function timeAgo(dateStr) {
+        if (!dateStr) return '';
+        var d = String(dateStr).replace(' ', 'T');
+        if (d.indexOf('Z') === -1 && d.indexOf('+') === -1) d += 'Z';
+        var diff = (Date.now() - new Date(d).getTime()) / 1000;
+        if (!isFinite(diff)) return '';
+        if (diff < 60) return 'just now';
+        if (diff < 3600) return Math.floor(diff / 60) + 'm ago';
+        if (diff < 86400) return Math.floor(diff / 3600) + 'h ago';
+        if (diff < 2592000) return Math.floor(diff / 86400) + 'd ago';
+        return new Date(d).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+      }
+
+      // Linkify mirrors the post-card renderer in community/index.astro: HTML-escape
+      // first (XSS-safe), then promote markdown images/links + bare URLs, then <br>.
+      function linkify(text) {
+        if (!text) return '';
+        var s = text.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+        s = s.replace(/!\[([^\]]*)\]\((https?:\/\/[^\s)]+|\/api\/assets\/[^\s)]+)\)/g,
+          '<img src="$2" alt="$1" class="area-inline-img" loading="lazy" />');
+        s = s.replace(/\[([^\]]+)\]\((https?:\/\/[^\s)]+)\)/g,
+          '<a href="$2" target="_blank" rel="noopener">$1</a>');
+        s = s.replace(/(^|[\s(])(https?:\/\/[^\s<)]+)/gm,
+          '$1<a href="$2" target="_blank" rel="noopener">$2</a>');
+        s = s.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>');
+        s = s.replace(/\n/g, '<br>');
+        return s;
+      }
+
+      function showState(el) {
+        loadingEl.hidden = true;
+        notFoundEl.hidden = true;
+        errorEl.hidden = true;
+        contentEl.hidden = true;
+        el.hidden = false;
+      }
+
+      // Indexability (D0-4 LOCKED): the static head ships <meta robots noindex>
+      // (BaseLayout noindex prop). Flip to indexable ONLY when this area has >=1
+      // active project. Client-driven because the page is client-rendered.
+      function applyIndexability(projectCount) {
+        var meta = document.querySelector('meta[name="robots"]');
+        if (projectCount >= 1) {
+          // Remove the noindex directive so the area becomes indexable.
+          if (meta) meta.parentNode.removeChild(meta);
+        } else {
+          // Ensure noindex is present (it should already be, but be defensive).
+          if (!meta) {
+            meta = document.createElement('meta');
+            meta.setAttribute('name', 'robots');
+            document.head.appendChild(meta);
+          }
+          meta.setAttribute('content', 'noindex');
+        }
+      }
+
+      // --- Render: area header ---
+      function renderHeader() {
+        document.title = area.name + ' | RRM Community';
+        headName.textContent = area.name;
+        headBar.style.background = areaColor;
+
+        if (area.icon) {
+          headIc.textContent = area.icon;
+          headIc.hidden = false;
+        }
+        if (area.tagline) {
+          headTagline.textContent = area.tagline;
+          headTagline.hidden = false;
+        }
+
+        // Owner or "Owner TBC" (areas payload exposes ownerName when set; else TBC).
+        if (area.ownerName) {
+          ownerAva.textContent = initials(area.ownerName);
+          ownerLabel.textContent = 'Led by ' + area.ownerName;
+        } else {
+          ownerEl.classList.add('hub-owner--tbc');
+          ownerAva.textContent = '?';
+          ownerLabel.textContent = 'Owner TBC';
+        }
+
+        if (typeof area.memberCount === 'number' && area.memberCount > 0) {
+          memberCountEl.textContent = area.memberCount + (area.memberCount === 1 ? ' member' : ' members');
+          memberCountEl.hidden = false;
+        }
+
+        if (area.description) {
+          descEl.innerHTML = linkify(area.description);
+          descEl.hidden = false;
+        }
+
+        // Member-only Join / Joined toggle + Volunteer-to-lead
+        if (isMember) {
+          headActions.hidden = false;
+          paintJoinBtn(joined);
+          joinBtn.addEventListener('click', onToggleJoin);
+          renderVolunteer();
+        }
+      }
+
+      // --- Volunteer-to-lead control (members only, ownerless areas; admin approves) ---
+      function renderVolunteer() {
+        if (!volunteerSlot) return;
+        volunteerSlot.innerHTML = '';
+        if (!isMember || !area || area.ownerName) return;
+        if (pendingForArea) {
+          var pend = document.createElement('span');
+          pend.className = 'hub-volunteer__pending';
+          pend.textContent = 'Volunteer request pending';
+          volunteerSlot.appendChild(pend);
+          var wd = document.createElement('button');
+          wd.type = 'button';
+          wd.className = 'hub-volunteer__withdraw';
+          wd.textContent = 'Withdraw';
+          wd.addEventListener('click', function () { volunteerToggle(true); });
+          volunteerSlot.appendChild(wd);
+        } else {
+          var vbtn = document.createElement('button');
+          vbtn.type = 'button';
+          vbtn.className = 'hub-volunteer__btn';
+          vbtn.textContent = 'Volunteer to lead';
+          vbtn.addEventListener('click', function () { volunteerToggle(false); });
+          volunteerSlot.appendChild(vbtn);
+        }
+      }
+
+      function volunteerToggle(isPending) {
+        if (!area) return;
+        fetch('/api/community/areas/volunteer', {
+          method: isPending ? 'DELETE' : 'POST',
+          credentials: 'same-origin',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ areaId: area.id }),
+        })
+          .then(function (r) { return r.json(); })
+          .then(function (data) {
+            if (!data || !data.ok) return;
+            pendingForArea = !isPending;
+            renderVolunteer();
+          })
+          .catch(function () {});
+      }
+
+      function paintJoinBtn(isJoined) {
+        if (isJoined) {
+          joinBtn.classList.add('hub-btn-join--joined');
+          joinBtn.textContent = 'Joined ✓';
+        } else {
+          joinBtn.classList.remove('hub-btn-join--joined');
+          joinBtn.textContent = 'Join';
+        }
+      }
+
+      function onToggleJoin() {
+        var path = joined ? '/api/community/areas/leave' : '/api/community/areas/join';
+        joinBtn.disabled = true;
+        fetch(path, {
+          method: 'POST',
+          credentials: 'same-origin',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ areaId: area.id }),
+        })
+          .then(function (r) { return r.json(); })
+          .then(function (data) {
+            joinBtn.disabled = false;
+            if (!data || !data.ok) return;
+            joined = !joined;
+            paintJoinBtn(joined);
+          })
+          .catch(function () { joinBtn.disabled = false; });
+      }
+
+      // --- Render: projects rail (reuses .hub-* card markup for visual parity) ---
+      function renderProjects(projects) {
+        var active = (projects || []).filter(function (p) {
+          return p.status !== 'archived' && p.status !== 'done';
+        });
+        if (active.length === 0) {
+          projectsSection.hidden = true;
+          // Members get an explicit empty note; non-members just see nothing.
+          if (isMember) projectsEmpty.hidden = false;
+          return;
+        }
+        projectsName.textContent = area.name;
+        var frag = document.createDocumentFragment();
+        for (var i = 0; i < active.length; i++) {
+          (function (p) {
+            var card = document.createElement('div');
+            card.className = 'hub-proj';
+
+            var top = document.createElement('div');
+            top.className = 'hub-proj__top';
+            var chip = document.createElement('span');
+            chip.className = 'hub-chip';
+            chip.style.borderLeftColor = areaColor;
+            chip.textContent = (area.icon ? area.icon + ' ' : '') + (p.areaName || area.name);
+            top.appendChild(chip);
+
+            var status = document.createElement('span');
+            status.className = 'hub-status hub-status--' + p.status;
+            status.textContent = STATUS_LABELS[p.status] || p.status;
+            top.appendChild(status);
+            card.appendChild(top);
+
+            var h4 = document.createElement('h4');
+            h4.className = 'hub-proj__h';
+            h4.textContent = p.title || '';
+            card.appendChild(h4);
+
+            if (p.summary) {
+              var sum = document.createElement('p');
+              sum.className = 'hub-proj__sum';
+              sum.textContent = p.summary;
+              card.appendChild(sum);
+            }
+
+            var foot = document.createElement('div');
+            foot.className = 'hub-proj__foot';
+            if (p.workspaceUrl) {
+              var ws = document.createElement('a');
+              ws.className = 'hub-ws-link';
+              ws.href = p.workspaceUrl;
+              ws.target = '_blank';
+              ws.rel = 'noopener noreferrer';
+              ws.textContent = 'Open workspace ↗';
+              foot.appendChild(ws);
+            }
+            if (foot.childNodes.length) card.appendChild(foot);
+
+            frag.appendChild(card);
+          })(active[i]);
+        }
+        projectsRail.innerHTML = '';
+        projectsRail.appendChild(frag);
+        projectsSection.hidden = false;
+      }
+
+      // --- Render: impact filtered to this area ---
+      function renderImpact(impact) {
+        var mine = (impact || []).filter(function (it) { return it.areaId === area.id; });
+        if (mine.length === 0) {
+          impactSection.hidden = true;
+          return;
+        }
+        impactName.textContent = area.name;
+        var frag = document.createDocumentFragment();
+        for (var i = 0; i < mine.length; i++) {
+          var it = mine[i];
+          var item = document.createElement('div');
+          item.className = 'hub-impact-item';
+          var ic = document.createElement('span');
+          ic.className = 'hub-impact-item__ic';
+          ic.textContent = area.icon || '✨';
+          var txt = document.createElement('div');
+          var h = document.createElement('div');
+          h.className = 'hub-impact-item__h';
+          h.textContent = it.title || '';
+          txt.appendChild(h);
+          if (it.detail) {
+            var d = document.createElement('div');
+            d.className = 'hub-impact-item__d';
+            d.textContent = it.detail;
+            txt.appendChild(d);
+          }
+          item.appendChild(ic);
+          item.appendChild(txt);
+          frag.appendChild(item);
+        }
+        impactGrid.innerHTML = '';
+        impactGrid.appendChild(frag);
+        impactSection.hidden = false;
+      }
+
+      // --- Render: a single filtered post card (mirrors community/index.astro card) ---
+      function renderPostCard(post) {
+        var card = document.createElement('article');
+        card.className = 'area-post-card';
+        card.setAttribute('data-post-id', post.id);
+
+        // Context line for non-discussion / pinned
+        if (post.pinned || (post.type && post.type !== 'discussion')) {
+          var ctx = document.createElement('div');
+          ctx.className = 'area-post-context';
+          if (post.pinned) {
+            var pin = document.createElement('span');
+            pin.className = 'area-post-context__label';
+            pin.textContent = 'Pinned';
+            ctx.appendChild(pin);
+          }
+          if (post.type && post.type !== 'discussion') {
+            var typeLabel = document.createElement('span');
+            typeLabel.className = 'area-post-context__label';
+            typeLabel.textContent = post.type.charAt(0).toUpperCase() + post.type.slice(1);
+            ctx.appendChild(typeLabel);
+          }
+          card.appendChild(ctx);
+        }
+
+        var header = document.createElement('div');
+        header.className = 'area-post-card__header';
+
+        var avatar;
+        if (post.authorAvatar) {
+          avatar = document.createElement('img');
+          avatar.className = 'area-post-avatar area-post-avatar--img';
+          avatar.src = post.authorAvatar;
+          avatar.alt = post.authorName || 'Member';
+          avatar.loading = 'lazy';
+        } else {
+          avatar = document.createElement('span');
+          avatar.className = 'area-post-avatar';
+          avatar.textContent = ((post.authorName || 'M').charAt(0)).toUpperCase();
+        }
+        header.appendChild(avatar);
+
+        var byline = document.createElement('div');
+        byline.className = 'area-post-byline';
+        var nm = document.createElement('span');
+        nm.className = 'area-post-author';
+        nm.textContent = post.authorName || 'Member';
+        byline.appendChild(nm);
+        var t = document.createElement('span');
+        t.className = 'area-post-time';
+        t.textContent = timeAgo(post.createdAt);
+        byline.appendChild(t);
+        header.appendChild(byline);
+
+        card.appendChild(header);
+
+        if (post.body) {
+          var bodyEl = document.createElement('div');
+          bodyEl.className = 'area-post-body';
+          bodyEl.innerHTML = linkify(post.body);
+          card.appendChild(bodyEl);
+        }
+
+        // Link through to the canonical post page (the filtered view is a lens, not a room).
+        if (post.id) {
+          var link = document.createElement('a');
+          link.className = 'area-post-link';
+          link.href = '/community/post/' + encodeURIComponent(post.id) + '/';
+          link.textContent = 'View thread →';
+          card.appendChild(link);
+        }
+
+        return card;
+      }
+
+      // --- Conversation: load filtered posts ---
+      function loadPosts(append) {
+        var url = '/api/community/posts?channel=stuc&limit=' + PAGE_SIZE + '&area=' + encodeURIComponent(slug);
+        if (append && lastCreatedAt) url += '&before=' + encodeURIComponent(lastCreatedAt);
+
+        loadMoreBtn.disabled = true;
+        loadMoreBtn.textContent = 'Loading...';
+
+        fetch(url, { credentials: 'same-origin' })
+          .then(function (r) { return r.json(); })
+          .then(function (data) {
+            loadMoreBtn.disabled = false;
+            loadMoreBtn.textContent = 'Load more';
+            if (!data || !data.ok || !Array.isArray(data.posts)) {
+              if (!append && postListEl.children.length === 0) postsEmpty.hidden = false;
+              loadMoreWrap.hidden = true;
+              return;
+            }
+
+            var posts = data.posts;
+            if (posts.length < PAGE_SIZE) {
+              allPostsLoaded = true;
+              loadMoreWrap.hidden = true;
+            } else {
+              loadMoreWrap.hidden = false;
+            }
+
+            if (posts.length === 0 && !append) {
+              postsEmpty.hidden = false;
+              postListEl.hidden = true;
+              return;
+            }
+            postsEmpty.hidden = true;
+            postListEl.hidden = false;
+
+            for (var k = 0; k < posts.length; k++) {
+              postListEl.appendChild(renderPostCard(posts[k]));
+              lastCreatedAt = posts[k].createdAt;
+            }
+          })
+          .catch(function () {
+            loadMoreBtn.disabled = false;
+            loadMoreBtn.textContent = 'Load more';
+            loadMoreWrap.hidden = true;
+          });
+      }
+
+      loadMoreBtn.addEventListener('click', function () {
+        if (!allPostsLoaded) loadPosts(true);
+      });
+
+      // --- Composer (member only): posts with area_id = this area's id ---
+      function setupComposer() {
+        composeEl.hidden = false;
+        composeTriggerText.textContent = 'Post to ' + area.name + '...';
+        if (currentUser && currentUser.avatarUrl) {
+          var img = document.createElement('img');
+          img.src = currentUser.avatarUrl;
+          img.alt = currentUser.name || 'Member';
+          img.className = 'area-compose__avatar-img';
+          composeAvatar.textContent = '';
+          composeAvatar.appendChild(img);
+        } else {
+          composeAvatar.textContent = ((currentUser && currentUser.name) || 'M').charAt(0).toUpperCase();
+        }
+
+        composeTrigger.addEventListener('click', function () {
+          composeTrigger.hidden = true;
+          composeCard.hidden = false;
+          composeBody.focus();
+        });
+        composeCancel.addEventListener('click', function () {
+          composeCard.hidden = true;
+          composeTrigger.hidden = false;
+          composeBody.value = '';
+          composeError.hidden = true;
+        });
+        composeSubmit.addEventListener('click', function () {
+          var text = composeBody.value.trim();
+          composeError.hidden = true;
+          if (!text) {
+            composeErrorText.textContent = 'Post cannot be empty.';
+            composeError.hidden = false;
+            return;
+          }
+          composeSubmit.disabled = true;
+          composeSubmit.textContent = 'Posting...';
+          fetch('/api/community/posts', {
+            method: 'POST',
+            credentials: 'same-origin',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ type: 'discussion', body: text, area_id: area.id }),
+          })
+            .then(function (r) { return r.json(); })
+            .then(function (data) {
+              composeSubmit.disabled = false;
+              composeSubmit.textContent = 'Post';
+              if (data && data.ok && data.post) {
+                composeBody.value = '';
+                composeCard.hidden = true;
+                composeTrigger.hidden = false;
+                postsEmpty.hidden = true;
+                postListEl.hidden = false;
+                postListEl.insertBefore(renderPostCard(data.post), postListEl.firstChild);
+              } else {
+                composeErrorText.textContent = (data && data.error) ? data.error : 'Failed to create post.';
+                composeError.hidden = false;
+              }
+            })
+            .catch(function () {
+              composeSubmit.disabled = false;
+              composeSubmit.textContent = 'Post';
+              composeErrorText.textContent = 'Network error. Please try again.';
+              composeError.hidden = false;
+            });
+        });
+      }
+
+      // --- Render the conversation slot based on membership ---
+      function renderConversation() {
+        convoName.textContent = area.name;
+        if (isMember) {
+          streamLock.hidden = true;
+          setupComposer();
+          loadPosts(false);
+        } else {
+          // Logged-out / non-member: read-only structure + join gate in the stream slot.
+          streamLock.hidden = false;
+          composeEl.hidden = true;
+          postListEl.hidden = true;
+          loadMoreWrap.hidden = true;
+        }
+      }
+
+      // --- Init ---
+
+      if (!slug || slug === 'placeholder') {
+        showState(notFoundEl);
+        return;
+      }
+
+      // 1. Determine membership (best-effort; non-members still see read-only structure).
+      fetch('/api/community/status', { credentials: 'same-origin' })
+        .then(function (r) { return r.json(); })
+        .then(function (statusData) {
+          if (statusData && statusData.ok && statusData.access === 'member' && statusData.user) {
+            currentUser = statusData.user;
+            isMember = true;
+          }
+        })
+        .catch(function () { /* treat as non-member */ })
+        .then(function () {
+          // 2. Fetch active areas; find the one whose slug matches (case-insensitive).
+          return fetch('/api/community/areas', { credentials: 'same-origin' })
+            .then(function (r) { return r.json(); })
+            .then(function (areasData) {
+              if (!areasData || !areasData.ok || !Array.isArray(areasData.areas)) {
+                showState(errorEl);
+                return;
+              }
+              var wanted = slug.toLowerCase();
+              var match = null;
+              for (var i = 0; i < areasData.areas.length; i++) {
+                var a = areasData.areas[i];
+                if (a && a.slug && String(a.slug).toLowerCase() === wanted) {
+                  match = a;
+                  areaColor = AREA_COLORS[i % AREA_COLORS.length];
+                  break;
+                }
+              }
+
+              // Unknown / archived / inactive => 404-equivalent (only ACTIVE areas
+              // are returned by /areas, so a non-match here covers all three).
+              if (!match) {
+                document.title = 'Area Not Found | RRM Community';
+                showState(notFoundEl);
+                return;
+              }
+
+              area = match;
+              joined = !!area.isMember;
+
+              // Indexability: noindex when 0 active projects; index when >=1.
+              applyIndexability(typeof area.projectCount === 'number' ? area.projectCount : 0);
+
+              // Seed the member's pending volunteer state (ownerless areas only) before
+              // painting the header, so the control shows the right state without a flash.
+              var headerReady = (isMember && !area.ownerName)
+                ? fetch('/api/community/memberships', { credentials: 'same-origin' })
+                    .then(function (r) { return r.json(); })
+                    .then(function (md) {
+                      if (md && md.ok && Array.isArray(md.pendingOwnership)) {
+                        pendingForArea = md.pendingOwnership.indexOf(area.id) !== -1;
+                      }
+                    })
+                    .catch(function () {})
+                : Promise.resolve();
+
+              headerReady.then(function () {
+                renderHeader();
+                showState(contentEl);
+              });
+
+              // 3. Fetch projects (scoped to this area) + impact (filtered client-side).
+              fetch('/api/community/projects?area=' + encodeURIComponent(slug), { credentials: 'same-origin' })
+                .then(function (r) { return r.json(); })
+                .then(function (pd) {
+                  renderProjects((pd && pd.ok && Array.isArray(pd.projects)) ? pd.projects : []);
+                })
+                .catch(function () { renderProjects([]); });
+
+              fetch('/api/community/impact', { credentials: 'same-origin' })
+                .then(function (r) { return r.json(); })
+                .then(function (id) {
+                  renderImpact((id && id.ok && Array.isArray(id.impact)) ? id.impact : []);
+                })
+                .catch(function () { renderImpact([]); });
+
+              // 4. Conversation (member composer + filtered stream, or join gate).
+              renderConversation();
+            });
+        })
+        .catch(function () {
+          showState(errorEl);
+        });
+    })();
+  </script>
+</BaseLayout>
+
+<style>
+  /* Scoped page styles. Brand accent = var(--accent) purple; rose/sage/green are
+     community-semantic only. Duplicates the relevant .hub-* rules from
+     community/index.astro for visual parity (a shared-CSS extraction is a later
+     refactor — this page does NOT depend on index.astro's <style is:global>). */
+
+  .area-page { padding: var(--space-10) 0 var(--space-16); min-height: 60vh; }
+  .area-loading { text-align: center; color: var(--text-muted); padding: var(--space-16) 0; }
+
+  /* Back nav */
+  .back-nav { margin-bottom: var(--space-6); }
+  .back-nav a { font-size: 0.9375rem; color: var(--accent); text-decoration: none; }
+  .back-nav a:hover { text-decoration: underline; }
+
+  /* Empty / error cards */
+  .area-empty-card {
+    max-width: 420px;
+    margin: var(--space-8) auto;
+    padding: var(--space-10) var(--space-8);
+    background: var(--bg-surface);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-lg);
+    text-align: center;
+  }
+  .area-empty-card h1 { margin-bottom: var(--space-3); font-size: 1.5rem; }
+  .area-empty-card p { color: var(--text-secondary); margin-bottom: var(--space-6); }
+
+  /* ── Area header ── */
+  .area-head {
+    background: var(--bg-surface);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-sm);
+    overflow: hidden;
+    margin-bottom: var(--space-6);
+  }
+  .area-head__bar { height: 6px; background: var(--accent); }
+  .area-head__body { padding: var(--space-6); }
+  .area-head__ic { font-size: 2rem; margin-bottom: var(--space-2); line-height: 1; }
+  .area-head__ic[hidden] { display: none; }
+  .area-head__h {
+    font-family: 'Cormorant Garamond', Georgia, serif;
+    font-weight: 600;
+    font-size: 2rem;
+    line-height: 1.15;
+    letter-spacing: -0.01em;
+    margin: 0 0 var(--space-2);
+    color: var(--text-primary);
+  }
+  .area-head__tag {
+    font-size: 1rem;
+    color: var(--text-secondary);
+    line-height: 1.5;
+    margin: 0 0 var(--space-3);
+  }
+  .area-head__tag[hidden] { display: none; }
+  .area-head__meta {
+    display: flex;
+    align-items: center;
+    gap: var(--space-4);
+    flex-wrap: wrap;
+  }
+  .area-owner {
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    font-size: 0.85rem;
+    color: var(--text-secondary);
+  }
+  .area-owner__ava {
+    width: 26px;
+    height: 26px;
+    border-radius: 50%;
+    background: var(--purple-100);
+    color: var(--accent-hover);
+    font-size: 0.7rem;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex: none;
+  }
+  .hub-owner--tbc { color: var(--text-tertiary); font-style: italic; }
+  .hub-owner--tbc .area-owner__ava {
+    background: var(--neutral-200);
+    color: var(--text-secondary);
+    font-style: normal;
+  }
+  .area-member-count { font-size: 0.85rem; color: var(--text-tertiary); }
+  .area-member-count[hidden] { display: none; }
+  .area-head__actions { margin-top: var(--space-4); display: flex; align-items: center; gap: var(--space-3); flex-wrap: wrap; }
+  .area-head__actions[hidden] { display: none; }
+  .area-volunteer { display: inline-flex; align-items: center; gap: var(--space-2); }
+
+  /* Join toggle button (shared visual with hub area cards) */
+  .hub-btn-join {
+    font: inherit;
+    font-size: 0.85rem;
+    font-weight: 600;
+    border: 1px solid var(--accent);
+    background: var(--accent);
+    color: #fff;
+    padding: 7px 18px;
+    border-radius: var(--radius-pill);
+    cursor: pointer;
+    white-space: nowrap;
+    transition: background 0.1s, border-color 0.1s, color 0.1s;
+  }
+  .hub-btn-join:hover:not(:disabled) { background: var(--accent-hover); border-color: var(--accent-hover); }
+  .hub-btn-join:disabled { opacity: 0.6; cursor: default; }
+  .hub-btn-join--joined {
+    background: var(--sage-100);
+    border-color: var(--sage-500);
+    color: var(--sage-700);
+  }
+  .hub-btn-join--joined:hover:not(:disabled) { background: var(--sage-100); border-color: var(--sage-700); }
+
+  /* Volunteer-to-lead control (ownerless areas, members only) */
+  .hub-volunteer__btn {
+    font: inherit;
+    font-size: 0.85rem;
+    font-weight: 600;
+    border: 1px solid var(--accent);
+    background: transparent;
+    color: var(--accent);
+    padding: 6px 16px;
+    border-radius: var(--radius-pill);
+    cursor: pointer;
+    white-space: nowrap;
+    transition: background 0.1s, color 0.1s;
+  }
+  .hub-volunteer__btn:hover { background: var(--accent); color: #fff; }
+  .hub-volunteer__pending {
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: var(--sage-700);
+    background: var(--sage-100);
+    border: 1px solid var(--sage-500);
+    padding: 4px 12px;
+    border-radius: var(--radius-pill);
+  }
+  .hub-volunteer__withdraw {
+    font: inherit;
+    font-size: 0.78rem;
+    font-weight: 600;
+    background: none;
+    border: none;
+    color: var(--text-tertiary);
+    cursor: pointer;
+    padding: 0;
+  }
+  .hub-volunteer__withdraw:hover { text-decoration: underline; color: var(--text-secondary); }
+
+  /* Description */
+  .area-desc {
+    font-size: 1rem;
+    line-height: 1.75;
+    color: var(--text-primary);
+    word-break: break-word;
+    margin-bottom: var(--space-8);
+  }
+  .area-desc[hidden] { display: none; }
+  .area-inline-img {
+    display: block;
+    max-width: 100%;
+    max-height: 480px;
+    object-fit: contain;
+    border-radius: 8px;
+    margin: var(--space-3) 0;
+  }
+
+  /* ── Sections ── */
+  .area-section { margin-bottom: var(--space-8); }
+  .area-section[hidden] { display: none; }
+  .area-sec-head {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: var(--space-2);
+    margin-bottom: var(--space-4);
+    flex-wrap: wrap;
+  }
+  .area-h2 {
+    font-family: 'Cormorant Garamond', Georgia, serif;
+    font-weight: 600;
+    font-size: 1.5rem;
+    letter-spacing: -0.01em;
+    margin: 0;
+    line-height: 1.15;
+    color: var(--text-primary);
+  }
+  .area-sec-hint { font-size: 13px; color: var(--text-tertiary); }
+  .area-projects-empty {
+    color: var(--text-muted);
+    font-size: 0.9375rem;
+    margin-bottom: var(--space-8);
+  }
+  .area-projects-empty[hidden] { display: none; }
+
+  /* ── Projects rail (duplicated from hub .hub-* for parity) ── */
+  .hub-rail {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(min(260px, 100%), 1fr));
+    gap: var(--space-3);
+  }
+  .hub-proj {
+    background: var(--bg-surface);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-md);
+    box-shadow: var(--shadow-sm);
+    padding: var(--space-4);
+    display: flex;
+    flex-direction: column;
+  }
+  .hub-proj__top {
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+    margin-bottom: var(--space-2);
+    flex-wrap: wrap;
+  }
+  .hub-proj__h {
+    font-family: 'Inter', sans-serif;
+    font-weight: 600;
+    font-size: 0.98rem;
+    margin: 0 0 4px;
+    color: var(--text-primary);
+  }
+  .hub-proj__sum {
+    font-size: 0.83rem;
+    color: var(--text-secondary);
+    margin: 0 0 var(--space-3);
+    line-height: 1.45;
+    flex: 1;
+  }
+  .hub-proj__foot {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--space-2);
+    flex-wrap: wrap;
+  }
+  .hub-ws-link { font-size: 0.76rem; font-weight: 600; color: var(--accent); text-decoration: none; }
+  .hub-ws-link:hover { text-decoration: underline; }
+
+  /* Status badge */
+  .hub-status {
+    font-size: 0.66rem;
+    font-weight: 700;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    padding: 3px 8px;
+    border-radius: 6px;
+    white-space: nowrap;
+  }
+  .hub-status--recruiting { background: var(--sage-100); color: var(--sage-700); }
+  .hub-status--in_progress { background: var(--purple-50); color: var(--accent-hover); }
+  .hub-status--paused { background: var(--neutral-100); color: var(--text-secondary); }
+  .hub-status--done { background: var(--green-100); color: var(--green-700); }
+
+  /* Area chip (per-chip accent set inline via style.borderLeftColor) */
+  .hub-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    font-size: 0.7rem;
+    font-weight: 600;
+    padding: 3px 9px;
+    border-radius: var(--radius-pill);
+    background: var(--purple-50);
+    color: var(--accent-hover);
+    white-space: nowrap;
+    border: 1px solid transparent;
+    border-left: 3px solid var(--accent);
+  }
+
+  /* ── Impact strip (purple gradient per hub) ── */
+  .hub-impact {
+    background: linear-gradient(135deg, var(--accent) 0%, var(--accent-hover) 100%);
+    color: #fff;
+    border-radius: var(--radius-lg);
+    padding: var(--space-5);
+    box-shadow: var(--shadow-md);
+  }
+  .hub-impact__t {
+    font-size: 0.72rem;
+    font-weight: 600;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--purple-100);
+    margin-bottom: var(--space-4);
+  }
+  .hub-impact-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(min(220px, 100%), 1fr));
+    gap: var(--space-4);
+  }
+  .hub-impact-item { display: flex; gap: 11px; align-items: flex-start; }
+  .hub-impact-item__ic { font-size: 1.3rem; line-height: 1.1; flex: none; }
+  .hub-impact-item__h { font-weight: 600; font-size: 0.93rem; line-height: 1.3; }
+  .hub-impact-item__d { font-size: 0.82rem; color: var(--purple-100); margin-top: 2px; line-height: 1.35; }
+
+  /* ── Stream lock (logged-out / non-member) ── */
+  .hub-stream-lock {
+    text-align: center;
+    padding: var(--space-10) var(--space-6);
+    border-top: 1px solid var(--border-color);
+    margin-top: var(--space-4);
+  }
+  .hub-stream-lock[hidden] { display: none; }
+  .hub-stream-lock__icon {
+    width: 52px;
+    height: 52px;
+    border-radius: 50%;
+    background: var(--purple-50);
+    color: var(--accent);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto var(--space-3);
+  }
+  .hub-stream-lock__heading {
+    font-family: 'Cormorant Garamond', Georgia, serif;
+    font-weight: 600;
+    font-size: 1.5rem;
+    margin: 0 0 var(--space-2);
+    color: var(--text-primary);
+  }
+  .hub-stream-lock__text {
+    font-size: 0.9rem;
+    color: var(--text-secondary);
+    max-width: 380px;
+    margin: 0 auto var(--space-4);
+    line-height: 1.5;
+  }
+  .hub-stream-lock__actions {
+    display: flex;
+    gap: var(--space-2);
+    justify-content: center;
+    flex-wrap: wrap;
+  }
+
+  /* ── Composer ── */
+  .area-compose { margin-bottom: var(--space-5); }
+  .area-compose[hidden] { display: none; }
+  .area-compose__trigger {
+    display: flex;
+    align-items: center;
+    gap: var(--space-3);
+    padding: var(--space-3) var(--space-4);
+    background: var(--bg-surface);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-pill);
+    cursor: pointer;
+    color: var(--text-tertiary);
+    font-size: 0.9375rem;
+  }
+  .area-compose__trigger[hidden] { display: none; }
+  .area-compose__avatar {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    background: var(--purple-100);
+    color: var(--accent-hover);
+    font-size: 0.8rem;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex: none;
+    overflow: hidden;
+  }
+  .area-compose__avatar-img { width: 100%; height: 100%; object-fit: cover; border-radius: 50%; }
+  .area-compose__card {
+    padding: var(--space-4);
+    background: var(--bg-surface);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-lg);
+  }
+  .area-compose__card[hidden] { display: none; }
+  .area-compose__input {
+    width: 100%;
+    padding: var(--space-3) var(--space-4);
+    border: 1.5px solid var(--neutral-300);
+    border-radius: var(--radius-md);
+    font-family: 'Inter', sans-serif;
+    font-size: 0.9375rem;
+    color: var(--text-primary);
+    background: var(--bg-body);
+    resize: vertical;
+    line-height: 1.6;
+  }
+  .area-compose__input:focus {
+    outline: none;
+    border-color: var(--purple-700);
+    box-shadow: 0 0 0 3px var(--focus-ring);
+  }
+  .area-compose__feedback {
+    margin-top: var(--space-3);
+    padding: var(--space-3) var(--space-4);
+    background: rgba(192,57,43,0.05);
+    border: 1px solid var(--color-error);
+    border-radius: var(--radius-md);
+    color: var(--color-error);
+    font-size: 0.875rem;
+  }
+  .area-compose__feedback[hidden] { display: none; }
+  .area-compose__actions {
+    display: flex;
+    gap: var(--space-2);
+    justify-content: flex-end;
+    margin-top: var(--space-3);
+  }
+
+  /* ── Filtered post cards ── */
+  .area-post-list { display: flex; flex-direction: column; gap: var(--space-4); }
+  .area-post-list[hidden] { display: none; }
+  .area-posts-empty { color: var(--text-muted); font-size: 0.9375rem; padding: var(--space-4) 0; }
+  .area-posts-empty[hidden] { display: none; }
+
+  .area-post-card {
+    background: var(--bg-surface);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-sm);
+    padding: var(--space-4) var(--space-5);
+  }
+  .area-post-context { margin-bottom: var(--space-2); display: flex; gap: var(--space-2); flex-wrap: wrap; }
+  .area-post-context__label {
+    font-size: 0.625rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--accent-hover);
+    background: var(--purple-50);
+    padding: 2px 8px;
+    border-radius: var(--radius-pill);
+  }
+  .area-post-card__header { display: flex; align-items: center; gap: var(--space-3); margin-bottom: var(--space-3); }
+  .area-post-avatar {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    background: var(--purple-100);
+    color: var(--accent-hover);
+    font-size: 0.85rem;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex: none;
+    overflow: hidden;
+  }
+  .area-post-avatar--img { object-fit: cover; }
+  .area-post-byline { display: flex; flex-direction: column; gap: 1px; min-width: 0; }
+  .area-post-author { font-size: 0.875rem; font-weight: 600; color: var(--text-primary); }
+  .area-post-time { font-size: 0.75rem; color: var(--text-muted); }
+  .area-post-body {
+    font-size: 0.9375rem;
+    line-height: 1.7;
+    color: var(--text-primary);
+    word-break: break-word;
+    margin-bottom: var(--space-3);
+  }
+  .area-post-link { font-size: 0.8125rem; font-weight: 600; color: var(--accent); text-decoration: none; }
+  .area-post-link:hover { text-decoration: underline; }
+
+  .area-load-more { display: flex; justify-content: center; margin-top: var(--space-5); }
+  .area-load-more[hidden] { display: none; }
+
+  /* Responsive */
+  @media (max-width: 480px) {
+    .area-page { padding: var(--space-8) 0 var(--space-12); }
+    .area-head__body { padding: var(--space-5); }
+    .area-head__h { font-size: 1.6rem; }
+  }
+</style>

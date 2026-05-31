@@ -1,0 +1,264 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+---
+<BaseLayout title="Community | Admin" description="Admin community dashboard" noindex={true} bodyClass="admin-page">
+
+  <div class="admin-bar">
+    <div class="container admin-bar__inner">
+      <span class="admin-bar__title">RRM Admin</span>
+      <nav class="admin-bar__nav">
+        <a href="/admin/backlinks/" class="admin-bar__link">Backlinks</a>
+        <a href="/admin/conversions/" class="admin-bar__link">Conversions</a>
+        <a href="/admin/content/" class="admin-bar__link">Content</a>
+        <a href="/admin/email/" class="admin-bar__link">Email</a>
+        <a href="/admin/seo/" class="admin-bar__link">SEO</a>
+        <a href="/admin/revenue/" class="admin-bar__link">Revenue</a>
+        <a href="/admin/enrollments/" class="admin-bar__link">Enrollments</a>
+        <a href="/admin/community/" class="admin-bar__link admin-bar__link--active">Community</a>
+      </nav>
+      <div class="admin-bar__actions">
+        <a href="/" class="admin-bar__site-link">Return to site</a>
+        <button class="admin-bar__logout" id="logout-btn">Logout</button>
+      </div>
+    </div>
+  </div>
+
+  <section class="cm-section">
+    <div class="container">
+
+      <div class="cm-header">
+        <h1>Action Area Ownership</h1>
+        <div class="cm-controls">
+          <button class="btn btn--primary cm-btn" id="refresh-btn">Refresh</button>
+        </div>
+      </div>
+
+      <p class="cm-intro">
+        Members can volunteer to lead an ownerless Action Area. Approving a request makes that
+        member the area owner and enrolls them as a lead; the other pending volunteers for that
+        area are declined automatically.
+      </p>
+
+      <h2 class="cm-heading">Pending volunteer requests</h2>
+      <div class="cm-table-wrap">
+        <table class="cm-table">
+          <thead>
+            <tr>
+              <th>Area</th>
+              <th>Volunteer</th>
+              <th>Email</th>
+              <th>Note</th>
+              <th>Requested</th>
+              <th class="cm-col-actions">Decision</th>
+            </tr>
+          </thead>
+          <tbody id="req-tbody">
+            <tr><td colspan="6" class="cm-empty">Loading...</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+    </div>
+  </section>
+
+  <script>
+  (function () {
+    function esc(str) { var d = document.createElement('div'); d.textContent = str == null ? '' : String(str); return d.innerHTML; }
+
+    function formatTime(iso) {
+      if (!iso) return '--';
+      var d = new Date(iso + 'Z');
+      if (isNaN(d.getTime())) return '--';
+      return d.toLocaleString('en-US', {
+        timeZone: 'America/New_York',
+        month: 'short', day: 'numeric',
+        hour: 'numeric', minute: '2-digit', hour12: true,
+      });
+    }
+
+    var tbody = document.getElementById('req-tbody');
+
+    async function apiGet() {
+      var resp = await fetch('/api/admin/community/ownership', { credentials: 'include' });
+      if (resp.status === 401 || resp.status === 403) {
+        window.location.href = '/login/?redirect=/admin/community/';
+        return null;
+      }
+      var data = await resp.json();
+      if (!resp.ok || !data || !data.ok) throw new Error((data && data.error) || 'Request failed');
+      return data;
+    }
+
+    async function apiDecide(id, action) {
+      var resp = await fetch('/api/admin/community/ownership', {
+        method: 'POST',
+        credentials: 'include',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id: id, action: action }),
+      });
+      if (resp.status === 401 || resp.status === 403) {
+        window.location.href = '/login/?redirect=/admin/community/';
+        return null;
+      }
+      var data = await resp.json();
+      if (!resp.ok || !data || !data.ok) throw new Error((data && data.error) || 'Decision failed');
+      return data;
+    }
+
+    function renderRows(requests) {
+      if (!requests.length) {
+        tbody.innerHTML = '<tr><td colspan="6" class="cm-empty">No pending volunteer requests.</td></tr>';
+        return;
+      }
+      tbody.innerHTML = '';
+      requests.forEach(function (r) {
+        var tr = document.createElement('tr');
+        tr.setAttribute('data-id', r.id);
+
+        var areaTd = document.createElement('td');
+        areaTd.innerHTML = '<strong>' + esc(r.areaName) + '</strong>' +
+          (r.areaHasOwner ? ' <span class="cm-flag">already owned</span>' : '');
+        tr.appendChild(areaTd);
+
+        var nameTd = document.createElement('td');
+        nameTd.textContent = r.userName || '--';
+        tr.appendChild(nameTd);
+
+        var emailTd = document.createElement('td');
+        emailTd.className = 'cm-col-email';
+        emailTd.textContent = r.userEmail || '--';
+        tr.appendChild(emailTd);
+
+        var noteTd = document.createElement('td');
+        noteTd.className = 'cm-col-note';
+        noteTd.textContent = r.message || '--';
+        tr.appendChild(noteTd);
+
+        var timeTd = document.createElement('td');
+        timeTd.className = 'cm-col-time';
+        timeTd.textContent = formatTime(r.createdAt);
+        tr.appendChild(timeTd);
+
+        var actTd = document.createElement('td');
+        actTd.className = 'cm-col-actions';
+        var approve = document.createElement('button');
+        approve.className = 'cm-act cm-act--approve';
+        approve.textContent = 'Approve';
+        var reject = document.createElement('button');
+        reject.className = 'cm-act cm-act--reject';
+        reject.textContent = 'Decline';
+        approve.addEventListener('click', function () { decide(r.id, 'approve', tr); });
+        reject.addEventListener('click', function () { decide(r.id, 'reject', tr); });
+        actTd.appendChild(approve);
+        actTd.appendChild(reject);
+        tr.appendChild(actTd);
+
+        tbody.appendChild(tr);
+      });
+    }
+
+    function decide(id, action, tr) {
+      var btns = tr.querySelectorAll('.cm-act');
+      for (var i = 0; i < btns.length; i++) btns[i].disabled = true;
+      apiDecide(id, action)
+        .then(function (data) {
+          if (!data) return; // redirected
+          load();
+        })
+        .catch(function (e) {
+          for (var i = 0; i < btns.length; i++) btns[i].disabled = false;
+          var actTd = tr.querySelector('.cm-col-actions');
+          if (actTd) {
+            var err = document.createElement('span');
+            err.className = 'cm-act-error';
+            err.textContent = e.message;
+            actTd.appendChild(err);
+          }
+        });
+    }
+
+    async function load() {
+      tbody.innerHTML = '<tr><td colspan="6" class="cm-empty">Loading...</td></tr>';
+      try {
+        var data = await apiGet();
+        if (!data) return; // redirected
+        renderRows(data.requests || []);
+      } catch (e) {
+        tbody.innerHTML = '<tr><td colspan="6" class="cm-empty cm-error">' + esc(e.message) + '</td></tr>';
+      }
+    }
+
+    document.getElementById('logout-btn').addEventListener('click', async function () {
+      await fetch('/api/auth/logout', { method: 'POST', credentials: 'include' });
+      window.location.href = '/login/';
+    });
+    document.getElementById('refresh-btn').addEventListener('click', load);
+
+    load();
+  })();
+  </script>
+
+</BaseLayout>
+
+<style>
+  :root {
+    --admin-rose-700: #8a606e;
+    --admin-rose-300: #c9a8b2;
+    --admin-bg: #faf8f5;
+    --admin-surface: #ffffff;
+    --admin-border: #d9d3cc;
+    --admin-text: #313131;
+    --admin-text-muted: #636261;
+    --admin-text-faint: #949392;
+  }
+
+  :global(.admin-page) :global(.site-header) { display: none; }
+  :global(.admin-page) :global(footer) { display: none; }
+
+  .admin-bar { background: #3d2a32; color: #f0e5e9; position: sticky; top: 0; z-index: 100; }
+  .admin-bar__inner { display: flex; align-items: center; height: 48px; gap: var(--space-6); }
+  .admin-bar__title { font-family: 'Cormorant Garamond', 'Georgia', serif; font-weight: 600; font-size: 1.25rem; color: var(--admin-rose-300); white-space: nowrap; }
+  .admin-bar__nav { display: flex; gap: var(--space-1); flex-wrap: wrap; }
+  .admin-bar__link { font-size: 0.8125rem; font-weight: 400; color: rgba(255,255,255,0.6); text-decoration: none; padding: 4px 12px; border-radius: var(--radius-sm); transition: color 0.15s, background 0.15s; }
+  .admin-bar__link:hover { color: #fff; text-decoration: none; }
+  .admin-bar__link--active { color: #fff; background: rgba(255,255,255,0.1); font-weight: 500; }
+  .admin-bar__actions { display: flex; align-items: center; gap: var(--space-3); margin-left: auto; }
+  .admin-bar__site-link { font-size: 0.8125rem; font-weight: 500; color: var(--admin-rose-300); text-decoration: none; padding: 5px 16px; border: 1px solid var(--admin-rose-300); border-radius: var(--radius-pill); transition: color 0.15s, border-color 0.15s; }
+  .admin-bar__site-link:hover { color: #fff; border-color: #fff; text-decoration: none; }
+  .admin-bar__logout { font-size: 0.8125rem; color: rgba(255,255,255,0.5); background: none; border: none; cursor: pointer; padding: 4px 8px; }
+  .admin-bar__logout:hover { color: #fff; }
+
+  .cm-section { padding: var(--space-8) 0; background: var(--admin-bg); min-height: 80vh; }
+  .cm-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: var(--space-4); flex-wrap: wrap; gap: var(--space-3); }
+  .cm-header h1 { margin-bottom: 0; color: var(--admin-text); }
+  .cm-controls { display: flex; gap: var(--space-3); align-items: center; }
+  .cm-btn { background: var(--admin-rose-700); border-color: var(--admin-rose-700); color: #fff; }
+  .cm-btn:hover { background: #764d5e; }
+  .cm-intro { color: var(--admin-text-muted); font-size: 0.9rem; max-width: 60ch; margin-bottom: var(--space-6); }
+  .cm-heading { color: var(--admin-text); margin-bottom: var(--space-4); font-size: 1.125rem; }
+
+  .cm-table-wrap { overflow-x: auto; border: 1px solid var(--admin-border); border-radius: var(--radius-md); background: var(--admin-surface); margin-bottom: var(--space-4); }
+  .cm-empty { text-align: center; color: var(--admin-text-faint); padding: var(--space-8) var(--space-4); }
+  .cm-error { color: #c0392b; }
+  .cm-col-email { max-width: 220px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .cm-col-note { max-width: 320px; }
+  .cm-col-time { white-space: nowrap; font-size: 0.8125rem; }
+  .cm-col-actions { white-space: nowrap; }
+  .cm-flag { font-size: 0.7rem; font-weight: 600; color: #c0392b; }
+
+  .cm-act { font: inherit; font-size: 0.78rem; font-weight: 600; border-radius: var(--radius-sm); padding: 5px 12px; cursor: pointer; margin-right: var(--space-2); }
+  .cm-act:disabled { opacity: 0.5; cursor: default; }
+  .cm-act--approve { background: var(--admin-rose-700); border: 1px solid var(--admin-rose-700); color: #fff; }
+  .cm-act--approve:hover:not(:disabled) { background: #764d5e; }
+  .cm-act--reject { background: none; border: 1px solid var(--admin-border); color: var(--admin-text-muted); }
+  .cm-act--reject:hover:not(:disabled) { border-color: var(--admin-text-muted); }
+  .cm-act-error { display: block; color: #c0392b; font-size: 0.72rem; margin-top: 4px; }
+</style>
+
+<style is:global>
+  .cm-table { width: 100%; border-collapse: collapse; font-size: 0.875rem; }
+  .cm-table th, .cm-table td { padding: var(--space-3) var(--space-4); text-align: left; border-bottom: 1px solid #d9d3cc; vertical-align: top; }
+  .cm-table th { background: #eee5dd; font-weight: 600; font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.04em; color: #636261; }
+  .cm-table tbody tr:last-child td { border-bottom: none; }
+  .cm-table tbody tr:hover { background: #f0e5e9; }
+</style>

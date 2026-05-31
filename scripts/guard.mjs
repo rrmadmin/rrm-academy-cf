@@ -167,21 +167,43 @@ function checkInvariants() {
     failures++;
   }
 
-  // 2d. Middleware protects /account and /community
+  // 2d. Middleware gates /account + /community (fail-closed carve-out).
+  // The STUC do-tank made /community (hub) + /community/areas/* a public recruiting
+  // surface while everything else under /community stays member-only. Assert the
+  // fail-closed structure: the /community/ catch-all gate must remain, the public
+  // carve-out must exist and cover the area pages, and NO member-only sub-path
+  // (events/members/post) may leak into the public set.
   const middlewarePath = join(ROOT, 'functions/_middleware.js');
   try {
     const middleware = readFileSync(middlewarePath, 'utf8');
     const protectsAccount = middleware.includes('/account');
-    const protectsCommunity = middleware.includes('/community');
-    if (protectsAccount && protectsCommunity) {
-      log(PASS, `Middleware protects /account and /community`);
+    const gatesCommunity = middleware.includes("startsWith('/community/')");
+    const hasPublicCarveout = middleware.includes('isPublicCommunity');
+    const publicBlockMatch = middleware.match(/isPublicCommunity\s*=([\s\S]*?);/);
+    const publicBlock = publicBlockMatch ? publicBlockMatch[1] : '';
+    const carvesAreas = publicBlock.includes('/community/areas');
+    const leaksMemberOnly = /\/community\/(events|members|post)/.test(publicBlock);
+    if (protectsAccount && gatesCommunity && hasPublicCarveout && carvesAreas && !leaksMemberOnly) {
+      log(PASS, `Middleware gates /account + /community (fail-closed; hub+areas public)`);
     } else {
       if (!protectsAccount) {
         log(FAIL, `_middleware.js does not reference /account`);
         failures++;
       }
-      if (!protectsCommunity) {
-        log(FAIL, `_middleware.js does not reference /community`);
+      if (!gatesCommunity) {
+        log(FAIL, `_middleware.js missing /community/ catch-all gate (fail-closed backbone)`);
+        failures++;
+      }
+      if (!hasPublicCarveout) {
+        log(FAIL, `_middleware.js missing isPublicCommunity carve-out`);
+        failures++;
+      }
+      if (hasPublicCarveout && !carvesAreas) {
+        log(FAIL, `isPublicCommunity must carve out /community/areas`);
+        failures++;
+      }
+      if (leaksMemberOnly) {
+        log(FAIL, `isPublicCommunity leaks a member-only sub-path (events/members/post) into the public surface`);
         failures++;
       }
     }
