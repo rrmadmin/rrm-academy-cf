@@ -52,16 +52,9 @@ export async function onRequestPost(context) {
 
   const { ref_num, anchor_text, url, journal, publisher } = body;
 
+  const isAutoNum = ref_num === undefined;
   let resolvedRefNum;
-  if (ref_num === undefined) {
-    try {
-      const maxRow = await env.DB.prepare('SELECT COALESCE(MAX(ref_num), 0) AS m FROM glossary_reference').first();
-      resolvedRefNum = (maxRow?.m ?? 0) + 1;
-    } catch (err) {
-      log(env, waitUntil, 'admin-glossary', 'ref_num_compute_error', 'error', err.message, 0, 500);
-      return json({ ok: false, error: 'Internal error' }, 500);
-    }
-  } else {
+  if (!isAutoNum) {
     if (typeof ref_num !== 'number' || !Number.isInteger(ref_num) || ref_num < 1 || ref_num > 10000) {
       return json({ ok: false, error: 'invalid_ref_num' }, 400);
     }
@@ -98,13 +91,23 @@ export async function onRequestPost(context) {
   }
 
   try {
-    const row = await env.DB.prepare(
-      'INSERT OR IGNORE INTO glossary_reference (ref_num, anchor_text, url, journal, publisher) VALUES (?, ?, ?, ?, ?) RETURNING *'
-    ).bind(resolvedRefNum, anchor_text.trim(), url.trim(), journal ?? null, publisher ?? null).first();
+    let row;
+    if (isAutoNum) {
+      row = await env.DB.prepare(
+        `INSERT INTO glossary_reference (ref_num, anchor_text, url, journal, publisher)
+         SELECT COALESCE(MAX(ref_num), 0) + 1, ?, ?, ?, ?
+         FROM glossary_reference RETURNING *`
+      ).bind(anchor_text.trim(), url.trim(), journal ?? null, publisher ?? null).first();
+    } else {
+      row = await env.DB.prepare(
+        'INSERT OR IGNORE INTO glossary_reference (ref_num, anchor_text, url, journal, publisher) VALUES (?, ?, ?, ?, ?) RETURNING *'
+      ).bind(resolvedRefNum, anchor_text.trim(), url.trim(), journal ?? null, publisher ?? null).first();
 
-    if (!row) {
-      return json({ ok: false, error: 'ref_num_already_exists' }, 409);
+      if (!row) {
+        return json({ ok: false, error: 'ref_num_already_exists' }, 409);
+      }
     }
+
     return json({ ok: true, data: row, created: true }, 201);
   } catch (err) {
     if (err.message?.includes('UNIQUE constraint')) {

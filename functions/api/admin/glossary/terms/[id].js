@@ -131,6 +131,17 @@ export async function onRequestPut(context) {
     }
   }
 
+  if (body.body_html !== undefined) {
+    const wc = body.body_html ? body.body_html.replace(/<[^>]*>/g, ' ').replace(/\s+/g, ' ').trim().split(' ').filter(Boolean).length : 0;
+    setClauses.push('word_count = ?');
+    bindings.push(wc);
+  }
+
+  if (body.part !== undefined && body.sort_order === undefined) {
+    setClauses.push('sort_order = (SELECT COALESCE(MAX(t2.sort_order), 0) + 1 FROM glossary_term t2 WHERE t2.part = ?)');
+    bindings.push(body.part);
+  }
+
   if (setClauses.length === 0) {
     return json({ ok: false, error: 'no_fields_provided' }, 400);
   }
@@ -138,13 +149,30 @@ export async function onRequestPut(context) {
   setClauses.push("updated_at = datetime('now')");
   bindings.push(id);
 
-  try {
-    const result = await env.DB.prepare(
-      `UPDATE glossary_term SET ${setClauses.join(', ')} WHERE id = ?`
-    ).bind(...bindings).run();
+  const archivingTerm = body.status !== undefined && body.status !== 'published';
 
-    if (result.meta.changes === 0) {
-      return json({ ok: false, error: 'not_found' }, 404);
+  try {
+    if (archivingTerm) {
+      const [updateResult] = await env.DB.batch([
+        env.DB.prepare(
+          `UPDATE glossary_term SET ${setClauses.join(', ')} WHERE id = ?`
+        ).bind(...bindings),
+        env.DB.prepare(
+          'UPDATE glossary_abbreviation SET term_slug = NULL WHERE term_slug = (SELECT slug FROM glossary_term WHERE id = ?) COLLATE NOCASE'
+        ).bind(id),
+      ]);
+
+      if (updateResult.meta.changes === 0) {
+        return json({ ok: false, error: 'not_found' }, 404);
+      }
+    } else {
+      const result = await env.DB.prepare(
+        `UPDATE glossary_term SET ${setClauses.join(', ')} WHERE id = ?`
+      ).bind(...bindings).run();
+
+      if (result.meta.changes === 0) {
+        return json({ ok: false, error: 'not_found' }, 404);
+      }
     }
 
     const row = await env.DB.prepare('SELECT * FROM glossary_term WHERE id = ?').bind(id).first();
@@ -186,11 +214,15 @@ export async function onRequestDelete(context) {
       return json({ ok: false, error: 'term_in_use', detail: { citing_slugs: citing.map(r => r.slug) } }, 409);
     }
 
+    const { results: linkedAbbrs } = await env.DB.prepare(
+      'SELECT abbreviation FROM glossary_abbreviation WHERE term_slug = ? COLLATE NOCASE'
+    ).bind(existing.slug).all();
+
     await env.DB.batch([
       env.DB.prepare('UPDATE glossary_abbreviation SET term_slug = NULL WHERE term_slug = ? COLLATE NOCASE').bind(existing.slug),
       env.DB.prepare('DELETE FROM glossary_term WHERE id = ?').bind(id),
     ]);
-    return json({ ok: true });
+    return json({ ok: true, deleted: true, unlinked_abbreviations: (linkedAbbrs || []).map(r => r.abbreviation) });
   } catch (err) {
     log(env, waitUntil, 'admin-glossary', 'term_delete_error', 'error', err.message, 0, 500);
     return json({ ok: false, error: 'Internal error' }, 500);
