@@ -44,7 +44,7 @@ export async function onRequestGet(context) {
        FROM area_ownership_request r
        JOIN action_area a ON a.id = r.area_id
        JOIN user u ON u.id = r.user_id
-       WHERE r.status = 'pending'
+       WHERE r.status = 'pending' AND a.status = 'active'
        ORDER BY r.created_at ASC`
     ).all();
     rows = result.results;
@@ -132,24 +132,40 @@ export async function onRequestPost(context) {
   let areaRow;
   try {
     areaRow = await db.prepare(
-      'SELECT owner_user_id FROM action_area WHERE id = ?'
+      'SELECT owner_user_id, status FROM action_area WHERE id = ?'
     ).bind(areaId).first();
   } catch (err) {
     log(env, waitUntil, 'admin-community', 'ownership_decide_error', 'error', `area lookup: ${err.message}`, 0, 500);
     return json({ ok: false, error: 'internal_error' }, 500);
   }
 
-  if (areaRow && areaRow.owner_user_id !== null && areaRow.owner_user_id !== undefined) {
+  if (!areaRow) return json({ ok: false, error: 'not_found' }, 404);
+  if (areaRow.status !== 'active') return json({ ok: false, error: 'area_archived' }, 409);
+  if (areaRow.owner_user_id !== null && areaRow.owner_user_id !== undefined) {
+    return json({ ok: false, error: 'area_already_owned' }, 409);
+  }
+
+  // Claim the area atomically — the WHERE guard is the race-condition fence.
+  // Only if meta.changes === 1 did THIS request win the claim; zero means a concurrent
+  // approve beat us between the SELECT above and this UPDATE.
+  let claimResult;
+  try {
+    claimResult = await db.prepare(
+      `UPDATE action_area
+       SET owner_user_id = ?, updated_at = datetime('now')
+       WHERE id = ? AND owner_user_id IS NULL`
+    ).bind(volunteerId, areaId).run();
+  } catch (err) {
+    log(env, waitUntil, 'admin-community', 'ownership_decide_error', 'error', `approve claim: ${err.message}`, 0, 500);
+    return json({ ok: false, error: 'internal_error' }, 500);
+  }
+
+  if (claimResult.meta.changes === 0) {
     return json({ ok: false, error: 'area_already_owned' }, 409);
   }
 
   try {
     await db.batch([
-      db.prepare(
-        `UPDATE action_area
-         SET owner_user_id = ?, updated_at = datetime('now')
-         WHERE id = ? AND owner_user_id IS NULL`
-      ).bind(volunteerId, areaId),
       db.prepare(
         `INSERT INTO area_membership (user_id, area_id, role)
          VALUES (?, ?, 'owner')
@@ -158,7 +174,7 @@ export async function onRequestPost(context) {
       db.prepare(
         `UPDATE area_ownership_request
          SET status = 'approved', decided_at = datetime('now'), decided_by = ?
-         WHERE id = ?`
+         WHERE id = ? AND status = 'pending'`
       ).bind(user.id, id),
       db.prepare(
         `UPDATE area_ownership_request
