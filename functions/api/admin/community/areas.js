@@ -95,13 +95,23 @@ export async function onRequestPost(context) {
   const finalSortOrder = (typeof sort_order === 'number') ? sort_order : 0;
 
   try {
-    await db.prepare(
+    const insertArea = db.prepare(
       'INSERT INTO action_area(id, slug, name, tagline, description, icon, bucket, owner_user_id, sort_order, status) VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?)'
     ).bind(
       id, slug, name.trim(),
       tagline ?? null, description ?? null, icon ?? null,
       bucket, resolvedOwnerId, finalSortOrder, 'active'
-    ).run();
+    );
+    if (resolvedOwnerId) {
+      await db.batch([
+        insertArea,
+        db.prepare(
+          "INSERT INTO area_membership (user_id, area_id, role) VALUES (?, ?, 'owner') ON CONFLICT(user_id, area_id) DO UPDATE SET role = 'owner'"
+        ).bind(resolvedOwnerId, id),
+      ]);
+    } else {
+      await insertArea.run();
+    }
   } catch (err) {
     if (err.message?.includes('UNIQUE constraint')) {
       return json({ ok: false, error: 'slug_already_exists' }, 409);
@@ -226,11 +236,24 @@ export async function onRequestPut(context) {
   setClauses.push("updated_at = datetime('now')");
   bindings.push(id);
 
+  const newOwnerId = (owner_user_id !== undefined && owner_user_id !== null) ? owner_user_id : null;
+
   try {
-    const result = await db.prepare(
+    const updateArea = db.prepare(
       `UPDATE action_area SET ${setClauses.join(', ')} WHERE id = ?`
-    ).bind(...bindings).run();
-    if (result.meta.changes === 0) return json({ ok: false, error: 'not_found' }, 404);
+    ).bind(...bindings);
+    let results;
+    if (newOwnerId) {
+      results = await db.batch([
+        updateArea,
+        db.prepare(
+          "INSERT INTO area_membership (user_id, area_id, role) VALUES (?, ?, 'owner') ON CONFLICT(user_id, area_id) DO UPDATE SET role = 'owner'"
+        ).bind(newOwnerId, id),
+      ]);
+    } else {
+      results = [await updateArea.run()];
+    }
+    if (results[0].meta.changes === 0) return json({ ok: false, error: 'not_found' }, 404);
   } catch (err) {
     if (err.message?.includes('UNIQUE constraint')) {
       return json({ ok: false, error: 'slug_already_exists' }, 409);
@@ -277,12 +300,13 @@ export async function onRequestDelete(context) {
 
   if (hard === 1 || hard === true) {
     // Hard-delete: remove all children then the area itself (D1 CASCADE is inert)
-    // Order: project_membership -> project -> area_membership -> impact_entry -> community_post.area_id null -> action_area
+    // Order: project_membership -> project -> area_membership -> area_ownership_request -> impact_entry -> community_post.area_id null -> action_area
     try {
       await db.batch([
         db.prepare('DELETE FROM project_membership WHERE project_id IN (SELECT id FROM project WHERE area_id = ?)').bind(id),
         db.prepare('DELETE FROM project WHERE area_id = ?').bind(id),
         db.prepare('DELETE FROM area_membership WHERE area_id = ?').bind(id),
+        db.prepare('DELETE FROM area_ownership_request WHERE area_id = ?').bind(id),
         db.prepare('DELETE FROM impact_entry WHERE area_id = ?').bind(id),
         db.prepare('UPDATE community_post SET area_id = NULL WHERE area_id = ?').bind(id),
         db.prepare('DELETE FROM action_area WHERE id = ?').bind(id),
@@ -294,11 +318,12 @@ export async function onRequestDelete(context) {
     return json({ ok: true });
   }
 
-  // Soft-delete: archive the area + propagate to child projects (G-AREA-7)
+  // Soft-delete: archive the area + propagate to child projects + withdraw pending ownership requests (G-AREA-7)
   try {
     await db.batch([
       db.prepare("UPDATE action_area SET status = 'archived', updated_at = datetime('now') WHERE id = ?").bind(id),
       db.prepare("UPDATE project SET status = 'archived', updated_at = datetime('now') WHERE area_id = ?").bind(id),
+      db.prepare("UPDATE area_ownership_request SET status = 'withdrawn', decided_at = datetime('now') WHERE area_id = ? AND status = 'pending'").bind(id),
     ]);
   } catch (err) {
     log(env, waitUntil, 'admin-community', 'area_delete_error', 'error', err.message, 0, 500);
