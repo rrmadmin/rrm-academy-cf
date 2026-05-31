@@ -63,13 +63,11 @@ const MIGRATION_FILE = resolve(PROJECT_ROOT, 'scripts/migrate-courses-to-d1.sql'
 const D1_NAME = 'rrm-auth';
 const COURSE_TABLES = ['course', 'course_section', 'course_step'];
 
-// Admin endpoints whose inline VALID_* Sets are the app-side source of truth.
+// The shared module is the single app-side source of truth for the VALID_* Sets
+// (extracted from the per-endpoint copies on 2026-05-31 — they now import from here).
 // (col, table) pairs are the migration CHECK columns we hold them against.
 const APP_ENUM_FILES = [
-  'functions/api/admin/courses/index.js',
-  'functions/api/admin/courses/[id].js',
-  'functions/api/admin/courses/[id]/steps.js',
-  'functions/api/admin/courses/[id]/steps/[stepId].js',
+  'functions/api/admin/courses/_shared.js',
 ];
 
 // Which (table.column) CHECK constraint each app-side Set must equal.
