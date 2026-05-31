@@ -318,6 +318,14 @@ const SHELL_ENABLED = isShellEnabled('community');
       var editingPost = null;
       var editingCard = null;
 
+      // Boot the hub structure when its (separately-bundled) module is ready. The
+      // anonymous status check can resolve before that module executes, so a direct
+      // window.__stucHub call would silently no-op; defer via a flag the module drains.
+      function bootHubWhenReady(isMember) {
+        if (window.__stucHub && window.__stucHub.boot) window.__stucHub.boot(isMember);
+        else window.__stucBootPending = isMember;
+      }
+
       // --- Status check ---
       fetch('/api/community/status', { credentials: 'same-origin' })
         .then(function (r) { return r.json(); })
@@ -326,7 +334,7 @@ const SHELL_ENABLED = isShellEnabled('community');
           if (!data.ok || !data.user) {
             gateEl.hidden = false;
             // Hub structure (impact / areas / projects) for logged-out visitors — read-only.
-            if (window.__stucHub) window.__stucHub.boot(false);
+            bootHubWhenReady(false);
             return;
           }
           if (data.access === 'member') {
@@ -335,7 +343,7 @@ const SHELL_ENABLED = isShellEnabled('community');
             setupFeed();
             feedEl.hidden = false;
             // Hub structure (impact / areas / projects) for members — interactive (Join toggles).
-            if (window.__stucHub) window.__stucHub.boot(true);
+            bootHubWhenReady(true);
 
             // Init notification bell
             if (notifBell) {
@@ -364,12 +372,14 @@ const SHELL_ENABLED = isShellEnabled('community');
           } else {
             gateEl.hidden = false;
             // Logged-in but non-member: same read-only hub structure as logged-out.
-            if (window.__stucHub) window.__stucHub.boot(false);
+            bootHubWhenReady(false);
           }
         })
         .catch(function () {
           loadingEl.hidden = true;
           gateEl.hidden = false;
+          // Status check failed — still surface the public hub structure (read-only).
+          bootHubWhenReady(false);
         });
 
       // --- Feed setup ---
@@ -2187,6 +2197,14 @@ const SHELL_ENABLED = isShellEnabled('community');
         _showMemberCount: showMemberCount,
         get activeAreaSlug() { return state.activeAreaSlug; },
       };
+
+      // Drain a boot requested by the page status check before this module loaded
+      // (script-ordering race — the anonymous status check resolves fast).
+      if (typeof window.__stucBootPending !== 'undefined') {
+        var __pendingBoot = window.__stucBootPending;
+        window.__stucBootPending = undefined;
+        boot(__pendingBoot);
+      }
     })();
   </script>
 </BaseLayout>
