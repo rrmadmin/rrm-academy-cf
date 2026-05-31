@@ -1,41 +1,6 @@
 import { json, optionsResponse } from '../../auth/_shared.js';
 import { log } from '../../_log.js';
-
-const VALID_STATUSES = new Set(['draft', 'published', 'archived']);
-const VALID_ACCESS_TYPES = new Set(['public', 'private', 'members']);
-
-export function onRequestOptions() {
-  return optionsResponse();
-}
-
-function bool(v) {
-  return (v === true || v === 1 || v === '1') ? 1 : 0;
-}
-
-function groupBy(rows, key) {
-  const map = {};
-  for (const row of rows) {
-    const k = row[key];
-    if (!map[k]) map[k] = [];
-    map[k].push(row);
-  }
-  return map;
-}
-
-function parseJson(value, fallback) {
-  if (value == null) return fallback;
-  try { return JSON.parse(value); } catch { return fallback; }
-}
-
-function parseArray(value) {
-  const parsed = parseJson(value, []);
-  return Array.isArray(parsed) ? parsed : [];
-}
-
-function parseObject(value) {
-  const parsed = parseJson(value, {});
-  return parsed && typeof parsed === 'object' && !Array.isArray(parsed) ? parsed : {};
-}
+import { VALID_STATUSES, VALID_ACCESS_TYPES, bool, groupBy, parseArray, parseObject } from './_shared.js';
 
 function mapStep(s) {
   const step = {
@@ -101,8 +66,8 @@ function mapCourse(c, sections, steps) {
 async function fetchWithNested(db, id) {
   const [course, { results: sections }, { results: steps }] = await Promise.all([
     db.prepare('SELECT * FROM course WHERE id = ?').bind(id).first(),
-    db.prepare('SELECT * FROM course_section WHERE course_id = ? ORDER BY sort_order ASC').bind(id).all(),
-    db.prepare('SELECT * FROM course_step WHERE course_id = ? ORDER BY section_id, sort_order ASC').bind(id).all(),
+    db.prepare('SELECT * FROM course_section WHERE course_id = ? ORDER BY sort_order ASC, id ASC').bind(id).all(),
+    db.prepare('SELECT * FROM course_step WHERE course_id = ? ORDER BY section_id, sort_order ASC, id ASC').bind(id).all(),
   ]);
 
   if (!course) return null;
@@ -253,24 +218,6 @@ export async function onRequestPut(context) {
     }
   }
 
-  if (body.status === 'published') {
-    try {
-      const currentCourse = await env.DB.prepare(
-        "SELECT status FROM course WHERE id = ?"
-      ).bind(id).first();
-      if (currentCourse && currentCourse.status !== 'published') {
-        const stepCount = await env.DB.prepare(
-          "SELECT COUNT(*) AS cnt FROM course_step WHERE course_id = ? AND status = 'published'"
-        ).bind(id).first();
-        if ((stepCount?.cnt ?? 0) === 0) {
-          return json({ ok: false, error: 'not_publishable', detail: 'course has no published steps' }, 409);
-        }
-      }
-    } catch (err) {
-      log(env, waitUntil, 'admin-courses', 'publishable_check_error', 'error', err.message, 0, 500);
-      return json({ ok: false, error: 'Internal error' }, 500);
-    }
-  }
 
   const FIELD_MAP = {
     slug: 'slug',
@@ -337,15 +284,31 @@ export async function onRequestPut(context) {
   }
 
   setClauses.push("updated_at = datetime('now')");
-  bindings.push(id);
+
+  const isPublishTransition = body.status === 'published';
+  let whereClause = 'WHERE id = ?';
+  if (isPublishTransition) {
+    whereClause =
+      "WHERE id = ? AND (status = 'published' OR EXISTS (SELECT 1 FROM course_step WHERE course_id = ? AND status = 'published'))";
+    bindings.push(id);
+    bindings.push(id);
+  } else {
+    bindings.push(id);
+  }
 
   try {
     const result = await env.DB.prepare(
-      `UPDATE course SET ${setClauses.join(', ')} WHERE id = ?`
+      `UPDATE course SET ${setClauses.join(', ')} ${whereClause}`
     ).bind(...bindings).run();
 
-    if (result.meta.changes === 0) {
-      return json({ ok: false, error: 'not_found' }, 404);
+    if (result.meta?.changes === 0) {
+      const row = await env.DB.prepare('SELECT id, status FROM course WHERE id = ?').bind(id).first();
+      if (!row) {
+        return json({ ok: false, error: 'not_found' }, 404);
+      }
+      if (isPublishTransition && row.status !== 'published') {
+        return json({ ok: false, error: 'not_publishable', detail: 'course has no published steps' }, 409);
+      }
     }
 
     const data = await fetchWithNested(env.DB, id);
@@ -416,11 +379,39 @@ export async function onRequestDelete(context) {
       return json({ ok: false, error: 'references_exist', detail: 'Another course includes this one' }, 409);
     }
 
+    const certQuizRef = await env.DB.prepare(
+      'SELECT id FROM course WHERE certificate_quiz_step_id IN (SELECT id FROM course_step WHERE course_id = ?) AND id != ?'
+    ).bind(id, id).first();
+    if (certQuizRef) {
+      return json({ ok: false, error: 'step_referenced_as_certificate_quiz', courseId: certQuizRef.id }, 409);
+    }
+
+    const R2_PUBLIC_HOST = 'https://pub-4af88159ce884265baba8fb4f3470625.r2.dev/';
+    const { results: stepsWithAttachments } = await env.DB.prepare(
+      'SELECT attachments_json FROM course_step WHERE course_id = ? AND attachments_json IS NOT NULL'
+    ).bind(id).all();
+
+    const r2Keys = [];
+    for (const row of (stepsWithAttachments || [])) {
+      let entries;
+      try { entries = JSON.parse(row.attachments_json); } catch { entries = []; }
+      if (!Array.isArray(entries)) continue;
+      for (const entry of entries) {
+        if (typeof entry?.url === 'string' && entry.url.startsWith(R2_PUBLIC_HOST)) {
+          r2Keys.push(entry.url.slice(R2_PUBLIC_HOST.length));
+        }
+      }
+    }
+
     await env.DB.batch([
       env.DB.prepare('DELETE FROM course_step WHERE course_id = ?').bind(id),
       env.DB.prepare('DELETE FROM course_section WHERE course_id = ?').bind(id),
       env.DB.prepare('DELETE FROM course WHERE id = ?').bind(id),
     ]);
+
+    if (r2Keys.length > 0 && env.R2_ASSETS) {
+      waitUntil(Promise.all(r2Keys.map(k => env.R2_ASSETS.delete(k).catch(() => {}))));
+    }
 
     return json({ ok: true });
   } catch (err) {

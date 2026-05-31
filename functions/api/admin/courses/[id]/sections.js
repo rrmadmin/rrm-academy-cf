@@ -50,7 +50,7 @@ export async function onRequestPost(context) {
     return json({ ok: false, error: 'invalid_title' }, 400);
   }
 
-  if (sortOrder !== undefined && (!Number.isInteger(sortOrder))) {
+  if (sortOrder !== undefined && (!Number.isInteger(sortOrder) || sortOrder < 0)) {
     return json({ ok: false, error: 'invalid_sort_order' }, 400);
   }
 
