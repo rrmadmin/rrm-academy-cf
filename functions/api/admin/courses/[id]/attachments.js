@@ -3,6 +3,7 @@ import { log } from '../../../_log.js';
 
 const R2_PUBLIC_HOST = 'https://pub-4af88159ce884265baba8fb4f3470625.r2.dev/';
 const MAX_SIZE = 25 * 1024 * 1024;
+const ID_PATTERN = /^[a-z][a-z0-9-]*$/;
 const ALLOWED_TYPES = {
   'application/pdf': 'pdf',
   'application/vnd.openxmlformats-officedocument.wordprocessingml.document': 'docx',
@@ -55,6 +56,9 @@ export async function onRequestPost(context) {
     return json({ ok: false, error: 'invalid_step_id' }, 400);
   }
   if (stepId.length > 100) {
+    return json({ ok: false, error: 'invalid_step_id' }, 400);
+  }
+  if (!ID_PATTERN.test(stepId.trim())) {
     return json({ ok: false, error: 'invalid_step_id' }, 400);
   }
 
@@ -114,27 +118,16 @@ export async function onRequestPost(context) {
     return json({ ok: false, error: 'Internal error' }, 500);
   }
 
-  let attachments;
-  try {
-    const parsed = step.attachments_json ? JSON.parse(step.attachments_json) : [];
-    attachments = Array.isArray(parsed) ? parsed : [];
-  } catch {
-    attachments = [];
-  }
-
   const newEntry = { name, url, size: file.size, type: file.type };
-  attachments.push(newEntry);
 
   try {
-    await env.DB.batch([
-      env.DB.prepare(
-        "UPDATE course_step SET attachments_json = ?, updated_at = datetime('now') WHERE id = ?"
-      ).bind(JSON.stringify(attachments), stepId.trim()),
-    ]);
+    await env.DB.prepare(
+      "UPDATE course_step SET attachments_json = json_insert(COALESCE(attachments_json,'[]'), '$[#]', json(?)), updated_at = datetime('now') WHERE id = ?"
+    ).bind(JSON.stringify(newEntry), stepId.trim()).run();
   } catch (err) {
     log(env, waitUntil, 'admin-courses-attachments', 'db_write_error', 'error', err.message, 0, 500);
     log(env, waitUntil, 'admin-courses-attachments', 'r2_cleanup_after_d1_fail', 'warn', key);
-    env.R2_ASSETS.delete(key).catch(() => {});
+    waitUntil(env.R2_ASSETS.delete(key).catch(() => {}));
     return json({ ok: false, error: 'Internal error' }, 500);
   }
 
@@ -174,6 +167,9 @@ export async function onRequestDelete(context) {
   if (stepId.length > 100) {
     return json({ ok: false, error: 'invalid_step_id' }, 400);
   }
+  if (!ID_PATTERN.test(stepId.trim())) {
+    return json({ ok: false, error: 'invalid_step_id' }, 400);
+  }
 
   if (!url || typeof url !== 'string' || !url.trim()) {
     return json({ ok: false, error: 'attachment_not_found' }, 400);
@@ -199,6 +195,8 @@ export async function onRequestDelete(context) {
   if (!course) return json({ ok: false, error: 'course_not_found' }, 404);
   if (!step) return json({ ok: false, error: 'step_not_found' }, 404);
 
+  const normalizedUrl = url.trim();
+
   let attachments;
   try {
     const parsed = step.attachments_json ? JSON.parse(step.attachments_json) : [];
@@ -207,13 +205,10 @@ export async function onRequestDelete(context) {
     attachments = [];
   }
 
-  const normalizedUrl = url.trim();
   const match = attachments.find(a => a.url === normalizedUrl);
   if (!match) {
     return json({ ok: false, error: 'attachment_not_found' }, 404);
   }
-
-  const filtered = attachments.filter(a => a.url !== normalizedUrl);
 
   if (!normalizedUrl.startsWith(R2_PUBLIC_HOST)) {
     return json({ ok: false, error: 'attachment_not_found' }, 400);
@@ -221,19 +216,17 @@ export async function onRequestDelete(context) {
   const r2Key = normalizedUrl.slice(R2_PUBLIC_HOST.length);
 
   try {
-    await env.DB.batch([
-      env.DB.prepare(
-        "UPDATE course_step SET attachments_json = ?, updated_at = datetime('now') WHERE id = ?"
-      ).bind(JSON.stringify(filtered), stepId.trim()),
-    ]);
+    await env.DB.prepare(
+      "UPDATE course_step SET attachments_json = (SELECT json_group_array(value) FROM json_each(COALESCE(attachments_json,'[]')) WHERE json_extract(value, '$.url') != ?), updated_at = datetime('now') WHERE id = ?"
+    ).bind(normalizedUrl, stepId.trim()).run();
   } catch (err) {
     log(env, waitUntil, 'admin-courses-attachments', 'db_write_error', 'error', err.message, 0, 500);
     return json({ ok: false, error: 'Internal error' }, 500);
   }
 
-  await env.R2_ASSETS.delete(r2Key).catch((err) => {
+  waitUntil(env.R2_ASSETS.delete(r2Key).catch((err) => {
     log(env, waitUntil, 'admin-courses-attachments', 'r2_delete_error', 'warn', `${r2Key}: ${err.message}`);
-  });
+  }));
 
   return json({ ok: true });
 }

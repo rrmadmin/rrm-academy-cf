@@ -34,7 +34,7 @@ export async function onRequestGet(context) {
         'SELECT * FROM course_section WHERE id = ? AND course_id = ?'
       ).bind(sectionId, courseId).first(),
       env.DB.prepare(
-        'SELECT * FROM course_step WHERE section_id = ? ORDER BY sort_order ASC'
+        'SELECT * FROM course_step WHERE section_id = ? ORDER BY sort_order ASC, id ASC'
       ).bind(sectionId).all(),
     ]);
 
@@ -124,7 +124,7 @@ export async function onRequestPut(context) {
       "UPDATE course_section SET title = ?, updated_at = datetime('now') WHERE id = ? AND course_id = ?"
     ).bind(title.trim(), sectionId, courseId).run();
 
-    if (result.meta.changes === 0) {
+    if (result.meta?.changes === 0) {
       return json({ ok: false, error: 'section_not_found' }, 404);
     }
 
@@ -229,10 +229,23 @@ export async function onRequestDelete(context) {
       }
     }
 
-    await env.DB.batch([
-      env.DB.prepare('DELETE FROM course_step WHERE section_id = ?').bind(sectionId),
-      env.DB.prepare('DELETE FROM course_section WHERE id = ?').bind(sectionId),
-    ]);
+    const stepsDeleteResult = await env.DB.prepare(
+      'DELETE FROM course_step WHERE section_id = ?' +
+      ' AND NOT EXISTS (SELECT 1 FROM step_progress WHERE step_id = course_step.id)' +
+      ' AND NOT EXISTS (SELECT 1 FROM quiz_response WHERE step_id = course_step.id)' +
+      ' AND NOT EXISTS (SELECT 1 FROM lesson_comment WHERE step_id = course_step.id)' +
+      ' AND NOT EXISTS (SELECT 1 FROM course WHERE certificate_quiz_step_id = course_step.id)'
+    ).bind(sectionId).run();
+
+    if ((stepsDeleteResult.meta?.changes ?? 0) < stepIds.length) {
+      return json({
+        ok: false,
+        error: 'references_exist',
+        stepIds: [],
+      }, 409);
+    }
+
+    await env.DB.prepare('DELETE FROM course_section WHERE id = ?').bind(sectionId).run();
 
     return json({ ok: true });
   } catch (err) {
