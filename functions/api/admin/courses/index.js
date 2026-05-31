@@ -1,41 +1,9 @@
 import { json, optionsResponse } from '../../auth/_shared.js';
 import { log } from '../../_log.js';
-
-const VALID_STATUSES = new Set(['draft', 'published', 'archived']);
-const VALID_ACCESS_TYPES = new Set(['public', 'private', 'members']);
-const ID_PATTERN = /^[a-z][a-z0-9-]*$/;
+import { VALID_STATUSES, VALID_ACCESS_TYPES, ID_PATTERN, bool, groupBy, parseArray, parseObject } from './_shared.js';
 
 export function onRequestOptions() {
   return optionsResponse();
-}
-
-function bool(v) {
-  return (v === true || v === 1 || v === '1') ? 1 : 0;
-}
-
-function groupBy(rows, key) {
-  const map = {};
-  for (const row of rows) {
-    const k = row[key];
-    if (!map[k]) map[k] = [];
-    map[k].push(row);
-  }
-  return map;
-}
-
-function parseJson(value, fallback) {
-  if (value == null) return fallback;
-  try { return JSON.parse(value); } catch { return fallback; }
-}
-
-function parseArray(value) {
-  const parsed = parseJson(value, []);
-  return Array.isArray(parsed) ? parsed : [];
-}
-
-function parseObject(value) {
-  const parsed = parseJson(value, {});
-  return parsed && typeof parsed === 'object' && !Array.isArray(parsed) ? parsed : {};
 }
 
 function mapStep(s) {
@@ -114,9 +82,9 @@ export async function onRequestGet(context) {
 
   try {
     const [{ results: courses }, { results: allSections }, { results: allSteps }] = await Promise.all([
-      env.DB.prepare('SELECT * FROM course ORDER BY sort_order ASC').all(),
-      env.DB.prepare('SELECT * FROM course_section ORDER BY sort_order ASC').all(),
-      env.DB.prepare('SELECT * FROM course_step ORDER BY section_id, sort_order ASC').all(),
+      env.DB.prepare('SELECT * FROM course ORDER BY sort_order ASC, id ASC').all(),
+      env.DB.prepare('SELECT * FROM course_section ORDER BY sort_order ASC, id ASC').all(),
+      env.DB.prepare('SELECT * FROM course_step ORDER BY section_id, sort_order ASC, id ASC').all(),
     ]);
 
     const sectionsByCourseId = groupBy(allSections || [], 'course_id');
@@ -220,6 +188,13 @@ export async function onRequestPost(context) {
   if (!VALID_STATUSES.has(resolvedStatus)) {
     return json({ ok: false, error: 'invalid_status' }, 400);
   }
+  if (resolvedStatus === 'published') {
+    return json({ ok: false, error: 'not_publishable' }, 409);
+  }
+
+  if (certificateQuizId != null) {
+    return json({ ok: false, error: 'invalid_certificate_quiz_step_id' }, 400);
+  }
 
   if (instructors !== undefined && !Array.isArray(instructors)) {
     return json({ ok: false, error: 'instructors_must_be_array' }, 400);
@@ -238,6 +213,10 @@ export async function onRequestPost(context) {
   }
   if (seo !== undefined && (typeof seo !== 'object' || Array.isArray(seo) || seo === null)) {
     return json({ ok: false, error: 'seo_must_be_object' }, 400);
+  }
+
+  if (sortOrder !== undefined && !Number.isInteger(sortOrder)) {
+    return json({ ok: false, error: 'invalid_sort_order' }, 400);
   }
 
   const resolvedSortOrder = typeof sortOrder === 'number' ? sortOrder : 0;
