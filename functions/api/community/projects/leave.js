@@ -38,6 +38,18 @@ export async function onRequestPost({ request, env, waitUntil }) {
     }
 
     try {
+      const project = await db.prepare(
+        'SELECT owner_user_id FROM project WHERE id = ?'
+      ).bind(projectId).first();
+      if (project && project.owner_user_id === user.id) {
+        return json({ ok: false, error: 'owner_cannot_leave' }, 409);
+      }
+    } catch (err) {
+      log(env, waitUntil, 'community', 'project_leave_error', 'error', err.message, 0, 500);
+      return json({ ok: false, error: 'internal_error' }, 500);
+    }
+
+    try {
       await db.prepare(
         'DELETE FROM project_membership WHERE user_id = ? AND project_id = ?'
       ).bind(user.id, projectId).run();

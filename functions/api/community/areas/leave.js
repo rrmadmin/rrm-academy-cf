@@ -38,6 +38,18 @@ export async function onRequestPost({ request, env, waitUntil }) {
     }
 
     try {
+      const area = await db.prepare(
+        'SELECT owner_user_id FROM action_area WHERE id = ?'
+      ).bind(areaId).first();
+      if (area && area.owner_user_id === user.id) {
+        return json({ ok: false, error: 'owner_cannot_leave' }, 409);
+      }
+    } catch (err) {
+      log(env, waitUntil, 'community', 'area_leave_error', 'error', err.message, 0, 500);
+      return json({ ok: false, error: 'internal_error' }, 500);
+    }
+
+    try {
       await db.prepare(
         'DELETE FROM area_membership WHERE user_id = ? AND area_id = ?'
       ).bind(user.id, areaId).run();
