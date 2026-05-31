@@ -1,9 +1,6 @@
 import { json, optionsResponse } from '../../../auth/_shared.js';
 import { log } from '../../../_log.js';
-
-const VALID_STATUSES = new Set(['draft', 'published', 'archived']);
-const VALID_TYPES = new Set(['video', 'article', 'quiz']);
-const ID_PATTERN = /^[a-z][a-z0-9-]*$/;
+import { VALID_STATUSES, VALID_TYPES, ID_PATTERN } from '../_shared.js';
 
 export function onRequestOptions() {
   return optionsResponse();

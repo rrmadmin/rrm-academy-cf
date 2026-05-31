@@ -47,10 +47,10 @@ export async function onRequestGet(context) {
 
       const [course, { results: sections }, { results: steps }, enrollRow] = await Promise.all([
         env.DB.prepare('SELECT * FROM course WHERE id = ?').bind(id).first(),
-        env.DB.prepare('SELECT * FROM course_section WHERE course_id = ? ORDER BY sort_order ASC').bind(id).all(),
+        env.DB.prepare('SELECT * FROM course_section WHERE course_id = ? ORDER BY sort_order ASC, id ASC').bind(id).all(),
         preview
-          ? env.DB.prepare('SELECT * FROM course_step WHERE course_id = ? ORDER BY section_id, sort_order ASC').bind(id).all()
-          : env.DB.prepare("SELECT * FROM course_step WHERE course_id = ? AND status = 'published' ORDER BY section_id, sort_order ASC").bind(id).all(),
+          ? env.DB.prepare('SELECT * FROM course_step WHERE course_id = ? ORDER BY section_id, sort_order ASC, id ASC').bind(id).all()
+          : env.DB.prepare("SELECT * FROM course_step WHERE course_id = ? AND status = 'published' ORDER BY section_id, sort_order ASC, id ASC").bind(id).all(),
         env.DB.prepare('SELECT COUNT(*) AS live FROM enrollment WHERE revoked_at IS NULL AND course_id = ?').bind(id).first(),
       ]);
 
@@ -63,7 +63,7 @@ export async function onRequestGet(context) {
     }
 
     const { results: courses } = await env.DB.prepare(
-      "SELECT * FROM course WHERE status = 'published' ORDER BY sort_order ASC"
+      "SELECT * FROM course WHERE status = 'published' ORDER BY sort_order ASC, id ASC"
     ).all();
 
     if (!courses || courses.length === 0) {
@@ -72,10 +72,10 @@ export async function onRequestGet(context) {
 
     const [{ results: allSections }, { results: allSteps }, { results: enrollCounts }] = await Promise.all([
       env.DB.prepare(
-        'SELECT s.* FROM course_section s JOIN course c ON s.course_id = c.id WHERE c.status = ? ORDER BY s.course_id, s.sort_order ASC'
+        'SELECT s.* FROM course_section s JOIN course c ON s.course_id = c.id WHERE c.status = ? ORDER BY s.course_id, s.sort_order ASC, s.id ASC'
       ).bind('published').all(),
       env.DB.prepare(
-        "SELECT s.* FROM course_step s JOIN course c ON s.course_id = c.id WHERE c.status = ? AND s.status = 'published' ORDER BY s.section_id, s.sort_order ASC"
+        "SELECT s.* FROM course_step s JOIN course c ON s.course_id = c.id WHERE c.status = ? AND s.status = 'published' ORDER BY s.section_id, s.sort_order ASC, s.id ASC"
       ).bind('published').all(),
       env.DB.prepare(
         'SELECT course_id, COUNT(*) AS live FROM enrollment WHERE revoked_at IS NULL GROUP BY course_id'
