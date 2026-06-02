@@ -252,7 +252,7 @@ Validation: `npm run ssot:validate` (schema + cross-ref) and `npm run ssot:smoke
 | `/library` | `src/pages/library/index.astro` |
 | `/library/[slug]` | `src/pages/library/[...slug].astro` |
 | `/library/page/[page]` | `src/pages/library/page/[page].astro` |
-| `/library/saved` | `src/pages/library/saved.astro` |
+| `/saved/` | `src/pages/saved/index.astro` (universal saved pages, tabbed by type; legacy `/library/saved` 301s here via `public/_redirects`) |
 | `/commentary` | `src/pages/commentary/index.astro` |
 | `/commentary/[slug]` | `src/pages/commentary/[...slug].astro` |
 | `/commentary/page/[page]` | `src/pages/commentary/page/[page].astro` |
