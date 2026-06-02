@@ -81,7 +81,9 @@ const SHELL_ENABLED =
             <p id="guest-signin-hint" class="guest-signin-hint" hidden>Have an account? <a href="/login/">Log in</a> to see your saved pages.</p>
           </div>
 
-          <div id="saved-groups" class="saved-groups"></div>
+          <div id="saved-tabs" class="saved-tabs" role="tablist" aria-label="Filter saved pages by type" hidden></div>
+
+          <div id="saved-groups" class="saved-groups" role="tabpanel"></div>
 
           <!-- Guest sync nudge — shown only for guests with saved pages -->
           <aside id="guest-sync-nudge" class="sync-nudge" hidden>
@@ -121,7 +123,9 @@ const SHELL_ENABLED =
             <p id="guest-signin-hint" class="guest-signin-hint" hidden>Have an account? <a href="/login/">Log in</a> to see your saved pages.</p>
           </div>
 
-          <div id="saved-groups" class="saved-groups"></div>
+          <div id="saved-tabs" class="saved-tabs" role="tablist" aria-label="Filter saved pages by type" hidden></div>
+
+          <div id="saved-groups" class="saved-groups" role="tabpanel"></div>
 
           <aside id="guest-sync-nudge" class="sync-nudge" hidden>
             <div class="sync-nudge__icon" aria-hidden="true">
@@ -175,6 +179,64 @@ const SHELL_ENABLED =
     font-size: 0.8125rem;
     font-weight: 500;
     color: var(--purple-700);
+  }
+
+  /* Type tabs (All / Articles / Commentary / …). Mirrors the citation-tab
+     underline pattern; horizontally scrollable on narrow viewports. */
+  .saved-tabs {
+    display: flex;
+    gap: var(--space-1);
+    border-bottom: 1px solid var(--border-color);
+    margin-bottom: var(--space-6);
+    overflow-x: auto;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+  }
+  .saved-tabs::-webkit-scrollbar { display: none; }
+  .saved-tabs[hidden] { display: none; }
+
+  .saved-tabs :global(.saved-tab) {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-2);
+    flex: 0 0 auto;
+    padding: var(--space-3);
+    font-family: 'Inter', sans-serif;
+    font-size: 0.8125rem;
+    font-weight: 500;
+    color: var(--text-tertiary);
+    background: transparent;
+    border: none;
+    border-bottom: 2px solid transparent;
+    cursor: pointer;
+    white-space: nowrap;
+    transition: color 0.15s, border-color 0.15s;
+  }
+  .saved-tabs :global(.saved-tab:hover) { color: var(--text-primary); }
+  .saved-tabs :global(.saved-tab[aria-selected="true"]) {
+    color: var(--purple-700);
+    border-bottom-color: var(--purple-700);
+    font-weight: 600;
+  }
+  .saved-tabs :global(.saved-tab__count) {
+    font-size: 0.6875rem;
+    font-weight: 600;
+    color: var(--text-tertiary);
+    background: var(--neutral-100);
+    border-radius: var(--radius-pill);
+    padding: 1px 8px;
+    min-width: 20px;
+    text-align: center;
+    font-variant-numeric: tabular-nums;
+  }
+  .saved-tabs :global(.saved-tab[aria-selected="true"] .saved-tab__count) {
+    color: var(--purple-700);
+    background: var(--purple-100);
+  }
+  .saved-tabs :global(.saved-tab:focus-visible) {
+    outline: none;
+    box-shadow: 0 0 0 3px var(--focus-ring);
+    border-radius: var(--radius-sm);
   }
 
   .saved-groups {
@@ -358,12 +420,14 @@ const SHELL_ENABLED =
     updateBadge,
     serverDelete,
     flushPendingDelete,
+    pendingDeleteSet,
   } from '../../scripts/saved.ts';
   import type { SavedItem } from '../../scripts/saved.ts';
 
   (function () {
     const groupsEl = document.getElementById('saved-groups');
     const emptyEl = document.getElementById('saved-empty');
+    const tabsEl = document.getElementById('saved-tabs');
     const actionsRow = document.querySelector('.saved-actions');
     const clearBtn = document.getElementById('clear-all');
     const exportBtn = document.getElementById('export-all');
@@ -415,6 +479,11 @@ const SHELL_ENABLED =
       glossary: 'Glossary',
       pillar: 'Guides',
     };
+    // Singular labels for the per-row type chip shown only in the "All" tab.
+    const TYPE_CHIP: Record<string, string> = {
+      article: 'Article', commentary: 'Commentary', faq: 'FAQ',
+      glossary: 'Glossary', pillar: 'Guide',
+    };
 
     function removeIcon() {
       var b = document.createElement('button');
@@ -430,7 +499,7 @@ const SHELL_ENABLED =
 
     // Render one saved item. href + textContent ONLY — never innerHTML for user
     // data (INV-5 / §3.7).
-    function renderItem(item: SavedItem) {
+    function renderItem(item: SavedItem, withChip?: boolean) {
       var row = document.createElement('div');
       row.className = 'saved-item';
 
@@ -452,6 +521,14 @@ const SHELL_ENABLED =
         info.appendChild(meta);
       }
 
+      // Type chip — only in the mixed "All" tab, where rows span types.
+      if (withChip) {
+        var chip = document.createElement('span');
+        chip.className = 'saved-item__chip';
+        chip.textContent = TYPE_CHIP[item.type] || 'Article';
+        info.appendChild(chip);
+      }
+
       var btn = removeIcon();
       btn.addEventListener('click', function () {
         var remaining = readSaved().filter(function (s) { return s.url !== item.url; });
@@ -459,10 +536,11 @@ const SHELL_ENABLED =
         // M5-style guard: only repaint from the persisted view; if persist
         // failed, re-render the current localStorage so the UI never desyncs.
         var arr = persisted || readSaved();
-        renderGroups(hydrateMeta(arr));
+        render(hydrateMeta(arr));
         updateBadge(arr.length);
         if (hasAuthHint()) {
-          // L1: serverDelete enqueues on transient failure (no resurrection).
+          // L1/L2: serverDelete tombstones + enqueues on transient failure so a
+          // just-removed item can never resurrect on the next authoritative read.
           serverDelete(item.url).catch(function () {});
         }
       });
@@ -472,45 +550,138 @@ const SHELL_ENABLED =
       return row;
     }
 
-    function renderGroups(items: SavedItem[]) {
-      groups.innerHTML = '';
+    // ---- Tabbed rendering (All / per-type), newest-first within a tab ----
+    var activeType = 'all';            // current tab key
+    var tabsVisible = false;           // tab bar shown (≥2 types present)
+    var currentItems: SavedItem[] = []; // last rendered (hydrated) set
 
-      if (!items || items.length === 0) {
+    function typeOf(it: SavedItem): string {
+      return (it.type && GROUP_LABELS[it.type]) ? it.type : 'article';
+    }
+
+    function sortNewest(arr: SavedItem[]): SavedItem[] {
+      return arr.sort(function (a, b) {
+        return String(b.savedAt || '').localeCompare(String(a.savedAt || ''));
+      });
+    }
+
+    function itemsForTab(items: SavedItem[], type: string): SavedItem[] {
+      var arr = (type === 'all') ? items.slice() : items.filter(function (it) { return typeOf(it) === type; });
+      return sortNewest(arr);
+    }
+
+    function countsByType(items: SavedItem[]): Record<string, number> {
+      var counts: Record<string, number> = { all: items.length };
+      GROUP_ORDER.forEach(function (t) { counts[t] = 0; });
+      items.forEach(function (it) { counts[typeOf(it)]++; });
+      return counts;
+    }
+
+    function renderTabs(items: SavedItem[]) {
+      if (!tabsEl) { tabsVisible = false; return; }
+      var counts = countsByType(items);
+      var tabDefs: Array<{ key: string; label: string; count: number }> =
+        [{ key: 'all', label: 'All', count: counts.all }];
+      GROUP_ORDER.forEach(function (t: string) {
+        if (counts[t] > 0) tabDefs.push({ key: t, label: GROUP_LABELS[t], count: counts[t] });
+      });
+
+      // One type only → the tab bar adds no value; drop it and show everything.
+      if (tabDefs.length <= 2) {
+        tabsEl.innerHTML = '';
+        tabsEl.hidden = true;
+        tabsVisible = false;
+        activeType = 'all';
+        return;
+      }
+      // Active tab's type vanished (its last item was removed) → fall back to All.
+      if (activeType !== 'all' && !tabDefs.some(function (t) { return t.key === activeType; })) {
+        activeType = 'all';
+      }
+
+      tabsEl.hidden = false;
+      tabsVisible = true;
+      tabsEl.innerHTML = '';
+      tabDefs.forEach(function (t) {
+        var b = document.createElement('button');
+        b.type = 'button';
+        b.className = 'saved-tab';
+        b.id = 'saved-tab-' + t.key;
+        b.setAttribute('role', 'tab');
+        b.setAttribute('aria-controls', 'saved-groups');
+        var selected = (t.key === activeType);
+        b.setAttribute('aria-selected', String(selected));
+        b.tabIndex = selected ? 0 : -1;
+        b.dataset.type = t.key;
+
+        var label = document.createElement('span');
+        label.className = 'saved-tab__label';
+        label.textContent = t.label;
+        var count = document.createElement('span');
+        count.className = 'saved-tab__count';
+        count.textContent = String(t.count);
+        b.appendChild(label);
+        b.appendChild(count);
+
+        b.addEventListener('click', function () { selectTab(t.key); });
+        tabsEl.appendChild(b);
+      });
+    }
+
+    function selectTab(type: string) {
+      if (!tabsEl) return;
+      activeType = type;
+      Array.prototype.forEach.call(tabsEl.querySelectorAll('.saved-tab'), function (b: Element) {
+        var el = b as HTMLElement;
+        var sel = el.dataset.type === type;
+        el.setAttribute('aria-selected', String(sel));
+        el.tabIndex = sel ? 0 : -1;
+      });
+      renderPanel(currentItems);
+    }
+
+    // Roving-tabindex keyboard nav for the tablist (WAI-ARIA tabs pattern).
+    if (tabsEl) {
+      tabsEl.addEventListener('keydown', function (e: KeyboardEvent) {
+        var nodes = Array.prototype.slice.call(tabsEl.querySelectorAll('.saved-tab')) as HTMLElement[];
+        if (!nodes.length) return;
+        var idx = nodes.findIndex(function (b) { return b.getAttribute('aria-selected') === 'true'; });
+        var next = -1;
+        if (e.key === 'ArrowRight' || e.key === 'ArrowDown') next = (idx + 1) % nodes.length;
+        else if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') next = (idx - 1 + nodes.length) % nodes.length;
+        else if (e.key === 'Home') next = 0;
+        else if (e.key === 'End') next = nodes.length - 1;
+        if (next < 0) return;
+        e.preventDefault();
+        selectTab(nodes[next].dataset.type || 'all');
+        nodes[next].focus();
+      });
+    }
+
+    function renderPanel(items: SavedItem[]) {
+      groups.innerHTML = '';
+      var shown = itemsForTab(items, activeType);
+      var withChips = (activeType === 'all' && tabsVisible);
+      var list = document.createElement('div');
+      list.className = 'saved-group__list';
+      shown.forEach(function (it) { list.appendChild(renderItem(it, withChips)); });
+      groups.appendChild(list);
+    }
+
+    function render(items: SavedItem[]) {
+      currentItems = items || [];
+      if (!currentItems.length) {
         empty.classList.add('visible');
         if (actionsRow) actionsRow.classList.remove('visible');
+        if (tabsEl) { tabsEl.hidden = true; tabsEl.innerHTML = ''; }
+        tabsVisible = false;
+        groups.innerHTML = '';
         return;
       }
       empty.classList.remove('visible');
       if (actionsRow) actionsRow.classList.add('visible');
-
-      // Bucket by type.
-      var buckets: Record<string, SavedItem[]> = {};
-      items.forEach(function (it: SavedItem) {
-        var t = (it.type && GROUP_LABELS[it.type]) ? it.type : 'article';
-        (buckets[t] = buckets[t] || []).push(it);
-      });
-
-      GROUP_ORDER.forEach(function (type: string) {
-        var bucket = buckets[type];
-        if (!bucket || bucket.length === 0) return;
-        // newest first within group
-        bucket.sort(function (a, b) { return String(b.savedAt || '').localeCompare(String(a.savedAt || '')); });
-
-        var section = document.createElement('section');
-        section.className = 'saved-group';
-
-        var h = document.createElement('h2');
-        h.className = 'saved-group__heading';
-        h.textContent = GROUP_LABELS[type];
-        section.appendChild(h);
-
-        var list = document.createElement('div');
-        list.className = 'saved-group__list';
-        bucket.forEach(function (it: SavedItem) { list.appendChild(renderItem(it)); });
-        section.appendChild(list);
-
-        groups.appendChild(section);
-      });
+      renderTabs(currentItems);
+      renderPanel(currentItems);
     }
 
     // RIS export — articles only (§3.7). Non-article items are omitted.
@@ -577,7 +748,7 @@ const SHELL_ENABLED =
         if (!confirm('Remove all saved pages?')) return;
         var all = readSaved();
         replaceSaved([]);
-        renderGroups([]);
+        render([]);
         updateBadge(0);
         if (hasAuthHint()) {
           // L1: each DELETE enqueues on transient failure so clear-all can't
@@ -593,7 +764,7 @@ const SHELL_ENABLED =
     //    so the on-page meta line (authors · journal · year) shows for items
     //    saved on another device (M1).
     var local = hydrateMeta(readSaved());
-    renderGroups(local);
+    render(local);
     updateBadge(local.length);
 
     // 2) Logged-in: fetch the server set and REPLACE localStorage with it
@@ -621,6 +792,13 @@ const SHELL_ENABLED =
       .then(function (result) {
         if (!result || !result.ok) return;
         var serverItems = serverSetFromResponse(result);
+        // L2 race guard: drop any url the user unsaved during this load's
+        // in-flight GET. Without this, the GET snapshot (captured before the
+        // optimistic DELETE) resurrects the just-removed item on adopt.
+        var tomb = pendingDeleteSet();
+        if (tomb.size) {
+          serverItems = serverItems.filter(function (s: SavedItem) { return !tomb.has(s.url); });
+        }
         // Preserve any article meta we already hold locally (server set is
         // minimal {url,title,type,savedAt}) so RIS export survives an
         // authoritative replace.
@@ -642,7 +820,7 @@ const SHELL_ENABLED =
         // view so cross-device article meta shows (M1).
         replaceSaved(merged);
         var hydrated = hydrateMeta(merged);
-        renderGroups(hydrated);
+        render(hydrated);
         updateBadge(hydrated.length);
       })
       .catch(function () {});
