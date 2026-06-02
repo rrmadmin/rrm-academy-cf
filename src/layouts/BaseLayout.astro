@@ -3,7 +3,7 @@ import Header from '../components/Header.astro';
 import Footer from '../components/Footer.astro';
 import pageDates from '../data/page-dates.json';
 import { OG_VERSION } from '../lib/og-config';
-import { getOrganizationJsonLd, getWebsiteJsonLd, buildSpeakable } from '../lib/identity';
+import { getOrganizationJsonLd, getWebsiteJsonLd, getFoundationJsonLd, buildSpeakable } from '../lib/identity';
 import { safeJsonLd } from '../lib/jsonld';
 import pillarRegistry from '../../ssot/pillars.json';
 import libraryStats from '../data/library-stats.json';
@@ -138,11 +138,12 @@ const resolvedTwitterImage = resolvedOgImage.endsWith('.webp')
 // Default JSON-LD payload (Organization + WebSite from SSOT) — only used when
 // the page does not pass an explicit jsonLd prop. Phase 3 (2026-04-29).
 //
-// The SSOT Organization node uses the `legal_name` ("RRM Foundation"). On the
-// public brand surface we want "RRM Academy" as the visible name, so we override
-// here. We also layer `description`, `knowsAbout`, and the editorial policies
-// triple — these aren't yet modeled in ssot/organization.json. Once the SSOT
-// gains those fields, this layer becomes empty and we drop it.
+// RRM Academy and the RRM Foundation are DISTINCT entities: the Academy is a
+// program of the Foundation. The Academy org node carries only its own name;
+// the Foundation's registered legalName + EIN live on a separate
+// parentOrganization node (below), not on the Academy. We also layer
+// `description`, `knowsAbout`, and the editorial policies triple, which aren't
+// yet modeled in ssot/organization.json.
 let defaultJsonLdPayload: Record<string, unknown> | null = null;
 let defaultSpeakableNode: Record<string, unknown> | null = null;
 if (!jsonLd) {
@@ -153,10 +154,10 @@ if (!jsonLd) {
   const organization: Record<string, unknown> = {
     ...orgBase,
     name: 'RRM Academy',
-    legalName: 'Restorative Reproductive Medicine Foundation Inc',
-    alternateName: ['Restorative Reproductive Medicine Foundation', 'RRM Foundation'],
+    alternateName: 'Restorative Reproductive Medicine Academy',
+    parentOrganization: { '@id': 'https://rrm.foundation/#organization' },
     description:
-      'RRM Academy is a trusted nonprofit educational platform and reference source for restorative reproductive medicine (RRM), NaProTechnology, fertility awareness-based methods, endometriosis excision surgery, and reproductive endocrinology. The RRM Research Library is the largest freely accessible collection of peer-reviewed academic references on these topics available online.',
+      'RRM Academy is the educational platform of the Restorative Reproductive Medicine Foundation, a 501(c)(3) nonprofit, and a trusted reference source for restorative reproductive medicine (RRM), NaProTechnology, fertility awareness-based methods, endometriosis excision surgery, and reproductive endocrinology. The RRM Research Library is the largest freely accessible collection of peer-reviewed academic references on these topics available online.',
     knowsAbout: [
       'Restorative Reproductive Medicine',
       'NaProTechnology',
@@ -172,9 +173,13 @@ if (!jsonLd) {
     correctionsPolicy: 'https://rrmacademy.org/policies/corrections/',
     verificationFactCheckingPolicy: 'https://rrmacademy.org/policies/fact-checking/',
   };
+  // Distinct legal-entity node (shared builder). The Academy (above) is a
+  // program of this 501(c)(3); the registered legalName + EIN + charity
+  // profiles belong here, not on the Academy.
+  const foundation = getFoundationJsonLd();
   defaultJsonLdPayload = {
     '@context': 'https://schema.org',
-    '@graph': [organization, webBase],
+    '@graph': [organization, foundation, webBase],
   };
   if (speakable && speakable.length > 0) {
     defaultSpeakableNode = buildSpeakable({ cssSelectors: speakable }) as Record<string, unknown> | null;

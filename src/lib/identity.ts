@@ -75,6 +75,29 @@ export function getOrganizationJsonLd(): OrgNode {
   return snapshot.organization as OrgNode;
 }
 
+/**
+ * RRM Foundation legal-entity node. RRM Academy is a program of this 501(c)(3);
+ * the registered legalName + EIN + charity profiles belong here, NOT on the
+ * Academy org node. Emit this as a distinct node (the parentOrganization target)
+ * in every @graph that asserts the organization, so the two entities stay
+ * decoupled. Single source so consumers (homepage, BaseLayout default, about)
+ * cannot drift and silently re-create the Academy=Foundation merge conflation.
+ */
+export function getFoundationJsonLd(): SchemaNode {
+  return {
+    '@type': ['Organization', 'NGO'],
+    '@id': 'https://rrm.foundation/#organization',
+    name: 'Restorative Reproductive Medicine Foundation',
+    legalName: 'Restorative Reproductive Medicine Foundation Inc',
+    url: 'https://rrm.foundation/',
+    identifier: [{ '@type': 'PropertyValue', propertyID: 'EIN', value: '93-4594315' }],
+    sameAs: [
+      'https://projects.propublica.org/nonprofits/organizations/934594315',
+      'https://www.guidestar.org/profile/93-4594315',
+    ],
+  };
+}
+
 export function getWebsiteJsonLd(): SchemaNode {
   return snapshot.website as SchemaNode;
 }
