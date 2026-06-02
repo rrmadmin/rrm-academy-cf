@@ -28,6 +28,13 @@ if (orgIdx >= 0) {
   const org = identityNodes[orgIdx] as Record<string, unknown>;
   // W1-2: ensure all three @types are declared.
   org['@type'] = ['Organization', 'EducationalOrganization', 'MedicalOrganization'];
+  // Ad Grants finding O: surface the legal applicant entity in homepage structured
+  // data so a machine reviewer can match the site to the IRS BMF record. BaseLayout's
+  // default org node already carries these, but the homepage passes its own jsonLd
+  // (this graph) and bypasses that default, leaving the homepage Organization node
+  // without legalName. Mirrors BaseLayout.astro. Byte-exact to IRS BMF (no period).
+  org.legalName = 'Restorative Reproductive Medicine Foundation Inc';
+  org.alternateName = ['Restorative Reproductive Medicine Foundation', 'RRM Foundation'];
   // W1-3: parentOrganization as @id ref + EIN as PropertyValue identifier.
   org.parentOrganization = { '@id': 'https://rrm.foundation/#organization' };
   org.identifier = [
