@@ -14,7 +14,7 @@
       "description_html": "The surgeon cuts out the endometriosis lesion and the underlying tissue into which it has grown. Nothing is left behind. Pathology specimen is preserved.",
       "repeat_surgery_rate_html": "<strong>2.5%</strong> over multi-year follow-up in a prospective cohort of 620 patients. <a href=\"/library/the-long-term-rate-of-repeat-surgery-after-optimal-excision-surgery-of-endometriosis-at-a-single-tertiary-referral-center-recqlibe83zkcp2is/\">Yeung et al. 2025</a>.",
       "pathology_confirmation": "Yes -- tissue sent for histologic confirmation",
-      "hormonal_suppression_post_op": "Not necessary for good outcomes in complete excision, per <a href=\"/library/complete-laparoscopic-excision-of-endometriosis-in-teenagers-is-postoperative-ho-recxfcsmpuo5jwlej/\">Yeung et al. 2011</a>.",
+      "hormonal_suppression_post_op": "Not necessary for good outcomes after complete excision (<a href=\"/library/complete-laparoscopic-excision-of-endometriosis-in-teenagers-is-postoperative-ho-recxfcsmpuo5jwlej/\">Yeung et al. 2011</a>).",
       "rrm_stance": "Endorsed as the only surgical standard"
     },
     {
@@ -22,7 +22,7 @@
       "name": "Ablation",
       "subtitle": "Surface destruction",
       "description_html": "Heat, laser, or electrical energy destroys the visible surface of a lesion. Disease that has grown beneath the surface is untouched. The specimen is destroyed.",
-      "repeat_surgery_rate_html": "<strong>Up to 40 to 60%</strong> in historical series, per <a href=\"/library/the-long-term-rate-of-repeat-surgery-after-optimal-excision-surgery-of-endometriosis-at-a-single-tertiary-referral-center-recqlibe83zkcp2is/\">Yeung et al. 2025</a>.",
+      "repeat_surgery_rate_html": "<strong>Up to 40 to 60%</strong> in historical series (<a href=\"/library/the-long-term-rate-of-repeat-surgery-after-optimal-excision-surgery-of-endometriosis-at-a-single-tertiary-referral-center-recqlibe83zkcp2is/\">Yeung et al. 2025</a>).",
       "pathology_confirmation": "No -- tissue destroyed by the procedure",
       "hormonal_suppression_post_op": "Frequently prescribed, but does not prevent disease progression",
       "rrm_stance": "Not endorsed. Inferior to excision on repeat-surgery outcomes."
