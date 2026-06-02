@@ -268,6 +268,7 @@ function stepTypeLabel(type: string) {
     videoWatchReq: course.settings?.videoWatchRequirement || 0.9,
     fixedOrder: course.settings?.stepOrder === 'fixed',
     isMembersCourse: (course as any).accessType === 'members',
+    guestReadable: !!course.settings?.guestReadable,
     autoplayNext: course.settings?.autoplayNextVideo || false,
     hasCertificate: !!course.hasCertificate,
   }}>
@@ -309,17 +310,57 @@ function stepTypeLabel(type: string) {
         if (nextBtn) nextBtn.classList.add('btn--disabled');
       }
 
+      // guestReadable course, visitor not logged in / not enrolled: let them READ
+      // the lesson. Only the quiz + certificate require an account (the quiz block
+      // self-handles its own "Sign In Required" message). Suppress progress controls
+      // and show a non-blocking preview banner.
+      function enterGuestPreview() {
+        // 1. Mark Complete is meaningless for a guest — replace with a login CTA.
+        var markBtn = document.getElementById('mark-complete-btn');
+        if (markBtn) {
+          markBtn.outerHTML =
+            '<a class="btn btn--secondary" href="/login/?redirect=' +
+            encodeURIComponent(window.location.pathname) +
+            '">Log in to track progress</a>';
+        }
+        // 2. Keep navigation free — guests may read every lesson in order.
+        var nextBtn = document.getElementById('next-lesson-btn');
+        if (nextBtn) {
+          nextBtn.classList.remove('btn--disabled');
+          nextBtn.removeAttribute('aria-disabled');
+        }
+        // 3. Non-blocking preview banner above the lesson body.
+        var content = document.querySelector('.player-content');
+        if (content && !document.getElementById('guest-preview-banner')) {
+          var banner = document.createElement('div');
+          banner.id = 'guest-preview-banner';
+          banner.className = 'guest-preview-banner';
+          banner.innerHTML =
+            'You’re previewing this course. <a href="/login/?redirect=' +
+            encodeURIComponent(window.location.pathname) +
+            '">Log in</a> and enroll to take the quiz and earn your RRM Policymaker Briefing certificate.';
+          content.parentNode.insertBefore(banner, content);
+        }
+      }
+
       // --- Auth check + load progress ---
       fetch('/api/courses/progress?courseId=' + encodeURIComponent(courseId), { credentials: 'same-origin' })
         .then(function (r) { return r.json(); })
         .then(function (data) {
           if (!data.ok) {
-            // Not enrolled. For member courses, show in-place paywall (graceful) instead of redirect-loop.
-            // Logged-out + non-member courses: redirect to course detail (existing behavior).
+            // Member courses: in-place paywall (graceful) instead of redirect-loop.
             if (isMembersCourse) {
               showMembershipLapsedPaywall();
               return;
             }
+            // Guest-readable courses (settings.guestReadable): let guests READ the
+            // lesson; only quiz/cert need an account. Scoped by flag so PAID public
+            // courses are NOT exposed.
+            if (guestReadable) {
+              enterGuestPreview();
+              return;
+            }
+            // All other courses keep the existing redirect to course detail.
             window.location.href = '/courses/' + courseSlug + '/';
             return;
           }
@@ -1503,6 +1544,18 @@ function stepTypeLabel(type: string) {
     text-align: center;
     padding: var(--space-16) 0;
   }
+
+  /* Guest preview banner — guestReadable courses, logged-out visitors */
+  :global(.guest-preview-banner) {
+    background: var(--bg-surface, #f3f0ee);
+    border: 1px solid var(--border-color, #e2dcd6);
+    border-radius: var(--radius-md);
+    padding: var(--space-3) var(--space-4);
+    margin: 0 0 var(--space-5);
+    font-size: 0.9375rem;
+    line-height: 1.4;
+  }
+  :global(.guest-preview-banner a) { color: var(--accent, #725e7e); font-weight: 600; }
 
   /* Quiz container */
   .quiz-content {
