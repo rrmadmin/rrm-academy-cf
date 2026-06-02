@@ -564,7 +564,7 @@
           "cssVariable": "--footer-accent-hover"
         },
         "muted": {
-          "value": "#949392",
+          "value": "#686766",
           "type": "color",
           "cssVariable": "--footer-muted"
         },
@@ -1404,7 +1404,7 @@
           "cssVariable": "--footer-accent-hover"
         },
         "muted": {
-          "value": "#9a9088",
+          "value": "#a8a098",
           "type": "color",
           "cssVariable": "--footer-muted"
         },
