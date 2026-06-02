@@ -47,7 +47,7 @@ export async function onRequestPost({ request, env, waitUntil }) {
     }
 
     // Generate new code and expiry.
-    const code = generateToken().slice(0, 8);
+    const code = generateToken().slice(0, 12);
     const expiresAt = Math.floor(Date.now() / 1000) + EMAIL_VERIFY_TTL_S;
 
     // Write D1 first — if SES fails, the new code is already in D1 and the user
