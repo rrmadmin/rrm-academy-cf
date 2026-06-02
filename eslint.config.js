@@ -30,6 +30,7 @@ export default [
         DecompressionStream: 'readonly',
         CompressionStream: 'readonly',
         ReadableStream: 'readonly',
+        HTMLRewriter: 'readonly',
       },
     },
     rules: {

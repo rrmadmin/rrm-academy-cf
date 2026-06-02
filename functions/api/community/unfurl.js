@@ -171,9 +171,8 @@ export async function onRequestGet({ request, env, waitUntil }) {
     }
 
     // Validate + SSRF-guard; parse-failure → 400, no cache
-    let parsedOk;
     try {
-      parsedOk = new URL(raw);
+      new URL(raw);
     } catch {
       return json({ ok: false, error: 'invalid_url' }, 400);
     }
