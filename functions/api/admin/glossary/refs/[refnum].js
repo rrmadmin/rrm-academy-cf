@@ -104,10 +104,10 @@ export async function onRequestPut(context) {
       return json({ ok: false, error: 'url_required' }, 400);
     }
   }
-  if (body.journal !== undefined && typeof body.journal === 'string' && body.journal.length > 500) {
+  if (body.journal !== undefined && body.journal !== null && (typeof body.journal !== 'string' || body.journal.length > 500)) {
     return json({ ok: false, error: 'journal_too_long' }, 400);
   }
-  if (body.publisher !== undefined && typeof body.publisher === 'string' && body.publisher.length > 500) {
+  if (body.publisher !== undefined && body.publisher !== null && (typeof body.publisher !== 'string' || body.publisher.length > 500)) {
     return json({ ok: false, error: 'publisher_too_long' }, 400);
   }
 

@@ -103,7 +103,7 @@ export async function onRequestPut(context) {
       return json({ ok: false, error: 'body_html_too_long' }, 400);
     }
   }
-  if (body.abbreviation !== undefined && typeof body.abbreviation === 'string' && body.abbreviation.length > 100) {
+  if (body.abbreviation !== undefined && body.abbreviation !== null && (typeof body.abbreviation !== 'string' || body.abbreviation.length > 100)) {
     return json({ ok: false, error: 'abbreviation_too_long' }, 400);
   }
   if (body.pillar_link !== undefined && body.pillar_link !== null && body.pillar_link !== '') {

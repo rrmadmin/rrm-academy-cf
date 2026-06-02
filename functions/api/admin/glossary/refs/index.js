@@ -83,10 +83,10 @@ export async function onRequestPost(context) {
     return json({ ok: false, error: 'url_malformed' }, 400);
   }
 
-  if (journal !== undefined && typeof journal === 'string' && journal.length > 500) {
+  if (journal !== undefined && journal !== null && (typeof journal !== 'string' || journal.length > 500)) {
     return json({ ok: false, error: 'journal_too_long' }, 400);
   }
-  if (publisher !== undefined && typeof publisher === 'string' && publisher.length > 500) {
+  if (publisher !== undefined && publisher !== null && (typeof publisher !== 'string' || publisher.length > 500)) {
     return json({ ok: false, error: 'publisher_too_long' }, 400);
   }
 

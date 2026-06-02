@@ -73,7 +73,6 @@ export async function onRequestPost(context) {
   if (sort_order !== undefined && (!Number.isInteger(sort_order) || sort_order < 0 || sort_order > 10000)) {
     return json({ ok: false, error: 'sort_order_invalid' }, 400);
   }
-  const resolvedSortOrder = typeof sort_order === 'number' ? sort_order : 0;
 
   const normalizedTermSlug = (typeof term_slug === 'string' && term_slug.trim()) ? term_slug.trim().toLowerCase() : null;
   if (normalizedTermSlug !== null) {
@@ -89,6 +88,16 @@ export async function onRequestPost(context) {
   }
 
   try {
+    let resolvedSortOrder;
+    if (typeof sort_order === 'number') {
+      resolvedSortOrder = sort_order;
+    } else {
+      const nextRow = await env.DB.prepare(
+        'SELECT COALESCE(MAX(sort_order), 0) + 1 AS next FROM glossary_abbreviation'
+      ).first();
+      resolvedSortOrder = nextRow?.next ?? 1;
+    }
+
     const row = await env.DB.prepare(
       'INSERT OR IGNORE INTO glossary_abbreviation (abbreviation, full_term, term_slug, sort_order) VALUES (?, ?, ?, ?) RETURNING *'
     ).bind(abbreviation.trim(), full_term.trim(), normalizedTermSlug, resolvedSortOrder).first();
