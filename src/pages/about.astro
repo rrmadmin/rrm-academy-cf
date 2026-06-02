@@ -4,7 +4,7 @@ import LastUpdated from '../components/LastUpdated.astro';
 import TeamCard from '../components/TeamCard.astro';
 import SocialRow from '../components/SocialRow.astro';
 import articlesData from '../data/articles.json';
-import { getOrganizationJsonLd, getTeam } from '../lib/identity';
+import { getOrganizationJsonLd, getTeam, getFoundationJsonLd } from '../lib/identity';
 
 const libraryCount = articlesData.length.toLocaleString();
 const team = getTeam();
@@ -17,6 +17,7 @@ const jsonLd = {
   '@graph': [
     {
       ...orgNode,
+      parentOrganization: { '@id': 'https://rrm.foundation/#organization' },
       address: {
         '@type': 'PostalAddress',
         streetAddress: '3401 Hartzdale Dr, Ste 103B PMB 3518',
@@ -29,6 +30,7 @@ const jsonLd = {
       correctionsPolicy: 'https://rrmacademy.org/policies/corrections/',
       verificationFactCheckingPolicy: 'https://rrmacademy.org/policies/fact-checking/',
     },
+    getFoundationJsonLd(),
     {
       '@type': ['Physician', 'Person'],
       '@id': 'https://rrmacademy.org/#naomi-whittaker',
