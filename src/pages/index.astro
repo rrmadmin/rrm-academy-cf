@@ -4,7 +4,7 @@ import LastUpdated from '../components/LastUpdated.astro';
 import { fetchAllArticles } from '../lib/airtable';
 import coursesData from '../data/courses.json';
 import surveyCountData from '../data/survey-count.json';
-import { buildIdentityGraph } from '../lib/identity';
+import { buildIdentityGraph, getFoundationJsonLd } from '../lib/identity';
 
 const articles = await fetchAllArticles();
 const articleCount = articles.length;
@@ -28,22 +28,11 @@ if (orgIdx >= 0) {
   const org = identityNodes[orgIdx] as Record<string, unknown>;
   // W1-2: ensure all three @types are declared.
   org['@type'] = ['Organization', 'EducationalOrganization', 'MedicalOrganization'];
-  // Ad Grants finding O: surface the legal applicant entity in homepage structured
-  // data so a machine reviewer can match the site to the IRS BMF record. BaseLayout's
-  // default org node already carries these, but the homepage passes its own jsonLd
-  // (this graph) and bypasses that default, leaving the homepage Organization node
-  // without legalName. Mirrors BaseLayout.astro. Byte-exact to IRS BMF (no period).
-  org.legalName = 'Restorative Reproductive Medicine Foundation Inc';
-  org.alternateName = ['Restorative Reproductive Medicine Foundation', 'RRM Foundation'];
-  // W1-3: parentOrganization as @id ref + EIN as PropertyValue identifier.
+  // RRM Academy is a program of the RRM Foundation, a distinct legal entity.
+  // The registered legalName + EIN belong to the Foundation node (pushed below),
+  // NOT the Academy node. This keeps the IRS-BMF / Ad Grants applicant match on
+  // the homepage (now on the Foundation node) while decoupling the two entities.
   org.parentOrganization = { '@id': 'https://rrm.foundation/#organization' };
-  org.identifier = [
-    {
-      '@type': 'PropertyValue',
-      propertyID: 'EIN',
-      value: '93-4594315',
-    },
-  ];
   // W1-6: expand sameAs with the strongest entity anchors available. SSOT-bound
   // entries are preserved; inline entries are appended (de-duped).
   const ssotSameAs = Array.isArray(org.sameAs) ? (org.sameAs as string[]) : [];
@@ -51,8 +40,6 @@ if (orgIdx >= 0) {
     'https://www.instagram.com/rrmacademy',
     'https://www.youtube.com/@rrmacademy',
     'https://x.com/rrmacademy',
-    'https://projects.propublica.org/nonprofits/organizations/934594315',
-    'https://www.guidestar.org/profile/93-4594315',
   ];
   org.sameAs = Array.from(new Set([...ssotSameAs, ...inlineSameAs]));
   // W1-30: subjectOf for agent-discovery surfaces.
@@ -82,6 +69,11 @@ if (orgIdx >= 0) {
   };
   identityNodes[orgIdx] = org;
 }
+
+// Distinct legal-entity node (shared builder): RRM Academy is a program of this
+// 501(c)(3); the registered legalName + EIN + charity profiles live on the
+// Foundation, not the Academy. The Academy's parentOrganization points here.
+identityNodes.push(getFoundationJsonLd());
 
 if (naomiIdx >= 0) {
   const naomi = identityNodes[naomiIdx] as Record<string, unknown>;
