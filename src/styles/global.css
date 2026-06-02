@@ -100,7 +100,8 @@
   --footer-link-hover: #725e7e;
   --footer-accent: #725e7e;
   --footer-accent-hover: #4c3e54;
-  --footer-muted: #949392;
+  /* muted darkened for WCAG AA 4.5:1 on --footer-bg (#efe8e0): now 4.65:1 */
+  --footer-muted: #686766;
   --footer-border: rgba(0, 0, 0, 0.1);
 
   /* Error */
@@ -317,7 +318,8 @@
   --footer-link-hover: #f7f0e8;
   --footer-accent: #d8c8c0;
   --footer-accent-hover: #f0e8e0;
-  --footer-muted: #9a9088;
+  /* muted lightened for WCAG AA 4.5:1 on --footer-bg (#3a3530): now 4.70:1 */
+  --footer-muted: #a8a098;
   --footer-border: rgba(247, 240, 232, 0.1);
 
   --color-error: #8a5048;
