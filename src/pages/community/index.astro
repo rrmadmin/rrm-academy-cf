@@ -837,6 +837,15 @@ const SHELL_ENABLED = isShellEnabled('community');
           }
         }
 
+        // Link preview card — lazy unfurl of the first link (non-event posts only;
+        // events already render a flyer + Join Call link).
+        if (post.type !== 'event' && bodyText) {
+          var linkSlot = document.createElement('div');
+          linkSlot.className = 'link-card-slot';
+          main.appendChild(linkSlot);
+          attachUnfurl(linkSlot, bodyText);
+        }
+
         // Actions bar
         var actions = document.createElement('div');
         actions.className = 'post-card__actions';
@@ -1068,6 +1077,105 @@ const SHELL_ENABLED = isShellEnabled('community');
         s = s.replace(/\*(.+?)\*/g, '<em>$1</em>');
 
         return s;
+      }
+
+      // ── Link unfurl (OG preview card for the first link in a post) ──
+      var __unfurlObserver = null;
+      function getUnfurlObserver() {
+        if (__unfurlObserver) return __unfurlObserver;
+        if (!('IntersectionObserver' in window)) return null;
+        __unfurlObserver = new IntersectionObserver(function (entries, obs) {
+          for (var i = 0; i < entries.length; i++) {
+            if (!entries[i].isIntersecting) continue;
+            var el = entries[i].target;
+            obs.unobserve(el);
+            fetchUnfurl(el, el.getAttribute('data-unfurl-url'));
+          }
+        }, { rootMargin: '400px 0px' });
+        return __unfurlObserver;
+      }
+
+      // First http(s) / bare-domain link in body, excluding markdown-image
+      // targets and /api/assets/ paths (those already render inline).
+      function firstUnfurlableLink(body) {
+        if (!body) return null;
+        var masked = body.replace(/!\[[^\]]*\]\([^)]*\)/g, function (m) { return m.replace(/[^\n]/g, ' '); });
+        var candidates = [];
+        var re, m;
+        re = /\[[^\]]+\]\((https?:\/\/[^\s)]+)\)/g;
+        while ((m = re.exec(masked))) candidates.push({ idx: m.index, url: m[1] });
+        re = /(^|[\s(])(https?:\/\/[^\s<)]+)/g;
+        while ((m = re.exec(masked))) candidates.push({ idx: m.index + m[1].length, url: m[2] });
+        re = /(^|[\s(])([a-zA-Z0-9][\w.-]*\.(?:com|org|net|edu|gov|io|co|us|uk|dev|app|me|info|health)(?:\/[^\s<)]*)?)/g;
+        while ((m = re.exec(masked))) candidates.push({ idx: m.index + m[1].length, url: /^https?:\/\//.test(m[2]) ? m[2] : 'https://' + m[2] });
+        if (!candidates.length) return null;
+        candidates.sort(function (a, b) { return a.idx - b.idx; });
+        for (var i = 0; i < candidates.length; i++) {
+          var u = candidates[i].url.replace(/[.,;:!?)]+$/, '');
+          if (u.indexOf('/api/assets/') !== -1) continue;
+          return u;
+        }
+        return null;
+      }
+
+      function attachUnfurl(container, body) {
+        var link = firstUnfurlableLink(body);
+        if (!link) return;
+        container.setAttribute('data-unfurl-url', link);
+        var obs = getUnfurlObserver();
+        if (obs) obs.observe(container);
+        else fetchUnfurl(container, link);
+      }
+
+      function fetchUnfurl(container, link) {
+        if (!link) { container.remove(); return; }
+        fetch('/api/community/unfurl?url=' + encodeURIComponent(link), { credentials: 'same-origin' })
+          .then(function (r) { return r.ok ? r.json() : null; })
+          .then(function (data) {
+            if (!data || !data.ok || !data.preview) { container.remove(); return; }
+            renderLinkCard(container, data.preview);
+          })
+          .catch(function () { container.remove(); });
+      }
+
+      function renderLinkCard(container, p) {
+        var a = document.createElement('a');
+        a.className = 'link-card';
+        a.href = p.url;
+        a.target = '_blank';
+        a.rel = 'noopener noreferrer';
+        if (p.image) {
+          var media = document.createElement('div');
+          media.className = 'link-card__media';
+          var img = document.createElement('img');
+          img.src = p.image;
+          img.alt = '';
+          img.loading = 'lazy';
+          img.referrerPolicy = 'no-referrer';
+          img.addEventListener('error', function () { a.classList.add('link-card--no-img'); media.remove(); });
+          media.appendChild(img);
+          a.appendChild(media);
+        } else {
+          a.classList.add('link-card--no-img');
+        }
+        var text = document.createElement('div');
+        text.className = 'link-card__text';
+        var domain = document.createElement('span');
+        domain.className = 'link-card__domain';
+        domain.textContent = p.domain || '';
+        text.appendChild(domain);
+        var title = document.createElement('span');
+        title.className = 'link-card__title';
+        title.textContent = p.title || p.url;
+        text.appendChild(title);
+        if (p.description) {
+          var desc = document.createElement('span');
+          desc.className = 'link-card__desc';
+          desc.textContent = p.description;
+          text.appendChild(desc);
+        }
+        a.appendChild(text);
+        container.appendChild(a);
       }
 
       // --- Format toolbar ---
@@ -2430,6 +2538,79 @@ const SHELL_ENABLED = isShellEnabled('community');
     object-fit: contain;
     border-radius: 8px;
     margin: 8px 0;
+  }
+
+  /* ── Link unfurl card (OG preview for the first link in a post) ── */
+  .link-card-slot:empty { min-height: 1px; }
+  .link-card {
+    display: flex;
+    align-items: stretch;
+    gap: 0;
+    margin: 8px 0 4px;
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-md);
+    background: var(--bg-surface);
+    overflow: hidden;
+    text-decoration: none;
+    transition: border-color 0.15s, background 0.15s;
+  }
+  .link-card:hover {
+    border-color: var(--accent);
+    background: var(--bg-card);
+  }
+  .link-card__media {
+    flex: 0 0 auto;
+    width: 112px;
+    align-self: stretch;
+    background: var(--bg-body);
+  }
+  .link-card__media img {
+    display: block;
+    width: 112px;
+    height: 100%;
+    min-height: 96px;
+    max-height: 140px;
+    object-fit: cover;
+  }
+  .link-card__text {
+    flex: 1 1 auto;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    gap: 3px;
+    padding: 10px 12px;
+  }
+  .link-card__domain {
+    font-size: 11px;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    color: var(--text-tertiary);
+  }
+  .link-card__title {
+    font-size: 14px;
+    font-weight: 600;
+    line-height: 1.3;
+    color: var(--text-primary);
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+  .link-card__desc {
+    font-size: 13px;
+    line-height: 1.35;
+    color: var(--text-secondary);
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+  @media (max-width: 520px) {
+    .link-card { flex-direction: column; }
+    .link-card__media,
+    .link-card__media img { width: 100%; }
+    .link-card__media img { height: 160px; min-height: 0; max-height: 160px; }
   }
 
   /* ── Compose image bar ── */
