@@ -192,10 +192,14 @@ export function replaceSaved(items: SavedItem[]): SavedItem[] | null {
  */
 export function adoptServerSet(serverItems: SavedItem[]): SavedItem[] | null {
   try {
+    // L2: never re-adopt a url the user just unsaved. The server snapshot may
+    // predate the DELETE; the tombstone keeps it removed until the delete is
+    // confirmed-and-pruned (or lifted on re-save).
+    const tomb = pendingDeleteSet();
     const byUrl = new Map<string, SavedItem>();
     // Start from the server set (authoritative for urls it contains).
     for (const it of serverItems) {
-      if (it && typeof it.url === 'string' && it.url) byUrl.set(it.url, it);
+      if (it && typeof it.url === 'string' && it.url && !tomb.has(it.url)) byUrl.set(it.url, it);
     }
     // Union local-only urls (preserve concurrent optimistic saves).
     for (const it of readSaved()) {
@@ -436,6 +440,26 @@ export function queuePendingDelete(url: string): void {
   writePendingDelete(Array.from(set));
 }
 
+/** Lift a tombstone (e.g. the user re-saved a url they had just unsaved). */
+export function dequeuePendingDelete(url: string): void {
+  if (typeof url !== 'string' || !url) return;
+  const set = new Set(readPendingDelete());
+  if (set.delete(url)) writePendingDelete(Array.from(set));
+}
+
+/**
+ * Snapshot of the pending-delete tombstones (urls removed locally whose server
+ * removal isn't yet confirmed-and-pruned). Every server-reconcile/adopt path
+ * filters these out so a stale GET snapshot — one issued BEFORE an optimistic
+ * unsave — cannot resurrect a just-removed item (L2: the same-load delete race
+ * that L1's failed-DELETE-only queue did not cover). Pruned on a later shell
+ * load by flushPendingDelete once the DELETE confirms, or lifted immediately by
+ * dequeuePendingDelete on re-save.
+ */
+export function pendingDeleteSet(): Set<string> {
+  return new Set(readPendingDelete());
+}
+
 /**
  * DELETE a single url on the server, classifying the outcome (L1, mirrors
  * postBatch's response-class partition):
@@ -467,8 +491,13 @@ async function deleteOne(url: string): Promise<boolean> {
  */
 export async function serverDelete(url: string): Promise<void> {
   if (!hasAuthHint()) return;
-  const keep = await deleteOne(url);
-  if (keep) queuePendingDelete(url);
+  // L2: tombstone FIRST, before awaiting the network. A reconcile GET issued
+  // before this unsave will still return the url in its snapshot; the tombstone
+  // makes every adopt/reconcile path drop it so it can't be resurrected. The
+  // tombstone is pruned on a later shell load by flushPendingDelete once the
+  // DELETE confirms (and re-queued there anyway on transient failure).
+  queuePendingDelete(url);
+  await deleteOne(url);
 }
 
 /**
@@ -636,7 +665,10 @@ export function initSavedShell(): void {
           serverDelete(url).catch(() => { /* queued; retried next load */ });
         }
       } else {
-        // Save: optimistic local add via merge-on-write.
+        // Save: optimistic local add via merge-on-write. Lift any stale
+        // tombstone first so re-saving a just-unsaved url isn't filtered back
+        // out by the reconcile's pending-delete guard (L2).
+        dequeuePendingDelete(url);
         const item: SavedItem = { url, title, type, savedAt: nowISO() };
         const persisted = writeSaved([item]);
         if (persisted) {

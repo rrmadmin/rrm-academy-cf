@@ -358,6 +358,7 @@ const SHELL_ENABLED =
     updateBadge,
     serverDelete,
     flushPendingDelete,
+    pendingDeleteSet,
   } from '../../scripts/saved.ts';
   import type { SavedItem } from '../../scripts/saved.ts';
 
@@ -621,6 +622,13 @@ const SHELL_ENABLED =
       .then(function (result) {
         if (!result || !result.ok) return;
         var serverItems = serverSetFromResponse(result);
+        // L2 race guard: drop any url the user unsaved during this load's
+        // in-flight GET. Without this, the GET snapshot (captured before the
+        // optimistic DELETE) resurrects the just-removed item on adopt.
+        var tomb = pendingDeleteSet();
+        if (tomb.size) {
+          serverItems = serverItems.filter(function (s: SavedItem) { return !tomb.has(s.url); });
+        }
         // Preserve any article meta we already hold locally (server set is
         // minimal {url,title,type,savedAt}) so RIS export survives an
         // authoritative replace.
