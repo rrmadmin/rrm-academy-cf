@@ -10,7 +10,7 @@ import {
   getSessionIdFromCookie,
 } from './_shared.js';
 import { validateEmail } from './_email-validate.js';
-import { verifyAndTagEmail } from '../_elv.js';
+import { verifyAndTagEmail, verifyEmailELV } from '../_elv.js';
 import { sendEmail, logEmailFailure } from '../_ses.js';
 import { sendGA4Event } from '../_ga4.js';
 import { log } from '../_log.js';
@@ -129,6 +129,12 @@ export async function onRequestPost({ request, env, waitUntil }) {
     // overwriting an existing user's CRM contact row via ELV's ON CONFLICT upsert.
     const existing = await db.prepare('SELECT id FROM user WHERE email = ? COLLATE NOCASE').bind(cleanEmail).first();
     if (existing) {
+      // Equalize timing with the new-email path that calls verifyAndTagEmail (which
+      // runs verifyEmailELV internally). Running ELV here closes the enumeration oracle
+      // created by the latency difference. Result is discarded -- ELV is fail-open,
+      // the email is already known-valid, and no CRM write is performed.
+      await verifyEmailELV(cleanEmail, env);
+
       // Anti-enumeration: silent 201, but fire-and-forget informational email with cooldown
       if (env.COMMUNITY_KV) {
         const cooldownKey = `signup-collision:${cleanEmail}`;
@@ -179,7 +185,7 @@ export async function onRequestPost({ request, env, waitUntil }) {
     const userId = generateId();
     const name = firstName + ' ' + lastName;
 
-    const code = generateToken().slice(0, 8); // 8-char verification code
+    const code = generateToken().slice(0, 12); // 12-char verification code (48-bit entropy)
     const verifyExpiresAt = Math.floor(Date.now() / 1000) + EMAIL_VERIFY_TTL_S;
 
     const sessionId = generateSessionId();

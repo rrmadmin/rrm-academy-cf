@@ -97,7 +97,7 @@ export async function onRequestPost(context) {
   if (body_html.length > 200000) {
     return json({ ok: false, error: 'body_html_too_long' }, 400);
   }
-  if (abbreviation !== undefined && typeof abbreviation === 'string' && abbreviation.length > 100) {
+  if (abbreviation !== undefined && abbreviation !== null && (typeof abbreviation !== 'string' || abbreviation.length > 100)) {
     return json({ ok: false, error: 'abbreviation_too_long' }, 400);
   }
   if (pillar_link !== undefined && pillar_link !== null && pillar_link !== '') {

@@ -177,28 +177,26 @@ export function clampTrialEnd(wixLookup, env) {
 export async function findBlockingActiveSubscription(stripe, stripeCustomerId, env, waitUntil) {
   if (!stripeCustomerId) return null;
 
-  let existing;
+  const nowSec = Math.floor(Date.now() / 1000);
+  let blocking = null;
   try {
-    existing = await stripe.subscriptions.list({
-      customer: stripeCustomerId,
-      status: 'all',
-      limit: 100,
-    });
+    for await (const s of stripe.subscriptions.list({ customer: stripeCustomerId, status: 'all', limit: 100 })) {
+      if (s.status === 'active' || s.status === 'trialing' || s.status === 'past_due' || s.status === 'incomplete') {
+        blocking = s;
+        break;
+      }
+      // Cancellation pending — sub still has access through current period
+      if (s.cancel_at_period_end && s.current_period_end && s.current_period_end > nowSec) {
+        blocking = s;
+        break;
+      }
+    }
   } catch (err) {
     log(env, waitUntil, 'billing', 'subscriptions_list_error', 'error', `stripe subscriptions.list: ${err.message}`, 0, 503);
     return {
       response: json({ ok: false, error: 'Payment service temporarily unavailable. Please try again.' }, 503),
     };
   }
-
-  // TODO: paginate when existing.has_more — applies to donors with >100 historical subs (vanishingly rare today)
-  const nowSec = Math.floor(Date.now() / 1000);
-  const blocking = existing.data.find(s => {
-    if (s.status === 'active' || s.status === 'trialing' || s.status === 'past_due' || s.status === 'incomplete') return true;
-    // Cancellation pending — sub still has access through current period
-    if (s.cancel_at_period_end && s.current_period_end && s.current_period_end > nowSec) return true;
-    return false;
-  });
 
   if (!blocking) return null;
 

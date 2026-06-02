@@ -74,12 +74,21 @@ describe('create-checkout -- subscription guard (F3)', () => {
       new URL('../functions/api/billing/_migration-handoff.js', import.meta.url),
       'utf8'
     );
-    // The blocking find() must include 'incomplete'
-    const blockingMatch = source.match(/const blocking = existing\.data\.find\([\s\S]*?\);/);
-    assert.ok(blockingMatch, 'Should have a blocking subscription check');
+    // The blocking scan must include 'incomplete' AND must paginate: the guard
+    // iterates subscriptions.list via for-await (auto-pagination) instead of the
+    // old single-page `existing.data.find(...)`, so an active sub past page 1
+    // can't bypass it (double-billing fix, 2026-06-01).
     assert.ok(
-      blockingMatch[0].includes("'incomplete'"),
+      source.includes("s.status === 'incomplete'"),
       'Blocking check must include incomplete status'
+    );
+    assert.ok(
+      /for await\s*\([^)]*stripe\.subscriptions\.list/.test(source),
+      'Blocking check must paginate via for-await over subscriptions.list'
+    );
+    assert.ok(
+      !/existing\.data\.find\(/.test(source),
+      'Blocking check must not rely on single-page .data.find (pagination-bypass regression)'
     );
   });
 
