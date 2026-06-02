@@ -349,29 +349,23 @@ const SHELL_ENABLED = isShellEnabled('community');
         return __unfurlObserver;
       }
 
-      function firstUnfurlableLink(body) {
-        if (!body) return null;
-        var masked = body.replace(/!\[[^\]]*\]\([^)]*\)/g, function (m) { return m.replace(/[^\n]/g, ' '); });
-        var candidates = [];
-        var re, m;
-        re = /\[[^\]]+\]\((https?:\/\/[^\s)]+)\)/g;
-        while ((m = re.exec(masked))) candidates.push({ idx: m.index, url: m[1] });
-        re = /(^|[\s(])(https?:\/\/[^\s<)]+)/g;
-        while ((m = re.exec(masked))) candidates.push({ idx: m.index + m[1].length, url: m[2] });
-        re = /(^|[\s(])([a-zA-Z0-9][\w.-]*\.(?:com|org|net|edu|gov|io|co|us|uk|dev|app|me|info|health)(?:\/[^\s<)]*)?)/g;
-        while ((m = re.exec(masked))) candidates.push({ idx: m.index + m[1].length, url: /^https?:\/\//.test(m[2]) ? m[2] : 'https://' + m[2] });
-        if (!candidates.length) return null;
-        candidates.sort(function (a, b) { return a.idx - b.idx; });
-        for (var i = 0; i < candidates.length; i++) {
-          var u = candidates[i].url.replace(/[.,;:!?)]+$/, '');
-          if (u.indexOf('/api/assets/') !== -1) continue;
-          return u;
+      // First eligible link in the ALREADY-RENDERED body: read the href off the
+      // anchors linkify() produced, so we inherit its exact parsing and never
+      // diverge from what's actually clickable. Skips non-http + /api/assets/.
+      function firstLinkFromRendered(bodyEl) {
+        if (!bodyEl) return null;
+        var anchors = bodyEl.querySelectorAll('a[href]');
+        for (var i = 0; i < anchors.length; i++) {
+          var href = anchors[i].href; // browser-resolved absolute URL
+          if (!/^https?:\/\//i.test(href)) continue;
+          if (href.indexOf('/api/assets/') !== -1) continue;
+          return href;
         }
         return null;
       }
 
-      function attachUnfurl(container, body) {
-        var link = firstUnfurlableLink(body);
+      function attachUnfurl(container, bodyEl) {
+        var link = firstLinkFromRendered(bodyEl);
         if (!link) return;
         container.setAttribute('data-unfurl-url', link);
         var obs = getUnfurlObserver();
@@ -580,7 +574,7 @@ const SHELL_ENABLED = isShellEnabled('community');
             var linkSlot = document.createElement('div');
             linkSlot.className = 'link-card-slot';
             bodyEl.insertAdjacentElement('afterend', linkSlot);
-            attachUnfurl(linkSlot, post.body);
+            attachUnfurl(linkSlot, bodyEl);
           }
         }
 
