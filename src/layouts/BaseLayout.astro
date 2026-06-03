@@ -369,14 +369,20 @@ if (!jsonLd) {
           });
           if (res.ok) {
             const data = await res.json();
-            if (data && data.visitor_id) localStorage.setItem('rrm_vid', data.visitor_id);
+            if (data && data.clear_storage) { localStorage.removeItem('rrm_vid'); }
+            else if (data && data.visitor_id) { localStorage.setItem('rrm_vid', data.visitor_id); }
           } else {
             navigator.sendBeacon?.(
               `https://${fpHost}/metrics/client-error`,
               JSON.stringify({ status: res.status, ts: Date.now() }),
             );
           }
-        } catch {} finally {
+        } catch (e) {
+          navigator.sendBeacon?.(
+            `https://${fpHost}/metrics/client-error`,
+            JSON.stringify({ phase: 'network', msg: String(e && e.message || e), ts: Date.now() }),
+          );
+        } finally {
           sessionStorage.removeItem('fp_in_flight');
         }
       };
