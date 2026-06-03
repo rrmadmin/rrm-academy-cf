@@ -8,14 +8,17 @@
 // Props:
 //   id    -- section anchor (becomes the H2 id and the #fragment in the URL)
 //   title -- H2 text; MUST equal the matching JSON-LD articleSection entry.
+//   share -- show the "Share section" pill (default true). Set false on a
+//            section that is itself about sharing (e.g. Downloads and Sharing).
 import { Share2, Check, Link as LinkIcon } from '@lucide/astro';
 
 interface Props {
   id: string;
   title: string;
+  share?: boolean;
 }
 
-const { id, title } = Astro.props;
+const { id, title, share = true } = Astro.props;
 const url = `https://rrmacademy.org/rrm-success-rates/#${id}`;
 ---
 
@@ -33,17 +36,19 @@ const url = `https://rrmacademy.org/rrm-success-rates/#${id}`;
       <LinkIcon size={16} aria-hidden="true" />
     </button>
   </h2>
-  <button
-    type="button"
-    class="section-share"
-    aria-label={`Share "${title}"`}
-    data-share-url={url}
-    data-share-title={`RRM Success Rates: ${title}`}
-  >
-    <Share2 class="section-share__icon" size={14} aria-hidden="true" />
-    <Check class="section-share__icon section-share__icon--check" size={14} aria-hidden="true" />
-    <span class="section-share__label">Share section</span>
-  </button>
+  {share && (
+    <button
+      type="button"
+      class="section-share"
+      aria-label={`Share "${title}"`}
+      data-share-url={url}
+      data-share-title={`RRM Success Rates: ${title}`}
+    >
+      <Share2 class="section-share__icon" size={14} aria-hidden="true" />
+      <Check class="section-share__icon section-share__icon--check" size={14} aria-hidden="true" />
+      <span class="section-share__label">Share section</span>
+    </button>
+  )}
 </div>
 
 <script>
