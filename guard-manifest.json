@@ -71,7 +71,7 @@
       "note": "HMAC-SHA256 magic-link token for Wix-to-Stripe donor migration"
     },
     "functions/_middleware.js": {
-      "hash": "91e68bbe89c9ca56be4b3484683d80b00fdc13ce81a80cf3e1a70f8c76e06b96",
+      "hash": "52c45ad52da2925cb89bb140955151bbc2d92fab0c6459f2b86b5926e821523c",
       "note": "Auth gating"
     },
     "wrangler.toml": {
@@ -123,7 +123,7 @@
       "note": "Search UX + RRF fusion (Pagefind init, relevance boost, error resilience)"
     },
     "src/layouts/BaseLayout.astro": {
-      "hash": "ff4aa120b8494c29ad1a4e8435ff6efa3a78c7074bb7ad42a933d079450882f4",
+      "hash": "30ba8ba5a3ee44140a22af3d3aad6b37b655451f0a49b879a0b51c6c090f0c89",
       "note": "FOUC theme + chrome prop SEO invariants"
     },
     "functions/api/community/_shared.js": {
