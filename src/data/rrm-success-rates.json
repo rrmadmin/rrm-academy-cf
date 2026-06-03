@@ -43,6 +43,15 @@
   "cost": { "rrm_range_usd": "2000-5000", "art_range_usd": "10000-15000", "sourceStudyId": "bulletti-2025-tarh", "verified": true, "verificationNote": "Bulletti FM et al. 2025 (Ther Adv Reprod Health, PMID 40546415), Table 7 + Table 8 'Typical cost (USD)': RRM (e.g., polypectomy / common surgeries-interventions) $2000-$5000; ART (IVF per cycle) $10,000-$15,000. Extracted from PMC12182620 rendered tables (cells are image-only in the library fulltext)." },
   "charts": {
     "_rule": "Chart-only datapoints (Sánchez-Méndez time-curve/by-age/by-diagnosis, Boyle funnel + reassignment) are appended here by the verification pass with per-datapoint verificationNote. Chart SVGs read ONLY from this file.",
+    "hfea_ivf_reference": {
+      "value": 33.0,
+      "unit": "%",
+      "metric": "live birth rate per single embryo transferred, women under 35",
+      "denominatorType": "per-cycle",
+      "source": "HFEA 2021",
+      "verificationNote": "Matches the verified datapoint on the live /naprotechnology/ success-rates chart (33%, per embryo transferred, women under 35). External registry reference, not from the studies corpus.",
+      "verified": true
+    },
     "sm_cumulative_lbr_over_time": {
       "sourceStudyId": "sanchez-mendez-2025-frh",
       "metric": "adjusted cumulative take-home-baby (live birth) rate, %",
