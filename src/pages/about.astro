@@ -4,9 +4,11 @@ import LastUpdated from '../components/LastUpdated.astro';
 import TeamCard from '../components/TeamCard.astro';
 import SocialRow from '../components/SocialRow.astro';
 import articlesData from '../data/articles.json';
+import coursesData from '../data/courses.json';
 import { getOrganizationJsonLd, getTeam, getFoundationJsonLd } from '../lib/identity';
 
 const libraryCount = articlesData.length.toLocaleString();
+const courseCount = coursesData.length;
 const team = getTeam();
 
 const orgFromSsot = getOrganizationJsonLd();
@@ -221,7 +223,7 @@ const jsonLd = {
 ---
 <BaseLayout
   title="About RRM Academy | Restorative Reproductive Medicine"
-  description={`Expert-led education in restorative reproductive medicine. 12 clinician-taught courses and ${libraryCount} research resources, all free or low-cost.`}
+  description={`Expert-led education in restorative reproductive medicine. ${courseCount} clinician-taught courses and ${libraryCount} research resources, all free or low-cost.`}
   canonicalUrl="https://rrmacademy.org/about"
   jsonLd={jsonLd}
   speakable={['.about-hero p', '.about-lead', '.about-mission']}
@@ -240,7 +242,7 @@ const jsonLd = {
   <section class="about-section">
     <div class="container container--narrow">
       <p class="about-lead">
-        RRM Academy provides expert-led, evidence-based education in Restorative Reproductive Medicine (RRM) for patients and healthcare professionals. Through 12 online courses and a <a href="/library/">research library</a> of {libraryCount} publications, we equip individuals and clinicians with the knowledge to find and treat the root causes of conditions like endometriosis, PCOS, infertility, and recurrent miscarriage, rather than masking symptoms or bypassing the body's natural function.
+        RRM Academy provides expert-led, evidence-based education in Restorative Reproductive Medicine (RRM) for patients and healthcare professionals. Through {courseCount} online courses and a <a href="/library/">research library</a> of {libraryCount} publications, we equip individuals and clinicians with the knowledge to find and treat the root causes of conditions like endometriosis, PCOS, infertility, and recurrent miscarriage, rather than masking symptoms or bypassing the body's natural function.
       </p>
       <p class="about-mission">Empower patients. Equip professionals. Restore women's health.</p>
       <p>
@@ -321,7 +323,7 @@ const jsonLd = {
       <ul class="about-cta-list">
         <li>
           <a href="/courses/" class="about-cta-link">Explore our courses</a>
-          <span>12 clinician-led online courses on topics from endometriosis surgery to understanding your fertility cycle</span>
+          <span>{courseCount} clinician-led online courses on topics from endometriosis surgery to understanding your fertility cycle</span>
         </li>
         <li>
           <a href="/library/" class="about-cta-link">Browse the RRM Research Library</a>
