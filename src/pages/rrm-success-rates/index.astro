@@ -28,7 +28,20 @@ const pct = (v: number) => `${(v * 100).toFixed(1).replace(/\.0$/, '')}%`;
 type Study = (typeof included)[number];
 
 // formatOutcome composes the Outcome cell with explicit metric labels. It NEVER
-// says "LBR" for a conception/pregnancy/methods/review row.
+// says "LBR" for a conception/pregnancy/methods/review row, and it NEVER labels a
+// crude proportion as "adj. cum.". The two conception fields are mutually
+// exclusive per row and carry distinct semantics:
+//   - adjCumConception  -> a genuine life-table / Kaplan-Meier cumulative figure
+//                          ("adj. cum. conception X% @Nmo")
+//   - crudeConception   -> a crude proportion (conceived / denominator); the noun
+//                          ("conception" vs "pregnancy") comes from the row's
+//                          crudeConceptionMetric field, matching its source note.
+function crudeConceptionLabel(s: Study): string {
+  const noun = (s as { crudeConceptionMetric?: string }).crudeConceptionMetric || 'conception';
+  const methodsTag = s.outcomeType === 'methods' ? ' (methods cohort)' : '';
+  return `crude ${noun} ${pct(s.crudeConception as number)}${methodsTag}`;
+}
+
 function formatOutcome(s: Study): string {
   const parts: string[] = [];
   const mo = s.followUpMonths ? ` @${s.followUpMonths}mo` : '';
@@ -37,13 +50,13 @@ function formatOutcome(s: Study): string {
     if (s.crudeLbr != null) parts.push(`crude LBR ${pct(s.crudeLbr)}`);
     if (s.adjCumLbr != null) parts.push(`adj. cum. LBR ${pct(s.adjCumLbr)}${mo}`);
     if (s.adjCumConception != null) parts.push(`adj. cum. conception ${pct(s.adjCumConception)}${mo}`);
+    if (s.crudeConception != null) parts.push(crudeConceptionLabel(s));
   } else if (s.outcomeType === 'conception') {
-    // adjCumConception on a conception row may be a crude or cumulative
-    // proportion; the SSOT notes carry the exact framing, so label neutrally
-    // as "conception/pregnancy", never LBR.
-    if (s.adjCumConception != null) parts.push(`conception/pregnancy ${pct(s.adjCumConception)}${mo}`);
+    if (s.adjCumConception != null) parts.push(`adj. cum. conception ${pct(s.adjCumConception)}${mo}`);
+    if (s.crudeConception != null) parts.push(crudeConceptionLabel(s));
   } else if (s.outcomeType === 'methods') {
-    if (s.adjCumConception != null) parts.push(`any pregnancy ${pct(s.adjCumConception)} (crude, methods cohort)`);
+    if (s.adjCumConception != null) parts.push(`adj. cum. conception ${pct(s.adjCumConception)}${mo}`);
+    if (s.crudeConception != null) parts.push(crudeConceptionLabel(s));
   } else if (s.outcomeType === 'review') {
     parts.push('Narrative / systematic review (no single cohort rate)');
   }
@@ -401,7 +414,7 @@ const jsonLd = {
             <figure class="chart-figure">
               <img src="/images/rrm-success-rates/by-country.svg" alt="A replication and coverage table, one row per country, showing the number of independent studies and the headline RRM success rate as text with its outcome-type label. Rates are shown as text, not as bars on a shared scale, because the outcome types (live-birth vs conception, crude vs adjusted-cumulative) are not directly comparable across countries." class="chart-light" loading="lazy" width="760" height="600" />
               <img src="/images/rrm-success-rates/by-country-dark.svg" alt="A replication and coverage table, one row per country, showing the number of independent studies and the headline RRM success rate as text with its outcome-type label. Rates are shown as text, not as bars on a shared scale, because the outcome types (live-birth vs conception, crude vs adjusted-cumulative) are not directly comparable across countries." class="chart-dark" loading="lazy" width="760" height="600" />
-              <figcaption>International replication: 14 independent studies across 10 countries. Each headline rate is shown as text and labeled by outcome type (live-birth versus conception, crude versus adjusted-cumulative) because those denominators are not directly comparable across countries.</figcaption>
+              <figcaption>International replication: 14 independent studies across 11 countries. Each headline rate is shown as text and labeled by outcome type (live-birth versus conception, crude versus adjusted-cumulative) because those denominators are not directly comparable across countries.</figcaption>
             </figure>
           </section>
 
@@ -429,7 +442,7 @@ const jsonLd = {
             <figure class="chart-figure">
               <img src="/images/rrm-success-rates/obstetric-safety.svg" alt="Two-panel chart. Panel A: preterm and twin rates as percentages (RRM singleton preterm 4.0 percent vs CDC 11.8 percent; RRM all-pregnancy preterm 6.5 percent vs SART 14.4 percent; RRM twins 1.4 percent). Panel B: adverse-outcome odds ratios for ART vs untreated or never-treated comparators (ART preterm 3.28, ART low-birthweight 2.91, IVF preterm 4.24, IUI preterm 3.17). Rates and odds ratios are on separate scales and must not be compared directly." class="chart-light" loading="lazy" width="960" height="540" />
               <img src="/images/rrm-success-rates/obstetric-safety-dark.svg" alt="Two-panel chart. Panel A: preterm and twin rates as percentages (RRM singleton preterm 4.0 percent vs CDC 11.8 percent; RRM all-pregnancy preterm 6.5 percent vs SART 14.4 percent; RRM twins 1.4 percent). Panel B: adverse-outcome odds ratios for ART vs untreated or never-treated comparators (ART preterm 3.28, ART low-birthweight 2.91, IVF preterm 4.24, IUI preterm 3.17). Rates and odds ratios are on separate scales and must not be compared directly." class="chart-dark" loading="lazy" width="960" height="540" />
-              <figcaption>Panel A reports RRM versus IVF preterm and twin rates as percentages (Boyle 2018 and 2025), keeping singleton and all-pregnancy denominators separate. Panel B reports ART, IVF and IUI adverse-outcome odds ratios with 95% confidence intervals (Simonsen 2016, Sanders 2022). Rates and odds ratios are different measures on different scales and are never plotted on one axis.</figcaption>
+              <figcaption>Panel A reports RRM versus IVF preterm and twin rates as percentages (Boyle 2018 and 2025), keeping singleton and all-pregnancy denominators separate. Panel B reports ART, IVF and IUI adverse-outcome odds ratios with 95% confidence intervals (Simonsen 2016, Sanders 2022); rates and odds ratios are different measures on different scales and are never plotted on one axis.</figcaption>
             </figure>
           </section>
 
