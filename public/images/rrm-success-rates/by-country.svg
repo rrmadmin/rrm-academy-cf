@@ -1,0 +1,94 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 760 600" role="img" aria-label="RRM outcomes by country">
+  <title>RRM Outcomes Replicate Across Countries</title>
+  <desc>Horizontal bars showing the headline RRM success rate and number of studies per country across ten countries and one multinational cohort. Each bar is labeled with its outcome type because metrics differ; rates are not directly comparable.</desc>
+  <rect width="760" height="600" fill="#ffffff"/>
+  <style>
+    .heading { font-family: 'Inter', sans-serif; font-size: 12px; font-weight: 600; fill: #636261; letter-spacing: 0.05em; }
+    .subtitle { font-family: 'Inter', sans-serif; font-size: 12.5px; font-weight: 400; fill: #636261; }
+    .label { font-family: 'Inter', sans-serif; font-size: 12.5px; font-weight: 400; fill: #636261; dominant-baseline: central; }
+    .label-end { font-family: 'Inter', sans-serif; font-size: 12.5px; font-weight: 400; fill: #636261; text-anchor: end; dominant-baseline: central; }
+    .label-mid { font-family: 'Inter', sans-serif; font-size: 11.5px; font-weight: 400; fill: #636261; text-anchor: middle; }
+    .small { font-family: 'Inter', sans-serif; font-size: 10.5px; font-weight: 400; fill: #987da8; }
+    .value { font-family: 'Inter', sans-serif; font-size: 12.5px; font-weight: 600; fill: #313131; dominant-baseline: central; }
+    .value-mid { font-family: 'Inter', sans-serif; font-size: 12px; font-weight: 600; fill: #313131; text-anchor: middle; }
+    .value-accent { fill: #725e7e; }
+    .axis { font-family: 'Inter', sans-serif; font-size: 11px; font-weight: 400; fill: #987da8; text-anchor: middle; }
+    .axis-y { font-family: 'Inter', sans-serif; font-size: 11px; font-weight: 400; fill: #987da8; text-anchor: end; dominant-baseline: central; }
+    .caption { font-family: 'Inter', sans-serif; font-size: 11.5px; font-style: italic; fill: #987da8; }
+    .legend { font-family: 'Inter', sans-serif; font-size: 11.5px; font-weight: 400; fill: #636261; dominant-baseline: central; }
+    .attribution { font-family: 'Inter', sans-serif; font-size: 10.5px; font-weight: 500; fill: #8a8985; letter-spacing: 0.04em; text-anchor: end; }
+    .flag { font-family: 'Inter', sans-serif; font-size: 12px; font-weight: 700; fill: #b45309; }
+    .flagnote { font-family: 'Inter', sans-serif; font-size: 10.5px; font-weight: 500; fill: #b45309; }
+    
+  </style>
+  <text x="30" y="50" class="heading">RRM REPLICATES ACROSS TEN COUNTRIES</text>
+  <line x1="30" y1="63" x2="730" y2="63" stroke="#c9b8d3" stroke-width="1"/>
+  <text x="30" y="78" class="subtitle">Headline rate per country. Outcome types differ (live-birth vs conception) and are labeled per bar; bars are not directly comparable.</text>
+  <line x1="250" y1="92" x2="250" y2="526" stroke="#ece9e5" stroke-width="1"/>
+  <text x="250" y="542" class="axis">0%</text>
+  <line x1="340" y1="92" x2="340" y2="526" stroke="#ece9e5" stroke-width="1"/>
+  <text x="340" y="542" class="axis">25%</text>
+  <line x1="430" y1="92" x2="430" y2="526" stroke="#ece9e5" stroke-width="1"/>
+  <text x="430" y="542" class="axis">50%</text>
+  <line x1="520" y1="92" x2="520" y2="526" stroke="#ece9e5" stroke-width="1"/>
+  <text x="520" y="542" class="axis">75%</text>
+  <line x1="610" y1="92" x2="610" y2="526" stroke="#ece9e5" stroke-width="1"/>
+  <text x="610" y="542" class="axis">100%</text>
+  <text x="236" y="113" class="label-end">Ukraine  (1 study)</text>
+  <rect x="250" y="100" width="360" height="26" rx="3" fill="#f0eeeb"/>
+  <rect x="250" y="100" width="265.0" height="26" rx="3" fill="#725e7e"/>
+  <text x="523.0" y="113" class="value">73.6% *</text>
+  <text x="573.0" y="113" class="small" dominant-baseline="central">adj. cum. LBR @24mo</text>
+  <text x="236" y="157" class="label-end">Canada  (1 study)</text>
+  <rect x="250" y="144" width="360" height="26" rx="3" fill="#f0eeeb"/>
+  <rect x="250" y="144" width="237.6" height="26" rx="3" fill="#725e7e"/>
+  <text x="495.6" y="157" class="value">66.0%</text>
+  <text x="545.6" y="157" class="small" dominant-baseline="central">adj. cum. LBR @24mo</text>
+  <text x="236" y="201" class="label-end">Australia  (2 studies)</text>
+  <rect x="250" y="188" width="360" height="26" rx="3" fill="#f0eeeb"/>
+  <rect x="250" y="188" width="225.0" height="26" rx="3" fill="#b0aaa2"/>
+  <text x="483.0" y="201" class="value">62.5%</text>
+  <text x="533.0" y="201" class="small" dominant-baseline="central">crude pregnancy</text>
+  <text x="236" y="245" class="label-end">Spain  (1 study)</text>
+  <rect x="250" y="232" width="360" height="26" rx="3" fill="#f0eeeb"/>
+  <rect x="250" y="232" width="180.0" height="26" rx="3" fill="#725e7e"/>
+  <text x="438.0" y="245" class="value">50.0%</text>
+  <text x="488.0" y="245" class="small" dominant-baseline="central">adj. cum. LBR @24mo</text>
+  <text x="236" y="289" class="label-end">Ireland  (3 studies)</text>
+  <rect x="250" y="276" width="360" height="26" rx="3" fill="#f0eeeb"/>
+  <rect x="250" y="276" width="147.6" height="26" rx="3" fill="#725e7e"/>
+  <text x="405.6" y="289" class="value">41.0%</text>
+  <text x="455.6" y="289" class="small" dominant-baseline="central">crude LBR</text>
+  <text x="236" y="333" class="label-end">Italy  (2 studies)</text>
+  <rect x="250" y="320" width="360" height="26" rx="3" fill="#f0eeeb"/>
+  <rect x="250" y="320" width="147.2" height="26" rx="3" fill="#b0aaa2"/>
+  <text x="405.2" y="333" class="value">40.9%</text>
+  <text x="455.2" y="333" class="small" dominant-baseline="central">crude conception</text>
+  <text x="236" y="377" class="label-end">Germany  (1 study)</text>
+  <rect x="250" y="364" width="360" height="26" rx="3" fill="#f0eeeb"/>
+  <rect x="250" y="364" width="136.8" height="26" rx="3" fill="#b0aaa2"/>
+  <text x="394.8" y="377" class="value">38.0%</text>
+  <text x="444.8" y="377" class="small" dominant-baseline="central">cum. conception @8mo</text>
+  <text x="236" y="421" class="label-end">France  (1 study)</text>
+  <rect x="250" y="408" width="360" height="26" rx="3" fill="#f0eeeb"/>
+  <rect x="250" y="408" width="133.2" height="26" rx="3" fill="#b0aaa2"/>
+  <text x="391.2" y="421" class="value">37.0%</text>
+  <text x="441.2" y="421" class="small" dominant-baseline="central">crude conception</text>
+  <text x="236" y="465" class="label-end">USA  (1 study)</text>
+  <rect x="250" y="452" width="360" height="26" rx="3" fill="#f0eeeb"/>
+  <rect x="250" y="452" width="104.4" height="26" rx="3" fill="#725e7e"/>
+  <text x="362.4" y="465" class="value">29.0%</text>
+  <text x="412.4" y="465" class="small" dominant-baseline="central">adj. cum. LBR @24mo</text>
+  <text x="236" y="509" class="label-end">Multinational  (1 study)</text>
+  <rect x="250" y="496" width="360" height="26" rx="3" fill="#f0eeeb"/>
+  <rect x="250" y="496" width="205.2" height="26" rx="3" fill="#b0aaa2"/>
+  <text x="463.2" y="509" class="value">57.0%</text>
+  <text x="513.2" y="509" class="small" dominant-baseline="central">crude any-pregnancy</text>
+  <rect x="30" y="564" width="16" height="12" rx="2" fill="#725e7e"/>
+  <text x="52" y="570" class="legend">Live-birth outcome</text>
+  <rect x="230" y="564" width="16" height="12" rx="2" fill="#b0aaa2"/>
+  <text x="252" y="570" class="legend">Conception / pregnancy outcome</text>
+  <text x="30" y="590" class="flagnote">* Ukraine: non-indexed lower-tier journal.</text>
+  <text x="30" y="608" class="caption">Italy ART comparator (17.8% per cycle) is excluded — a per-cycle denominator cannot be compared to cumulative rates.</text>
+  <text x="730" y="588" class="attribution">rrmacademy.org/rrm-success-rates</text>
+</svg>
