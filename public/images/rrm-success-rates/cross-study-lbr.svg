@@ -1,0 +1,80 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 760 640" role="img" aria-label="Cross-study RRM cumulative live-birth rates">
+  <title>RRM Cumulative Live-Birth Rates Across Studies</title>
+  <desc>Grouped horizontal bars of adjusted cumulative live-birth rate at 24 months across seven RRM cohorts, with crude live-birth rate as a second paler bar. Ukraine 2020 flagged lower-tier journal; Australia 2021 flagged medRxiv preprint.</desc>
+  <rect width="760" height="640" fill="#ffffff"/>
+  <style>
+    .heading { font-family: 'Inter', sans-serif; font-size: 12px; font-weight: 600; fill: #636261; letter-spacing: 0.05em; }
+    .subtitle { font-family: 'Inter', sans-serif; font-size: 12.5px; font-weight: 400; fill: #636261; }
+    .label { font-family: 'Inter', sans-serif; font-size: 12.5px; font-weight: 400; fill: #636261; dominant-baseline: central; }
+    .label-end { font-family: 'Inter', sans-serif; font-size: 12.5px; font-weight: 400; fill: #636261; text-anchor: end; dominant-baseline: central; }
+    .label-mid { font-family: 'Inter', sans-serif; font-size: 11.5px; font-weight: 400; fill: #636261; text-anchor: middle; }
+    .small { font-family: 'Inter', sans-serif; font-size: 10.5px; font-weight: 400; fill: #987da8; }
+    .value { font-family: 'Inter', sans-serif; font-size: 12.5px; font-weight: 600; fill: #313131; dominant-baseline: central; }
+    .value-mid { font-family: 'Inter', sans-serif; font-size: 12px; font-weight: 600; fill: #313131; text-anchor: middle; }
+    .value-accent { fill: #725e7e; }
+    .axis { font-family: 'Inter', sans-serif; font-size: 11px; font-weight: 400; fill: #987da8; text-anchor: middle; }
+    .axis-y { font-family: 'Inter', sans-serif; font-size: 11px; font-weight: 400; fill: #987da8; text-anchor: end; dominant-baseline: central; }
+    .caption { font-family: 'Inter', sans-serif; font-size: 11.5px; font-style: italic; fill: #987da8; }
+    .legend { font-family: 'Inter', sans-serif; font-size: 11.5px; font-weight: 400; fill: #636261; dominant-baseline: central; }
+    .attribution { font-family: 'Inter', sans-serif; font-size: 10.5px; font-weight: 500; fill: #8a8985; letter-spacing: 0.04em; text-anchor: end; }
+    .flag { font-family: 'Inter', sans-serif; font-size: 12px; font-weight: 700; fill: #b45309; }
+    .flagnote { font-family: 'Inter', sans-serif; font-size: 10.5px; font-weight: 500; fill: #b45309; }
+    
+  </style>
+  <text x="30" y="50" class="heading">CUMULATIVE LIVE-BIRTH RATE @ 24 MONTHS</text>
+  <line x1="30" y1="63" x2="730" y2="63" stroke="#c9b8d3" stroke-width="1"/>
+  <text x="30" y="78" class="subtitle">Each cohort: adjusted (life-table / Kaplan-Meier) above, crude below. Live-birth outcomes only.</text>
+  <line x1="320" y1="100" x2="320" y2="518" stroke="#ece9e5" stroke-width="1"/>
+  <text x="320" y="534" class="axis">0%</text>
+  <line x1="410" y1="100" x2="410" y2="518" stroke="#ece9e5" stroke-width="1"/>
+  <text x="410" y="534" class="axis">25%</text>
+  <line x1="500" y1="100" x2="500" y2="518" stroke="#ece9e5" stroke-width="1"/>
+  <text x="500" y="534" class="axis">50%</text>
+  <line x1="590" y1="100" x2="590" y2="518" stroke="#ece9e5" stroke-width="1"/>
+  <text x="590" y="534" class="axis">75%</text>
+  <line x1="680" y1="100" x2="680" y2="518" stroke="#ece9e5" stroke-width="1"/>
+  <text x="680" y="534" class="axis">100%</text>
+  <text x="306" y="129" class="label-end">Ukraine 2020 (n=282)</text>
+  <rect x="320" y="110" width="265.0" height="18" rx="3" fill="#725e7e"/>
+  <text x="593.0" y="119" class="value value-accent">73.6%</text>
+  <text x="643.0" y="119" class="flag" dominant-baseline="central">*</text>
+  <rect x="320" y="132" width="149.4" height="14" rx="3" fill="#c9b8d3"/>
+  <text x="477.4" y="139" class="label" font-size="11px">41.5% crude</text>
+  <text x="306" y="191" class="label-end">Tham 2012 · Canada (n=108)</text>
+  <rect x="320" y="172" width="237.6" height="18" rx="3" fill="#725e7e"/>
+  <text x="565.6" y="181" class="value value-accent">66.0%</text>
+  <rect x="320" y="194" width="136.8" height="14" rx="3" fill="#c9b8d3"/>
+  <text x="464.8" y="201" class="label" font-size="11px">38.0% crude</text>
+  <text x="306" y="253" class="label-end">Australia 2021 (n=162)</text>
+  <rect x="320" y="234" width="206.6" height="18" rx="3" fill="#725e7e"/>
+  <text x="534.6" y="243" class="value value-accent">57.4%</text>
+  <text x="584.6" y="243" class="flag" dominant-baseline="central">**</text>
+  <rect x="320" y="256" width="127.4" height="14" rx="3" fill="#c9b8d3"/>
+  <text x="455.4" y="263" class="label" font-size="11px">35.4% crude</text>
+  <text x="306" y="315" class="label-end">Stanford 2008 · Ireland (n=1,072)</text>
+  <rect x="320" y="296" width="190.1" height="18" rx="3" fill="#725e7e"/>
+  <text x="518.1" y="305" class="value value-accent">52.8%</text>
+  <rect x="320" y="318" width="91.8" height="14" rx="3" fill="#c9b8d3"/>
+  <text x="419.8" y="325" class="label" font-size="11px">25.5% crude</text>
+  <text x="306" y="377" class="label-end">Sanchez-Mendez 2025 · Spain (n=1,310)</text>
+  <rect x="320" y="358" width="180.0" height="18" rx="3" fill="#725e7e"/>
+  <text x="508.0" y="367" class="value value-accent">50.0%</text>
+  <rect x="320" y="380" width="127.1" height="14" rx="3" fill="#c9b8d3"/>
+  <text x="455.1" y="387" class="label" font-size="11px">35.3% crude</text>
+  <text x="306" y="439" class="label-end">Boyle 2018 · Ireland, post-IVF (n=403)</text>
+  <rect x="320" y="420" width="115.6" height="18" rx="3" fill="#725e7e"/>
+  <text x="443.6" y="429" class="value value-accent">32.1%</text>
+  <rect x="320" y="442" width="66.2" height="14" rx="3" fill="#c9b8d3"/>
+  <text x="394.2" y="449" class="label" font-size="11px">18.4% crude</text>
+  <text x="306" y="501" class="label-end">Stanford 2021 · USA (n=370)</text>
+  <rect x="320" y="482" width="104.4" height="18" rx="3" fill="#725e7e"/>
+  <text x="432.4" y="491" class="value value-accent">29.0%</text>
+  <text x="324.0" y="511" class="small">crude rate not reported</text>
+  <rect x="30" y="558" width="16" height="12" rx="2" fill="#725e7e"/>
+  <text x="52" y="564" class="legend">Adjusted cumulative LBR @ 24 mo</text>
+  <rect x="360" y="558" width="16" height="12" rx="2" fill="#c9b8d3"/>
+  <text x="382" y="564" class="legend">Crude LBR (same cohort)</text>
+  <text x="30" y="586" class="flagnote">* Ukraine 2020: non-PubMed-indexed lower-tier journal.   ** Australia 2021: medRxiv preprint, not peer reviewed.</text>
+  <text x="30" y="604" class="caption">Different cohorts, denominators and case mixes; not a randomized comparison. Conception-only and per-cycle ART rates excluded.</text>
+  <text x="730" y="628" class="attribution">rrmacademy.org/rrm-success-rates</text>
+</svg>

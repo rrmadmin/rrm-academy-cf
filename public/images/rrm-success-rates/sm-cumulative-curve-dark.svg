@@ -1,0 +1,78 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 760 470" role="img" aria-label="RRM cumulative live-birth rate over time">
+  <title>RRM Adjusted Cumulative Live-Birth Rate Over 36 Months</title>
+  <desc>Step/line curve of adjusted cumulative take-home-baby (live birth) rate over 36 months from Sanchez-Mendez 2025: rising from 1.1 percent at 3 months to 50.0 percent at 24 months and plateauing at 62.1 percent from 31 to 33 months onward.</desc>
+  <rect width="760" height="470" fill="#28241e"/>
+  <style>
+    .heading { font-family: 'Inter', sans-serif; font-size: 12px; font-weight: 600; fill: #b0aaa2; letter-spacing: 0.05em; }
+    .subtitle { font-family: 'Inter', sans-serif; font-size: 12.5px; font-weight: 400; fill: #b0aaa2; }
+    .label { font-family: 'Inter', sans-serif; font-size: 12.5px; font-weight: 400; fill: #b0aaa2; dominant-baseline: central; }
+    .label-end { font-family: 'Inter', sans-serif; font-size: 12.5px; font-weight: 400; fill: #b0aaa2; text-anchor: end; dominant-baseline: central; }
+    .label-mid { font-family: 'Inter', sans-serif; font-size: 11.5px; font-weight: 400; fill: #b0aaa2; text-anchor: middle; }
+    .small { font-family: 'Inter', sans-serif; font-size: 10.5px; font-weight: 400; fill: #987da8; }
+    .value { font-family: 'Inter', sans-serif; font-size: 12.5px; font-weight: 600; fill: #dcd6ce; dominant-baseline: central; }
+    .value-mid { font-family: 'Inter', sans-serif; font-size: 12px; font-weight: 600; fill: #dcd6ce; text-anchor: middle; }
+    .value-accent { fill: #b8a3c4; }
+    .axis { font-family: 'Inter', sans-serif; font-size: 11px; font-weight: 400; fill: #987da8; text-anchor: middle; }
+    .axis-y { font-family: 'Inter', sans-serif; font-size: 11px; font-weight: 400; fill: #987da8; text-anchor: end; dominant-baseline: central; }
+    .caption { font-family: 'Inter', sans-serif; font-size: 11.5px; font-style: italic; fill: #987da8; }
+    .legend { font-family: 'Inter', sans-serif; font-size: 11.5px; font-weight: 400; fill: #b0aaa2; dominant-baseline: central; }
+    .attribution { font-family: 'Inter', sans-serif; font-size: 10.5px; font-weight: 500; fill: #8b827a; letter-spacing: 0.04em; text-anchor: end; }
+    .flag { font-family: 'Inter', sans-serif; font-size: 12px; font-weight: 700; fill: #fbbf24; }
+    .flagnote { font-family: 'Inter', sans-serif; font-size: 10.5px; font-weight: 500; fill: #fbbf24; }
+    
+  </style>
+  <text x="30" y="50" class="heading">CUMULATIVE LIVE-BIRTH RATE OVER 36 MONTHS</text>
+  <line x1="30" y1="63" x2="730" y2="63" stroke="#6b5877" stroke-width="1"/>
+  <text x="30" y="78" class="subtitle">Adjusted cumulative take-home-baby rate (Sanchez-Mendez 2025, n=1,310; 3-month bands, Table 3).</text>
+  <line x1="70" y1="350.0" x2="720" y2="350.0" stroke="#332f2b" stroke-width="1"/>
+  <text x="62" y="350.0" class="axis-y">0%</text>
+  <line x1="70" y1="315.7" x2="720" y2="315.7" stroke="#332f2b" stroke-width="1"/>
+  <text x="62" y="315.7" class="axis-y">10%</text>
+  <line x1="70" y1="281.4" x2="720" y2="281.4" stroke="#332f2b" stroke-width="1"/>
+  <text x="62" y="281.4" class="axis-y">20%</text>
+  <line x1="70" y1="247.1" x2="720" y2="247.1" stroke="#332f2b" stroke-width="1"/>
+  <text x="62" y="247.1" class="axis-y">30%</text>
+  <line x1="70" y1="212.9" x2="720" y2="212.9" stroke="#332f2b" stroke-width="1"/>
+  <text x="62" y="212.9" class="axis-y">40%</text>
+  <line x1="70" y1="178.6" x2="720" y2="178.6" stroke="#332f2b" stroke-width="1"/>
+  <text x="62" y="178.6" class="axis-y">50%</text>
+  <line x1="70" y1="144.3" x2="720" y2="144.3" stroke="#332f2b" stroke-width="1"/>
+  <text x="62" y="144.3" class="axis-y">60%</text>
+  <line x1="70" y1="110.0" x2="720" y2="110.0" stroke="#332f2b" stroke-width="1"/>
+  <text x="62" y="110.0" class="axis-y">70%</text>
+  <line x1="70" y1="350" x2="720" y2="350" stroke="#3a3632" stroke-width="1.5"/>
+  <text x="124.2" y="368" class="axis">3</text>
+  <text x="178.3" y="368" class="axis">6</text>
+  <text x="232.5" y="368" class="axis">9</text>
+  <text x="286.7" y="368" class="axis">12</text>
+  <text x="340.8" y="368" class="axis">15</text>
+  <text x="395.0" y="368" class="axis">18</text>
+  <text x="449.2" y="368" class="axis">21</text>
+  <text x="503.3" y="368" class="axis">24</text>
+  <text x="557.5" y="368" class="axis">27</text>
+  <text x="611.7" y="368" class="axis">30</text>
+  <text x="665.8" y="368" class="axis">33</text>
+  <text x="720.0" y="368" class="axis">36</text>
+  <text x="395" y="388" class="label-mid">months of treatment</text>
+  <polygon points="124.2,350 124.2,346.2 178.3,319.5 232.5,280.7 286.7,250.9 340.8,234.1 395.0,216.3 449.2,192.6 503.3,178.6 557.5,162.1 611.7,143.3 665.8,137.1 720.0,137.1 720.0,350" fill="#3d3345" opacity="0.7"/>
+  <polyline points="124.2,346.2 178.3,319.5 232.5,280.7 286.7,250.9 340.8,234.1 395.0,216.3 449.2,192.6 503.3,178.6 557.5,162.1 611.7,143.3 665.8,137.1 720.0,137.1" fill="none" stroke="#b8a3c4" stroke-width="2.5" stroke-linejoin="round"/>
+  <circle cx="124.2" cy="346.2" r="3.2" fill="#b8a3c4"/>
+  <circle cx="178.3" cy="319.5" r="3.2" fill="#b8a3c4"/>
+  <circle cx="232.5" cy="280.7" r="3.2" fill="#b8a3c4"/>
+  <circle cx="286.7" cy="250.9" r="3.2" fill="#b8a3c4"/>
+  <circle cx="340.8" cy="234.1" r="3.2" fill="#b8a3c4"/>
+  <circle cx="395.0" cy="216.3" r="3.2" fill="#b8a3c4"/>
+  <circle cx="449.2" cy="192.6" r="3.2" fill="#b8a3c4"/>
+  <circle cx="503.3" cy="178.6" r="5" fill="#b8a3c4"/>
+  <text x="503.3" y="164.6" class="value-mid value-accent" font-size="13px">50.0%</text>
+  <text x="503.3" y="149.6" class="axis">@ 24 mo</text>
+  <circle cx="557.5" cy="162.1" r="3.2" fill="#b8a3c4"/>
+  <circle cx="611.7" cy="143.3" r="3.2" fill="#b8a3c4"/>
+  <circle cx="665.8" cy="137.1" r="5" fill="#b8a3c4"/>
+  <text x="665.8" y="123.1" class="value-mid value-accent" font-size="13px">62.1%</text>
+  <text x="665.8" y="108.1" class="axis">plateau @ 31-33 mo</text>
+  <circle cx="720.0" cy="137.1" r="3.2" fill="#b8a3c4"/>
+  <text x="30" y="426" class="caption">The cumulative rate climbs steadily and plateaus near 62 percent after ~33 months — most births occur within the first two to three years.</text>
+  <text x="30" y="442" class="caption">Source: Sanchez-Mendez et al. 2025, Frontiers in Reproductive Health (Table 3, adjusted cumulative).</text>
+  <text x="730" y="458" class="attribution">rrmacademy.org/rrm-success-rates</text>
+</svg>

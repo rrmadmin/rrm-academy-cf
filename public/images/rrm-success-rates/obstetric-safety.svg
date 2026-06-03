@@ -1,0 +1,95 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 960 540" role="img" aria-label="RRM obstetric safety: absolute rates and how many times higher the odds are with ART">
+  <title>RRM Obstetric Safety vs ART</title>
+  <desc>Two-panel chart. Panel A reads as plain percentages (how many births out of 100): RRM single-baby preterm 4.0 percent versus the CDC IVF benchmark 11.8 percent, which is about two-thirds lower; RRM all-pregnancy preterm 6.5 percent versus the SART IVF benchmark 14.4 percent, which is more than half lower; RRM twins 1.4 percent. Panel B reads as how many times higher the adjusted odds of an early birth are with fertility treatment compared with untreated women: ART single-baby preterm about 3 times higher and low birth weight about 3 times higher versus never-treated women (Stanford 2016); IVF preterm about 4 times higher and IUI preterm about 3 times higher versus untreated subfertile women (Sanders 2022). Panel A is a head-count percentage and Panel B is an adjusted-odds multiple; they are different measures on different scales and must not be compared directly.</desc>
+  <rect width="960" height="540" fill="#ffffff"/>
+  <style>
+    .heading { font-family: 'Inter', sans-serif; font-size: 12px; font-weight: 600; fill: #636261; letter-spacing: 0.05em; }
+    .subtitle { font-family: 'Inter', sans-serif; font-size: 12.5px; font-weight: 400; fill: #636261; }
+    .label { font-family: 'Inter', sans-serif; font-size: 12.5px; font-weight: 400; fill: #636261; dominant-baseline: central; }
+    .label-end { font-family: 'Inter', sans-serif; font-size: 12.5px; font-weight: 400; fill: #636261; text-anchor: end; dominant-baseline: central; }
+    .label-mid { font-family: 'Inter', sans-serif; font-size: 11.5px; font-weight: 400; fill: #636261; text-anchor: middle; }
+    .small { font-family: 'Inter', sans-serif; font-size: 10.5px; font-weight: 400; fill: #987da8; }
+    .value { font-family: 'Inter', sans-serif; font-size: 12.5px; font-weight: 600; fill: #313131; dominant-baseline: central; }
+    .value-mid { font-family: 'Inter', sans-serif; font-size: 12px; font-weight: 600; fill: #313131; text-anchor: middle; }
+    .value-accent { fill: #725e7e; }
+    .axis { font-family: 'Inter', sans-serif; font-size: 11px; font-weight: 400; fill: #987da8; text-anchor: middle; }
+    .axis-y { font-family: 'Inter', sans-serif; font-size: 11px; font-weight: 400; fill: #987da8; text-anchor: end; dominant-baseline: central; }
+    .caption { font-family: 'Inter', sans-serif; font-size: 11.5px; font-style: italic; fill: #987da8; }
+    .legend { font-family: 'Inter', sans-serif; font-size: 11.5px; font-weight: 400; fill: #636261; dominant-baseline: central; }
+    .attribution { font-family: 'Inter', sans-serif; font-size: 10.5px; font-weight: 500; fill: #8a8985; letter-spacing: 0.04em; text-anchor: end; }
+    .win { font-family: 'Inter', sans-serif; font-size: 11px; font-weight: 700; fill: #725e7e; }
+
+  </style>
+  <text x="30" y="50" class="heading">OBSTETRIC SAFETY</text>
+  <line x1="30" y1="63" x2="930" y2="63" stroke="#c9b8d3" stroke-width="1"/>
+  <text x="30" y="78" class="subtitle">Panel A is plain percentages (lower is safer). Panel B is how many times higher the adjusted odds are. Different measures, not interchangeable.</text>
+  <text x="60" y="112" class="heading">PANEL A &#183; HOW MANY BABIES OUT OF 100 (%)</text>
+  <line x1="360" y1="132" x2="360" y2="370" stroke="#ece9e5" stroke-width="1"/>
+  <text x="360" y="386" class="axis">0%</text>
+  <line x1="401" y1="132" x2="401" y2="370" stroke="#ece9e5" stroke-width="1"/>
+  <text x="401" y="386" class="axis">5%</text>
+  <line x1="441" y1="132" x2="441" y2="370" stroke="#ece9e5" stroke-width="1"/>
+  <text x="441" y="386" class="axis">10%</text>
+  <line x1="482" y1="132" x2="482" y2="370" stroke="#ece9e5" stroke-width="1"/>
+  <text x="482" y="386" class="axis">15%</text>
+  <text x="348" y="152" class="label-end" font-size="11.5px">RRM single-baby preterm (Boyle 2025)</text>
+  <rect x="360" y="140" width="130" height="24" rx="3" fill="#f0eeeb"/>
+  <rect x="360" y="140" width="32.5" height="24" rx="3" fill="#725e7e"/>
+  <text x="400.5" y="152" class="value">4.0%</text>
+  <text x="348" y="202" class="label-end" font-size="11.5px">CDC IVF single-baby preterm</text>
+  <rect x="360" y="190" width="130" height="24" rx="3" fill="#f0eeeb"/>
+  <rect x="360" y="190" width="95.9" height="24" rx="3" fill="#b0aaa2"/>
+  <text x="463.9" y="202" class="value">11.8%</text>
+  <text x="505" y="177" class="win">RRM about two-thirds lower</text>
+  <text x="505" y="190" class="small">(4.0% vs 11.8%)</text>
+  <text x="348" y="252" class="label-end" font-size="11.5px">RRM all-pregnancy preterm (Boyle 2025)</text>
+  <rect x="360" y="240" width="130" height="24" rx="3" fill="#f0eeeb"/>
+  <rect x="360" y="240" width="52.8" height="24" rx="3" fill="#725e7e"/>
+  <text x="420.8" y="252" class="value">6.5%</text>
+  <text x="348" y="302" class="label-end" font-size="11.5px">SART IVF all-pregnancy preterm</text>
+  <rect x="360" y="290" width="130" height="24" rx="3" fill="#f0eeeb"/>
+  <rect x="360" y="290" width="117.0" height="24" rx="3" fill="#b0aaa2"/>
+  <text x="485.0" y="302" class="value">14.4%</text>
+  <text x="505" y="277" class="win">RRM more than half lower</text>
+  <text x="505" y="290" class="small">(6.5% vs 14.4%)</text>
+  <text x="348" y="352" class="label-end" font-size="11.5px">RRM twins (Boyle 2018, post-IVF)</text>
+  <rect x="360" y="340" width="130" height="24" rx="3" fill="#f0eeeb"/>
+  <rect x="360" y="340" width="11.4" height="24" rx="3" fill="#725e7e"/>
+  <text x="379.4" y="352" class="value">1.4%</text>
+  <text x="505" y="352" class="small">RRM transfers one embryo at a time</text>
+  <line x1="510" y1="100" x2="510" y2="450" stroke="#c9b8d3" stroke-width="1"/>
+  <text x="540" y="112" class="heading">PANEL B &#183; HOW MANY TIMES HIGHER THE ODDS ARE</text>
+  <text x="540" y="128" class="small">adjusted odds of an early birth vs untreated women (not a percentage)</text>
+  <line x1="592" y1="160" x2="592" y2="382" stroke="#ece9e5" stroke-width="1"/>
+  <text x="592" y="398" class="axis">1x</text>
+  <line x1="636" y1="160" x2="636" y2="382" stroke="#ece9e5" stroke-width="1"/>
+  <text x="636" y="398" class="axis">3x</text>
+  <line x1="680" y1="160" x2="680" y2="382" stroke="#ece9e5" stroke-width="1"/>
+  <text x="680" y="398" class="axis">5x</text>
+  <line x1="724" y1="160" x2="724" y2="382" stroke="#ece9e5" stroke-width="1"/>
+  <text x="724" y="398" class="axis">7x</text>
+  <line x1="768" y1="160" x2="768" y2="382" stroke="#ece9e5" stroke-width="1"/>
+  <text x="768" y="398" class="axis">9x</text>
+  <line x1="592" y1="160" x2="592" y2="382" stroke="#dddbd8" stroke-width="1.5" stroke-dasharray="3 3"/>
+  <text x="592" y="146" class="axis">1x = same odds as untreated</text>
+  <text x="570" y="172" class="label" font-size="11.5px" dominant-baseline="auto">ART single-baby preterm (Stanford 2016)</text>
+  <rect x="592" y="180" width="50.2" height="20" rx="3" fill="#947353"/>
+  <text x="793" y="190" class="value" dominant-baseline="central">3.3x</text>
+  <text x="837" y="190" class="small" dominant-baseline="central">OR 3.28, CI 1.74-6.20</text>
+  <text x="570" y="226" class="label" font-size="11.5px" dominant-baseline="auto">ART single-baby low birth weight (Stanford 2016)</text>
+  <rect x="592" y="234" width="42.0" height="20" rx="3" fill="#947353"/>
+  <text x="793" y="244" class="value" dominant-baseline="central">2.9x</text>
+  <text x="837" y="244" class="small" dominant-baseline="central">OR 2.91, CI 1.99-4.26</text>
+  <text x="570" y="280" class="label" font-size="11.5px" dominant-baseline="auto">IVF preterm (Sanders 2022)</text>
+  <rect x="592" y="288" width="71.3" height="20" rx="3" fill="#9b4d6e"/>
+  <text x="793" y="298" class="value" dominant-baseline="central">4.2x</text>
+  <text x="837" y="298" class="small" dominant-baseline="central">OR 4.24, CI 2.05-8.77</text>
+  <text x="570" y="334" class="label" font-size="11.5px" dominant-baseline="auto">IUI preterm (Sanders 2022)</text>
+  <rect x="592" y="342" width="47.7" height="20" rx="3" fill="#9b4d6e"/>
+  <text x="793" y="352" class="value" dominant-baseline="central">3.2x</text>
+  <text x="837" y="352" class="small" dominant-baseline="central">OR 3.17, CI 1.40-7.19</text>
+  <text x="540" y="382" class="small">Stanford: vs never-treated women. Sanders: vs untreated subfertile women.</text>
+  <text x="30" y="488" class="caption">Panel A: lower is safer (fewer early or multiple births). Panel B: "3x" means the adjusted odds are about 3 times higher than for untreated women.</text>
+  <text x="30" y="504" class="caption">Panel A is a head-count percentage; Panel B is an adjusted-odds multiple. They measure different things and are never on one axis.</text>
+  <text x="930" y="528" class="attribution">rrmacademy.org/rrm-success-rates</text>
+</svg>
