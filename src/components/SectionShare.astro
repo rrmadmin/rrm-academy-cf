@@ -1,0 +1,282 @@
+---
+// SectionShare.astro: linkable section heading + per-section share control.
+// Renders the H2 with a hover/focus-revealed anchor copy-link button nested in
+// the heading, plus a "Share section" pill. One module script (Astro hoists +
+// dedupes component scripts) implements copy-link + navigator.share + toast.
+// Lifted from src/pages/guides/index.astro and src/components/GlossaryTerm.astro.
+//
+// Props:
+//   id    -- section anchor (becomes the H2 id and the #fragment in the URL)
+//   title -- H2 text; MUST equal the matching JSON-LD articleSection entry.
+//   share -- show the "Share section" pill (default true). Set false on a
+//            section that is itself about sharing (e.g. Downloads and Sharing).
+import { Share2, Check, Link as LinkIcon } from '@lucide/astro';
+
+interface Props {
+  id: string;
+  title: string;
+  share?: boolean;
+}
+
+const { id, title, share = true } = Astro.props;
+const url = `https://rrmacademy.org/rrm-success-rates/#${id}`;
+---
+
+<div class="section-head">
+  <h2 id={id}>
+    {title}
+    <button
+      type="button"
+      class="section-anchor"
+      aria-label={`Copy link to "${title}"`}
+      data-share-url={url}
+      data-anchor-only="1"
+      data-share-title={title}
+    >
+      <LinkIcon size={16} aria-hidden="true" />
+    </button>
+  </h2>
+  {share && (
+    <button
+      type="button"
+      class="section-share"
+      aria-label={`Share "${title}"`}
+      data-share-url={url}
+      data-share-title={`RRM Success Rates: ${title}`}
+    >
+      <Share2 class="section-share__icon" size={14} aria-hidden="true" />
+      <Check class="section-share__icon section-share__icon--check" size={14} aria-hidden="true" />
+      <span class="section-share__label">Share section</span>
+    </button>
+  )}
+</div>
+
+<script>
+  // Single toast element shared across every SectionShare instance on the page.
+  // Appended to <body>, so its styles are :global below.
+  function ensureToast(): HTMLDivElement {
+    let el = document.getElementById('share-toast') as HTMLDivElement | null;
+    if (el) return el;
+    el = document.createElement('div');
+    el.id = 'share-toast';
+    el.className = 'share-toast';
+    el.setAttribute('role', 'status');
+    el.setAttribute('aria-live', 'polite');
+    document.body.appendChild(el);
+    return el;
+  }
+
+  const toast = ensureToast();
+  let toastTimer: ReturnType<typeof setTimeout> | undefined;
+
+  function showToast(msg: string) {
+    toast.textContent = msg;
+    toast.classList.add('share-toast--show');
+    if (toastTimer) clearTimeout(toastTimer);
+    toastTimer = setTimeout(() => toast.classList.remove('share-toast--show'), 2400);
+  }
+
+  document
+    .querySelectorAll<HTMLButtonElement>('.section-share, .section-anchor')
+    .forEach((btn) => {
+      btn.addEventListener('click', async (event) => {
+        event.preventDefault();
+        event.stopPropagation();
+
+        const url = btn.dataset.shareUrl || window.location.href;
+        const title = btn.dataset.shareTitle || document.title;
+        const anchorOnly = btn.dataset.anchorOnly === '1';
+
+        // Anchor-only buttons always copy the link (never open the share sheet).
+        const hasWebShare = !anchorOnly && typeof navigator.share === 'function';
+
+        // GA4 share_click via the global bridge (track-auto.ts). Never block
+        // the share UI if the bridge is absent or throws.
+        try {
+          if ((window as any).__rrmTrack__) {
+            (window as any).__rrmTrack__('share_click', {
+              surface: 'success-rates-section',
+              network: hasWebShare ? 'web-share' : 'copy-link',
+            });
+          }
+        } catch (e) {
+          /* never block share UI */
+        }
+
+        if (hasWebShare) {
+          try {
+            await navigator.share({ title, url });
+            return;
+          } catch (err) {
+            if (err && (err as DOMException).name === 'AbortError') return;
+            // fall through to clipboard
+          }
+        }
+
+        try {
+          await navigator.clipboard.writeText(url);
+          btn.dataset.state = 'copied';
+          showToast('Link copied');
+          setTimeout(() => {
+            if (btn.dataset.state === 'copied') delete btn.dataset.state;
+          }, 2400);
+        } catch {
+          showToast('Could not copy link');
+        }
+      });
+    });
+</script>
+
+<style>
+  .section-head {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: var(--space-3);
+  }
+
+  .section-head h2 {
+    scroll-margin-top: 96px;
+  }
+
+  /* Anchor copy-link nested in the H2. Hidden until the heading is hovered or
+     the button itself receives keyboard focus. */
+  .section-anchor {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    margin-left: var(--space-2);
+    padding: 4px;
+    background: transparent;
+    border: none;
+    border-radius: var(--radius-sm);
+    color: var(--text-secondary);
+    cursor: pointer;
+    opacity: 0;
+    transition: opacity 0.15s ease, color 0.15s ease;
+    vertical-align: middle;
+  }
+  .section-head h2:hover .section-anchor {
+    opacity: 1;
+  }
+  /* Keyboard focus: the button is invisible until focused, so it needs a real
+     focus ring (opacity alone is not a sufficient indicator, WCAG 2.4.11). */
+  .section-anchor:focus-visible {
+    opacity: 1;
+    outline: 2px solid var(--purple-700);
+    outline-offset: 2px;
+  }
+  .section-anchor:hover {
+    color: var(--purple-700);
+  }
+
+  /* "Share section" pill. */
+  .section-share {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-2);
+    flex-shrink: 0;
+    padding: 6px 12px;
+    background: transparent;
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-pill);
+    color: var(--text-secondary);
+    font-family: 'Inter', sans-serif;
+    font-size: 0.8125rem;
+    font-weight: 500;
+    line-height: 1;
+    cursor: pointer;
+    transition: background-color 0.15s ease, border-color 0.15s ease, color 0.15s ease;
+  }
+  .section-share:hover,
+  .section-share:focus-visible {
+    background: var(--purple-700);
+    border-color: var(--purple-700);
+    color: #fff;
+    outline: none;
+  }
+  .section-share[data-state="copied"] {
+    background: var(--purple-700);
+    border-color: var(--purple-700);
+    color: #fff;
+  }
+
+  .section-share__icon {
+    display: block;
+    flex-shrink: 0;
+    transition: opacity 0.15s ease, transform 0.15s ease;
+  }
+  .section-share__icon--check {
+    position: absolute;
+    left: 12px;
+    opacity: 0;
+    transform: scale(0.6);
+  }
+  .section-share[data-state="copied"] .section-share__icon:not(.section-share__icon--check) {
+    opacity: 0;
+    transform: scale(0.6);
+  }
+  .section-share[data-state="copied"] .section-share__icon--check {
+    opacity: 1;
+    transform: scale(1);
+  }
+
+  @media (max-width: 640px) {
+    .section-share {
+      padding: 6px;
+      gap: 0;
+    }
+    .section-share__label {
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      padding: 0;
+      margin: -1px;
+      overflow: hidden;
+      clip: rect(0, 0, 0, 0);
+      white-space: nowrap;
+      border: 0;
+    }
+    .section-share__icon--check {
+      left: 6px;
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .section-anchor,
+    .section-share { transition: opacity 0.12s; }
+    .section-share__icon { transition: opacity 0.12s; }
+    .section-share__icon--check { transform: scale(1); }
+  }
+
+  /* Toast is appended to <body> by the script, so it must be :global. Copied
+     verbatim from src/pages/guides/index.astro .share-toast. */
+  :global(.share-toast) {
+    position: fixed;
+    bottom: calc(env(safe-area-inset-bottom, 0px) + var(--space-6));
+    left: 50%;
+    transform: translateX(-50%) translateY(16px);
+    z-index: 9999;
+    background: var(--text-primary);
+    color: var(--bg-body);
+    padding: 10px 20px;
+    border-radius: var(--radius-pill);
+    font-family: 'Inter', sans-serif;
+    font-size: 0.8125rem;
+    font-weight: 500;
+    box-shadow: 0 8px 28px -8px color-mix(in srgb, var(--text-primary) 35%, transparent);
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.22s ease, transform 0.22s ease;
+    max-width: calc(100vw - var(--space-6) * 2);
+  }
+  :global(.share-toast--show) {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0);
+  }
+  @media (prefers-reduced-motion: reduce) {
+    :global(.share-toast) { transition: opacity 0.15s; }
+    :global(.share-toast--show) { transform: translateX(-50%); }
+  }
+</style>

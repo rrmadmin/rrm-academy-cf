@@ -183,6 +183,20 @@
       "in_guides_catalogue": true,
       "in_shell_guides_nav": true,
       "_order": 11
+    },
+    {
+      "slug": "rrm-success-rates",
+      "file": "rrm-success-rates/index.astro",
+      "title": "RRM Success Rates: What the Published Evidence Shows",
+      "description": "RRM live-birth rates across 14 peer-reviewed cohorts, 11 countries, 2008-2026. Crude and adjusted-cumulative outcomes with follow-up windows, by condition and age group.",
+      "og_title": "RRM Success Rates: The Published Evidence",
+      "og_description": "RRM live-birth rates across 14 peer-reviewed cohorts, 11 countries, 2008-2026. Crude and adjusted-cumulative outcomes with follow-up windows, by condition and age group.",
+      "author": "RRM Academy",
+      "read_time": "25 min read",
+      "accent": "var(--purple-700)",
+      "in_guides_catalogue": true,
+      "in_shell_guides_nav": true,
+      "_order": 12
     }
   ]
 }

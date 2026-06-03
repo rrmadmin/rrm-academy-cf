@@ -1,0 +1,45 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 760 420" role="img" aria-label="US-grounded cost comparison: RRM course versus IVF per cycle versus IVF cumulative to a live birth">
+  <title>RRM Course vs US IVF Cost (per cycle and cumulative)</title>
+  <desc>Three cost bars on one US-dollar scale, each labeled by its basis. RRM full course of care 2,000 to 5,000 dollars (per course, Bulletti 2025). US IVF about 19,200 dollars (per cycle including medications, ASRM 2021). US IVF cumulative cost to one live birth about 61,000 dollars (per successful outcome, Katz 2011), with a FertilityIQ marker at about 50,000 dollars across 2.3 cycles. Per course, per cycle, and cumulative use different denominators.</desc>
+  <rect width="760" height="420" fill="#28241e"/>
+  <style>
+    .heading { font-family: 'Inter', sans-serif; font-size: 12px; font-weight: 600; fill: #b0aaa2; letter-spacing: 0.05em; }
+    .subtitle { font-family: 'Inter', sans-serif; font-size: 12.5px; font-weight: 400; fill: #b0aaa2; }
+    .label { font-family: 'Inter', sans-serif; font-size: 12.5px; font-weight: 600; fill: #dcd6ce; dominant-baseline: central; }
+    .basis { font-family: 'Inter', sans-serif; font-size: 10.5px; font-weight: 400; fill: #987da8; dominant-baseline: central; }
+    .value { font-family: 'Inter', sans-serif; font-size: 12.5px; font-weight: 600; fill: #dcd6ce; dominant-baseline: central; }
+    .axis { font-family: 'Inter', sans-serif; font-size: 11px; font-weight: 400; fill: #987da8; text-anchor: middle; }
+    .marker { font-family: 'Inter', sans-serif; font-size: 10px; font-weight: 600; fill: #b0aaa2; text-anchor: middle; }
+    .caption { font-family: 'Inter', sans-serif; font-size: 11.5px; font-style: italic; fill: #987da8; }
+    .attribution { font-family: 'Inter', sans-serif; font-size: 10.5px; font-weight: 500; fill: #8b827a; letter-spacing: 0.04em; text-anchor: end; }
+  </style>
+  <text x="30" y="50" class="heading">TYPICAL COST (US DOLLARS)</text>
+  <line x1="30" y1="63" x2="730" y2="63" stroke="#6b5877" stroke-width="1"/>
+  <text x="30" y="80" class="subtitle">An RRM course costs far less than what IVF runs to reach one live birth. Bars use different denominators (labeled).</text>
+  <line x1="230" y1="110" x2="230" y2="300" stroke="#332f2b" stroke-width="1"/>
+  <text x="230" y="316" class="axis">$0</text>
+  <line x1="376.2" y1="110" x2="376.2" y2="300" stroke="#332f2b" stroke-width="1"/>
+  <text x="376.2" y="316" class="axis">$20,000</text>
+  <line x1="522.3" y1="110" x2="522.3" y2="300" stroke="#332f2b" stroke-width="1"/>
+  <text x="522.3" y="316" class="axis">$40,000</text>
+  <line x1="668.5" y1="110" x2="668.5" y2="300" stroke="#332f2b" stroke-width="1"/>
+  <text x="668.5" y="316" class="axis">$60,000</text>
+  <text x="30" y="135" class="label">RRM full course of care</text>
+  <text x="30" y="151" class="basis">per course (Bulletti 2025)</text>
+  <rect x="244.6" y="128" width="21.9" height="30" rx="4" fill="#b8a3c4"/>
+  <text x="275" y="143" class="value">$2,000 to $5,000</text>
+  <text x="30" y="195" class="label">US IVF, one cycle</text>
+  <text x="30" y="211" class="basis">per cycle, incl. meds (ASRM 2021)</text>
+  <rect x="230" y="188" width="140.3" height="30" rx="4" fill="#6b6560"/>
+  <text x="378" y="203" class="value">~$19,200</text>
+  <text x="30" y="255" class="label">US IVF, cumulative</text>
+  <text x="30" y="271" class="basis">to one live birth (Katz 2011)</text>
+  <rect x="230" y="248" width="445.8" height="30" rx="4" fill="#9a938a"/>
+  <text x="668" y="263" class="value" text-anchor="end" fill="#28241e">~$61,000</text>
+  <line x1="595.4" y1="244" x2="595.4" y2="282" stroke="#b8a3c4" stroke-width="2" stroke-dasharray="3 3"/>
+  <text x="595.4" y="296" class="marker">FertilityIQ ~$50,000 (2.3 cycles)</text>
+  <text x="30" y="350" class="caption">Per cycle and cumulative are different denominators and are not interchangeable. The honest comparator to an RRM course is</text>
+  <text x="30" y="366" class="caption">IVF's cumulative cost to a live birth, not one cycle's sticker price.</text>
+  <text x="30" y="388" class="caption">Sources: Bulletti FM et al. 2025; ASRM 2021; Katz et al., Fertility and Sterility, 2011; FertilityIQ 2019.</text>
+  <text x="730" y="408" class="attribution">rrmacademy.org/rrm-success-rates</text>
+</svg>

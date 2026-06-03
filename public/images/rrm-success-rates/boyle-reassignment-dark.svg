@@ -1,0 +1,74 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 820 580" role="img" aria-label="Diagnostic reassignment before and after RRM evaluation">
+  <title>RRM Diagnostic Reassignment (Boyle 2025)</title>
+  <desc>Paired before-and-after horizontal bars showing the percentage of the Boyle 2025 cohort carrying each diagnosis before versus after RRM evaluation: unexplained infertility falls from 24 to 1 percent, while ovulatory dysfunction rises 19 to 76, corpus luteum deficiency 0 to 71, clinical endorphin deficiency 1 to 67, hypoandrogenism 0 to 31, and endometritis 0 to 17 percent.</desc>
+  <rect width="820" height="580" fill="#28241e"/>
+  <style>
+    .heading { font-family: 'Inter', sans-serif; font-size: 12px; font-weight: 600; fill: #b0aaa2; letter-spacing: 0.05em; }
+    .subtitle { font-family: 'Inter', sans-serif; font-size: 12.5px; font-weight: 400; fill: #b0aaa2; }
+    .label { font-family: 'Inter', sans-serif; font-size: 12.5px; font-weight: 400; fill: #b0aaa2; dominant-baseline: central; }
+    .label-end { font-family: 'Inter', sans-serif; font-size: 12.5px; font-weight: 400; fill: #b0aaa2; text-anchor: end; dominant-baseline: central; }
+    .label-mid { font-family: 'Inter', sans-serif; font-size: 11.5px; font-weight: 400; fill: #b0aaa2; text-anchor: middle; }
+    .small { font-family: 'Inter', sans-serif; font-size: 10.5px; font-weight: 400; fill: #987da8; }
+    .value { font-family: 'Inter', sans-serif; font-size: 12.5px; font-weight: 600; fill: #dcd6ce; dominant-baseline: central; }
+    .value-mid { font-family: 'Inter', sans-serif; font-size: 12px; font-weight: 600; fill: #dcd6ce; text-anchor: middle; }
+    .value-accent { fill: #b8a3c4; }
+    .axis { font-family: 'Inter', sans-serif; font-size: 11px; font-weight: 400; fill: #987da8; text-anchor: middle; }
+    .axis-y { font-family: 'Inter', sans-serif; font-size: 11px; font-weight: 400; fill: #987da8; text-anchor: end; dominant-baseline: central; }
+    .caption { font-family: 'Inter', sans-serif; font-size: 11.5px; font-style: italic; fill: #987da8; }
+    .legend { font-family: 'Inter', sans-serif; font-size: 11.5px; font-weight: 400; fill: #b0aaa2; dominant-baseline: central; }
+    .attribution { font-family: 'Inter', sans-serif; font-size: 10.5px; font-weight: 500; fill: #8b827a; letter-spacing: 0.04em; text-anchor: end; }
+    .flag { font-family: 'Inter', sans-serif; font-size: 12px; font-weight: 700; fill: #fbbf24; }
+    .flagnote { font-family: 'Inter', sans-serif; font-size: 10.5px; font-weight: 500; fill: #fbbf24; }
+    
+  </style>
+  <text x="30" y="50" class="heading">DIAGNOSES BEFORE VS AFTER RRM EVALUATION</text>
+  <line x1="30" y1="63" x2="790" y2="63" stroke="#6b5877" stroke-width="1"/>
+  <text x="30" y="78" class="subtitle">% of cohort carrying each diagnosis, before vs after RRM work-up (Boyle 2025). Specific causes replace "unexplained".</text>
+  <line x1="320" y1="100" x2="320" y2="456" stroke="#332f2b" stroke-width="1"/>
+  <text x="320" y="472" class="axis">0%</text>
+  <line x1="410" y1="100" x2="410" y2="456" stroke="#332f2b" stroke-width="1"/>
+  <text x="410" y="472" class="axis">25%</text>
+  <line x1="500" y1="100" x2="500" y2="456" stroke="#332f2b" stroke-width="1"/>
+  <text x="500" y="472" class="axis">50%</text>
+  <line x1="590" y1="100" x2="590" y2="456" stroke="#332f2b" stroke-width="1"/>
+  <text x="590" y="472" class="axis">75%</text>
+  <line x1="680" y1="100" x2="680" y2="456" stroke="#332f2b" stroke-width="1"/>
+  <text x="680" y="472" class="axis">100%</text>
+  <text x="306" y="129" class="label-end">Unexplained infertility</text>
+  <rect x="320" y="110" width="86.4" height="18" rx="3" fill="#5a4a66"/>
+  <text x="414.4" y="119" class="label" font-size="11.5px">24% before</text>
+  <rect x="320" y="132" width="3.6" height="18" rx="3" fill="#b8a3c4"/>
+  <text x="331.6" y="141" class="value value-accent" font-size="12px">1% after</text>
+  <text x="306" y="191" class="label-end">Ovulatory dysfunction</text>
+  <rect x="320" y="172" width="68.4" height="18" rx="3" fill="#5a4a66"/>
+  <text x="396.4" y="181" class="label" font-size="11.5px">19% before</text>
+  <rect x="320" y="194" width="273.6" height="18" rx="3" fill="#b8a3c4"/>
+  <text x="601.6" y="203" class="value value-accent" font-size="12px">76% after</text>
+  <text x="306" y="253" class="label-end">Corpus luteum deficiency</text>
+  <rect x="320" y="234" width="1.5" height="18" rx="3" fill="#5a4a66"/>
+  <text x="329.5" y="243" class="label" font-size="11.5px">0% before</text>
+  <rect x="320" y="256" width="255.6" height="18" rx="3" fill="#b8a3c4"/>
+  <text x="583.6" y="265" class="value value-accent" font-size="12px">71% after</text>
+  <text x="306" y="315" class="label-end">Clinical endorphin deficiency</text>
+  <rect x="320" y="296" width="3.6" height="18" rx="3" fill="#5a4a66"/>
+  <text x="331.6" y="305" class="label" font-size="11.5px">1% before</text>
+  <rect x="320" y="318" width="241.2" height="18" rx="3" fill="#b8a3c4"/>
+  <text x="569.2" y="327" class="value value-accent" font-size="12px">67% after</text>
+  <text x="306" y="377" class="label-end">Hypoandrogenism</text>
+  <rect x="320" y="358" width="1.5" height="18" rx="3" fill="#5a4a66"/>
+  <text x="329.5" y="367" class="label" font-size="11.5px">0% before</text>
+  <rect x="320" y="380" width="111.6" height="18" rx="3" fill="#b8a3c4"/>
+  <text x="439.6" y="389" class="value value-accent" font-size="12px">31% after</text>
+  <text x="306" y="439" class="label-end">Endometritis</text>
+  <rect x="320" y="420" width="1.5" height="18" rx="3" fill="#5a4a66"/>
+  <text x="329.5" y="429" class="label" font-size="11.5px">0% before</text>
+  <rect x="320" y="442" width="61.2" height="18" rx="3" fill="#b8a3c4"/>
+  <text x="389.2" y="451" class="value value-accent" font-size="12px">17% after</text>
+  <rect x="30" y="496" width="16" height="12" rx="2" fill="#5a4a66"/>
+  <text x="52" y="502" class="legend">Before RRM evaluation</text>
+  <rect x="280" y="496" width="16" height="12" rx="2" fill="#b8a3c4"/>
+  <text x="302" y="502" class="legend">After RRM evaluation</text>
+  <text x="30" y="524" class="caption">RRM converts vague "unexplained infertility" into specific, treatable diagnoses.</text>
+  <text x="30" y="542" class="caption">Source: Boyle et al. 2025 (Table 4). Couples may carry multiple diagnoses, so columns do not sum to 100%.</text>
+  <text x="790" y="568" class="attribution">rrmacademy.org/rrm-success-rates</text>
+</svg>
