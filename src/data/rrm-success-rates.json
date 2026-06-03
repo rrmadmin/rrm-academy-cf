@@ -40,7 +40,19 @@
     { "id": "wang-2017-nicu", "librarySlug": "fertility-treatment-is-associated-with-stay-in-the-neonatal-intensive-care-unit--rec95pcvy1wytajxx", "why": "NICU stay after fertility treatment (safety comparator)" },
     { "id": "vonversen-2019-preeclampsia-cl", "librarySlug": "increased-preeclampsia-risk-and-reduced-aortic-compliance-with-in-vitro-fertiliz-GBHW8wcb", "why": "Corpus-luteum-absent IVF cycles and preeclampsia (mechanistic safety)" }
   ],
-  "cost": { "rrm_range_usd": "2000-5000", "art_range_usd": "10000-15000", "sourceStudyId": "bulletti-2025-tarh", "verified": true, "verificationNote": "Bulletti FM et al. 2025 (Ther Adv Reprod Health, PMID 40546415), Table 7 + Table 8 'Typical cost (USD)': RRM (e.g., polypectomy / common surgeries-interventions) $2000-$5000; ART (IVF per cycle) $10,000-$15,000. Extracted from PMC12182620 rendered tables (cells are image-only in the library fulltext)." },
+  "cost": {
+    "rrm_course_usd": "2000-5000",
+    "rrm_source": { "studyId": "bulletti-2025-tarh", "librarySlug": "revitalizing-reproductive-health-innovations-and-future-frontiers-in-restorative-reccddj5kun7yn1ir", "note": "Bulletti 2025 Table 7/8, typical RRM course" },
+    "ivf_per_cycle_us_usd": "19200",
+    "ivf_per_cycle_us_year": 2021,
+    "ivf_per_cycle_us_source": { "name": "ASRM", "url": "https://www.asrm.org/practice-guidance/ethics-opinions/disparities-in-access-to-effective-treatment-for-infertility-in-the-united-states-an-ethics-committee-opinion-2021/", "note": "median per cycle including medications" },
+    "ivf_cumulative_us_usd": "61000",
+    "ivf_cumulative_us_source": { "name": "Katz 2011", "librarySlug": "costs-of-infertility-treatment-results-from-an-18month-prospective-cohort-study-8owrwrej", "note": "cost per successful IVF outcome ~2009 USD; FertilityIQ ~$50,000 across 2.3 cycles (2019) as recent corroboration", "fertilityiqUrl": "https://www.fertilityiq.com/ivf-in-vitro-fertilization/costs-of-ivf" },
+    "ivf_per_cycle_global_usd": "10000-15000",
+    "ivf_per_cycle_global_source": { "studyId": "bulletti-2025-tarh", "note": "GLOBAL per-cycle figure; reads low for the US" },
+    "verified": true,
+    "verificationNote": "US per-cycle ASRM 2021 $19,200 incl meds; cumulative-to-live-birth Katz 2011 (PMID 21130988) $61,377/successful IVF outcome (~2009 USD), FertilityIQ 2019 ~$50k/2.3 cycles; RRM course $2-5k Bulletti 2025 (PMID 40546415); global per-cycle $10-15k Bulletti relabeled global, not US."
+  },
   "charts": {
     "_rule": "Chart-only datapoints (Sánchez-Méndez time-curve/by-age/by-diagnosis, Boyle funnel + reassignment) are appended here by the verification pass with per-datapoint verificationNote. Chart SVGs read ONLY from this file.",
     "hfea_ivf_reference": {
