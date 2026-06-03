@@ -55,10 +55,16 @@ const knownPages = buildKnownPages(pageKeys);
   }
 
   /* Decorative image collage — flanks the card, clipped by its own layer
-     (NOT the section: the section must never clip the in-flow search results). */
+     (NOT the section: the section must never clip the in-flow search results).
+     Height caps at one viewport so the composition stays framed around the
+     initial view when search results stretch the section — percentage anchors
+     resolve against this layer, never the full (possibly very tall) section. */
   .not-found__images {
     position: absolute;
-    inset: 0;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: min(100%, 100vh);
     overflow: hidden;
     pointer-events: none;
   }
@@ -250,11 +256,9 @@ const knownPages = buildKnownPages(pageKeys);
     margin: 0 0 4px;
     transition: color 0.15s;
   }
+  /* Inline flow (not flex): the year must follow the last author word on the
+     same line instead of wrapping to its own row as a separate flex item. */
   .nf-search-results :global(.sr-meta) {
-    display: flex;
-    flex-wrap: wrap;
-    align-items: baseline;
-    gap: 2px 0;
     font-size: 0.75rem;
     line-height: 1.5;
     margin-bottom: 6px;
