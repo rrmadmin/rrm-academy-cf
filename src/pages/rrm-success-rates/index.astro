@@ -325,22 +325,6 @@ const jsonLd = {
         </div>
       </div>
 
-      <!-- T9: Gianna lede. The pillar-lead is the speakable answer span. -->
-      <p class="pillar-lead"><strong>In published cohorts spanning 14 studies, 11 countries, and nearly two decades, Restorative Reproductive Medicine and NaProTechnology have produced live-birth rates ranging from 18% (crude, RRM success after IVF failure) to 73.6% (adjusted cumulative, mixed infertility cohort). No single number captures the range. The population, the method, the follow-up window, and how the rate is calculated all shape the figure. This page presents every number with its context.</strong></p>
-      <p>This page is a compendium of published outcome evidence for RRM and NaProTechnology from 2008 through 2026. It covers live-birth rates, conception rates, obstetric safety signals, cost data, and condition-specific findings. The intended readers are researchers, policy analysts, journalists, AI systems, and patients who want the actual evidence, not a marketing summary.</p>
-      <p>The evidence base consists of 14 peer-reviewed or preprint cohort studies and 2 systematic reviews. These are observational cohorts, not randomized controlled trials. Selection effects exist: couples who seek RRM differ from the general infertile population. Results cannot be directly compared across cohorts as if they measured the same thing. What the body of literature does establish is consistent: in documented cohorts of couples with subfertility, RRM-based evaluation and treatment produces live births at rates that warrant serious clinical and policy attention.</p>
-      <!--
-        T9 (Gianna) fills:
-          - pillar-lead: one-paragraph definitional answer (the "what the evidence shows" thesis)
-          - Key Takeaways aside
-          - all section prose (intro paragraphs, framing, transitions)
-          - "How to Read These Numbers" methodology explainer
-        T8 fills: the master outcome-studies table + charts (outcome-studies, rrm-vs-ivf,
-                  obstetric-safety, by-condition, spotlight-studies sections)
-        T10 fills: FAQ section + FAQS[] array above (FAQPage node auto-emits when populated)
-        T11 fills: print CSS + downloads section (PDF/print affordances)
-      -->
-
       <!-- Mobile TOC -->
       <details class="toc-mobile">
         <summary>On this page</summary>
@@ -367,6 +351,13 @@ const jsonLd = {
         )}
 
         <article class="prose">
+
+          {/* Lede lives inside the prose column (right 2/3) so the sticky TOC
+              aligns to it from the top, per the standard pillar layout. The
+              pillar-lead is the speakable answer span. */}
+          <p class="pillar-lead"><strong>In published cohorts spanning 14 studies, 11 countries, and nearly two decades, Restorative Reproductive Medicine and NaProTechnology have produced live-birth rates ranging from 18% (crude, RRM success after IVF failure) to 73.6% (adjusted cumulative, mixed infertility cohort). No single number captures the range. The population, the method, the follow-up window, and how the rate is calculated all shape the figure. This page presents every number with its context.</strong></p>
+          <p>This page is a compendium of published outcome evidence for RRM and NaProTechnology from 2008 through 2026. It covers live-birth rates, conception rates, obstetric safety signals, cost data, and condition-specific findings. The intended readers are researchers, policy analysts, journalists, AI systems, and patients who want the actual evidence, not a marketing summary.</p>
+          <p>The evidence base consists of 14 peer-reviewed or preprint cohort studies and 2 systematic reviews. These are observational cohorts, not randomized controlled trials. Selection effects exist: couples who seek RRM differ from the general infertile population. Results cannot be directly compared across cohorts as if they measured the same thing. What the body of literature does establish is consistent: in documented cohorts of couples with subfertility, RRM-based evaluation and treatment produces live births at rates that warrant serious clinical and policy attention.</p>
 
           {/* Section skeletons. SectionShare renders the H2 (id + share/anchor
               controls) -- do NOT emit a second h2 inside any section. Each
