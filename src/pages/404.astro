@@ -32,7 +32,7 @@ const knownPages = buildKnownPages(pageKeys);
         </div>
         <div class="nf-search-results" id="nf-search-results"></div>
       </div>
-      <nav class="not-found__links">
+      <nav class="not-found__links" aria-label="Suggested destinations">
         <ul>
           <li><a href="/library/">Research Library</a></li>
           <li><a href="/commentary/">Commentary</a></li>
@@ -49,44 +49,53 @@ const knownPages = buildKnownPages(pageKeys);
     display: flex;
     align-items: center;
     justify-content: center;
-    min-height: 60vh;
+    min-height: 70vh;
     text-align: center;
-    padding: var(--space-16) var(--space-4) var(--space-12);
-    overflow: hidden;
+    padding: var(--space-16) var(--space-4) var(--space-16);
   }
 
-  /* Decorative image collage — faded behind content */
+  /* Decorative image collage — flanks the card, clipped by its own layer
+     (NOT the section: the section must never clip the in-flow search results). */
   .not-found__images {
     position: absolute;
     inset: 0;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    gap: var(--space-4);
-    opacity: 0.12;
+    overflow: hidden;
     pointer-events: none;
   }
   .not-found__img {
+    position: absolute;
     border-radius: var(--radius-lg);
     object-fit: cover;
-    flex-shrink: 0;
+    opacity: 0.45;
   }
   .not-found__img--1 {
-    width: 280px;
-    height: 420px;
-    align-self: flex-start;
-    margin-top: var(--space-8);
+    width: 240px;
+    height: 360px;
+    left: clamp(8px, 5vw, 96px);
+    top: 50%;
+    transform: translateY(-50%) rotate(-2deg);
   }
   .not-found__img--2 {
-    width: 220px;
-    height: 160px;
-    align-self: center;
+    width: 210px;
+    height: 150px;
+    right: clamp(8px, 6vw, 120px);
+    top: 14%;
+    transform: rotate(2deg);
   }
   .not-found__img--3 {
-    width: 200px;
-    height: 140px;
-    align-self: flex-end;
-    margin-bottom: var(--space-8);
+    width: 190px;
+    height: 135px;
+    right: clamp(16px, 8vw, 150px);
+    bottom: 12%;
+    transform: rotate(-1.5deg);
+  }
+  :global([data-theme="dark"]) .not-found__img {
+    opacity: 0.22;
+  }
+  @media (max-width: 1023px) {
+    .not-found__img--1 { width: 180px; height: 270px; }
+    .not-found__img--2 { width: 150px; height: 107px; }
+    .not-found__img--3 { width: 140px; height: 100px; }
   }
   @media (max-width: 768px) {
     .not-found__images {
@@ -94,37 +103,43 @@ const knownPages = buildKnownPages(pageKeys);
     }
   }
 
-  /* Content */
+  /* Content card */
   .not-found__inner {
     position: relative;
-    max-width: 520px;
     z-index: 1;
+    width: 100%;
+    max-width: 600px;
+    background: var(--bg-surface);
+    border: 1px solid var(--border-light);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-md);
+    padding: var(--space-6) var(--space-8) var(--space-10);
+  }
+  @media (max-width: 640px) {
+    .not-found__inner {
+      padding: var(--space-5) var(--space-4) var(--space-8);
+    }
   }
   .not-found__code {
     display: block;
     font-family: 'Cormorant Garamond', 'Georgia', serif;
-    font-size: 6rem;
+    font-size: clamp(5.5rem, 4rem + 7vw, 8rem);
     font-weight: 600;
-    line-height: 1;
-    color: var(--sand-300);
-    margin-bottom: var(--space-3);
+    line-height: 0.72;
+    letter-spacing: 0.02em;
+    color: var(--sand-500);
+    margin-bottom: var(--space-4);
   }
   .not-found h1 {
-    font-size: 1.75rem;
+    font-size: clamp(1.625rem, 1.3rem + 1.5vw, 2.125rem);
     margin-bottom: var(--space-3);
   }
   .not-found__subtitle {
     color: var(--text-secondary);
-    margin-bottom: var(--space-8);
+    margin-bottom: var(--space-6);
   }
 
   /* Search bar */
-  .not-found__search {
-    position: relative;
-    width: 100%;
-    margin-bottom: var(--space-8);
-    z-index: 10;
-  }
   .nf-search-box {
     position: relative;
     display: flex;
@@ -141,7 +156,7 @@ const knownPages = buildKnownPages(pageKeys);
     padding: 12px 40px 12px 42px;
     font-size: 16px;
     font-family: 'Inter', sans-serif;
-    border: 1px solid var(--border-light);
+    border: 1px solid var(--border-color);
     border-radius: var(--radius-pill);
     outline: none;
     background: var(--bg-surface);
@@ -191,19 +206,14 @@ const knownPages = buildKnownPages(pageKeys);
     display: none;
   }
 
-  /* Results */
+  /* Results — in flow (push content below down), never clipped or overlaid */
   .nf-search-results {
-    position: absolute;
-    top: 100%;
-    left: 0;
-    right: 0;
     text-align: left;
-    padding: 0 var(--space-4) var(--space-4);
-    background: var(--bg-surface);
-    border-radius: 0 0 var(--radius-md) var(--radius-md);
-    max-height: 50vh;
-    overflow-y: auto;
-    box-shadow: 0 8px 24px rgba(0,0,0,0.1);
+    margin-top: var(--space-4);
+    padding: 0 var(--space-4);
+    background: var(--bg-body);
+    border: 1px solid var(--border-light);
+    border-radius: var(--radius-md);
   }
   .nf-search-results:empty {
     display: none;
@@ -224,6 +234,9 @@ const knownPages = buildKnownPages(pageKeys);
   }
   .nf-search-results :global(.sr-item:first-of-type) {
     border-top: 1px solid var(--border-light, var(--border-color));
+  }
+  .nf-search-results :global(.sr-item:last-child) {
+    border-bottom: none;
   }
   .nf-search-results :global(.sr-item:hover .sr-title) {
     color: var(--accent);
@@ -275,13 +288,13 @@ const knownPages = buildKnownPages(pageKeys);
   .nf-search-results :global(.sr-more) {
     display: block;
     width: 100%;
-    margin-top: var(--space-4);
+    margin: var(--space-2) 0 var(--space-4);
     padding: var(--space-2) var(--space-4);
     font-size: 0.8125rem;
     font-weight: 500;
     font-family: 'Inter', sans-serif;
     color: var(--text-secondary);
-    background: var(--bg-body);
+    background: var(--bg-surface);
     border: 1px solid var(--border-color);
     border-radius: var(--radius-pill);
     cursor: pointer;
@@ -302,28 +315,39 @@ const knownPages = buildKnownPages(pageKeys);
     padding: var(--space-4) 0;
   }
 
-  /* Navigation links */
+  /* Navigation pills */
   .not-found__links ul {
     list-style: none;
     display: flex;
+    flex-wrap: wrap;
     justify-content: center;
-    gap: var(--space-6);
+    gap: var(--space-3);
     padding: 0;
-    margin: 0;
+    margin: var(--space-8) 0 0;
   }
   .not-found__links a {
-    color: var(--accent);
+    display: inline-flex;
+    align-items: center;
+    padding: var(--space-3) var(--space-5);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-pill);
+    color: var(--text-secondary);
     font-size: 0.875rem;
     font-weight: 500;
+    text-decoration: none;
+    transition: color 0.15s, border-color 0.15s;
   }
   .not-found__links a:hover {
-    color: var(--accent-hover);
+    color: var(--accent);
+    border-color: var(--accent);
+  }
+  .not-found__links a:focus-visible {
+    outline: none;
+    box-shadow: 0 0 0 3px var(--focus-ring);
   }
 
-  /* Did-you-mean suggestions (above the search box) */
+  /* Did-you-mean suggestions (static-route fallback, above the search box) */
   .not-found__suggest {
-    position: relative;
-    z-index: 1;
     margin-bottom: var(--space-6);
   }
   .nf-suggest__label {
@@ -400,8 +424,8 @@ const knownPages = buildKnownPages(pageKeys);
     debounceTimer = setTimeout(function() { doSearch(q); }, 150);
   }
 
-  async function doSearch(query) {
-    resultsEl.innerHTML = '<p class="sr-loading">Searching\u2026</p>';
+  async function doSearch(query, quiet) {
+    resultsEl.innerHTML = '<p class="sr-loading">Searching…</p>';
     try {
       var pf = await ensurePagefind();
       var search = await pf.search(query);
@@ -411,7 +435,7 @@ const knownPages = buildKnownPages(pageKeys);
       shown = 0;
       resultsEl.innerHTML = '';
       if (totalCount === 0) {
-        resultsEl.innerHTML = '<p class="sr-empty">No results found for \u201c' + escHtml(query) + '\u201d</p>';
+        resultsEl.innerHTML = '<p class="sr-empty">No results found for “' + escHtml(query) + '”</p>';
         return;
       }
       var countEl = document.createElement('p');
@@ -420,7 +444,8 @@ const knownPages = buildKnownPages(pageKeys);
       resultsEl.appendChild(countEl);
       await loadMore();
     } catch(e) {
-      resultsEl.innerHTML = '<p class="sr-empty">Search unavailable</p>';
+      // An auto-run search fails silently; a user-typed one reports.
+      resultsEl.innerHTML = quiet ? '' : '<p class="sr-empty">Search unavailable</p>';
     }
   }
 
@@ -480,7 +505,7 @@ const knownPages = buildKnownPages(pageKeys);
         if (authors) {
           var sep = document.createElement('span');
           sep.className = 'sr-sep';
-          sep.textContent = '\u00b7';
+          sep.textContent = '·';
           meta.appendChild(sep);
         }
         var yearSpan = document.createElement('span');
@@ -516,6 +541,46 @@ const knownPages = buildKnownPages(pageKeys);
 
   input.addEventListener('input', onInput);
   input.addEventListener('focus', function() { ensurePagefind().catch(function(){}); }, { once: true });
+
+  // ---- Content-aware auto-search -------------------------------------------
+  // A dead /library/, /commentary/, /faqs/ or /courses/ URL means the visitor
+  // wanted a specific piece of content, not a section page. Derive a query
+  // from the slug, prefill the box, and run the search so the real article is
+  // already on screen. Sets window.__nfAutoSearch so the static "Did you
+  // mean" matcher (useless for content URLs — it would just say "Library")
+  // stands down.
+  var CONTENT_RE = /^\/(library|commentary|faqs|courses)\/(.+?)\/?$/;
+
+  function deriveQuery(pathname) {
+    var m = CONTENT_RE.exec(pathname);
+    if (!m) return '';
+    var segs = m[2].split('/').filter(Boolean);
+    if (!segs.length || segs[0] === 'page') return '';
+    var slug = segs[segs.length - 1];
+    try { slug = decodeURIComponent(slug); } catch (e) { /* keep raw */ }
+    var words = slug.toLowerCase().split('-').filter(Boolean);
+    // Strip trailing id-ish tokens: legacy Airtable ids ("reczywlbrfq5ksho8")
+    // and current short hash suffixes ("xjqi0gys").
+    while (words.length > 1) {
+      var last = words[words.length - 1];
+      if (/^rec[a-z0-9]{8,}$/.test(last) || (/\d/.test(last) && /^[a-z0-9]{4,17}$/.test(last))) {
+        words.pop();
+      } else {
+        break;
+      }
+    }
+    var q = words.join(' ').trim();
+    return q.length >= 4 && /[a-z]/.test(q) ? q : '';
+  }
+
+  var autoQuery = deriveQuery(location.pathname);
+  if (autoQuery) {
+    window.__nfAutoSearch = true;
+    input.value = autoQuery;
+    clearBtn.classList.remove('hidden');
+    currentQuery = autoQuery;
+    doSearch(autoQuery, true);
+  }
 })();
 </script>
 
@@ -525,6 +590,10 @@ const knownPages = buildKnownPages(pageKeys);
   import { bestMatches } from '../lib/url-match.js';
 
   (function () {
+    // Content-route 404s are handled by the auto-search above; suggesting the
+    // bare section page ("Library") there is worse than useless.
+    if ((window as any).__nfAutoSearch) return;
+
     const el = document.getElementById('nf-suggest');
     const dataEl = document.getElementById('nf-known-pages');
     if (!el || !dataEl) return;
