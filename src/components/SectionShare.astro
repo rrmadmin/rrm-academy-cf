@@ -151,10 +151,15 @@ const url = `https://rrmacademy.org/rrm-success-rates/#${id}`;
     transition: opacity 0.15s ease, color 0.15s ease;
     vertical-align: middle;
   }
-  .section-head h2:hover .section-anchor,
+  .section-head h2:hover .section-anchor {
+    opacity: 1;
+  }
+  /* Keyboard focus: the button is invisible until focused, so it needs a real
+     focus ring (opacity alone is not a sufficient indicator, WCAG 2.4.11). */
   .section-anchor:focus-visible {
     opacity: 1;
-    outline: none;
+    outline: 2px solid var(--purple-700);
+    outline-offset: 2px;
   }
   .section-anchor:hover {
     color: var(--purple-700);
