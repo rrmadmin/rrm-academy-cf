@@ -1,0 +1,417 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import MaybeShell from '../../components/MaybeShell.astro';
+import SectionTocChips from '../../components/SectionTocChips.astro';
+import { isShellEnabled } from '../../lib/shell-routes';
+import BackToTop from '../../components/BackToTop.astro';
+import LastUpdated from '../../components/LastUpdated.astro';
+import pageDates from '../../data/page-dates.json';
+import { buildScholarlyArticleStub } from '../../lib/identity';
+import SectionShare from '../../components/SectionShare.astro';
+import data from '../../data/rrm-success-rates.json';
+
+const SHELL_ENABLED = isShellEnabled('guides');
+
+// Verified, non-excluded corpus. Studies + safety comparators are the citation
+// compendium that anchors this page's authority.
+const included = data.studies.filter((s) => s.verified && !s.excluded);
+const safety = data.safety_comparators.filter((s) => s.verified && !s.excluded);
+
+// SECTIONS is the single source for: the TOC, the rendered section list, and the
+// JSON-LD articleSection + hasPart arrays. Edit here, everything follows.
+const SECTIONS = [
+  { id: 'at-a-glance', title: 'The Evidence at a Glance' },
+  { id: 'outcome-studies', title: 'The Outcome Studies' },
+  { id: 'rrm-vs-ivf', title: 'How RRM Compares to IVF and ART' },
+  { id: 'obstetric-safety', title: 'Obstetric Safety' },
+  { id: 'by-condition', title: 'Effectiveness by Condition' },
+  { id: 'spotlight-studies', title: 'Spotlight Studies' },
+  { id: 'how-to-read-these-numbers', title: 'How to Read These Numbers' },
+  { id: 'faq', title: 'Frequently Asked Questions' },
+  { id: 'references', title: 'References' },
+  { id: 'downloads', title: 'Downloads and Sharing' },
+];
+const TOC_ITEMS = SECTIONS.map((s) => ({ href: `#${s.id}`, label: s.title }));
+
+const PAGE_PATH = '/rrm-success-rates/';
+const PAGE_URL = 'https://rrmacademy.org/rrm-success-rates/';
+const LIBRARY_BASE = 'https://rrmacademy.org/library/';
+const PUBLISH_DATE = '2026-06-03';
+const LAST_MODIFIED = pageDates.dates[PAGE_PATH] || PUBLISH_DATE;
+
+// Helper: build a ScholarlyArticle stub for citation embedding (strip @context),
+// then attach the library URL + DOI sameAs. Precedent: naprotechnology citeStub.
+function citeStub(props: { name: string; author: string; datePublished: string; journal?: string }) {
+  const node = buildScholarlyArticleStub(props) as Record<string, unknown> & { '@context'?: unknown };
+  const { '@context': _ctx, ...rest } = node;
+  return rest;
+}
+
+// Citation compendium: every verified study + safety comparator becomes a
+// ScholarlyArticle node. name = library record title not in this SSOT, so it is
+// composed as "authors (year) journal"; sameAs = DOI (omitted when null); url =
+// library record. This array is the strategic core of the page.
+function toCitation(s: {
+  authors: string;
+  year: number;
+  journal: string;
+  doi?: string | null;
+  librarySlug: string;
+}) {
+  const name = `${s.authors} (${s.year}). ${s.journal}.`;
+  const node: Record<string, unknown> = {
+    ...citeStub({
+      name,
+      author: s.authors,
+      datePublished: String(s.year),
+      journal: s.journal,
+    }),
+    url: `${LIBRARY_BASE}${s.librarySlug}/`,
+  };
+  if (s.doi) node.sameAs = `https://doi.org/${s.doi}`;
+  return node;
+}
+
+const citationCompendium = [...included, ...safety].map(toCitation);
+
+// FAQ placeholder. T10 fills this; the FAQPage node is emitted ONLY when this is
+// non-empty so we never ship an empty FAQPage to validators.
+const FAQS: { question: string; answer: string }[] = []; // T10 fills
+
+// Single JSON-LD @graph block (precedent: art-registries-and-codes).
+const graph: Record<string, unknown>[] = [
+  {
+    '@type': ['Article', 'MedicalWebPage'],
+    headline: 'RRM Success Rates: What the Published Evidence Shows',
+    description:
+      'Every published RRM and NaProTechnology outcome study from 2008 to today: live birth rates, IVF comparisons, obstetric safety, and costs, with links to every source.',
+    image: 'https://rrmacademy.org/og/rrm-success-rates.png',
+    author: { '@id': 'https://rrmacademy.org/#organization' },
+    reviewedBy: { '@id': 'https://rrmacademy.org/#naomi-whittaker' },
+    publisher: {
+      '@type': 'EducationalOrganization',
+      '@id': 'https://rrmacademy.org/#organization',
+      name: 'RRM Academy',
+    },
+    datePublished: PUBLISH_DATE,
+    dateModified: LAST_MODIFIED,
+    mainEntityOfPage: {
+      '@type': 'WebPage',
+      '@id': PAGE_URL,
+    },
+    about: {
+      '@type': 'MedicalTherapy',
+      name: 'Restorative Reproductive Medicine',
+      alternateName: 'RRM',
+    },
+    articleSection: SECTIONS.map((s) => s.title),
+    hasPart: SECTIONS.map((s) => ({
+      '@type': 'WebPageElement',
+      name: s.title,
+      url: `${PAGE_URL}#${s.id}`,
+    })),
+    citation: citationCompendium,
+  },
+  {
+    '@type': 'BreadcrumbList',
+    itemListElement: [
+      { '@type': 'ListItem', position: 1, name: 'Home', item: 'https://rrmacademy.org/' },
+      { '@type': 'ListItem', position: 2, name: 'Guides', item: 'https://rrmacademy.org/guides/' },
+      { '@type': 'ListItem', position: 3, name: 'RRM Success Rates', item: PAGE_URL },
+    ],
+  },
+];
+
+// Emit FAQPage only when FAQS is populated (T10).
+if (FAQS.length > 0) {
+  graph.push({
+    '@type': 'FAQPage',
+    mainEntity: FAQS.map((f) => ({
+      '@type': 'Question',
+      name: f.question,
+      acceptedAnswer: { '@type': 'Answer', text: f.answer },
+    })),
+  });
+}
+
+const jsonLd = {
+  '@context': 'https://schema.org',
+  '@graph': graph,
+};
+---
+
+<BaseLayout
+  title="RRM Success Rates: What the Published Evidence Shows"
+  description="Every published RRM and NaProTechnology outcome study from 2008 to today: live birth rates, IVF comparisons, obstetric safety, and costs, with links to every source."
+  canonicalUrl={PAGE_URL}
+  ogType="article"
+  publishDate={PUBLISH_DATE}
+  jsonLd={jsonLd}
+  speakable={['.pillar-lead', 'h1']}
+  chrome={SHELL_ENABLED ? 'shell' : 'default'}
+  trackScroll
+>
+  <MaybeShell enabled={SHELL_ENABLED} context="page" currentPath={Astro.url.pathname} saveTitle="RRM Success Rates">
+  <div class="page-wrapper" data-pagefind-body>
+    <span data-pagefind-meta="type:Guide" style="display:none"></span>
+    <span data-pagefind-meta="title:RRM Success Rates" style="display:none"></span>
+    <div class="container">
+
+      <!-- Breadcrumb -->
+      <nav class="breadcrumb" aria-label="Breadcrumb">
+        <a href="/">Home</a>
+        <span aria-hidden="true"> &rsaquo; </span>
+        <a href="/guides/">Guides</a>
+        <span aria-hidden="true"> &rsaquo; </span>
+        <span>RRM Success Rates</span>
+      </nav>
+
+      <h1>RRM Success Rates: What the Published Evidence Shows</h1>
+
+      {/* Org-authored + clinically reviewed byline. Canonical
+          .author-avatar-stack + .has-reviewer pattern (precedent:
+          art-registries-and-codes / glossary). JSON-LD upstream mirrors this
+          with author=#organization + reviewedBy=#naomi-whittaker. */}
+      <div class="author-byline">
+        <div class="author-avatar-stack">
+          <img src="/apple-touch-icon.png" alt="RRM Academy" class="author-byline__photo" width="48" height="48" />
+          <img src="/images/authors/naomi-whittaker.webp" alt="Dr. Naomi Whittaker, MD" class="author-byline__photo" width="48" height="48" />
+        </div>
+        <div class="author-byline__text has-reviewer">
+          <span class="byline-author">By <strong>RRM Academy</strong></span>
+          <span class="byline-reviewer">Reviewed by <strong><a href="/commentary/rrm-spotlight-naomi-whittaker-md/">Dr. Naomi Whittaker, MD, Board-Certified OBGYN, MIGS, NFPMC, FCI</a></strong></span>
+          <LastUpdated path="/rrm-success-rates/" class="byline-date" />
+        </div>
+      </div>
+
+      <!-- T9: Gianna lede. The pillar-lead is the speakable answer span. -->
+      <p class="pillar-lead"><strong><!-- T9: Gianna lede --></strong></p>
+      <!--
+        T9 (Gianna) fills:
+          - pillar-lead: one-paragraph definitional answer (the "what the evidence shows" thesis)
+          - Key Takeaways aside
+          - all section prose (intro paragraphs, framing, transitions)
+          - "How to Read These Numbers" methodology explainer
+        T8 fills: the master outcome-studies table + charts (outcome-studies, rrm-vs-ivf,
+                  obstetric-safety, by-condition, spotlight-studies sections)
+        T10 fills: FAQ section + FAQS[] array above (FAQPage node auto-emits when populated)
+        T11 fills: print CSS + downloads section (PDF/print affordances)
+      -->
+
+      <!-- Mobile TOC -->
+      <details class="toc-mobile">
+        <summary>On this page</summary>
+        <ol>
+          {TOC_ITEMS.map((item) => (
+            <li><a href={item.href}>{item.label}</a></li>
+          ))}
+        </ol>
+      </details>
+
+      {SHELL_ENABLED && <SectionTocChips items={TOC_ITEMS} />}
+
+      <div class:list={['article-layout', { 'article-layout--no-toc': SHELL_ENABLED }]}>
+
+        {!SHELL_ENABLED && (
+          <nav class="toc" aria-label="Table of contents">
+            <p class="toc-heading">On this page</p>
+            <ol>
+              {TOC_ITEMS.map((item) => (
+                <li><a href={item.href}>{item.label}</a></li>
+              ))}
+            </ol>
+          </nav>
+        )}
+
+        <article class="prose">
+
+          {/* Section skeletons. SectionShare renders the H2 (id + share/anchor
+              controls) -- do NOT emit a second h2 inside any section. Each
+              section's body is filled by a later task per the slot comment. */}
+
+          <section id="at-a-glance">
+            <SectionShare id="at-a-glance" title="The Evidence at a Glance" />
+            <!-- T9: Key Takeaways aside + at-a-glance framing prose. T8: headline summary stat cards (crude/adjusted LBR ranges, study count, cost frame). -->
+          </section>
+
+          <section id="outcome-studies">
+            <SectionShare id="outcome-studies" title="The Outcome Studies" />
+            <!-- T8: master outcome-studies table (all verified live-birth + conception cohorts from data.studies, grouped by outcomeType) + cumulative-rate chart. T9: section intro prose. -->
+          </section>
+
+          <section id="rrm-vs-ivf">
+            <SectionShare id="rrm-vs-ivf" title="How RRM Compares to IVF and ART" />
+            <!-- T8: RRM-vs-IVF comparison table + HFEA reference bar chart + cost block (data.cost). T9: comparison framing prose (denominator caveats, head-to-head context). -->
+          </section>
+
+          <section id="obstetric-safety">
+            <SectionShare id="obstetric-safety" title="Obstetric Safety" />
+            <!-- T8: safety-comparators chart (preterm/LBW rates + odds ratios, singleton-vs-all-pregnancy kept distinct) from data.charts.safety_comparators_chart + data.safety_comparators. T9: safety framing prose. -->
+          </section>
+
+          <section id="by-condition">
+            <SectionShare id="by-condition" title="Effectiveness by Condition" />
+            <!-- T8: by-diagnosis chart (data.charts.sm_by_diagnosis) + by-age chart (data.charts.sm_by_age_group). T9: condition-level interpretation prose. -->
+          </section>
+
+          <section id="spotlight-studies">
+            <SectionShare id="spotlight-studies" title="Spotlight Studies" />
+            <!-- T8: Boyle 2025 funnel chart (data.charts.boyle_funnel) + diagnostic-reassignment chart (data.charts.boyle_diagnostic_reassignment). T9: spotlight narrative for the landmark cohorts (Boyle 2025, Sanchez-Mendez 2025, Stanford 2008). -->
+          </section>
+
+          <section id="how-to-read-these-numbers">
+            <SectionShare id="how-to-read-these-numbers" title="How to Read These Numbers" />
+            <!-- T9: methodology explainer -- crude vs adjusted/cumulative LBR, conception vs live-birth, per-cycle vs per-patient denominators, preprint/lower-tier caveats, why outcomeType matters. -->
+          </section>
+
+          <section id="faq">
+            <SectionShare id="faq" title="Frequently Asked Questions" />
+            <!-- T10: FAQ list (details-based) + populate FAQS[] in frontmatter (drives the FAQPage JSON-LD node). -->
+          </section>
+
+          <section class="references" id="references">
+            <SectionShare id="references" title="References" />
+            <!-- T8/T9: ordered references list built from data.studies + data.safety_comparators (library link + DOI per row), keyed to in-body superscripts. -->
+          </section>
+
+          <section id="downloads">
+            <SectionShare id="downloads" title="Downloads and Sharing" />
+            <!-- T11: print/PDF affordances + download/share block. T11 also adds print CSS. -->
+          </section>
+
+          <!-- CTA box. NEVER any book-with-Naomi link (she is not practicing);
+               patient path is /providers/. Precedent markup: naprotechnology. -->
+          <div class="cta-box">
+            <h3>Take the next step</h3>
+            <p><a href="/providers/" class="btn btn--primary">Find an RRM-trained provider</a></p>
+            <p><a href="/library/" class="btn btn--secondary">Browse the Research Library</a></p>
+          </div>
+
+          <p class="disclaimer"><em>This content is for educational purposes only and does not constitute medical advice. Consult an RRM clinician or healthcare provider for guidance specific to your situation. Statistics represent published research averages, not guarantees of individual outcomes.</em></p>
+
+        </article>
+      </div>
+    </div>
+  </div>
+  <BackToTop />
+  </MaybeShell>
+</BaseLayout>
+
+<style>
+  .author-byline {
+    font-size: 0.875rem;
+    color: var(--text-secondary);
+    margin-top: calc(-1 * var(--space-2));
+    margin-bottom: var(--space-6);
+    line-height: 1.6;
+  }
+
+  .table-wrap {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    margin-bottom: var(--space-6);
+  }
+
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.875rem;
+  }
+
+  th {
+    background: var(--bg-surface);
+    font-weight: 600;
+    padding: var(--space-3) var(--space-4);
+    text-align: left;
+    border-bottom: 2px solid var(--border-color);
+  }
+
+  td {
+    padding: var(--space-3) var(--space-4);
+    border-bottom: 1px solid var(--border-color);
+    vertical-align: top;
+    line-height: 1.5;
+  }
+
+  tr:last-child td {
+    border-bottom: none;
+  }
+
+  .references {
+    font-size: 0.875rem;
+    line-height: 1.7;
+    color: var(--text-secondary);
+  }
+
+  .references li {
+    margin-bottom: var(--space-3);
+  }
+
+  .faq-list dt {
+    font-weight: 600;
+    font-size: 1.05rem;
+    color: var(--text-primary);
+    margin-top: var(--space-6);
+    margin-bottom: var(--space-2);
+  }
+
+  .faq-list dd {
+    margin-left: 0;
+    color: var(--text-secondary);
+    line-height: 1.7;
+    margin-bottom: var(--space-4);
+  }
+
+  .cta-box {
+    background: var(--bg-surface);
+    border: none;
+    border-radius: var(--radius-md);
+    padding: var(--space-8);
+    text-align: center;
+    margin-top: var(--space-10);
+    box-shadow: var(--shadow-sm);
+  }
+
+  .cta-box h3 {
+    font-family: 'Cormorant Garamond', 'Georgia', serif;
+    margin-bottom: var(--space-3);
+  }
+
+  .cta-box p {
+    margin-bottom: var(--space-4);
+  }
+
+  .cta-box p:last-child {
+    margin-bottom: 0;
+  }
+
+  .disclaimer {
+    font-size: 0.8125rem;
+    color: var(--text-tertiary);
+    margin-top: var(--space-8);
+    line-height: 1.6;
+  }
+
+  /* Override container width for article layout (matches naprotechnology / what-is-rrm) */
+  @media (min-width: 1024px) {
+    .container {
+      max-width: calc(var(--max-width-article) + 220px + var(--space-10) + var(--space-8) * 2);
+    }
+  }
+
+  /* Chart light/dark toggle. Copy VERBATIM from naprotechnology -- do NOT add
+     `display:` to `.chart-figure img` (specificity trap: both theme variants
+     would render at once). */
+  .chart-figure {
+    margin: var(--space-8) 0;
+  }
+  .chart-figure img {
+    width: 100%;
+    height: auto;
+    border-radius: var(--radius-md);
+    box-shadow: var(--shadow-sm);
+  }
+  .chart-dark { display: none; }
+  :global([data-theme="dark"]) .chart-light { display: none; }
+  :global([data-theme="dark"]) .chart-dark { display: block; }
+</style>
