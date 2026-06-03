@@ -100,35 +100,27 @@ export async function requireMember(request, env) {
     return json({ ok: false, error: 'Please verify your email before posting. Check your inbox for the verification link.' }, 403);
   }
 
-  // Grandfathered Wix STUC members — label bypass, but only if no cancelled-subscription
-  // override. A user whose wix_subscription.status='inactive' for ALL their rows has
-  // cancelled and loses grandfather access; they must re-subscribe.
-  const stucLabel = await db.prepare(
-    "SELECT 1 FROM user_label WHERE user_id = ? AND label = 'Save the Uterus Club \u{1F3F7}\u{FE0F}' LIMIT 1"
+  // Explicit legacy grandfather allowlist — off-D1 Wix Pricing Plan payers with no
+  // wix_subscription row and no Stripe customer. Deliberately maintained label
+  // ('STUC Legacy Grandfather'), NOT payment-synced. Membership policy decision.
+  const grandfather = await db.prepare(
+    "SELECT 1 FROM user_label WHERE user_id = ? AND label = 'STUC Legacy Grandfather' LIMIT 1"
   ).bind(user.id).first();
-  if (stucLabel) {
-    const cancelledOverride = await db.prepare(
-      `SELECT 1
-         FROM wix_subscription ws
-         WHERE (ws.user_id = ? OR ws.email = ? COLLATE NOCASE)
-         AND NOT EXISTS (
-           SELECT 1 FROM wix_subscription ws2
-           WHERE (ws2.user_id = ? OR ws2.email = ? COLLATE NOCASE)
-           AND ws2.status = 'active'
-         )
-         LIMIT 1`
-    ).bind(user.id, user.email, user.id, user.email).first();
-    if (!cancelledOverride) {
-      return { user, tier: 'member', session };
-    }
-    // Falls through to subscription checks below (which will 403 unless they have a Stripe sub).
+  if (grandfather) {
+    return { user, tier: 'member', session };
   }
 
-  // Active Wix subscribers (new grandfather path, covers donors missing the legacy label)
+  // Active + recent Wix subscriber. Require payment recency so a stale 'active' row
+  // (a lapsed sub frozen because it fell out of the Wix feed) does NOT grant access.
+  // Recency mirrors the rrm-wix-sync worker's deriveStatus grace (MONTH ~35d).
   let wixLookupFailed = false;
   try {
     const wixSub = await db.prepare(
-      "SELECT tier FROM wix_subscription WHERE (user_id = ? OR email = ? COLLATE NOCASE) AND status = 'active' LIMIT 1"
+      `SELECT tier FROM wix_subscription
+         WHERE (user_id = ? OR email = ? COLLATE NOCASE)
+           AND status = 'active'
+           AND COALESCE(next_expected_at, datetime(last_order_at, '+31 days')) >= datetime('now', '-7 days')
+         ORDER BY last_order_at DESC LIMIT 1`
     ).bind(user.id, user.email).first();
     if (wixSub) {
       return { user, tier: wixSub.tier || 'member', session };
@@ -217,24 +209,26 @@ export function displayName(user) {
 // --- Shared STUC member predicate ---
 //
 // Used by /api/community/members (roster) and notifyNewPost() to identify members
-// eligible for roster display and auto-email. Includes staff bypass, label-based
-// grandfather, and filters out users whose Wix subscriptions have ALL been cancelled.
-// Users with NO wix_subscription row stay included (covers Ginny, Amanda, and any
-// off-D1 paid subscriptions like the legacy Wix Pricing Plan).
+// eligible for roster display and auto-email. Includes staff bypass, explicit
+// legacy grandfather allowlist, genuinely active+recent Wix subscribers, and
+// active Stripe subscribers (identified by stripe_customer_id + STUC label).
+// Stale 'active' Wix rows (frozen when a lapsed sub fell out of the Wix feed) are
+// excluded via the COALESCE recency guard.
 //
 // Requires table alias `u` for the `user` table. Bind params: none.
 export const STUC_MEMBER_WHERE = `
   u.blocked = 0 AND (
     u.role IN ('mod', 'admin', 'superadmin')
+    OR u.id IN (SELECT user_id FROM user_label WHERE label = 'STUC Legacy Grandfather')
+    OR EXISTS (
+      SELECT 1 FROM wix_subscription ws
+      WHERE (ws.user_id = u.id OR ws.email = u.email COLLATE NOCASE)
+        AND ws.status = 'active'
+        AND COALESCE(ws.next_expected_at, datetime(ws.last_order_at, '+31 days')) >= datetime('now', '-7 days')
+    )
     OR (
-      (
-        u.id IN (SELECT user_id FROM user_label WHERE label = 'Save the Uterus Club \u{1F3F7}\u{FE0F}')
-        OR u.id IN (SELECT user_id FROM user_label WHERE label IN ('Uterus Member \u{1F43B}', 'Uterus Hero \u{1F496}', 'Uterus Super Hero \u{1F9B8}\u{200D}\u{2640}\u{FE0F}'))
-      )
-      AND (
-        NOT EXISTS (SELECT 1 FROM wix_subscription ws WHERE (ws.user_id = u.id OR ws.email = u.email COLLATE NOCASE))
-        OR EXISTS (SELECT 1 FROM wix_subscription ws WHERE (ws.user_id = u.id OR ws.email = u.email COLLATE NOCASE) AND ws.status = 'active')
-      )
+      u.stripe_customer_id IS NOT NULL
+      AND u.id IN (SELECT user_id FROM user_label WHERE label = 'Save the Uterus Club \u{1F3F7}\u{FE0F}')
     )
   )
 `.trim();
