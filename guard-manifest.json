@@ -127,7 +127,7 @@
       "note": "FOUC theme + chrome prop SEO invariants"
     },
     "functions/api/community/_shared.js": {
-      "hash": "7afbdcbc75c956a27ed349a9227856a1c70f822af35a01206f2a1cfa83524b19",
+      "hash": "c508aa31aecbfb18097df1946ace531d06d9f6953f2713912d0d0d8506aed3a9",
       "note": "Community access control (requireMember)"
     },
     "functions/api/admin/cleanup.js": {

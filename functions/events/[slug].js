@@ -10,7 +10,8 @@
  * Returns full HTML with OG/Twitter tags and Event schema.org JSON-LD so
  * social/text-message link previews render the flyer + title + date.
  */
-import { getSessionIdFromCookie, validateSession, roleAtLeast } from '../api/auth/_shared.js';
+import { getSessionIdFromCookie, validateSession } from '../api/auth/_shared.js';
+import { requireMember } from '../api/community/_shared.js';
 
 const SITE_ORIGIN = 'https://rrmacademy.org';
 
@@ -113,42 +114,24 @@ function abs(url) {
   return SITE_ORIGIN + '/' + url;
 }
 
-// Same membership classification as requireMember in api/community/_shared.js,
-// but non-blocking: returns 'staff' | 'member' | 'authenticated' | 'anonymous'.
+// Member determination delegates to requireMember (api/community/_shared.js) so the
+// event page can never drift from the canonical gate. requireMember handles staff,
+// the grandfather allowlist, active+recent Wix subs, and the authoritative live-Stripe
+// check (KV-cached 300s). Non-members fall back to authenticated/anonymous for CTA copy.
 async function classifyVisitor(request, env) {
+  const auth = await requireMember(request, env);
+  if (!(auth instanceof Response)) {
+    return { tier: auth.tier === 'staff' ? 'staff' : 'member', user: auth.user };
+  }
+  // Not a member — distinguish authenticated (logged-in non-member) from anonymous,
+  // so the CTA shows "Upgrade to STUC" vs "Join STUC", without exposing the Meet link.
   const sessionId = getSessionIdFromCookie(request);
-  if (!sessionId) return { tier: 'anonymous', user: null };
-  const session = await validateSession(env.DB, sessionId);
+  const session = sessionId ? await validateSession(env.DB, sessionId) : null;
   if (!session) return { tier: 'anonymous', user: null };
-
   const user = await env.DB.prepare(
-    'SELECT id, email, role, blocked, stripe_customer_id FROM user WHERE id = ?'
+    'SELECT id, email, role, blocked FROM user WHERE id = ?'
   ).bind(session.userId).first();
   if (!user || user.blocked) return { tier: 'anonymous', user: null };
-
-  if (roleAtLeast(user.role, 'mod')) return { tier: 'staff', user };
-
-  // Grandfathered Wix STUC label
-  const stucLabel = await env.DB.prepare(
-    "SELECT 1 FROM user_label WHERE user_id = ? AND label = 'Save the Uterus Club 🏷️' LIMIT 1"
-  ).bind(user.id).first();
-  if (stucLabel) return { tier: 'member', user };
-
-  // Active Wix subscriber
-  try {
-    const wixSub = await env.DB.prepare(
-      "SELECT 1 FROM wix_subscription WHERE (user_id = ? OR email = ? COLLATE NOCASE) AND status = 'active' LIMIT 1"
-    ).bind(user.id, user.email).first();
-    if (wixSub) return { tier: 'member', user };
-  } catch {
-    // soft-fail: treat as authenticated, not member
-  }
-
-  // Stripe membership check is intentionally skipped for the page render
-  // (would add 100-500ms per pageview). The CTA falls through to "authenticated"
-  // and the "Join Call" path is gated client-side via /api/community/status when
-  // the user clicks. Members not in user_label/wix_subscription will still get
-  // the Meet link after that gate; non-members see "Upgrade to STUC".
   return { tier: 'authenticated', user };
 }
 
