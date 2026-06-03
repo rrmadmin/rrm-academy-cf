@@ -684,9 +684,13 @@ const jsonLd = {
      inside the shared .table-wrap scroll flow, keeping groups visually distinct.
      Later groups get a divider + generous top space so the three blocks read
      as separate sections, not one continuous table. */
+  .study-group:first-child {
+    padding-top: var(--space-8);
+  }
+
   .study-group + .study-group {
-    margin-top: var(--space-12);
-    padding-top: var(--space-10);
+    margin-top: var(--space-16);
+    padding-top: var(--space-12);
     border-top: 1px solid var(--border-color);
   }
 
@@ -695,7 +699,7 @@ const jsonLd = {
     align-items: baseline;
     flex-wrap: wrap;
     gap: var(--space-3);
-    margin: 0 0 var(--space-4);
+    margin: 0 0 var(--space-6);
     padding-left: var(--space-3);
     border-left: 4px solid var(--purple-700);
   }
