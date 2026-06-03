@@ -1,6 +1,6 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 960 540" role="img" aria-label="RRM obstetric safety: absolute rates and how many times higher the odds are with ART">
   <title>RRM Obstetric Safety vs ART</title>
-  <desc>Two-panel chart. Panel A reads as plain percentages (how many births out of 100): RRM single-baby preterm 4.0 percent versus the CDC IVF benchmark 11.8 percent, which is about two-thirds lower; RRM all-pregnancy preterm 6.5 percent versus the SART IVF benchmark 14.4 percent, which is more than half lower; RRM twins 1.4 percent. Panel B reads as how many times higher the adjusted odds of an early birth are with fertility treatment compared with untreated women: ART single-baby preterm about 3 times higher and low birth weight about 3 times higher versus never-treated women (Simonsen 2016); IVF preterm about 4 times higher and IUI preterm about 3 times higher versus untreated subfertile women (Sanders 2022). Panel A is a head-count percentage and Panel B is an adjusted-odds multiple; they are different measures on different scales and must not be compared directly.</desc>
+  <desc>Two-panel chart. Panel A reads as plain percentages (how many births out of 100): RRM single-baby preterm 4.0 percent versus the CDC IVF benchmark 11.8 percent, which is about two-thirds lower; RRM all-pregnancy preterm 6.5 percent versus the SART IVF benchmark 14.4 percent, which is more than half lower; RRM twins 1.4 percent. Panel B reads as how many times higher the adjusted odds of an early birth are with fertility treatment compared with untreated women: ART single-baby preterm about 3 times higher and low birth weight about 3 times higher versus never-treated women (Stanford 2016); IVF preterm about 4 times higher and IUI preterm about 3 times higher versus untreated subfertile women (Sanders 2022). Panel A is a head-count percentage and Panel B is an adjusted-odds multiple; they are different measures on different scales and must not be compared directly.</desc>
   <rect width="960" height="540" fill="#28241e"/>
   <style>
     .heading { font-family: 'Inter', sans-serif; font-size: 12px; font-weight: 600; fill: #b0aaa2; letter-spacing: 0.05em; }
@@ -72,11 +72,11 @@
   <text x="768" y="398" class="axis">9x</text>
   <line x1="592" y1="160" x2="592" y2="382" stroke="#4a4641" stroke-width="1.5" stroke-dasharray="3 3"/>
   <text x="592" y="146" class="axis">1x = same odds as untreated</text>
-  <text x="570" y="172" class="label" font-size="11.5px" dominant-baseline="auto">ART single-baby preterm (Simonsen 2016)</text>
+  <text x="570" y="172" class="label" font-size="11.5px" dominant-baseline="auto">ART single-baby preterm (Stanford 2016)</text>
   <rect x="592" y="180" width="50.2" height="20" rx="3" fill="#b08a5e"/>
   <text x="793" y="190" class="value" dominant-baseline="central">3.3x</text>
   <text x="837" y="190" class="small" dominant-baseline="central">OR 3.28, CI 1.74-6.20</text>
-  <text x="570" y="226" class="label" font-size="11.5px" dominant-baseline="auto">ART single-baby low birth weight (Simonsen 2016)</text>
+  <text x="570" y="226" class="label" font-size="11.5px" dominant-baseline="auto">ART single-baby low birth weight (Stanford 2016)</text>
   <rect x="592" y="234" width="42.0" height="20" rx="3" fill="#b08a5e"/>
   <text x="793" y="244" class="value" dominant-baseline="central">2.9x</text>
   <text x="837" y="244" class="small" dominant-baseline="central">OR 2.91, CI 1.99-4.26</text>
@@ -88,7 +88,7 @@
   <rect x="592" y="342" width="47.7" height="20" rx="3" fill="#c2698a"/>
   <text x="793" y="352" class="value" dominant-baseline="central">3.2x</text>
   <text x="837" y="352" class="small" dominant-baseline="central">OR 3.17, CI 1.40-7.19</text>
-  <text x="540" y="382" class="small">Simonsen: vs never-treated women. Sanders: vs untreated subfertile women.</text>
+  <text x="540" y="382" class="small">Stanford: vs never-treated women. Sanders: vs untreated subfertile women.</text>
   <text x="30" y="488" class="caption">Panel A: lower is safer (fewer early or multiple births). Panel B: "3x" means the adjusted odds are about 3 times higher than for untreated women.</text>
   <text x="30" y="504" class="caption">Panel A is a head-count percentage; Panel B is an adjusted-odds multiple. They measure different things and are never on one axis.</text>
   <text x="930" y="528" class="attribution">rrmacademy.org/rrm-success-rates</text>
