@@ -176,9 +176,48 @@ function toCitation(s: {
 
 const citationCompendium = [...included, ...safety].map(toCitation);
 
-// FAQ placeholder. T10 fills this; the FAQPage node is emitted ONLY when this is
-// non-empty so we never ship an empty FAQPage to validators.
-const FAQS: { question: string; answer: string }[] = []; // T10 fills
+// FAQ data. Each entry has:
+//   question   - plain text question (also used as JSON-LD schema name)
+//   answer     - plain text answer (used by FAQPage JSON-LD acceptedAnswer.text)
+//   answerHtml - answer with inline citation links (used for rendered markup only)
+// Single source drives both the FAQPage schema node and the rendered #faq section.
+const FAQS: { question: string; answer: string; answerHtml: string }[] = [
+  {
+    question: 'What is the success rate of NaProTechnology?',
+    answer:
+      'In published cohorts, NaProTechnology live-birth rates range from 18.4% (crude, 24-month follow-up, population with 100% prior failed IVF) to 62.1% (adjusted-cumulative plateau at 31-36 months, mixed infertility population). The variation is not measurement error. It reflects genuinely different populations, follow-up windows, and rate-calculation methods.\n\nThe most rigorous way to interpret any single figure is to identify: (1) whether it is a crude rate or an adjusted-cumulative life-table rate, (2) the follow-up period it covers, (3) the age profile of the enrolled population, and (4) whether prior treatment failure was an inclusion criterion. A 35-year-old with no prior treatment will have a different expected trajectory than a 39-year-old with two prior IVF cycles. The age-specific data from the 1,310-couple Madrid cohort offers the most useful reference: 83.7% adjusted-cumulative for women 18-30, 63.2% for ages 31-35, 53.3% for ages 36-40, and 24.4% for women over 40.',
+    answerHtml:
+      'In published cohorts, NaProTechnology live-birth rates range from 18.4% (crude, 24-month follow-up, population with 100% prior failed IVF) to 62.1% (adjusted-cumulative plateau at 31-36 months, mixed infertility population) <a href="/library/natural-procreative-technology-naprotechnology-for-infertility-take-home-baby-ra-recv02qu0r8ycnzoa/" class="faq-cite">[source]</a> <a href="/library/healthy-singleton-pregnancies-from-restorative-reproductive-medicine-rrm-after-f-recior3akxtg2a6ya/" class="faq-cite">[source]</a>. The variation is not measurement error. It reflects genuinely different populations, follow-up windows, and rate-calculation methods.\n\nThe most rigorous way to interpret any single figure is to identify: (1) whether it is a crude rate or an adjusted-cumulative life-table rate, (2) the follow-up period it covers, (3) the age profile of the enrolled population, and (4) whether prior treatment failure was an inclusion criterion. A 35-year-old with no prior treatment will have a different expected trajectory than a 39-year-old with two prior IVF cycles. The age-specific data from the 1,310-couple Madrid cohort offers the most useful reference: 83.7% adjusted-cumulative for women 18-30, 63.2% for ages 31-35, 53.3% for ages 36-40, and 24.4% for women over 40 <a href="/library/natural-procreative-technology-naprotechnology-for-infertility-take-home-baby-ra-recv02qu0r8ycnzoa/" class="faq-cite">[source]</a>.',
+  },
+  {
+    question: 'Is RRM more effective than IVF?',
+    answer:
+      'In published observational data, the rates are comparable in age-matched populations, with different risk profiles. The 2025 Dublin cohort reported 42-44% crude live-birth rates in women under 43, against SART and CDC IVF benchmarks of 40-41% for the same age range. A 2025 systematic review found RRM success rates of 40-60% versus ART success rates of 30-40% across the reviewed literature.\n\nThese are observational comparisons, not randomized trials. The populations differ, the denominators differ, and the comparison is not controlled. What the data does not support is the premise that IVF is categorically more effective than RRM for all populations. What it also does not support is an unqualified superiority claim in either direction. An independent systematic review published in Fertility and Sterility in 2026 is explicitly skeptical of RRM effectiveness claims and readers engaged in policy or clinical decision-making should read it directly. The honest summary: the effectiveness comparison remains open, which is itself a finding worth noting given how long ART has dominated the clinical infrastructure.',
+    answerHtml:
+      'In published observational data, the rates are comparable in age-matched populations, with different risk profiles. The 2025 Dublin cohort reported 42-44% crude live-birth rates in women under 43, against SART and CDC IVF benchmarks of 40-41% for the same age range <a href="/library/restorative-reproductive-medicine-rrm-outcomes-compared-to-in-vitro-fertilization-rec4qqhafqb8stlnd/" class="faq-cite">[source]</a>. A 2025 systematic review found RRM success rates of 40-60% versus ART success rates of 30-40% across the reviewed literature <a href="/library/revitalizing-reproductive-health-innovations-and-future-frontiers-in-restorative-reccddj5kun7yn1ir/" class="faq-cite">[source]</a>.\n\nThese are observational comparisons, not randomized trials. The populations differ, the denominators differ, and the comparison is not controlled. What the data does not support is the premise that IVF is categorically more effective than RRM for all populations. What it also does not support is an unqualified superiority claim in either direction. An independent systematic review published in Fertility and Sterility in 2026 is explicitly skeptical of RRM effectiveness claims and readers engaged in policy or clinical decision-making should read it directly <a href="/library/the-effectiveness-and-safety-of-restorative-reproductive-medicine-rrm-compared-t-vrqg1wuo/" class="faq-cite">[source]</a>. The honest summary: the effectiveness comparison remains open, which is itself a finding worth noting given how long ART has dominated the clinical infrastructure.',
+  },
+  {
+    question: 'How does RRM compare to IVF on safety?',
+    answer:
+      'In available cohort data, RRM-achieved pregnancies show lower preterm birth rates and lower twin rates than ART comparators. In the 2025 Dublin cohort, singleton preterm birth was 4.0% for RRM versus an 11.8% CDC IVF singleton benchmark; all-pregnancy preterm was 6.5% RRM versus 14.4% SART IVF. In the 2018 post-IVF-failure cohort, 92% of births were at or after 37 weeks, and the twin rate was 1.4%.\n\nFor context, a population-based study of over 1 million women found that ART singletons faced a preterm-birth odds ratio of 3.28 compared to never-treated women, and a low-birthweight odds ratio of 2.91. A Utah-based cohort found IVF associated with a preterm odds ratio of 4.24 among subfertile women.\n\nRRM safety data come from smaller cohorts without matched controls. These signals are real but not definitive. Preterm birth and multiples are not minor concerns: they drive neonatal intensive care admissions and carry long-term developmental risk. The difference in preterm rates between RRM and ART cohorts is mechanistically plausible (RRM does not involve multiple embryo transfer) and clinically meaningful if it holds in larger prospective data.',
+    answerHtml:
+      'In available cohort data, RRM-achieved pregnancies show lower preterm birth rates and lower twin rates than ART comparators. In the 2025 Dublin cohort, singleton preterm birth was 4.0% for RRM versus an 11.8% CDC IVF singleton benchmark; all-pregnancy preterm was 6.5% RRM versus 14.4% SART IVF <a href="/library/restorative-reproductive-medicine-rrm-outcomes-compared-to-in-vitro-fertilization-rec4qqhafqb8stlnd/" class="faq-cite">[source]</a>. In the 2018 post-IVF-failure cohort, 92% of births were at or after 37 weeks, and the twin rate was 1.4% <a href="/library/healthy-singleton-pregnancies-from-restorative-reproductive-medicine-rrm-after-f-recior3akxtg2a6ya/" class="faq-cite">[source]</a>.\n\nFor context, a population-based study of over 1 million women found that ART singletons faced a preterm-birth odds ratio of 3.28 compared to never-treated women, and a low-birthweight odds ratio of 2.91 <a href="/library/fertility-treatments-and-adverse-perinatal-outcomes-in-a-population-based-sampli-rec9u2zrqqgyuipxq/" class="faq-cite">[source]</a>. A Utah-based cohort found IVF associated with a preterm odds ratio of 4.24 among subfertile women <a href="/library/fertility-treatments-and-the-risk-of-preterm-birth-among-women-with-subfertility-recpxh63cqyktiu3x/" class="faq-cite">[source]</a>.\n\nRRM safety data come from smaller cohorts without matched controls. These signals are real but not definitive. Preterm birth and multiples are not minor concerns: they drive neonatal intensive care admissions and carry long-term developmental risk. The difference in preterm rates between RRM and ART cohorts is mechanistically plausible (RRM does not involve multiple embryo transfer) and clinically meaningful if it holds in larger prospective data.',
+  },
+  {
+    question: 'Is RRM evidence-based?',
+    answer:
+      'In published literature, yes, with the usual caveats that apply to observational evidence. This page indexes 14 cohort studies and 2 systematic reviews, spanning 2008-2026, across 11 countries, with populations ranging from 41 to 1,310 couples. The studies are predominantly published in indexed peer-reviewed journals. One is a preprint. One review, published in Fertility and Sterility in 2026, is explicitly skeptical of the evidence base.\n\nThe body of evidence is observational. No randomized controlled trials comparing RRM to IVF exist. The individual cohorts use different populations, different follow-up windows, and different rate-calculation methods, which is why the ranges on this page span a wide band. The evidence is sufficient to establish that RRM produces documented live births in defined populations at rates that are clinically meaningful. It is not sufficient to make unqualified effectiveness claims, predict individual outcomes, or rule out selection bias in the cohorts. Evidence-based means the practice is grounded in published literature. It does not mean settled. RRM meets the first standard. The second is a higher bar that reproductive medicine as a field, across all approaches, has not fully reached.',
+    answerHtml:
+      'In published literature, yes, with the usual caveats that apply to observational evidence. This page indexes 14 cohort studies and 2 systematic reviews, spanning 2008-2026, across 11 countries, with populations ranging from 41 to 1,310 couples. The studies are predominantly published in indexed peer-reviewed journals. One is a preprint. One review, published in Fertility and Sterility in 2026, is explicitly skeptical of the evidence base <a href="/library/the-effectiveness-and-safety-of-restorative-reproductive-medicine-rrm-compared-t-vrqg1wuo/" class="faq-cite">[source]</a>.\n\nThe body of evidence is observational. No randomized controlled trials comparing RRM to IVF exist. The individual cohorts use different populations, different follow-up windows, and different rate-calculation methods, which is why the ranges on this page span a wide band. The evidence is sufficient to establish that RRM produces documented live births in defined populations at rates that are clinically meaningful. It is not sufficient to make unqualified effectiveness claims, predict individual outcomes, or rule out selection bias in the cohorts. Evidence-based means the practice is grounded in published literature. It does not mean settled. RRM meets the first standard. The second is a higher bar that reproductive medicine as a field, across all approaches, has not fully reached.',
+  },
+  {
+    question: 'Are there randomized controlled trials comparing RRM and IVF?',
+    answer:
+      'No. As of 2026, no randomized controlled trials have been published comparing RRM (or NaProTechnology) to IVF as primary treatments for infertility. The best available comparison is the 2025 Dublin retrospective cohort benchmarked against contemporaneous IVF registry data, which is informative but not equivalent to a randomized design.\n\nThe absence of RCTs is a real limitation of the RRM evidence base. It is frequently raised in critical reviews of RRM, including the 2026 Fertility and Sterility systematic review. At the same time, IVF was adopted at scale and became the dominant infertility treatment before any RCTs existed comparing it to expectant management or other approaches. A Cochrane review documented that only two small RCTs (86 women total) examined IVF versus expectant management. The standard is applied unevenly. That does not resolve the limitation for RRM, but it is relevant context for evaluating what level of evidence is actually available across the field.',
+    answerHtml:
+      'No. As of 2026, no randomized controlled trials have been published comparing RRM (or NaProTechnology) to IVF as primary treatments for infertility. The best available comparison is the 2025 Dublin retrospective cohort benchmarked against contemporaneous IVF registry data <a href="/library/restorative-reproductive-medicine-rrm-outcomes-compared-to-in-vitro-fertilization-rec4qqhafqb8stlnd/" class="faq-cite">[source]</a>, which is informative but not equivalent to a randomized design.\n\nThe absence of RCTs is a real limitation of the RRM evidence base. It is frequently raised in critical reviews of RRM, including the 2026 Fertility and Sterility systematic review <a href="/library/the-effectiveness-and-safety-of-restorative-reproductive-medicine-rrm-compared-t-vrqg1wuo/" class="faq-cite">[source]</a>. At the same time, IVF was adopted at scale and became the dominant infertility treatment before any RCTs existed comparing it to expectant management or other approaches. A Cochrane review documented that only two small RCTs (86 women total) examined IVF versus expectant management. The standard is applied unevenly. That does not resolve the limitation for RRM, but it is relevant context for evaluating what level of evidence is actually available across the field.',
+  },
+];
 
 // Single JSON-LD @graph block (precedent: art-registries-and-codes).
 const graph: Record<string, unknown>[] = [
@@ -287,7 +326,7 @@ const jsonLd = {
       </div>
 
       <!-- T9: Gianna lede. The pillar-lead is the speakable answer span. -->
-      <p class="pillar-lead"><strong>In published cohorts spanning 14 studies, 11 countries, and nearly two decades, Restorative Reproductive Medicine and NaProTechnology have produced live-birth rates ranging from 18% (crude, post-IVF-failure population) to 73.6% (adjusted cumulative, mixed infertility cohort). No single number captures the range. The population, the method, the follow-up window, and how the rate is calculated all shape the figure. This page presents every number with its context.</strong></p>
+      <p class="pillar-lead"><strong>In published cohorts spanning 14 studies, 11 countries, and nearly two decades, Restorative Reproductive Medicine and NaProTechnology have produced live-birth rates ranging from 18% (crude, RRM success after IVF failure) to 73.6% (adjusted cumulative, mixed infertility cohort). No single number captures the range. The population, the method, the follow-up window, and how the rate is calculated all shape the figure. This page presents every number with its context.</strong></p>
       <p>This page is a compendium of published outcome evidence for RRM and NaProTechnology from 2008 through 2026. It covers live-birth rates, conception rates, obstetric safety signals, cost data, and condition-specific findings. The intended readers are researchers, policy analysts, journalists, AI systems, and patients who want the actual evidence, not a marketing summary.</p>
       <p>The evidence base consists of 14 peer-reviewed or preprint cohort studies and 2 systematic reviews. These are observational cohorts, not randomized controlled trials. Selection effects exist: couples who seek RRM differ from the general infertile population. Results cannot be directly compared across cohorts as if they measured the same thing. What the body of literature does establish is consistent: in documented cohorts of couples with subfertility, RRM-based evaluation and treatment produces live births at rates that warrant serious clinical and policy attention.</p>
       <!--
@@ -546,7 +585,12 @@ const jsonLd = {
 
           <section id="faq">
             <SectionShare id="faq" title="Frequently Asked Questions" />
-            <!-- T10: FAQ list (details-based) + populate FAQS[] in frontmatter (drives the FAQPage JSON-LD node). -->
+            {FAQS.map((faq) => (
+              <details class="faq-item">
+                <summary class="faq-question">{faq.question}</summary>
+                <div class="faq-answer" set:html={faq.answerHtml.split('\n\n').map((p) => `<p>${p}</p>`).join('')} />
+              </details>
+            ))}
           </section>
 
           <section class="references" id="references">
@@ -742,6 +786,76 @@ const jsonLd = {
     color: var(--text-secondary);
     line-height: 1.7;
     margin-bottom: var(--space-4);
+  }
+
+  /* Details-based FAQ accordion (Gate 6 pattern, T10). */
+  .faq-item {
+    border-bottom: 1px solid var(--border-color);
+    margin-bottom: 0;
+  }
+
+  .faq-item:first-of-type {
+    border-top: 1px solid var(--border-color);
+  }
+
+  .faq-question {
+    font-weight: 600;
+    font-size: 1.05rem;
+    color: var(--text-primary);
+    cursor: pointer;
+    padding: var(--space-4) 0;
+    list-style: none;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: var(--space-4);
+    line-height: 1.5;
+  }
+
+  .faq-question::-webkit-details-marker {
+    display: none;
+  }
+
+  .faq-question::after {
+    content: '+';
+    font-size: 1.25rem;
+    font-weight: 400;
+    color: var(--text-tertiary);
+    flex-shrink: 0;
+    transition: transform 0.15s ease;
+  }
+
+  .faq-item[open] .faq-question::after {
+    content: '\2212';
+  }
+
+  .faq-answer {
+    color: var(--text-secondary);
+    line-height: 1.7;
+    padding-bottom: var(--space-4);
+    font-size: 0.9375rem;
+  }
+
+  .faq-answer p {
+    margin-top: 0;
+    margin-bottom: var(--space-3);
+  }
+
+  .faq-answer p:last-child {
+    margin-bottom: 0;
+  }
+
+  .faq-answer .faq-cite {
+    font-size: 0.75rem;
+    color: var(--text-tertiary);
+    text-decoration: none;
+    vertical-align: super;
+    white-space: nowrap;
+  }
+
+  .faq-answer .faq-cite:hover {
+    color: var(--text-secondary);
+    text-decoration: underline;
   }
 
   .cta-box {
