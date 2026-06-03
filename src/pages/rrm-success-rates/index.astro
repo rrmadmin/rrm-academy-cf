@@ -433,7 +433,10 @@ const jsonLd = {
             <div class="table-wrap">
               {studyGroups.map((group) => (
                 <div class="study-group">
-                  <h3 class="study-group__heading">{group.heading}</h3>
+                  <h3 class="study-group__heading">
+                    <span class="study-group__title">{group.heading}</span>
+                    <span class="study-group__count">{group.rows.length} {group.rows.length === 1 ? 'study' : 'studies'}</span>
+                  </h3>
                   <table>
                     <thead>
                       <tr>
@@ -678,16 +681,38 @@ const jsonLd = {
   }
 
   /* Grouped study tables: each outcome group gets a heading + its own table
-     inside the shared .table-wrap scroll flow, keeping groups visually distinct. */
+     inside the shared .table-wrap scroll flow, keeping groups visually distinct.
+     Later groups get a divider + generous top space so the three blocks read
+     as separate sections, not one continuous table. */
   .study-group + .study-group {
-    margin-top: var(--space-8);
+    margin-top: var(--space-12);
+    padding-top: var(--space-10);
+    border-top: 1px solid var(--border-color);
   }
 
   .study-group__heading {
+    display: flex;
+    align-items: baseline;
+    flex-wrap: wrap;
+    gap: var(--space-3);
+    margin: 0 0 var(--space-4);
+    padding-left: var(--space-3);
+    border-left: 4px solid var(--purple-700);
+  }
+
+  .study-group__title {
     font-family: 'Cormorant Garamond', 'Georgia', serif;
-    font-size: 1.35rem;
-    margin: 0 0 var(--space-3);
+    font-size: 1.75rem;
+    line-height: 1.15;
     color: var(--text-primary);
+  }
+
+  .study-group__count {
+    font-size: 0.75rem;
+    font-weight: 600;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    color: var(--text-secondary);
   }
 
   /* Evidence badges: small inline pills composed from JSON fields. Tokens only. */
