@@ -18,6 +18,7 @@
       { "label": "Ask", "path": "/ask/" },
       { "label": "PCOS Guide", "path": "/pcos/" },
       { "label": "ART Registries and Codes of Practice", "path": "/art-registries-and-codes/" },
+      { "label": "RRM Success Rates", "path": "/rrm-success-rates/" },
       { "label": "Provider Directory", "path": "/providers/" }
     ]
   },
