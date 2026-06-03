@@ -17,6 +17,95 @@ const SHELL_ENABLED = isShellEnabled('guides');
 const included = data.studies.filter((s) => s.verified && !s.excluded);
 const safety = data.safety_comparators.filter((s) => s.verified && !s.excluded);
 
+// ---------------------------------------------------------------------------
+// T8 helpers: outcome formatting, badges, table grouping, references ordering.
+// Every label is composed from the row's own fields so a conception row can
+// never be mislabeled as live birth (outcome_type_rule in the SSOT _meta).
+// ---------------------------------------------------------------------------
+
+const pct = (v: number) => `${(v * 100).toFixed(1).replace(/\.0$/, '')}%`;
+
+type Study = (typeof included)[number];
+
+// formatOutcome composes the Outcome cell with explicit metric labels. It NEVER
+// says "LBR" for a conception/pregnancy/methods/review row.
+function formatOutcome(s: Study): string {
+  const parts: string[] = [];
+  const mo = s.followUpMonths ? ` @${s.followUpMonths}mo` : '';
+
+  if (s.outcomeType === 'live-birth') {
+    if (s.crudeLbr != null) parts.push(`crude LBR ${pct(s.crudeLbr)}`);
+    if (s.adjCumLbr != null) parts.push(`adj. cum. LBR ${pct(s.adjCumLbr)}${mo}`);
+    if (s.adjCumConception != null) parts.push(`adj. cum. conception ${pct(s.adjCumConception)}${mo}`);
+  } else if (s.outcomeType === 'conception') {
+    // adjCumConception on a conception row may be a crude or cumulative
+    // proportion; the SSOT notes carry the exact framing, so label neutrally
+    // as "conception/pregnancy", never LBR.
+    if (s.adjCumConception != null) parts.push(`conception/pregnancy ${pct(s.adjCumConception)}${mo}`);
+  } else if (s.outcomeType === 'methods') {
+    if (s.adjCumConception != null) parts.push(`any pregnancy ${pct(s.adjCumConception)} (crude, methods cohort)`);
+  } else if (s.outcomeType === 'review') {
+    parts.push('Narrative / systematic review (no single cohort rate)');
+  }
+  return parts.length ? parts.join('; ') : 'See source';
+}
+
+// Engineer-authored badge labels, composed from JSON fields. ganci-2026-fs is
+// flagged in notes as a skeptical review -> neutral "Independent review" label.
+function badgesFor(s: Study): string[] {
+  const out: string[] = [];
+  if (s.preprint === true) out.push('Preprint, not peer reviewed');
+  if (s.journalTier === 'lower-tier') out.push('Lower-tier journal');
+  if (s.id === 'ganci-2026-fs') out.push('Independent review');
+  else if (s.outcomeType === 'review') out.push('Review');
+  if (s.outcomeType === 'methods') out.push('Methods paper');
+  return out;
+}
+
+// Journal · Year · Country composite for the middle column.
+function provenance(s: Study): string {
+  return [s.journal, s.year, s.country].filter(Boolean).join(' · ');
+}
+
+// Three visually distinct groups. outcomeType drives membership; methods+review
+// share the "Methods papers & reviews" table.
+const liveBirthRows = included.filter((s) => s.outcomeType === 'live-birth');
+const conceptionRows = included.filter((s) => s.outcomeType === 'conception');
+const methodsRows = included.filter((s) => s.outcomeType === 'methods' || s.outcomeType === 'review');
+
+const studyGroups = [
+  { key: 'live-birth', heading: 'Live-birth cohorts', rows: liveBirthRows },
+  { key: 'conception', heading: 'Conception and pregnancy cohorts', rows: conceptionRows },
+  { key: 'methods', heading: 'Methods papers and reviews', rows: methodsRows },
+];
+
+// Full reference list: every study + safety comparator, sorted by year then
+// authors. Safety comparators have no outcomeType but carry authors/year/journal.
+type RefRow = {
+  authors: string;
+  year: number;
+  journal: string;
+  doi?: string | null;
+  librarySlug: string;
+};
+const referenceRows: RefRow[] = [...included, ...safety].sort((a, b) => {
+  if (a.year !== b.year) return a.year - b.year;
+  return a.authors.localeCompare(b.authors);
+});
+
+// At-a-glance headline numbers, derived (not hardcoded) from the corpus.
+const lbrStudies = liveBirthRows;
+const crudeLbrValues = lbrStudies.map((s) => s.crudeLbr).filter((v): v is number => v != null);
+const adjLbrValues = lbrStudies.map((s) => s.adjCumLbr).filter((v): v is number => v != null);
+const crudeLow = Math.min(...crudeLbrValues);
+const crudeHigh = Math.max(...crudeLbrValues);
+const adjLow = Math.min(...adjLbrValues);
+const adjHigh = Math.max(...adjLbrValues);
+const studyCount = included.length;
+const countryCount = new Set(
+  included.flatMap((s) => (s.country ? String(s.country).split('/') : [])).map((c) => c.trim()).filter(Boolean)
+).size;
+
 // SECTIONS is the single source for: the TOC, the rendered section list, and the
 // JSON-LD articleSection + hasPart arrays. Edit here, everything follows.
 const SECTIONS = [
@@ -231,32 +320,157 @@ const jsonLd = {
 
           <section id="at-a-glance">
             <SectionShare id="at-a-glance" title="The Evidence at a Glance" />
-            <!-- T9: Key Takeaways aside + at-a-glance framing prose. T8: headline summary stat cards (crude/adjusted LBR ranges, study count, cost frame). -->
+            {/* T9: Key Takeaways aside + at-a-glance framing prose. */}
+
+            {/* T8: headline summary stat cards, derived from the verified corpus. */}
+            <div class="stat-grid">
+              <div class="stat-card">
+                <span class="stat-card__value">{pct(crudeLow)} to {pct(crudeHigh)}</span>
+                <span class="stat-card__label">Crude live-birth rate across cohorts</span>
+              </div>
+              <div class="stat-card">
+                <span class="stat-card__value">{pct(adjLow)} to {pct(adjHigh)}</span>
+                <span class="stat-card__label">Adjusted cumulative live-birth rate</span>
+              </div>
+              <div class="stat-card">
+                <span class="stat-card__value">{studyCount}</span>
+                <span class="stat-card__label">Verified studies across {countryCount} countries</span>
+              </div>
+              <div class="stat-card">
+                <span class="stat-card__value">${data.cost.rrm_range_usd.replace('-', ' to $')}</span>
+                <span class="stat-card__label">Typical RRM cost vs ${data.cost.art_range_usd.replace('-', ' to $')} per IVF cycle</span>
+              </div>
+            </div>
+
+            <figure class="chart-figure">
+              <img src="/images/rrm-success-rates/cross-study-lbr.svg" alt="Grouped horizontal bars of adjusted cumulative live-birth rate at 24 months across seven RRM cohorts, with crude live-birth rate as a second paler bar. Ukraine 2020 flagged lower-tier journal; Australia 2021 flagged medRxiv preprint." class="chart-light" loading="lazy" width="760" height="640" />
+              <img src="/images/rrm-success-rates/cross-study-lbr-dark.svg" alt="Grouped horizontal bars of adjusted cumulative live-birth rate at 24 months across seven RRM cohorts, with crude live-birth rate as a second paler bar. Ukraine 2020 flagged lower-tier journal; Australia 2021 flagged medRxiv preprint." class="chart-dark" loading="lazy" width="760" height="640" />
+              <figcaption>Adjusted cumulative (life-table or Kaplan-Meier) live-birth rate at 24 months for the seven live-birth cohorts, paired with each cohort's crude rate. Cohorts differ in case mix, denominators and follow-up, so this is a compendium rather than a randomized comparison.</figcaption>
+            </figure>
           </section>
 
           <section id="outcome-studies">
             <SectionShare id="outcome-studies" title="The Outcome Studies" />
-            <!-- T8: master outcome-studies table (all verified live-birth + conception cohorts from data.studies, grouped by outcomeType) + cumulative-rate chart. T9: section intro prose. -->
+            {/* T9: section intro prose. */}
+
+            {/* T8: master evidence table, grouped by outcome type. Each group is a
+                separate table inside the same .table-wrap scroll flow with a
+                group subheading, so live-birth, conception and methods/review
+                rows are visually distinct and never blended. */}
+            <div class="table-wrap">
+              {studyGroups.map((group) => (
+                <div class="study-group">
+                  <h3 class="study-group__heading">{group.heading}</h3>
+                  <table>
+                    <thead>
+                      <tr>
+                        <th scope="col">Study</th>
+                        <th scope="col">Journal · Year · Country</th>
+                        <th scope="col">n</th>
+                        <th scope="col">Population</th>
+                        <th scope="col">Outcome</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {group.rows.map((s) => (
+                        <tr>
+                          <td>
+                            <a href={`/library/${s.librarySlug}/`}>{s.authors} ({s.year})</a>
+                          </td>
+                          <td>{provenance(s)}</td>
+                          <td>{s.n != null ? s.n.toLocaleString('en-US') : '—'}</td>
+                          <td>{s.population}</td>
+                          <td>
+                            {formatOutcome(s)}
+                            {badgesFor(s).length > 0 && (
+                              <span class="badge-row">
+                                {badgesFor(s).map((b) => (
+                                  <span class="ev-badge">{b}</span>
+                                ))}
+                              </span>
+                            )}
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              ))}
+            </div>
+
+            <figure class="chart-figure">
+              <img src="/images/rrm-success-rates/by-country.svg" alt="A replication and coverage table, one row per country, showing the number of independent studies and the headline RRM success rate as text with its outcome-type label. Rates are shown as text, not as bars on a shared scale, because the outcome types (live-birth vs conception, crude vs adjusted-cumulative) are not directly comparable across countries." class="chart-light" loading="lazy" width="760" height="600" />
+              <img src="/images/rrm-success-rates/by-country-dark.svg" alt="A replication and coverage table, one row per country, showing the number of independent studies and the headline RRM success rate as text with its outcome-type label. Rates are shown as text, not as bars on a shared scale, because the outcome types (live-birth vs conception, crude vs adjusted-cumulative) are not directly comparable across countries." class="chart-dark" loading="lazy" width="760" height="600" />
+              <figcaption>International replication: 14 independent studies across 10 countries. Each headline rate is shown as text and labeled by outcome type (live-birth versus conception, crude versus adjusted-cumulative) because those denominators are not directly comparable across countries.</figcaption>
+            </figure>
           </section>
 
           <section id="rrm-vs-ivf">
             <SectionShare id="rrm-vs-ivf" title="How RRM Compares to IVF and ART" />
-            <!-- T8: RRM-vs-IVF comparison table + HFEA reference bar chart + cost block (data.cost). T9: comparison framing prose (denominator caveats, head-to-head context). -->
+            {/* T9: comparison framing prose (denominator caveats, head-to-head context). */}
+
+            <figure class="chart-figure">
+              <img src="/images/rrm-success-rates/rrm-vs-ivf.svg" alt="Vertical bars comparing RRM live-birth rates (Boyle 2025 crude 41 percent; Sanchez-Mendez adjusted cumulative 50 percent at 24 months and 62.1 percent at plateau) against the HFEA per-single-embryo-cycle IVF reference of 33 percent. Cumulative and per-cycle denominators are labeled and are not directly equivalent." class="chart-light" loading="lazy" width="760" height="470" />
+              <img src="/images/rrm-success-rates/rrm-vs-ivf-dark.svg" alt="Vertical bars comparing RRM live-birth rates (Boyle 2025 crude 41 percent; Sanchez-Mendez adjusted cumulative 50 percent at 24 months and 62.1 percent at plateau) against the HFEA per-single-embryo-cycle IVF reference of 33 percent. Cumulative and per-cycle denominators are labeled and are not directly equivalent." class="chart-dark" loading="lazy" width="760" height="470" />
+              <figcaption>RRM rates (Boyle 2025 crude live birth; Sanchez-Mendez adjusted cumulative) are measured over a treatment window, while the HFEA 2021 IVF reference is the live-birth rate per single-embryo cycle for women under 35. A cumulative rate and a per-cycle rate are different measures shown side by side for context, not a like-for-like ratio.</figcaption>
+            </figure>
+
+            <figure class="chart-figure">
+              <img src="/images/rrm-success-rates/cost-comparison.svg" alt="Paired range bars comparing typical cost in US dollars: restorative reproductive medicine 2,000 to 5,000 dollars versus ART (IVF per cycle) 10,000 to 15,000 dollars, per Bulletti 2025." class="chart-light" loading="lazy" width="760" height="380" />
+              <img src="/images/rrm-success-rates/cost-comparison-dark.svg" alt="Paired range bars comparing typical cost in US dollars: restorative reproductive medicine 2,000 to 5,000 dollars versus ART (IVF per cycle) 10,000 to 15,000 dollars, per Bulletti 2025." class="chart-dark" loading="lazy" width="760" height="380" />
+              <figcaption>Typical cost ranges from Bulletti et al. 2025 (Tables 7 and 8). The RRM range reflects targeted surgery and common interventions; the ART figure is per IVF cycle and excludes the cost of repeat cycles.</figcaption>
+            </figure>
           </section>
 
           <section id="obstetric-safety">
             <SectionShare id="obstetric-safety" title="Obstetric Safety" />
-            <!-- T8: safety-comparators chart (preterm/LBW rates + odds ratios, singleton-vs-all-pregnancy kept distinct) from data.charts.safety_comparators_chart + data.safety_comparators. T9: safety framing prose. -->
+            {/* T9: safety framing prose. */}
+
+            <figure class="chart-figure">
+              <img src="/images/rrm-success-rates/obstetric-safety.svg" alt="Two-panel chart. Panel A: preterm and twin rates as percentages (RRM singleton preterm 4.0 percent vs CDC 11.8 percent; RRM all-pregnancy preterm 6.5 percent vs SART 14.4 percent; RRM twins 1.4 percent). Panel B: adverse-outcome odds ratios for ART vs untreated or never-treated comparators (ART preterm 3.28, ART low-birthweight 2.91, IVF preterm 4.24, IUI preterm 3.17). Rates and odds ratios are on separate scales and must not be compared directly." class="chart-light" loading="lazy" width="960" height="540" />
+              <img src="/images/rrm-success-rates/obstetric-safety-dark.svg" alt="Two-panel chart. Panel A: preterm and twin rates as percentages (RRM singleton preterm 4.0 percent vs CDC 11.8 percent; RRM all-pregnancy preterm 6.5 percent vs SART 14.4 percent; RRM twins 1.4 percent). Panel B: adverse-outcome odds ratios for ART vs untreated or never-treated comparators (ART preterm 3.28, ART low-birthweight 2.91, IVF preterm 4.24, IUI preterm 3.17). Rates and odds ratios are on separate scales and must not be compared directly." class="chart-dark" loading="lazy" width="960" height="540" />
+              <figcaption>Panel A reports RRM versus IVF preterm and twin rates as percentages (Boyle 2018 and 2025), keeping singleton and all-pregnancy denominators separate. Panel B reports ART, IVF and IUI adverse-outcome odds ratios with 95% confidence intervals (Simonsen 2016, Sanders 2022). Rates and odds ratios are different measures on different scales and are never plotted on one axis.</figcaption>
+            </figure>
           </section>
 
           <section id="by-condition">
             <SectionShare id="by-condition" title="Effectiveness by Condition" />
-            <!-- T8: by-diagnosis chart (data.charts.sm_by_diagnosis) + by-age chart (data.charts.sm_by_age_group). T9: condition-level interpretation prose. -->
+            {/* T9: condition-level interpretation prose. */}
+
+            <figure class="chart-figure">
+              <img src="/images/rrm-success-rates/sm-by-diagnosis.svg" alt="Horizontal bars of crude take-home-baby (live birth) rate within each diagnostic subgroup from Sanchez-Mendez 2025, ranging from 36.9 percent for general conditions to 24.0 percent for other conditions, each labeled with its count over subgroup total." class="chart-light" loading="lazy" width="760" height="540" />
+              <img src="/images/rrm-success-rates/sm-by-diagnosis-dark.svg" alt="Horizontal bars of crude take-home-baby (live birth) rate within each diagnostic subgroup from Sanchez-Mendez 2025, ranging from 36.9 percent for general conditions to 24.0 percent for other conditions, each labeled with its count over subgroup total." class="chart-dark" loading="lazy" width="760" height="540" />
+              <figcaption>Crude take-home-baby rate within each diagnostic subgroup from Sanchez-Mendez et al. 2025 (Table 1). Couples may carry more than one diagnosis, so the subgroups are not mutually exclusive.</figcaption>
+            </figure>
           </section>
 
           <section id="spotlight-studies">
             <SectionShare id="spotlight-studies" title="Spotlight Studies" />
-            <!-- T8: Boyle 2025 funnel chart (data.charts.boyle_funnel) + diagnostic-reassignment chart (data.charts.boyle_diagnostic_reassignment). T9: spotlight narrative for the landmark cohorts (Boyle 2025, Sanchez-Mendez 2025, Stanford 2008). -->
+            {/* T9: spotlight narrative for the landmark cohorts (Boyle 2025, Sanchez-Mendez 2025, Stanford 2008). */}
+
+            <figure class="chart-figure">
+              <img src="/images/rrm-success-rates/boyle-funnel.svg" alt="Funnel chart of the Boyle 2025 cohort: 249 couples had at least one RRM consultation, 187 committed to treatment (75 percent), 98 conceived (52 percent of treated), and 77 had a live birth (41 percent of treated)." class="chart-light" loading="lazy" width="760" height="470" />
+              <img src="/images/rrm-success-rates/boyle-funnel-dark.svg" alt="Funnel chart of the Boyle 2025 cohort: 249 couples had at least one RRM consultation, 187 committed to treatment (75 percent), 98 conceived (52 percent of treated), and 77 had a live birth (41 percent of treated)." class="chart-dark" loading="lazy" width="760" height="470" />
+              <figcaption>Boyle et al. 2025 (2019 Dublin cohort): the patient funnel from first consultation to live birth. The conception (52%) and live-birth (41%) percentages are computed against the 187 couples who committed to treatment, not the 249 who only consulted.</figcaption>
+            </figure>
+
+            <figure class="chart-figure">
+              <img src="/images/rrm-success-rates/boyle-reassignment.svg" alt="Paired before-and-after horizontal bars showing the percentage of the Boyle 2025 cohort carrying each diagnosis before versus after RRM evaluation: unexplained infertility falls from 24 to 1 percent, while ovulatory dysfunction rises 19 to 76, corpus luteum deficiency 0 to 71, clinical endorphin deficiency 1 to 67, hypoandrogenism 0 to 31, and endometritis 0 to 17 percent." class="chart-light" loading="lazy" width="820" height="580" />
+              <img src="/images/rrm-success-rates/boyle-reassignment-dark.svg" alt="Paired before-and-after horizontal bars showing the percentage of the Boyle 2025 cohort carrying each diagnosis before versus after RRM evaluation: unexplained infertility falls from 24 to 1 percent, while ovulatory dysfunction rises 19 to 76, corpus luteum deficiency 0 to 71, clinical endorphin deficiency 1 to 67, hypoandrogenism 0 to 31, and endometritis 0 to 17 percent." class="chart-dark" loading="lazy" width="820" height="580" />
+              <figcaption>Boyle et al. 2025 (Table 4): the share of the cohort carrying each diagnosis before versus after the RRM work-up. Couples may carry several diagnoses, so the columns do not sum to 100%.</figcaption>
+            </figure>
+
+            <figure class="chart-figure">
+              <img src="/images/rrm-success-rates/sm-cumulative-curve.svg" alt="Step/line curve of adjusted cumulative take-home-baby (live birth) rate over 36 months from Sanchez-Mendez 2025: rising from 1.1 percent at 3 months to 50.0 percent at 24 months and plateauing at 62.1 percent from 31 to 33 months onward." class="chart-light" loading="lazy" width="760" height="470" />
+              <img src="/images/rrm-success-rates/sm-cumulative-curve-dark.svg" alt="Step/line curve of adjusted cumulative take-home-baby (live birth) rate over 36 months from Sanchez-Mendez 2025: rising from 1.1 percent at 3 months to 50.0 percent at 24 months and plateauing at 62.1 percent from 31 to 33 months onward." class="chart-dark" loading="lazy" width="760" height="470" />
+              <figcaption>Sanchez-Mendez et al. 2025 (Table 3, adjusted cumulative): the cumulative take-home-baby rate by 3-month treatment band for the 1,310-couple cohort, reaching 50.0% at 24 months and plateauing at 62.1% from the 31-to-33-month band onward.</figcaption>
+            </figure>
+
+            <figure class="chart-figure">
+              <img src="/images/rrm-success-rates/sm-by-age.svg" alt="Vertical bars of adjusted cumulative take-home-baby (live birth) rate by maternal age band from Sanchez-Mendez 2025: 83.7 percent at 18-30, 63.2 percent at 31-35, 53.3 percent at 36-40, and 24.4 percent above 40." class="chart-light" loading="lazy" width="760" height="460" />
+              <img src="/images/rrm-success-rates/sm-by-age-dark.svg" alt="Vertical bars of adjusted cumulative take-home-baby (live birth) rate by maternal age band from Sanchez-Mendez 2025: 83.7 percent at 18-30, 63.2 percent at 31-35, 53.3 percent at 36-40, and 24.4 percent above 40." class="chart-dark" loading="lazy" width="760" height="460" />
+              <figcaption>Sanchez-Mendez et al. 2025 (Figure 2B, adjusted cumulative): adjusted cumulative take-home-baby rate by maternal age band for the 1,310-couple cohort, with a significant decline across bands (p&lt;0.001).</figcaption>
+            </figure>
           </section>
 
           <section id="how-to-read-these-numbers">
@@ -271,7 +485,22 @@ const jsonLd = {
 
           <section class="references" id="references">
             <SectionShare id="references" title="References" />
-            <!-- T8/T9: ordered references list built from data.studies + data.safety_comparators (library link + DOI per row), keyed to in-body superscripts. -->
+            {/* T8: full reference list, every verified study + safety comparator,
+                sorted by year then authors. */}
+            <ol>
+              {referenceRows.map((s) => (
+                <li>
+                  {s.authors} ({s.year}). {s.journal}. {' '}
+                  <a href={`/library/${s.librarySlug}/`}>Library record</a>
+                  {s.doi && (
+                    <>
+                      {' · '}
+                      <a href={`https://doi.org/${s.doi}`} rel="noopener">DOI</a>
+                    </>
+                  )}
+                </li>
+              ))}
+            </ol>
           </section>
 
           <section id="downloads">
@@ -335,6 +564,79 @@ const jsonLd = {
 
   tr:last-child td {
     border-bottom: none;
+  }
+
+  /* Grouped study tables: each outcome group gets a heading + its own table
+     inside the shared .table-wrap scroll flow, keeping groups visually distinct. */
+  .study-group + .study-group {
+    margin-top: var(--space-8);
+  }
+
+  .study-group__heading {
+    font-family: 'Cormorant Garamond', 'Georgia', serif;
+    font-size: 1.35rem;
+    margin: 0 0 var(--space-3);
+    color: var(--text-primary);
+  }
+
+  /* Evidence badges: small inline pills composed from JSON fields. Tokens only. */
+  .badge-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-1);
+    margin-top: var(--space-2);
+  }
+
+  .ev-badge {
+    display: inline-block;
+    font-size: 0.6875rem;
+    line-height: 1.4;
+    padding: 2px var(--space-2);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-pill);
+    background: var(--bg-surface);
+    color: var(--text-secondary);
+    white-space: nowrap;
+  }
+
+  /* At-a-glance headline stat cards. */
+  .stat-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    gap: var(--space-4);
+    margin: var(--space-6) 0;
+  }
+
+  .stat-card {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-2);
+    padding: var(--space-5);
+    background: var(--bg-surface);
+    border-radius: var(--radius-md);
+    box-shadow: var(--shadow-sm);
+  }
+
+  .stat-card__value {
+    font-family: 'Cormorant Garamond', 'Georgia', serif;
+    font-size: 1.75rem;
+    font-weight: 600;
+    line-height: 1.1;
+    color: var(--text-primary);
+  }
+
+  .stat-card__label {
+    font-size: 0.8125rem;
+    color: var(--text-secondary);
+    line-height: 1.45;
+  }
+
+  /* Figure captions: neutral, data-descriptive. */
+  .chart-figure figcaption {
+    font-size: 0.8125rem;
+    color: var(--text-tertiary);
+    line-height: 1.55;
+    margin-top: var(--space-2);
   }
 
   .references {
