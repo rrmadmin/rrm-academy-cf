@@ -1,5 +1,5 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 760 600" role="img" aria-label="RRM outcomes replicate across ten countries">
-  <title>RRM Outcomes Replicate Across Ten Countries</title>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 760 600" role="img" aria-label="RRM outcomes replicate across eleven countries">
+  <title>RRM Outcomes Replicate Across Eleven Countries</title>
   <desc>A replication and coverage table, one row per country, showing the number of independent studies and the headline RRM success rate as text with its outcome-type label. Rates are shown as text, not as bars on a shared scale, because the outcome types (live-birth vs conception, crude vs adjusted-cumulative) are not directly comparable across countries.</desc>
   <rect width="760" height="600" fill="#ffffff"/>
   <style>
@@ -14,9 +14,9 @@
     .attribution { font-family: 'Inter', sans-serif; font-size: 10.5px; font-weight: 500; fill: #8a8985; letter-spacing: 0.04em; text-anchor: end; }
     .flagnote { font-family: 'Inter', sans-serif; font-size: 10.5px; font-weight: 500; fill: #b45309; }
   </style>
-  <text x="30" y="50" class="heading">RRM REPLICATES ACROSS TEN COUNTRIES</text>
+  <text x="30" y="50" class="heading">RRM REPLICATES ACROSS ELEVEN COUNTRIES</text>
   <line x1="30" y1="63" x2="730" y2="63" stroke="#c9b8d3" stroke-width="1"/>
-  <text x="30" y="78" class="subtitle">International replication: 14 independent studies across 10 countries. Headline rate shown as text, labeled by outcome type.</text>
+  <text x="30" y="78" class="subtitle">International replication: 14 independent studies across 11 countries. Headline rate shown as text, labeled by outcome type.</text>
   <text x="174" y="88" class="colhead">STUDIES</text>
   <text x="318" y="88" class="colhead">HEADLINE RATE (BY OUTCOME TYPE)</text>
   <text x="160" y="116" class="country">Ireland</text>
