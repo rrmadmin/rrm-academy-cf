@@ -1,0 +1,89 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 960 540" role="img" aria-label="RRM obstetric safety: rates and odds ratios">
+  <title>RRM Obstetric Safety vs ART</title>
+  <desc>Two-panel chart. Panel A: preterm and twin rates as percentages (RRM singleton preterm 4.0 percent vs CDC 11.8 percent; RRM all-pregnancy preterm 6.5 percent vs SART 14.4 percent; RRM twins 1.4 percent). Panel B: adverse-outcome odds ratios for ART vs untreated or never-treated comparators (ART preterm 3.28, ART low-birthweight 2.91, IVF preterm 4.24, IUI preterm 3.17). Rates and odds ratios are on separate scales and must not be compared directly.</desc>
+  <rect width="960" height="540" fill="#ffffff"/>
+  <style>
+    .heading { font-family: 'Inter', sans-serif; font-size: 12px; font-weight: 600; fill: #636261; letter-spacing: 0.05em; }
+    .subtitle { font-family: 'Inter', sans-serif; font-size: 12.5px; font-weight: 400; fill: #636261; }
+    .label { font-family: 'Inter', sans-serif; font-size: 12.5px; font-weight: 400; fill: #636261; dominant-baseline: central; }
+    .label-end { font-family: 'Inter', sans-serif; font-size: 12.5px; font-weight: 400; fill: #636261; text-anchor: end; dominant-baseline: central; }
+    .label-mid { font-family: 'Inter', sans-serif; font-size: 11.5px; font-weight: 400; fill: #636261; text-anchor: middle; }
+    .small { font-family: 'Inter', sans-serif; font-size: 10.5px; font-weight: 400; fill: #987da8; }
+    .value { font-family: 'Inter', sans-serif; font-size: 12.5px; font-weight: 600; fill: #313131; dominant-baseline: central; }
+    .value-mid { font-family: 'Inter', sans-serif; font-size: 12px; font-weight: 600; fill: #313131; text-anchor: middle; }
+    .value-accent { fill: #725e7e; }
+    .axis { font-family: 'Inter', sans-serif; font-size: 11px; font-weight: 400; fill: #987da8; text-anchor: middle; }
+    .axis-y { font-family: 'Inter', sans-serif; font-size: 11px; font-weight: 400; fill: #987da8; text-anchor: end; dominant-baseline: central; }
+    .caption { font-family: 'Inter', sans-serif; font-size: 11.5px; font-style: italic; fill: #987da8; }
+    .legend { font-family: 'Inter', sans-serif; font-size: 11.5px; font-weight: 400; fill: #636261; dominant-baseline: central; }
+    .attribution { font-family: 'Inter', sans-serif; font-size: 10.5px; font-weight: 500; fill: #8a8985; letter-spacing: 0.04em; text-anchor: end; }
+    .flag { font-family: 'Inter', sans-serif; font-size: 12px; font-weight: 700; fill: #b45309; }
+    .flagnote { font-family: 'Inter', sans-serif; font-size: 10.5px; font-weight: 500; fill: #b45309; }
+    
+  </style>
+  <text x="30" y="50" class="heading">OBSTETRIC SAFETY</text>
+  <line x1="30" y1="63" x2="930" y2="63" stroke="#c9b8d3" stroke-width="1"/>
+  <text x="30" y="78" class="subtitle">Two separate scales: Panel A reports rates (%); Panel B reports odds ratios. They are not interchangeable.</text>
+  <text x="60" y="112" class="heading">PANEL A · RATES (% OF BIRTHS)</text>
+  <line x1="360" y1="132" x2="360" y2="370" stroke="#ece9e5" stroke-width="1"/>
+  <text x="360" y="386" class="axis">0%</text>
+  <line x1="401" y1="132" x2="401" y2="370" stroke="#ece9e5" stroke-width="1"/>
+  <text x="401" y="386" class="axis">5%</text>
+  <line x1="441" y1="132" x2="441" y2="370" stroke="#ece9e5" stroke-width="1"/>
+  <text x="441" y="386" class="axis">10%</text>
+  <line x1="482" y1="132" x2="482" y2="370" stroke="#ece9e5" stroke-width="1"/>
+  <text x="482" y="386" class="axis">15%</text>
+  <text x="348" y="152" class="label-end" font-size="11.5px">RRM singleton preterm (Boyle 2025)</text>
+  <rect x="360" y="140" width="130" height="24" rx="3" fill="#f0eeeb"/>
+  <rect x="360" y="140" width="32.5" height="24" rx="3" fill="#725e7e"/>
+  <text x="400.5" y="152" class="value">4.0%</text>
+  <text x="348" y="202" class="label-end" font-size="11.5px">CDC IVF singleton preterm</text>
+  <rect x="360" y="190" width="130" height="24" rx="3" fill="#f0eeeb"/>
+  <rect x="360" y="190" width="95.9" height="24" rx="3" fill="#b0aaa2"/>
+  <text x="463.9" y="202" class="value">11.8%</text>
+  <text x="348" y="252" class="label-end" font-size="11.5px">RRM all-pregnancy preterm (Boyle 2025)</text>
+  <rect x="360" y="240" width="130" height="24" rx="3" fill="#f0eeeb"/>
+  <rect x="360" y="240" width="52.8" height="24" rx="3" fill="#725e7e"/>
+  <text x="420.8" y="252" class="value">6.5%</text>
+  <text x="348" y="302" class="label-end" font-size="11.5px">SART IVF all-pregnancy preterm</text>
+  <rect x="360" y="290" width="130" height="24" rx="3" fill="#f0eeeb"/>
+  <rect x="360" y="290" width="117.0" height="24" rx="3" fill="#b0aaa2"/>
+  <text x="485.0" y="302" class="value">14.4%</text>
+  <text x="348" y="352" class="label-end" font-size="11.5px">RRM twins (Boyle 2018, post-IVF)</text>
+  <rect x="360" y="340" width="130" height="24" rx="3" fill="#f0eeeb"/>
+  <rect x="360" y="340" width="11.4" height="24" rx="3" fill="#725e7e"/>
+  <text x="379.4" y="352" class="value">1.4%</text>
+  <line x1="510" y1="100" x2="510" y2="450" stroke="#c9b8d3" stroke-width="1"/>
+  <text x="540" y="112" class="heading">PANEL B · ODDS RATIO (vs untreated)</text>
+  <line x1="592" y1="156" x2="592" y2="378" stroke="#ece9e5" stroke-width="1"/>
+  <text x="592" y="394" class="axis">1</text>
+  <line x1="636" y1="156" x2="636" y2="378" stroke="#ece9e5" stroke-width="1"/>
+  <text x="636" y="394" class="axis">3</text>
+  <line x1="680" y1="156" x2="680" y2="378" stroke="#ece9e5" stroke-width="1"/>
+  <text x="680" y="394" class="axis">5</text>
+  <line x1="724" y1="156" x2="724" y2="378" stroke="#ece9e5" stroke-width="1"/>
+  <text x="724" y="394" class="axis">7</text>
+  <line x1="768" y1="156" x2="768" y2="378" stroke="#ece9e5" stroke-width="1"/>
+  <text x="768" y="394" class="axis">9</text>
+  <line x1="592" y1="156" x2="592" y2="378" stroke="#dddbd8" stroke-width="1.5" stroke-dasharray="3 3"/>
+  <text x="592" y="142" class="axis">OR 1 = no excess risk</text>
+  <text x="570" y="160" class="label" font-size="11.5px" dominant-baseline="auto">ART preterm (Simonsen 2016)</text>
+  <rect x="592" y="168" width="50.2" height="20" rx="3" fill="#947353"/>
+  <text x="793" y="178" class="value" dominant-baseline="central">3.28</text>
+  <text x="837" y="178" class="small" dominant-baseline="central">95% CI 1.74-6.20</text>
+  <text x="570" y="222" class="label" font-size="11.5px" dominant-baseline="auto">ART low birthweight (Simonsen 2016)</text>
+  <rect x="592" y="230" width="42.0" height="20" rx="3" fill="#947353"/>
+  <text x="793" y="240" class="value" dominant-baseline="central">2.91</text>
+  <text x="837" y="240" class="small" dominant-baseline="central">95% CI 1.99-4.26</text>
+  <text x="570" y="284" class="label" font-size="11.5px" dominant-baseline="auto">IVF preterm (Sanders 2022)</text>
+  <rect x="592" y="292" width="71.3" height="20" rx="3" fill="#9b4d6e"/>
+  <text x="793" y="302" class="value" dominant-baseline="central">4.24</text>
+  <text x="837" y="302" class="small" dominant-baseline="central">95% CI 2.05-8.77</text>
+  <text x="570" y="346" class="label" font-size="11.5px" dominant-baseline="auto">IUI preterm (Sanders 2022)</text>
+  <rect x="592" y="354" width="47.7" height="20" rx="3" fill="#9b4d6e"/>
+  <text x="793" y="364" class="value" dominant-baseline="central">3.17</text>
+  <text x="837" y="364" class="small" dominant-baseline="central">95% CI 1.40-7.19</text>
+  <text x="30" y="494" class="caption">Panel A: lower is safer (fewer preterm / multiple births). Panel B: an odds ratio above 1 means higher adverse-outcome odds with ART / IUI / IVF.</text>
+  <text x="30" y="510" class="caption">Rates (Panel A) and odds ratios (Panel B) measure different things on different scales and are never plotted on one axis.</text>
+  <text x="930" y="528" class="attribution">rrmacademy.org/rrm-success-rates</text>
+</svg>

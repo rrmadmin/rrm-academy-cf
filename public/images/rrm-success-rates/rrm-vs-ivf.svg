@@ -1,0 +1,71 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 760 470" role="img" aria-label="RRM versus IVF live-birth rates">
+  <title>RRM vs IVF Live-Birth Rates</title>
+  <desc>Vertical bars comparing RRM live-birth rates (Boyle 2025 crude 41 percent; Sanchez-Mendez adjusted cumulative 50 percent at 24 months and 62.1 percent at plateau) against the HFEA per-single-embryo-cycle IVF reference of 33 percent. Cumulative and per-cycle denominators are labeled and are not directly equivalent.</desc>
+  <rect width="760" height="470" fill="#ffffff"/>
+  <style>
+    .heading { font-family: 'Inter', sans-serif; font-size: 12px; font-weight: 600; fill: #636261; letter-spacing: 0.05em; }
+    .subtitle { font-family: 'Inter', sans-serif; font-size: 12.5px; font-weight: 400; fill: #636261; }
+    .label { font-family: 'Inter', sans-serif; font-size: 12.5px; font-weight: 400; fill: #636261; dominant-baseline: central; }
+    .label-end { font-family: 'Inter', sans-serif; font-size: 12.5px; font-weight: 400; fill: #636261; text-anchor: end; dominant-baseline: central; }
+    .label-mid { font-family: 'Inter', sans-serif; font-size: 11.5px; font-weight: 400; fill: #636261; text-anchor: middle; }
+    .small { font-family: 'Inter', sans-serif; font-size: 10.5px; font-weight: 400; fill: #987da8; }
+    .value { font-family: 'Inter', sans-serif; font-size: 12.5px; font-weight: 600; fill: #313131; dominant-baseline: central; }
+    .value-mid { font-family: 'Inter', sans-serif; font-size: 12px; font-weight: 600; fill: #313131; text-anchor: middle; }
+    .value-accent { fill: #725e7e; }
+    .axis { font-family: 'Inter', sans-serif; font-size: 11px; font-weight: 400; fill: #987da8; text-anchor: middle; }
+    .axis-y { font-family: 'Inter', sans-serif; font-size: 11px; font-weight: 400; fill: #987da8; text-anchor: end; dominant-baseline: central; }
+    .caption { font-family: 'Inter', sans-serif; font-size: 11.5px; font-style: italic; fill: #987da8; }
+    .legend { font-family: 'Inter', sans-serif; font-size: 11.5px; font-weight: 400; fill: #636261; dominant-baseline: central; }
+    .attribution { font-family: 'Inter', sans-serif; font-size: 10.5px; font-weight: 500; fill: #8a8985; letter-spacing: 0.04em; text-anchor: end; }
+    .flag { font-family: 'Inter', sans-serif; font-size: 12px; font-weight: 700; fill: #b45309; }
+    .flagnote { font-family: 'Inter', sans-serif; font-size: 10.5px; font-weight: 500; fill: #b45309; }
+    
+  </style>
+  <text x="30" y="50" class="heading">RRM VS IVF: LIVE-BIRTH RATES</text>
+  <line x1="30" y1="63" x2="730" y2="63" stroke="#c9b8d3" stroke-width="1"/>
+  <text x="30" y="78" class="subtitle">RRM rates are cumulative over a treatment window; the IVF reference is per single-embryo cycle — different denominators.</text>
+  <line x1="80" y1="330" x2="720" y2="330" stroke="#ece9e5" stroke-width="1"/>
+  <text x="72" y="330" class="axis-y">0%</text>
+  <line x1="80" y1="299" x2="720" y2="299" stroke="#ece9e5" stroke-width="1"/>
+  <text x="72" y="299" class="axis-y">10%</text>
+  <line x1="80" y1="267" x2="720" y2="267" stroke="#ece9e5" stroke-width="1"/>
+  <text x="72" y="267" class="axis-y">20%</text>
+  <line x1="80" y1="236" x2="720" y2="236" stroke="#ece9e5" stroke-width="1"/>
+  <text x="72" y="236" class="axis-y">30%</text>
+  <line x1="80" y1="204" x2="720" y2="204" stroke="#ece9e5" stroke-width="1"/>
+  <text x="72" y="204" class="axis-y">40%</text>
+  <line x1="80" y1="173" x2="720" y2="173" stroke="#ece9e5" stroke-width="1"/>
+  <text x="72" y="173" class="axis-y">50%</text>
+  <line x1="80" y1="141" x2="720" y2="141" stroke="#ece9e5" stroke-width="1"/>
+  <text x="72" y="141" class="axis-y">60%</text>
+  <line x1="80" y1="110" x2="720" y2="110" stroke="#ece9e5" stroke-width="1"/>
+  <text x="72" y="110" class="axis-y">70%</text>
+  <line x1="80" y1="330" x2="720" y2="330" stroke="#dddbd8" stroke-width="1.5"/>
+  <rect x="133" y="201" width="96" height="129" rx="3" fill="#725e7e"/>
+  <text x="181" y="191" class="value-mid value-accent">41.0%</text>
+  <text x="181" y="352" class="label-mid" font-weight="600">RRM</text>
+  <text x="181" y="367" class="label-mid" font-weight="600">Boyle 2025</text>
+  <text x="181" y="386" class="axis">crude LBR,</text>
+  <text x="181" y="399" class="axis">study window</text>
+  <rect x="282" y="173" width="96" height="157" rx="3" fill="#725e7e"/>
+  <text x="330" y="163" class="value-mid value-accent">50.0%</text>
+  <text x="330" y="352" class="label-mid" font-weight="600">RRM</text>
+  <text x="330" y="367" class="label-mid" font-weight="600">S.-Mendez 24 mo</text>
+  <text x="330" y="386" class="axis">adj. cumulative</text>
+  <text x="330" y="399" class="axis">@ 24 mo</text>
+  <rect x="432" y="135" width="96" height="195" rx="3" fill="#c9b8d3"/>
+  <text x="480" y="125" class="value-mid value-accent">62.1%</text>
+  <text x="480" y="352" class="label-mid" font-weight="600">RRM</text>
+  <text x="480" y="367" class="label-mid" font-weight="600">S.-Mendez plateau</text>
+  <text x="480" y="386" class="axis">adj. cumulative</text>
+  <text x="480" y="399" class="axis">@ 31-33 mo</text>
+  <rect x="581" y="226" width="96" height="104" rx="3" fill="#b0aaa2"/>
+  <text x="629" y="216" class="value-mid">33.0%</text>
+  <text x="629" y="352" class="label-mid" font-weight="600">IVF</text>
+  <text x="629" y="367" class="label-mid" font-weight="600">HFEA 2021</text>
+  <text x="629" y="386" class="axis">per single-embryo</text>
+  <text x="629" y="399" class="axis">cycle, age &lt;35</text>
+  <text x="30" y="424" class="caption">RRM = restorative reproductive medicine (natural conception). HFEA IVF figure is the live birth rate per embryo transferred, women under 35.</text>
+  <text x="30" y="440" class="caption">A cumulative RRM rate and a per-cycle IVF rate are shown side by side for context, not as a like-for-like ratio.</text>
+  <text x="730" y="458" class="attribution">rrmacademy.org/rrm-success-rates</text>
+</svg>

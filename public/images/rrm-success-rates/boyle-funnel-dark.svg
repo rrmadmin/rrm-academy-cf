@@ -1,0 +1,45 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 760 470" role="img" aria-label="Boyle 2025 patient funnel">
+  <title>Boyle 2025 RRM Patient Funnel</title>
+  <desc>Funnel chart of the Boyle 2025 cohort: 249 couples had at least one RRM consultation, 187 committed to treatment (75 percent), 98 conceived (52 percent of treated), and 77 had a live birth (41 percent of treated).</desc>
+  <rect width="760" height="470" fill="#28241e"/>
+  <style>
+    .heading { font-family: 'Inter', sans-serif; font-size: 12px; font-weight: 600; fill: #b0aaa2; letter-spacing: 0.05em; }
+    .subtitle { font-family: 'Inter', sans-serif; font-size: 12.5px; font-weight: 400; fill: #b0aaa2; }
+    .label { font-family: 'Inter', sans-serif; font-size: 12.5px; font-weight: 400; fill: #b0aaa2; dominant-baseline: central; }
+    .label-end { font-family: 'Inter', sans-serif; font-size: 12.5px; font-weight: 400; fill: #b0aaa2; text-anchor: end; dominant-baseline: central; }
+    .label-mid { font-family: 'Inter', sans-serif; font-size: 11.5px; font-weight: 400; fill: #b0aaa2; text-anchor: middle; }
+    .small { font-family: 'Inter', sans-serif; font-size: 10.5px; font-weight: 400; fill: #987da8; }
+    .value { font-family: 'Inter', sans-serif; font-size: 12.5px; font-weight: 600; fill: #dcd6ce; dominant-baseline: central; }
+    .value-mid { font-family: 'Inter', sans-serif; font-size: 12px; font-weight: 600; fill: #dcd6ce; text-anchor: middle; }
+    .value-accent { fill: #b8a3c4; }
+    .axis { font-family: 'Inter', sans-serif; font-size: 11px; font-weight: 400; fill: #987da8; text-anchor: middle; }
+    .axis-y { font-family: 'Inter', sans-serif; font-size: 11px; font-weight: 400; fill: #987da8; text-anchor: end; dominant-baseline: central; }
+    .caption { font-family: 'Inter', sans-serif; font-size: 11.5px; font-style: italic; fill: #987da8; }
+    .legend { font-family: 'Inter', sans-serif; font-size: 11.5px; font-weight: 400; fill: #b0aaa2; dominant-baseline: central; }
+    .attribution { font-family: 'Inter', sans-serif; font-size: 10.5px; font-weight: 500; fill: #8b827a; letter-spacing: 0.04em; text-anchor: end; }
+    .flag { font-family: 'Inter', sans-serif; font-size: 12px; font-weight: 700; fill: #fbbf24; }
+    .flagnote { font-family: 'Inter', sans-serif; font-size: 10.5px; font-weight: 500; fill: #fbbf24; }
+    
+  </style>
+  <text x="30" y="50" class="heading">RRM PATIENT FUNNEL (BOYLE 2025)</text>
+  <line x1="30" y1="63" x2="730" y2="63" stroke="#6b5877" stroke-width="1"/>
+  <text x="30" y="78" class="subtitle">From first consultation to live birth. Percentages are of couples who committed to treatment (n=187).</text>
+  <rect x="100.0" y="120" width="560.0" height="62" rx="4" fill="#3d3345"/>
+  <text x="380" y="147" font-family="Inter, sans-serif" font-size="20px" font-weight="600" text-anchor="middle" fill="#dcd6ce">249</text>
+  <text x="380" y="166" font-family="Inter, sans-serif" font-size="11.5px" font-weight="600" text-anchor="middle" fill="#dcd6ce">Had at least one RRM consultation</text>
+  <rect x="169.7" y="196" width="420.6" height="62" rx="4" fill="#5a4a66"/>
+  <text x="380" y="223" font-family="Inter, sans-serif" font-size="20px" font-weight="600" text-anchor="middle" fill="#dcd6ce">187</text>
+  <text x="380" y="242" font-family="Inter, sans-serif" font-size="11.5px" font-weight="600" text-anchor="middle" fill="#dcd6ce">Committed to RRM treatment</text>
+  <text x="676.0" y="227" class="axis" text-anchor="start" dominant-baseline="central">75% of consults</text>
+  <rect x="269.8" y="272" width="220.4" height="62" rx="4" fill="#b8a3c4"/>
+  <text x="380" y="299" font-family="Inter, sans-serif" font-size="20px" font-weight="600" text-anchor="middle" fill="#ffffff">98</text>
+  <text x="380" y="318" font-family="Inter, sans-serif" font-size="11.5px" font-weight="600" text-anchor="middle" fill="#ffffff">Conceived</text>
+  <text x="676.0" y="303" class="axis" text-anchor="start" dominant-baseline="central">52% of treated</text>
+  <rect x="293.4" y="348" width="173.2" height="62" rx="4" fill="#b8a3c4" stroke="#b8a3c4" stroke-width="2"/>
+  <text x="380" y="375" font-family="Inter, sans-serif" font-size="20px" font-weight="600" text-anchor="middle" fill="#ffffff">77</text>
+  <text x="380" y="394" font-family="Inter, sans-serif" font-size="11.5px" font-weight="600" text-anchor="middle" fill="#ffffff">Live birth</text>
+  <text x="676.0" y="379" class="axis" text-anchor="start" dominant-baseline="central">41% of treated</text>
+  <text x="30" y="426" class="caption">Just over half of couples who committed to treatment conceived, and four in ten achieved a live birth.</text>
+  <text x="30" y="442" class="caption">Source: Boyle et al. 2025, Journal of Restorative Reproductive Medicine (2019 Dublin cohort).</text>
+  <text x="730" y="458" class="attribution">rrmacademy.org/rrm-success-rates</text>
+</svg>

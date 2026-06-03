@@ -1,0 +1,46 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 760 380" role="img" aria-label="RRM versus ART cost comparison">
+  <title>RRM vs ART Typical Cost (USD)</title>
+  <desc>Paired range bars comparing typical cost in US dollars: restorative reproductive medicine 2,000 to 5,000 dollars versus ART (IVF per cycle) 10,000 to 15,000 dollars, per Bulletti 2025.</desc>
+  <rect width="760" height="380" fill="#ffffff"/>
+  <style>
+    .heading { font-family: 'Inter', sans-serif; font-size: 12px; font-weight: 600; fill: #636261; letter-spacing: 0.05em; }
+    .subtitle { font-family: 'Inter', sans-serif; font-size: 12.5px; font-weight: 400; fill: #636261; }
+    .label { font-family: 'Inter', sans-serif; font-size: 12.5px; font-weight: 400; fill: #636261; dominant-baseline: central; }
+    .label-end { font-family: 'Inter', sans-serif; font-size: 12.5px; font-weight: 400; fill: #636261; text-anchor: end; dominant-baseline: central; }
+    .label-mid { font-family: 'Inter', sans-serif; font-size: 11.5px; font-weight: 400; fill: #636261; text-anchor: middle; }
+    .small { font-family: 'Inter', sans-serif; font-size: 10.5px; font-weight: 400; fill: #987da8; }
+    .value { font-family: 'Inter', sans-serif; font-size: 12.5px; font-weight: 600; fill: #313131; dominant-baseline: central; }
+    .value-mid { font-family: 'Inter', sans-serif; font-size: 12px; font-weight: 600; fill: #313131; text-anchor: middle; }
+    .value-accent { fill: #725e7e; }
+    .axis { font-family: 'Inter', sans-serif; font-size: 11px; font-weight: 400; fill: #987da8; text-anchor: middle; }
+    .axis-y { font-family: 'Inter', sans-serif; font-size: 11px; font-weight: 400; fill: #987da8; text-anchor: end; dominant-baseline: central; }
+    .caption { font-family: 'Inter', sans-serif; font-size: 11.5px; font-style: italic; fill: #987da8; }
+    .legend { font-family: 'Inter', sans-serif; font-size: 11.5px; font-weight: 400; fill: #636261; dominant-baseline: central; }
+    .attribution { font-family: 'Inter', sans-serif; font-size: 10.5px; font-weight: 500; fill: #8a8985; letter-spacing: 0.04em; text-anchor: end; }
+    .flag { font-family: 'Inter', sans-serif; font-size: 12px; font-weight: 700; fill: #b45309; }
+    .flagnote { font-family: 'Inter', sans-serif; font-size: 10.5px; font-weight: 500; fill: #b45309; }
+    
+  </style>
+  <text x="30" y="50" class="heading">TYPICAL COST (USD)</text>
+  <line x1="30" y1="63" x2="730" y2="63" stroke="#c9b8d3" stroke-width="1"/>
+  <text x="30" y="78" class="subtitle">Cost ranges per Bulletti et al. 2025 (systematic review, Tables 7-8). ART figure is per IVF cycle.</text>
+  <line x1="60" y1="118" x2="60" y2="260" stroke="#ece9e5" stroke-width="1"/>
+  <text x="60" y="276" class="axis">$0</text>
+  <line x1="248" y1="118" x2="248" y2="260" stroke="#ece9e5" stroke-width="1"/>
+  <text x="248" y="276" class="axis">$5,000</text>
+  <line x1="435" y1="118" x2="435" y2="260" stroke="#ece9e5" stroke-width="1"/>
+  <text x="435" y="276" class="axis">$10,000</text>
+  <line x1="622" y1="118" x2="622" y2="260" stroke="#ece9e5" stroke-width="1"/>
+  <text x="622" y="276" class="axis">$15,000</text>
+  <text x="60" y="120" class="label" font-weight="600">Restorative reproductive medicine</text>
+  <rect x="135.0" y="130" width="112.5" height="34" rx="5" fill="#725e7e"/>
+  <text x="127.0" y="147" class="value" text-anchor="end">$2,000</text>
+  <text x="255.5" y="147" class="value">$5,000</text>
+  <text x="60" y="210" class="label" font-weight="600">ART (IVF, per cycle)</text>
+  <rect x="435.0" y="220" width="187.5" height="34" rx="5" fill="#b0aaa2"/>
+  <text x="427.0" y="237" class="value" text-anchor="end">$10,000</text>
+  <text x="630.5" y="237" class="value">$15,000</text>
+  <text x="30" y="336" class="caption">RRM cost reflects targeted surgery / common interventions; ART cost is per IVF cycle and excludes repeat cycles.</text>
+  <text x="30" y="352" class="caption">Source: Bulletti FM et al. 2025, Therapeutic Advances in Reproductive Health.</text>
+  <text x="730" y="368" class="attribution">rrmacademy.org/rrm-success-rates</text>
+</svg>
