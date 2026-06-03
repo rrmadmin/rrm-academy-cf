@@ -615,7 +615,7 @@ const jsonLd = {
           <section id="downloads">
             <SectionShare id="downloads" title="Downloads and Sharing" share={false} />
             <p>Use the print button to save a formatted PDF of this evidence summary for clinical consultation, policy review, or research reference. A standalone data handout for download is in development.</p>
-            <!-- T11: print/PDF affordances + download/share block. T11 also adds print CSS. -->
+            <button type="button" class="print-button" id="sr-print">Print or save as PDF</button>
           </section>
 
           <!-- CTA box. NEVER any book-with-Naomi link (she is not practicing);
@@ -944,4 +944,81 @@ const jsonLd = {
   .chart-dark { display: none; }
   :global([data-theme="dark"]) .chart-light { display: none; }
   :global([data-theme="dark"]) .chart-dark { display: block; }
+
+  /* T11: Print or save-as-PDF button. Reuses the secondary-button tokens. */
+  .print-button {
+    display: inline-block;
+    font-family: 'Inter', sans-serif;
+    font-size: 0.9375rem;
+    font-weight: 600;
+    padding: var(--space-3) var(--space-5);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-md);
+    background: var(--bg-surface);
+    color: var(--text-primary);
+    cursor: pointer;
+    margin-top: var(--space-2);
+  }
+
+  .print-button:hover {
+    background: var(--purple-50);
+    border-color: var(--purple-700);
+  }
+
+  /* ---------------------------------------------------------------------------
+     T11: Print stylesheet. Strip interactive chrome and affordances, force the
+     light-theme charts, keep figures/tables/details intact across page breaks,
+     span the article full width, and expose reference + citation URLs so a
+     printed copy is self-contained.
+     --------------------------------------------------------------------------- */
+  @media print {
+    /* Hide chrome + interactive affordances. SectionShare + BackToTop +
+       Header render their own scope hash, so target them with :global(). */
+    :global(.site-header),
+    :global(.back-to-top),
+    :global(.section-share),
+    :global(.section-anchor),
+    .toc-mobile,
+    .toc,
+    .print-button,
+    .cta-box .btn {
+      display: none !important;
+    }
+
+    /* Force light-theme charts regardless of the active theme. */
+    .chart-dark { display: none !important; }
+    .chart-light { display: block !important; }
+
+    /* Keep figures, tables, details and study groups from splitting across pages. */
+    .chart-figure,
+    .table-wrap,
+    table,
+    details,
+    .study-group {
+      break-inside: avoid;
+    }
+
+    /* Full-width article: collapse the 2-column TOC + prose grid to one column. */
+    :global(.article-layout) {
+      display: block;
+      grid-template-columns: 1fr;
+    }
+
+    /* Show full reference + DOI URLs after links so a printed copy is
+       self-contained. Scoped to #references so body links stay clean. */
+    #references a[href^="https://"]::after,
+    #references a[href^="/"]::after {
+      content: " (" attr(href) ")";
+      font-size: 0.85em;
+      word-break: break-all;
+    }
+  }
 </style>
+
+<script>
+  // T11: wire the Print or save-as-PDF button. First (and only) window.print()
+  // on the page. The beforeprint handler opens every <details> so FAQ answers
+  // print expanded.
+  document.getElementById('sr-print')?.addEventListener('click', () => window.print());
+  window.addEventListener('beforeprint', () => document.querySelectorAll('details').forEach((d) => (d.open = true)));
+</script>
