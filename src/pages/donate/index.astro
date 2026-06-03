@@ -1,6 +1,12 @@
 ---
 import BaseLayout from '../../layouts/BaseLayout.astro';
 import fundingProjects from '../../data/funding-projects.json';
+import articlesData from '../../data/articles.json';
+import coursesData from '../../data/courses.json';
+
+// Live counts, mirroring the homepage/about pattern so these stats never drift.
+const libraryCountRounded = (Math.floor(articlesData.length / 1000) * 1000).toLocaleString();
+const selfPacedCourseCount = (coursesData as any[]).filter((c) => !c.comingSoon && !c.isAffiliate).length;
 
 const statusLabel: Record<string, string> = {
   active:    'Ongoing',
@@ -127,15 +133,15 @@ const jsonLd = {
         <h2>Fighting for True Healing</h2>
         <div class="stats-row">
           <div class="stat">
-            <span class="stat-number">625,000+</span>
+            <span class="stat-number">1,000,000+</span>
             <span class="stat-label">People reached monthly on Instagram</span>
           </div>
           <div class="stat">
-            <span class="stat-number">3,000+</span>
+            <span class="stat-number">{libraryCountRounded}+</span>
             <a href="/library/" class="stat-label">Research articles in our free library</a>
           </div>
           <div class="stat">
-            <span class="stat-number">4</span>
+            <span class="stat-number">{selfPacedCourseCount}</span>
             <a href="/courses/" class="stat-label">Self-paced online courses</a>
           </div>
         </div>
