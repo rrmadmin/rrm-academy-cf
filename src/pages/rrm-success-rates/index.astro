@@ -614,8 +614,11 @@ const jsonLd = {
 
           <section id="downloads">
             <SectionShare id="downloads" title="Downloads and Sharing" share={false} />
-            <p>Use the print button to save a formatted PDF of this evidence summary for clinical consultation, policy review, or research reference. A standalone data handout for download is in development.</p>
-            <button type="button" class="print-button" id="sr-print">Print or save as PDF</button>
+            <p>Download the evidence handout to share or cite, or use the print button to save a formatted copy for clinical consultation, policy review, or research reference.</p>
+            <p class="download-actions">
+              <a class="download-link" href="/downloads/rrm-success-rates-evidence-handout.pdf" download>Download the evidence handout (PDF)</a>
+              <button type="button" class="print-button" id="sr-print">Print or save as PDF</button>
+            </p>
           </section>
 
           <!-- CTA box. NEVER any book-with-Naomi link (she is not practicing);
@@ -945,6 +948,34 @@ const jsonLd = {
   :global([data-theme="dark"]) .chart-light { display: none; }
   :global([data-theme="dark"]) .chart-dark { display: block; }
 
+  /* Download + print actions row. */
+  .download-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-3);
+    align-items: center;
+  }
+
+  /* T17: branded PDF handout download (primary action). */
+  .download-link {
+    display: inline-block;
+    font-family: 'Inter', sans-serif;
+    font-size: 0.9375rem;
+    font-weight: 600;
+    padding: var(--space-3) var(--space-5);
+    border: 1px solid var(--purple-700);
+    border-radius: var(--radius-md);
+    background: var(--purple-700);
+    color: #fff;
+    text-decoration: none;
+    margin-top: var(--space-2);
+  }
+
+  .download-link:hover {
+    background: var(--purple-900);
+    border-color: var(--purple-900);
+  }
+
   /* T11: Print or save-as-PDF button. Reuses the secondary-button tokens. */
   .print-button {
     display: inline-block;
@@ -981,6 +1012,7 @@ const jsonLd = {
     .toc-mobile,
     .toc,
     .print-button,
+    .download-link,
     .cta-box .btn {
       display: none !important;
     }
@@ -989,12 +1021,25 @@ const jsonLd = {
     .chart-dark { display: none !important; }
     .chart-light { display: block !important; }
 
-    /* Keep figures, tables, details and study groups from splitting across pages. */
+    /* Tables are long: let them flow across pages and never clip the responsive
+       scroll wrapper in print (overflow:auto clips the off-page rows otherwise). */
+    .table-wrap {
+      overflow: visible !important;
+      break-inside: auto;
+    }
+    table {
+      break-inside: auto;
+      width: 100%;
+      font-size: 0.78rem;
+    }
+    thead { display: table-header-group; }
+    tr { break-inside: avoid; }
+    .study-group { break-inside: auto; }
+    .study-group__heading { break-after: avoid; }
+
+    /* Charts and FAQ items stay whole on one page. */
     .chart-figure,
-    .table-wrap,
-    table,
-    details,
-    .study-group {
+    details {
       break-inside: avoid;
     }
 
