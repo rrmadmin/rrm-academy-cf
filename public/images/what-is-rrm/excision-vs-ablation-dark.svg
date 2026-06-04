@@ -1,6 +1,6 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 700 320" role="img" aria-label="Endometriosis surgery repeat-surgery rates: excision versus ablation">
   <title>Endometriosis Surgery: Excision vs Ablation</title>
-  <desc>Horizontal bar chart comparing repeat surgery and recurrence rates for endometriosis treatment. Optimal excision in Yeung 2024 had a 2.5 percent repeat surgery rate over ten years. Ablation has recurrence rates as high as 40 percent within five years per Guo 2009.</desc>
+  <desc>Horizontal bar chart comparing repeat surgery and recurrence rates for endometriosis treatment. Optimal excision in Yeung 2025 had a 2.5 percent repeat surgery rate over ten years. Ablation has recurrence rates as high as 40 percent within five years per Guo 2009.</desc>
 
   <style>
     .heading { font-family: 'Inter', sans-serif; font-size: 11px; font-weight: 600; fill: #b0aaa2; letter-spacing: 0.05em; }
@@ -23,7 +23,7 @@
   <line x1="30" y1="48" x2="670" y2="48" class="divider"/>
 
   <text x="235" y="82" class="label">Optimal excision (RRM)</text>
-  <text x="235" y="100" class="sublabel">10-year follow-up · Yeung 2024</text>
+  <text x="235" y="100" class="sublabel">10-year follow-up · Yeung 2025</text>
   <rect x="248" y="80" width="350" height="22" rx="3" class="track"/>
   <rect x="248" y="80" width="22" height="22" rx="3" class="bar-rrm"/>
   <text x="608" y="92" class="value value-rrm">2.5%</text>

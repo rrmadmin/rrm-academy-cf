@@ -180,6 +180,8 @@ src/data/glossary.json → Astro build → rrmacademy.org/glossary
 
 **Page rendering:** `src/pages/glossary/index.astro` is data-driven. Imports `src/data/glossary.json`. Auto-generates TOC, A-Z index (from term names), abbreviations table, references list. Emits 3 JSON-LD blocks: Article+MedicalWebPage, BreadcrumbList, DefinedTermSet (132 DefinedTerm entities for per-term AEO).
 
+**Per-term pages (added 2026-05-30):** `src/pages/glossary/[slug].astro` renders a dedicated page per term at `/glossary/<slug>/` (live, 200). The index (`/glossary/`) now shows lead-only cards; full definitions live on the per-term pages. **Cross-link convention:** internal links to a glossary term from other pages use the per-term page form `/glossary/<slug>/`, NOT the old anchor form `/glossary/#<slug>` (still resolves but lands on a lead-only index card). Condition pillars (e.g. `/endometriosis/`) already use the page form; sweep older pages for `/glossary/#` when syncing.
+
 **Editing protocol:** D1 is SSOT. Edit via `wrangler d1 execute rrm-auth --remote --command "UPDATE glossary_term SET body_html=... WHERE slug='xxx'"` or via future admin UI. Then trigger rebuild. Never edit term bodies in `src/pages/glossary/index.astro` — that file only has template logic + hardcoded intro/CTA.
 
 **MANDATORY: route ALL glossary edits through the `/glossary-update` skill.** The skill (at `~/.claude/skills/glossary-update/SKILL.md`) encodes the full workflow: slug uniqueness check, sort_order computation per part, MAX(ref_num) lookup, Gianna dispatch for prose, batch SQL via `/tmp/glossary-bulk.sql`, single-record vs full rebuild dispatch, and live verification. Direct `wrangler d1 execute` calls without invoking the skill skip required structural lookups and have repeatedly produced misordered terms, missing cross-references, and stale src/data/glossary.json. Gianna agent is also instructed to invoke this skill before drafting any glossary content.
@@ -270,6 +272,7 @@ Validation: `npm run ssot:validate` (schema + cross-ref) and `npm run ssot:smoke
 | `/femm` | `src/pages/femm/index.astro` (pillar guide) |
 | `/neofertility` | `src/pages/neofertility/index.astro` (pillar guide) |
 | `/glossary` | `src/pages/glossary/index.astro` (pillar guide) |
+| `/glossary/[slug]` | `src/pages/glossary/[slug].astro` (per-term page) |
 | `/ask` | `src/pages/ask.astro` (auth-gated chat UI; per-answer Save button) |
 | `/ask/saved` | `src/pages/ask/saved.astro` (auth, lists user's saved Q&As) |
 | `/ask/s/<token>` | `functions/ask/s/[token].js` (public HTML share view, server-rendered, noindex) |
