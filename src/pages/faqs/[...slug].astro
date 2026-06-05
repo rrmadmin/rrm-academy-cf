@@ -53,8 +53,10 @@ const metaDescription = faq.seoDescription
 
 const canonicalUrl = `https://rrmacademy.org/faqs/${faq.slug}`;
 
-// FAQPage JSON-LD (single Q&A — editorially authored, not community Q&A)
-// Built via SSOT-aware buildFAQPage + buildBreadcrumbList; dates layered after.
+// QAPage JSON-LD (single Q&A — editorially authored, not community Q&A).
+// A single-question page is a QAPage wrapping one Question + acceptedAnswer,
+// not a FAQPage (which models a list). The Question node is built via the
+// SSOT-aware buildFAQPage helper, then unwrapped from its mainEntity array.
 const faqPageRaw = buildFAQPage([
   { question: faq.question, answer: faq.schemaAnswer || faq.basicAnswer || faq.publishedAnswer },
 ]) as Record<string, unknown>;
@@ -63,13 +65,18 @@ const breadcrumbRaw = buildBreadcrumbList([
   { name: 'FAQs', url: 'https://rrmacademy.org/faqs/' },
   { name: faq.question, url: `https://rrmacademy.org/faqs/${faq.slug}/` },
 ]) as Record<string, unknown>;
-const { '@context': _faqCtx, ...faqPageNode } = faqPageRaw;
+const questionNode = (faqPageRaw.mainEntity as Record<string, unknown>[])[0];
 const { '@context': _bcCtx, ...breadcrumbNode } = breadcrumbRaw;
 const jsonLd = {
   '@context': 'https://schema.org',
   '@graph': [
     {
-      ...faqPageNode,
+      '@type': 'QAPage',
+      '@id': `${canonicalUrl}/#faqpage`,
+      publisher: { '@id': 'https://rrmacademy.org/#organization' },
+      author: { '@id': 'https://rrmacademy.org/#organization' },
+      reviewedBy: { '@id': 'https://rrmacademy.org/about/#naomi-whittaker' },
+      mainEntity: questionNode,
       dateModified: updatedIso,
       datePublished: createdIso,
     },

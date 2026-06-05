@@ -60,8 +60,12 @@ const jsonLd = {
   '@graph': [
     {
       ...faqPageNode,
+      '@id': 'https://rrmacademy.org/faqs/#faqpage',
       name: 'Frequently Asked Questions about Restorative Reproductive Medicine',
       description: 'Answers to common questions about RRM, NaProTechnology, fertility charting, treatment approaches, success rates, and costs.',
+      publisher: { '@id': 'https://rrmacademy.org/#organization' },
+      author: { '@id': 'https://rrmacademy.org/#organization' },
+      reviewedBy: { '@id': 'https://rrmacademy.org/about/#naomi-whittaker' },
       dateModified: latestUpdated.toISOString(),
       datePublished: earliestCreated.toISOString(),
     },
@@ -74,7 +78,7 @@ const jsonLd = {
   description="Answers to common questions about Restorative Reproductive Medicine (RRM), NaProTechnology, fertility charting, treatment, and costs."
   canonicalUrl="https://rrmacademy.org/faqs"
   jsonLd={jsonLd}
-  speakable={['.hero-title', '.faqs-intro']}
+  speakable={['.hero-title', '.faqs-intro', '.faq-group:first-of-type .faq-item:first-of-type .faq-answer p']}
   chrome={SHELL_ENABLED ? 'shell' : 'default'}
 >
   <MaybeShell enabled={SHELL_ENABLED} context="page" currentPath={Astro.url.pathname}>
@@ -98,7 +102,7 @@ const jsonLd = {
             {group.faqs.map((faq) => (
               <details class="faq-item" data-faq-slug={faq.slug}>
                 <summary class="faq-question">
-                  <span class="faq-question-text">{faq.question}</span>
+                  <h3 class="faq-question-text">{faq.question}</h3>
                   <span class="faq-chevron" aria-hidden="true">
                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                       <polyline points="6 9 12 15 18 9"></polyline>
