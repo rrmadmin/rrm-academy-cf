@@ -186,9 +186,12 @@ export function buildMedicalScholarlyArticle(article) {
   const node = {
     '@context': 'https://schema.org',
     '@type': 'MedicalScholarlyArticle',
+    '@id': `https://rrmacademy.org/library/${article.slug}/`,
     name: article.title,
+    headline: article.title,
     url: `https://rrmacademy.org/library/${article.slug}/`,
     publisher: {
+      '@id': 'https://rrmacademy.org/#organization',
       '@type': 'Organization',
       name: 'RRM Academy',
       url: 'https://rrmacademy.org',

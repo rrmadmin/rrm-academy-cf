@@ -158,20 +158,17 @@
 
 # ==============================================
 # Agent discovery — RFC 8288 Link headers
-# Homepage advertises sitemap, llms.txt, openapi, markdown fallback, and
-# API catalog so AI agents can discover integration points from HTTP headers
-# alone (no HTML parse required).
+# sitemap-index, llms.txt (describedby), openapi (service-desc), and api-catalog
+# are emitted on every HTML response by functions/_middleware.js. This block adds
+# only the homepage-specific extras (library feed, llms-full.txt, markdown twins)
+# to avoid duplicate Link headers on the homepage.
 # ==============================================
 
 /
   Cache-Control: public, max-age=0, s-maxage=3600, stale-while-revalidate=86400
   No-Vary-Search: params, except=("q" "topic" "page" "sort")
-  Link: </sitemap.xml>; rel="sitemap"; type="application/xml"
   Link: </library-feed.jsonl>; rel="alternate"; type="application/x-ndjson"; title="Library Feed (JSONL)"
-  Link: </llms.txt>; rel="describedby"; type="text/plain"; title="llms.txt"
   Link: </llms-full.txt>; rel="describedby"; type="text/plain"; title="llms-full.txt"
-  Link: </openapi.json>; rel="service-desc"; type="application/vnd.oai.openapi+json;version=3.1"
-  Link: </.well-known/api-catalog>; rel="api-catalog"; type="application/linkset+json"
   Link: </index.md>; rel="alternate"; type="text/markdown"; title="Markdown"
   Link: </pricing.md>; rel="alternate"; type="text/markdown"; title="Pricing"
 
