@@ -8,7 +8,7 @@
 import Stripe from 'stripe';
 import {
   json, optionsResponse, getSessionIdFromCookie, validateSession,
-  STRIPE_API_VERSION, SITE_URL,
+  checkRateLimit, STRIPE_API_VERSION, SITE_URL,
 } from '../auth/_shared.js';
 import { log } from '../_log.js';
 
@@ -30,6 +30,11 @@ async function handlePortal(request, env, waitUntil) {
   const stripeKey = env.STRIPE_SECRET_KEY;
   if (!db) return json({ ok: false, error: 'Server misconfigured' }, 500);
   if (!stripeKey) return json({ ok: false, error: 'Payments not configured' }, 500);
+
+  const ip = request.headers.get('CF-Connecting-IP') || 'unknown';
+  if (!await checkRateLimit(env, `billing-portal:${ip}`, 10, 900)) {
+    return json({ ok: false, error: 'Too many requests — try again later' }, 429);
+  }
 
   // --- Auth check ---
   const sessionId = getSessionIdFromCookie(request);
