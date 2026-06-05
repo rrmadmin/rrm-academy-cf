@@ -47,11 +47,11 @@
       "note": "Stripe checkout"
     },
     "functions/api/billing/status.js": {
-      "hash": "a0a7fe188380753a22a9b2770e228623c04dd0dd4e647dbb43c6dea98f487a70",
+      "hash": "c203fb7d944c601eb291d30b565dd9ea79a39a491d9dc80d35cefe68ab07da2c",
       "note": "Billing status"
     },
     "functions/api/billing/portal.js": {
-      "hash": "cd04dfb6e6ac04cd1b874ccebb9bc47f132f80e30d60dfdd18b0907df438c212",
+      "hash": "02f7f4e7a9fb893815dce97294ae65a7d10434f860246a73c786ad9fc8d679bc",
       "note": "Stripe portal"
     },
     "functions/api/billing/_webhook-checkout.js": {
@@ -157,6 +157,18 @@
     "functions/api/billing/_webhook-invoice.js": {
       "hash": "2c36c046ff94905f9d55a5a4ec84e1d5623f7bce9a0c002657440ce93583777c",
       "note": "Invoice event handler"
+    },
+    "functions/api/billing/_shared.js": {
+      "hash": "5c699c854be57b8c5cdc590065f90ceba5396802dcdfb445a561df01c1731a81",
+      "note": "Shared Stripe constants + webhook dedup helpers"
+    },
+    "functions/api/billing/_webhook-refund.js": {
+      "hash": "09c58c58fba34d66da20d4142e67105cd03273933176c004351cb4da690bceb9",
+      "note": "Stripe refund handler (enrollment revocation)"
+    },
+    "functions/api/billing/_migration-handoff.js": {
+      "hash": "56727e589cbeade90e1d70d625c41444a8381370d1048805ccea81a5dab15af5",
+      "note": "Wix-to-Stripe migration handoff lock primitives"
     },
     "functions/api/community/upload.js": {
       "hash": "01326e09ae56984a61e8253352204d4a6cdfcf57d34ce0fcd2919bfcd49c2850",
