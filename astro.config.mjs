@@ -71,6 +71,7 @@ export default defineConfig({
           '/account',
           '/ask',
           '/library/saved',
+          '/saved/',
           '/endo-survey/take',
           '/donate/thank-you',
           '/save-the-uterus-club/thank-you',

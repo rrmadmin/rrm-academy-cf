@@ -328,6 +328,10 @@ if (!jsonLd) {
   <link rel="preconnect" href="https://customer-99owhsi4yh33gohc.cloudflarestream.com" crossorigin />
   <link rel="dns-prefetch" href="https://customer-99owhsi4yh33gohc.cloudflarestream.com" />
 
+  <!-- Fingerprint/visitor-ID worker preconnect (credentialed first-load call) -->
+  <link rel="preconnect" href="https://fp.rrmacademy.org" crossorigin />
+  <link rel="dns-prefetch" href="https://fp.rrmacademy.org" />
+
   {jsonLd ? (
     <script type="application/ld+json" set:html={safeJsonLd(jsonLd)} />
   ) : (
