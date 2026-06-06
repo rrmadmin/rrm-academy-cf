@@ -84,17 +84,17 @@ git commit -m "docs: honen courses upgrade spec (arise-hardened) + phase 0 plan"
 ### Task 1: D1 migration + schema.sql mirror
 
 **Files:**
-- Create: `migrations/025-step-rendition.sql`
+- Create: `migrations/028-step-rendition.sql`
 - Modify: `schema.sql` (append; doc mirror only, per memory rrm-academy-schema-sql-is-doc-mirror)
 
 Spec: 3.1, 8.2 step 1.
 
 - [ ] **Step 1: Write the migration file**
 
-Create `migrations/025-step-rendition.sql` with exactly:
+Create `migrations/028-step-rendition.sql` with exactly:
 
 ```sql
--- 025: step_rendition : multi-format lesson content (reading / flashcards / quiz / audio).
+-- 028: step_rendition : multi-format lesson content (reading / flashcards / quiz / audio).
 -- Spec: docs/superpowers/specs/2026-06-06-honen-style-courses-upgrade-design.md section 3.1.
 --
 -- FK is DECORATIVE in D1 (PRAGMA foreign_keys is not run). Cleanup is explicit
@@ -123,7 +123,7 @@ CREATE TABLE IF NOT EXISTS step_rendition (
 ```bash
 export CLOUDFLARE_ACCOUNT_ID=ecf2c5bc8b5ebd634bcb587b3890910a
 export CLOUDFLARE_API_TOKEN=$(op read 'op://Automation/CF - D1 Operator - account/credential')
-/opt/homebrew/bin/wrangler d1 execute rrm-auth --remote --file=migrations/025-step-rendition.sql
+/opt/homebrew/bin/wrangler d1 execute rrm-auth --remote --file=migrations/028-step-rendition.sql
 ```
 
 Expected: success output, no errors.
@@ -138,12 +138,12 @@ Expected: the CREATE TABLE DDL with both CHECK constraints visible.
 
 - [ ] **Step 4: Append the same block to `schema.sql`**
 
-Open `schema.sql`, append the identical `CREATE TABLE IF NOT EXISTS step_rendition (...)` block (with a one-line comment `-- step_rendition: multi-format lesson content. Added by migrations/025-step-rendition.sql.`) after the `course_step` table block. schema.sql is a documentation mirror, not provisioning SSOT; keep it in sync.
+Open `schema.sql`, append the identical `CREATE TABLE IF NOT EXISTS step_rendition (...)` block (with a one-line comment `-- step_rendition: multi-format lesson content. Added by migrations/028-step-rendition.sql.`) after the `course_step` table block. schema.sql is a documentation mirror, not provisioning SSOT; keep it in sync.
 
 - [ ] **Step 5: Commit**
 
 ```bash
-git add migrations/025-step-rendition.sql schema.sql
+git add migrations/028-step-rendition.sql schema.sql
 git commit -m "feat(courses): step_rendition table (migration 025, applied to remote) + schema.sql mirror"
 ```
 
@@ -1335,7 +1335,7 @@ git commit -m "feat(admin): step/course DELETE clean step_rendition rows + audio
 **Files:**
 - Modify: `scripts/gates/validate-courses-schema.mjs`
 
-Spec: 8.1 CS3 items (a)-(e). The gate currently parses ONE migration file and three tables. CS3 adds `step_rendition` (defined in `migrations/025-step-rendition.sql`), the two new endpoint files, `VALID_FORMATS`, the three-table `VALID_STATUSES` check, and a no-op meta-assertion.
+Spec: 8.1 CS3 items (a)-(e). The gate currently parses ONE migration file and three tables. CS3 adds `step_rendition` (defined in `migrations/028-step-rendition.sql`), the two new endpoint files, `VALID_FORMATS`, the three-table `VALID_STATUSES` check, and a no-op meta-assertion.
 
 - [ ] **Step 1: Apply the edits**
 
@@ -1344,7 +1344,7 @@ In `scripts/gates/validate-courses-schema.mjs`:
 (a) After `const MIGRATION_FILE = ...` (line 62), add:
 
 ```js
-const RENDITION_MIGRATION_FILE = resolve(PROJECT_ROOT, 'migrations/025-step-rendition.sql');
+const RENDITION_MIGRATION_FILE = resolve(PROJECT_ROOT, 'migrations/028-step-rendition.sql');
 ```
 
 (b) After `const COURSE_TABLES = ...` (line 64), add:
