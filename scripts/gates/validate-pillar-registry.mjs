@@ -26,7 +26,7 @@
  *   - CI deploy workflow before astro build
  */
 
-import { readFileSync, existsSync } from 'fs';
+import { readFileSync, existsSync, readdirSync } from 'fs';
 import { join, dirname } from 'path';
 import { fileURLToPath } from 'url';
 
@@ -105,6 +105,52 @@ const REQUIRED_FIELDS = [
   'in_guides_catalogue',
   'in_shell_guides_nav',
 ];
+
+// G6 reverse check: a clinical pillar page must be REGISTERED (which is what gives
+// it a per-page OG card via build-og-index + a sitemap entry + guides/nav surfacing).
+// Any root-level page that emits MedicalWebPage/MedicalCondition schema is treated as
+// a clinical pillar and MUST be in ssot/pillars.json, UNLESS it is a known non-pillar
+// clinical page (e.g. the endo survey landing). This closes the gap where a manually
+// authored pillar page (bypassing the pillar-create skill) ships with the generic
+// fallback OG card and no sitemap/guides presence.
+const NON_PILLAR_CLINICAL = new Set([
+  'endo-survey', // survey landing, emits clinical schema but is not a pillar guide
+]);
+const CLINICAL_SCHEMA_RE = /MedicalWebPage|MedicalCondition/;
+
+function clinicalRootSlugs() {
+  const pagesDir = join(ROOT, 'src', 'pages');
+  const slugs = [];
+  for (const entry of readdirSync(pagesDir, { withFileTypes: true })) {
+    let file = null;
+    let slug = null;
+    if (entry.isDirectory()) {
+      const p = join(pagesDir, entry.name, 'index.astro');
+      if (existsSync(p)) { file = p; slug = entry.name; }
+    } else if (entry.isFile() && entry.name.endsWith('.astro')) {
+      file = join(pagesDir, entry.name);
+      slug = entry.name.replace(/\.astro$/, '');
+    }
+    if (!file) continue;
+    if (CLINICAL_SCHEMA_RE.test(readFileSync(file, 'utf-8'))) slugs.push(slug);
+  }
+  return slugs;
+}
+
+function gateG6(registry) {
+  const issues = [];
+  const registered = new Set((registry.pillars || []).map((p) => p.slug));
+  for (const slug of clinicalRootSlugs()) {
+    if (!registered.has(slug) && !NON_PILLAR_CLINICAL.has(slug)) {
+      issues.push(
+        `G6 src/pages/${slug}/ emits clinical schema (MedicalWebPage/MedicalCondition) but is NOT in ssot/pillars.json. ` +
+        `It will fall back to the generic OG card and be absent from the sitemap/guides. ` +
+        `Register it (pillar-create, or add a pillars.json entry) or add '${slug}' to NON_PILLAR_CLINICAL.`,
+      );
+    }
+  }
+  return issues;
+}
 
 function readPillars() {
   if (!existsSync(SSOT_PATH)) {
@@ -190,8 +236,9 @@ try {
   const registry = readPillars();
   const g1 = gateG1(registry);
   const g23 = gateG2andG3();
+  const g6 = gateG6(registry);
   const g5 = gateG5(registry);
-  const errors = [...g1, ...g23];
+  const errors = [...g1, ...g23, ...g6];
 
   if (jsonMode) {
     console.log(JSON.stringify({
@@ -203,7 +250,7 @@ try {
   } else {
     console.log(`[validate-pillar-registry] checking ${registry.pillars?.length ?? 0} pillars against ${CONSUMERS.length} consumers`);
     if (errors.length === 0) {
-      console.log('[validate-pillar-registry] G1-G3 ALL CLEAR -- SSOT integrity + consumer derivation + no-hardcoded-bypass');
+      console.log('[validate-pillar-registry] G1-G3 + G6 ALL CLEAR -- SSOT integrity + consumer derivation + no-hardcoded-bypass + clinical-page registration');
     } else {
       console.error(`[validate-pillar-registry] BLOCKED -- ${errors.length} issue(s):`);
       for (const e of errors) console.error(`  - ${e}`);
