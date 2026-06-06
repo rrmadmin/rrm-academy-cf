@@ -53,10 +53,14 @@ const metaDescription = faq.seoDescription
 
 const canonicalUrl = `https://rrmacademy.org/faqs/${faq.slug}`;
 
-// QAPage JSON-LD (single Q&A — editorially authored, not community Q&A).
-// A single-question page is a QAPage wrapping one Question + acceptedAnswer,
-// not a FAQPage (which models a list). The Question node is built via the
-// SSOT-aware buildFAQPage helper, then unwrapped from its mainEntity array.
+// FAQPage JSON-LD. This is an editorially-authored Q&A: the site provides
+// the answer and users cannot submit their own. That is FAQPage, not QAPage.
+// QAPage models a community/forum question with user-submitted, upvoted
+// answers, so it requires answerCount, upvoteCount, and per-answer author,
+// fields that are meaningless here and which Google Search Console flagged as
+// missing (8 Q&A issues, 2026-06-06) after a brief QAPage trial. FAQPage takes
+// mainEntity as a list of Question + acceptedAnswer pairs with no such
+// requirements. The FAQ hub at /faqs/ is also FAQPage.
 const faqPageRaw = buildFAQPage([
   { question: faq.question, answer: faq.schemaAnswer || faq.basicAnswer || faq.publishedAnswer },
 ]) as Record<string, unknown>;
@@ -65,18 +69,18 @@ const breadcrumbRaw = buildBreadcrumbList([
   { name: 'FAQs', url: 'https://rrmacademy.org/faqs/' },
   { name: faq.question, url: `https://rrmacademy.org/faqs/${faq.slug}/` },
 ]) as Record<string, unknown>;
-const questionNode = (faqPageRaw.mainEntity as Record<string, unknown>[])[0];
+const mainEntity = faqPageRaw.mainEntity as Record<string, unknown>[];
 const { '@context': _bcCtx, ...breadcrumbNode } = breadcrumbRaw;
 const jsonLd = {
   '@context': 'https://schema.org',
   '@graph': [
     {
-      '@type': 'QAPage',
+      '@type': 'FAQPage',
       '@id': `${canonicalUrl}/#faqpage`,
       publisher: { '@id': 'https://rrmacademy.org/#organization' },
       author: { '@id': 'https://rrmacademy.org/#organization' },
       reviewedBy: { '@id': 'https://rrmacademy.org/about/#naomi-whittaker' },
-      mainEntity: questionNode,
+      mainEntity,
       dateModified: updatedIso,
       datePublished: createdIso,
     },
