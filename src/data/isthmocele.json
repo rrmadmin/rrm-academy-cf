@@ -1,0 +1,73 @@
+{
+  "_meta": {
+    "purpose": "Curated SSOT for /isthmocele/ condition pillar. Treatment-option and diagnostic-method cards rendered as Astro card grids.",
+    "source": "RRM Library records: Kremer 2019, Kulshrestha 2021, Rupa 2021, Florio 2012, Iannone 2019, Stavridis 2024, Setubal 2017, Tulandi & Cohen 2016, Bardet 2024, Baldini 2024. Surgical framing cross-checked vs Veritas Fertility.",
+    "updated": "2026-06-06",
+    "library_base_url": "https://rrmacademy.org/library/",
+    "card_notes": "Each *_html field is an HTML fragment with inline citation hyperlinks to library records. Render with Astro set:html. Inline citations are MANDATORY per editorial policy."
+  },
+  "treatment_options": [
+    {
+      "key": "expectant",
+      "name": "Expectant Management",
+      "candidate": "Asymptomatic women with small defects (residual myometrial thickness ≥3 mm) who are not planning pregnancy",
+      "what_it_does": "Monitoring without active intervention. Cycle charting or periodic imaging tracks any progression. The defect does not reliably resolve spontaneously.",
+      "recovery": "None",
+      "fertility_outcome_html": "Not applicable for fertility; chosen when pregnancy is not planned. Not appropriate when fertility is a goal.",
+      "limitation": "Does not repair the defect. Symptoms may develop or worsen. Not appropriate when fertility is desired."
+    },
+    {
+      "key": "hysteroscopic",
+      "name": "Hysteroscopic Resection (Isthmoplasty)",
+      "candidate": "Women with residual myometrial thickness >2.5-3 mm; symptomatic women who do not require full myometrial reconstruction or who are not planning pregnancy",
+      "what_it_does": "A resectoscope is introduced through the cervix. Fibrotic tissue forming the niche's lower lip is resected, opening drainage and eliminating the blood-pooling reservoir. No external incisions.",
+      "recovery": "2-3 days",
+      "fertility_outcome_html": "Bleeding improves in 59-100% of cases. Pregnancy rates of 77.8-100% reported across studies. (<a href=\"/library/emerging-manifestations-of-cesarean-scar-defect-in-reproductive-aged-women-recrvbf5y6nqxayyt/\">Tulandi and Cohen, 2016</a>) Small studies and pooled case series suggest pregnancy in roughly half to two-thirds of women after surgical repair; high-quality comparative trials remain limited. (<a href=\"/library/isthmocele-and-infertility-recwpl3h1tdyzcxia/\">Baldini et al., 2024</a>)",
+      "limitation": "Does not restore myometrial thickness; thins the residual tissue further. Risk of bladder injury or perforation rises substantially below the 2.5-3 mm RMT threshold. Not ideal when RMT is borderline and future pregnancy is desired."
+    },
+    {
+      "key": "laparoscopic",
+      "name": "Laparoscopic Excision with Multilayer Reconstruction",
+      "candidate": "Women with residual myometrial thickness <2.5-3 mm, particularly those desiring future pregnancy; women with larger defects",
+      "what_it_does": "Laparoscopic ports allow full excision of the defect and surrounding fibrotic tissue. The myometrium is closed in two or more layers, restoring actual wall thickness. Combined with hysteroscopy for intraoperative guidance in many centers.",
+      "recovery": "1-2 weeks; specialists commonly advise waiting about 3 to 6 months before attempting conception (expert opinion, individualized)",
+      "fertility_outcome_html": "Mean myometrial thickness increased from 1.43 mm to 9.62 mm in one 38-patient series. 44% pregnancy rate among those with infertility, with healthy full-term deliveries. (<a href=\"/library/isthmocele-an-overview-of-diagnosis-and-treatment-recxvsgc7hchpnw2m/\">Kremer et al., 2019</a>) Laparoscopic repair: 86% bleeding improvement, 86% pregnancy rate in systematic review. (<a href=\"/library/emerging-manifestations-of-cesarean-scar-defect-in-reproductive-aged-women-recrvbf5y6nqxayyt/\">Tulandi and Cohen, 2016</a>)",
+      "limitation": "Requires laparoscopic surgical expertise. Longer recovery than hysteroscopy. Waiting period before conception advised."
+    },
+    {
+      "key": "vaginal",
+      "name": "Vaginal Repair",
+      "candidate": "Women with moderate or severe defects, including those with zero residual myometrium, at centers with vaginal surgical expertise; an option when laparoscopy is not preferred",
+      "what_it_does": "A transvaginal incision exposes the uterine isthmus. The defect is excised and the myometrium closed in layers, restoring wall thickness without abdominal entry. Associated with longer hospital stays than laparoscopy in some series.",
+      "recovery": "Similar to laparoscopic repair; 1-2 weeks",
+      "fertility_outcome_html": "In a 2024 retrospective cohort of 53 women, myometrial thickness increased from 0 mm to 4.4 mm (severe group). Pregnancy rates: 84.6% (moderate) and 68.2% (severe). 90% of pregnancies occurred naturally. No uterine ruptures. (<a href=\"/library/is-vaginal-repair-a-good-option-for-severe-cesarean-scar-defect-comparison-of-wo-rec2avqpjvovk8zm6/\">Bardet et al., 2024</a>)",
+      "limitation": "Requires significant vaginal surgical expertise. Longer hospital stay reported in some series. Limited data compared to hysteroscopic and laparoscopic approaches."
+    }
+  ],
+  "diagnostic_methods": [
+    {
+      "step": 1,
+      "label": "Transvaginal Ultrasound (TVUS)",
+      "detail_html": "First-line imaging. Identifies the defect as a triangular anechoic area or wedge-shaped indentation in the anterior myometrium at the isthmus. Best performed in the early proliferative phase when residual blood is most visible. Detection rates of 24-70% in women with prior C-section. Measures residual myometrial thickness. (<a href=\"/library/isthmocele-an-overview-of-diagnosis-and-treatment-recxvsgc7hchpnw2m/\">Kremer et al., 2019</a>)",
+      "is_primary": true
+    },
+    {
+      "step": 2,
+      "label": "Saline Infusion Sonohysterography (SIS)",
+      "detail_html": "The most accurate method for isthmocele detection. Saline fills the uterine cavity and niche, providing contrast that reveals defects invisible on standard TVUS. Detection rates of 56-84%. The defect appears larger on SIS due to increased intrauterine pressure. Recommended when TVUS is inconclusive and for surgical planning. (<a href=\"/library/treatment-for-uterine-isthmocele-a-pouchlike-defect-at-the-site-of-a-cesarean-se-recktxysulttsseqe/\">Setubal et al., 2017</a>)",
+      "is_primary": true
+    },
+    {
+      "step": 3,
+      "label": "Magnetic Resonance Imaging (MRI)",
+      "detail_html": "Provides detailed three-plane anatomical characterization: defect dimensions, residual myometrial thickness, and content of the niche (T1-hyperintense blood products visible). Rules out associated adenomyosis, endometriosis, or adnexal pathology. Most useful for surgical planning in complex or large defects. (<a href=\"/library/uterine-isthmocele-a-frequently-overlooked-complication-of-cesarean-sections-recoinwrfjhmyev9w/\">Rupa et al., 2021</a>)",
+      "is_primary": false
+    },
+    {
+      "step": 4,
+      "label": "Hysteroscopy",
+      "detail_html": "Direct visualization of the niche as a bulging cavity on the anterior cervical canal confirms the diagnosis and allows immediate surgical treatment if residual myometrial thickness is adequate (generally >2.5-3 mm). Cannot measure residual myometrial thickness independently; typically combined with TVUS or SIS for full assessment. (<a href=\"/library/isthmocele-from-risk-factors-to-management-reca7lowkovmdh8tr/\">Iannone et al., 2019</a>)",
+      "is_primary": false
+    }
+  ]
+}
