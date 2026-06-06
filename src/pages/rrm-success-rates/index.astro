@@ -1,5 +1,6 @@
 ---
 import BaseLayout from '../../layouts/BaseLayout.astro';
+import CiteThisPage from '../../components/CiteThisPage.astro';
 import MaybeShell from '../../components/MaybeShell.astro';
 import SectionTocChips from '../../components/SectionTocChips.astro';
 import { isShellEnabled } from '../../lib/shell-routes';
@@ -285,6 +286,7 @@ const jsonLd = {
   title="RRM Success Rates: What the Published Evidence Shows"
   description="RRM live-birth rates across 14 peer-reviewed cohorts, 11 countries, 2008-2026. Crude and adjusted-cumulative outcomes with follow-up windows, by condition and age group."
   canonicalUrl={PAGE_URL}
+  markdownUrl="/rrm-success-rates.md"
   ogType="article"
   publishDate={PUBLISH_DATE}
   jsonLd={jsonLd}
@@ -628,6 +630,15 @@ const jsonLd = {
             <p><a href="/providers/" class="btn btn--primary">Find an RRM-trained provider</a></p>
             <p><a href="/library/" class="btn btn--secondary">Browse the Research Library</a></p>
           </div>
+
+          <CiteThisPage
+            heading="Cite this guide"
+            title="RRM Success Rates: What the Published Evidence Shows"
+            authorGiven="Naomi"
+            authorFamily="Whittaker"
+            date="2026-06-03"
+            url="https://rrmacademy.org/rrm-success-rates/"
+          />
 
           <p class="disclaimer"><em>This content is for educational purposes only and does not constitute medical advice. Consult an RRM clinician or healthcare provider for guidance specific to your situation. Statistics represent published research averages, not guarantees of individual outcomes.</em></p>
 

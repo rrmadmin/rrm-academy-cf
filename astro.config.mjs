@@ -1,6 +1,7 @@
 import { defineConfig } from 'astro/config';
 import sitemap from '@astrojs/sitemap';
 import librarySitemaps from './src/integrations/library-sitemaps.mjs';
+import agentMdSurfaces from './src/integrations/agent-md-surfaces.mjs';
 import { readFileSync } from 'fs';
 import { fileURLToPath } from 'url';
 import { dirname, join } from 'path';
@@ -122,5 +123,6 @@ export default defineConfig({
       },
     }),
     librarySitemaps(),
+    agentMdSurfaces(),
   ],
 });

@@ -1,5 +1,6 @@
 ---
 import BaseLayout from '../../layouts/BaseLayout.astro';
+import CiteThisPage from '../../components/CiteThisPage.astro';
 import MaybeShell from '../../components/MaybeShell.astro';
 import SectionTocChips from '../../components/SectionTocChips.astro';
 import { isShellEnabled } from '../../lib/shell-routes';
@@ -253,6 +254,7 @@ const faqSchema = {
   title="Miscarriage and Recurrent Pregnancy Loss: A Clinician-Reviewed Guide"
   description="Miscarriage affects approximately 15% of clinically confirmed pregnancies. Recurrent pregnancy loss (RPL), defined as two or more clinical losses, affects 2 to 5% of couples. Most causes are diagnosable and treatable. This guide covers what the standard workup misses, what RRM-trained clinicians evaluate, and what outcomes look like after cause-based treatment."
   canonicalUrl={PAGE_URL}
+  markdownUrl="/miscarriage.md"
   ogType="article"
   publishDate="2026-05-14"
   jsonLd={pageSchema}
@@ -721,6 +723,15 @@ const faqSchema = {
             <p>And the foundational primer on restorative reproductive medicine:</p>
             <p><a href="/what-is-rrm/" class="btn btn--secondary">What is Restorative Reproductive Medicine?</a> <a href="/library/" class="btn btn--secondary">Browse the Research Library</a></p>
           </div>
+
+          <CiteThisPage
+            heading="Cite this guide"
+            title="Miscarriage and Recurrent Pregnancy Loss: The Workup Most Women Never Get"
+            authorGiven="Naomi"
+            authorFamily="Whittaker"
+            date="2026-05-14"
+            url="https://rrmacademy.org/miscarriage/"
+          />
 
           <p class="disclaimer"><em>This content is for educational and reference purposes only and does not constitute medical advice, diagnosis, or treatment. Decisions about evaluation or care for miscarriage and recurrent pregnancy loss should be made in consultation with a qualified clinician who knows your specific clinical context. Citations to specific studies and consensus documents do not imply individual-patient applicability.</em></p>
 
