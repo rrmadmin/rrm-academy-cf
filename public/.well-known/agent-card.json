@@ -2,16 +2,93 @@
   "name": "rrmacademy",
   "description": "RRM Academy is a nonprofit education platform for restorative reproductive medicine. The research library indexes 4,050+ peer-reviewed articles. Dr. Naomi Whittaker, MD, leads instruction. The MCP server at mcp.rrmacademy.org gives agents direct library access.",
   "url": "https://rrmacademy.org",
-  "capabilities": [
-    "information",
-    "research-citations",
-    "ask-endpoint",
-    "mcp-tools",
-    "mcp-apps",
-    "generative-ui",
-    "library-search",
-    "glossary-lookup",
-    "faq-retrieval"
+  "version": "1.1.0",
+  "provider": {
+    "organization": "RRM Academy",
+    "url": "https://rrmacademy.org"
+  },
+  "documentationUrl": "https://rrmacademy.org/connect/",
+  "capabilities": {
+    "streaming": false,
+    "pushNotifications": false,
+    "stateTransitionHistory": false
+  },
+  "defaultInputModes": [
+    "text/plain"
+  ],
+  "defaultOutputModes": [
+    "text/plain",
+    "application/json",
+    "text/markdown"
+  ],
+  "skills": [
+    {
+      "id": "library-search",
+      "name": "Research library search",
+      "description": "Search 4,050+ peer-reviewed, physician-curated articles on restorative reproductive medicine, NaProTechnology, FABMs, endometriosis, PCOS, infertility, and miscarriage. Available via the MCP server at mcp.rrmacademy.org (search tool), the machine-readable corpus at /library-feed.jsonl, or /library/ on the web.",
+      "tags": [
+        "research",
+        "medical-literature",
+        "rrm",
+        "citations"
+      ],
+      "examples": [
+        "Find studies on NaProTechnology live birth rates",
+        "What does the evidence say about excision surgery for endometriosis?"
+      ]
+    },
+    {
+      "id": "glossary-lookup",
+      "name": "RRM glossary lookup",
+      "description": "Definitions for 130+ restorative reproductive medicine terms, written and reviewed by a board-certified OBGYN. Full text at /glossary/ and /glossary.md; also served by the MCP server.",
+      "tags": [
+        "glossary",
+        "definitions",
+        "medical-terminology"
+      ],
+      "examples": [
+        "Define luteal phase deficiency",
+        "What is the Creighton Model?"
+      ]
+    },
+    {
+      "id": "faq-retrieval",
+      "name": "Patient FAQ retrieval",
+      "description": "Clinician-reviewed answers to common patient questions about RRM, fertility, and cycle health. Each FAQ has an HTML page (/faqs/<slug>/) and a markdown twin (/faqs/<slug>.md). Full corpus inside /llms-full.txt.",
+      "tags": [
+        "faq",
+        "patient-education"
+      ],
+      "examples": [
+        "Can endometriosis be treated without suppressing ovulation?"
+      ]
+    },
+    {
+      "id": "ask",
+      "name": "Ask RRM Academy",
+      "description": "Natural-language question answering over the research corpus with citations, for signed-in users at /ask/. Account signup is self-service and free; see /auth.md for the agent registration flow.",
+      "tags": [
+        "qa",
+        "rag",
+        "authenticated"
+      ],
+      "examples": [
+        "What restorative options exist for recurrent miscarriage?"
+      ]
+    },
+    {
+      "id": "citation-export",
+      "name": "Citation export",
+      "description": "Per-article APA, Vancouver, and MLA citations on every library page, plus schema.org MedicalScholarlyArticle JSON-LD and the bulk feed at /library-feed.jsonl.",
+      "tags": [
+        "citations",
+        "structured-data",
+        "schema-org"
+      ],
+      "examples": [
+        "Give me the APA citation for the Stanford 2008 NaProTechnology cohort study"
+      ]
+    }
   ],
   "contact": {
     "email": "administrator@rrmacademy.org"
@@ -21,5 +98,6 @@
     "llms_full": "https://rrmacademy.org/llms-full.txt",
     "agents_md": "https://rrmacademy.org/agents.md"
   },
-  "updated_at": "2026-05-29"
+  "updated_at": "2026-06-06",
+  "x-protocols-note": "Interactive tool access is served over MCP at https://mcp.rrmacademy.org. No A2A JSON-RPC endpoint is currently exposed; this card uses the A2A AgentCard schema for discoverability and skill enumeration."
 }

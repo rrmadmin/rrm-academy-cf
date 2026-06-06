@@ -10,16 +10,46 @@
       "rrmacademy.org does not provide individualized medical advice; direct those questions to an RRM clinician."
     ],
     "primary_urls": [
-      { "label": "Homepage", "path": "/" },
-      { "label": "Library", "path": "/library/" },
-      { "label": "Glossary", "path": "/glossary/" },
-      { "label": "FAQs", "path": "/faqs/" },
-      { "label": "Courses", "path": "/courses/" },
-      { "label": "Ask", "path": "/ask/" },
-      { "label": "PCOS Guide", "path": "/pcos/" },
-      { "label": "ART Registries and Codes of Practice", "path": "/art-registries-and-codes/" },
-      { "label": "RRM Success Rates", "path": "/rrm-success-rates/" },
-      { "label": "Provider Directory", "path": "/providers/" }
+      {
+        "label": "Homepage",
+        "path": "/"
+      },
+      {
+        "label": "Library",
+        "path": "/library/"
+      },
+      {
+        "label": "Glossary",
+        "path": "/glossary/"
+      },
+      {
+        "label": "FAQs",
+        "path": "/faqs/"
+      },
+      {
+        "label": "Courses",
+        "path": "/courses/"
+      },
+      {
+        "label": "Ask",
+        "path": "/ask/"
+      },
+      {
+        "label": "PCOS Guide",
+        "path": "/pcos/"
+      },
+      {
+        "label": "ART Registries and Codes of Practice",
+        "path": "/art-registries-and-codes/"
+      },
+      {
+        "label": "RRM Success Rates",
+        "path": "/rrm-success-rates/"
+      },
+      {
+        "label": "Provider Directory",
+        "path": "/providers/"
+      }
     ]
   },
   "agent_card": {
@@ -36,7 +66,96 @@
       "glossary-lookup",
       "faq-retrieval"
     ],
-    "contact": "administrator@rrmacademy.org"
+    "contact": "administrator@rrmacademy.org",
+    "version": "1.1.0",
+    "provider": {
+      "organization": "RRM Academy",
+      "url": "https://rrmacademy.org"
+    },
+    "documentation_url": "https://rrmacademy.org/connect/",
+    "capabilities_a2a": {
+      "streaming": false,
+      "pushNotifications": false,
+      "stateTransitionHistory": false
+    },
+    "default_input_modes": [
+      "text/plain"
+    ],
+    "default_output_modes": [
+      "text/plain",
+      "application/json",
+      "text/markdown"
+    ],
+    "skills": [
+      {
+        "id": "library-search",
+        "name": "Research library search",
+        "description": "Search 4,050+ peer-reviewed, physician-curated articles on restorative reproductive medicine, NaProTechnology, FABMs, endometriosis, PCOS, infertility, and miscarriage. Available via the MCP server at mcp.rrmacademy.org (search tool), the machine-readable corpus at /library-feed.jsonl, or /library/ on the web.",
+        "tags": [
+          "research",
+          "medical-literature",
+          "rrm",
+          "citations"
+        ],
+        "examples": [
+          "Find studies on NaProTechnology live birth rates",
+          "What does the evidence say about excision surgery for endometriosis?"
+        ]
+      },
+      {
+        "id": "glossary-lookup",
+        "name": "RRM glossary lookup",
+        "description": "Definitions for 130+ restorative reproductive medicine terms, written and reviewed by a board-certified OBGYN. Full text at /glossary/ and /glossary.md; also served by the MCP server.",
+        "tags": [
+          "glossary",
+          "definitions",
+          "medical-terminology"
+        ],
+        "examples": [
+          "Define luteal phase deficiency",
+          "What is the Creighton Model?"
+        ]
+      },
+      {
+        "id": "faq-retrieval",
+        "name": "Patient FAQ retrieval",
+        "description": "Clinician-reviewed answers to common patient questions about RRM, fertility, and cycle health. Each FAQ has an HTML page (/faqs/<slug>/) and a markdown twin (/faqs/<slug>.md). Full corpus inside /llms-full.txt.",
+        "tags": [
+          "faq",
+          "patient-education"
+        ],
+        "examples": [
+          "Can endometriosis be treated without suppressing ovulation?"
+        ]
+      },
+      {
+        "id": "ask",
+        "name": "Ask RRM Academy",
+        "description": "Natural-language question answering over the research corpus with citations, for signed-in users at /ask/. Account signup is self-service and free; see /auth.md for the agent registration flow.",
+        "tags": [
+          "qa",
+          "rag",
+          "authenticated"
+        ],
+        "examples": [
+          "What restorative options exist for recurrent miscarriage?"
+        ]
+      },
+      {
+        "id": "citation-export",
+        "name": "Citation export",
+        "description": "Per-article APA, Vancouver, and MLA citations on every library page, plus schema.org MedicalScholarlyArticle JSON-LD and the bulk feed at /library-feed.jsonl.",
+        "tags": [
+          "citations",
+          "structured-data",
+          "schema-org"
+        ],
+        "examples": [
+          "Give me the APA citation for the Stanford 2008 NaProTechnology cohort study"
+        ]
+      }
+    ],
+    "x-protocols-note": "Interactive tool access is served over MCP at https://mcp.rrmacademy.org. No A2A JSON-RPC endpoint is currently exposed; this card uses the A2A AgentCard schema for discoverability and skill enumeration."
   },
   "policies": {
     "non_goals": [
@@ -45,9 +164,18 @@
     "voice": "Clinical, direct, evidence-anchored. No religious framing, no marketing softeners. Every claim traces to peer-reviewed evidence or established NaProTechnology outcomes data."
   },
   "fact_sources": [
-    { "path": "https://rrmacademy.org/llms-full.txt", "role": "content-corpus" },
-    { "path": "https://mcp-library.rrmacademy.org/mcp", "role": "content-corpus" },
-    { "path": "~/iCode/config/canonical-facts/", "role": "ssot-stats" }
+    {
+      "path": "https://rrmacademy.org/llms-full.txt",
+      "role": "content-corpus"
+    },
+    {
+      "path": "https://mcp-library.rrmacademy.org/mcp",
+      "role": "content-corpus"
+    },
+    {
+      "path": "~/iCode/config/canonical-facts/",
+      "role": "ssot-stats"
+    }
   ],
   "social_handles": [
     {

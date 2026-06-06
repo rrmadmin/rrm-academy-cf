@@ -1,5 +1,6 @@
 ---
 import BaseLayout from '../../layouts/BaseLayout.astro';
+import CiteThisPage from '../../components/CiteThisPage.astro';
 import MaybeShell from '../../components/MaybeShell.astro';
 import SectionTocChips from '../../components/SectionTocChips.astro';
 import { isShellEnabled } from '../../lib/shell-routes';
@@ -199,6 +200,7 @@ const jsonLd = {
   title="ART Registries and Codes of Practice: A Global Reference"
   description="Reference guide to national IVF registries and codes of practice: HFEA, RTAC, ANZARD, Q-IVF, CDC, DIR, JSOG: with what each measures and what they miss."
   canonicalUrl={PAGE_URL}
+  markdownUrl="/art-registries-and-codes.md"
   ogType="article"
   publishDate="2026-05-11"
   jsonLd={jsonLd}
@@ -593,6 +595,15 @@ const jsonLd = {
             <p><a href="/library/" class="btn btn--secondary">Browse the Research Library</a></p>
             <p><a href="/ivf-success-calculator/" class="btn btn--secondary">IVF Success Rate Calculator</a></p>
           </div>
+
+          <CiteThisPage
+            heading="Cite this guide"
+            title="ART Registries and Codes of Practice: A Reference for Patients and Clinicians"
+            authorGiven="Naomi"
+            authorFamily="Whittaker"
+            date="2026-05-11"
+            url="https://rrmacademy.org/art-registries-and-codes/"
+          />
 
           <p class="disclaimer"><em>This content is for educational and reference purposes only and does not constitute medical advice. Registry and code-of-practice information reflects publicly available primary sources at the time of writing. For clinical questions about evaluating fertility care options, consult an RRM clinician or qualified healthcare provider.</em></p>
 
