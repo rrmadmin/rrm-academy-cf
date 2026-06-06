@@ -1,4 +1,4 @@
--- 025: step_rendition: multi-format lesson content (reading / flashcards / quiz / audio).
+-- 028: step_rendition: multi-format lesson content (reading / flashcards / quiz / audio).
 -- Spec: docs/superpowers/specs/2026-06-06-honen-style-courses-upgrade-design.md section 3.1.
 --
 -- FK is DECORATIVE in D1 (PRAGMA foreign_keys is not run). Cleanup is explicit
