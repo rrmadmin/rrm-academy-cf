@@ -1,0 +1,706 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import MaybeShell from '../../components/MaybeShell.astro';
+import SectionTocChips from '../../components/SectionTocChips.astro';
+import { isShellEnabled } from '../../lib/shell-routes';
+import BackToTop from '../../components/BackToTop.astro';
+import LastUpdated from '../../components/LastUpdated.astro';
+import pageDates from '../../data/page-dates.json';
+import isthmoceleData from '../../data/isthmocele.json';
+import { buildScholarlyArticleStub } from '../../lib/identity';
+import { safeJsonLd } from '../../lib/jsonld';
+
+const SHELL_ENABLED = isShellEnabled('guides');
+
+const TOC_ITEMS = [
+  { href: '#what-is', label: "What Is a Uterine Isthmocele?" },
+  { href: '#symptoms', label: "Isthmocele Symptoms and Warning Signs" },
+  { href: '#causes', label: "Causes and Risk Factors" },
+  { href: '#diagnosis', label: "How an Isthmocele Is Diagnosed" },
+  { href: '#fertility', label: "How an Isthmocele Affects Fertility" },
+  { href: '#treatment', label: "Treatment Options" },
+  { href: '#restorative-approach', label: "The Restorative Approach" },
+  { href: '#outcomes', label: "Outcomes After Repair" },
+  { href: '#prevention', label: "Prevention" },
+  { href: '#when-to-seek', label: "When to Seek Evaluation" },
+  { href: '#faq', label: 'Frequently Asked Questions' }
+];
+
+const PAGE_PATH = '/isthmocele/';
+const LAST_MODIFIED = pageDates.dates[PAGE_PATH] || '2026-06-06';
+const PAGE_URL = 'https://rrmacademy.org/isthmocele/';
+
+function citeStub(props: { name: string; author: string; datePublished: string; journal?: string }) {
+  const node = buildScholarlyArticleStub(props) as Record<string, unknown> & { '@context'?: unknown };
+  const { '@context': _ctx, ...rest } = node;
+  return rest;
+}
+
+const pageSchema = {
+  '@context': 'https://schema.org',
+  '@type': ['Article', 'MedicalWebPage'],
+  headline: "Uterine Isthmocele (Cesarean Scar Defect): Causes, Symptoms, and Restorative Repair",
+  description: "A uterine isthmocele is a pouch-like defect at the cesarean scar that causes spotting, pelvic pain, and secondary infertility. Learn about restorative surgical repair options.",
+  author: { '@id': 'https://rrmacademy.org/#organization' },
+  reviewedBy: { '@id': 'https://rrmacademy.org/#naomi-whittaker' },
+  publisher: {
+    '@type': 'EducationalOrganization',
+    '@id': 'https://rrmacademy.org/#organization',
+    name: 'RRM Academy',
+  },
+  datePublished: '2026-06-06',
+  dateModified: LAST_MODIFIED,
+  wordCount: 6100,
+  mainEntityOfPage: {
+    '@type': 'WebPage',
+    '@id': PAGE_URL,
+  },
+  about: {
+    '@type': 'MedicalCondition',
+    name: 'Uterine Isthmocele',
+    alternateName: ['Cesarean Scar Defect', 'Uterine Niche', 'Uterine Diverticulum'],
+    code: {
+      '@type': 'MedicalCode',
+      codingSystem: 'ICD-10-CM',
+      codeValue: 'N85.8',
+    },
+  },
+  articleSection: [
+    "What Is a Uterine Isthmocele?",
+    "Isthmocele Symptoms and Warning Signs",
+    "Causes and Risk Factors",
+    "How an Isthmocele Is Diagnosed",
+    "How an Isthmocele Affects Fertility",
+    "Treatment Options",
+    "The Restorative Approach",
+    "Outcomes After Repair",
+    "Prevention: Why Closure Technique Matters",
+    "When to Seek Evaluation",
+    'Frequently Asked Questions'
+  ],
+  hasPart: [
+    { '@type': 'WebPageElement', name: "What Is a Uterine Isthmocele?", url: `${PAGE_URL}#what-is` },
+    { '@type': 'WebPageElement', name: "Isthmocele Symptoms and Warning Signs", url: `${PAGE_URL}#symptoms` },
+    { '@type': 'WebPageElement', name: "Causes and Risk Factors", url: `${PAGE_URL}#causes` },
+    { '@type': 'WebPageElement', name: "How an Isthmocele Is Diagnosed", url: `${PAGE_URL}#diagnosis` },
+    { '@type': 'WebPageElement', name: "How an Isthmocele Affects Fertility", url: `${PAGE_URL}#fertility` },
+    { '@type': 'WebPageElement', name: "Treatment Options", url: `${PAGE_URL}#treatment` },
+    { '@type': 'WebPageElement', name: "The Restorative Approach", url: `${PAGE_URL}#restorative-approach` },
+    { '@type': 'WebPageElement', name: "Outcomes After Repair", url: `${PAGE_URL}#outcomes` },
+    { '@type': 'WebPageElement', name: "Prevention: Why Closure Technique Matters", url: `${PAGE_URL}#prevention` },
+    { '@type': 'WebPageElement', name: "When to Seek Evaluation", url: `${PAGE_URL}#when-to-seek` },
+    { '@type': 'WebPageElement', name: "Frequently Asked Questions", url: `${PAGE_URL}#faq` }
+  ],
+  citation: [
+    citeStub({
+      name: "Isthmocele: an overview of diagnosis and treatment",
+      author: "Kremer TG, Ghiorzi IB, Dibi RP",
+      datePublished: '2019',
+    }),
+    citeStub({
+      name: "Post-caesarean Niche (Isthmocele) in Uterine Scar: An Update",
+      author: "Kulshrestha V, et al.",
+      datePublished: '2021',
+    }),
+    citeStub({
+      name: "Uterine Isthmocele: A Frequently Overlooked Complication of Cesarean Sections",
+      author: "Rupa R, et al.",
+      datePublished: '2021',
+    }),
+    citeStub({
+      name: "Hysteroscopic treatment of the cesarean-induced isthmocele in restoring fertility",
+      author: "Florio P, et al.",
+      datePublished: '2012',
+    }),
+    citeStub({
+      name: "Isthmocele: From Risk Factors to Management",
+      author: "Iannone P, et al.",
+      datePublished: '2019',
+    }),
+    citeStub({
+      name: "Current surgical treatment of uterine isthmocele: an update of existing literature",
+      author: "Stavridis K, et al.",
+      datePublished: '2024',
+    }),
+    citeStub({
+      name: "Treatment for Uterine Isthmocele, A Pouchlike Defect at the Site of a Cesarean Section Scar",
+      author: "Setubal A, et al.",
+      datePublished: '2017',
+    }),
+    citeStub({
+      name: "Emerging Manifestations of Cesarean Scar Defect in Reproductive-aged Women",
+      author: "Tulandi T, Cohen A",
+      datePublished: '2016',
+    }),
+    citeStub({
+      name: "Is Vaginal Repair a Good Option for Severe Cesarean Scar Defect?",
+      author: "Bardet L, et al.",
+      datePublished: '2024',
+    }),
+    citeStub({
+      name: "Isthmocele and Infertility",
+      author: "Baldini GM, et al.",
+      datePublished: '2024',
+    })
+  ],
+};
+
+const breadcrumbSchema = {
+  '@context': 'https://schema.org',
+  '@type': 'BreadcrumbList',
+  itemListElement: [
+    { '@type': 'ListItem', position: 1, name: 'Home', item: 'https://rrmacademy.org/' },
+    { '@type': 'ListItem', position: 2, name: 'Guides', item: 'https://rrmacademy.org/guides/' },
+    { '@type': 'ListItem', position: 3, name: 'Uterine Isthmocele', item: PAGE_URL },
+  ],
+};
+
+const faqSchema = {
+  '@context': 'https://schema.org',
+  '@type': 'FAQPage',
+  mainEntity: [
+    {
+      '@type': 'Question',
+      name: "What is a uterine isthmocele?",
+      acceptedAnswer: {
+        '@type': 'Answer',
+        text: "A uterine isthmocele is a pouch-like defect in the uterine wall at the site of a prior cesarean section scar. When the myometrium does not heal completely after a C-section, a niche forms. Menstrual blood pools in this space, drains slowly, and creates local inflammation that can affect bleeding patterns, pelvic pain, and fertility. The condition goes by several names in the medical literature: cesarean scar defect, uterine niche, uterine diverticulum. All describe the same anatomical finding. Studies find some degree of defect in 24 to 70% of women after C-section on standard ultrasound, and in up to 84% when saline infusion sonohysterography is used. (Kremer et al., 2019) Consult an RRM clinician or healthcare provider for guidance specific to your situation.",
+      },
+    },
+    {
+      '@type': 'Question',
+      name: "What are isthmocele symptoms?",
+      acceptedAnswer: {
+        '@type': 'Answer',
+        text: "The hallmark isthmocele symptom is postmenstrual brown spotting - old-looking blood that persists for more than two days after the main period ends. The isthmocele acts as a reservoir during menstruation; blood accumulates, and fibrotic tissue prevents the uterus from clearing it promptly. Other common symptoms include pelvic pain or intense cramping, intermenstrual spotting, pain during intercourse, and secondary infertility. Many women with smaller defects are asymptomatic. Women who chart their cycles with Creighton or FEMM often document the spotting pattern before a formal diagnosis is made. Abnormal uterine bleeding occurs in 28.9 to 82% of women with isthmocele in published studies. (Baldini et al., 2024) Consult an RRM clinician or healthcare provider for guidance specific to your situation.",
+      },
+    },
+    {
+      '@type': 'Question',
+      name: "How is an isthmocele diagnosed?",
+      acceptedAnswer: {
+        '@type': 'Answer',
+        text: "Diagnosis begins with transvaginal ultrasound (TVUS), which identifies the defect as a triangular or wedge-shaped anechoic area in the anterior myometrium at the isthmus. If TVUS is inconclusive, saline infusion sonohysterography (SIS) is the next step - it is the most accurate diagnostic method, detecting defects in 56 to 84% of women with prior C-section. MRI provides detailed anatomical characterization when surgical planning requires it. Hysteroscopy confirms the diagnosis visually. The single most important measurement is residual myometrial thickness (RMT) at the defect site, because RMT determines which surgical approach is appropriate. Women who chart their cycles may notice the postmenstrual bleeding pattern that prompts the evaluation. (Kremer et al., 2019) Consult an RRM clinician or healthcare provider for guidance specific to your situation.",
+      },
+    },
+    {
+      '@type': 'Question',
+      name: "Can an isthmocele cause infertility?",
+      acceptedAnswer: {
+        '@type': 'Answer',
+        text: "An isthmocele can contribute to or cause secondary infertility through several overlapping mechanisms. Blood and fluid pooling in the niche releases hemoglobin breakdown products that are directly embryotoxic. The retained blood degrades cervical mucus quality, impairing sperm transport. Chronic local inflammation disrupts endometrial receptivity. If the niche is positioned along the sperm's pathway, it can physically obstruct transit. The published literature places the infertility risk associated with isthmocele at 4 to 19%. Infertility in couples with an isthmocele is often multifactorial - the niche is one possible contributor, and a thorough evaluation of both partners is essential to identify any co-existing causes. Small studies and pooled case series suggest pregnancy in roughly half to two-thirds of women after surgical repair; comparative trial evidence remains limited. (Baldini et al., 2024) Both partners should be evaluated, since male factor is a co-existing contributor in a significant proportion of couples. Consult an RRM clinician or healthcare provider for guidance specific to your situation.",
+      },
+    },
+    {
+      '@type': 'Question',
+      name: "How is an isthmocele repaired?",
+      acceptedAnswer: {
+        '@type': 'Answer',
+        text: "Surgical repair is the definitive treatment for a symptomatic isthmocele, particularly when fertility is a goal. The three main approaches are hysteroscopic resection, laparoscopic excision with multilayer reconstruction, and vaginal repair. Hysteroscopic resection removes fibrotic tissue and opens drainage from the niche without incisions, but it does not restore myometrial thickness. Laparoscopic repair excises the defect fully and closes the myometrium in layers, rebuilding uterine wall thickness. Vaginal repair accomplishes similar anatomical restoration through a transvaginal approach. All three approaches provide meaningful symptom relief. The choice depends primarily on residual myometrial thickness and the couple's pregnancy plans. Hormonal medications reduce bleeding symptoms but do not repair the defect and are not restorative. (Setubal et al., 2017) Consult an RRM clinician or healthcare provider for guidance specific to your situation.",
+      },
+    },
+    {
+      '@type': 'Question',
+      name: "What is the difference between hysteroscopic and laparoscopic isthmocele repair?",
+      acceptedAnswer: {
+        '@type': 'Answer',
+        text: "The key difference is what each approach does to the uterine wall. Hysteroscopic repair works from inside the uterus: it resects the fibrotic tissue forming the niche's lower lip, improving drainage. It requires no abdominal incisions and allows 2 to 3 days recovery. However, it thins the residual myometrium further rather than rebuilding it, and carries risk of bladder injury or perforation when residual myometrial thickness is less than 2.5 to 3 mm. Laparoscopic repair works from outside: it excises the defect, removes all scar tissue, and closes the myometrium in two or more layers. Mean myometrial thickness increased from 1.43 mm to 9.62 mm after laparoscopic repair in one prospective series. Recovery is 1 to 2 weeks, and many specialists advise waiting roughly 3 to 6 months before attempting conception, based on clinical experience rather than controlled trials, with the exact interval individualized by the surgeon. (Kremer et al., 2019) For women who want future pregnancy and have thin residual myometrium, laparoscopic or vaginal repair is generally preferred. Consult an RRM clinician or healthcare provider for guidance specific to your situation.",
+      },
+    },
+    {
+      '@type': 'Question',
+      name: "Can you get pregnant with an isthmocele?",
+      acceptedAnswer: {
+        '@type': 'Answer',
+        text: "Many women with isthmocele conceive, particularly when the defect is small. A significant isthmocele, however, creates barriers to both conception and healthy pregnancy: it impairs cervical mucus quality, disrupts the uterine environment for implantation, and - left unrepaired - carries an elevated risk of cesarean scar ectopic pregnancy and uterine complications in any subsequent pregnancy. For couples experiencing difficulty conceiving, surgical repair substantially improves outcomes. Small studies and pooled case series suggest pregnancy in roughly half to two-thirds of women after repair, though high-quality comparative trials remain limited. (Baldini et al., 2024) In Bardet's vaginal repair cohort, 90% of post-operative pregnancies occurred naturally - a finding from one experienced center. (Bardet et al., 2024) Consult an RRM clinician or healthcare provider for guidance specific to your situation.",
+      },
+    },
+    {
+      '@type': 'Question',
+      name: "Can an isthmocele be prevented?",
+      acceptedAnswer: {
+        '@type': 'Answer',
+        text: "Prevention is not guaranteed, but surgical technique at the time of cesarean delivery makes a difference. Double-layer uterine closure, non-locking sutures on the first layer, and longer-lasting absorbable suture material are all associated with lower isthmocele risk. (Baldini et al., 2024) Allowing adequate time between pregnancies supports more complete scar healing before the uterus faces another pregnancy. For women who have had a C-section, a targeted conversation with the surgical team before any future cesarean - specifically about closure technique - is clinically appropriate. For women already living with symptoms after a C-section, prevention has passed; the question is evaluation and repair. Consult an RRM clinician or healthcare provider for guidance specific to your situation.",
+      },
+    },
+    {
+      '@type': 'Question',
+      name: "Is an isthmocele dangerous during a future pregnancy?",
+      acceptedAnswer: {
+        '@type': 'Answer',
+        text: "An unrepaired isthmocele with thin residual myometrium carries elevated risks in subsequent pregnancies. The niche represents a zone of myometrial weakness. Risks include cesarean scar ectopic pregnancy (embryo implanting in the niche itself), scar dehiscence, uterine rupture during labor, placenta previa, and placenta accreta spectrum disorders. Very thin residual myometrium or large defects are thought to increase the risk of scar separation or rupture, but the exact risk attributable to an isthmocele specifically is not well defined, and most data come from small reports. (Kremer et al., 2019) In the Bardet 2024 vaginal repair cohort, no uterine ruptures were reported after surgical correction. Women with a known isthmocele who become pregnant before repair will generally require close monitoring and delivery by planned cesarean. Consult an RRM clinician or healthcare provider for guidance specific to your situation.",
+      },
+    },
+    {
+      '@type': 'Question',
+      name: "What does the cycle chart show in a woman with an isthmocele?",
+      acceptedAnswer: {
+        '@type': 'Answer',
+        text: "A Creighton Model FertilityCare or FEMM cycle chart makes the postmenstrual bleeding pattern visible and documentable. Women charting their cycles will record the days and character of each observation. With an isthmocele, the chart typically shows a recurring pattern of brown or dark-colored observations for two or more days after the main flow ends - a \"tail\" that appears consistently cycle after cycle. This is clinically valuable: it provides a time-stamped record that supports the clinical suspicion before imaging is ordered, and it documents the pattern's persistence and severity over time. In restorative reproductive medicine practice, cycle charting is part of the diagnostic pathway - not an add-on, but a first step toward identifying what the calendar alone cannot reveal. Consult an RRM clinician or healthcare provider for guidance specific to your situation.  ---",
+      },
+    }
+  ],
+};
+---
+
+<BaseLayout
+  title="Uterine Isthmocele & Cesarean Scar Defect: Symptoms, Repair"
+  description="A uterine isthmocele is a pouch-like defect at the cesarean scar that causes spotting, pelvic pain, and secondary infertility. Learn about restorative surgical repair options."
+  canonicalUrl={PAGE_URL}
+  ogType="article"
+  publishDate="2026-06-06"
+  jsonLd={pageSchema}
+  speakable={['.pillar-lead', 'h1']}
+  chrome={SHELL_ENABLED ? 'shell' : 'default'}
+>
+  <script type="application/ld+json" set:html={safeJsonLd(breadcrumbSchema)} />
+  <script type="application/ld+json" set:html={safeJsonLd(faqSchema)} />
+
+  <MaybeShell enabled={SHELL_ENABLED} context="page" currentPath={Astro.url.pathname} saveTitle="Uterine Isthmocele">
+  <div class="page-wrapper" data-pagefind-body>
+    <span data-pagefind-meta="type:Guide" style="display:none"></span>
+    <span data-pagefind-meta="title:Uterine Isthmocele (Cesarean Scar Defect)" style="display:none"></span>
+    <div class="container">
+
+      <nav class="breadcrumb" aria-label="Breadcrumb">
+        <a href="/">Home</a>
+        <span aria-hidden="true"> &rsaquo; </span>
+        <a href="/guides/">Guides</a>
+        <span aria-hidden="true"> &rsaquo; </span>
+        <span>Uterine Isthmocele</span>
+      </nav>
+
+      <h1>Uterine Isthmocele (Cesarean Scar Defect): Causes, Symptoms, and Restorative Repair</h1>
+
+      <div class="author-byline">
+        <div class="author-avatar-stack">
+          <img src="/apple-touch-icon.png" alt="RRM Academy" class="author-byline__photo" width="48" height="48" />
+          <img src="/images/authors/naomi-whittaker.webp" alt="Dr. Naomi Whittaker, MD" class="author-byline__photo" width="48" height="48" />
+        </div>
+        <div class="author-byline__text has-reviewer">
+          <span class="byline-author">By <strong>RRM Academy</strong></span>
+          <span class="byline-reviewer">Reviewed by <strong><a href="/commentary/rrm-spotlight-naomi-whittaker-md/">Dr. Naomi Whittaker, MD, Board-Certified OBGYN, MIGS, NFPMC, FCI</a></strong></span>
+          <LastUpdated path={PAGE_PATH} class="byline-date" />
+        </div>
+      </div>
+
+      <details class="toc-mobile">
+        <summary>On this page</summary>
+        <ol>
+          {TOC_ITEMS.map((item) => <li><a href={item.href}>{item.label}</a></li>)}
+        </ol>
+      </details>
+
+      {SHELL_ENABLED && <SectionTocChips items={TOC_ITEMS} />}
+
+      <div class:list={['article-layout', { 'article-layout--no-toc': SHELL_ENABLED }]}>
+        {!SHELL_ENABLED && (
+          <nav class="toc" aria-label="Table of contents">
+            <p class="toc-heading">On this page</p>
+            <ol>
+              {TOC_ITEMS.map((item) => <li><a href={item.href}>{item.label}</a></li>)}
+            </ol>
+          </nav>
+        )}
+
+        <article class="prose">
+
+          <aside class="editing-notice" role="status" aria-label="Editor's note">
+            <p><strong>Editor's note:</strong> This guide is newly published and being actively reviewed. Content and citations may be refined over the next few days.</p>
+          </aside>
+
+          <aside class="tldr">
+            <h2 id="key-takeaways">Key Takeaways</h2>
+<ul>
+  <li><strong>Isthmocele is a pouch-like defect at the cesarean scar.</strong> It forms when the uterine wall does not heal flush after a C-section, leaving a niche that traps menstrual blood. (<a href="/library/isthmocele-an-overview-of-diagnosis-and-treatment-recxvsgc7hchpnw2m/">Kremer et al., 2019</a>)</li>
+  <li><strong>Postmenstrual brown spotting is the hallmark symptom.</strong> Blood pools in the niche and drains slowly after menstruation ends, creating a pattern visible on a Creighton or FEMM cycle chart. (<a href="/library/uterine-isthmocele-a-frequently-overlooked-complication-of-cesarean-sections-recoinwrfjhmyev9w/">Rupa et al., 2021</a>)</li>
+  <li><strong>Prevalence is higher than most clinicians expect.</strong> Studies find defects in 24 to 70% of women after a C-section on transvaginal ultrasound, and in 56 to 84% when saline infusion sonohysterography (SIS) is used. (<a href="/library/emerging-manifestations-of-cesarean-scar-defect-in-reproductive-aged-women-recrvbf5y6nqxayyt/">Tulandi and Cohen, 2016</a>)</li>
+  <li><strong>An isthmocele impairs fertility through inflammation, fluid accumulation, and physical obstruction.</strong> The risk of infertility in women with isthmocele ranges from 4 to 19% in the literature. (<a href="/library/isthmocele-and-infertility-recwpl3h1tdyzcxia/">Baldini et al., 2024</a>)</li>
+  <li><strong>The residual myometrial thickness drives the surgical decision.</strong> A commonly used expert-based threshold is that tissue greater than 2.5 to 3 mm typically supports hysteroscopic repair; thinner tissue generally leads surgeons toward laparoscopic excision with multilayer reconstruction or vaginal repair to restore the uterine wall. The appropriate approach is individualized with the surgical team. (<a href="/library/current-surgical-treatment-of-uterine-isthmocele-an-update-of-existing-literatur-reckgfhmdj201uq1e/">Stavridis et al., 2024</a>)</li>
+  <li><strong>Surgical repair restores natural fertility and resolves abnormal bleeding.</strong> Small studies and pooled case series suggest pregnancy in roughly half to two-thirds of women after surgical repair; high-quality comparative trials remain limited. (<a href="/library/isthmocele-and-infertility-recwpl3h1tdyzcxia/">Baldini et al., 2024</a>)</li>
+</ul>
+
+---
+          </aside>
+
+          <section id="what-is">
+            <h2>What Is a Uterine Isthmocele?</h2>
+<p>A uterine isthmocele is a defect in the myometrium at the site of a previous cesarean section scar, where incomplete healing leaves a pouch or niche in the anterior wall of the lower uterine segment. Menstrual blood pools in this pocket, drains slowly, and triggers a chain of inflammation that can affect bleeding, pelvic pain, and fertility. Also called a cesarean scar defect, uterine niche, or uterine diverticulum, the isthmocele is one of the fastest-growing recognized complications of cesarean delivery.</p>
+
+<p>The condition was first described by Morris in 1995, studying pathological changes in cesarean scar specimens. Since then, rising C-section rates worldwide have made it an increasingly common clinical finding. <a href="/library/isthmocele-from-risk-factors-to-management-reca7lowkovmdh8tr/">Iannone and colleagues (2019)</a> note that cesarean section is one of the most common surgical procedures performed globally, and its long-term scar consequences are only beginning to receive the clinical attention they deserve.</p>
+
+<p>Prevalence data vary considerably depending on how the condition is measured. <a href="/library/emerging-manifestations-of-cesarean-scar-defect-in-reproductive-aged-women-recrvbf5y6nqxayyt/">Tulandi and Cohen's systematic review (2016)</a> of 32 trials found defects on ultrasound in 24-88% of women with prior cesarean deliveries. A more recent surgical literature review by <a href="/library/current-surgical-treatment-of-uterine-isthmocele-an-update-of-existing-literatur-reckgfhmdj201uq1e/">Stavridis and colleagues (2024)</a> places prevalence at approximately 60% of women, depending on their cesarean history. Saline infusion sonohysterography (SIS) consistently detects more defects than standard transvaginal ultrasound - 56-84% versus 24-70% - because the saline fills and highlights the niche. Many of these defects are asymptomatic; the clinical burden falls on women whose niche is large enough, or positioned in a way, that traps blood and disrupts the uterine environment.</p>
+
+<p>The terms used interchangeably in the literature - isthmocele, cesarean scar defect, uterine niche, uterine diverticulum - all describe the same anatomical finding: a myometrial discontinuity at the hysterotomy site. This page uses "isthmocele" as the primary term, as it most precisely describes the anatomical location of the defect.</p>
+          </section>
+
+          <section id="symptoms">
+            <h2>Isthmocele Symptoms and Warning Signs</h2>
+<p>Isthmocele symptoms follow a recognizable pattern: postmenstrual brown spotting lasting more than two days after the main bleed ends, often accompanied by pelvic cramping, and in some women, secondary infertility or pain with intercourse. These symptoms reflect blood pooling in the niche, draining slowly through the cervix, and creating chronic local inflammation.</p>
+
+<p>The most specific isthmocele symptom is postmenstrual brown spotting. The isthmocele functions as a reservoir during menstruation: blood accumulates in the defect, fibrotic tissue reduces local uterine contractility, and menstrual drainage slows. <a href="/library/isthmocele-an-overview-of-diagnosis-and-treatment-recxvsgc7hchpnw2m/">Kremer and colleagues (2019)</a> report that abnormal uterine bleeding - most often this postmenstrual pattern - appears in 28.9-82% of women with isthmocele. <a href="/library/isthmocele-and-infertility-recwpl3h1tdyzcxia/">Baldini and colleagues (2024)</a> found that women with isthmocele had a 3.47 times higher relative risk of abnormal uterine bleeding compared to those without the defect.</p>
+
+<p>The full symptom picture includes:</p>
+
+<ul>
+  <li><strong>Postmenstrual brown spotting:</strong> The hallmark. Spotting persists from 2 to 12 days after menses. Women often describe it as a "tail" to their period that looks old or brown rather than red.</li>
+  <li><strong>Intermenstrual bleeding or spotting:</strong> Blood pooled in the niche can escape at other points in the cycle, not only post-menstrually.</li>
+  <li><strong>Chronic pelvic pain and dysmenorrhea:</strong> The uterus attempts to expel blood from the niche, generating abnormal contractions. Pain severity correlates with defect size. (<a href="/library/isthmocele-from-risk-factors-to-management-reca7lowkovmdh8tr/">Iannone et al., 2019</a>)</li>
+  <li><strong>Dyspareunia:</strong> Pain with intercourse, related to pressure on the scar and surrounding inflamed tissue. (<a href="/library/isthmocele-and-infertility-recwpl3h1tdyzcxia/">Baldini et al., 2024</a>)</li>
+  <li><strong>Secondary infertility:</strong> Difficulty conceiving after a previous pregnancy, with the isthmocele as a contributing or primary cause. The mechanism is described in the <a href="#fertility">Fertility section</a> below.</li>
+</ul>
+
+<p>Many women with isthmocele are asymptomatic, particularly when the defect is small. A significant proportion discover the condition only when investigating infertility or abnormal bleeding. This is where cycle charting becomes clinically valuable: a Creighton or FEMM chart that documents the character and timing of bleeding provides an objective record of the postmenstrual tail that an office visit may miss.</p>
+          </section>
+
+          <section id="causes">
+            <h2>Causes and Risk Factors</h2>
+<p>An isthmocele forms when the uterine wall at the hysterotomy site heals incompletely, leaving a pocket rather than a flush repair. Four broad mechanisms have been proposed in the literature, and multiple factors often converge in a single patient. (<a href="/library/isthmocele-an-overview-of-diagnosis-and-treatment-recxvsgc7hchpnw2m/">Kremer et al., 2019</a>)</p>
+
+<p><strong>Surgical closure technique.</strong> The method used to close the uterine incision matters. Single-layer continuous locking sutures appear to reduce blood flow at the isthmus, creating an area of relative ischemia during healing. Double-layer closure is generally favored for reducing defect risk, though some large trials have found no statistically significant difference - likely because technique variability within each approach is considerable. (<a href="/library/isthmocele-and-infertility-recwpl3h1tdyzcxia/">Baldini et al., 2024</a>) What the literature does consistently support is that locked, continuous single-layer sutures are associated with larger defects on follow-up imaging.</p>
+
+<p><strong>Labor before cesarean and cervical dilation.</strong> A C-section performed after active labor - particularly with cervical dilation greater than 5 cm - carries a higher risk of isthmocele. The incision site descends lower into the cervical tissue, which heals differently than the uterine myometrium. <a href="/library/isthmocele-and-infertility-recwpl3h1tdyzcxia/">Baldini and colleagues (2024)</a> found that 40% of patients with initial cervical dilation developed an isthmocele, compared with 20% in those with advanced dilation at the time of surgery, reflecting the site-specificity of the defect. (<a href="/library/isthmocele-from-risk-factors-to-management-reca7lowkovmdh8tr/">Iannone et al., 2019</a>)</p>
+
+<p><strong>Adhesion formation and retroflexed uterus.</strong> Early adhesions between the uterine scar and the anterior abdominal wall pull the wound edges apart as healing proceeds, disrupting myometrial closure. A retroflexed uterus amplifies these mechanical forces and is one of the few risk factors proven across multiple studies. (<a href="/library/isthmocele-an-overview-of-diagnosis-and-treatment-recxvsgc7hchpnw2m/">Kremer et al., 2019</a>)</p>
+
+<p><strong>Multiple or closely spaced C-sections.</strong> Multiple cesarean deliveries are the strongest confirmed risk factor. Each additional scar compounds the disruption to the lower uterine segment. The scar also thins progressively with subsequent cesareans, and a shorter interval between pregnancies reduces the time available for full myometrial repair. (<a href="/library/isthmocele-from-risk-factors-to-management-reca7lowkovmdh8tr/">Iannone et al., 2019</a>)</p>
+
+<p><strong>Individual healing factors.</strong> Poor tissue perfusion, infection, diabetes, smoking, and elevated BMI all compromise wound healing at the cellular level and increase isthmocele risk. Connective tissue disorders such as Ehlers-Danlos syndrome or Marfan syndrome have also been associated with defect formation. (<a href="/library/isthmocele-and-infertility-recwpl3h1tdyzcxia/">Baldini et al., 2024</a>)</p>
+          </section>
+
+          <section id="diagnosis">
+            <h2>How an Isthmocele Is Diagnosed</h2>
+<p>Diagnosis begins with clinical suspicion - a woman with a prior C-section presenting with postmenstrual spotting, pelvic pain, or secondary infertility - and is confirmed by imaging that visualizes the defect and measures the residual myometrial thickness (RMT) at the scar site. RMT is the single most clinically important measurement, because it determines which surgical approach is appropriate.</p>
+
+<p><strong>Transvaginal ultrasound (TVUS) is the first-line tool.</strong> It identifies the defect as a triangular anechoic area or wedge-shaped indentation in the anterior myometrium at the isthmus. TVUS is most informative when performed in the early proliferative phase, when residual blood in the niche is most visible. (<a href="/library/isthmocele-an-overview-of-diagnosis-and-treatment-recxvsgc7hchpnw2m/">Kremer et al., 2019</a>) Detection rates by TVUS range from 24-70%.</p>
+
+<p><strong>Saline infusion sonohysterography (SIS) is the most accurate diagnostic method.</strong> Saline fills the uterine cavity and niche, providing contrast that reveals defects invisible on standard TVUS. SIS detection rates reach 56-84%, and the defect typically appears larger and deeper on SIS because intrauterine pressure dilates the niche. Both the Kremer (2019) and Setubal (2017) groups recommend SIS when an isthmocele is suspected but not seen on TVUS, and for surgical planning. (<a href="/library/treatment-for-uterine-isthmocele-a-pouchlike-defect-at-the-site-of-a-cesarean-se-recktxysulttsseqe/">Setubal et al., 2017</a>)</p>
+
+<p><strong>MRI.</strong> Magnetic resonance imaging provides the most detailed anatomical characterization, measuring defect dimensions in three planes, visualizing retained blood products (as hyperintense signal on T1), and ruling out associated conditions such as adenomyosis or endometriosis. MRI is particularly useful when surgical planning for large or complex defects. (<a href="/library/uterine-isthmocele-a-frequently-overlooked-complication-of-cesarean-sections-recoinwrfjhmyev9w/">Rupa et al., 2021</a>)</p>
+
+<p><strong>Hysteroscopy.</strong> Direct visualization of the niche as a bulging cavity on the anterior cervical canal confirms the diagnosis and allows immediate surgical treatment if the RMT is adequate. Hysteroscopy cannot measure RMT, so it is typically combined with TVUS or SIS for full assessment. (<a href="/library/isthmocele-from-risk-factors-to-management-reca7lowkovmdh8tr/">Iannone et al., 2019</a>)</p>
+
+<p><strong>The charting clue.</strong> In restorative reproductive medicine practice, cycle charting - using Creighton Model FertilityCare or FEMM - often raises the clinical question before formal imaging is ordered. A woman charting her cycle will document the tail-end brown bleeding as a discrete, recurring observation. That pattern, in a woman with a prior C-section, is a signal to investigate. Charting turns an invisible symptom into a documented clinical finding.</p>
+
+<p><strong>Residual myometrial thickness cutoffs.</strong> The literature uses two clinically relevant cutoffs. For hysteroscopic repair: most sources set the minimum safe RMT at greater than 2.5-3 mm. (<a href="/library/isthmocele-and-infertility-recwpl3h1tdyzcxia/">Baldini et al., 2024</a>; <a href="/library/current-surgical-treatment-of-uterine-isthmocele-an-update-of-existing-literatur-reckgfhmdj201uq1e/">Stavridis et al., 2024</a>) Below this threshold, hysteroscopy carries meaningful risk of bladder injury or uterine perforation, and laparoscopic or vaginal repair is preferred. Note: Veritas Fertility's patient-facing material cites a 5 mm threshold for the hysteroscopic approach. The peer-reviewed surgical literature consistently uses 2.5-3 mm as the operative cutoff; the 5 mm figure may reflect an added margin of safety at some centers but is not the cutoff cited in the systematic reviews included in our library. Couples should confirm their surgeon's specific criteria at consultation.</p>
+
+            <div class="pathway-grid">
+              {isthmoceleData.diagnostic_methods.map((p) => (
+                <article class="pathway-card" data-required={p.is_primary}>
+                  <header class="pathway-card__header">
+                    <span class="pathway-card__step">Step {p.step}</span>
+                    <h3>{p.label}</h3>
+                  </header>
+                  <p class="pathway-card__detail" set:html={p.detail_html} />
+                  <p class="pathway-card__required">{p.is_primary ? 'Primary diagnostic method' : 'Complementary, not always required'}</p>
+                </article>
+              ))}
+            </div>
+          </section>
+
+          <section id="fertility">
+            <h2>How an Isthmocele Affects Fertility</h2>
+<p>An isthmocele creates multiple overlapping barriers to conception. The defect is a structural problem with functional consequences: it traps fluid, generates inflammation, impairs sperm transport, and degrades the uterine environment for implantation. For couples experiencing secondary infertility after a C-section, the isthmocele deserves systematic evaluation. It is a diagnosable cause, not unexplained infertility.</p>
+
+<p><strong>Fluid accumulation and embryotoxicity.</strong> Blood and menstrual debris pool in the niche, and hemoglobin degradation products released into the uterine cavity are directly toxic to embryos. A study of 141 women with large isthmocele (RMT less than 3 mm) found that endocavitary fluid accumulation - hydrometra - significantly impairs implantation. (<a href="/library/isthmocele-and-infertility-recwpl3h1tdyzcxia/">Baldini et al., 2024</a>) A prior analysis identified a 3.5 mm fluid cutoff beyond which embryo implantation was absent entirely.</p>
+
+<p><strong>Sperm transport disruption.</strong> When an isthmocele is positioned along the natural sperm pathway through the cervical canal, it can obstruct transit. The retained blood also degrades cervical mucus quality, reducing sperm motility and survival. (<a href="/library/hysteroscopic-treatment-of-the-cesarean-induced-isthmocele-in-restoring-infertil-reclq9koohvyurjyu/">Florio et al., 2012</a>)</p>
+
+<p><strong>Chronic uterine inflammation.</strong> The niche sustains a state of low-grade chronic inflammation, comparable in some respects to the inflammatory microenvironment of endometritis or hydrosalpinx. This inflammation disrupts endometrial receptivity, alters the uterine microbiome, and further reduces implantation probability. (<a href="/library/isthmocele-from-risk-factors-to-management-reca7lowkovmdh8tr/">Iannone et al., 2019</a>)</p>
+
+<p><strong>The infertility risk quantified.</strong> <a href="/library/isthmocele-and-infertility-recwpl3h1tdyzcxia/">Baldini and colleagues (2024)</a> report that the risk of infertility in women with isthmocele ranges from 4 to 19% in the published literature. A large meta-analysis found a significantly lower live birth rate in IVF cycles among women with a cesarean scar defect versus those without (18.99% vs. 31.51%), demonstrating that the unrepaired defect impairs outcomes even with assisted reproduction. This is critical context: bypassing the defect does not fix it. It is worth noting that infertility in couples with a known isthmocele is often multifactorial. The niche is one possible contributor, not necessarily the sole explanation, and a full evaluation of both partners is essential.</p>
+
+<p><strong>Obstetric safety risks in subsequent pregnancies.</strong> An isthmocele raises the risk of cesarean scar ectopic pregnancy - implantation within the niche itself - which carries risk of uterine rupture as the gestational sac expands. Placenta previa, placenta accreta, and scar dehiscence during labor are also elevated risks in women with significant defects. (<a href="/library/isthmocele-an-overview-of-diagnosis-and-treatment-recxvsgc7hchpnw2m/">Kremer et al., 2019</a>) Very thin residual myometrium or large defects are thought to increase the risk of scar separation or rupture in a subsequent pregnancy, but the exact risk attributable to an isthmocele specifically is not well defined, and most data come from small reports. The couple's surgical team will assess this risk with RMT measurement in the non-pregnant and pregnant uterus.</p>
+
+<p>Male factor infertility is a co-existing diagnosis in a meaningful proportion of couples presenting with secondary infertility - solely responsible in approximately 20% and contributory in another 30 to 40%. An RRM evaluation addresses both partners from the first appointment. The isthmocele does not diminish the importance of a full male factor workup.</p>
+
+---
+          </section>
+
+          <section id="treatment">
+            <h2>Treatment Options</h2>
+<p>Treatment for isthmocele depends on three factors: symptom severity, residual myometrial thickness, and whether the couple plans a future pregnancy. There is no single correct answer for all patients. The goal in restorative care is to repair the defect, restore a normal uterine architecture, and create the conditions for natural fertility and a healthy pregnancy - not simply to manage symptoms while leaving the underlying problem intact.</p>
+
+<p><strong>Expectant management.</strong> For asymptomatic women with small defects (RMT greater than 3 mm) who are not planning pregnancy, observation without intervention is a reasonable option. The defect does not reliably resolve on its own, but it also may not progress significantly in the short term. Women choosing this path benefit from cycle charting to monitor for symptom development.</p>
+
+<p><strong>Hormonal (suppressive) medications.</strong> Combined oral contraceptive pills reduce endometrial thickness and regulate the menstrual cycle, which can shorten the duration of postmenstrual spotting. Some studies report reduction in bleeding duration from approximately 10 days to 5 days with oral contraceptives. (<a href="/library/treatment-for-uterine-isthmocele-a-pouchlike-defect-at-the-site-of-a-cesarean-se-recktxysulttsseqe/">Setubal et al., 2017</a>) Hormonal management does not repair the defect. It does not restore myometrial thickness. It does not address the fertility consequences. It is symptom management, not restorative treatment - and it is not compatible with conception. For women who want future pregnancy, surgery is the appropriate path.</p>
+
+<p><strong>Hysteroscopic resection (isthmoplasty).</strong> The hysteroscope is passed through the cervix into the uterine cavity. The surgeon resects the fibrotic tissue forming the niche's lower lip, allowing menstrual blood to drain freely into the cervical canal rather than pooling. This flattens the niche and eliminates the reservoir effect. Hysteroscopy is minimally invasive, requires no incisions, and typically allows 2 to 3 days of recovery. A commonly used practical threshold, drawn from expert surgical practice and reflected in recent reviews, is that hysteroscopic resection is generally considered when RMT is greater than 2.5 to 3 mm. Below this threshold, the risk of bladder injury or perforation rises substantially, and most surgeons choose a different approach. (<a href="/library/current-surgical-treatment-of-uterine-isthmocele-an-update-of-existing-literatur-reckgfhmdj201uq1e/">Stavridis et al., 2024</a>) This threshold reflects expert-based practice, not a formally validated standard; the appropriate cutoff for any individual patient is determined with the surgical team. Hysteroscopy addresses symptoms effectively but does not reconstruct myometrial thickness; it thins the residual tissue further. Women who want future pregnancy should discuss this carefully with their surgeon, particularly if their RMT is borderline.</p>
+
+<p><strong>Laparoscopic excision with multilayer reconstruction.</strong> Through laparoscopic ports, the surgeon mobilizes the bladder, excises the defect including all fibrotic scar tissue, and closes the myometrium in two or more layers. This approach restores actual myometrial thickness. In a series of 38 women treated laparoscopically, mean myometrial thickness increased from 1.43 mm to 9.62 mm at three-month follow-up, and 93% of patients were symptom-free; among those with infertility, 44% achieved pregnancy. (<a href="/library/isthmocele-an-overview-of-diagnosis-and-treatment-recxvsgc7hchpnw2m/">Kremer et al., 2019</a>, citing Donnez et al.) Laparoscopy is commonly chosen when RMT is less than 2.5 to 3 mm and when future pregnancy is desired, because it rebuilds rather than thins the uterine wall. This is expert-based surgical judgment, not a fixed algorithmic rule, and the decision is individualized with the surgical team. Many specialists advise waiting roughly 3 to 6 months before attempting conception, based on clinical experience rather than controlled trials, to allow adequate myometrial healing; the specific interval is individualized by the surgeon. Recovery is typically 1 to 2 weeks.</p>
+
+<p><strong>Vaginal repair.</strong> A transvaginal approach to the uterine isthmus allows direct excision of the defect and two-layer myometrial closure without abdominal incisions. A 2024 retrospective cohort study by <a href="/library/is-vaginal-repair-a-good-option-for-severe-cesarean-scar-defect-comparison-of-wo-rec2avqpjvovk8zm6/">Bardet and colleagues</a> found that vaginal repair was effective even in women with severe defects (zero residual myometrium), increasing myometrial thickness from 0 mm to a mean of 4.4 mm post-operatively. Pregnancy rates were 84.6% in the moderate group and 68.2% in the severe group, with 90% of pregnancies occurring naturally. Vaginal repair has a recovery profile similar to laparoscopy and is an established alternative at experienced centers. (<a href="/library/current-surgical-treatment-of-uterine-isthmocele-an-update-of-existing-literatur-reckgfhmdj201uq1e/">Stavridis et al., 2024</a>)</p>
+
+<p><strong>Hysterectomy.</strong> Hysterectomy is not a routine or first-line treatment for isthmocele. It is uncommon in this setting and is considered by a small minority of women who have completed childbearing, have persistent symptoms despite other treatments, and in some cases have co-existing uterine conditions such as adenomyosis or fibroids that make uterus-preserving surgery less suitable. The decision is individualized and made with the surgical team after a thorough discussion of risks, benefits, and alternatives. (<a href="/library/current-surgical-treatment-of-uterine-isthmocele-an-update-of-existing-literatur-reckgfhmdj201uq1e/">Stavridis et al., 2024</a>)</p>
+
+<p>The <a href="#restorative-approach">Restorative Approach section</a> below explains why RRM clinicians emphasize surgical repair rather than bypass strategies.</p>
+
+---
+
+            <div class="condition-grid">
+              {isthmoceleData.treatment_options.map((t) => (
+                <article class="condition-card" data-key={t.key}>
+                  <header class="condition-card__header">
+                    <h3>{t.name}</h3>
+                  </header>
+                  <dl class="condition-card__body">
+                    <dt>Best candidate</dt>
+                    <dd>{t.candidate}</dd>
+                    <dt>What it does</dt>
+                    <dd>{t.what_it_does}</dd>
+                    <dt>Recovery</dt>
+                    <dd>{t.recovery}</dd>
+                    <dt>Fertility outcome</dt>
+                    <dd set:html={t.fertility_outcome_html} />
+                    <dt>Limitation</dt>
+                    <dd>{t.limitation}</dd>
+                  </dl>
+                </article>
+              ))}
+            </div>
+          </section>
+
+          <section id="restorative-approach">
+            <h2>The Restorative Approach</h2>
+<p>The restorative view of isthmocele begins with a simple clinical question: why is this happening, and what would it take to actually fix it? The defect is structural. It has a cause - a prior cesarean with incomplete healing. It has a mechanism - pooling blood, local inflammation, disrupted sperm transport, impaired implantation. And it has a surgical solution: excision of the defect and reconstruction of the uterine wall.</p>
+
+<p>That is what restorative reproductive medicine does. Not manage the symptom while leaving the anatomy broken. Not bypass the uterus and call the bypass a treatment. Repair the structure so that the body can do what it is designed to do.</p>
+
+<p>The contrast with a non-restorative approach is important to name clearly. An unrepaired isthmocele creates a hostile uterine environment. Data from <a href="/library/isthmocele-and-infertility-recwpl3h1tdyzcxia/">Baldini and colleagues (2024)</a> show that women with a cesarean scar defect undergoing IVF have significantly lower live birth rates than women without the defect (18.99% vs. 31.51%), and that intracavitary fluid accumulation from the niche during hormonal stimulation further degrades outcomes. The unrepaired defect also carries ongoing risk: scar ectopic pregnancy, placental complications, and possible uterine rupture in a subsequent pregnancy. Bypassing the uterus does not eliminate those risks. It defers them.</p>
+
+<p>In an RRM framework, the clinical principle is clear: repair the defect before attempting conception, whether naturally or otherwise. This does not mean every isthmocele requires surgery - small, asymptomatic defects in women not planning pregnancy may not need intervention. But for couples pursuing fertility, surgical repair restores the uterine environment that implantation and pregnancy require.</p>
+
+<p>NaProTechnology-trained clinicians integrate cycle charting into the diagnostic pathway from the beginning. A Creighton or FEMM chart that documents tail-end brown bleeding becomes a clinical record - objective, time-stamped, and reproducible - that triggers appropriate imaging. The chart catches what a one-time office visit misses. This is body literacy put to clinical use.</p>
+
+<p>Once the defect is confirmed and repaired, RRM clinicians evaluate the couple as a unit. Male factor evaluation proceeds alongside uterine evaluation. The isthmocele is one cause of secondary infertility, not the only one to consider. A restorative workup asks what else might be contributing: luteal phase support, hormonal adequacy, tubal status, sperm parameters. The goal is natural conception in a fully restored reproductive environment, not management of a broken one.</p>
+          </section>
+
+          <section id="outcomes">
+            <h2>Outcomes After Repair</h2>
+<p>The fertility and symptom outcomes after isthmocele repair are meaningful, though heterogeneity across studies reflects real variation in defect severity, technique, patient selection, and follow-up duration. These figures are reported honestly - not as guarantees, but as the evidence available from published literature.</p>
+
+<p><strong>Symptom resolution.</strong> Across surgical approaches, postmenstrual bleeding improves substantially. <a href="/library/emerging-manifestations-of-cesarean-scar-defect-in-reproductive-aged-women-recrvbf5y6nqxayyt/">Tulandi and Cohen's systematic review (2016)</a> found hysteroscopic repair improved bleeding in 59 to 100% of cases, vaginal repair in 89 to 93.5%, and laparoscopic repair in 86%. <a href="/library/isthmocele-from-risk-factors-to-management-reca7lowkovmdh8tr/">Iannone and colleagues (2019)</a> report an overall hysteroscopic success rate of 85.5% (range 59.6 to 100%) for symptom resolution. Pain improvement after hysteroscopic resection was reported as 97% in one series. (<a href="/library/treatment-for-uterine-isthmocele-a-pouchlike-defect-at-the-site-of-a-cesarean-se-recktxysulttsseqe/">Setubal et al., 2017</a>)</p>
+
+<p><strong>Fertility restoration.</strong> A systematic review of 234 patients summarized by <a href="/library/isthmocele-and-infertility-recwpl3h1tdyzcxia/">Baldini and colleagues (2024)</a> found that 65.4% achieved pregnancy after surgical repair - a pooled figure from small, mostly uncontrolled case series. Among documented pregnancies in that review, 87.1% resulted in live births. A separate retrospective study of 35 patients found a 56.3% pregnancy rate within 12 months of repair. (<a href="/library/isthmocele-and-infertility-recwpl3h1tdyzcxia/">Baldini et al., 2024</a>) Taken together, small studies suggest pregnancy in roughly half to two-thirds of women after surgical repair. High-quality comparative fertility trials remain limited, and these figures should be interpreted with that limitation in mind.</p>
+
+<p><strong>Subsequent pregnancy rates by approach.</strong> Laparoscopic repair in Donnez's 38-patient series: 44% pregnancy rate among those with infertility, all with healthy full-term deliveries. (<a href="/library/isthmocele-an-overview-of-diagnosis-and-treatment-recxvsgc7hchpnw2m/">Kremer et al., 2019</a>) Hysteroscopic repair: pregnancy rates from 77.8 to 100% across studies in the Tulandi systematic review. (<a href="/library/emerging-manifestations-of-cesarean-scar-defect-in-reproductive-aged-women-recrvbf5y6nqxayyt/">Tulandi and Cohen, 2016</a>) Vaginal repair in the Bardet 2024 cohort: 84.6% (moderate defect group) and 68.2% (severe defect group), with 90% of pregnancies occurring naturally and no uterine ruptures - findings from one experienced center that may not generalize broadly. (<a href="/library/is-vaginal-repair-a-good-option-for-severe-cesarean-scar-defect-comparison-of-wo-rec2avqpjvovk8zm6/">Bardet et al., 2024</a>)</p>
+
+<p><strong>Myometrial thickness restoration.</strong> Laparoscopic repair consistently demonstrates the most robust anatomical restoration. In one large prospective cohort of 101 women treated laparoscopically, the residual myometrial thickness increased significantly at 6-month follow-up. Vaginal repair also demonstrates meaningful thickness gains: in the Bardet cohort, mean RMT increased from 2.4 mm to 6.6 mm (moderate group) and from 0 mm to 4.4 mm (severe group). (<a href="/library/is-vaginal-repair-a-good-option-for-severe-cesarean-scar-defect-comparison-of-wo-rec2avqpjvovk8zm6/">Bardet et al., 2024</a>)</p>
+
+<p>The honest caveat: most studies in this literature are retrospective, with relatively small cohorts and variable definitions of "isthmocele" and "success." Randomized controlled trial evidence is limited. The data support surgical repair as beneficial, but the optimal approach for each patient depends on defect characteristics, RMT, and the surgical expertise available at the treating center.</p>
+
+---
+          </section>
+
+          <section id="prevention">
+            <h2>Prevention: Why Closure Technique Matters</h2>
+<p>Not all isthmoceles can be prevented - some reflect individual healing factors that no surgeon can control. But surgical technique at the time of cesarean delivery is a modifiable risk factor, and the evidence supporting better closure practices is sufficient to act on.</p>
+
+<p><strong>Double-layer closure.</strong> A double-layer uterine closure - with the first layer incorporating the decidua and the second layer overlapping the first - is commonly favored in the literature for reducing defect risk. A systematic review by Genovese and colleagues, cited by <a href="/library/isthmocele-and-infertility-recwpl3h1tdyzcxia/">Baldini and colleagues (2024)</a>, analyzed six studies and concluded that double-layer continuous suture is a suitable technique for preventing cesarean scar defects. The benefit is plausible: two layers distribute tension, reduce ischemia, and provide more complete myometrial apposition than single-layer closure.</p>
+
+<p><strong>Suture type.</strong> Long-lasting absorbable sutures (poliglecaprone, polydioxanone) appear to reduce isthmocele risk compared to rapidly absorbable sutures. The slower absorption supports wound healing during the critical early weeks. (<a href="/library/isthmocele-and-infertility-recwpl3h1tdyzcxia/">Baldini et al., 2024</a>)</p>
+
+<p><strong>Avoiding locked continuous sutures on the first layer.</strong> Locking sutures on the inner myometrial layer are associated with larger defects on follow-up imaging, likely because they strangulate local tissue perfusion. Interrupted or non-locking sutures for the first layer are preferred. (<a href="/library/isthmocele-and-infertility-recwpl3h1tdyzcxia/">Baldini et al., 2024</a>)</p>
+
+<p><strong>Interval between pregnancies.</strong> A shorter interval between a C-section and the next pregnancy reduces the time available for complete scar healing. Major health organizations recommend roughly 18 to 24 months between pregnancies after a cesarean for general recovery reasons, though this guidance addresses overall maternal and fetal health - not isthmocele prevention specifically. There is observational evidence that the cesarean scar tends to be thicker when more than about two years have passed since the last cesarean. (<a href="/library/isthmocele-and-infertility-recwpl3h1tdyzcxia/">Baldini et al., 2024</a>) That biological rationale supports allowing adequate healing time, but no specific interval has been proven to prevent isthmocele formation.</p>
+
+<p>For women planning a future cesarean delivery, it is reasonable to discuss closure technique with the surgical team in advance. Asking your surgeon what suture approach they use, and whether double-layer closure is their standard practice, is an appropriate and clinically grounded question.</p>
+
+---
+          </section>
+
+          <section id="when-to-seek">
+            <h2>When to Seek Evaluation</h2>
+<p>Any woman with a prior cesarean delivery who notices brown spotting lasting more than two days after her period, pelvic pain that does not fit another explanation, or difficulty conceiving deserves evaluation that includes isthmocele on the differential. This is true even if prior ultrasounds were read as normal - standard ultrasound detection rates are 24-70%, meaning many defects are missed without SIS.</p>
+
+<p>Seek evaluation if you have any of the following:</p>
+<ul>
+  <li>Brown spotting or old-looking blood for more than 2 days after the main period ends</li>
+  <li>Pelvic pain or intense cramping that has developed or worsened since a cesarean delivery</li>
+  <li>Secondary infertility (difficulty conceiving after a previous birth) with a history of C-section</li>
+  <li>Pain with intercourse that is new or worsening</li>
+  <li>A prior imaging report that noted a "niche," "defect," or "diverticulum" at the cesarean scar</li>
+  <li>A history of recurrent pregnancy loss after C-section</li>
+</ul>
+
+<p><strong>Preparing for a consultation.</strong> The more information you bring, the more useful the appointment. Gather your operative report from your cesarean delivery - it will describe the closure technique used, how many layers were sutured, and whether complications occurred. If you chart your cycles with Creighton, FEMM, or another fertility awareness method, bring your charts: the postmenstrual bleeding pattern is visible there. If you have had prior imaging of your pelvis, bring the reports and any available images. At the appointment, ask specifically: "Has a saline infusion sonohysterogram been considered? What is the residual myometrial thickness? Based on my anatomy, which surgical approach would you recommend, and what outcomes has your team seen with that approach?" These are not difficult questions. They are the right ones.</p>
+          </section>
+
+
+          <section id="faq">
+            <h2>Frequently Asked Questions</h2>
+
+            <div class="faq-accordion" data-pagefind-ignore>
+              <details>
+                <summary>What is a uterine isthmocele?</summary>
+                <div class="faq-answer">
+                  <p>A uterine isthmocele is a pouch-like defect in the uterine wall at the site of a prior cesarean section scar. When the myometrium does not heal completely after a C-section, a niche forms. Menstrual blood pools in this space, drains slowly, and creates local inflammation that can affect bleeding patterns, pelvic pain, and fertility. The condition goes by several names in the medical literature: cesarean scar defect, uterine niche, uterine diverticulum. All describe the same anatomical finding. Studies find some degree of defect in 24 to 70% of women after C-section on standard ultrasound, and in up to 84% when saline infusion sonohysterography is used. (<a href="/library/isthmocele-an-overview-of-diagnosis-and-treatment-recxvsgc7hchpnw2m/">Kremer et al., 2019</a>) Consult an RRM clinician or healthcare provider for guidance specific to your situation.</p>
+                </div>
+              </details>
+              <details>
+                <summary>What are isthmocele symptoms?</summary>
+                <div class="faq-answer">
+                  <p>The hallmark isthmocele symptom is postmenstrual brown spotting - old-looking blood that persists for more than two days after the main period ends. The isthmocele acts as a reservoir during menstruation; blood accumulates, and fibrotic tissue prevents the uterus from clearing it promptly. Other common symptoms include pelvic pain or intense cramping, intermenstrual spotting, pain during intercourse, and secondary infertility. Many women with smaller defects are asymptomatic. Women who chart their cycles with Creighton or FEMM often document the spotting pattern before a formal diagnosis is made. Abnormal uterine bleeding occurs in 28.9 to 82% of women with isthmocele in published studies. (<a href="/library/isthmocele-and-infertility-recwpl3h1tdyzcxia/">Baldini et al., 2024</a>) Consult an RRM clinician or healthcare provider for guidance specific to your situation.</p>
+                </div>
+              </details>
+              <details>
+                <summary>How is an isthmocele diagnosed?</summary>
+                <div class="faq-answer">
+                  <p>Diagnosis begins with transvaginal ultrasound (TVUS), which identifies the defect as a triangular or wedge-shaped anechoic area in the anterior myometrium at the isthmus. If TVUS is inconclusive, saline infusion sonohysterography (SIS) is the next step - it is the most accurate diagnostic method, detecting defects in 56 to 84% of women with prior C-section. MRI provides detailed anatomical characterization when surgical planning requires it. Hysteroscopy confirms the diagnosis visually. The single most important measurement is residual myometrial thickness (RMT) at the defect site, because RMT determines which surgical approach is appropriate. Women who chart their cycles may notice the postmenstrual bleeding pattern that prompts the evaluation. (<a href="/library/isthmocele-an-overview-of-diagnosis-and-treatment-recxvsgc7hchpnw2m/">Kremer et al., 2019</a>) Consult an RRM clinician or healthcare provider for guidance specific to your situation.</p>
+                </div>
+              </details>
+              <details>
+                <summary>Can an isthmocele cause infertility?</summary>
+                <div class="faq-answer">
+                  <p>An isthmocele can contribute to or cause secondary infertility through several overlapping mechanisms. Blood and fluid pooling in the niche releases hemoglobin breakdown products that are directly embryotoxic. The retained blood degrades cervical mucus quality, impairing sperm transport. Chronic local inflammation disrupts endometrial receptivity. If the niche is positioned along the sperm's pathway, it can physically obstruct transit. The published literature places the infertility risk associated with isthmocele at 4 to 19%. Infertility in couples with an isthmocele is often multifactorial - the niche is one possible contributor, and a thorough evaluation of both partners is essential to identify any co-existing causes. Small studies and pooled case series suggest pregnancy in roughly half to two-thirds of women after surgical repair; comparative trial evidence remains limited. (<a href="/library/isthmocele-and-infertility-recwpl3h1tdyzcxia/">Baldini et al., 2024</a>) Both partners should be evaluated, since male factor is a co-existing contributor in a significant proportion of couples. Consult an RRM clinician or healthcare provider for guidance specific to your situation.</p>
+                </div>
+              </details>
+              <details>
+                <summary>How is an isthmocele repaired?</summary>
+                <div class="faq-answer">
+                  <p>Surgical repair is the definitive treatment for a symptomatic isthmocele, particularly when fertility is a goal. The three main approaches are hysteroscopic resection, laparoscopic excision with multilayer reconstruction, and vaginal repair. Hysteroscopic resection removes fibrotic tissue and opens drainage from the niche without incisions, but it does not restore myometrial thickness. Laparoscopic repair excises the defect fully and closes the myometrium in layers, rebuilding uterine wall thickness. Vaginal repair accomplishes similar anatomical restoration through a transvaginal approach. All three approaches provide meaningful symptom relief. The choice depends primarily on residual myometrial thickness and the couple's pregnancy plans. Hormonal medications reduce bleeding symptoms but do not repair the defect and are not restorative. (<a href="/library/treatment-for-uterine-isthmocele-a-pouchlike-defect-at-the-site-of-a-cesarean-se-recktxysulttsseqe/">Setubal et al., 2017</a>) Consult an RRM clinician or healthcare provider for guidance specific to your situation.</p>
+                </div>
+              </details>
+              <details>
+                <summary>What is the difference between hysteroscopic and laparoscopic isthmocele repair?</summary>
+                <div class="faq-answer">
+                  <p>The key difference is what each approach does to the uterine wall. Hysteroscopic repair works from inside the uterus: it resects the fibrotic tissue forming the niche's lower lip, improving drainage. It requires no abdominal incisions and allows 2 to 3 days recovery. However, it thins the residual myometrium further rather than rebuilding it, and carries risk of bladder injury or perforation when residual myometrial thickness is less than 2.5 to 3 mm. Laparoscopic repair works from outside: it excises the defect, removes all scar tissue, and closes the myometrium in two or more layers. Mean myometrial thickness increased from 1.43 mm to 9.62 mm after laparoscopic repair in one prospective series. Recovery is 1 to 2 weeks, and many specialists advise waiting roughly 3 to 6 months before attempting conception, based on clinical experience rather than controlled trials, with the exact interval individualized by the surgeon. (<a href="/library/isthmocele-an-overview-of-diagnosis-and-treatment-recxvsgc7hchpnw2m/">Kremer et al., 2019</a>) For women who want future pregnancy and have thin residual myometrium, laparoscopic or vaginal repair is generally preferred. Consult an RRM clinician or healthcare provider for guidance specific to your situation.</p>
+                </div>
+              </details>
+              <details>
+                <summary>Can you get pregnant with an isthmocele?</summary>
+                <div class="faq-answer">
+                  <p>Many women with isthmocele conceive, particularly when the defect is small. A significant isthmocele, however, creates barriers to both conception and healthy pregnancy: it impairs cervical mucus quality, disrupts the uterine environment for implantation, and - left unrepaired - carries an elevated risk of cesarean scar ectopic pregnancy and uterine complications in any subsequent pregnancy. For couples experiencing difficulty conceiving, surgical repair substantially improves outcomes. Small studies and pooled case series suggest pregnancy in roughly half to two-thirds of women after repair, though high-quality comparative trials remain limited. (<a href="/library/isthmocele-and-infertility-recwpl3h1tdyzcxia/">Baldini et al., 2024</a>) In Bardet's vaginal repair cohort, 90% of post-operative pregnancies occurred naturally - a finding from one experienced center. (<a href="/library/is-vaginal-repair-a-good-option-for-severe-cesarean-scar-defect-comparison-of-wo-rec2avqpjvovk8zm6/">Bardet et al., 2024</a>) Consult an RRM clinician or healthcare provider for guidance specific to your situation.</p>
+                </div>
+              </details>
+              <details>
+                <summary>Can an isthmocele be prevented?</summary>
+                <div class="faq-answer">
+                  <p>Prevention is not guaranteed, but surgical technique at the time of cesarean delivery makes a difference. Double-layer uterine closure, non-locking sutures on the first layer, and longer-lasting absorbable suture material are all associated with lower isthmocele risk. (<a href="/library/isthmocele-and-infertility-recwpl3h1tdyzcxia/">Baldini et al., 2024</a>) Allowing adequate time between pregnancies supports more complete scar healing before the uterus faces another pregnancy. For women who have had a C-section, a targeted conversation with the surgical team before any future cesarean - specifically about closure technique - is clinically appropriate. For women already living with symptoms after a C-section, prevention has passed; the question is evaluation and repair. Consult an RRM clinician or healthcare provider for guidance specific to your situation.</p>
+                </div>
+              </details>
+              <details>
+                <summary>Is an isthmocele dangerous during a future pregnancy?</summary>
+                <div class="faq-answer">
+                  <p>An unrepaired isthmocele with thin residual myometrium carries elevated risks in subsequent pregnancies. The niche represents a zone of myometrial weakness. Risks include cesarean scar ectopic pregnancy (embryo implanting in the niche itself), scar dehiscence, uterine rupture during labor, placenta previa, and placenta accreta spectrum disorders. Very thin residual myometrium or large defects are thought to increase the risk of scar separation or rupture, but the exact risk attributable to an isthmocele specifically is not well defined, and most data come from small reports. (<a href="/library/isthmocele-an-overview-of-diagnosis-and-treatment-recxvsgc7hchpnw2m/">Kremer et al., 2019</a>) In the Bardet 2024 vaginal repair cohort, no uterine ruptures were reported after surgical correction. Women with a known isthmocele who become pregnant before repair will generally require close monitoring and delivery by planned cesarean. Consult an RRM clinician or healthcare provider for guidance specific to your situation.</p>
+                </div>
+              </details>
+              <details>
+                <summary>What does the cycle chart show in a woman with an isthmocele?</summary>
+                <div class="faq-answer">
+                  <p>A Creighton Model FertilityCare or FEMM cycle chart makes the postmenstrual bleeding pattern visible and documentable. Women charting their cycles will record the days and character of each observation. With an isthmocele, the chart typically shows a recurring pattern of brown or dark-colored observations for two or more days after the main flow ends - a "tail" that appears consistently cycle after cycle. This is clinically valuable: it provides a time-stamped record that supports the clinical suspicion before imaging is ordered, and it documents the pattern's persistence and severity over time. In restorative reproductive medicine practice, cycle charting is part of the diagnostic pathway - not an add-on, but a first step toward identifying what the calendar alone cannot reveal. Consult an RRM clinician or healthcare provider for guidance specific to your situation.  ---</p>
+                </div>
+              </details>
+            </div>
+          </section>
+
+          <div class="cta-box">
+            <h3>Continue exploring</h3>
+            <p>Related conditions covered in depth:</p>
+            <p><a href="/endometriosis/" class="btn btn--primary">Endometriosis</a> <a href="/endometritis/" class="btn btn--primary">Chronic Endometritis</a> <a href="/pcos/" class="btn btn--primary">PCOS</a></p>
+            <p>And the foundational primer on restorative reproductive medicine:</p>
+            <p><a href="/what-is-rrm/" class="btn btn--secondary">What is Restorative Reproductive Medicine?</a> <a href="/library/" class="btn btn--secondary">Browse the Research Library</a></p>
+          </div>
+
+          <p class="disclaimer"><em>This content is for educational and reference purposes only and does not constitute medical advice, diagnosis, or treatment. Decisions about evaluation or care for a uterine isthmocele should be made in consultation with a qualified clinician who knows your specific clinical context. Citations to specific studies do not imply individual-patient applicability.</em></p>
+
+        </article>
+      </div>
+    </div>
+  </div>
+  <BackToTop />
+  </MaybeShell>
+</BaseLayout>
+
+<style>
+  .editing-notice {
+    background: var(--bg-card);
+    border: 1px solid var(--purple-500);
+    border-left: 4px solid var(--purple-500);
+    border-radius: var(--radius-md);
+    padding: var(--space-4);
+    margin: var(--space-4) 0 var(--space-5);
+    font-size: 0.9375rem;
+    color: var(--text-primary);
+    line-height: 1.6;
+  }
+  .editing-notice p { margin: 0; }
+
+  .condition-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: var(--space-4);
+    margin: var(--space-5) 0;
+  }
+  .condition-card {
+    background: var(--bg-card);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-md);
+    padding: var(--space-4);
+  }
+  .condition-card[data-key="laparoscopic"],
+  .condition-card[data-key="vaginal"] {
+    border-left: 3px solid var(--accent);
+  }
+  .condition-card__header h3 {
+    margin: 0 0 var(--space-1) 0;
+    font-size: 1.125rem;
+    color: var(--text-primary);
+  }
+  .condition-card__body { margin: 0; }
+  .condition-card__body dt {
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    margin-top: var(--space-3);
+  }
+  .condition-card__body dt:first-child { margin-top: 0; }
+  .condition-card__body dd {
+    margin: var(--space-1) 0 0 0;
+    font-size: 0.9375rem;
+    color: var(--text-primary);
+    line-height: 1.55;
+  }
+
+  .pathway-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    gap: var(--space-4);
+    margin: var(--space-5) 0;
+  }
+  .pathway-card {
+    background: var(--bg-card);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-md);
+    padding: var(--space-4);
+  }
+  .pathway-card[data-required="true"] { border-left: 3px solid var(--accent); }
+  .pathway-card__header { margin-bottom: var(--space-2); }
+  .pathway-card__step {
+    display: inline-block;
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+  }
+  .pathway-card__header h3 {
+    margin: var(--space-1) 0 0 0;
+    font-size: 1rem;
+    color: var(--text-primary);
+  }
+  .pathway-card__detail {
+    margin: var(--space-2) 0 var(--space-2) 0;
+    font-size: 0.9375rem;
+    color: var(--text-primary);
+    line-height: 1.55;
+  }
+  .pathway-card__required {
+    margin: 0;
+    font-size: 0.8125rem;
+    color: var(--text-muted);
+    font-style: italic;
+  }
+</style>

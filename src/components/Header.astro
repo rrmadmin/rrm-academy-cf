@@ -51,8 +51,8 @@ interface MobileNavItem {
 // Conditions order is by GSC search intent (90d impressions, 2026-05): isthmocele
 // ~8.3k (its commentary post is the site's #1 organic non-brand page), PCOS ~5.4k,
 // endometriosis ~1.4k (most clicks), then the lower-volume but RRM-central endometritis
-// + miscarriage. Isthmocele has no /condition/ pillar yet, so it points at the ranking
-// commentary; promote to a pillar link when one exists. Find a Provider was removed
+// + miscarriage. Isthmocele now has its own /isthmocele/ condition pillar (live 2026-06-06);
+// the commentary post remains as supporting content. Find a Provider was removed
 // 2026-05-24 (it's a coming-soon placeholder); re-add when the directory ships.
 const mobileNavSections: { heading: string; items: MobileNavItem[] }[] = [
   {
@@ -63,7 +63,7 @@ const mobileNavSections: { heading: string; items: MobileNavItem[] }[] = [
         label: 'Conditions',
         icon: 'heart',
         children: [
-          { label: 'Isthmocele', href: '/commentary/uterine-isthmocele-c-section-scar-restorative-solutions/' },
+          { label: 'Isthmocele', href: '/isthmocele/' },
           { label: 'PCOS', href: '/pcos/' },
           { label: 'Endometriosis', href: '/endometriosis/' },
           { label: 'Endometritis', href: '/endometritis/' },
