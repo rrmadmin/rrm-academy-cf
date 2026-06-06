@@ -13,39 +13,15 @@
  * and source bodies can introduce them, so the final document is
  * post-processed to replace em dashes (and en dashes used as separators).
  */
-import { NodeHtmlMarkdown } from 'node-html-markdown';
 import { parseMarkdown } from './markdown-sanitize.mjs';
-
-// Single shared converter instance. Defaults keep ATX headings, fenced
-// code, and standard link/emphasis markers -- exactly the clean subset we
-// want for agent consumption. No custom translators needed since callers
-// pass body-only HTML.
-const nhm = new NodeHtmlMarkdown({
-  // Use ATX (#) headings and keep output compact.
-  bulletMarker: '-',
-  codeBlockStyle: 'fenced',
-});
-
-/**
- * Replace em dashes per the RRM house style. Em dashes (and en dashes used
- * as sentence separators) become a spaced comma-free separator that reads
- * cleanly in plain text. En dashes inside numeric ranges (e.g. 10-20) are
- * preserved as hyphens.
- */
-function stripEmDashes(text: string): string {
-  return text
-    // Em dash with optional surrounding spaces -> spaced hyphen separator.
-    .replace(/\s*—\s*/g, ' - ')
-    // En dash used as a separator between words (space-padded) -> hyphen.
-    .replace(/(\S)\s+–\s+(\S)/g, '$1 - $2')
-    // En dash inside a numeric range -> plain hyphen.
-    .replace(/(\d)\s*–\s*(\d)/g, '$1-$2');
-}
-
-/** Collapse 3+ blank lines down to a single blank line. */
-function tidyBlankLines(md: string): string {
-  return md.replace(/\n{3,}/g, '\n\n').trim();
-}
+// Core converter + house-style helpers live in a plain .mjs module so the
+// build-time integrations (which cannot import .ts) share one implementation.
+import {
+  stripEmDashes,
+  tidyBlankLines,
+  translateHtml,
+  htmlToMarkdown as htmlToMarkdownCore,
+} from './markdown-twin-core.mjs';
 
 export interface TwinOptions {
   /** Page H1 title. */
@@ -74,8 +50,7 @@ export interface TwinOptions {
  * Exported for the glossary builder which assembles many sections.
  */
 export function htmlToMarkdown(html: string): string {
-  if (!html) return '';
-  return tidyBlankLines(stripEmDashes(nhm.translate(html)));
+  return htmlToMarkdownCore(html);
 }
 
 /**
@@ -87,14 +62,14 @@ export async function buildMarkdownTwin(opts: TwinOptions): Promise<string> {
   let bodyMd = '';
   if (body) {
     if (bodyFormat === 'html') {
-      bodyMd = nhm.translate(body);
+      bodyMd = translateHtml(body);
     } else {
       // posts.content is Markdown. Run it through the shared sanitize +
       // render pipeline (fixes malformed bold/links/headings) then convert
       // the resulting HTML back to clean, normalized Markdown so the twin
       // matches what the HTML page renders.
       const html = await parseMarkdown(body);
-      bodyMd = nhm.translate(html);
+      bodyMd = translateHtml(html);
     }
   }
 

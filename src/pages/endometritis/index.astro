@@ -1,5 +1,6 @@
 ---
 import BaseLayout from '../../layouts/BaseLayout.astro';
+import CiteThisPage from '../../components/CiteThisPage.astro';
 import MaybeShell from '../../components/MaybeShell.astro';
 import SectionTocChips from '../../components/SectionTocChips.astro';
 import { isShellEnabled } from '../../lib/shell-routes';
@@ -241,6 +242,7 @@ const faqSchema = {
   title="Chronic Endometritis: The Missed Diagnosis Behind Recurrent Loss and Failed IVF"
   description="Chronic endometritis is a persistent, low-grade inflammation of the uterine lining diagnosed by CD138 endometrial biopsy. It is frequently missed in recurrent miscarriage and implantation failure workups, and it is treatable with antibiotic therapy."
   canonicalUrl={PAGE_URL}
+  markdownUrl="/endometritis.md"
   ogType="article"
   publishDate="2026-05-14"
   jsonLd={pageSchema}
@@ -584,6 +586,15 @@ const faqSchema = {
             <p>And the foundational primer on restorative reproductive medicine:</p>
             <p><a href="/what-is-rrm/" class="btn btn--secondary">What is Restorative Reproductive Medicine?</a> <a href="/library/" class="btn btn--secondary">Browse the Research Library</a></p>
           </div>
+
+          <CiteThisPage
+            heading="Cite this guide"
+            title="Chronic Endometritis: The Missed Diagnosis Behind Recurrent Loss and Failed Implantation"
+            authorGiven="Naomi"
+            authorFamily="Whittaker"
+            date="2026-05-14"
+            url="https://rrmacademy.org/endometritis/"
+          />
 
           <p class="disclaimer"><em>This content is for educational and reference purposes only and does not constitute medical advice, diagnosis, or treatment. Decisions about evaluation or care for chronic endometritis should be made in consultation with a qualified clinician who knows your specific clinical context. Citations to specific studies and consensus documents do not imply individual-patient applicability.</em></p>
 

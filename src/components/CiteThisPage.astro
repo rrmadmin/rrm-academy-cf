@@ -1,0 +1,90 @@
+---
+/**
+ * "Cite this" block for first-party editorial pages (pillar guides,
+ * commentary posts). Builds APA 7th / Vancouver / MLA 9th strings for THE
+ * PAGE ITSELF (contrast: library pages cite the indexed source article via
+ * per-article citation fields) and renders the shared Citation tab widget.
+ *
+ * Audit 2026-06-05 GEO finding: high-authority pages had no machine- or
+ * reader-copyable citation, weakening the citation-network signal the
+ * core thesis targets. Styles ship in global.css (.citation-tabs).
+ */
+import Citation from './Citation.astro';
+
+interface Props {
+  /** Page title as it should appear in the citation. */
+  title: string;
+  /** Author display name, e.g. "Naomi Whittaker". Defaults to site org. */
+  authorGiven?: string;
+  authorFamily?: string;
+  /** ISO date (YYYY-MM-DD) the page was published or last substantively updated. */
+  date?: string;
+  /** Absolute canonical URL of the page. */
+  url: string;
+  /** Optional heading override. */
+  heading?: string;
+}
+
+const {
+  title,
+  authorGiven,
+  authorFamily,
+  date,
+  url,
+  heading = 'Cite this guide',
+} = Astro.props;
+
+const SITE_NAME = 'RRM Academy';
+const MONTHS = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
+const MONTHS_MLA = ['Jan.', 'Feb.', 'Mar.', 'Apr.', 'May', 'June', 'July', 'Aug.', 'Sept.', 'Oct.', 'Nov.', 'Dec.'];
+
+let year = '';
+let apaDate = 'n.d.';
+let mlaDate = '';
+let vancouverDate = '';
+if (date) {
+  const [y, m, d] = date.split('T')[0].split('-').map((s) => parseInt(s, 10));
+  if (y) {
+    year = String(y);
+    apaDate = m && d ? `${y}, ${MONTHS[m - 1]} ${d}` : String(y);
+    mlaDate = m && d ? `${d} ${MONTHS_MLA[m - 1]} ${y}` : String(y);
+    vancouverDate = String(y);
+  }
+}
+
+const hasPersonAuthor = Boolean(authorGiven && authorFamily);
+const cleanTitle = title.replace(/\s+/g, ' ').trim();
+// A title ending in terminal punctuation (?, !) already closes the sentence;
+// styles that would add a period after the title skip it to avoid "Title?.".
+const titleEndsTerminal = /[?!]$/.test(cleanTitle);
+const titlePeriod = titleEndsTerminal ? '' : '.';
+
+// APA 7th: Author, A. (Year, Month Day). Title. Site. URL
+const apaAuthor = hasPersonAuthor
+  ? `${authorFamily}, ${authorGiven!.charAt(0)}.`
+  : `${SITE_NAME}.`;
+const apa = `${apaAuthor} (${apaDate}). ${cleanTitle}${titlePeriod} ${hasPersonAuthor ? `${SITE_NAME}. ` : ''}${url}`;
+
+// Vancouver: Author A. Title [Internet]. Site; Year. Available from: URL
+const vancouverAuthor = hasPersonAuthor
+  ? `${authorFamily} ${authorGiven!.charAt(0)}.`
+  : `${SITE_NAME}.`;
+const vancouver = `${vancouverAuthor} ${cleanTitle} [Internet]. ${SITE_NAME}; ${vancouverDate || 'n.d.'}. Available from: ${url}`;
+
+// MLA 9th: Author. "Title." Site, Day Mon. Year, URL.
+const mlaAuthor = hasPersonAuthor ? `${authorFamily}, ${authorGiven}.` : `${SITE_NAME}.`;
+const mla = `${mlaAuthor} "${cleanTitle}${titlePeriod}" ${SITE_NAME}${mlaDate ? `, ${mlaDate}` : ''}, ${url.replace(/^https?:\/\//, '')}.`;
+---
+<section class="cite-this-page" aria-label={heading}>
+  <h2>{heading}</h2>
+  <Citation apa={apa} vancouver={vancouver} mla={mla} />
+</section>
+
+<style>
+  .cite-this-page {
+    margin-top: var(--space-8);
+  }
+  .cite-this-page h2 {
+    margin-bottom: var(--space-3);
+  }
+</style>
