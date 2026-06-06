@@ -276,6 +276,20 @@ CREATE INDEX IF NOT EXISTS idx_course_step_course ON course_step(course_id);
 CREATE INDEX IF NOT EXISTS idx_course_step_section ON course_step(section_id, sort_order);
 CREATE INDEX IF NOT EXISTS idx_course_step_status ON course_step(status);
 
+-- step_rendition: multi-format lesson content. Added by migrations/025-step-rendition.sql.
+CREATE TABLE IF NOT EXISTS step_rendition (
+  step_id TEXT NOT NULL REFERENCES course_step(id),
+  format TEXT NOT NULL CHECK (format IN ('reading','flashcards','quiz','audio')),
+  content_json TEXT NOT NULL,
+  status TEXT NOT NULL DEFAULT 'draft' CHECK (status IN ('draft','published','archived')),
+  source TEXT,
+  word_count INTEGER,
+  duration_seconds INTEGER,
+  created_at TEXT NOT NULL,
+  updated_at TEXT NOT NULL,
+  PRIMARY KEY (step_id, format)
+);
+
 -- ============================================================
 -- course_waitlist
 -- ============================================================
