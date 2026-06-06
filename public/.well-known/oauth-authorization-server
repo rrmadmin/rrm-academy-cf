@@ -13,6 +13,23 @@
     "urn:ietf:params:oauth:grant-type:api-key"
   ],
   "token_endpoint_auth_methods_supported": ["none"],
+  "agent_auth": {
+    "skill": "https://rrmacademy.org/auth.md",
+    "register_uri": "https://rrmacademy.org/signup",
+    "identity_types_supported": ["verified_email"],
+    "credential_types_supported": ["bearer_api_key"],
+    "registration_methods_supported": [
+      {
+        "method": "web_self_service",
+        "register_uri": "https://rrmacademy.org/signup",
+        "claim_uri": "https://rrmacademy.org/account/mcp-keys",
+        "description": "Create a free account, then generate a personal Bearer API key at https://rrmacademy.org/account/mcp-keys. The key is shown once; pass it as Authorization: Bearer <key> on MCP tools/call."
+      }
+    ],
+    "claim_uri": "https://rrmacademy.org/account/mcp-keys",
+    "revocation_uri": "https://rrmacademy.org/account/mcp-keys",
+    "revocation_events_supported": ["key_revoked"]
+  },
   "service_documentation": "https://rrmacademy.org/connect",
   "x-account-signup-url": "https://rrmacademy.org/signup",
   "op_policy_uri": "https://rrmacademy.org/terms-of-use/",
