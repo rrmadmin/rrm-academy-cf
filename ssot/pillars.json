@@ -170,6 +170,21 @@
       "_order": 10
     },
     {
+      "slug": "isthmocele",
+      "file": "isthmocele/index.astro",
+      "title": "Uterine Isthmocele (Cesarean Scar Defect): Causes, Symptoms, and Restorative Repair",
+      "description": "A uterine isthmocele is a pouch-like defect at the cesarean scar that causes postmenstrual spotting, pelvic pain, and secondary infertility. Diagnosis, repair options, and the restorative approach.",
+      "og_title": "Uterine Isthmocele (Cesarean Scar Defect)",
+      "og_description": "A pouch-like defect at the cesarean scar causing postmenstrual spotting, pelvic pain, and secondary infertility. Diagnosis, surgical repair options, and the restorative approach.",
+      "author": "Dr. Naomi Whittaker",
+      "read_time": "22 min read",
+      "accent": "var(--purple-700)",
+      "accent_note": "Brand primary purple -- uterine structural/surgical condition.",
+      "in_guides_catalogue": true,
+      "in_shell_guides_nav": true,
+      "_order": 10.5
+    },
+    {
       "slug": "miscarriage",
       "file": "miscarriage/index.astro",
       "title": "Miscarriage and Recurrent Pregnancy Loss: A Clinician-Reviewed Guide",
