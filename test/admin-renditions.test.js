@@ -153,6 +153,35 @@ test('step DELETE removes audio R2 object when audio rendition exists', async ()
   assert.deepEqual(c.env.R2_ASSETS.deleted, ['courses/audio/step-1.mp3']);
 });
 
+test('section DELETE partial refusal (TOCTOU) has zero side effects: no section row deleted, no R2 delete', async () => {
+  const db = mockDB({
+    'FROM course_section WHERE id = ? AND course_id = ?': { first: { id: 'section-1' } },
+    "format = 'audio'": { all: { results: [] } },
+    'FROM course_step WHERE section_id': { all: { results: [{ id: 'step-1' }, { id: 'step-2' }] } },
+    'certificate_quiz_step_id': { first: null },
+    'FROM step_progress': { all: { results: [] } },
+    'FROM quiz_response': { all: { results: [] } },
+    'FROM lesson_comment': { all: { results: [] } },
+    'DELETE FROM step_rendition': { run: { success: true, meta: { changes: 0 } } },
+    'DELETE FROM course_step WHERE section_id': { run: { success: true, meta: { changes: 1 } } },
+    'DELETE FROM course_section': { run: { success: true, meta: { changes: 1 } } },
+  });
+  const r2 = { deleted: [], async delete(k) { this.deleted.push(k); } };
+  const env = mockEnv({ DB: db, R2_ASSETS: r2 });
+  const c = {
+    env, waitUntil: mockWaitUntil(), db,
+    params: { id: 'course-1', sectionId: 'section-1' },
+    data: { user: { id: 'admin1', role: 'admin' } },
+  };
+  const res = await sectionDelete(c);
+  assert.equal(res.status, 409);
+  const body = await res.json();
+  assert.equal(body.error, 'references_exist');
+  const sectionDeleteCall = db._calls.find((x) => x.sql.includes('DELETE FROM course_section'));
+  assert.ok(!sectionDeleteCall, 'DELETE FROM course_section must NOT be called on partial refusal');
+  assert.deepEqual(r2.deleted, [], 'R2 delete must NOT be called on partial refusal');
+});
+
 test('section DELETE batch includes DELETE FROM step_rendition scoped by section subquery', async () => {
   const db = mockDB({
     'FROM course_section WHERE id = ? AND course_id = ?': { first: { id: 'section-1' } },
