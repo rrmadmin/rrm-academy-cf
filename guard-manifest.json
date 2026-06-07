@@ -3,15 +3,15 @@
   "description": "Critical file integrity manifest. Run `npm run guard:update` after intentional changes.",
   "files": {
     "functions/api/auth/_shared.js": {
-      "hash": "0d0dc93d72271e8eb391257779b8c1a59e0836e2bafb5be76e1e1e06ef9528d5",
+      "hash": "03ba4e7b7e2209d01032c61cc8d96719e5a664d0add2a9738e825da40f3d71e8",
       "note": "CORS, sessions, crypto, rate limiting"
     },
     "functions/api/auth/login.js": {
-      "hash": "9cf1086689a4835f58e165c5999007febdb4c35353d65d29b72f47638ea9940e",
+      "hash": "476ee0e0f7d08dea6078aa537b1fc13f20fa59c691af5d2772a5e2b34a5c7dc1",
       "note": "Authentication"
     },
     "functions/api/auth/signup.js": {
-      "hash": "95a6969f9a776ff7faaef9d13ba2019e7677c8521a42fc9fedaff411a44b7ac8",
+      "hash": "39298cccccd988129d3c8d11dd0683c117cc70500d58a9b910017f505642e532",
       "note": "Account creation"
     },
     "functions/api/auth/forgot-password.js": {
@@ -19,11 +19,11 @@
       "note": "Password reset tokens + email"
     },
     "functions/api/auth/reset-password.js": {
-      "hash": "070dfd31f040ef3b037f5a44a72b3ad0468540a4e17e0559bf29459ec81543fb",
+      "hash": "01740001e7e38dc7d9fc3b8d04661f058b862521ab9e5e862d40940a5f0ff216",
       "note": "Reset token consumption + password change"
     },
     "functions/api/auth/change-password.js": {
-      "hash": "01f3917cf462b797420d8f4de4bb124073db7ac7eb79847a5b81c10a036ec2c8",
+      "hash": "7c77c88e60422872fb391c4a4444c2632b2c67b7068786b6f1e0bc862e3d0849",
       "note": "Authenticated password change"
     },
     "functions/api/auth/google.js": {
@@ -71,7 +71,7 @@
       "note": "HMAC-SHA256 magic-link token for Wix-to-Stripe donor migration"
     },
     "functions/_middleware.js": {
-      "hash": "52c45ad52da2925cb89bb140955151bbc2d92fab0c6459f2b86b5926e821523c",
+      "hash": "c902a1a18ef099d7d85aa01e9c33ba94c181a96c384f2eb5ce1fea10ec015ee0",
       "note": "Auth gating"
     },
     "wrangler.toml": {
@@ -87,7 +87,7 @@
       "note": "EmailListVerify SMTP validation"
     },
     "functions/api/survey/submit.js": {
-      "hash": "20284380b0a9ddddd0c0d5521227d8715b75d259c370185679dc3e5caa9c7fdc",
+      "hash": "fbad5529fe0bd9073a967bcd9811cb1431027eead16962b252b1e71fbc24cc63",
       "note": "Survey submission + PII pseudonymization"
     },
     "functions/api/survey/request.js": {
@@ -99,11 +99,11 @@
       "note": "Mass email send (admin-only)"
     },
     "functions/api/newsletter/unsubscribe.js": {
-      "hash": "373dbfc7f4a96c5af279e63af2578e300d7c5ef439c9a645b64f07a92cb21846",
+      "hash": "e568d424e2d1c0b0f656883539f7fb9df6c9bcd910f4efd3500eacc719b26fdf",
       "note": "CAN-SPAM unsubscribe (status update)"
     },
     "functions/api/newsletter/subscribe.js": {
-      "hash": "bf4f08a92b2aeb167e674964da9d1fb02fe81ae22a6023d51f2670609a8475d6",
+      "hash": "a6865db3b03dc4595b6951ff94d6f77e691886059a47a2dfffc5dff8c3d1a865",
       "note": "Public newsletter intake (rate-limited)"
     },
     "functions/api/search/semantic.js": {
@@ -139,7 +139,7 @@
       "note": "Admin endpoint: manually link wix_subscription to CF user (Layer 4 reconciliation)"
     },
     "scripts/guard.mjs": {
-      "hash": "0f795e0027ae82ec57dcfcf399e3c88b1c7f79a40ef05258bb8ac2389e928883",
+      "hash": "aeb92259da8ebc1834b40dfbb5cc372e106aa6976dc4085cae338dd4e68dc7e4",
       "note": "Guard script (self-guarding)"
     },
     "functions/api/auth/verify-email.js": {

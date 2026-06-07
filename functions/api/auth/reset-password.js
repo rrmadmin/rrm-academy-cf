@@ -6,6 +6,7 @@ import {
   json, optionsResponse, hashPassword, hashToken,
   generateSessionId, sessionCookie, authHintCookie,
   isValidPassword, checkRateLimit, sessionInsertStatement, SESSION_DURATION_MS,
+  COMMON_PASSWORD_ERROR,
 } from './_shared.js';
 import { sendEmail, logEmailFailure } from '../_ses.js';
 import { log } from '../_log.js';
@@ -28,7 +29,12 @@ export async function onRequestPost({ request, env, waitUntil }) {
     const password = body.password || '';
 
     if (!token) return json({ ok: false, error: 'Reset token is required.' }, 400);
-    if (!isValidPassword(password)) return json({ ok: false, error: 'Password must be between 8 and 128 characters.' }, 400);
+    if (!isValidPassword(password)) {
+      const pwErr = (typeof password === 'string' && password.length >= 8 && password.length <= 128)
+        ? COMMON_PASSWORD_ERROR
+        : 'Password must be between 8 and 128 characters.';
+      return json({ ok: false, error: pwErr }, 400);
+    }
 
     const ip = request.headers.get('CF-Connecting-IP');
     if (!ip) return json({ ok: false, error: 'Service temporarily unavailable.' }, 503);
@@ -74,6 +80,7 @@ export async function onRequestPost({ request, env, waitUntil }) {
     // specific actionable message rather than a generic 500.
     const newSessionId = generateSessionId();
     const newExpiresAt = Math.floor((Date.now() + SESSION_DURATION_MS) / 1000);
+    const hashedNewSessionId = await hashToken(newSessionId);
     try {
       await db.batch([
         db.prepare("UPDATE user SET hashed_password = ?, email_verified = 1, updated_at = datetime('now') WHERE id = ?")
@@ -82,7 +89,7 @@ export async function onRequestPost({ request, env, waitUntil }) {
         // Cleanup: revoke ALL sessions on password reset (forces re-auth across all devices for security).
         // Atomic batch — inline DELETE retained for batch atomicity (mirror of invalidateAllUserSessions)
         db.prepare('DELETE FROM session WHERE user_id = ?').bind(tokenRow.user_id),
-        sessionInsertStatement(db, newSessionId, tokenRow.user_id, newExpiresAt),
+        sessionInsertStatement(db, hashedNewSessionId, tokenRow.user_id, newExpiresAt),
       ]);
     } catch (phase2Err) {
       log(env, waitUntil, 'auth', 'reset_password_phase2_error', 'error', phase2Err.message);

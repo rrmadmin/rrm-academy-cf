@@ -117,7 +117,7 @@ import { TURNSTILE_SITE_KEY } from '../lib/turnstile';
       try {
         var params = new URLSearchParams(window.location.search);
         var raw = params.get('next') || '';
-        if (raw && raw.charAt(0) === '/' && raw.indexOf('//') !== 0) nextParam = raw;
+        if (raw && raw.charAt(0) === '/' && raw.indexOf('//') !== 0 && raw.indexOf('/\\') !== 0 && raw.length <= 500) nextParam = raw;
       } catch (_) {}
 
       if (nextParam === '/ask' || nextParam === '/ask/') {

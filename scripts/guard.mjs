@@ -413,55 +413,93 @@ function checkRequiredFiles() {
 function scanSecrets() {
   console.log(`\n${BOLD}Phase 4: Secret scanning${RESET}`);
 
-  const SECRET_PATTERNS = [
+  // Real secret-VALUE formats: unambiguous leaked credentials. Scanned across
+  // runtime code, build scripts, and CI -- they must never appear anywhere.
+  const TOKEN_PATTERNS = [
     { pattern: /sk_live_[a-zA-Z0-9]{20,}/g, label: 'Stripe live secret key' },
+    { pattern: /rk_live_[a-zA-Z0-9]{20,}/g, label: 'Stripe restricted live key' },
     { pattern: /sk_test_[a-zA-Z0-9]{20,}/g, label: 'Stripe test secret key' },
     { pattern: /whsec_[a-zA-Z0-9]{20,}/g, label: 'Stripe webhook secret' },
     { pattern: /-----BEGIN (?:RSA |EC )?PRIVATE KEY-----/g, label: 'Private key' },
-    { pattern: /Bearer\s+[a-zA-Z0-9._\-]{20,}/g, label: 'Hardcoded Bearer token' },
     { pattern: /pat[a-zA-Z0-9]{14}\.[a-f0-9]{64}/g, label: 'Airtable PAT' },
     { pattern: /AKIA[0-9A-Z]{16}/g, label: 'AWS access key' },
+    { pattern: /ASIA[0-9A-Z]{16}/g, label: 'AWS temporary access key' },
+    { pattern: /AIzaSy[0-9A-Za-z_\-]{33}/g, label: 'Google API key' },
     { pattern: /GOCSPX-[a-zA-Z0-9_-]{20,}/g, label: 'Google OAuth client secret' },
+    { pattern: /ghp_[0-9A-Za-z]{36}/g, label: 'GitHub personal access token (classic)' },
+    { pattern: /github_pat_[0-9A-Za-z_]{50,}/g, label: 'GitHub fine-grained PAT' },
+    { pattern: /xox[bp]-[0-9A-Za-z\-]{20,}/g, label: 'Slack bot/user token' },
+    { pattern: /sk-ant-[0-9A-Za-z\-]{20,}/g, label: 'Anthropic API key' },
+    { pattern: /sk-proj-[0-9A-Za-z\-]{20,}/g, label: 'OpenAI project API key' },
+    { pattern: /pplx-[0-9A-Za-z]{32,}/g, label: 'Perplexity API key' },
+  ];
+
+  // Structural/correctness checks meaningful ONLY in runtime code (Workers): a
+  // bare "Bearer <token>" literal or an op:// reference is a mistake in
+  // functions/src (op:// cannot resolve at the edge, and a literal Bearer there
+  // would be a hardcoded secret). But op:// is the CORRECT secure pattern in
+  // local build scripts (scripts/) and CI (.github/, which references the 1P key
+  // path), and a toml "Bearer BINDING_NAME" is a service-binding header, not a
+  // secret -- so these run on runtime dirs only to avoid false positives.
+  const RUNTIME_ONLY_PATTERNS = [
+    { pattern: /Bearer\s+[a-zA-Z0-9._\-]{20,}/g, label: 'Hardcoded Bearer token' },
     { pattern: /op:\/\/[a-zA-Z]+\/[^\s'"]+/g, label: '1Password reference in committed code' },
   ];
 
-  const SCAN_DIRS = [
-    join(ROOT, 'functions'),
-    join(ROOT, 'src'),
-  ];
+  const RUNTIME_DIRS = [join(ROOT, 'functions'), join(ROOT, 'src')];
+  const WIDE_DIRS = [join(ROOT, 'scripts'), join(ROOT, '.github')];
 
   let foundSecrets = 0;
 
-  for (const dir of SCAN_DIRS) {
+  const scanContent = (filePath, patterns) => {
+    const rel = relative(ROOT, filePath);
+    let content;
+    try {
+      content = readFileSync(filePath, 'utf8');
+    } catch {
+      return;
+    }
+    for (const { pattern, label } of patterns) {
+      pattern.lastIndex = 0;
+      const matches = content.match(pattern);
+      if (matches) {
+        for (const match of matches) {
+          const redacted = match.slice(0, 10) + '...' + match.slice(-4);
+          log(FAIL, `${label} in ${rel}: ${redacted}`);
+          foundSecrets++;
+          failures++;
+        }
+      }
+    }
+  };
+
+  const scanDir = (dir, patterns) => {
     let files;
     try {
       files = collectFilesAll(dir);
     } catch {
-      continue;
+      return;
     }
+    for (const filePath of files) scanContent(filePath, patterns);
+  };
 
-    for (const filePath of files) {
-      const rel = relative(ROOT, filePath);
-      let content;
-      try {
-        content = readFileSync(filePath, 'utf8');
-      } catch {
-        continue;
-      }
+  // Runtime code: real token formats + the runtime-only structural checks.
+  for (const dir of RUNTIME_DIRS) scanDir(dir, [...TOKEN_PATTERNS, ...RUNTIME_ONLY_PATTERNS]);
+  // Build scripts + CI: real secret-value formats only (op:// pointers are safe here).
+  for (const dir of WIDE_DIRS) scanDir(dir, TOKEN_PATTERNS);
 
-      for (const { pattern, label } of SECRET_PATTERNS) {
-        pattern.lastIndex = 0;
-        const matches = content.match(pattern);
-        if (matches) {
-          for (const match of matches) {
-            const redacted = match.slice(0, 10) + '...' + match.slice(-4);
-            log(FAIL, `${label} in ${rel}: ${redacted}`);
-            foundSecrets++;
-            failures++;
-          }
-        }
+  // Scan root-level *.toml and *.json (token formats only -- a binding name like
+  // "Bearer AI_SEARCH_WORKER_AUTH" in wrangler.toml is not a secret value).
+  try {
+    for (const entry of readdirSync(ROOT, { withFileTypes: true })) {
+      if (!entry.isFile()) continue;
+      const ext = entry.name.split('.').pop();
+      if (ext === 'toml' || ext === 'json') {
+        scanContent(join(ROOT, entry.name), TOKEN_PATTERNS);
       }
     }
+  } catch {
+    // non-fatal: root listing failure does not block the scan
   }
 
   if (foundSecrets === 0) {
@@ -477,7 +515,7 @@ function collectFilesAll(dir, list = []) {
       collectFilesAll(full, list);
     } else if (entry.isFile()) {
       const ext = entry.name.split('.').pop();
-      if (['js', 'mjs', 'ts', 'astro', 'json', 'html', 'css', 'md'].includes(ext)) {
+      if (['js', 'mjs', 'ts', 'astro', 'json', 'toml', 'yml', 'yaml', 'html', 'css', 'md'].includes(ext)) {
         list.push(full);
       }
     }
