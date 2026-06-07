@@ -1,0 +1,70 @@
+---
+/**
+ * LessonTabs: multi-format tab bar for the course step player (Honen Phase 1).
+ *
+ * Render hint only: receives the resolved tab list (fixed order
+ * Watch / Read / Cards / Quiz / Listen) and the primary format. Tab-switch
+ * behavior + lazy content fetch live in the player's inline script, which must
+ * coordinate with the existing video hydration. This component owns markup +
+ * styles only. When fewer than 2 tabs are present the player does not render it.
+ */
+interface Tab {
+  format: string;
+  label: string;
+}
+interface Props {
+  tabs: Tab[];
+  primary: string;
+}
+const { tabs, primary } = Astro.props;
+---
+<div class="lesson-tabs" data-lesson-tabs role="tablist" aria-label="Lesson formats">
+  {tabs.map((tab) => (
+    <button
+      type="button"
+      role="tab"
+      class:list={['lesson-tab', { active: tab.format === primary }]}
+      aria-selected={tab.format === primary ? 'true' : 'false'}
+      data-tab={tab.format}
+    >{tab.label}</button>
+  ))}
+</div>
+
+<style>
+  .lesson-tabs {
+    display: flex;
+    gap: var(--space-1);
+    border-bottom: 1px solid var(--neutral-200);
+    padding: 0 var(--space-6);
+    max-width: var(--max-width-article);
+    margin: 0 auto var(--space-5);
+    overflow-x: auto;
+  }
+  .lesson-tab {
+    padding: var(--space-3) var(--space-4);
+    font-size: 0.8125rem;
+    font-weight: 500;
+    color: var(--neutral-500);
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    text-align: center;
+    white-space: nowrap;
+    border-bottom: 2px solid transparent;
+    transition: color 0.15s, border-color 0.15s;
+  }
+  .lesson-tab:hover {
+    color: var(--neutral-900);
+  }
+  .lesson-tab[aria-selected="true"],
+  .lesson-tab.active {
+    color: var(--purple-700);
+    border-bottom-color: var(--purple-700);
+    font-weight: 600;
+  }
+  @media (max-width: 768px) {
+    .lesson-tabs {
+      padding: 0 var(--space-4);
+    }
+  }
+</style>
