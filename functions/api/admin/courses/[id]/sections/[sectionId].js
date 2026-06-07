@@ -242,7 +242,13 @@ export async function onRequestDelete(context) {
 
     const [, stepsDeleteResult] = await env.DB.batch([
       env.DB.prepare(
-        'DELETE FROM step_rendition WHERE step_id IN (SELECT id FROM course_step WHERE section_id = ?)'
+        'DELETE FROM step_rendition WHERE step_id IN (' +
+        'SELECT id FROM course_step WHERE section_id = ?1' +
+        ' AND NOT EXISTS (SELECT 1 FROM step_progress WHERE step_id = course_step.id)' +
+        ' AND NOT EXISTS (SELECT 1 FROM quiz_response WHERE step_id = course_step.id)' +
+        ' AND NOT EXISTS (SELECT 1 FROM lesson_comment WHERE step_id = course_step.id)' +
+        ' AND NOT EXISTS (SELECT 1 FROM course WHERE certificate_quiz_step_id = course_step.id)' +
+        ')'
       ).bind(sectionId),
       env.DB.prepare(
         'DELETE FROM course_step WHERE section_id = ?' +
@@ -251,7 +257,6 @@ export async function onRequestDelete(context) {
         ' AND NOT EXISTS (SELECT 1 FROM lesson_comment WHERE step_id = course_step.id)' +
         ' AND NOT EXISTS (SELECT 1 FROM course WHERE certificate_quiz_step_id = course_step.id)'
       ).bind(sectionId),
-      env.DB.prepare('DELETE FROM course_section WHERE id = ?').bind(sectionId),
     ]);
 
     if ((stepsDeleteResult.meta?.changes ?? 0) < stepIds.length) {
@@ -261,6 +266,8 @@ export async function onRequestDelete(context) {
         stepIds: [],
       }, 409);
     }
+
+    await env.DB.prepare('DELETE FROM course_section WHERE id = ?').bind(sectionId).run();
 
     for (const key of audioKeys) {
       if (!env.R2_ASSETS) break;
