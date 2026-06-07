@@ -33,6 +33,10 @@ if (orgIdx >= 0) {
   // NOT the Academy node. This keeps the IRS-BMF / Ad Grants applicant match on
   // the homepage (now on the Foundation node) while decoupling the two entities.
   org.parentOrganization = { '@id': 'https://rrm.foundation/#organization' };
+  // Naomi founded RRM Academy (historical org-founding role; Brian-authorized
+  // 2026-06-07). Reciprocal of her Person node. Employer stays UPMC (her
+  // jobTitle/worksFor are untouched).
+  org.founder = { '@id': 'https://rrmacademy.org/#naomi-whittaker' };
   // W1-6: expand sameAs with the strongest entity anchors available. SSOT-bound
   // entries are preserved; inline entries are appended (de-duped).
   const ssotSameAs = Array.isArray(org.sameAs) ? (org.sameAs as string[]) : [];
