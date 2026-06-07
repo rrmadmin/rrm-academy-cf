@@ -53,3 +53,19 @@ test('strips style and iframe', () => {
   assert.ok(!out.includes('<style'));
   assert.ok(!out.includes('<iframe'));
 });
+
+test('ReDoS termination: 100KB no-equals attr region completes in under 1000ms', () => {
+  const monster = '<a ' + 'a'.repeat(100000) + '>';
+  const start = Date.now();
+  const out = sanitizeHtml(monster);
+  const elapsed = Date.now() - start;
+  assert.ok(elapsed < 1000, `sanitizeHtml took ${elapsed}ms on monster input (expected < 1000ms)`);
+  assert.ok(!out.includes('<a '), 'monster tag must not emit a live <a with attributes');
+});
+
+test('long legitimate reading prose passes through unchanged', () => {
+  const para = '<p>' + 'word '.repeat(500).trim() + '</p>';
+  const prose = para.repeat(2);
+  const out = sanitizeHtml(prose);
+  assert.equal(out, prose);
+});
