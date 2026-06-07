@@ -81,6 +81,7 @@ function validateContent(format, content) {
   }
   if (format === 'reading') {
     if (typeof content.html !== 'string' || !content.html.trim()) return { error: 'content_empty' };
+    if (content.html.length > SIZE_CAPS.reading) return { error: 'content_too_large' };
     const html = sanitizeHtml(content.html);
     if (!html.trim()) return { error: 'content_empty' };
     return { content: { html }, wordCount: computeWordCount(html), durationSeconds: null };
@@ -100,7 +101,7 @@ function validateContent(format, content) {
     if (!['quiz', 'questionnaire'].includes(content.type)) return { error: 'invalid_content' };
     if (!Array.isArray(content.questions)) return { error: 'invalid_content' };
     if (content.questions.length === 0) return { error: 'content_empty' };
-    if (content.passingScore != null && (!Number.isInteger(content.passingScore) || content.passingScore < 0 || content.passingScore > 100)) {
+    if (content.passingScore != null && (!Number.isInteger(content.passingScore) || content.passingScore < 1 || content.passingScore > 100)) {
       return { error: 'invalid_content' };
     }
     for (const q of content.questions) {

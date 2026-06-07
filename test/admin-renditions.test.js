@@ -182,6 +182,31 @@ test('section DELETE partial refusal (TOCTOU) has zero side effects: no section 
   assert.deepEqual(r2.deleted, [], 'R2 delete must NOT be called on partial refusal');
 });
 
+test('PUT reading with content.html > 80000 chars returns 400 content_too_large before sanitizer runs', async () => {
+  const bigHtml = '<p>' + 'x'.repeat(80000) + '</p>';
+  assert.ok(bigHtml.length > 80000, 'precondition: html is over 80000 chars');
+  const c = adminCtx(STEP_EXISTS, { body: { format: 'reading', content: { html: bigHtml } } });
+  const res = await onRequestPut(c);
+  assert.equal(res.status, 400);
+  assert.equal((await res.json()).error, 'content_too_large');
+});
+
+test('PUT quiz with passingScore:0 returns 400 invalid_content', async () => {
+  const c = adminCtx(STEP_EXISTS, {
+    body: {
+      format: 'quiz',
+      content: {
+        type: 'quiz',
+        passingScore: 0,
+        questions: [{ id: 'q1', text: 'Q', options: ['a', 'b'], correctIndex: 0 }],
+      },
+    },
+  });
+  const res = await onRequestPut(c);
+  assert.equal(res.status, 400);
+  assert.equal((await res.json()).error, 'invalid_content');
+});
+
 test('section DELETE batch includes DELETE FROM step_rendition scoped by section subquery', async () => {
   const db = mockDB({
     'FROM course_section WHERE id = ? AND course_id = ?': { first: { id: 'section-1' } },

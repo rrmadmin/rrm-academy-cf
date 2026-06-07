@@ -62,6 +62,9 @@ function sanitizeTag(token) {
 
   const allowed = ALLOWED_ATTRS[name] || new Set();
   const cleanAttrs = [];
+  if (rawAttrs.length > 2000) {
+    return `<${name}${selfClose ? ' /' : ''}>`;
+  }
   const attrRe = /([a-zA-Z][a-zA-Z0-9-]*)\s*=\s*("([^"]*)"|'([^']*)')/g;
   let am;
   while ((am = attrRe.exec(rawAttrs)) !== null) {
