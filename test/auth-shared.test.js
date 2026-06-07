@@ -100,7 +100,7 @@ describe('isValidEmail', () => {
 
 describe('isValidPassword', () => {
   it('accepts valid passwords', () => {
-    assert.ok(isValidPassword('Zx9-Qr7-Plk2-vbT'));
+    assert.ok(isValidPassword('aaaa-bbbb-cccc-dddd'));
     assert.ok(isValidPassword('a'.repeat(128)));
   });
 
