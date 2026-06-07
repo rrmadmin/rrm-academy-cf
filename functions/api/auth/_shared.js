@@ -67,10 +67,9 @@ export function generateToken() {
 
 // --- Password hashing (PBKDF2 via Web Crypto) ---
 
-// OWASP minimum for PBKDF2-SHA256. Originally 600K but CF Workers free plan
-// has a 10ms CPU time limit — 600K iterations exceeds it. 100K fits comfortably.
-// Upgrade to Workers Paid ($5/mo) allows 30s CPU and 600K+ iterations if needed.
-export const PBKDF2_ITERATIONS = 100000;
+// OWASP recommended for PBKDF2-SHA256 (2023+). Requires Workers Paid plan
+// ($5/mo) for the 30s CPU budget; the free plan's 10ms limit is too tight for 600K.
+export const PBKDF2_ITERATIONS = 600000;
 
 // Dummy hash for constant-time login path when user is not found.
 // Constructed from PBKDF2_ITERATIONS so it stays in sync if the iteration count changes.
@@ -149,20 +148,32 @@ const SESSION_RENEW_THRESHOLD_MS = 15 * 24 * 60 * 60 * 1000; // 15 days
 export async function createSession(db, userId) {
   const id = generateSessionId();
   const expiresAt = Math.floor((Date.now() + SESSION_DURATION_MS) / 1000);
+  const hashedId = await hashToken(id);
   await db.prepare('INSERT INTO session (id, user_id, expires_at) VALUES (?, ?, ?)')
-    .bind(id, userId, expiresAt)
+    .bind(hashedId, userId, expiresAt)
     .run();
   return { id, userId, expiresAt };
 }
 
 export async function validateSession(db, sessionId) {
   if (!sessionId) return null;
-  const row = await db.prepare(`
+  const hashedSessionId = await hashToken(sessionId);
+  let row = await db.prepare(`
     SELECT s.id, s.user_id, s.expires_at, u.blocked, u.role
     FROM session s
     JOIN user u ON u.id = s.user_id
     WHERE s.id = ?
-  `).bind(sessionId).first();
+  `).bind(hashedSessionId).first();
+  // Dual-read migration fallback: pre-existing plaintext session rows still validate
+  // until they expire naturally or the user logs out and back in.
+  if (!row) {
+    row = await db.prepare(`
+      SELECT s.id, s.user_id, s.expires_at, u.blocked, u.role
+      FROM session s
+      JOIN user u ON u.id = s.user_id
+      WHERE s.id = ?
+    `).bind(sessionId).first();
+  }
   if (!row) return null;
 
   // Blocked users are treated as session-invalid. Expired sessions are cleaned up by cron sweep (admin/cleanup), not inline.
@@ -181,7 +192,7 @@ export async function validateSession(db, sessionId) {
   if (remainingMs < SESSION_RENEW_THRESHOLD_MS) {
     const newExpiry = Math.floor((Date.now() + SESSION_DURATION_MS) / 1000);
     const upd = await db.prepare('UPDATE session SET expires_at = ? WHERE id = ? AND expires_at = ?')
-      .bind(newExpiry, sessionId, row.expires_at).run();
+      .bind(newExpiry, row.id, row.expires_at).run();
     if (upd.meta?.changes === 1) {
       row.expires_at = newExpiry;
       renewed = true;
@@ -194,7 +205,12 @@ export async function validateSession(db, sessionId) {
 }
 
 export async function invalidateSession(db, sessionId) {
-  await db.prepare('DELETE FROM session WHERE id = ?').bind(sessionId).run();
+  const hashedSessionId = await hashToken(sessionId);
+  const result = await db.prepare('DELETE FROM session WHERE id = ?').bind(hashedSessionId).run();
+  // Dual-read migration fallback: delete plaintext row if no hashed row was found.
+  if (result.meta?.changes === 0) {
+    await db.prepare('DELETE FROM session WHERE id = ?').bind(sessionId).run();
+  }
 }
 
 export async function invalidateAllUserSessions(db, userId) {
@@ -325,9 +341,56 @@ export function isValidEmail(email) {
 
 // --- Password validation ---
 
+// Top breached/common passwords that pass an 8-char length check.
+// Source: HIBP top-10K, SecLists/common-credentials, OWASP list (2024).
+// Lowercased; checked against password.toLowerCase() so capitalisation variants are caught.
+const COMMON_PASSWORDS = new Set([
+  '12345678','123456789','1234567890','password','password1','password123',
+  'iloveyou','sunshine','princess','welcome1','monkey123','dragon123',
+  'master123','shadow123','qwerty123','qwerty1','letmein1','football',
+  'baseball','basketball','soccer123','hockey123','charlie1','donald123',
+  'batman123','superman','spiderman','pokemon123','naruto123','michael1',
+  'jessica1','jennifer','amanda123','melissa1','chelsea1','ashley123',
+  'andrea123','taylor123','jordan123','hunter123','ranger123','harley123',
+  'buster123','tigger123','cookie123','peanut123','maggie123','alex1234',
+  'chris123','daniel123','thomas123','joshua123','andrew123','matthew1',
+  'nicholas','joshua12','brandon1','michelle','corvette','mustang1',
+  'trustno1','abcdefgh','abcd1234','abc12345','pass1234','pass12345',
+  'test1234','test12345','hello123','hello1234','helloworld','welcome123',
+  '11111111','22222222','33333333','44444444','55555555','66666666',
+  '77777777','88888888','99999999','00000000','12121212','11223344',
+  '13579246','87654321','98765432','qwertyui','qwertyuiop','asdfghjk',
+  'asdfghjkl','zxcvbnm1','keyboard','computer','internet','starwars',
+  'starwars1','minecraft','roblox12','fortnite','pokemon1','nintendo',
+  'playstation','xbox1234','gaming123','gamer123','music123','flower123',
+  'lovely123','cutie123','angel123','devil123','christ123','jesus123',
+  'god12345','freedom1','liberty1','america1','matrix123','letmein2',
+  'secret12','secret123','admin123','root1234','user1234','guest123',
+  'login123','access12','master12','123abc12','abc123456','pass123456',
+  'password2','password9','p@ssword','p@ssw0rd','pa$$word','passw0rd',
+  'pa55word','p4ssword','p4$$w0rd','monkey12','dragon12','shadow12',
+  'michael2','jennifer2','jessica2','hottie12','tigger12','cookie12',
+  'loveyou1','iloveu12','babygirl','superman1','batman12','captain1',
+  'avengers','ironman1','captain2','solo1234','darth123','jedi1234',
+  'sith1234','force123','xbox360p','hello12345','world1234','system12',
+  'manager1','service1','support1','helpdesk','network1','server12',
+  'windows1','linux123','ubuntu12','redhat12','centos12','debian12',
+  'trustme1','believe1','respect1','forever1','always12','never123',
+  'love1234','happy123','lucky123','magic123','power123','strong12',
+  'secret1q','welcome2','welcome3','changeme','change123','passpass',
+  'pass1pass','password!','Password1','Password!','Summer123','Winter123',
+  'spring123','autumn123','january1','february','march123','april123',
+  'january2','monday12','tuesday1','friday12','saturday','sunday123',
+]);
+
 export function isValidPassword(password) {
-  return typeof password === 'string' && password.length >= 8 && password.length <= 128;
+  if (typeof password !== 'string') return false;
+  if (password.length < 8 || password.length > 128) return false;
+  if (COMMON_PASSWORDS.has(password.toLowerCase())) return false;
+  return true;
 }
+
+export const COMMON_PASSWORD_ERROR = 'This password is too common. Please choose a more unique password.';
 
 // --- Redirect validation ---
 
@@ -441,9 +504,11 @@ export function waitlistBackfillStatement(db, userId, email) {
  * Returns a prepared D1 statement that inserts a session row.
  * Use inside db.batch() to compose atomically with other writes.
  * Mirrors the SQL in createSession() — change both together.
+ * IMPORTANT: hashedSessionId must be SHA-256(rawSessionId) — callers must
+ * pre-hash with hashToken() before passing. The raw token stays in the cookie.
  */
-export function sessionInsertStatement(db, sessionId, userId, expiresAt) {
-  return db.prepare('INSERT INTO session (id, user_id, expires_at) VALUES (?, ?, ?)').bind(sessionId, userId, expiresAt);
+export function sessionInsertStatement(db, hashedSessionId, userId, expiresAt) {
+  return db.prepare('INSERT INTO session (id, user_id, expires_at) VALUES (?, ?, ?)').bind(hashedSessionId, userId, expiresAt);
 }
 
 // --- Google OAuth helpers ---

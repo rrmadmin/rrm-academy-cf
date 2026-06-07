@@ -53,6 +53,69 @@ function isUnfurlableUrl(raw) {
   return true;
 }
 
+// --- DNS rebinding guard ---
+
+function isPrivateIp(addr) {
+  // Normalize IPv6-mapped IPv4 (::ffff:a.b.c.d)
+  const v4mapped = addr.match(/^::ffff:(\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})$/i);
+  const ipv4 = v4mapped ? v4mapped[1] : addr;
+
+  // IPv4 private/reserved ranges
+  if (/^\d{1,3}(\.\d{1,3}){3}$/.test(ipv4)) {
+    const parts = ipv4.split('.').map(Number);
+    const [a, b] = parts;
+    if (a === 0) return true;                                            // 0.0.0.0/8
+    if (a === 10) return true;                                           // 10.0.0.0/8
+    if (a === 127) return true;                                          // 127.0.0.0/8 (loopback)
+    if (a === 169 && b === 254) return true;                             // 169.254.0.0/16 (link-local / metadata)
+    if (a === 172 && b >= 16 && b <= 31) return true;                   // 172.16.0.0/12
+    if (a === 192 && b === 168) return true;                             // 192.168.0.0/16
+    if (a === 100 && b >= 64 && b <= 127) return true;                  // 100.64.0.0/10 (CGNAT)
+    return false;
+  }
+
+  // IPv6 private/reserved ranges
+  const low = addr.toLowerCase();
+  if (low === '::1') return true;                                        // loopback
+  if (low.startsWith('fc') || low.startsWith('fd')) return true;        // fc00::/7 (ULA)
+  if (low.startsWith('fe80')) return true;                              // fe80::/10 (link-local)
+  if (low.startsWith('::ffff:')) return true;                           // ::ffff:0:0/96 (v4-mapped; catch-all)
+  return false;
+}
+
+async function resolveAndCheck(host) {
+  // Returns true if the hostname resolves safely (no private addresses).
+  // Returns false on any private hit OR on resolution failure (fail closed).
+  for (const type of ['A', 'AAAA']) {
+    let data;
+    try {
+      const resp = await fetch(
+        `https://1.1.1.1/dns-query?name=${encodeURIComponent(host)}&type=${type}`,
+        {
+          headers: { accept: 'application/dns-json' },
+          signal: AbortSignal.timeout(3000),
+        }
+      );
+      if (!resp.ok) return false;
+      data = await resp.json();
+    } catch {
+      return false; // resolution failure → fail closed
+    }
+    if (!data || data.Status !== 0) {
+      // NXDOMAIN or SERVFAIL for this record type — acceptable for AAAA on IPv4-only hosts
+      if (type === 'AAAA') continue;
+      return false; // no A record → fail closed
+    }
+    const answers = Array.isArray(data.Answer) ? data.Answer : [];
+    for (const answer of answers) {
+      // answer.type 1=A, 28=AAAA; skip CNAME (type 5) records
+      if (answer.type !== 1 && answer.type !== 28) continue;
+      if (isPrivateIp(answer.data)) return false;
+    }
+  }
+  return true;
+}
+
 // --- SHA-256 hex helper ---
 
 async function sha256hex(str) {
@@ -212,6 +275,14 @@ export async function onRequestGet({ request, env, waitUntil }) {
       for (let hop = 0; hop <= MAX_HOPS; hop++) {
         if (hop === MAX_HOPS) {
           // Exceeded hops — null preview
+          finalResponse = null;
+          break;
+        }
+
+        // DNS rebinding guard: resolve the hostname before each fetch hop
+        const hopHost = new URL(currentUrl).hostname;
+        const dnsOk = await resolveAndCheck(hopHost);
+        if (!dnsOk) {
           finalResponse = null;
           break;
         }

@@ -82,3 +82,8 @@ regexes = ['''api\.stripe\.com/v1/webhook_endpoints/we_[A-Za-z0-9]+''']
 description = "Idempotency-Key test fixture uses the RFC 4122 example UUID, not a secret"
 paths = ['''test/idempotency\.test\.js''']
 regexes = ['''f47ac10b-58cc-4372-a567-0e02b2c3d479''']
+
+[[allowlists]]
+description = "Auth test fixture password (a strong-but-fake test value, not a credential)"
+paths = ['''test/auth-signup\.test\.js''', '''test/auth-shared\.test\.js''']
+regexes = ['''Zx9-Qr7-Plk2-vbT''']

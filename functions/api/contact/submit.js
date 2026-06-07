@@ -137,7 +137,7 @@ async function _handlePost(context) {
       await logEmailFailure(env.DB, { email, category: 'transactional', source: 'contact/confirm', subject: confirmSubject, detail: err.message });
     }
 
-    log(env, waitUntil, 'contact', 'submit_ok', 'ok', email, 0, 200, [category, categorySource]);
+    log(env, waitUntil, 'contact', 'submit_ok', 'ok', authStateAtSubmit !== null ? `user:${authStateAtSubmit}` : 'anonymous', 0, 200, [category, categorySource]);
     return json({ ok: true });
   } catch (err) {
     console.error(err);

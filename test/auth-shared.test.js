@@ -36,7 +36,7 @@ describe('hashPassword + verifyPassword', () => {
     const hashed = await hashPassword('test');
     const parts = hashed.split('$');
     assert.equal(parts.length, 3, 'expected 3 parts separated by $');
-    assert.equal(parts[0], '100000', 'expected 100000 iterations');
+    assert.equal(parts[0], '600000', 'expected 600000 iterations');
   });
 });
 
@@ -100,8 +100,13 @@ describe('isValidEmail', () => {
 
 describe('isValidPassword', () => {
   it('accepts valid passwords', () => {
-    assert.ok(isValidPassword('12345678'));
+    assert.ok(isValidPassword('Zx9-Qr7-Plk2-vbT'));
     assert.ok(isValidPassword('a'.repeat(128)));
+  });
+
+  it('rejects common/breached passwords (AUTHCRYPTO-03)', () => {
+    assert.ok(!isValidPassword('password123'));
+    assert.ok(!isValidPassword('12345678'));
   });
 
   it('rejects too short', () => {

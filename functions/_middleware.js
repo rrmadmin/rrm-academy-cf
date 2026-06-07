@@ -59,9 +59,9 @@ const CSP_VALUE = "default-src 'self'; script-src 'self' 'unsafe-inline' 'wasm-u
  */
 function withSecurityHeaders(response) {
   const headers = new Headers(response.headers);
-  headers.set('Strict-Transport-Security', 'max-age=31536000; includeSubDomains');
+  headers.set('Strict-Transport-Security', 'max-age=31536000; includeSubDomains; preload');
   headers.set('X-Frame-Options', 'SAMEORIGIN');
-  headers.set('Permissions-Policy', 'camera=(), microphone=(), geolocation=()');
+  headers.set('Permissions-Policy', 'camera=(), microphone=(), geolocation=(), payment=(self), usb=(), magnetometer=(), gyroscope=(), accelerometer=(), browsing-topics=(), interest-cohort=()');
   headers.set('Referrer-Policy', 'strict-origin-when-cross-origin');
   headers.set('X-Content-Type-Options', 'nosniff');
   headers.set('Content-Signal', 'ai-train=yes, search=yes, ai-input=yes');
