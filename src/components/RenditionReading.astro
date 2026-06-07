@@ -1,0 +1,69 @@
+---
+/**
+ * RenditionReading: secondary "Read" tab panel for the course step player
+ * (Honen Phase 1). Empty shell; the player's inline script lazy-fetches
+ * GET /api/courses/rendition?format=reading on first activation, injects the
+ * sanitized html into .article-content, and fills the read-time line from
+ * wordCount. Reuses the player's existing .article-content styles. The primary
+ * "Read" tab (step.type === 'article') uses the page's own block, not this one.
+ */
+interface Props {
+  stepId: string;
+}
+const { stepId } = Astro.props;
+---
+<div class="rendition-panel" role="tabpanel" data-rendition-panel="reading" data-rendition-step={stepId} hidden>
+  <div class="rendition-loading" data-rendition-loading>
+    <div class="rendition-spinner"></div>
+    <p>Loading…</p>
+  </div>
+  <div class="rendition-reading" data-rendition-reading hidden>
+    <p class="rendition-readtime" data-rendition-readtime hidden></p>
+    <div class="article-content" data-rendition-html></div>
+  </div>
+  <div class="rendition-message" data-rendition-message hidden></div>
+</div>
+
+<style>
+  .rendition-panel[hidden] { display: none; }
+  .rendition-reading {
+    padding: var(--space-8) var(--space-6);
+    max-width: var(--max-width-article);
+    margin: 0 auto;
+  }
+  .rendition-readtime {
+    font-size: 0.75rem;
+    font-weight: 500;
+    color: var(--text-tertiary);
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    margin-bottom: var(--space-4);
+  }
+  .rendition-loading {
+    text-align: center;
+    padding: var(--space-12) 0;
+    color: var(--text-tertiary);
+    font-size: 0.875rem;
+  }
+  .rendition-spinner {
+    width: 28px;
+    height: 28px;
+    border: 3px solid var(--neutral-200);
+    border-top-color: var(--accent);
+    border-radius: 50%;
+    margin: 0 auto var(--space-3);
+    animation: rspin 0.7s linear infinite;
+  }
+  @keyframes rspin { to { transform: rotate(360deg); } }
+  .rendition-message {
+    text-align: center;
+    padding: var(--space-12) var(--space-6);
+    color: var(--text-muted);
+    font-size: 0.875rem;
+    max-width: var(--max-width-article);
+    margin: 0 auto;
+  }
+  @media (max-width: 768px) {
+    .rendition-reading { padding: var(--space-6) var(--space-4); }
+  }
+</style>

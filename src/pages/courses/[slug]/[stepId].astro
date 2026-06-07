@@ -1,6 +1,11 @@
 ---
 import BaseLayout from '../../../layouts/BaseLayout.astro';
 import coursesData from '../../../data/courses.json';
+import LessonTabs from '../../../components/LessonTabs.astro';
+import RenditionReading from '../../../components/RenditionReading.astro';
+import RenditionFlashcards from '../../../components/RenditionFlashcards.astro';
+import RenditionQuiz from '../../../components/RenditionQuiz.astro';
+import RenditionAudio from '../../../components/RenditionAudio.astro';
 
 export function getStaticPaths() {
   const paths: any[] = [];
@@ -44,6 +49,41 @@ function stepTypeLabel(type: string) {
   if (type === 'quiz') return 'Quiz';
   return 'Article';
 }
+
+// --- Multi-format tab model (Honen Phase 1) ---
+// step.renditions is a build-time render hint (array of published formats).
+// Fixed tab order: Watch / Read / Cards / Quiz / Listen. A tab renders only
+// when its format is present; Watch only when step.streamUid. The primary tab
+// maps from step.type. Secondary panels lazy-load at runtime via the rendition
+// endpoint; the player never trusts renditions as an access input.
+const TAB_DEFS = [
+  { format: 'watch', label: 'Watch' },
+  { format: 'reading', label: 'Read' },
+  { format: 'flashcards', label: 'Cards' },
+  { format: 'quiz', label: 'Quiz' },
+  { format: 'audio', label: 'Listen' },
+] as const;
+
+const renditionFormats: string[] = Array.isArray(step.renditions) ? step.renditions : [];
+const primaryFormat =
+  step.type === 'video' ? 'watch' : step.type === 'quiz' ? 'quiz' : 'reading';
+
+const presentFormats = new Set<string>();
+if (step.streamUid) presentFormats.add('watch');
+if (step.type === 'article') presentFormats.add('reading');
+if (step.type === 'quiz') presentFormats.add('quiz');
+for (const f of renditionFormats) {
+  if (f === 'reading' || f === 'flashcards' || f === 'quiz' || f === 'audio') presentFormats.add(f);
+}
+
+const lessonTabs = TAB_DEFS.filter((t) => presentFormats.has(t.format));
+// More than one format -> tab bar. One/zero -> today's single-panel behavior.
+const showTabs = lessonTabs.length > 1;
+// Secondary panels render only for non-primary formats present as renditions.
+const hasSecondaryReading = showTabs && primaryFormat !== 'reading' && presentFormats.has('reading');
+const hasSecondaryFlashcards = showTabs && presentFormats.has('flashcards');
+const hasSecondaryQuiz = showTabs && primaryFormat !== 'quiz' && presentFormats.has('quiz');
+const hasSecondaryAudio = showTabs && presentFormats.has('audio');
 ---
 <BaseLayout
   title={`${step.title} | ${course.title}`}
@@ -123,8 +163,10 @@ function stepTypeLabel(type: string) {
 
       <!-- Video / Article / Quiz content -->
       <div class="player-content">
+        {showTabs && <LessonTabs tabs={lessonTabs} primary={primaryFormat} />}
+
         {step.type === 'video' && step.streamUid && (
-          <div class="video-wrapper">
+          <div class="video-wrapper" role="tabpanel" data-rendition-panel="watch" data-rendition-primary>
             <div class="video-container" id="video-container">
               <div id="stream-loading" style="display:flex;align-items:center;justify-content:center;width:100%;height:100%;background:#000;color:#999;font-size:0.875rem;">Loading video...</div>
             </div>
@@ -132,7 +174,7 @@ function stepTypeLabel(type: string) {
         )}
 
         {step.type === 'article' && (
-          <div class="article-content">
+          <div class="article-content" role="tabpanel" data-rendition-panel="reading" data-rendition-primary>
             {step.content ? (
               <Fragment set:html={step.content} />
             ) : (
@@ -142,7 +184,7 @@ function stepTypeLabel(type: string) {
         )}
 
         {step.type === 'quiz' && (
-          <div class="quiz-content" id="quiz-container">
+          <div class="quiz-content" id="quiz-container" role="tabpanel" data-rendition-panel="quiz" data-rendition-primary>
             <div class="quiz-loading" id="quiz-loading">
               <div class="quiz-spinner"></div>
               <p>Loading...</p>
@@ -167,6 +209,11 @@ function stepTypeLabel(type: string) {
             </div>
           </div>
         )}
+
+        {hasSecondaryReading && <RenditionReading stepId={step.id} />}
+        {hasSecondaryFlashcards && <RenditionFlashcards stepId={step.id} />}
+        {hasSecondaryQuiz && <RenditionQuiz stepId={step.id} />}
+        {hasSecondaryAudio && <RenditionAudio stepId={step.id} />}
 
         <!-- Lesson header -->
         <div class="lesson-info">
@@ -1066,6 +1113,322 @@ function stepTypeLabel(type: string) {
     })();
   </script>
 
+  <!-- Multi-format tab logic (Honen Phase 1) -->
+  <script is:inline define:vars={{
+    tCourseId: course.id,
+    tStepId: step.id,
+    tPrimaryFormat: primaryFormat,
+    tShowTabs: showTabs,
+  }}>
+    (function () {
+      if (!tShowTabs) return;
+      var tabBar = document.querySelector('[data-lesson-tabs]');
+      if (!tabBar) return;
+
+      var tabs = Array.prototype.slice.call(tabBar.querySelectorAll('[data-tab]'));
+      var panels = Array.prototype.slice.call(document.querySelectorAll('[data-rendition-panel]'));
+      var loaded = {}; // format -> true once content (or a terminal state) is rendered
+
+      // Resolve the authenticated user id for the flashcards localStorage
+      // namespace (key flashcards:<userId>:<stepId>). Gated on the rrm_auth=1
+      // hint cookie so anonymous visitors never pay for an auth fetch. On
+      // logout (hint absent / session null) any prior flashcard piles are
+      // cleared so per-user state never leaks across accounts on a shared box.
+      window.__rrmUserId__ = null;
+      function clearFlashcardKeys() {
+        try {
+          for (var i = localStorage.length - 1; i >= 0; i--) {
+            var key = localStorage.key(i);
+            if (key && key.indexOf('flashcards:') === 0) localStorage.removeItem(key);
+          }
+        } catch (e) {}
+      }
+      var hasAuthHint = /(?:^|;\s*)rrm_auth=1(?:;|$)/.test(document.cookie || '');
+      if (!hasAuthHint) {
+        clearFlashcardKeys();
+      } else {
+        fetch('/api/auth/session', { credentials: 'same-origin' })
+          .then(function (r) { return r.json(); })
+          .then(function (data) {
+            if (data && data.ok && data.user && data.user.id) {
+              window.__rrmUserId__ = data.user.id;
+            } else {
+              clearFlashcardKeys();
+            }
+          })
+          .catch(function () {});
+      }
+
+      function panelFor(format) {
+        for (var i = 0; i < panels.length; i++) {
+          if (panels[i].getAttribute('data-rendition-panel') === format) return panels[i];
+        }
+        return null;
+      }
+
+      function esc(s) { var d = document.createElement('div'); d.textContent = s == null ? '' : String(s); return d.innerHTML; }
+
+      function showMessage(panel, text) {
+        var box = panel.querySelector('[data-rendition-message]');
+        if (box) { box.textContent = text; box.hidden = false; }
+        var loading = panel.querySelector('[data-rendition-loading]');
+        if (loading) loading.hidden = true;
+      }
+
+      // Translate a rendition fetch failure into a quiet in-panel state. A 404
+      // on a format that was in renditions[] is a removed-format message, never
+      // an error toast. 401/403 surface the gate state gracefully.
+      function handleFailure(panel, status, error) {
+        if (status === 404 || error === 'rendition_not_available') {
+          showMessage(panel, 'This format is no longer available for this lesson.');
+        } else if (status === 401 || error === 'Not authenticated') {
+          var box = panel.querySelector('[data-rendition-message]');
+          if (box) {
+            box.innerHTML = 'Please <a href="/login/?redirect=' + encodeURIComponent(window.location.pathname) + '">sign in</a> to view this format.';
+            box.hidden = false;
+          }
+          var l1 = panel.querySelector('[data-rendition-loading]'); if (l1) l1.hidden = true;
+        } else if (status === 403 || error === 'Not enrolled') {
+          showMessage(panel, 'Enroll in this course to access this format.');
+        } else if (error === 'Previous step not completed') {
+          showMessage(panel, 'Complete the previous step to unlock this format.');
+        } else {
+          showMessage(panel, 'This format could not be loaded. Please try refreshing.');
+        }
+      }
+
+      function fetchRendition(format, panel, render) {
+        fetch('/api/courses/rendition?stepId=' + encodeURIComponent(tStepId) + '&format=' + encodeURIComponent(format), { credentials: 'same-origin' })
+          .then(function (r) {
+            return r.json().then(function (data) { return { status: r.status, data: data }; }, function () { return { status: r.status, data: null }; });
+          })
+          .then(function (res) {
+            if (!res.data || !res.data.ok) {
+              handleFailure(panel, res.status, res.data && res.data.error);
+              return;
+            }
+            var loading = panel.querySelector('[data-rendition-loading]');
+            if (loading) loading.hidden = true;
+            render(res.data, panel);
+          })
+          .catch(function () {
+            showMessage(panel, 'This format could not be loaded. Please try refreshing.');
+          });
+      }
+
+      // --- Reading ---
+      function renderReading(data, panel) {
+        var wrap = panel.querySelector('[data-rendition-reading]');
+        var html = panel.querySelector('[data-rendition-html]');
+        if (html) html.innerHTML = data.html || '';
+        var readtime = panel.querySelector('[data-rendition-readtime]');
+        if (readtime && typeof data.wordCount === 'number' && data.wordCount > 0) {
+          var mins = Math.max(1, Math.round(data.wordCount / 200));
+          readtime.textContent = data.wordCount + ' words · ' + mins + ' min read';
+          readtime.hidden = false;
+        }
+        if (wrap) wrap.hidden = false;
+      }
+
+      // --- Flashcards ---
+      function renderFlashcards(data, panel) {
+        var cards = (data.cards || []).slice();
+        if (cards.length === 0) { showMessage(panel, 'No flashcards are available for this lesson yet.'); return; }
+
+        var order = cards.map(function (_, i) { return i; });
+        var idx = 0;
+        var userId = window.__rrmUserId__ || 'anon';
+        var storeKey = 'flashcards:' + userId + ':' + tStepId;
+        var piles = {}; // cardIndex -> 'gotit' | 'again'
+        try {
+          var saved = JSON.parse(localStorage.getItem(storeKey) || '{}');
+          if (saved && typeof saved === 'object') piles = saved;
+        } catch (e) { piles = {}; }
+
+        var deck = panel.querySelector('[data-flashcards]');
+        var card = panel.querySelector('[data-fc-card]');
+        var frontEl = panel.querySelector('[data-fc-front]');
+        var backEl = panel.querySelector('[data-fc-back]');
+        var progressEl = panel.querySelector('[data-fc-progress]');
+        var prevBtn = panel.querySelector('[data-fc-prev]');
+        var nextBtn = panel.querySelector('[data-fc-next]');
+        var shuffleBtn = panel.querySelector('[data-fc-shuffle]');
+        var gotitBtn = panel.querySelector('[data-fc-gotit]');
+        var againBtn = panel.querySelector('[data-fc-again]');
+        var gotitCount = panel.querySelector('[data-fc-gotit-count]');
+        var againCount = panel.querySelector('[data-fc-again-count]');
+
+        function persist() {
+          try { localStorage.setItem(storeKey, JSON.stringify(piles)); } catch (e) {}
+        }
+        function refreshCounts() {
+          var g = 0, a = 0;
+          for (var k in piles) { if (piles[k] === 'gotit') g++; else if (piles[k] === 'again') a++; }
+          if (gotitCount) gotitCount.textContent = g;
+          if (againCount) againCount.textContent = a;
+        }
+        function showCard() {
+          var ci = order[idx];
+          card.classList.remove('flashcard--flipped');
+          if (frontEl) frontEl.textContent = cards[ci].front || '';
+          if (backEl) backEl.textContent = cards[ci].back || '';
+          if (progressEl) progressEl.textContent = (idx + 1) + ' / ' + order.length;
+          if (prevBtn) prevBtn.disabled = idx === 0;
+          if (nextBtn) nextBtn.disabled = idx === order.length - 1;
+        }
+        function setPile(kind) {
+          piles[order[idx]] = kind;
+          persist();
+          refreshCounts();
+          if (idx < order.length - 1) { idx++; showCard(); }
+        }
+
+        if (card) card.addEventListener('click', function () { card.classList.toggle('flashcard--flipped'); });
+        if (prevBtn) prevBtn.addEventListener('click', function () { if (idx > 0) { idx--; showCard(); } });
+        if (nextBtn) nextBtn.addEventListener('click', function () { if (idx < order.length - 1) { idx++; showCard(); } });
+        if (gotitBtn) gotitBtn.addEventListener('click', function () { setPile('gotit'); });
+        if (againBtn) againBtn.addEventListener('click', function () { setPile('again'); });
+        if (shuffleBtn) shuffleBtn.addEventListener('click', function () {
+          for (var i = order.length - 1; i > 0; i--) {
+            var j = Math.floor(Math.random() * (i + 1));
+            var tmp = order[i]; order[i] = order[j]; order[j] = tmp;
+          }
+          idx = 0; showCard();
+        });
+
+        refreshCounts();
+        showCard();
+        if (deck) deck.hidden = false;
+      }
+
+      // --- Secondary quiz (reads data.quiz.*; never gates completion) ---
+      function renderQuizTab(data, panel) {
+        var quiz = data.quiz;
+        if (!quiz || !quiz.questions || quiz.questions.length === 0) {
+          showMessage(panel, 'Quiz content is being prepared and will be available shortly.');
+          return;
+        }
+        var wrap = panel.querySelector('[data-rquiz]');
+        var titleEl = panel.querySelector('[data-rquiz-title]');
+        var descEl = panel.querySelector('[data-rquiz-desc]');
+        var metaEl = panel.querySelector('[data-rquiz-meta]');
+        var questionsEl = panel.querySelector('[data-rquiz-questions]');
+        var submitBtn = panel.querySelector('[data-rquiz-submit]');
+        var hintEl = panel.querySelector('[data-rquiz-hint]');
+        var resultsEl = panel.querySelector('[data-rquiz-results]');
+        var answers = {};
+
+        if (titleEl) titleEl.textContent = quiz.title || '';
+        if (descEl) descEl.textContent = quiz.description || '';
+        var metaHtml = '<span class="quiz-pill">' + quiz.questions.length + ' questions</span>';
+        if (quiz.type === 'quiz' && quiz.passingScore) metaHtml += '<span class="quiz-pill">Passing: ' + quiz.passingScore + '%</span>';
+        if (metaEl) metaEl.innerHTML = metaHtml;
+
+        var h = '';
+        quiz.questions.forEach(function (q, i) {
+          h += '<div class="qq"><div class="qq__num">' + (i + 1) + '</div><div class="qq__body">';
+          h += '<p class="qq__text">' + esc(q.text) + '</p><div class="qq__opts">';
+          (q.options || []).forEach(function (opt, oi) {
+            h += '<label class="qo"><input type="radio" name="rq-' + esc(q.id) + '" value="' + oi + '">';
+            h += '<span class="qo__radio"></span><span class="qo__text">' + esc(opt) + '</span></label>';
+          });
+          h += '</div></div></div>';
+        });
+        if (questionsEl) questionsEl.innerHTML = h;
+
+        function checkReady() {
+          if (submitBtn) submitBtn.disabled = Object.keys(answers).length < quiz.questions.length;
+        }
+        if (questionsEl) questionsEl.querySelectorAll('input[type="radio"]').forEach(function (input) {
+          input.addEventListener('change', function () {
+            answers[this.name] = parseInt(this.value, 10);
+            var group = questionsEl.querySelectorAll('input[name="' + this.name + '"]');
+            group.forEach(function (r) { var label = r.closest('.qo'); if (label) label.classList.toggle('qo--sel', r.checked); });
+            checkReady();
+          });
+        });
+        if (hintEl && quiz.type === 'quiz' && quiz.passingScore) hintEl.textContent = 'You need ' + quiz.passingScore + '% to pass.';
+        if (wrap) wrap.hidden = false;
+
+        if (submitBtn) submitBtn.addEventListener('click', function () {
+          if (submitBtn.disabled) return;
+          submitBtn.disabled = true;
+          submitBtn.textContent = 'Submitting…';
+          var ansArr = quiz.questions.map(function (q) { var k = 'rq-' + q.id; return answers[k] !== undefined ? answers[k] : -1; });
+          fetch('/api/courses/quiz', {
+            method: 'POST', credentials: 'same-origin',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ courseId: tCourseId, stepId: tStepId, answers: ansArr }),
+          })
+            .then(function (r) { return r.json(); })
+            .then(function (res) {
+              if (!res || !res.ok) { submitBtn.disabled = false; submitBtn.textContent = 'Submit Answers'; return; }
+              // Secondary tab: show score only, never touch step completion / sidebar.
+              if (wrap) wrap.hidden = true;
+              var rh = '<div class="qr-card ' + (res.passed ? 'qr-card--pass' : 'qr-card--fail') + '">';
+              rh += '<h3>Score: ' + esc(res.score) + '%</h3>';
+              if (quiz.passingScore) rh += '<p>' + (res.passed ? 'You passed!' : 'You need ' + quiz.passingScore + '% to pass.') + '</p>';
+              rh += '<p class="rquiz-note">This is a practice format. Your course progress is tracked by the main lesson activity.</p>';
+              rh += '</div>';
+              if (resultsEl) { resultsEl.innerHTML = rh; resultsEl.hidden = false; }
+            })
+            .catch(function () { submitBtn.disabled = false; submitBtn.textContent = 'Submit Answers'; });
+        });
+      }
+
+      // --- Audio (Phase 4 deferred: metadata-only coming-soon) ---
+      function renderAudio(data, panel) {
+        var box = panel.querySelector('[data-rendition-audio]');
+        var meta = panel.querySelector('[data-rendition-audio-meta]');
+        if (meta) {
+          var parts = [];
+          if (typeof data.duration === 'number' && data.duration > 0) {
+            var m = Math.floor(data.duration / 60);
+            var s = data.duration % 60;
+            parts.push((s > 0 ? m + ':' + String(s).padStart(2, '0') : m + ' min') + ' narration');
+          }
+          if (data.voice) parts.push('Voice: ' + data.voice);
+          meta.textContent = parts.join(' · ');
+        }
+        if (box) box.hidden = false;
+      }
+
+      var renderers = {
+        reading: renderReading,
+        flashcards: renderFlashcards,
+        quiz: renderQuizTab,
+        audio: renderAudio,
+      };
+
+      function activate(format) {
+        tabs.forEach(function (t) {
+          var on = t.getAttribute('data-tab') === format;
+          t.classList.toggle('active', on);
+          t.setAttribute('aria-selected', on ? 'true' : 'false');
+        });
+        panels.forEach(function (p) {
+          p.hidden = p.getAttribute('data-rendition-panel') !== format;
+        });
+
+        // Primary panel (video/article/quiz) is already populated by its own
+        // script (do not re-fetch; video must keep its /api/stream/token path).
+        var panel = panelFor(format);
+        if (!panel || panel.hasAttribute('data-rendition-primary')) return;
+        if (loaded[format]) return;
+        loaded[format] = true;
+        var render = renderers[format];
+        if (render) fetchRendition(format, panel, render);
+      }
+
+      tabs.forEach(function (t) {
+        t.addEventListener('click', function () { activate(t.getAttribute('data-tab')); });
+      });
+
+      // Default tab = primary rendition (step.type). Activate on load.
+      activate(tPrimaryFormat);
+    })();
+  </script>
+
   <!-- Comments logic -->
   <script is:inline define:vars={{
     cmCourseId: course.id,
@@ -1831,6 +2194,11 @@ function stepTypeLabel(type: string) {
     border: 1px solid color-mix(in srgb, var(--color-error) 20%, transparent);
   }
   :global(.qr-card--fail h3) { color: var(--color-error); }
+  :global(.rquiz-note) {
+    margin-top: var(--space-3);
+    font-size: 0.8125rem;
+    color: var(--text-tertiary);
+  }
   :global(.qr-cert) {
     margin-top: var(--space-3);
     font-weight: 500;
