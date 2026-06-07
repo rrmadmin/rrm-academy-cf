@@ -229,13 +229,30 @@ export async function onRequestDelete(context) {
       }
     }
 
-    const stepsDeleteResult = await env.DB.prepare(
-      'DELETE FROM course_step WHERE section_id = ?' +
-      ' AND NOT EXISTS (SELECT 1 FROM step_progress WHERE step_id = course_step.id)' +
-      ' AND NOT EXISTS (SELECT 1 FROM quiz_response WHERE step_id = course_step.id)' +
-      ' AND NOT EXISTS (SELECT 1 FROM lesson_comment WHERE step_id = course_step.id)' +
-      ' AND NOT EXISTS (SELECT 1 FROM course WHERE certificate_quiz_step_id = course_step.id)'
-    ).bind(sectionId).run();
+    const { results: audioRows } = await env.DB.prepare(
+      "SELECT content_json FROM step_rendition WHERE format = 'audio' AND step_id IN (SELECT id FROM course_step WHERE section_id = ?)"
+    ).bind(sectionId).all();
+    const audioKeys = [];
+    for (const r of (audioRows || [])) {
+      try {
+        const k = JSON.parse(r.content_json)?.r2_key;
+        if (k) audioKeys.push(k);
+      } catch { /* malformed row; nothing to delete */ }
+    }
+
+    const [, stepsDeleteResult] = await env.DB.batch([
+      env.DB.prepare(
+        'DELETE FROM step_rendition WHERE step_id IN (SELECT id FROM course_step WHERE section_id = ?)'
+      ).bind(sectionId),
+      env.DB.prepare(
+        'DELETE FROM course_step WHERE section_id = ?' +
+        ' AND NOT EXISTS (SELECT 1 FROM step_progress WHERE step_id = course_step.id)' +
+        ' AND NOT EXISTS (SELECT 1 FROM quiz_response WHERE step_id = course_step.id)' +
+        ' AND NOT EXISTS (SELECT 1 FROM lesson_comment WHERE step_id = course_step.id)' +
+        ' AND NOT EXISTS (SELECT 1 FROM course WHERE certificate_quiz_step_id = course_step.id)'
+      ).bind(sectionId),
+      env.DB.prepare('DELETE FROM course_section WHERE id = ?').bind(sectionId),
+    ]);
 
     if ((stepsDeleteResult.meta?.changes ?? 0) < stepIds.length) {
       return json({
@@ -245,7 +262,14 @@ export async function onRequestDelete(context) {
       }, 409);
     }
 
-    await env.DB.prepare('DELETE FROM course_section WHERE id = ?').bind(sectionId).run();
+    for (const key of audioKeys) {
+      if (!env.R2_ASSETS) break;
+      try {
+        await env.R2_ASSETS.delete(key);
+      } catch (r2Err) {
+        log(env, waitUntil, 'admin-courses', 'section_delete_r2_error', 'error', `${key}: ${r2Err.message}`, 0, 500);
+      }
+    }
 
     return json({ ok: true });
   } catch (err) {
