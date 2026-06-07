@@ -1002,6 +1002,7 @@ CREATE TABLE IF NOT EXISTS user (
 CREATE INDEX IF NOT EXISTS idx_user_email ON user(email);
 CREATE UNIQUE INDEX IF NOT EXISTS idx_user_email_nocase ON user(email COLLATE NOCASE);
 CREATE INDEX IF NOT EXISTS idx_user_google_id ON user(google_id);
+CREATE UNIQUE INDEX IF NOT EXISTS idx_user_google_id_unique ON user(google_id) WHERE google_id IS NOT NULL AND google_id != '';
 CREATE INDEX IF NOT EXISTS idx_user_stripe_customer ON user(stripe_customer_id);
 
 -- ============================================================

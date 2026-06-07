@@ -18,7 +18,7 @@ async function unsubscribe(db, email, waitUntil, env) {
       "INSERT INTO email_log (event, email, category, source) VALUES ('unsubscribed', ?, 'newsletter', 'newsletter/unsubscribe')"
     ).bind(email.toLowerCase()),
   ]);
-  log(env, waitUntil, 'newsletter', 'unsubscribe', 'ok', email, 0, 200);
+  log(env, waitUntil, 'newsletter', 'unsubscribe', 'ok', null, 0, 200);
 }
 
 export async function onRequestGet({ request, env, waitUntil }) {

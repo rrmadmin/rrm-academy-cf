@@ -52,10 +52,13 @@ export async function onRequestPost({ request, env, waitUntil }) {
 
   function esc(s) { return (s || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#39;'); }
 
+  // Guard postUrl: must originate from rrmacademy.org before embedding in href
+  const safePostUrl = postUrl.startsWith('https://rrmacademy.org/') ? postUrl : 'https://rrmacademy.org/commentary/';
+
   // Build Gmail-plain email body
   const emailBody = `
 <p>We just published something you might find useful:</p>
-<p><strong><a href="${postUrl}" style="color:#725e7e;">${esc(postTitle)}</a></strong></p>
+<p><strong><a href="${esc(safePostUrl)}" style="color:#725e7e;">${esc(postTitle)}</a></strong></p>
 ${postExcerpt ? `<p style="color:#555;">${esc(postExcerpt)}</p>` : ''}
 <p>- Naomi</p>
 `.trim();

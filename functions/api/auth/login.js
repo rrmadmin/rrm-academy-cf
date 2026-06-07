@@ -6,7 +6,7 @@ import {
   json, optionsResponse, verifyPassword, sessionCookie, authHintCookie,
   verifyTurnstile, checkRateLimit, isValidEmail,
   generateSessionId, waitlistBackfillStatement, sessionInsertStatement,
-  DUMMY_PASSWORD_HASH, SESSION_DURATION_MS,
+  DUMMY_PASSWORD_HASH, SESSION_DURATION_MS, hashToken, hashPassword, PBKDF2_ITERATIONS,
 } from './_shared.js';
 import { sendEmail, logEmailFailure } from '../_ses.js';
 import { log } from '../_log.js';
@@ -121,6 +121,17 @@ export async function onRequestPost({ request, env, waitUntil }) {
       return json({ ok: false, error: 'Invalid email or password.' }, 401);
     }
 
+    // Rehash on login if the stored hash used fewer iterations than the current target.
+    // Best-effort and non-blocking: a rehash failure never blocks or fails a login.
+    const storedIterations = parseInt((user.hashed_password || '').split('$')[0], 10);
+    if (storedIterations < PBKDF2_ITERATIONS) {
+      waitUntil(
+        hashPassword(password)
+          .then(newHash => db.prepare("UPDATE user SET hashed_password = ? WHERE id = ?").bind(newHash, user.id).run())
+          .catch(() => {})
+      );
+    }
+
     // Cleanup: delete only EXPIRED sessions; preserve other-device active sessions for multi-device login.
     const nowTs = Math.floor(Date.now() / 1000);
     await db.prepare('DELETE FROM session WHERE user_id = ? AND expires_at < ?').bind(user.id, nowTs).run();
@@ -129,8 +140,9 @@ export async function onRequestPost({ request, env, waitUntil }) {
     // Idempotent: only touches course_waitlist rows where user_id IS NULL.
     const sessionId = generateSessionId();
     const expiresAt = Math.floor((Date.now() + SESSION_DURATION_MS) / 1000);
+    const hashedSessionId = await hashToken(sessionId);
     await db.batch([
-      sessionInsertStatement(db, sessionId, user.id, expiresAt),
+      sessionInsertStatement(db, hashedSessionId, user.id, expiresAt),
       waitlistBackfillStatement(db, user.id, user.email),
     ]);
     const session = { id: sessionId, expiresAt };

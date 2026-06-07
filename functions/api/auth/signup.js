@@ -7,7 +7,7 @@ import {
   hashPassword, sessionCookie, authHintCookie, verifyTurnstile, checkRateLimit,
   isValidPassword, waitlistBackfillStatement, sessionInsertStatement,
   deriveSignupSource, EMAIL_VERIFY_TTL_S, SESSION_DURATION_MS,
-  getSessionIdFromCookie,
+  getSessionIdFromCookie, hashToken, COMMON_PASSWORD_ERROR,
 } from './_shared.js';
 import { validateEmail } from './_email-validate.js';
 import { verifyAndTagEmail, verifyEmailELV } from '../_elv.js';
@@ -85,7 +85,12 @@ export async function onRequestPost({ request, env, waitUntil }) {
     const password  = body.password || '';
     const signupSource = deriveSignupSource(body, request);
 
-    if (!isValidPassword(password)) return json({ ok: false, error: 'Password must be between 8 and 128 characters.' }, 400);
+    if (!isValidPassword(password)) {
+      const pwErr = (typeof password === 'string' && password.length >= 8 && password.length <= 128)
+        ? COMMON_PASSWORD_ERROR
+        : 'Password must be between 8 and 128 characters.';
+      return json({ ok: false, error: pwErr }, 400);
+    }
 
     // Rate limit by IP (before expensive DNS lookups): 5 attempts per 15 minutes
     const ip = request.headers.get('CF-Connecting-IP');
@@ -190,6 +195,7 @@ export async function onRequestPost({ request, env, waitUntil }) {
 
     const sessionId = generateSessionId();
     const sessionExpiresAt = Math.floor((Date.now() + SESSION_DURATION_MS) / 1000);
+    const hashedSessionId = await hashToken(sessionId);
 
     // Atomic batch: user + email_verification + session + waitlist backfill
     try {
@@ -201,7 +207,7 @@ export async function onRequestPost({ request, env, waitUntil }) {
           'INSERT INTO email_verification (id, user_id, code, expires_at) VALUES (?, ?, ?, ?)'
         ).bind(generateId(), userId, code, verifyExpiresAt),
         // No prior sessions to clean: new user, fresh DB row.
-        sessionInsertStatement(db, sessionId, userId, sessionExpiresAt),
+        sessionInsertStatement(db, hashedSessionId, userId, sessionExpiresAt),
         waitlistBackfillStatement(db, userId, cleanEmail),
       ]);
     } catch (batchErr) {

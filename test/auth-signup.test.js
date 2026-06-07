@@ -69,7 +69,7 @@ describe('POST /api/auth/signup -- required field validation', () => {
     const restore = stubAllExternalFetchSuccess();
     try {
       const req = mockRequest('POST', {
-        body: { lastName: 'Smith', email: 'alice@example.com', password: 'password123', turnstileToken: 'tok' },
+        body: { lastName: 'Smith', email: 'alice@example.com', password: 'Zx9-Qr7-Plk2-vbT', turnstileToken: 'tok' },
         headers: { 'CF-Connecting-IP': ip },
       });
       const env = mockEnv();
@@ -88,7 +88,7 @@ describe('POST /api/auth/signup -- required field validation', () => {
     const restore = stubAllExternalFetchSuccess();
     try {
       const req = mockRequest('POST', {
-        body: { firstName: 'Alice', email: 'alice@example.com', password: 'password123', turnstileToken: 'tok' },
+        body: { firstName: 'Alice', email: 'alice@example.com', password: 'Zx9-Qr7-Plk2-vbT', turnstileToken: 'tok' },
         headers: { 'CF-Connecting-IP': ip },
       });
       const env = mockEnv();
@@ -106,7 +106,7 @@ describe('POST /api/auth/signup -- required field validation', () => {
     const restore = stubAllExternalFetchSuccess();
     try {
       const req = mockRequest('POST', {
-        body: { firstName: 'Alice', lastName: 'Smith', password: 'password123', turnstileToken: 'tok' },
+        body: { firstName: 'Alice', lastName: 'Smith', password: 'Zx9-Qr7-Plk2-vbT', turnstileToken: 'tok' },
         headers: { 'CF-Connecting-IP': ip },
       });
       const env = mockEnv();
@@ -187,7 +187,7 @@ describe('POST /api/auth/signup -- name length limits', () => {
           firstName: 'A'.repeat(101),
           lastName: 'Smith',
           email: 'alice@example.com',
-          password: 'password123',
+          password: 'Zx9-Qr7-Plk2-vbT',
           turnstileToken: 'tok',
         },
         headers: { 'CF-Connecting-IP': ip },
@@ -211,7 +211,7 @@ describe('POST /api/auth/signup -- name length limits', () => {
           firstName: 'Alice',
           lastName: 'S'.repeat(101),
           email: 'alice@example.com',
-          password: 'password123',
+          password: 'Zx9-Qr7-Plk2-vbT',
           turnstileToken: 'tok',
         },
         headers: { 'CF-Connecting-IP': ip },
@@ -231,7 +231,7 @@ describe('POST /api/auth/signup -- missing DB binding', () => {
   it('returns non-200 when DB is missing', async () => {
     const ip = randomIp();
     const req = mockRequest('POST', {
-      body: { firstName: 'Alice', lastName: 'Smith', email: 'alice@example.com', password: 'password123' },
+      body: { firstName: 'Alice', lastName: 'Smith', email: 'alice@example.com', password: 'Zx9-Qr7-Plk2-vbT' },
       headers: { 'CF-Connecting-IP': ip },
     });
     const env = mockEnv({ DB: undefined });
@@ -266,7 +266,7 @@ describe('POST /api/auth/signup -- SQL injection prevention', () => {
           firstName: maliciousInput,
           lastName: maliciousInput,
           email: 'injtest@example.com',
-          password: 'password123',
+          password: 'Zx9-Qr7-Plk2-vbT',
           turnstileToken: 'tok',
         },
         headers: { 'CF-Connecting-IP': ip },
@@ -313,7 +313,7 @@ describe('POST /api/auth/signup -- SQL injection prevention', () => {
           firstName: 'Alice',
           lastName: 'Smith',
           email: testEmail,
-          password: 'password123',
+          password: 'Zx9-Qr7-Plk2-vbT',
           turnstileToken: 'tok',
         },
         headers: { 'CF-Connecting-IP': ip },
