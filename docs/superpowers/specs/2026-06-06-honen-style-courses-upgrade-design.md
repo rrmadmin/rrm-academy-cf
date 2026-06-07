@@ -61,6 +61,7 @@ No secondary index. The only hot read path is per-course "which formats are publ
 
 - **Step DELETE** (`functions/api/admin/courses/[id]/steps/[stepId].js`): the existing batch (which already guards `step_progress` / `quiz_response` / `lesson_comment`) gains `DELETE FROM step_rendition WHERE step_id = ?`. For any `format='audio'` rendition the handler also deletes the backing R2 object (`R2_ASSETS.delete(...)`) per review gate R4 (see 3.4, 7, 26).
 - **Course DELETE** (course admin endpoint): its `db.batch()` cleanup gains `DELETE FROM step_rendition WHERE step_id IN (SELECT id FROM course_step WHERE course_id = ?)`, executed BEFORE the `course_step` rows are removed (otherwise the subquery resolves to nothing). Audio R2 objects for the course's steps are deleted in the same handler.
+- **Section DELETE** (`functions/api/admin/courses/[id]/sections/[sectionId].js`): it deletes the section's `course_step` rows, so its cleanup batch ALSO gains `DELETE FROM step_rendition WHERE step_id IN (SELECT id FROM course_step WHERE section_id = ?)` plus audio R2 deletion for those steps. (Found by the Phase 0 G1 sibling grep, 2026-06-06: the original spec listed only step and course DELETE.)
 
 Rationale for explicit cleanup beyond "FKs are decorative": **step-ID reuse.** Step IDs are human-meaningful and have been reused before; an orphaned `step_rendition` row left behind by a deleted step would silently re-attach to a future step that reuses the ID, serving stale (and possibly paid) content under a new lesson. Explicit deletion closes that hazard.
 
