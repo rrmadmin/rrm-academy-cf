@@ -403,7 +403,20 @@ export async function onRequestDelete(context) {
       }
     }
 
+    // Collect audio R2 keys for the course's steps before rows are deleted.
+    const { results: audioRows } = await env.DB.prepare(
+      "SELECT content_json FROM step_rendition WHERE format = 'audio' AND step_id IN (SELECT id FROM course_step WHERE course_id = ?)"
+    ).bind(id).all();
+    const audioKeys = [];
+    for (const r of audioRows || []) {
+      try {
+        const k = JSON.parse(r.content_json)?.r2_key;
+        if (k) audioKeys.push(k);
+      } catch { /* malformed row; nothing to delete */ }
+    }
+
     await env.DB.batch([
+      env.DB.prepare('DELETE FROM step_rendition WHERE step_id IN (SELECT id FROM course_step WHERE course_id = ?)').bind(id),
       env.DB.prepare('DELETE FROM course_step WHERE course_id = ?').bind(id),
       env.DB.prepare('DELETE FROM course_section WHERE course_id = ?').bind(id),
       env.DB.prepare('DELETE FROM course WHERE id = ?').bind(id),
@@ -411,6 +424,15 @@ export async function onRequestDelete(context) {
 
     if (r2Keys.length > 0 && env.R2_ASSETS) {
       waitUntil(Promise.all(r2Keys.map(k => env.R2_ASSETS.delete(k).catch(() => {}))));
+    }
+
+    for (const key of audioKeys) {
+      if (!env.R2_ASSETS) break;
+      try {
+        await env.R2_ASSETS.delete(key);
+      } catch (r2Err) {
+        log(env, waitUntil, 'admin-courses', 'course_delete_r2_error', 'error', `${key}: ${r2Err.message}`, 0, 500);
+      }
     }
 
     return json({ ok: true });

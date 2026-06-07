@@ -2,8 +2,6 @@ import { json, optionsResponse } from '../../../../auth/_shared.js';
 import { log } from '../../../../_log.js';
 import { VALID_STATUSES, VALID_TYPES } from '../../_shared.js';
 
-const R2_PUBLIC_HOST = 'https://pub-4af88159ce884265baba8fb4f3470625.r2.dev/';
-
 export function onRequestOptions() {
   return optionsResponse();
 }
@@ -293,6 +291,8 @@ export async function onRequestDelete(context) {
     return json({ ok: false, error: 'invalid_id' }, 400);
   }
 
+  const R2_PUBLIC_HOST = 'https://pub-4af88159ce884265baba8fb4f3470625.r2.dev/';
+
   try {
     const existing = await env.DB.prepare(
       'SELECT id, attachments_json FROM course_step WHERE id = ? AND course_id = ?'
@@ -312,13 +312,32 @@ export async function onRequestDelete(context) {
       }, 409);
     }
 
-    const deleteResult = await env.DB.prepare(
-      'DELETE FROM course_step WHERE id = ?' +
-      ' AND NOT EXISTS (SELECT 1 FROM step_progress WHERE step_id = ?)' +
-      ' AND NOT EXISTS (SELECT 1 FROM quiz_response WHERE step_id = ?)' +
-      ' AND NOT EXISTS (SELECT 1 FROM lesson_comment WHERE step_id = ?)' +
-      ' AND NOT EXISTS (SELECT 1 FROM course WHERE certificate_quiz_step_id = ?)'
-    ).bind(stepId, stepId, stepId, stepId, stepId).run();
+    // Capture the audio R2 key before the rows go (spec 3.1 / R4).
+    let audioR2Key = null;
+    const audioRendition = await env.DB.prepare(
+      "SELECT content_json FROM step_rendition WHERE step_id = ? AND format = 'audio'"
+    ).bind(stepId).first();
+    if (audioRendition?.content_json) {
+      try { audioR2Key = JSON.parse(audioRendition.content_json).r2_key ?? null; } catch { audioR2Key = null; }
+    }
+
+    // One atomic batch: the conditional step delete, then a rendition cleanup
+    // that only fires if the step row is actually gone (condition-safe: if the
+    // step delete was refused by the NOT EXISTS guards, renditions survive).
+    // D1 FKs are decorative; without this, deleted steps orphan rendition rows
+    // and a reused step ID would inherit stale content (spec 3.1).
+    const [deleteResult] = await env.DB.batch([
+      env.DB.prepare(
+        'DELETE FROM course_step WHERE id = ?' +
+        ' AND NOT EXISTS (SELECT 1 FROM step_progress WHERE step_id = ?)' +
+        ' AND NOT EXISTS (SELECT 1 FROM quiz_response WHERE step_id = ?)' +
+        ' AND NOT EXISTS (SELECT 1 FROM lesson_comment WHERE step_id = ?)'
+      ).bind(stepId, stepId, stepId, stepId),
+      env.DB.prepare(
+        'DELETE FROM step_rendition WHERE step_id = ?1' +
+        ' AND NOT EXISTS (SELECT 1 FROM course_step WHERE id = ?1)'
+      ).bind(stepId),
+    ]);
 
     if (deleteResult.meta?.changes === 0) {
       const [progressRow, quizRow, commentRow] = await Promise.all([
@@ -340,6 +359,14 @@ export async function onRequestDelete(context) {
       return json({ ok: false, error: 'references_exist', tables, counts }, 409);
     }
 
+    if (audioR2Key && env.R2_ASSETS) {
+      try {
+        await env.R2_ASSETS.delete(audioR2Key);
+      } catch (r2Err) {
+        log(env, waitUntil, 'admin-courses', 'step_delete_r2_error', 'error', `${audioR2Key}: ${r2Err.message}`, 0, 500);
+      }
+    }
+
     if (existing.attachments_json && env.R2_ASSETS) {
       try {
         const parsed = JSON.parse(existing.attachments_json);
@@ -352,7 +379,7 @@ export async function onRequestDelete(context) {
           }
         }
       } catch {
-        // malformed attachments_json — skip R2 cleanup
+        // malformed attachments_json -- skip R2 cleanup
       }
     }
 

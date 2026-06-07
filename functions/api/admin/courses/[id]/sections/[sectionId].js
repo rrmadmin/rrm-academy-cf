@@ -172,6 +172,8 @@ export async function onRequestDelete(context) {
     return json({ ok: false, error: 'invalid_id' }, 400);
   }
 
+  const R2_PUBLIC_HOST = 'https://pub-4af88159ce884265baba8fb4f3470625.r2.dev/';
+
   try {
     const section = await env.DB.prepare(
       'SELECT id FROM course_section WHERE id = ? AND course_id = ?'
@@ -229,23 +231,73 @@ export async function onRequestDelete(context) {
       }
     }
 
-    const stepsDeleteResult = await env.DB.prepare(
-      'DELETE FROM course_step WHERE section_id = ?' +
-      ' AND NOT EXISTS (SELECT 1 FROM step_progress WHERE step_id = course_step.id)' +
-      ' AND NOT EXISTS (SELECT 1 FROM quiz_response WHERE step_id = course_step.id)' +
-      ' AND NOT EXISTS (SELECT 1 FROM lesson_comment WHERE step_id = course_step.id)' +
-      ' AND NOT EXISTS (SELECT 1 FROM course WHERE certificate_quiz_step_id = course_step.id)'
-    ).bind(sectionId).run();
+    const [audioRows, attachmentRows] = await Promise.all([
+      env.DB.prepare(
+        "SELECT content_json FROM step_rendition WHERE format = 'audio' AND step_id IN (SELECT id FROM course_step WHERE section_id = ?)"
+      ).bind(sectionId).all(),
+      env.DB.prepare(
+        'SELECT attachments_json FROM course_step WHERE section_id = ? AND attachments_json IS NOT NULL'
+      ).bind(sectionId).all(),
+    ]);
+
+    const audioKeys = [];
+    for (const r of (audioRows.results || [])) {
+      try {
+        const k = JSON.parse(r.content_json)?.r2_key;
+        if (k) audioKeys.push(k);
+      } catch { /* malformed row; nothing to delete */ }
+    }
+
+    const attachmentKeys = [];
+    for (const r of (attachmentRows.results || [])) {
+      try {
+        const entries = JSON.parse(r.attachments_json);
+        if (!Array.isArray(entries)) continue;
+        for (const entry of entries) {
+          if (typeof entry?.url === 'string' && entry.url.startsWith(R2_PUBLIC_HOST)) {
+            attachmentKeys.push(entry.url.slice(R2_PUBLIC_HOST.length));
+          }
+        }
+      } catch { /* malformed row; nothing to delete */ }
+    }
+
+    const [, stepsDeleteResult] = await env.DB.batch([
+      env.DB.prepare(
+        'DELETE FROM step_rendition WHERE step_id IN (' +
+        'SELECT id FROM course_step WHERE section_id = ?1' +
+        ' AND NOT EXISTS (SELECT 1 FROM step_progress WHERE step_id = course_step.id)' +
+        ' AND NOT EXISTS (SELECT 1 FROM quiz_response WHERE step_id = course_step.id)' +
+        ' AND NOT EXISTS (SELECT 1 FROM lesson_comment WHERE step_id = course_step.id)' +
+        ' AND NOT EXISTS (SELECT 1 FROM course WHERE certificate_quiz_step_id = course_step.id)' +
+        ')'
+      ).bind(sectionId),
+      env.DB.prepare(
+        'DELETE FROM course_step WHERE section_id = ?' +
+        ' AND NOT EXISTS (SELECT 1 FROM step_progress WHERE step_id = course_step.id)' +
+        ' AND NOT EXISTS (SELECT 1 FROM quiz_response WHERE step_id = course_step.id)' +
+        ' AND NOT EXISTS (SELECT 1 FROM lesson_comment WHERE step_id = course_step.id)' +
+        ' AND NOT EXISTS (SELECT 1 FROM course WHERE certificate_quiz_step_id = course_step.id)'
+      ).bind(sectionId),
+    ]);
 
     if ((stepsDeleteResult.meta?.changes ?? 0) < stepIds.length) {
+      const { results: survivors } = await env.DB.prepare(
+        'SELECT id FROM course_step WHERE section_id = ?'
+      ).bind(sectionId).all();
+
       return json({
         ok: false,
         error: 'references_exist',
-        stepIds: [],
+        stepIds: (survivors || []).map(s => s.id),
       }, 409);
     }
 
     await env.DB.prepare('DELETE FROM course_section WHERE id = ?').bind(sectionId).run();
+
+    const allR2Keys = [...audioKeys, ...attachmentKeys];
+    if (allR2Keys.length > 0 && env.R2_ASSETS) {
+      waitUntil(Promise.all(allR2Keys.map(k => env.R2_ASSETS.delete(k).catch(() => {}))));
+    }
 
     return json({ ok: true });
   } catch (err) {
