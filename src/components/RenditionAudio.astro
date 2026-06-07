@@ -1,0 +1,75 @@
+---
+/**
+ * RenditionAudio: "Listen" tab panel for the course step player (Honen
+ * Phase 1). Audio binary streaming is deferred to Phase 4: this panel lazy-
+ * fetches GET /api/courses/rendition?format=audio (metadata only: duration,
+ * voice) and shows a "coming soon" state. No binary playback yet.
+ */
+interface Props {
+  stepId: string;
+}
+const { stepId } = Astro.props;
+---
+<div class="rendition-panel" role="tabpanel" data-rendition-panel="audio" data-rendition-step={stepId} hidden>
+  <div class="rendition-loading" data-rendition-loading>
+    <div class="rendition-spinner"></div>
+    <p>Loading…</p>
+  </div>
+
+  <div class="rendition-audio" data-rendition-audio hidden>
+    <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3 18v-6a9 9 0 0 1 18 0v6"/><path d="M21 19a2 2 0 0 1-2 2h-1a2 2 0 0 1-2-2v-3a2 2 0 0 1 2-2h3zM3 19a2 2 0 0 0 2 2h1a2 2 0 0 0 2-2v-3a2 2 0 0 0-2-2H3z"/></svg>
+    <p class="rendition-audio__title">Audio narration coming soon</p>
+    <p class="rendition-audio__meta" data-rendition-audio-meta></p>
+  </div>
+
+  <div class="rendition-message" data-rendition-message hidden></div>
+</div>
+
+<style>
+  .rendition-panel[hidden] { display: none; }
+  .rendition-audio {
+    text-align: center;
+    padding: var(--space-16) var(--space-6);
+    color: var(--text-muted);
+    max-width: var(--max-width-article);
+    margin: 0 auto;
+  }
+  .rendition-audio svg {
+    margin-bottom: var(--space-3);
+    opacity: 0.4;
+  }
+  .rendition-audio__title {
+    font-family: var(--font-display);
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: var(--text-primary);
+    margin-bottom: var(--space-1);
+  }
+  .rendition-audio__meta {
+    font-size: 0.875rem;
+  }
+  .rendition-loading {
+    text-align: center;
+    padding: var(--space-12) 0;
+    color: var(--text-tertiary);
+    font-size: 0.875rem;
+  }
+  .rendition-spinner {
+    width: 28px;
+    height: 28px;
+    border: 3px solid var(--neutral-200);
+    border-top-color: var(--accent);
+    border-radius: 50%;
+    margin: 0 auto var(--space-3);
+    animation: raspin 0.7s linear infinite;
+  }
+  @keyframes raspin { to { transform: rotate(360deg); } }
+  .rendition-message {
+    text-align: center;
+    padding: var(--space-12) var(--space-6);
+    color: var(--text-muted);
+    font-size: 0.875rem;
+    max-width: var(--max-width-article);
+    margin: 0 auto;
+  }
+</style>
