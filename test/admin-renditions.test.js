@@ -2,6 +2,7 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { mockDB, mockEnv, mockRequest, mockWaitUntil } from './_helpers.js';
 import { onRequestGet, onRequestPut, onRequestDelete } from '../functions/api/admin/courses/[id]/steps/[stepId]/renditions.js';
+import { onRequestDelete as stepDelete } from '../functions/api/admin/courses/[id]/steps/[stepId].js';
 
 function adminCtx(queryMap, { method = 'PUT', body, query = '', role = 'admin' } = {}) {
   const db = mockDB(queryMap);
@@ -119,4 +120,34 @@ test('PUT status archived on cert-quiz quiz rendition is refused 409', async () 
   });
   const res = await onRequestPut(c);
   assert.equal(res.status, 409);
+});
+
+test('step DELETE batch-cleans step_rendition rows (condition-safe)', async () => {
+  const qm = {
+    'SELECT id FROM course_step WHERE id = ? AND course_id = ?': { first: { id: 'step-1' } },
+    'certificate_quiz_step_id': { first: null },
+    "format = 'audio'": { first: null },
+    'DELETE FROM course_step': { run: { success: true, meta: { changes: 1 } } },
+    'DELETE FROM step_rendition': { run: { success: true, meta: { changes: 2 } } },
+  };
+  const c = adminCtx(qm, { method: 'DELETE' });
+  const res = await stepDelete(c);
+  assert.equal(res.status, 200);
+  const renditionDelete = c.db._calls.find((x) => x.sql.includes('DELETE FROM step_rendition'));
+  assert.ok(renditionDelete, 'step DELETE must clean step_rendition');
+  assert.ok(renditionDelete.sql.includes('NOT EXISTS'), 'rendition cleanup must be conditional on the step row being gone');
+});
+
+test('step DELETE removes audio R2 object when audio rendition exists', async () => {
+  const qm = {
+    'SELECT id FROM course_step WHERE id = ? AND course_id = ?': { first: { id: 'step-1' } },
+    'certificate_quiz_step_id': { first: null },
+    "format = 'audio'": { first: { content_json: JSON.stringify({ r2_key: 'courses/audio/step-1.mp3' }) } },
+    'DELETE FROM course_step': { run: { success: true, meta: { changes: 1 } } },
+    'DELETE FROM step_rendition': { run: { success: true, meta: { changes: 1 } } },
+  };
+  const c = adminCtx(qm, { method: 'DELETE' });
+  const res = await stepDelete(c);
+  assert.equal(res.status, 200);
+  assert.deepEqual(c.env.R2_ASSETS.deleted, ['courses/audio/step-1.mp3']);
 });
