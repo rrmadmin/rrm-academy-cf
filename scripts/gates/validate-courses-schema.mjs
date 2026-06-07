@@ -60,14 +60,19 @@ const ONLY_GATE  = gateIdx >= 0 ? argv[gateIdx + 1] : null;
 
 // ---------- Inputs --------------------------------------------------------
 const MIGRATION_FILE = resolve(PROJECT_ROOT, 'scripts/migrate-courses-to-d1.sql');
+const RENDITION_MIGRATION_FILE = resolve(PROJECT_ROOT, 'migrations/028-step-rendition.sql');
 const D1_NAME = 'rrm-auth';
 const COURSE_TABLES = ['course', 'course_section', 'course_step'];
+const RENDITION_TABLES = ['step_rendition'];
+const ALL_TABLES = [...COURSE_TABLES, ...RENDITION_TABLES];
 
 // The shared module is the single app-side source of truth for the VALID_* Sets
 // (extracted from the per-endpoint copies on 2026-05-31 — they now import from here).
 // (col, table) pairs are the migration CHECK columns we hold them against.
 const APP_ENUM_FILES = [
   'functions/api/admin/courses/_shared.js',
+  'functions/api/admin/courses/[id]/steps/[stepId]/renditions.js',
+  'functions/api/courses/rendition.js',
 ];
 
 // Which (table.column) CHECK constraint each app-side Set must equal.
@@ -182,10 +187,16 @@ if (!existsSync(MIGRATION_FILE)) {
 const MIGRATION_SQL = readFileSync(MIGRATION_FILE, 'utf-8');
 const MIGRATION_BLOCKS = parseCreateTableBlocks(MIGRATION_SQL);
 
+if (!existsSync(RENDITION_MIGRATION_FILE)) {
+  console.error(`FATAL: rendition migration file not found: ${RENDITION_MIGRATION_FILE}`);
+  process.exit(2);
+}
+Object.assign(MIGRATION_BLOCKS, parseCreateTableBlocks(readFileSync(RENDITION_MIGRATION_FILE, 'utf-8')));
+
 // migration CHECK sets and columns, per table
 const migChecks = {};   // table -> { col -> Set }
 const migColumns = {};  // table -> Set
-for (const t of COURSE_TABLES) {
+for (const t of ALL_TABLES) {
   const body = MIGRATION_BLOCKS[t];
   if (body === undefined) continue;
   migChecks[t] = parseCheckSets(body);
@@ -279,7 +290,7 @@ function gateCS2() {
   // (never fail) so an unreachable D1 can't block a deploy.
   let liveRows;
   try {
-    const inList = COURSE_TABLES.map((t) => `'${t}'`).join(',');
+    const inList = ALL_TABLES.map((t) => `'${t}'`).join(',');
     liveRows = d1Query(`SELECT name, sql FROM sqlite_master WHERE type='table' AND name IN (${inList})`);
   } catch (err) {
     results.push(warn(`CS2 skipped: could not reach live D1 '${D1_NAME}' (${String(err.message).slice(0, 160)})`));
@@ -289,7 +300,7 @@ function gateCS2() {
   const liveDDL = {};
   for (const row of liveRows) if (row && row.name) liveDDL[String(row.name).toLowerCase()] = String(row.sql || '');
 
-  for (const t of COURSE_TABLES) {
+  for (const t of ALL_TABLES) {
     if (migColumns[t] === undefined) continue; // CS1 already failed on this
     const ddl = liveDDL[t];
     if (!ddl) { results.push(fail(`live D1 has no table '${t}' (committed migration declares it)`)); continue; }
@@ -330,6 +341,78 @@ function gateCS2() {
   return results;
 }
 
+// ---------- Gate CS3: Static : step_rendition CHECK == app VALID_* ---------
+function gateCS3() {
+  const results = [];
+
+  if (MIGRATION_BLOCKS['step_rendition'] === undefined) {
+    results.push(fail(`rendition migration has no CREATE TABLE for 'step_rendition'`));
+    return results;
+  }
+  for (const col of ['format', 'status']) {
+    if (!migChecks['step_rendition']?.[col]) {
+      results.push(fail(`migration 'step_rendition.${col}' has no CHECK(... IN (...)) constraint`));
+    }
+  }
+  if (results.some((r) => r.ok === false)) return results;
+
+  const RENDITION_FILES = [
+    'functions/api/admin/courses/[id]/steps/[stepId]/renditions.js',
+    'functions/api/courses/rendition.js',
+  ];
+  const collected = {}; // setName -> [{ file, set }]
+  for (const rel of RENDITION_FILES) {
+    const abs = resolve(PROJECT_ROOT, rel);
+    if (!existsSync(abs)) { results.push(fail(`rendition enum file missing: ${rel}`)); continue; }
+    const src = readFileSync(abs, 'utf-8');
+    for (const name of ['VALID_FORMATS', 'VALID_STATUSES']) {
+      const s = parseValidSet(src, name);
+      if (s) (collected[name] ||= []).push({ file: rel, set: s });
+    }
+  }
+
+  // VALID_FORMATS: must exist, agree across files, and equal the CHECK.
+  const formatCopies = collected['VALID_FORMATS'];
+  if (!formatCopies || !formatCopies.length) {
+    results.push(fail(`no VALID_FORMATS Set found in rendition endpoint files`));
+  } else {
+    const ref = formatCopies[0].set;
+    const diverged = formatCopies.filter((c) => !setEq(c.set, ref));
+    if (diverged.length) {
+      results.push(fail(`VALID_FORMATS diverges across files: ${formatCopies.map((c) => `${c.file}=${setStr(c.set)}`).join('  |  ')}`));
+    }
+    const migSet = migChecks['step_rendition']['format'];
+    if (setEq(ref, migSet)) {
+      results.push(pass(`step_rendition.format: migration CHECK == VALID_FORMATS ${setStr(migSet)}`));
+    } else {
+      results.push(fail(`step_rendition.format: migration CHECK ${setStr(migSet)} != VALID_FORMATS ${setStr(ref)} : schema/app drift`));
+    }
+  }
+
+  // VALID_STATUSES (admin renditions endpoint) must equal step_rendition.status CHECK.
+  const statusCopies = collected['VALID_STATUSES'];
+  if (!statusCopies || !statusCopies.length) {
+    results.push(fail(`no VALID_STATUSES Set found in rendition endpoint files (canonical plural name; never VALID_STATUS)`));
+  } else {
+    const migSet = migChecks['step_rendition']['status'];
+    if (setEq(statusCopies[0].set, migSet)) {
+      results.push(pass(`step_rendition.status: migration CHECK == VALID_STATUSES ${setStr(migSet)}`));
+    } else {
+      results.push(fail(`step_rendition.status: migration CHECK ${setStr(migSet)} != VALID_STATUSES ${setStr(statusCopies[0].set)}`));
+    }
+  }
+
+  // Meta-assertion: CS3 must have actually compared value-sets (no-op guard, spec 8.1e).
+  const comparisons = results.filter((r) => r.ok !== null).length;
+  if (comparisons < 2) {
+    results.push(fail(`CS3 ran ${comparisons} comparisons (expected >= 2) : gate is a no-op, wiring is broken`));
+  } else {
+    results.push(pass(`CS3 meta-assertion: ${comparisons} value-set comparisons ran`));
+  }
+
+  return results;
+}
+
 // ---------- Main ----------------------------------------------------------
 if (!JSON_MODE) {
   console.log(`${BOLD}RRM Academy — Courses Schema Drift Gates${RESET}`);
@@ -340,6 +423,7 @@ if (!JSON_MODE) {
 const gateSpecs = [
   { id: 'CS1', name: 'Static: migration CHECK == app VALID_* Sets', fn: gateCS1 },
   { id: 'CS2', name: 'Live: migration columns + CHECK == live D1',   fn: gateCS2 },
+  { id: 'CS3', name: 'Static: step_rendition CHECK == rendition VALID_* Sets', fn: gateCS3 },
 ];
 
 let totalFailures = 0;
