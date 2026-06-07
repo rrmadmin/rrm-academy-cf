@@ -15,8 +15,9 @@ export async function getQuizContent(db, stepId, staticQuizData) {
       const parsed = JSON.parse(row.content_json);
       if (parsed && Array.isArray(parsed.questions)) return parsed;
     }
-  } catch {
-    // D1 unavailable or malformed row: fall through to the static source.
+  } catch (err) {
+    // Fallback IS the handling, but the soak needs a signal when D1 reads fail.
+    console.error(`quiz dual-read D1 fallback for ${stepId}: ${err.message}`);
   }
   return staticQuizData[stepId] || null;
 }
