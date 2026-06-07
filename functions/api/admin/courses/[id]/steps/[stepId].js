@@ -291,9 +291,11 @@ export async function onRequestDelete(context) {
     return json({ ok: false, error: 'invalid_id' }, 400);
   }
 
+  const R2_PUBLIC_HOST = 'https://pub-4af88159ce884265baba8fb4f3470625.r2.dev/';
+
   try {
     const existing = await env.DB.prepare(
-      'SELECT id FROM course_step WHERE id = ? AND course_id = ?'
+      'SELECT id, attachments_json FROM course_step WHERE id = ? AND course_id = ?'
     ).bind(stepId, courseId).first();
     if (!existing) {
       return json({ ok: false, error: 'step_not_found' }, 404);
@@ -362,6 +364,22 @@ export async function onRequestDelete(context) {
         await env.R2_ASSETS.delete(audioR2Key);
       } catch (r2Err) {
         log(env, waitUntil, 'admin-courses', 'step_delete_r2_error', 'error', `${audioR2Key}: ${r2Err.message}`, 0, 500);
+      }
+    }
+
+    if (existing.attachments_json && env.R2_ASSETS) {
+      try {
+        const parsed = JSON.parse(existing.attachments_json);
+        if (Array.isArray(parsed) && parsed.length > 0) {
+          const keys = parsed
+            .filter(a => typeof a?.url === 'string' && a.url.startsWith(R2_PUBLIC_HOST))
+            .map(a => a.url.slice(R2_PUBLIC_HOST.length));
+          if (keys.length > 0) {
+            waitUntil(Promise.all(keys.map(k => env.R2_ASSETS.delete(k).catch(() => {}))));
+          }
+        }
+      } catch {
+        // malformed attachments_json -- skip R2 cleanup
       }
     }
 
