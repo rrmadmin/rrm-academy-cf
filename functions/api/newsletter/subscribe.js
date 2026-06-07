@@ -77,16 +77,16 @@ async function _handlePost(context) {
 
     if (existing) {
       if (existing.status === 'active') {
-        return json({ ok: true, message: 'You are already subscribed.' });
+        return json({ ok: true, message: 'You are subscribed!' });
       }
       if (existing.status === 'complained') {
         // CAN-SPAM: never auto-resubscribe a complainant
-        log(env, waitUntil, 'newsletter', 'resub_blocked_complained', 'warn', email, 0, 200);
+        log(env, waitUntil, 'newsletter', 'resub_blocked_complained', 'warn', existing.id, 0, 200);
         return json({ ok: true, message: 'You are subscribed!' });
       }
       if (existing.status === 'bounced') {
         // Require fresh ELV-verified send before treating as deliverable
-        log(env, waitUntil, 'newsletter', 'resub_blocked_bounced', 'warn', email, 0, 200);
+        log(env, waitUntil, 'newsletter', 'resub_blocked_bounced', 'warn', existing.id, 0, 200);
         return json({ ok: true, message: 'You are subscribed!' });
       }
       // Only 'unsubscribed' status falls through to re-activation

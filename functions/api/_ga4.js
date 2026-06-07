@@ -38,7 +38,7 @@ export async function sendGA4Event(env, request, eventName, params = {}, overrid
       events: [{
         name: eventName,
         params: {
-          page_location: request.headers.get('referer') || request.url,
+          page_location: (() => { try { const u = new URL(request.headers.get('referer') || request.url); u.search = ''; return u.toString(); } catch { return ''; } })(),
           engagement_time_msec: 1,
           ...sourceParams,
           ...params,

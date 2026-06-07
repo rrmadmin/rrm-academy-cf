@@ -6,7 +6,7 @@
 import { sendEmail, logEmailFailure } from '../_ses.js';
 import { sendGA4Event } from '../_ga4.js';
 import { log } from '../_log.js';
-import { json, optionsResponse } from '../auth/_shared.js';
+import { json, optionsResponse, checkRateLimit } from '../auth/_shared.js';
 
 const TOKEN_TTL = 24 * 60 * 60; // 24 hours -- match request.js
 
@@ -26,6 +26,11 @@ export async function onRequestPost(context) {
     }
     if (!env.SURVEY_DB) {
       return json({ ok: false, error: 'Server misconfigured' }, 500);
+    }
+
+    const ip = request.headers.get('cf-connecting-ip') || 'unknown';
+    if (!await checkRateLimit(env, `survey-submit:${ip}`, 10, 900)) {
+      return json({ error: 'rate_limited' }, 429);
     }
 
     let body;
@@ -172,7 +177,7 @@ export async function onRequestPost(context) {
             from: 'RRM Academy <alerts@mail.rrmacademy.org>',
             to: 'administrator@rrmacademy.org',
             subject: alertSubject,
-            text: `D1 write failed during survey submission.\n\nEmail: ${data.email}\nAirtable Record ID: ${airtableRecordId}\nError: ${d1Err.message}\nTimestamp: ${new Date().toISOString()}\n\nManual action required: INSERT into survey_identities or link this record manually.`,
+            text: `D1 write failed during survey submission.\n\nAirtable Record ID: ${airtableRecordId}\nTimestamp: ${new Date().toISOString()}\n\nManual action required: look up the email for this Airtable record and INSERT into survey_identities manually.`,
             log: { db: env.SURVEY_DB, source: 'survey/d1-alert', category: 'transactional' },
           });
         } catch (emailErr) {
@@ -190,7 +195,7 @@ export async function onRequestPost(context) {
       expirationTtl: TOKEN_TTL,
     });
 
-    waitUntil(sendGA4Event(env, request, 'generate_lead', { lead_source: 'endo_survey' }).catch(() => {}));
+    waitUntil(sendGA4Event(env, request, 'generate_lead', { lead_source: 'endo_survey', page_location: 'https://rrmacademy.org/endo-survey/take/' }).catch(() => {}));
 
     return json({ ok: true });
   } catch (err) {

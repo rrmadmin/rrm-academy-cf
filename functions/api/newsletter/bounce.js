@@ -4,6 +4,7 @@
  * Gated by query param secret (set when creating the SNS subscription).
  */
 import { log } from '../_log.js';
+import { constantTimeEqual } from '../auth/_shared.js';
 
 const ALLOWED_SNS_TYPES = new Set(['Notification', 'SubscriptionConfirmation', 'UnsubscribeConfirmation']);
 
@@ -188,7 +189,7 @@ async function verifySnsSignature(payload, env, waitUntil) {
 export async function onRequestPost({ request, env, waitUntil }) {
   // Auth: shared secret in query param (configured in SNS subscription URL)
   const url = new URL(request.url);
-  if (!env.NEWSLETTER_BOUNCE_SECRET || url.searchParams.get('secret') !== env.NEWSLETTER_BOUNCE_SECRET) {
+  if (!env.NEWSLETTER_BOUNCE_SECRET || !constantTimeEqual(url.searchParams.get('secret') || '', env.NEWSLETTER_BOUNCE_SECRET)) {
     return new Response('Unauthorized', { status: 401 });
   }
 

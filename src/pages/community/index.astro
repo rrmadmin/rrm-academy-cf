@@ -1045,7 +1045,9 @@ const SHELL_ENABLED = isShellEnabled('community');
       function escapeHtml(str) {
         var div = document.createElement('div');
         div.appendChild(document.createTextNode(str || ''));
-        return div.innerHTML;
+        // innerHTML escapes < > & but NOT quotes; escape quotes too so this is
+        // safe inside double/single-quoted HTML attributes (src=, alt=, data-*).
+        return div.innerHTML.replace(/"/g, '&quot;').replace(/'/g, '&#39;');
       }
 
       function linkify(text) {

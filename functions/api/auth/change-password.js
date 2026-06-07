@@ -7,7 +7,7 @@ import {
   json, optionsResponse, hashPassword, verifyPassword,
   getSessionIdFromCookie, validateSession, isValidPassword,
   generateSessionId, sessionCookie, authHintCookie, checkRateLimit, sessionInsertStatement,
-  SESSION_DURATION_MS,
+  SESSION_DURATION_MS, hashToken, COMMON_PASSWORD_ERROR,
 } from './_shared.js';
 import { sendEmail, logEmailFailure } from '../_ses.js';
 import { log } from '../_log.js';
@@ -38,7 +38,12 @@ export async function onRequestPost({ request, env, waitUntil }) {
     const newPassword = body.newPassword || '';
 
     if (!currentPassword || currentPassword.length > 128) return json({ ok: false, error: 'Current password is required.' }, 400);
-    if (!isValidPassword(newPassword)) return json({ ok: false, error: 'New password must be between 8 and 128 characters.' }, 400);
+    if (!isValidPassword(newPassword)) {
+      const pwErr = (typeof newPassword === 'string' && newPassword.length >= 8 && newPassword.length <= 128)
+        ? COMMON_PASSWORD_ERROR
+        : 'New password must be between 8 and 128 characters.';
+      return json({ ok: false, error: pwErr }, 400);
+    }
 
     // Get user's current hashed password (email + name included for notification)
     const user = await db.prepare('SELECT id, email, name, hashed_password, google_id FROM user WHERE id = ?')
@@ -63,6 +68,7 @@ export async function onRequestPost({ request, env, waitUntil }) {
     const hashedPassword = await hashPassword(newPassword);
     const newSessionId = generateSessionId();
     const newExpiresAt = Math.floor((Date.now() + SESSION_DURATION_MS) / 1000);
+    const hashedNewSessionId = await hashToken(newSessionId);
 
     await db.batch([
       db.prepare('UPDATE user SET hashed_password = ?, updated_at = datetime(\'now\') WHERE id = ?')
@@ -73,7 +79,7 @@ export async function onRequestPost({ request, env, waitUntil }) {
         .bind(user.id),
       db.prepare("DELETE FROM password_reset WHERE user_id = ? AND purpose = 'reset'")
         .bind(user.id),
-      sessionInsertStatement(db, newSessionId, user.id, newExpiresAt),
+      sessionInsertStatement(db, hashedNewSessionId, user.id, newExpiresAt),
     ]);
 
     // Notify the account owner that their password was changed.

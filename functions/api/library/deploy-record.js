@@ -15,6 +15,7 @@
  *   { "recordId": "recXXXXXXXXXXXXXX" }
  */
 import { log } from '../_log.js';
+import { constantTimeEqual } from '../auth/_shared.js';
 
 var GITHUB_REPO = 'rrmadmin/rrm-academy-cf';
 
@@ -23,7 +24,7 @@ export async function onRequestPost(context) {
 
   // Auth — simple shared secret in header
   var secret = request.headers.get('X-Deploy-Secret') || '';
-  if (!env.DEPLOY_SECRET || secret !== env.DEPLOY_SECRET) {
+  if (!env.DEPLOY_SECRET || !constantTimeEqual(secret, env.DEPLOY_SECRET)) {
     return new Response(JSON.stringify({ error: 'Unauthorized' }), {
       status: 401,
       headers: { 'Content-Type': 'application/json' },
