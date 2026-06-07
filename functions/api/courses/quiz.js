@@ -20,6 +20,7 @@ import {
 import { log } from '../_log.js';
 import { getCourse, isValidStep, getPreviousStepId, autoEnrollAdmin, checkCourseCompletion } from './_shared.js';
 import quizData from '../../../src/data/quizzes.json';
+import { getQuizContent } from './_quiz-content.js';
 
 export async function onRequestOptions() {
   return optionsResponse();
@@ -67,7 +68,7 @@ export async function onRequestGet({ request, env, waitUntil }) {
       }
     }
 
-    const quiz = quizData[stepId];
+    const quiz = await getQuizContent(db, stepId, quizData);
     if (!quiz) return json({ ok: false, error: 'No quiz data for this step' }, 404);
     if (quiz.questions.length === 0) return json({ ok: false, error: 'Quiz content not yet available' }, 404);
 
@@ -154,7 +155,7 @@ async function handleQuizSubmit(request, env) {
     }
   }
 
-  const quiz = quizData[stepId];
+  const quiz = await getQuizContent(db, stepId, quizData);
   if (!quiz) return json({ ok: false, error: 'No quiz data for this step' }, 404);
   if (quiz.questions.length === 0) return json({ ok: false, error: 'Quiz content not yet available' }, 404);
 
