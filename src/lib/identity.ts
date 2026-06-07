@@ -94,6 +94,19 @@ export function getFoundationJsonLd(): SchemaNode {
     sameAs: [
       'https://projects.propublica.org/nonprofits/organizations/934594315',
       'https://www.guidestar.org/profile/93-4594315',
+      'https://www.wikidata.org/wiki/Q139900390',
+    ],
+    // Entity-graph anchor to the restorative reproductive medicine concept node
+    // on Wikidata (Q139807849). Ties our org graph to the field-of-work item the
+    // Academy/Foundation Wikidata items already reference via P101. The Academy
+    // org node's `knowsAbout` is a string list emitted inline in BaseLayout +
+    // homepage; this is the single-source, crawlable sameAs link to the concept.
+    knowsAbout: [
+      {
+        '@type': 'Thing',
+        name: 'Restorative reproductive medicine',
+        sameAs: 'https://www.wikidata.org/wiki/Q139807849',
+      },
     ],
   };
 }
