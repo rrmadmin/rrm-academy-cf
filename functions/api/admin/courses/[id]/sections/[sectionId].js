@@ -281,11 +281,6 @@ export async function onRequestDelete(context) {
     ]);
 
     if ((stepsDeleteResult.meta?.changes ?? 0) < stepIds.length) {
-      const allR2Keys = [...audioKeys, ...attachmentKeys];
-      if (allR2Keys.length > 0 && env.R2_ASSETS) {
-        waitUntil(Promise.all(allR2Keys.map(k => env.R2_ASSETS.delete(k).catch(() => {}))));
-      }
-
       const { results: survivors } = await env.DB.prepare(
         'SELECT id FROM course_step WHERE section_id = ?'
       ).bind(sectionId).all();
