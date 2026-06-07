@@ -14,6 +14,21 @@
 import { json, optionsResponse, constantTimeEqual } from './auth/_shared.js';
 import { log } from './_log.js';
 
+const FORMAT_ORDER = ['reading', 'flashcards', 'quiz', 'audio'];
+
+function buildRenditionMap(rows) {
+  const byStep = new Map();
+  for (const r of rows || []) {
+    if (!byStep.has(r.step_id)) byStep.set(r.step_id, new Set());
+    byStep.get(r.step_id).add(r.format);
+  }
+  const map = new Map();
+  for (const [stepId, formats] of byStep) {
+    map.set(stepId, FORMAT_ORDER.filter((f) => formats.has(f)));
+  }
+  return map;
+}
+
 export function onRequestOptions() {
   return optionsResponse();
 }
@@ -45,13 +60,14 @@ export async function onRequestGet(context) {
 
       const preview = url.searchParams.get('preview') === '1';
 
-      const [course, { results: sections }, { results: steps }, enrollRow] = await Promise.all([
+      const [course, { results: sections }, { results: steps }, enrollRow, { results: renditionRows }] = await Promise.all([
         env.DB.prepare('SELECT * FROM course WHERE id = ?').bind(id).first(),
         env.DB.prepare('SELECT * FROM course_section WHERE course_id = ? ORDER BY sort_order ASC, id ASC').bind(id).all(),
         preview
           ? env.DB.prepare('SELECT * FROM course_step WHERE course_id = ? ORDER BY section_id, sort_order ASC, id ASC').bind(id).all()
           : env.DB.prepare("SELECT * FROM course_step WHERE course_id = ? AND status = 'published' ORDER BY section_id, sort_order ASC, id ASC").bind(id).all(),
         env.DB.prepare('SELECT COUNT(*) AS live FROM enrollment WHERE revoked_at IS NULL AND course_id = ?').bind(id).first(),
+        env.DB.prepare("SELECT step_id, format FROM step_rendition WHERE status = 'published' AND step_id IN (SELECT id FROM course_step WHERE course_id = ?)").bind(id).all(),
       ]);
 
       if (!course) {
@@ -59,7 +75,7 @@ export async function onRequestGet(context) {
       }
 
       const liveCount = enrollRow?.live ?? 0;
-      return json({ ok: true, data: mapCourse(course, sections || [], steps || [], preview, liveCount) });
+      return json({ ok: true, data: mapCourse(course, sections || [], steps || [], preview, liveCount, buildRenditionMap(renditionRows)) });
     }
 
     const { results: courses } = await env.DB.prepare(
@@ -70,7 +86,7 @@ export async function onRequestGet(context) {
       return json({ ok: true, results: [] });
     }
 
-    const [{ results: allSections }, { results: allSteps }, { results: enrollCounts }] = await Promise.all([
+    const [{ results: allSections }, { results: allSteps }, { results: enrollCounts }, { results: allRenditionRows }] = await Promise.all([
       env.DB.prepare(
         'SELECT s.* FROM course_section s JOIN course c ON s.course_id = c.id WHERE c.status = ? ORDER BY s.course_id, s.sort_order ASC, s.id ASC'
       ).bind('published').all(),
@@ -80,16 +96,20 @@ export async function onRequestGet(context) {
       env.DB.prepare(
         'SELECT course_id, COUNT(*) AS live FROM enrollment WHERE revoked_at IS NULL GROUP BY course_id'
       ).all(),
+      env.DB.prepare(
+        "SELECT step_id, format FROM step_rendition WHERE status = 'published'"
+      ).all(),
     ]);
 
     const sectionsByCourseId = groupBy(allSections || [], 'course_id');
     const stepsByCourseId = groupBy(allSteps || [], 'course_id');
     const countMap = new Map((enrollCounts || []).map(r => [r.course_id, r.live]));
+    const renditionMap = buildRenditionMap(allRenditionRows);
 
     const results = courses.map(course => {
       const sections = sectionsByCourseId[course.id] || [];
       const stepsForCourse = stepsByCourseId[course.id] || [];
-      return mapCourse(course, sections, stepsForCourse, false, countMap.get(course.id) ?? 0);
+      return mapCourse(course, sections, stepsForCourse, false, countMap.get(course.id) ?? 0, renditionMap);
     });
 
     return json({ ok: true, results });
@@ -109,13 +129,13 @@ function groupBy(rows, key) {
   return map;
 }
 
-function mapCourse(c, sections, steps, preview, participants = 0) {
+function mapCourse(c, sections, steps, preview, participants = 0, renditionMap = null) {
   const stepsBySectionId = groupBy(steps, 'section_id');
 
   let mappedSections = sections.map(sec => ({
     id: sec.id,
     title: sec.title,
-    steps: (stepsBySectionId[sec.id] || []).map(mapStep),
+    steps: (stepsBySectionId[sec.id] || []).map((s) => mapStep(s, renditionMap)),
   }));
 
   if (!preview) {
@@ -159,7 +179,7 @@ function mapCourse(c, sections, steps, preview, participants = 0) {
   return course;
 }
 
-function mapStep(s) {
+function mapStep(s, renditionMap = null) {
   const step = {
     id: s.id,
     title: s.title,
@@ -168,6 +188,9 @@ function mapStep(s) {
 
   if (s.stream_uid != null) step.streamUid = s.stream_uid;
   if (s.duration_seconds != null) step.duration = s.duration_seconds;
+
+  const formats = renditionMap?.get(s.id);
+  if (formats && formats.length > 0) step.renditions = formats;
 
   const attachments = parseArray(s.attachments_json);
   if (attachments.length > 0) step.attachments = attachments;
