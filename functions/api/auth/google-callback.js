@@ -70,12 +70,20 @@ async function linkGoogleToVerifiedUser(db, googleId, email, avatarUrl) {
   if (user.google_id && user.google_id !== googleId) {
     return { redirect: '/login/?error=account_conflict' };
   }
-  const upd = await db.batch([
-    db.prepare(
-      `UPDATE user SET google_id = ?, avatar_url = COALESCE(avatar_url, ?), updated_at = datetime('now') WHERE id = ? AND (google_id IS NULL OR google_id = ?)`
-    ).bind(googleId, avatarUrl, user.id, googleId),
-    waitlistBackfillStatement(db, user.id, email),
-  ]);
+  let upd;
+  try {
+    upd = await db.batch([
+      db.prepare(
+        `UPDATE user SET google_id = ?, avatar_url = COALESCE(avatar_url, ?), updated_at = datetime('now') WHERE id = ? AND (google_id IS NULL OR google_id = ?)`
+      ).bind(googleId, avatarUrl, user.id, googleId),
+      waitlistBackfillStatement(db, user.id, email),
+    ]);
+  } catch (err) {
+    if (err.message?.includes('UNIQUE constraint') && err.message?.includes('user.google_id')) {
+      return { redirect: '/login/?error=account_conflict' };
+    }
+    throw err;
+  }
 
   if (upd[0].meta?.changes !== 1) {
     return { redirect: '/login/?error=account_conflict' };
@@ -91,11 +99,18 @@ async function upgradeUnverifiedUser(db, googleId, email, avatarUrl, env, waitUn
 
   if (unverified.blocked) return { redirect: '/login/?error=account_blocked' };
 
-  const upd = await db.prepare("UPDATE user SET google_id = ?, email_verified = 1, hashed_password = '', avatar_url = COALESCE(avatar_url, ?), updated_at = datetime('now') WHERE id = ? AND email_verified = 0")
-    .bind(googleId, avatarUrl, unverified.id).run();
+  let upd;
+  try {
+    upd = await db.prepare("UPDATE user SET google_id = ?, email_verified = 1, hashed_password = '', avatar_url = COALESCE(avatar_url, ?), updated_at = datetime('now') WHERE id = ? AND email_verified = 0")
+      .bind(googleId, avatarUrl, unverified.id).run();
+  } catch (err) {
+    if (err.message?.includes('UNIQUE constraint') && err.message?.includes('user.google_id')) {
+      return { redirect: '/login/?error=account_conflict' };
+    }
+    throw err;
+  }
 
   if (upd.meta?.changes !== 1) {
-    // Another request verified this account between our SELECT and UPDATE — fail closed
     return { redirect: LOGIN_ERROR_URL };
   }
 

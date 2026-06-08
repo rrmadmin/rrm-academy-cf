@@ -42,7 +42,7 @@ export async function onRequestPost({ request, env, waitUntil }) {
     if (!user) return json({ ok: false, error: 'User not found.' }, 404);
     if (user.email_verified) {
       const headers = {};
-      if (session.renewed) headers['Set-Cookie'] = [sessionCookie(session.id, session.expiresAt), authHintCookie(session.expiresAt)];
+      if (session.renewed) headers['Set-Cookie'] = [sessionCookie(session.cookieId, session.expiresAt), authHintCookie(session.expiresAt)];
       return json({ ok: true }, 200, headers);
     }
 
@@ -89,7 +89,7 @@ export async function onRequestPost({ request, env, waitUntil }) {
     const responseHeaders = {};
     if (session.renewed) {
       responseHeaders['Set-Cookie'] = [
-        sessionCookie(session.id, session.expiresAt),
+        sessionCookie(session.cookieId, session.expiresAt),
         authHintCookie(session.expiresAt),
       ];
     }

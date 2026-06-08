@@ -12,14 +12,14 @@
 const EMAIL_PATTERN = /[^\s@]+@[^\s@]+\.[^\s@]+/g;
 
 function redactPii(value) {
-  return (value == null ? '' : value).toString().replace(EMAIL_PATTERN, '[redacted-email]');
+  return (value == null ? '' : value).toString().slice(0, 200).replace(EMAIL_PATTERN, '[redacted-email]');
 }
 
 export function log(env, waitUntil, event, action, status, detail, duration, httpStatus, extras) {
   if (!env.EVENTS) return;
-  const safeDetail = redactPii(detail).slice(0, 200);
+  const safeDetail = redactPii(detail);
   const safeExtras = Array.isArray(extras)
-    ? extras.map(v => redactPii(v == null ? '' : v).slice(0, 200))
+    ? extras.map(v => redactPii(v == null ? '' : v))
     : [];
   // writeDataPoint is fire-and-forget (returns void, not a Promise).
   // Call directly -- waitUntil(void) throws in Pages Functions.
