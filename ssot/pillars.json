@@ -31,7 +31,13 @@
       "accent": "var(--purple-900)",
       "in_guides_catalogue": true,
       "in_shell_guides_nav": true,
-      "_order": 1
+      "_order": 1,
+      "pageTitle": "What Is RRM? Restorative Reproductive Medicine",
+      "pageDescription": "Restorative Reproductive Medicine (RRM) diagnoses and treats root causes of infertility, endometriosis, PCOS, and recurrent miscarriage. Learn how RRM works.",
+      "pageH1": "What is Restorative Reproductive Medicine (RRM)?",
+      "breadcrumbName": "What is RRM?",
+      "authorId": "#naomi-whittaker",
+      "usesPillarLayout": false
     },
     {
       "slug": "naprotechnology",
@@ -46,7 +52,13 @@
       "accent_note": "Saint Paul VI Institute gold (popepaulvi.com)",
       "in_guides_catalogue": true,
       "in_shell_guides_nav": true,
-      "_order": 2
+      "_order": 2,
+      "pageTitle": "NaProTechnology Explained by a Trained OBGYN",
+      "pageDescription": "NaProTechnology uses the Creighton Model to diagnose and treat infertility, endometriosis, and PCOS. Learn how NaPro works, find a provider, compare costs.",
+      "pageH1": "NaProTechnology: How It Works, What It Treats, and How to Find a Provider",
+      "breadcrumbName": "NaProTechnology",
+      "authorId": "#naomi-whittaker",
+      "usesPillarLayout": false
     },
     {
       "slug": "femm",
@@ -61,7 +73,16 @@
       "accent_note": "FEMM Health periwinkle (Brian-confirmed brand anchor 2026-05-04)",
       "in_guides_catalogue": true,
       "in_shell_guides_nav": true,
-      "_order": 3
+      "_order": 3,
+      "pageTitle": "FEMM Method Explained: A Clinician's Guide",
+      "pageDescription": "FEMM uses biomarker charting and RHRI protocols to diagnose and treat hormonal and reproductive conditions. Learn how FEMM works and find a provider.",
+      "pageH1": "What is FEMM? How It Works, What It Treats, and How to Find a Provider",
+      "breadcrumbName": "FEMM",
+      "authorId": "#naomi-whittaker",
+      "reviewer": {
+        "name": "Erin Kay, DO"
+      },
+      "usesPillarLayout": false
     },
     {
       "slug": "neofertility",
@@ -76,7 +97,13 @@
       "accent_note": "NeoFertility brand blue (neofertility.ie/neo-tokens.css)",
       "in_guides_catalogue": true,
       "in_shell_guides_nav": true,
-      "_order": 4
+      "_order": 4,
+      "pageTitle": "NeoFertility: How It Works and Success Rates",
+      "pageDescription": "NeoFertility diagnoses and treats infertility, recurrent miscarriage, and reproductive disorders through cycle-based evaluation and immune modulation.",
+      "pageH1": "What is NeoFertility? How It Works, What Are NeoFertility's Success Rates?, and How to Find a Provider",
+      "breadcrumbName": "NeoFertility",
+      "authorId": "#naomi-whittaker",
+      "usesPillarLayout": false
     },
     {
       "slug": "common-questions-about-rrm",
@@ -91,7 +118,13 @@
       "in_guides_catalogue": false,
       "in_guides_catalogue_note": "Intentionally hidden from the /guides/ catalogue UI but discoverable via search and direct link. Kept in shell nav + sitemap + navigate_to_section.",
       "in_shell_guides_nav": true,
-      "_order": 5
+      "_order": 5,
+      "pageTitle": "Common Questions About Restorative Reproductive Medicine",
+      "pageDescription": "Restorative Reproductive Medicine has received both support and criticism from medical organizations. We address common questions with published evidence, acknowledge limitations, and clarify what RRM is and is not.",
+      "pageH1": "Common Questions About Restorative Reproductive Medicine",
+      "breadcrumbName": "Common Questions About RRM",
+      "authorId": "#naomi-whittaker",
+      "usesPillarLayout": false
     },
     {
       "slug": "glossary",
@@ -107,7 +140,17 @@
       "in_guides_catalogue": true,
       "in_shell_guides_nav": false,
       "in_shell_guides_nav_note": "Glossary gets its own permanent sidebar link via the inGlossary check in AppShellChrome -- excluded from GUIDES_PATHS so aria-current on Guides does not fire on /glossary/*.",
-      "_order": 6
+      "_order": 6,
+      "pageTitle": "RRM Glossary: A Detailed Reference to Restorative Reproductive Medicine",
+      "pageDescription": "Evidence-based glossary of RRM terminology: fertility awareness methods, NaProTechnology, diagnostic tools, surgical techniques, and key conditions.",
+      "pageH1": "RRM Glossary: A Detailed Reference to Restorative Reproductive Medicine",
+      "breadcrumbName": "Glossary",
+      "authorId": "#organization",
+      "reviewer": {
+        "name": "Dr. Naomi Whittaker, MD",
+        "id": "#naomi-whittaker"
+      },
+      "usesPillarLayout": false
     },
     {
       "slug": "art-registries-and-codes",
@@ -122,7 +165,17 @@
       "accent_note": "Brand-adjacent sand ramp -- data/registry warm tone within RRM Academy palette.",
       "in_guides_catalogue": true,
       "in_shell_guides_nav": true,
-      "_order": 7
+      "_order": 7,
+      "pageTitle": "ART Registries and Codes of Practice",
+      "pageDescription": "Reference guide to national IVF registries and codes of practice: HFEA, RTAC, ANZARD, Q-IVF, CDC, DIR, JSOG: with what each measures and what they miss.",
+      "pageH1": "ART Registries and Codes of Practice: A Reference for Patients and Clinicians",
+      "breadcrumbName": "ART Registries and Codes of Practice",
+      "authorId": "#organization",
+      "reviewer": {
+        "name": "Dr. Naomi Whittaker, MD",
+        "id": "#naomi-whittaker"
+      },
+      "usesPillarLayout": false
     },
     {
       "slug": "pcos",
@@ -137,7 +190,13 @@
       "accent_note": "Rose ramp -- hormonal/endocrine condition within RRM Academy palette.",
       "in_guides_catalogue": true,
       "in_shell_guides_nav": true,
-      "_order": 8
+      "_order": 8,
+      "pageTitle": "PCOS Explained: Phenotypes and RRM Treatment",
+      "pageDescription": "Polycystic ovary syndrome has four phenotypes with distinct metabolic and reproductive effects. Learn how RRM diagnoses and treats the root causes.",
+      "pageH1": "PCOS Explained: Diagnosis, Phenotypes, and the RRM Approach",
+      "breadcrumbName": "PCOS",
+      "authorId": "#naomi-whittaker",
+      "usesPillarLayout": false
     },
     {
       "slug": "endometriosis",
@@ -152,7 +211,13 @@
       "accent_note": "Sage ramp -- surgical/restorative condition within RRM Academy palette.",
       "in_guides_catalogue": true,
       "in_shell_guides_nav": true,
-      "_order": 9
+      "_order": 9,
+      "pageTitle": "Endometriosis: Excision Surgery and RRM Care",
+      "pageDescription": "Endometriosis is a chronic inflammatory disease driving pain and infertility. Learn how RRM-trained clinicians diagnose and treat it with excision surgery.",
+      "pageH1": "Endometriosis Explained: Diagnosis, Excision Surgery, and the RRM Approach",
+      "breadcrumbName": "Endometriosis",
+      "authorId": "#naomi-whittaker",
+      "usesPillarLayout": false
     },
     {
       "slug": "endometritis",
@@ -167,7 +232,13 @@
       "accent_note": "Brand primary purple -- clinical inflammation condition.",
       "in_guides_catalogue": true,
       "in_shell_guides_nav": true,
-      "_order": 10
+      "_order": 10,
+      "pageTitle": "Chronic Endometritis: A Missed Cause of Loss",
+      "pageDescription": "Chronic endometritis is a low-grade inflammation of the uterine lining, diagnosed by CD138 biopsy and often missed in recurrent miscarriage and failed IVF.",
+      "pageH1": "Chronic Endometritis: The Missed Diagnosis Behind Recurrent Loss and Failed IVF",
+      "breadcrumbName": "Endometritis",
+      "authorId": "#naomi-whittaker",
+      "usesPillarLayout": false
     },
     {
       "slug": "isthmocele",
@@ -182,7 +253,17 @@
       "accent_note": "Brand primary purple -- uterine structural/surgical condition.",
       "in_guides_catalogue": true,
       "in_shell_guides_nav": true,
-      "_order": 10.5
+      "_order": 10.5,
+      "pageTitle": "Uterine Isthmocele & Cesarean Scar Defect: Symptoms, Repair",
+      "pageDescription": "A uterine isthmocele is a pouch-like defect at the cesarean scar that causes spotting, pelvic pain, and secondary infertility. Learn about restorative surgical repair options.",
+      "pageH1": "Uterine Isthmocele (Cesarean Scar Defect): Causes, Symptoms, and Restorative Repair",
+      "breadcrumbName": "Uterine Isthmocele",
+      "authorId": "#organization",
+      "reviewer": {
+        "name": "Dr. Naomi Whittaker, MD",
+        "id": "#naomi-whittaker"
+      },
+      "usesPillarLayout": false
     },
     {
       "slug": "miscarriage",
@@ -197,7 +278,13 @@
       "accent_note": "Deepest brand purple -- pregnancy loss gravity. Shares hex with /what-is-rrm/ anchor by design; both signal weighty / authority.",
       "in_guides_catalogue": true,
       "in_shell_guides_nav": true,
-      "_order": 11
+      "_order": 11,
+      "pageTitle": "Miscarriage and Recurrent Loss: The RRM Workup",
+      "pageDescription": "Miscarriage affects about 15% of confirmed pregnancies and recurrent loss 2 to 5% of couples. Learn the RRM diagnostic workup most women never get.",
+      "pageH1": "Miscarriage and Recurrent Pregnancy Loss: The Workup Most Women Never Get",
+      "breadcrumbName": "Miscarriage and Recurrent Pregnancy Loss",
+      "authorId": "#naomi-whittaker",
+      "usesPillarLayout": false
     },
     {
       "slug": "rrm-success-rates",
@@ -211,7 +298,17 @@
       "accent": "var(--purple-700)",
       "in_guides_catalogue": true,
       "in_shell_guides_nav": true,
-      "_order": 12
+      "_order": 12,
+      "pageTitle": "RRM Success Rates: What the Published Evidence Shows",
+      "pageDescription": "RRM live-birth rates across 14 peer-reviewed cohorts, 11 countries, 2008-2026. Crude and cumulative outcomes by condition and age.",
+      "pageH1": "RRM Success Rates: What the Published Evidence Shows",
+      "breadcrumbName": "RRM Success Rates",
+      "authorId": "#organization",
+      "reviewer": {
+        "name": "Dr. Naomi Whittaker, MD",
+        "id": "#naomi-whittaker"
+      },
+      "usesPillarLayout": false
     }
   ]
 }
