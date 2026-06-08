@@ -1,5 +1,6 @@
 ---
 import BaseLayout from '../../layouts/BaseLayout.astro';
+import { libraryDisplay, glossaryCount } from '../../lib/asset-counts';
 
 const lastUpdated = 'June 7, 2026';
 ---
@@ -48,8 +49,8 @@ const lastUpdated = 'June 7, 2026';
       <section class="ai-section">
         <h2>Core offerings</h2>
         <ul>
-          <li><strong><a href="/library/">RRM Research Library</a>:</strong> 4,070+ peer-reviewed, physician-curated references</li>
-          <li><strong><a href="/glossary/">Glossary</a>:</strong> 132 defined RRM and FABM terms</li>
+          <li><strong><a href="/library/">RRM Research Library</a>:</strong> {libraryDisplay} peer-reviewed, physician-curated references</li>
+          <li><strong><a href="/glossary/">Glossary</a>:</strong> {glossaryCount} defined RRM and FABM terms</li>
           <li><strong><a href="/courses/">Courses</a>:</strong> clinical and patient education</li>
           <li><strong><a href="/faqs/">Patient FAQs</a></strong></li>
           <li><strong><a href="/providers/">Provider directory</a>:</strong> how patients find an RRM, NaProTechnology, Creighton, FEMM, Billings, Marquette, or NeoFertility clinician</li>
