@@ -30,7 +30,7 @@ export async function onRequestPost(context) {
 
     const ip = request.headers.get('cf-connecting-ip') || 'unknown';
     if (!await checkRateLimit(env, `survey-submit:${ip}`, 10, 900)) {
-      return json({ error: 'rate_limited' }, 429);
+      return json({ ok: false, error: 'rate_limited' }, 429);
     }
 
     let body;
@@ -162,10 +162,12 @@ export async function onRequestPost(context) {
     }
 
     // Link email to Airtable record in D1 (pseudonymized)
+    let identityLinked = false;
     try {
       await env.SURVEY_DB.prepare(
         'INSERT INTO survey_identities (email, airtable_record_id, source) VALUES (?, ?, ?)'
       ).bind(data.email, airtableRecordId, 'endo-survey-v1').run();
+      identityLinked = true;
     } catch (d1Err) {
       const detail = `D1 write failed: record=${airtableRecordId} err=${d1Err.message}`;
       log(env, waitUntil, 'survey', 'd1_identity_write_error', 'error', detail, 0, 500);
@@ -188,12 +190,13 @@ export async function onRequestPost(context) {
       waitUntil(alertFn());
     }
 
-    // Strip email from KV token
-    const stripped = { ...updated, email: undefined };
-    delete stripped.email;
-    await env.SURVEY_TOKENS.put(`token:${token}`, JSON.stringify(stripped), {
-      expirationTtl: TOKEN_TTL,
-    });
+    if (identityLinked) {
+      const stripped = { ...updated, email: undefined };
+      delete stripped.email;
+      await env.SURVEY_TOKENS.put(`token:${token}`, JSON.stringify(stripped), {
+        expirationTtl: TOKEN_TTL,
+      });
+    }
 
     waitUntil(sendGA4Event(env, request, 'generate_lead', { lead_source: 'endo_survey', page_location: 'https://rrmacademy.org/endo-survey/take/' }).catch(() => {}));
 

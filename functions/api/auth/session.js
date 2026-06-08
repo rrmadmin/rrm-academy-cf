@@ -49,7 +49,7 @@ export async function onRequestGet({ request, env, waitUntil }) {
     // lifetime tracks the underlying session.
     if (session.renewed) {
       headers['Set-Cookie'] = [
-        sessionCookie(session.id, session.expiresAt),
+        sessionCookie(session.cookieId, session.expiresAt),
         authHintCookie(session.expiresAt),
       ];
     }

@@ -201,7 +201,7 @@ export async function validateSession(db, sessionId) {
     // caller will not issue a fresh Set-Cookie.
   }
 
-  return { id: row.id, userId: row.user_id, expiresAt: row.expires_at, renewed, role: row.role };
+  return { id: row.id, cookieId: sessionId, userId: row.user_id, expiresAt: row.expires_at, renewed, role: row.role };
 }
 
 export async function invalidateSession(db, sessionId) {
