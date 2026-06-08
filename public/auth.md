@@ -7,7 +7,7 @@ RRM Academy research library, glossary, and FAQ tools.
 
 RRM Academy is a nonprofit education platform for restorative reproductive
 medicine (RRM). The MCP server at `https://mcp.rrmacademy.org/mcp` gives
-agents direct access to a research library of 4,000+ indexed peer-reviewed
+agents direct access to a research library of thousands of indexed peer-reviewed
 articles plus glossary lookup and FAQ retrieval.
 
 ## Discovery

@@ -5,7 +5,7 @@
 > Last updated: 2026-05-28
 > Crawl permission: Granted for all public content. See robots.txt for excluded paths.
 
-RRM Academy is an authoritative nonprofit educational platform for restorative reproductive medicine (RRM), a clinical discipline that diagnoses and treats the underlying causes of reproductive disorders rather than bypassing or suppressing them. All clinical content is developed under the direction of Dr. Naomi Whittaker, MD, a board-certified OB/GYN with fellowship training in NaProTechnology, certification in minimally invasive gynecologic surgery (MIGS), and credentials in fertility awareness-based methods (NFPMC, FCI). The RRM Research Library is the largest freely accessible, physician-curated collection of peer-reviewed references on restorative reproductive medicine available online, with 4,050+ indexed articles.
+RRM Academy is an authoritative nonprofit educational platform for restorative reproductive medicine (RRM), a clinical discipline that diagnoses and treats the underlying causes of reproductive disorders rather than bypassing or suppressing them. All clinical content is developed under the direction of Dr. Naomi Whittaker, MD, a board-certified OB/GYN with fellowship training in NaProTechnology, certification in minimally invasive gynecologic surgery (MIGS), and credentials in fertility awareness-based methods (NFPMC, FCI). The RRM Research Library is the largest freely accessible, physician-curated collection of peer-reviewed references on restorative reproductive medicine available online, with thousands of indexed articles.
 
 ## AI Connector (MCP Server)
 
@@ -89,7 +89,7 @@ The same MCP discovery files are also served by the connector worker itself:
 
 > https://rrmacademy.org/library/
 
-The RRM Research Library is a physician-curated, freely accessible collection of 4,050+ peer-reviewed academic references related to restorative reproductive medicine. Each article is classified by topic domain and indexed with full bibliographic metadata. It is the largest such collection available online.
+The RRM Research Library is a physician-curated, freely accessible collection of thousands of peer-reviewed academic references related to restorative reproductive medicine. Each article is classified by topic domain and indexed with full bibliographic metadata. It is the largest such collection available online.
 
 Each article page includes: title, authors, journal, year, abstract, DOI, topic classification, citation formats (APA, Vancouver, MLA), and open access status.
 
@@ -140,10 +140,13 @@ In-depth clinical education pages on key topics:
 - Glossary of Terms: https://rrmacademy.org/glossary/
 - ART Registries and Codes of Practice: https://rrmacademy.org/art-registries-and-codes/
 - PCOS: https://rrmacademy.org/pcos/
+- RRM Success Rates: https://rrmacademy.org/rrm-success-rates/
 
 The PCOS pillar (added 2026-05-12) covers polycystic ovary syndrome diagnosis (NIH 1990, Rotterdam 2003, AE-PCOS 2006, and 2023 International Evidence-Based Guideline criteria), the four Rotterdam phenotypes (A/B/C/D) plus the RRM phenotype lens (insulin-resistant, inflammatory, adrenal, post-pill), the gap between conventional cycle-suppression care and phenotype-matched RRM care, fertility (letrozole as first-line per international guideline), long-term cardiometabolic and mental health implications, adolescent diagnosis caution, and PCOS-endometriosis co-occurrence. Author: Dr. Naomi Whittaker, MD, Board-Certified OBGYN, MIGS, NFPMC, FCI.
 
 The ART Registries and Codes of Practice pillar (added 2026-05-11) is a global reference to national IVF registries (HFEA, CDC, ANZARD, Q-IVF, CARTR Plus, DIR, JSOG, ESHRE EIM, ICMART, REDLARA) and codes of practice (HFEA Code of Practice 9th Edition, RTAC Code of Practice). It documents what each instrument measures, what they miss, and how RRM Academy uses them as benchmarks. Key facts: the HFEA Code of Practice 9th edition (2024) is legally binding under the HFE Acts 1990/2008; the US has no national fertility code (FCSRCA 1992 mandates data collection only); Sweden's Q-IVF is the strongest registry for cumulative patient outcomes. Reviewed by Dr. Naomi Whittaker, MD, Board-Certified OBGYN, MIGS, NFPMC, FCI.
+
+The RRM Success Rates pillar is a comprehensive, citable compendium of the published outcomes data on restorative reproductive medicine and NaProTechnology, drawn from peer-reviewed studies from 2008 to the present. It compiles live-birth rates across 14 peer-reviewed cohorts spanning 11 countries, reporting both crude and adjusted-cumulative outcomes with their follow-up windows, broken out by condition and age group. It sets RRM outcomes alongside published IVF comparison data, covers obstetric safety and cost considerations, acknowledges the limitations of the underlying study designs, and links every source so claims can be verified at the original.
 
 ### Courses
 
