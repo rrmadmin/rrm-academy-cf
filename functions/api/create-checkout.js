@@ -205,7 +205,7 @@ async function handleCheckout(request, env, waitUntil) {
       const rowEmail = (wixLookup.email || '').toLowerCase().trim();
       if (!sessionEmail || sessionEmail !== rowEmail) {
         env.EVENTS?.writeDataPoint({
-          blobs: ['billing', 'stuc-migration', 'wix-sub-id-binding-mismatch', userEmail || 'anon', wixSubIdInput],
+          blobs: ['billing', 'stuc-migration', 'wix-sub-id-binding-mismatch', userId || 'anon', wixSubIdInput],
           indexes: ['wix-sub-id-binding-mismatch'],
         });
         log(env, waitUntil, 'billing', 'wix_sub_id_binding_mismatch', 'warn',
@@ -242,7 +242,7 @@ async function handleCheckout(request, env, waitUntil) {
       };
     } else if (stucV2) {
       env.EVENTS?.writeDataPoint({
-        blobs: ['billing', 'stuc-migration', 'cold-checkout', userEmail || 'anon', wixSubId || ''],
+        blobs: ['billing', 'stuc-migration', 'cold-checkout', userId || 'anon', wixSubId || ''],
         indexes: ['cold-checkout'],
       });
     }
