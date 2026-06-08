@@ -3,7 +3,7 @@
   "description": "Critical file integrity manifest. Run `npm run guard:update` after intentional changes.",
   "files": {
     "functions/api/auth/_shared.js": {
-      "hash": "03ba4e7b7e2209d01032c61cc8d96719e5a664d0add2a9738e825da40f3d71e8",
+      "hash": "32eefb23a4e2b8f5606c414aa98d69f2a9fa110f3b2e6b5d36509f5faca207bd",
       "note": "CORS, sessions, crypto, rate limiting"
     },
     "functions/api/auth/login.js": {
@@ -31,7 +31,7 @@
       "note": "OAuth redirect initiation"
     },
     "functions/api/auth/google-callback.js": {
-      "hash": "1f89aa0d332ceff4754c97e3d95f1bde2af2fc3b73fea12eb1d5e8a8ad806346",
+      "hash": "80e490dc38c6813b4924a6a20ccd43de22c9295d683e84446f556716c25893de",
       "note": "Google OAuth callback"
     },
     "functions/api/auth/_email-validate.js": {
@@ -71,7 +71,7 @@
       "note": "HMAC-SHA256 magic-link token for Wix-to-Stripe donor migration"
     },
     "functions/_middleware.js": {
-      "hash": "c902a1a18ef099d7d85aa01e9c33ba94c181a96c384f2eb5ce1fea10ec015ee0",
+      "hash": "136f83b37567a01d59f294e5c2c94b464201301c07c8e67bcefcd5c29e4c01de",
       "note": "Auth gating"
     },
     "wrangler.toml": {
@@ -87,7 +87,7 @@
       "note": "EmailListVerify SMTP validation"
     },
     "functions/api/survey/submit.js": {
-      "hash": "fbad5529fe0bd9073a967bcd9811cb1431027eead16962b252b1e71fbc24cc63",
+      "hash": "eea1519e4e70d4da80f0a7e1dc5f487a62ed092f76aa83f91b4038b8af6fc44a",
       "note": "Survey submission + PII pseudonymization"
     },
     "functions/api/survey/request.js": {
@@ -143,7 +143,7 @@
       "note": "Guard script (self-guarding)"
     },
     "functions/api/auth/verify-email.js": {
-      "hash": "63bb7644ecce0650c470b5da2a18692cb8e8575adc83b91975c8f9de8a7466b3",
+      "hash": "cfd6bf07df87646d3490052d97bdb970f5c65b314288e82d660992551a070daa",
       "note": "Email verification token consumption"
     },
     "functions/api/auth/logout.js": {

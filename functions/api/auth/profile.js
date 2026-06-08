@@ -59,7 +59,7 @@ export async function onRequestPatch({ request, env, waitUntil }) {
     const responseHeaders = {};
     if (session.renewed) {
       responseHeaders['Set-Cookie'] = [
-        sessionCookie(session.id, session.expiresAt),
+        sessionCookie(session.cookieId, session.expiresAt),
         authHintCookie(session.expiresAt),
       ];
     }

@@ -372,7 +372,7 @@ export async function onRequest(context) {
     const response = await context.next();
     if (session.renewed) {
       const headers = new Headers(response.headers);
-      headers.append('Set-Cookie', sessionCookie(session.id, session.expiresAt));
+      headers.append('Set-Cookie', sessionCookie(session.cookieId, session.expiresAt));
       headers.append('Set-Cookie', authHintCookie(session.expiresAt));
       return withSecurityHeaders(new Response(response.body, {
         status: response.status,
@@ -414,7 +414,7 @@ export async function onRequest(context) {
     const response = await context.next();
     if (session.renewed) {
       const headers = new Headers(response.headers);
-      headers.append('Set-Cookie', sessionCookie(session.id, session.expiresAt));
+      headers.append('Set-Cookie', sessionCookie(session.cookieId, session.expiresAt));
       headers.append('Set-Cookie', authHintCookie(session.expiresAt));
       return withSecurityHeaders(new Response(response.body, {
         status: response.status,
@@ -452,7 +452,7 @@ export async function onRequest(context) {
           const headers = new Headers(response.headers);
           headers.append('Set-Cookie', authHintCookie(session.expiresAt));
           if (session.renewed) {
-            headers.append('Set-Cookie', sessionCookie(session.id, session.expiresAt));
+            headers.append('Set-Cookie', sessionCookie(session.cookieId, session.expiresAt));
           }
           return withSecurityHeaders(new Response(response.body, {
             status: response.status,
