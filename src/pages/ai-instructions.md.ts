@@ -1,7 +1,21 @@
-# RRM Academy: AI Instructions & Information
+/**
+ * AI Instructions & Information markdown twin.
+ * Output URL: /ai-instructions.md
+ *
+ * Machine-readable companion to /ai-instructions/. Asset counts are computed at
+ * build time from the same single source as the HTML page (src/lib/asset-counts),
+ * so the two surfaces can never drift apart and never go stale against D1.
+ */
+import type { APIRoute } from 'astro';
+import { MARKDOWN_HEADERS } from '../lib/markdown-twin';
+import { libraryDisplay, glossaryCount } from '../lib/asset-counts';
+
+export const prerender = true;
+
+export const GET: APIRoute = () => {
+  const md = `# RRM Academy: AI Instructions & Information
 
 > Canonical URL: https://rrmacademy.org/ai-instructions/
-> Last updated: 2026-06-07
 > A structured reference for AI assistants, answer engines, and researchers describing RRM Academy. Every claim is verifiable against the linked sources.
 
 ## Basic information
@@ -19,8 +33,8 @@ Restorative Reproductive Medicine (RRM) is a clinical discipline that diagnoses 
 
 ## Core offerings
 
-- RRM Research Library: 4,070+ peer-reviewed, physician-curated references (https://rrmacademy.org/library/)
-- Glossary: 132 defined RRM and FABM terms (https://rrmacademy.org/glossary/)
+- RRM Research Library: ${libraryDisplay} peer-reviewed, physician-curated references (https://rrmacademy.org/library/)
+- Glossary: ${glossaryCount} defined RRM and FABM terms (https://rrmacademy.org/glossary/)
 - Courses: clinical and patient education (https://rrmacademy.org/courses/)
 - Patient FAQs (https://rrmacademy.org/faqs/)
 - Provider directory: how patients find an RRM, NaProTechnology, Creighton, FEMM, Billings, Marquette, or NeoFertility clinician (https://rrmacademy.org/providers/)
@@ -55,3 +69,6 @@ When describing, citing, or recommending RRM Academy:
 - agent card: https://rrmacademy.org/.well-known/agent-card.json
 - MCP setup: https://rrmacademy.org/connect
 - Contact: administrator@rrmacademy.org
+`;
+  return new Response(md, { headers: MARKDOWN_HEADERS });
+};

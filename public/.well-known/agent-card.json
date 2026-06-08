@@ -1,6 +1,6 @@
 {
   "name": "rrmacademy",
-  "description": "RRM Academy is a nonprofit education platform for restorative reproductive medicine. The research library indexes 4,050+ peer-reviewed articles. Dr. Naomi Whittaker, MD, leads instruction. The MCP server at mcp.rrmacademy.org gives agents direct library access.",
+  "description": "RRM Academy is a nonprofit education platform for restorative reproductive medicine. The research library indexes thousands of peer-reviewed articles. Dr. Naomi Whittaker, MD, leads instruction. The MCP server at mcp.rrmacademy.org gives agents direct library access.",
   "url": "https://rrmacademy.org",
   "version": "1.1.0",
   "provider": {
@@ -25,7 +25,7 @@
     {
       "id": "library-search",
       "name": "Research library search",
-      "description": "Search 4,050+ peer-reviewed, physician-curated articles on restorative reproductive medicine, NaProTechnology, FABMs, endometriosis, PCOS, infertility, and miscarriage. Available via the MCP server at mcp.rrmacademy.org (search tool), the machine-readable corpus at /library-feed.jsonl, or /library/ on the web.",
+      "description": "Search thousands of peer-reviewed, physician-curated articles on restorative reproductive medicine, NaProTechnology, FABMs, endometriosis, PCOS, infertility, and miscarriage. Available via the MCP server at mcp.rrmacademy.org (search tool), the machine-readable corpus at /library-feed.jsonl, or /library/ on the web.",
       "tags": [
         "research",
         "medical-literature",
@@ -40,7 +40,7 @@
     {
       "id": "glossary-lookup",
       "name": "RRM glossary lookup",
-      "description": "Definitions for 130+ restorative reproductive medicine terms, written and reviewed by a board-certified OBGYN. Full text at /glossary/ and /glossary.md; also served by the MCP server.",
+      "description": "Definitions for hundreds of restorative reproductive medicine terms, written and reviewed by a board-certified OBGYN. Full text at /glossary/ and /glossary.md; also served by the MCP server.",
       "tags": [
         "glossary",
         "definitions",
