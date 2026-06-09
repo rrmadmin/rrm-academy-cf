@@ -27,7 +27,13 @@ const PILLAR_REGISTRY = JSON.parse(
   readFileSync(join(ROOT, 'ssot', 'pillars.json'), 'utf-8'),
 );
 const GUIDES = PILLAR_REGISTRY.pillars
-  .map((p) => ({ slug: p.slug, file: p.file }))
+  .map((p) => ({
+    slug: p.slug,
+    file: p.file,
+    usesPillarLayout: p.usesPillarLayout === true,
+    pageH1: p.pageH1,
+    pageDescription: p.pageDescription,
+  }))
   .sort((a, b) => a.slug.localeCompare(b.slug));
 
 const HTML_ENTITIES = {
@@ -192,20 +198,26 @@ function build() {
     const src = readFileSync(path, 'utf-8');
     const { frontmatter, body } = splitFrontmatter(src);
 
-    const title = extractH1(body);
-    const description = extractBaseLayoutDescription(body);
+    let title, description;
+    if (g.usesPillarLayout) {
+      // Migrated pages render the <h1> and wrap BaseLayout inside PillarLayout,
+      // so there is no literal <h1>/<BaseLayout> to scrape. Read the verbatim
+      // values the registry captured. pageH1 (NOT pageTitle) is the guides-card
+      // title -- they differ on many pillars and this string is embedded 3x
+      // by the Vectorize embedder, so substituting pageTitle would shift ranking.
+      title = (g.pageH1 || '').trim();
+      description = (g.pageDescription || '').trim();
+      if (!title) { console.error(`Migrated pillar ${g.slug} missing registry pageH1`); process.exit(1); }
+      if (!description) { console.error(`Migrated pillar ${g.slug} missing registry pageDescription`); process.exit(1); }
+    } else {
+      title = extractH1(body);
+      description = extractBaseLayoutDescription(body);
+      if (!title) { console.error(`Failed to extract <h1> from ${g.file}`); process.exit(1); }
+      if (!description) { console.error(`Failed to extract BaseLayout description from ${g.file}`); process.exit(1); }
+    }
     const sectionHeadings = extractSectionHeadings(body);
     const bodyText = extractBodyText(body);
     const keywordText = extractKeywordText(frontmatter);
-
-    if (!title) {
-      console.error(`Failed to extract <h1> from ${g.file}`);
-      process.exit(1);
-    }
-    if (!description) {
-      console.error(`Failed to extract BaseLayout description from ${g.file}`);
-      process.exit(1);
-    }
 
     entries.push({
       slug: g.slug,
