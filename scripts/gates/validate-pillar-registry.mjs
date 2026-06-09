@@ -104,6 +104,14 @@ const REQUIRED_FIELDS = [
   'accent',
   'in_guides_catalogue',
   'in_shell_guides_nav',
+  // PillarLayout foundation fields (added 2026-06-08). reviewer is intentionally
+  // NOT here: 9 pillars have no reviewer and gateG1 fails on `=== undefined`.
+  'pageTitle',
+  'pageDescription',
+  'pageH1',
+  'breadcrumbName',
+  'authorId',
+  'usesPillarLayout',
 ];
 
 // G6 reverse check: a clinical pillar page must be REGISTERED (which is what gives
@@ -147,6 +155,32 @@ function gateG6(registry) {
         `It will fall back to the generic OG card and be absent from the sitemap/guides. ` +
         `Register it (pillar-create, or add a pillars.json entry) or add '${slug}' to NON_PILLAR_CLINICAL.`,
       );
+    }
+  }
+  return issues;
+}
+
+const IMPORT_PILLAR_RE = /^\s*import\s+PillarLayout\s+from\s+['"][^'"]*PillarLayout\.astro['"]/m;
+const IMPORT_BASE_RE = /^\s*import\s+BaseLayout\s+from\s+['"][^'"]*BaseLayout\.astro['"]/m;
+const USES_BASE_TAG_RE = /<BaseLayout[\s>]/;
+const HANDROLLED_BREADCRUMB_RE = /['"]@type['"]\s*:\s*['"]BreadcrumbList['"]/;
+
+export function gateG7(registry, readFile = (p) => readFileSync(p, 'utf-8')) {
+  const issues = [];
+  for (const p of registry.pillars || []) {
+    if (typeof p.usesPillarLayout !== 'boolean' || !p.file) continue; // gateG1 already flagged a missing flag/file
+    const fullPath = join(ROOT, 'src', 'pages', p.file);
+    let src;
+    try { src = readFile(fullPath); } catch { continue; } // gateG1 already flagged a missing file
+    const importsPillar = IMPORT_PILLAR_RE.test(src);
+    if (p.usesPillarLayout) {
+      if (!importsPillar) issues.push(`G7 ${p.slug}: usesPillarLayout:true -- page must import PillarLayout (does not import PillarLayout)`);
+      if (IMPORT_BASE_RE.test(src) || USES_BASE_TAG_RE.test(src))
+        issues.push(`G7 ${p.slug}: usesPillarLayout:true -- page must NOT import or use BaseLayout directly (PillarLayout wraps it)`);
+      if (HANDROLLED_BREADCRUMB_RE.test(src))
+        issues.push(`G7 ${p.slug}: usesPillarLayout:true but hand-rolls a BreadcrumbList literal (the layout owns it; @graph pages must delete the in-graph BreadcrumbList)`);
+    } else if (importsPillar) {
+      issues.push(`G7 ${p.slug}: usesPillarLayout:false -- page must NOT import PillarLayout (half-revert?)`);
     }
   }
   return issues;
@@ -229,40 +263,44 @@ function gateG5(registry) {
   return warnings;
 }
 
-const args = process.argv.slice(2);
-const jsonMode = args.includes('--json');
+// Only run the CLI block when executed directly, not when imported by tests.
+if (import.meta.url === `file://${process.argv[1]}`) {
+  const args = process.argv.slice(2);
+  const jsonMode = args.includes('--json');
 
-try {
-  const registry = readPillars();
-  const g1 = gateG1(registry);
-  const g23 = gateG2andG3();
-  const g6 = gateG6(registry);
-  const g5 = gateG5(registry);
-  const errors = [...g1, ...g23, ...g6];
+  try {
+    const registry = readPillars();
+    const g1 = gateG1(registry);
+    const g23 = gateG2andG3();
+    const g6 = gateG6(registry);
+    const g7 = gateG7(registry);
+    const g5 = gateG5(registry);
+    const errors = [...g1, ...g23, ...g6, ...g7];
 
-  if (jsonMode) {
-    console.log(JSON.stringify({
-      pass: errors.length === 0,
-      errors,
-      warnings: g5,
-      pillar_count: registry.pillars?.length ?? 0,
-    }, null, 2));
-  } else {
-    console.log(`[validate-pillar-registry] checking ${registry.pillars?.length ?? 0} pillars against ${CONSUMERS.length} consumers`);
-    if (errors.length === 0) {
-      console.log('[validate-pillar-registry] G1-G3 + G6 ALL CLEAR -- SSOT integrity + consumer derivation + no-hardcoded-bypass + clinical-page registration');
+    if (jsonMode) {
+      console.log(JSON.stringify({
+        pass: errors.length === 0,
+        errors,
+        warnings: g5,
+        pillar_count: registry.pillars?.length ?? 0,
+      }, null, 2));
     } else {
-      console.error(`[validate-pillar-registry] BLOCKED -- ${errors.length} issue(s):`);
-      for (const e of errors) console.error(`  - ${e}`);
+      console.log(`[validate-pillar-registry] checking ${registry.pillars?.length ?? 0} pillars against ${CONSUMERS.length} consumers`);
+      if (errors.length === 0) {
+        console.log('[validate-pillar-registry] G1-G3 + G6 + G7 ALL CLEAR -- SSOT integrity + consumer derivation + no-hardcoded-bypass + clinical-page registration + PillarLayout enforcement');
+      } else {
+        console.error(`[validate-pillar-registry] BLOCKED -- ${errors.length} issue(s):`);
+        for (const e of errors) console.error(`  - ${e}`);
+      }
+      if (g5.length > 0) {
+        console.warn(`[validate-pillar-registry] G5 WARNINGS (router parity, non-blocking):`);
+        for (const w of g5) console.warn(`  - ${w}`);
+      }
     }
-    if (g5.length > 0) {
-      console.warn(`[validate-pillar-registry] G5 WARNINGS (router parity, non-blocking):`);
-      for (const w of g5) console.warn(`  - ${w}`);
-    }
-  }
 
-  process.exit(errors.length === 0 ? 0 : 1);
-} catch (err) {
-  console.error(`[validate-pillar-registry] FATAL: ${err.message}`);
-  process.exit(1);
+    process.exit(errors.length === 0 ? 0 : 1);
+  } catch (err) {
+    console.error(`[validate-pillar-registry] FATAL: ${err.message}`);
+    process.exit(1);
+  }
 }
