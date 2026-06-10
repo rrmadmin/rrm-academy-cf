@@ -1215,6 +1215,7 @@ const hasSecondaryAudio = showTabs && presentFormats.has('audio');
           })
           .then(function (res) {
             if (!res.data || !res.data.ok) {
+              loaded[format] = false;
               handleFailure(panel, res.status, res.data && res.data.error);
               return;
             }
@@ -1223,6 +1224,7 @@ const hasSecondaryAudio = showTabs && presentFormats.has('audio');
             render(res.data, panel);
           })
           .catch(function () {
+            loaded[format] = false;
             showMessage(panel, 'This format could not be loaded. Please try refreshing.');
           });
       }
@@ -1291,7 +1293,18 @@ const hasSecondaryAudio = showTabs && presentFormats.has('audio');
 
         function persist() {
           try {
-            var toStore = Object.assign({}, piles, { _ts: Date.now() });
+            var onDisk = {};
+            try {
+              var rawDisk = localStorage.getItem(storeKey);
+              if (rawDisk) {
+                var parsed = JSON.parse(rawDisk);
+                if (parsed && typeof parsed === 'object') {
+                  for (var dk in parsed) { if (dk !== '_ts') onDisk[dk] = parsed[dk]; }
+                }
+              }
+            } catch (e2) {}
+            // In-memory wins per card; merge disk state under in-memory.
+            var toStore = Object.assign({}, onDisk, piles, { _ts: Date.now() });
             try {
               localStorage.setItem(storeKey, JSON.stringify(toStore));
             } catch (quota) {
