@@ -1,22 +1,17 @@
 ---
 import BaseLayout from '../../../layouts/BaseLayout.astro';
 
-// Server-side session + role check — admin/superadmin only
-const sessionResp = await fetch(`${Astro.url.origin}/api/auth/session`, {
-  headers: { cookie: Astro.request.headers.get('cookie') || '' }
-});
-const sessionData = await sessionResp.json();
-const ADMIN_ROLES = ['superadmin', 'admin'];
-if (!sessionData.ok || !sessionData.user || !ADMIN_ROLES.includes(sessionData.user.role)) {
-  return Astro.redirect('/community');
-}
+// Admin-only page. This route is statically prerendered, so the session check
+// cannot run here (Astro.request.headers is empty at build time and a frontmatter
+// redirect would be baked into the HTML for everyone). The page itself contains
+// no data — /api/community/posts enforces admin on archive channels (403) and the
+// inline script bounces unauthorized visitors to /community/.
 ---
 <BaseLayout
   title="Members Archive"
   description="Archive of RRM Academy Members group discussions."
   noindex
 >
-  <meta slot="head" name="robots" content="noindex, nofollow" />
 
   <section class="community-page">
     <div class="container">
@@ -74,8 +69,15 @@ if (!sessionData.ok || !sessionData.user || !ADMIN_ROLES.includes(sessionData.us
         loadMoreBtn.textContent = 'Loading...';
 
         fetch(url, { credentials: 'same-origin' })
-          .then(function (r) { return r.json(); })
+          .then(function (r) {
+            if (r.status === 401 || r.status === 403) {
+              window.location.replace('/community/');
+              return null;
+            }
+            return r.json();
+          })
           .then(function (data) {
+            if (!data) return;
             loadingEl.hidden = true;
             loadMoreBtn.disabled = false;
             loadMoreBtn.textContent = 'Load more';
