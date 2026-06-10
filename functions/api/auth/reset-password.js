@@ -56,7 +56,7 @@ export async function onRequestPost({ request, env, waitUntil }) {
     // JOIN user to check blocked — a blocked user must not be able to complete
     // a reset even if they cached the link before being blocked.
     const tokenRow = await db.prepare(
-      "SELECT pr.user_id, u.blocked FROM password_reset pr JOIN user u ON u.id = pr.user_id WHERE pr.token_hash = ? AND pr.expires_at > ? AND pr.purpose IN ('reset', 'welcome')"
+      "SELECT pr.user_id, pr.purpose, u.blocked FROM password_reset pr JOIN user u ON u.id = pr.user_id WHERE pr.token_hash = ? AND pr.expires_at > ? AND pr.purpose IN ('reset', 'welcome')"
     ).bind(tokenHash, now).first();
 
     if (!tokenRow || tokenRow.blocked) {
@@ -78,19 +78,25 @@ export async function onRequestPost({ request, env, waitUntil }) {
     // Phase 2: Password change + session rotation, atomic batch.
     // Token already consumed; if this batch fails (D1 transient), the user gets a
     // specific actionable message rather than a generic 500.
-    const newSessionId = generateSessionId();
+    // welcome tokens (Stripe-auto-account onboarding, 7-day TTL) do NOT auto-login:
+    // the session INSERT is omitted and no cookies are issued (see auto-login note below).
+    const isWelcome = tokenRow.purpose === 'welcome';
+    const newSessionId = isWelcome ? null : generateSessionId();
     const newExpiresAt = Math.floor((Date.now() + SESSION_DURATION_MS) / 1000);
-    const hashedNewSessionId = await hashToken(newSessionId);
+    const hashedNewSessionId = isWelcome ? null : await hashToken(newSessionId);
     try {
-      await db.batch([
+      const statements = [
         db.prepare("UPDATE user SET hashed_password = ?, email_verified = 1, updated_at = datetime('now') WHERE id = ?")
           .bind(hashedPassword, tokenRow.user_id),
         db.prepare('DELETE FROM password_reset WHERE user_id = ?').bind(tokenRow.user_id),
         // Cleanup: revoke ALL sessions on password reset (forces re-auth across all devices for security).
         // Atomic batch — inline DELETE retained for batch atomicity (mirror of invalidateAllUserSessions)
         db.prepare('DELETE FROM session WHERE user_id = ?').bind(tokenRow.user_id),
-        sessionInsertStatement(db, hashedNewSessionId, tokenRow.user_id, newExpiresAt),
-      ]);
+      ];
+      if (!isWelcome) {
+        statements.push(sessionInsertStatement(db, hashedNewSessionId, tokenRow.user_id, newExpiresAt));
+      }
+      await db.batch(statements);
     } catch (phase2Err) {
       log(env, waitUntil, 'auth', 'reset_password_phase2_error', 'error', phase2Err.message);
       return json({
@@ -135,6 +141,16 @@ export async function onRequestPost({ request, env, waitUntil }) {
     // Token possession is treated as proof of email control. If the threat
     // model changes (e.g., requiring re-auth after reset), drop the
     // session INSERT and Set-Cookie below.
+    //
+    // EXCEPTION — welcome tokens (purpose='welcome'): NO auto-login. These are
+    // minted for Stripe-auto-created accounts with a 7-day TTL, so a forwarded
+    // or leaked welcome email would otherwise become a week-long bearer session.
+    // For welcome we set the password (Phase 2 above) but issue no session and
+    // no cookies; the user must sign in explicitly. The short-lived (1hr) 'reset'
+    // path keeps auto-login because token possession is a stronger proof there.
+    if (isWelcome) {
+      return json({ ok: true, requiresLogin: true }, 200);
+    }
     return json(
       { ok: true },
       200,
