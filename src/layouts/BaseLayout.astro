@@ -348,8 +348,10 @@ if (!jsonLd) {
       // and the rrm_vid write) when the browser signals GPC. The property may be
       // undefined; only an explicit `=== true` opts out.
       if (navigator.globalPrivacyControl === true) return;
-      if (sessionStorage.getItem('fp_in_flight') === '1') return;
-      sessionStorage.setItem('fp_in_flight', '1');
+      const inFlight = Number(sessionStorage.getItem('fp_in_flight'));
+      if (inFlight && Date.now() - inFlight < 10000) return;
+      sessionStorage.setItem('fp_in_flight', String(Date.now()));
+      const fpHost = location.hostname.endsWith('rrm.foundation') ? 'fp.rrm.foundation' : 'fp.rrmacademy.org';
       const fire = async () => {
         try {
           const params = new URLSearchParams(location.search);
@@ -359,7 +361,6 @@ if (!jsonLd) {
             campaign: params.get('utm_campaign') || undefined,
           };
           const vid_hint = localStorage.getItem('rrm_vid') || undefined;
-          const fpHost = location.hostname.endsWith('rrm.foundation') ? 'fp.rrm.foundation' : 'fp.rrmacademy.org';
           const res = await fetch(`https://${fpHost}/identify`, {
             method: 'POST',
             credentials: 'include',
