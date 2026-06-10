@@ -1,19 +1,14 @@
 /* src/styles/app-shell.css
- * Z-stack, layout grid, drawer, middle column, sheet, print rules.
+ * Z-stack, layout grid, middle column, print rules.
  * Color/spacing/radius/font tokens come from src/styles/global.css (semantic tokens
  * auto-switch under [data-theme="dark"]). Z-stack is the load-bearing primitive
  * — proof gate G-Z-STACK enforces no raw z-index literals here. */
 
 :root {
-  --z-bottom-nav: 60;
-  --z-sheet-peek: 70;
-  --z-sheet: 80;
-  --z-drawer: 90;
   --z-modal: 100;
 
   --shell-sidebar-width: 240px;
   --shell-middle-column-width: 280px;
-  --shell-bottom-nav-height: 56px;
   --shell-breakpoint-mobile: 900px;
 }
 
@@ -27,43 +22,19 @@
   display: none;
 }
 
-/* Feature-detect fallback: hides peek bar when <dialog>.showModal absent. */
 /* Desktop-only shell (Brian preference 2026-05-08).
-   Mobile gets the global Header from BaseLayout-equivalent rendering inside
-   AppShellChrome. The legacy shell mobile UI (bottom-nav, drawer, hamburger
-   toggle, sheet) is permanently hidden — those were attempts to replace the
-   global Header on mobile and Brian preferred keeping the global one. */
+   Mobile gets the global Header rendered inside AppShellChrome; the legacy
+   shell mobile UI (bottom nav, drawer, pull-up sheet) was removed 2026-06-10. */
 .app-shell-mobile-header {
   display: block;
 }
-.app-shell-bottom-nav,
-.app-shell-drawer,
-.app-shell-drawer__overlay,
-.app-shell-drawer-toggle,
-.app-shell-sheet,
-.app-shell-sheet-peek {
-  display: none !important;
-}
 @media (min-width: 901px) {
   .app-shell-mobile-header { display: none; }
-}
-/* Legacy padding-bottom that cleared the now-removed bottom-nav. Reset. */
-@media (max-width: 900px) {
-  .app-shell-footer-row { padding-bottom: 0; }
-}
-
-.shell-no-sheet .app-shell-sheet,
-.shell-no-sheet .app-shell-sheet-peek {
-  display: none;
 }
 
 /* Print: hide all chrome, only article content prints. */
 @media print {
   .app-shell-nav,
-  .app-shell-drawer,
-  .app-shell-bottom-nav,
-  .app-shell-sheet,
-  .app-shell-sheet-peek,
   .app-shell-middle-column,
   .app-shell-footer-row,
   .site-footer {
@@ -126,13 +97,6 @@
     max-height: 100vh;
     overflow-y: auto;
   }
-  .app-shell-bottom-nav,
-  .app-shell-drawer,
-  .app-shell-drawer-toggle,
-  .app-shell-sheet,
-  .app-shell-sheet-peek {
-    display: none;
-  }
 }
 
 /* Sidebar visual styling — adopts site design tokens (Cormorant for wordmark,
@@ -170,7 +134,7 @@
   flex-direction: column;
   gap: var(--space-1);
 }
-/* Top header: account row (flex) + Save icon button, mirroring the mobile drawer.
+/* Top header: account row (flex) + Save icon button, mirroring the legacy mobile drawer layout.
    A hairline separates it from the first nav group. */
 .app-shell-nav__header {
   display: flex;
@@ -632,108 +596,9 @@
   font-weight: 500;
 }
 
-/* Mobile (≤900px): sidebar hidden, bottom nav fixed, drawer slides from left. */
+/* Mobile (≤900px): sidebar + middle column hidden; the global Header serves mobile. */
 @media (max-width: 900px) {
-  /* Padding-bottom on .app-shell-footer-row clears the fixed bottom-nav when
-     the layout collapses to flow on mobile. Footer renders below main, above
-     the bottom-nav, with the safe-area inset preserved. */
-  .app-shell-footer-row {
-    padding-bottom: calc(var(--shell-bottom-nav-height) + env(safe-area-inset-bottom));
-  }
   .app-shell-nav { display: none; }
   .app-shell-middle-column { display: none; }
 
-  .app-shell-bottom-nav {
-    position: fixed; bottom: 0; left: 0; right: 0;
-    height: calc(var(--shell-bottom-nav-height) + env(safe-area-inset-bottom));
-    padding-bottom: env(safe-area-inset-bottom);
-    background: var(--bg-surface);
-    border-top: 1px solid var(--border-color);
-    display: flex; align-items: stretch; justify-content: space-around;
-    z-index: var(--z-bottom-nav);
-    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-  }
-  .app-shell-bottom-nav__tab {
-    flex: 1;
-    display: flex; flex-direction: column; align-items: center; justify-content: center;
-    gap: 2px;
-    padding: var(--space-1);
-    text-decoration: none;
-    color: var(--text-tertiary);
-    font-size: 0.6875rem;
-    font-weight: 500;
-    transition: color 0.15s;
-  }
-  .app-shell-bottom-nav__tab[aria-current="page"] {
-    color: var(--accent);
-    font-weight: 600;
-  }
-
-  .app-shell-drawer {
-    position: fixed; top: 0; left: 0; bottom: 0; width: min(85%, 320px);
-    background: var(--bg-surface);
-    transform: translateX(-100%); transition: transform 200ms ease-out;
-    z-index: var(--z-drawer);
-    overflow-y: auto;
-    padding: var(--space-6) var(--space-4);
-    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-  }
-  .app-shell-drawer:target,
-  .app-shell-drawer[data-open="true"] { transform: translateX(0); }
-  .app-shell-drawer__overlay {
-    position: fixed; inset: 0; background: rgba(0,0,0,0.4);
-    opacity: 0; pointer-events: none; transition: opacity 200ms;
-    z-index: calc(var(--z-drawer) - 1);
-  }
-  .app-shell-drawer:target ~ .app-shell-drawer__overlay,
-  .app-shell-drawer[data-open="true"] ~ .app-shell-drawer__overlay { opacity: 1; pointer-events: auto; }
-
-  /* Hamburger toggle: fixed top-left on mobile, hidden on desktop. */
-  .app-shell-drawer-toggle {
-    position: fixed;
-    top: calc(var(--space-2) + env(safe-area-inset-top));
-    left: var(--space-2);
-    z-index: calc(var(--z-drawer) - 1);
-    width: 44px; height: 44px;
-    display: inline-flex; align-items: center; justify-content: center;
-    background: var(--bg-surface);
-    color: var(--text-primary);
-    border: 1px solid var(--border-color);
-    border-radius: var(--radius-md);
-    font-size: 1.125rem; line-height: 1;
-    cursor: pointer;
-    box-shadow: var(--shadow-sm);
-  }
-  .app-shell-drawer-toggle:focus-visible {
-    outline: 2px solid var(--accent);
-    outline-offset: 2px;
-  }
-}
-
-/* Pull-up sheet (mobile only, native <dialog>) */
-.app-shell-sheet {
-  position: fixed; bottom: 0; left: 0; right: 0;
-  max-height: 92vh;
-  background: var(--bg-surface);
-  border-top: 1px solid var(--border-color);
-  border-top-left-radius: var(--radius-lg); border-top-right-radius: var(--radius-lg);
-  margin: 0; padding: 0; border: 0;
-  transform: translateY(100%);
-  transition: transform 280ms cubic-bezier(0.32, 0.72, 0, 1);
-  z-index: var(--z-sheet);
-  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-}
-.app-shell-sheet[open] { transform: translateY(0); }
-.app-shell-sheet[data-state="peek"] { transform: translateY(calc(100% - 44px)); }
-.app-shell-sheet[data-state="half"] { transform: translateY(42%); }
-.app-shell-sheet[data-state="full"] { transform: translateY(8%); }
-.app-shell-sheet::backdrop {
-  background: rgba(0,0,0,0.4);
-}
-.app-shell-sheet__grip { touch-action: none; }
-.app-shell-sheet__list { overscroll-behavior: contain; touch-action: pan-y; overflow-y: auto; }
-
-@media (prefers-reduced-motion: reduce) {
-  .app-shell-sheet { transition-duration: 80ms; }
-  .app-shell-drawer { transition-duration: 0ms; }
 }

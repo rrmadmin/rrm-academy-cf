@@ -334,8 +334,7 @@ gh workflow run deploy.yml
 Rollback: `gh variable set PUBLIC_SHELL_ROUTES --body ""` + redeploy.
 
 **Components:**
-- `src/components/AppShellChrome.astro` — sidebar + drawer + middle column.
-- `src/components/AppShellSheet.astro` — mobile pull-up sheet.
+- `src/components/AppShellChrome.astro` — desktop sidebar + middle column. Mobile renders the global Header inside `.app-shell-mobile-header`; the legacy shell mobile UI (bottom nav, hamburger drawer, AppShellSheet pull-up sheet) was DELETED 2026-06-10 after a month permanently `display:none`.
 - `src/components/MaybeShell.astro` — conditional wrapper for shell-on/shell-off without duplicating page body across two ternary branches. Forwards `hasRail` prop and `rail` named slot. Use this on every new wrap target.
 - `src/components/SectionTocChips.astro` — chip-pill "On this page" callout that replaces the sticky internal `.toc` sidebar on shell-enabled pillar pages. Pair with `.article-layout--no-toc` modifier.
 - `src/styles/app-shell.css` — grid, tokens, mobile rules.

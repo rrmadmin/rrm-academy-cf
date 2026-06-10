@@ -47,10 +47,9 @@ test.describe('App shell — desktop (1440x900)', () => {
     expect(themeAfter).toBe(theme);
   });
 
-  test('bottom-nav click clears sessionStorage', async ({ page }) => {
+  test('sidebar brand click clears sessionStorage', async ({ page }) => {
     await page.goto('/library/');
     await page.locator('[data-article-card]').first().click();
-    // Bottom nav not visible on desktop — emulate via sidebar logo click clearing context
     await page.click('.app-shell-nav__brand');
     const ctx = await page.evaluate(() => sessionStorage.getItem('rrm-shell-context'));
     expect(ctx).toBeNull();
@@ -60,35 +59,14 @@ test.describe('App shell — desktop (1440x900)', () => {
 test.describe('App shell — mobile (375x812)', () => {
   test.use({ baseURL: LOCAL_BASE_URL, viewport: { width: 375, height: 812 } });
 
-  test('mobile bottom nav visible, sidebar hidden', async ({ page }) => {
+  test('mobile shows global Header; sidebar hidden; no legacy shell mobile UI', async ({ page }) => {
     await page.goto('/library/');
-    await expect(page.locator('.app-shell-bottom-nav')).toBeVisible();
+    await expect(page.locator('.app-shell-mobile-header .site-header')).toBeVisible();
     await expect(page.locator('.app-shell-nav')).not.toBeVisible();
-  });
-
-  test('hamburger drawer opens and closes', async ({ page }) => {
-    await page.goto('/library/');
-    await page.click('.app-shell-drawer-toggle');
-    await expect(page.locator('#app-shell-drawer')).toHaveAttribute('data-open', 'true');
-    await page.click('.app-shell-drawer__overlay');
-    await expect(page.locator('#app-shell-drawer')).toHaveAttribute('data-open', 'false');
-  });
-
-  test('peek bar appears after card click; sheet opens to half on tap', async ({ page }) => {
-    await page.goto('/library/');
-    await page.locator('[data-article-card]').first().click();
-    await expect(page.locator('.app-shell-sheet-peek')).toBeVisible();
-    await page.click('.app-shell-sheet-peek');
-    await expect(page.locator('.app-shell-sheet')).toHaveAttribute('data-state', 'half');
-  });
-
-  test('bottom-nav Library tab clears context and returns to /library/', async ({ page }) => {
-    await page.goto('/library/');
-    await page.locator('[data-article-card]').first().click();
-    await page.click('.app-shell-bottom-nav__tab[href="/library/"]');
-    await expect(page).toHaveURL(/\/library\/?$/);
-    const ctx = await page.evaluate(() => sessionStorage.getItem('rrm-shell-context'));
-    expect(ctx).toBeNull();
+    // Legacy shell mobile UI (bottom nav, drawer, pull-up sheet) removed 2026-06-10.
+    await expect(page.locator('.app-shell-bottom-nav')).toHaveCount(0);
+    await expect(page.locator('#app-shell-drawer')).toHaveCount(0);
+    await expect(page.locator('.app-shell-sheet')).toHaveCount(0);
   });
 });
 
@@ -147,7 +125,5 @@ test.describe('App shell — no-JS fallback', () => {
   test('sidebar renders without JS, theme toggle inert', async ({ page }) => {
     await page.goto('/library/');
     await expect(page.locator('.app-shell-nav')).toBeVisible();
-    // Sheet absent (no JS to mount it).
-    await expect(page.locator('.app-shell-sheet')).not.toBeVisible();
   });
 });
