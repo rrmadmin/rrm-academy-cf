@@ -9,7 +9,7 @@
 import { describe, it } from 'node:test';
 import assert from 'node:assert/strict';
 import {
-  hashPassword, verifyPassword, hashToken,
+  hashPassword, verifyPassword, hashToken, PBKDF2_ITERATIONS,
   generateId, generateSessionId, generateToken,
   isValidEmail, isValidPassword, isSafeRedirect,
 } from '../functions/api/auth/_shared.js';
@@ -36,7 +36,11 @@ describe('hashPassword + verifyPassword', () => {
     const hashed = await hashPassword('test');
     const parts = hashed.split('$');
     assert.equal(parts.length, 3, 'expected 3 parts separated by $');
-    assert.equal(parts[0], '600000', 'expected 600000 iterations');
+    assert.equal(parts[0], String(PBKDF2_ITERATIONS), 'expected PBKDF2_ITERATIONS iterations');
+    // Workers runtime hard-caps crypto.subtle PBKDF2 at 100K; Node (this test
+    // env) allows more, so CI cannot catch an over-cap bump at runtime --
+    // assert the ceiling here instead.
+    assert.ok(PBKDF2_ITERATIONS <= 100000, 'PBKDF2_ITERATIONS exceeds the Workers runtime cap of 100000');
   });
 });
 
