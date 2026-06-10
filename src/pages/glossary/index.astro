@@ -1,14 +1,9 @@
 ---
-import BaseLayout from '../../layouts/BaseLayout.astro';
-import MaybeShell from '../../components/MaybeShell.astro';
+import PillarLayout from '../../layouts/PillarLayout.astro';
 import { isShellEnabled } from '../../lib/shell-routes';
-import BackToTop from '../../components/BackToTop.astro';
-import PdfDownload from '../../components/PdfDownload.astro';
-import LastUpdated from '../../components/LastUpdated.astro';
 import GlossaryTerm from '../../components/GlossaryTerm.astro';
 import glossaryData from '../../data/glossary.json';
 import pageDates from '../../data/page-dates.json';
-import { safeJsonLd } from '../../lib/jsonld';
 
 const SHELL_ENABLED = isShellEnabled('guides');
 
@@ -154,17 +149,6 @@ const pageSchema = {
   ],
 };
 
-// Breadcrumb schema
-const breadcrumbSchema = {
-  '@context': 'https://schema.org',
-  '@type': 'BreadcrumbList',
-  itemListElement: [
-    { '@type': 'ListItem', position: 1, name: 'Home', item: 'https://rrmacademy.org/' },
-    { '@type': 'ListItem', position: 2, name: 'Guides', item: 'https://rrmacademy.org/guides/' },
-    { '@type': 'ListItem', position: 3, name: 'Glossary', item: 'https://rrmacademy.org/glossary/' },
-  ],
-};
-
 // DefinedTermSet: each term as a citable AEO entity (@id=#slug).
 // Prefer the bold lead sentence; if short, also include the next paragraph for AEO citation pickup.
 // Target ~600-800 chars (AEO sweet spot per SEO Operator review 2026-04-18).
@@ -206,29 +190,17 @@ const definedTermSetSchema = {
 };
 ---
 
-<BaseLayout
-  title="RRM Glossary: A Detailed Reference to Restorative Reproductive Medicine"
-  description="Evidence-based glossary of RRM terminology: fertility awareness methods, NaProTechnology, diagnostic tools, surgical techniques, and key conditions."
-  canonicalUrl="https://rrmacademy.org/glossary/"
-  markdownUrl="/glossary.md"
-  ogType="article"
-  publishDate="2026-03-15"
+<PillarLayout
+  slug="glossary"
   jsonLd={pageSchema}
-  speakable={['.pillar-lead', '.pillar-lead strong']}
-  chrome={SHELL_ENABLED ? 'shell' : 'default'}
-  trackScroll
+  extraSchema={[definedTermSetSchema]}
+  bylineDatePrefix="Updated"
+  hasRail={SHELL_ENABLED}
+  wideContainer={true}
+  proseClass="glossary-content"
+  disclaimerHtml={null}
+  baseLayout={{ markdownUrl: '/glossary.md', ogType: 'article', publishDate: '2026-03-15', speakable: ['.pillar-lead', '.pillar-lead strong'], trackScroll: true }}
 >
-  <!-- Separate JSON-LD block for breadcrumbs -->
-  <script type="application/ld+json" set:html={safeJsonLd(breadcrumbSchema)} />
-
-  <!-- DefinedTermSet: per-term citable entities for AEO -->
-  <script type="application/ld+json" set:html={safeJsonLd(definedTermSetSchema)} />
-
-  <MaybeShell enabled={SHELL_ENABLED} context="page" currentPath={Astro.url.pathname} hasRail={SHELL_ENABLED}>
-  {/* Right rail: A-Z jump nav lives here when the shell is enabled (Brian
-      preference 2026-05-07). The collapsible <details> jump nav below is
-      suppressed via the `!SHELL_ENABLED` gate to avoid duplication. Empty
-      letters dim live (data-az-letter) as the client filter runs. */}
   {SHELL_ENABLED && (
     <Fragment slot="rail">
       <nav class="app-shell-middle-column__section glossary-rail" aria-label="Jump to a letter">
@@ -242,39 +214,9 @@ const definedTermSetSchema = {
     </Fragment>
   )}
 
-  <div class="page-wrapper" data-pagefind-body>
+  <Fragment slot="preContent">
     <span data-pagefind-meta="type:Guide" style="display:none"></span>
     <span data-pagefind-meta="title:RRM Glossary: A Detailed Reference" style="display:none"></span>
-    <div class="container">
-
-      <!-- Breadcrumb -->
-      <nav class="breadcrumb" aria-label="Breadcrumb">
-        <a href="/">Home</a>
-        <span aria-hidden="true"> &rsaquo; </span>
-        <a href="/guides/">Guides</a>
-        <span aria-hidden="true"> &rsaquo; </span>
-        <span>Glossary</span>
-      </nav>
-
-      <h1>RRM Glossary: A Detailed Reference to Restorative Reproductive Medicine</h1>
-
-      {/* Glossary byline: org-authored + clinically reviewed. */}
-      <div class="author-byline">
-        <div class="author-avatar-stack">
-          <img src="/apple-touch-icon.png" alt="RRM Academy" class="author-byline__photo" width="48" height="48" />
-          <img src="/images/authors/naomi-whittaker.webp" alt="Dr. Naomi Whittaker, MD" class="author-byline__photo" width="48" height="48" />
-        </div>
-        <div class="author-byline__text has-reviewer">
-          <span class="byline-author">By <strong>RRM Academy</strong></span>
-          <span class="byline-reviewer">Reviewed by <strong><a href="/commentary/rrm-spotlight-naomi-whittaker-md/">Dr. Naomi Whittaker, MD, Board-Certified OBGYN, MIGS, NFPMC, FCI</a></strong></span>
-          <LastUpdated path="/glossary/" prefix="Updated" class="byline-date" />
-          <PdfDownload slug="glossary" />
-        </div>
-      </div>
-
-      <!-- Keyword-rich intro. Names + briefly describes the 8 topic areas so the
-           topical keywords from the old Part headings stay on-page despite the
-           alphabetical layout. -->
       <section id="overview" class="glossary-intro">
         <p class="pillar-lead"><strong>This glossary defines the clinical terms, methods, and conditions used in restorative reproductive medicine (RRM), drawn from peer-reviewed research and active clinical practice, and maintained by RRM Academy for patients and clinicians.</strong></p>
         <details class="glossary-howto">
@@ -360,10 +302,9 @@ const definedTermSetSchema = {
 
       <!-- Single-column directory (no sticky internal TOC: the search + chips
            bar above is the navigation). -->
-      <div class="article-layout article-layout--no-toc">
-        <article class="prose glossary-content">
+  </Fragment>
 
-          {/* Hidden Part landmarks: preserve every #<part-id> anchor (and the
+      {/* Hidden Part landmarks: preserve every #<part-id> anchor (and the
               #overview anchor lives on the intro above) so external links and
               AI citations that target the old section anchors still resolve. */}
           <div class="glossary-part-anchors" aria-hidden="true">
@@ -462,14 +403,10 @@ const definedTermSetSchema = {
 
           <p class="disclaimer glossary-static-section"><em>This content is for educational purposes only and does not constitute medical advice. Consult an RRM clinician or healthcare provider for guidance specific to your situation. Statistics represent published research averages, not guarantees of individual outcomes.</em></p>
 
-        </article>
-      </div>
-    </div>
-  </div>
-  <p class="page-updated">Last updated: April 2026 &middot; {terms.length} terms &middot; {references.length} references</p>
-  <BackToTop />
-  </MaybeShell>
-</BaseLayout>
+  <Fragment slot="afterContent">
+    <p class="page-updated">Last updated: April 2026 &middot; {terms.length} terms &middot; {references.length} references</p>
+  </Fragment>
+</PillarLayout>
 
 <style is:global>
   /* Rail A-Z jump nav (shell-enabled glossary). is:global so the rules apply
@@ -1053,12 +990,6 @@ const definedTermSetSchema = {
     line-height: 1.6;
   }
 
-  /* Override container width for article layout */
-  @media (min-width: 1024px) {
-    .container {
-      max-width: calc(var(--max-width-article) + 220px + var(--space-10) + var(--space-8) * 2);
-    }
-  }
 
 </style>
 
