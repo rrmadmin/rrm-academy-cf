@@ -364,8 +364,22 @@ async function postBatch(items: SavedItem[]): Promise<SavedItem[]> {
  */
 export async function flushPending(): Promise<void> {
   if (!hasAuthHint()) return;
-  const pend = readPending();
+  let pend = readPending();
   if (pend.length === 0) return;
+  // Delete intent is newer + authoritative (L3): a url that is BOTH queued for
+  // save and tombstoned for delete was unsaved after its failed save got
+  // queued. POSTing it would re-create the server row the pending DELETE is
+  // removing. Drop such items from the save queue entirely. (The deterministic
+  // chained-flush case is squashed at the top of flushPendingDelete, which
+  // runs first and prunes tombstones on success; this filter covers a flush
+  // while a tombstone is still live — e.g. the DELETE itself is retrying.)
+  const tomb = pendingDeleteSet();
+  if (tomb.size > 0) {
+    const next = pend.filter((p) => !tomb.has(p.url));
+    if (next.length !== pend.length) writePending(next);
+    pend = next;
+    if (pend.length === 0) return;
+  }
   const stillPending = await postBatch(pend);
   // Persist the reduced queue (empty when everything resolved or was poison).
   writePending(stillPending);
@@ -518,6 +532,11 @@ export async function flushPendingDelete(): Promise<void> {
   if (!hasAuthHint()) return;
   const pend = readPendingDelete();
   if (pend.length === 0) return;
+  // L3: delete intent is newer + authoritative. Drop any queued failed SAVE
+  // for a url we are about to delete, BEFORE the DELETE succeeds and prunes
+  // its tombstone below — otherwise the subsequent flushPending (or the next
+  // shell load's) would re-POST the stale save and resurrect the server row.
+  for (const url of pend) dequeuePending(url);
   const stillPending: string[] = [];
   for (const url of pend) {
     const keep = await deleteOne(url);
@@ -702,13 +721,18 @@ export function initSavedShell(): void {
                   updateBadge(after.length);
                 }
               } else {
-                // 5xx / transient: keep local, queue for retry.
-                queuePending(item);
+                // 5xx / transient: keep local, queue for retry — but only if
+                // the url is STILL saved locally. The user may have unsaved it
+                // while this POST was in flight (here or in another tab); the
+                // unsave's dequeuePending ran before this late callback, so
+                // re-queueing now would resurrect the item on the next flush.
+                if (readSaved().some((it) => it.url === item.url)) queuePending(item);
               }
             })
             .catch(() => {
-              // Network failure: keep local optimistic add, queue for retry.
-              queuePending(item);
+              // Network failure: keep local optimistic add, queue for retry
+              // (same since-unsaved guard as the 5xx branch above).
+              if (readSaved().some((it) => it.url === item.url)) queuePending(item);
             });
         }
       }
