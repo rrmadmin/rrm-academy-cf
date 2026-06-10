@@ -31,7 +31,7 @@ const INITIAL_BATCH = 15;
         document.documentElement.setAttribute('data-theme', saved);
       } else if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
         document.documentElement.setAttribute('data-theme', 'dark');
-        localStorage.setItem('rrm_theme', 'dark');
+        try { localStorage.setItem('rrm_theme', 'dark'); } catch (e) {}
       }
     })();
   </script>
