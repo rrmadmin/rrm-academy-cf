@@ -3,7 +3,7 @@
 //
 // Responsibilities (per spec §Component boundaries):
 //   - Emit <main class="app-shell-main"> directly (BaseLayout chrome="shell" omits its <main>)
-//   - Render desktop sidebar (above 900px), mobile bottom nav (≤900px), hamburger drawer
+//   - Render desktop sidebar (above 900px); mobile gets the global Header (no shell-specific mobile UI)
 //   - Middle column DOM is emitted ONLY on article pages (`context === 'article'`).
 //     Index and saved pages omit the <aside class="app-shell-middle-column"> entirely.
 //     The G-SEO-6 grep (Task 30 step 6) reflects this — it filters to article paths
@@ -15,15 +15,6 @@
 //
 // All sessionStorage access wrapped in try/catch (per spec §Data flow).
 //
-// SCRIPT ORDERING CONTRACT (do not break):
-//   AppShellChrome's pre-paint inline script defines `window.__rrmGetShellContext__`
-//   (Task 9). AppShellSheet's mount script (Task 14) reads it. Both scripts are
-//   `<script is:inline>` and rely on document order — AppShellChrome MUST execute
-//   before AppShellSheet. Astro emits components in the order they're rendered,
-//   and every wrap task (21, 25) renders <AppShellChrome> wrapping the page,
-//   with <AppShellSheet> as a sibling AFTER it. Do not reorder these components
-//   in any wrap task or AppShellSheet will see `window.__rrmGetShellContext__`
-//   as undefined and silently no-op.
 
 // Frontmatter import emits app-shell.css as a global stylesheet — matches the
 // canonical pattern used by BaseLayout.astro (line 8: `import '../styles/global.css'`).
@@ -171,8 +162,8 @@ const NAV_ICONS: Record<string, string> = {
   {/* Mobile-only global header. Brian preference 2026-05-08: the desktop
       sidebar shell never affects mobile; mobile users get the same global
       Header + global mobile nav that non-shell pages use. CSS hides this at
-      ≥901px and the legacy bottom-nav/drawer/sheet are hidden at all
-      viewports. */}
+      ≥901px. (The legacy shell mobile UI — bottom nav, hamburger drawer,
+      pull-up sheet — was removed 2026-06-10 after a month permanently hidden.) */}
   <div class="app-shell-mobile-header" data-pagefind-ignore="all">
     <Header />
   </div>
@@ -373,86 +364,6 @@ const NAV_ICONS: Record<string, string> = {
     </aside>
   )}
 
-  <!-- Mobile bottom nav -->
-  <nav class="app-shell-bottom-nav" data-pagefind-ignore="all" aria-label="Mobile primary">
-    <a href="/library/" class="app-shell-bottom-nav__tab" aria-current={inLibrary && !inSaved ? 'page' : undefined} data-clear-shell-context>Library</a>
-    <a href="/commentary/" class="app-shell-bottom-nav__tab" aria-current={inCommentary ? 'page' : undefined} data-clear-shell-context>Commentary</a>
-    <a href="/saved/" class="app-shell-bottom-nav__tab" aria-current={inSaved ? 'page' : undefined} data-clear-shell-context>Saved</a>
-    <a href="/account/" class="app-shell-bottom-nav__tab" aria-current={inAccount ? 'page' : undefined} data-clear-shell-context>Account</a>
-  </nav>
-
-  <!-- Mobile hamburger drawer (mirrors sidebar contents) -->
-  <button type="button" class="app-shell-drawer-toggle" aria-controls="app-shell-drawer" aria-expanded="false" aria-label="Open menu" data-pagefind-ignore="all">☰</button>
-  <aside id="app-shell-drawer" class="app-shell-drawer" data-pagefind-ignore="all" aria-label="Mobile navigation">
-    <button type="button" class="app-shell-drawer__close" aria-label="Close menu">×</button>
-    <div class="app-shell-nav__section">
-      <div class="app-shell-nav__heading">Reading</div>
-      <a href="/saved/" class="app-shell-nav__link" aria-current={inSaved ? 'page' : undefined} data-clear-shell-context>
-        <span class="app-shell-nav__icon" aria-hidden="true" set:html={NAV_ICONS['/library/saved/']} />
-        <span class="app-shell-nav__label">Saved</span>
-      </a>
-      <a href="/library/" class="app-shell-nav__link" aria-current={inLibrary && !inSaved ? 'page' : undefined} data-clear-shell-context>
-        <span class="app-shell-nav__icon" aria-hidden="true" set:html={NAV_ICONS['/library/']} />
-        <span class="app-shell-nav__label">Research Library</span>
-      </a>
-      <a href="/commentary/" class="app-shell-nav__link" aria-current={inCommentary ? 'page' : undefined} data-clear-shell-context>
-        <span class="app-shell-nav__icon" aria-hidden="true" set:html={NAV_ICONS['/commentary/']} />
-        <span class="app-shell-nav__label">Commentary</span>
-      </a>
-    </div>
-    <div class="app-shell-nav__section">
-      <div class="app-shell-nav__heading">Explore</div>
-      <a href="/ask/" class="app-shell-nav__link" aria-current={inAsk ? 'page' : undefined} data-clear-shell-context>
-        <span class="app-shell-nav__icon" aria-hidden="true" set:html={NAV_ICONS['/ask/']} />
-        <span class="app-shell-nav__label">Ask</span>
-      </a>
-      <a href="/faqs/" class="app-shell-nav__link" aria-current={inFaqs ? 'page' : undefined} data-clear-shell-context>
-        <span class="app-shell-nav__icon" aria-hidden="true" set:html={NAV_ICONS['/faqs/']} />
-        <span class="app-shell-nav__label">FAQs</span>
-      </a>
-      <a href="/glossary/" class="app-shell-nav__link" aria-current={inGlossary ? 'page' : undefined} data-clear-shell-context>
-        <span class="app-shell-nav__icon" aria-hidden="true" set:html={NAV_ICONS['/glossary/']} />
-        <span class="app-shell-nav__label">Glossary</span>
-      </a>
-      <a href="/guides/" class="app-shell-nav__link" aria-current={inGuides ? 'page' : undefined} data-clear-shell-context>
-        <span class="app-shell-nav__icon" aria-hidden="true" set:html={NAV_ICONS['/guides/']} />
-        <span class="app-shell-nav__label">Guides</span>
-      </a>
-      <a href="/courses/" class="app-shell-nav__link" aria-current={inCourses ? 'page' : undefined} data-clear-shell-context>
-        <span class="app-shell-nav__icon" aria-hidden="true" set:html={NAV_ICONS['/courses/']} />
-        <span class="app-shell-nav__label">Courses</span>
-      </a>
-      <a href="/community/" class="app-shell-nav__link" aria-current={inCommunity ? 'page' : undefined} data-clear-shell-context>
-        <span class="app-shell-nav__icon" aria-hidden="true" set:html={NAV_ICONS['/community/']} />
-        <span class="app-shell-nav__label">Save the Uterus Club</span>
-      </a>
-      <a href="/providers/" class="app-shell-nav__link" aria-current={inProviders ? 'page' : undefined} data-clear-shell-context>
-        <span class="app-shell-nav__icon" aria-hidden="true" set:html={NAV_ICONS['/providers/']} />
-        <span class="app-shell-nav__label">RRM Providers</span>
-      </a>
-      <a href="/endo-survey/" class="app-shell-nav__link" data-clear-shell-context>
-        <span class="app-shell-nav__icon" aria-hidden="true" set:html={NAV_ICONS['/endo-survey/']} />
-        <span class="app-shell-nav__label">Endo Self-Survey</span>
-      </a>
-      <a href="/ivf-success-calculator/" class="app-shell-nav__link" data-clear-shell-context>
-        <span class="app-shell-nav__icon" aria-hidden="true" set:html={NAV_ICONS['/ivf-success-calculator/']} />
-        <span class="app-shell-nav__label">IVF Success Calculator</span>
-      </a>
-    </div>
-    <a href="/donate/" class="app-shell-nav__cta" data-clear-shell-context>
-      <span class="app-shell-nav__icon" aria-hidden="true" set:html={NAV_ICONS['/donate/']} />
-      <span class="app-shell-nav__label">Donate</span>
-    </a>
-    <a href="/account/" class="app-shell-nav__link" aria-current={inAccount ? 'page' : undefined} data-clear-shell-context>
-      <span class="app-shell-nav__icon" aria-hidden="true" set:html={NAV_ICONS['/account/']} />
-      <span class="app-shell-nav__label">Account</span>
-    </a>
-    <button type="button" class="app-shell-nav__theme-toggle" aria-label="Toggle theme" data-theme-toggle>
-      <svg class="icon-moon" aria-hidden="true" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
-      <svg class="icon-sun" aria-hidden="true" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
-    </button>
-  </aside>
-  <div class="app-shell-drawer__overlay" aria-hidden="true"></div>
 </div>
 
 {/* No <style> block: app-shell.css is imported in frontmatter (above) so it
@@ -565,7 +476,7 @@ const NAV_ICONS: Record<string, string> = {
       document.documentElement.classList.add('shell-no-context');
     }
 
-    // Expose helper for sheet + middle column to reuse.
+    // Expose helper for the middle-column hydrator below.
     window.__rrmGetShellContext__ = function () {
       try {
         var raw = sessionStorage.getItem('rrm-shell-context');
@@ -802,44 +713,6 @@ const NAV_ICONS: Record<string, string> = {
     document.documentElement.setAttribute('data-theme', theme);
   });
 
-  // Hamburger drawer: open/close + overlay/ESC handlers + bfcache restore.
-  (function() {
-    var toggle = document.querySelector('.app-shell-drawer-toggle');
-    var drawer = document.getElementById('app-shell-drawer');
-    var closeBtn = drawer && drawer.querySelector('.app-shell-drawer__close');
-    var overlay = document.querySelector('.app-shell-drawer__overlay');
-    if (!toggle || !drawer) return;
-
-    function open() {
-      drawer.dataset.open = 'true';
-      toggle.setAttribute('aria-expanded', 'true');
-      var firstFocusable = drawer.querySelector('a, button');
-      if (firstFocusable) firstFocusable.focus({ preventScroll: true });
-    }
-    function close() {
-      drawer.dataset.open = 'false';
-      toggle.setAttribute('aria-expanded', 'false');
-      toggle.focus({ preventScroll: true });
-    }
-    toggle.addEventListener('click', open);
-    if (closeBtn) closeBtn.addEventListener('click', close);
-    if (overlay) overlay.addEventListener('click', close);
-
-    document.addEventListener('keydown', function (e) {
-      if (e.key !== 'Escape') return;
-      if (drawer.dataset.open !== 'true') return;
-      var sheetEl = document.getElementById('app-shell-sheet');
-      if (sheetEl && sheetEl.open) return;
-      close();
-      e.stopPropagation();
-    });
-
-    window.addEventListener('pageshow', function (e) {
-      if (!e.persisted) return;
-      if (drawer.dataset.open !== 'true') return;
-      close();
-    });
-  })();
 </script>
 
 {/* Universal "Save page" client logic. PLAIN <script> (NOT is:inline) so Astro
