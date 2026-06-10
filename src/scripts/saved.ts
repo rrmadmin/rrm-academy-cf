@@ -299,6 +299,16 @@ export function queuePending(item: SavedItem): void {
   writePending(Array.from(byUrl.values()));
 }
 
+/** Drop a queued save (mirrors dequeuePendingDelete): the user unsaved a url
+ *  whose failed POST is still pending, so flushing it later would resurrect
+ *  the item. */
+export function dequeuePending(url: string): void {
+  if (typeof url !== 'string' || !url) return;
+  const pend = readPending();
+  const next = pend.filter((p) => p.url !== url);
+  if (next.length !== pend.length) writePending(next);
+}
+
 /** Chunk an array into ≤size pieces (server caps batch at 100, §3.4/§3.8). */
 function chunk<T>(arr: T[], size: number): T[][] {
   const out: T[][] = [];
@@ -354,8 +364,22 @@ async function postBatch(items: SavedItem[]): Promise<SavedItem[]> {
  */
 export async function flushPending(): Promise<void> {
   if (!hasAuthHint()) return;
-  const pend = readPending();
+  let pend = readPending();
   if (pend.length === 0) return;
+  // Delete intent is newer + authoritative (L3): a url that is BOTH queued for
+  // save and tombstoned for delete was unsaved after its failed save got
+  // queued. POSTing it would re-create the server row the pending DELETE is
+  // removing. Drop such items from the save queue entirely. (The deterministic
+  // chained-flush case is squashed at the top of flushPendingDelete, which
+  // runs first and prunes tombstones on success; this filter covers a flush
+  // while a tombstone is still live — e.g. the DELETE itself is retrying.)
+  const tomb = pendingDeleteSet();
+  if (tomb.size > 0) {
+    const next = pend.filter((p) => !tomb.has(p.url));
+    if (next.length !== pend.length) writePending(next);
+    pend = next;
+    if (pend.length === 0) return;
+  }
   const stillPending = await postBatch(pend);
   // Persist the reduced queue (empty when everything resolved or was poison).
   writePending(stillPending);
@@ -508,6 +532,11 @@ export async function flushPendingDelete(): Promise<void> {
   if (!hasAuthHint()) return;
   const pend = readPendingDelete();
   if (pend.length === 0) return;
+  // L3: delete intent is newer + authoritative. Drop any queued failed SAVE
+  // for a url we are about to delete, BEFORE the DELETE succeeds and prunes
+  // its tombstone below — otherwise the subsequent flushPending (or the next
+  // shell load's) would re-POST the stale save and resurrect the server row.
+  for (const url of pend) dequeuePending(url);
   const stillPending: string[] = [];
   for (const url of pend) {
     const keep = await deleteOne(url);
@@ -519,20 +548,12 @@ export async function flushPendingDelete(): Promise<void> {
 // ---- Badge / count update path (§3.9) ----
 
 /**
- * Update every save badge surface from a count:
- *  - global Header badge (saved-link/saved-count + mobile-*) — display:none on
- *    desktop shell, but kept in sync for non-shell pages / mobile.
- *  - desktop sidebar Save iconbtn count (shell-saved-count).
+ * Update the save-count surface from a count:
+ *  - desktop sidebar Save iconbtn count (shell-saved-count). The legacy global
+ *    Header badge (saved-link/saved-count + mobile-*) was removed in ab2ea146;
+ *    no other surface exists.
  */
 export function updateBadge(count: number): void {
-  const linkIds = ['saved-link', 'mobile-saved-link'];
-  const countIds = ['saved-count', 'mobile-saved-count'];
-  for (let i = 0; i < linkIds.length; i++) {
-    const link = document.getElementById(linkIds[i]);
-    const c = document.getElementById(countIds[i]);
-    if (c) c.textContent = String(count);
-    if (link) link.classList.toggle('has-items', count > 0);
-  }
   const shellCount = document.getElementById('shell-saved-count');
   if (shellCount) {
     shellCount.textContent = count > 0 ? String(count) : '';
@@ -651,7 +672,9 @@ export function initSavedShell(): void {
       const title = resolveTitle(btn);
       const loggedIn = hasAuthHint();
       if (isSaved) {
-        // Unsave: optimistic local remove + DELETE.
+        // Unsave: optimistic local remove + DELETE. Drop any queued failed
+        // save first so a later flush can't resurrect the item.
+        dequeuePending(url);
         const remaining = readSaved().filter((it) => it.url !== url);
         const persisted = replaceSaved(remaining);
         if (persisted) {
@@ -698,13 +721,18 @@ export function initSavedShell(): void {
                   updateBadge(after.length);
                 }
               } else {
-                // 5xx / transient: keep local, queue for retry.
-                queuePending(item);
+                // 5xx / transient: keep local, queue for retry — but only if
+                // the url is STILL saved locally. The user may have unsaved it
+                // while this POST was in flight (here or in another tab); the
+                // unsave's dequeuePending ran before this late callback, so
+                // re-queueing now would resurrect the item on the next flush.
+                if (readSaved().some((it) => it.url === item.url)) queuePending(item);
               }
             })
             .catch(() => {
-              // Network failure: keep local optimistic add, queue for retry.
-              queuePending(item);
+              // Network failure: keep local optimistic add, queue for retry
+              // (same since-unsaved guard as the 5xx branch above).
+              if (readSaved().some((it) => it.url === item.url)) queuePending(item);
             });
         }
       }
@@ -727,10 +755,13 @@ export function initSavedShell(): void {
     });
   }
 
-  // Logged-in: flush any pending failed writes (§3.6 / CMD-6) AND failed
-  // deletes (L1). Fire-and-forget; both retried on the next shell load.
+  // Logged-in: flush any pending failed deletes (L1) FIRST, then pending
+  // failed writes (§3.6 / CMD-6), so a delete-then-resave sequence can't
+  // race. Fire-and-forget; both retried on the next shell load.
   if (hasAuthHint()) {
-    flushPending().catch(() => { /* retried next load */ });
-    flushPendingDelete().catch(() => { /* retried next load */ });
+    flushPendingDelete()
+      .catch(() => { /* retried next load */ })
+      .then(() => flushPending())
+      .catch(() => { /* retried next load */ });
   }
 }

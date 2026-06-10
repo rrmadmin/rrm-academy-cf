@@ -651,12 +651,13 @@ const NAV_ICONS: Record<string, string> = {
     }
 
     // Commit on pagehide (top-level navigation race-safe on Safari iOS).
-    // Capture-and-reset __rrmClearRequested__ so non-navigating pointerdowns
-    // (right-click, drag-cancel) don't poison subsequent legitimate writes,
-    // and bfcache restore can never see a stale flag (/arise --deep #1).
+    // Read __rrmClearRequested__ but do NOT reset it here -- SearchBar and
+    // MobileSearchModal have their own pagehide listeners that check the same
+    // flag; resetting it early causes them to see false and re-write cleared
+    // context (/arise --deep pass 2 #D1). Flag re-initializes on load (above)
+    // and on pageshow (bfcache restore path above).
     window.addEventListener('pagehide', function () {
       var wasClear = window.__rrmClearRequested__;
-      window.__rrmClearRequested__ = false;
       if (wasClear) return;
       if (!pendingContext) return;
       try { sessionStorage.setItem('rrm-shell-context', JSON.stringify(pendingContext)); } catch (e) {}
@@ -667,11 +668,13 @@ const NAV_ICONS: Record<string, string> = {
   // Per /arise B1 — was previously scoped to the writer IIFE which early-returns
   // on non-index, leaving stale context on article-page drawer/bottom-nav navs.
   (function () {
+    var clearShellContext = function () {
+      window.__rrmClearRequested__ = true;
+      try { sessionStorage.removeItem('rrm-shell-context'); } catch (e) {}
+    };
     document.querySelectorAll('[data-clear-shell-context]').forEach(function (el) {
-      el.addEventListener('pointerdown', function () {
-        window.__rrmClearRequested__ = true;
-        try { sessionStorage.removeItem('rrm-shell-context'); } catch (e) {}
-      });
+      el.addEventListener('pointerdown', function (ev) { if (ev.button === 0) clearShellContext(); });
+      el.addEventListener('click', function (ev) { if (ev.detail === 0) clearShellContext(); });
     });
   })();
 
@@ -794,6 +797,7 @@ const NAV_ICONS: Record<string, string> = {
   // open shell + non-shell tabs stay in lockstep without requiring a reload.
   window.addEventListener('storage', function (e) {
     if (e.key !== 'rrm_theme') return;
+    if (e.newValue == null) return;
     var theme = e.newValue === 'dark' ? 'dark' : 'light';
     document.documentElement.setAttribute('data-theme', theme);
   });
@@ -831,7 +835,9 @@ const NAV_ICONS: Record<string, string> = {
     });
 
     window.addEventListener('pageshow', function (e) {
-      if (e.persisted) close();
+      if (!e.persisted) return;
+      if (drawer.dataset.open !== 'true') return;
+      close();
     });
   })();
 </script>

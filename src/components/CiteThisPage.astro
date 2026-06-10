@@ -46,8 +46,10 @@ if (date) {
   const [y, m, d] = date.split('T')[0].split('-').map((s) => parseInt(s, 10));
   if (y) {
     year = String(y);
-    apaDate = m && d ? `${y}, ${MONTHS[m - 1]} ${d}` : String(y);
-    mlaDate = m && d ? `${d} ${MONTHS_MLA[m - 1]} ${y}` : String(y);
+    const mValid = m >= 1 && m <= 12;
+    const dValid = d >= 1 && d <= 31;
+    apaDate = mValid && dValid ? `${y}, ${MONTHS[m - 1]} ${d}` : String(y);
+    mlaDate = mValid && dValid ? `${d} ${MONTHS_MLA[m - 1]} ${y}` : String(y);
     vancouverDate = String(y);
   }
 }
@@ -69,7 +71,8 @@ const apa = `${apaAuthor} (${apaDate}). ${cleanTitle}${titlePeriod} ${hasPersonA
 const vancouverAuthor = hasPersonAuthor
   ? `${authorFamily} ${authorGiven!.charAt(0)}.`
   : `${SITE_NAME}.`;
-const vancouver = `${vancouverAuthor} ${cleanTitle} [Internet]. ${SITE_NAME}; ${vancouverDate || 'n.d.'}. Available from: ${url}`;
+const vancouverDatePart = vancouverDate ? `${vancouverDate}.` : 'n.d.';
+const vancouver = `${vancouverAuthor} ${cleanTitle} [Internet]. ${SITE_NAME}; ${vancouverDatePart} Available from: ${url}`;
 
 // MLA 9th: Author. "Title." Site, Day Mon. Year, URL.
 const mlaAuthor = hasPersonAuthor ? `${authorFamily}, ${authorGiven}.` : `${SITE_NAME}.`;

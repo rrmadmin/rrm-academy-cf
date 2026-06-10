@@ -78,8 +78,7 @@ if (!config?.enabled) return;
     var turnstileContainer = document.getElementById('pdf-turnstile-container');
     var turnstileWidgetId = null;
     var pendingSubmit = null;
-    var isLoggedIn = false;
-    var triggerHTML = trigger.innerHTML;
+    var pendingSubmitTimer = null;
 
     // Lazy-load Turnstile script (not on page load -- only when modal opens)
     var turnstileLoading = false;
@@ -93,16 +92,6 @@ if (!config?.enabled) return;
       s.onload = function () { turnstileLoaded = true; };
       document.head.appendChild(s);
     }
-
-    // Check session on load
-    fetch('/api/auth/session', { credentials: 'include' })
-      .then(function (r) { return r.json(); })
-      .then(function (data) {
-        if (data.user) {
-          isLoggedIn = true;
-        }
-      })
-      .catch(function () {});
 
     // Check for ?pdf_error query param (from redeem redirects)
     var params = new URLSearchParams(window.location.search);
@@ -123,12 +112,6 @@ if (!config?.enabled) return;
     // Open modal
     var turnstileInited = false;
     function openModal() {
-      if (isLoggedIn) {
-        // Logged-in: skip modal, submit directly
-        trigger.disabled = true;
-        doSubmit('', '');
-        return;
-      }
       modal.hidden = false;
       document.body.style.overflow = 'hidden';
       // Lazy-load Turnstile when modal opens
@@ -167,12 +150,14 @@ if (!config?.enabled) return;
         sitekey: turnstileContainer.dataset.sitekey,
         size: 'invisible',
         callback: function (token) {
+          if (pendingSubmitTimer) { clearTimeout(pendingSubmitTimer); pendingSubmitTimer = null; }
           if (pendingSubmit) {
             doSubmit(pendingSubmit.email, token);
             pendingSubmit = null;
           }
         },
         'error-callback': function () {
+          if (pendingSubmitTimer) { clearTimeout(pendingSubmitTimer); pendingSubmitTimer = null; }
           showError('Spam check failed. Please refresh the page and try again.');
           submitBtn.disabled = false;
           submitBtn.textContent = 'Send download link';
@@ -201,9 +186,6 @@ if (!config?.enabled) return;
       successEl.hidden = false;
       formWrap.hidden = true;
       errorEl.hidden = true;
-      // Reset trigger button
-      trigger.disabled = false;
-      trigger.innerHTML = triggerHTML;
     }
 
     form.addEventListener('submit', function (e) {
@@ -218,9 +200,18 @@ if (!config?.enabled) return;
       submitBtn.disabled = true;
       submitBtn.textContent = 'Sending...';
 
-      // Execute Turnstile if available
+      // Execute Turnstile if available (5s timeout -> proceed without token)
       if (typeof turnstile !== 'undefined' && turnstileWidgetId !== null) {
         pendingSubmit = { email: email };
+        pendingSubmitTimer = setTimeout(function () {
+          pendingSubmitTimer = null;
+          if (pendingSubmit) {
+            pendingSubmit = null;
+            showError('Spam check did not load. Please refresh and try again.');
+            submitBtn.disabled = false;
+            submitBtn.textContent = 'Send download link';
+          }
+        }, 5000);
         turnstile.reset(turnstileWidgetId);
         turnstile.execute(turnstileWidgetId);
         return;
@@ -234,15 +225,6 @@ if (!config?.enabled) return;
       if (email) body.email = email;
       if (token) body.turnstileToken = token;
 
-      // GA4 pdf_download via the global bridge (track-auto.ts). Fires when
-      // the user submits the request -- not when they redeem the magic link,
-      // since most users complete the action here. source='guide' because
-      // PdfDownload is the guide-pillar PDF flow; if/when library-article
-      // reprints get their own download, source='library-reprint'.
-      try {
-        if (window.__rrmTrack__) window.__rrmTrack__('pdf_download', { slug: slug, source: 'guide' });
-      } catch (e) {}
-
       fetch('/api/pdf/request', {
         method: 'POST',
         credentials: 'include',
@@ -252,22 +234,25 @@ if (!config?.enabled) return;
         .then(function (r) { return r.json(); })
         .then(function (data) {
           if (data.ok) {
+            // GA4 pdf_download via the global bridge (track-auto.ts). Fires when
+            // the request is accepted -- not when they redeem the magic link,
+            // since most users complete the action here. source='guide' because
+            // PdfDownload is the guide-pillar PDF flow; if/when library-article
+            // reprints get their own download, source='library-reprint'.
+            try {
+              if (window.__rrmTrack__) window.__rrmTrack__('pdf_download', { slug: slug, source: 'guide' });
+            } catch (e) {}
             showSuccess();
           } else {
             showError(data.error || 'Something went wrong. Please try again.');
             submitBtn.disabled = false;
             submitBtn.textContent = 'Send download link';
-            // Reset trigger if it was a logged-in direct submit
-            trigger.disabled = false;
-            trigger.innerHTML = triggerHTML;
           }
         })
         .catch(function () {
           showError('Network error. Please check your connection and try again.');
           submitBtn.disabled = false;
           submitBtn.textContent = 'Send download link';
-          trigger.disabled = false;
-          trigger.innerHTML = triggerHTML;
         });
     }
   })();

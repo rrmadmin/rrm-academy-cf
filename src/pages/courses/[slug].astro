@@ -84,7 +84,15 @@ const nextCohortLabel = (course as any).nextCohortLabel as string | undefined;
 const onWaitlist = isAffiliate && !!waitlistUrl;
 let cohortLabel = '';
 if (isAffiliate && course.cohortDates) {
-  const fmt = (d: string, opts: Intl.DateTimeFormatOptions) => new Intl.DateTimeFormat('en-US', opts).format(new Date(d + 'T00:00:00'));
+  const fmt = (d: string, opts: Intl.DateTimeFormatOptions) => {
+    const isoDate = d.match(/^(\d{4}-\d{2}-\d{2})/)?.[1];
+    if (!isoDate) return d;
+    try {
+      return new Intl.DateTimeFormat('en-US', opts).format(new Date(isoDate + 'T00:00:00'));
+    } catch {
+      return d;
+    }
+  };
   cohortLabel = `${fmt(course.cohortDates.start, { month: 'short', day: 'numeric' })} to ${fmt(course.cohortDates.end, { month: 'short', day: 'numeric', year: 'numeric' })}`;
 }
 const cohortPillText = onWaitlist && nextCohortLabel ? `Next cohort: ${nextCohortLabel}` : cohortLabel;

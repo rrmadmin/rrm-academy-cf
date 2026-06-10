@@ -834,6 +834,11 @@ import { track } from '../scripts/track.ts';
     }
   });
 
+  // bfcache restore: never land with the modal open + scroll-locked.
+  window.addEventListener('pageshow', function(e) {
+    if (e.persisted) closeModal();
+  });
+
   function startLoadingSpinner() {
     stopLoadingSpinner();
     resultsEl.innerHTML = '<p class="mss-loading">Searching <span class="mss-loading-spinner"></span></p>';
@@ -913,7 +918,7 @@ import { track } from '../scripts/track.ts';
     var q = input.value.trim();
     if (q) clearBtn.removeAttribute('hidden'); else clearBtn.setAttribute('hidden', '');
     clearTimeout(debounceTimer);
-    if (!q) {
+    if (!q || q.length < 2) {
       stopLoadingSpinner();
       preloadedData = [];
       currentQuery = '';
@@ -1099,7 +1104,7 @@ import { track } from '../scripts/track.ts';
             if (lr.sentiment === 'hostile') lrScore -= 0.02;
             else if (lr.sentiment === 'critical') lrScore -= 0.01;
             preloadedData.push({
-              url: lr.url, excerpt: '',
+              url: toRelative(lr.url), excerpt: '',
               meta: { title: lrTitle, authors: lr.authors || '', year: lr.year ? String(lr.year) : '', type: lrType },
               _pfRank: -1,
               _score: lrScore
@@ -1306,7 +1311,7 @@ import { track } from '../scripts/track.ts';
       a.appendChild(p);
     }
 
-    a.addEventListener('pointerdown', function () {
+    var captureContext = function () {
       // Fire GA4 search_result_click. Rank = position of this anchor among
       // visible .mss-item nodes (matches what the user sees).
       try {
@@ -1350,7 +1355,9 @@ import { track } from '../scripts/track.ts';
         filters: { q: currentQuery || '' },
         writtenAt: Date.now()
       };
-    });
+    };
+    a.addEventListener('pointerdown', captureContext);
+    a.addEventListener('click', function (ev) { if (ev.detail === 0) captureContext(); });
 
     return a;
   }
@@ -1379,6 +1386,7 @@ import { track } from '../scripts/track.ts';
   window.addEventListener('pagehide', function () {
     if (window.__rrmClearRequested__) return;
     if (!pendingSearchContext) return;
+    if (Date.now() - pendingSearchContext.writtenAt > 30000) { pendingSearchContext = null; return; }
     try {
       sessionStorage.setItem('rrm-shell-context', JSON.stringify(pendingSearchContext));
     } catch (err) {}
@@ -1424,7 +1432,7 @@ import { track } from '../scripts/track.ts';
       }
       e.preventDefault();
       var q = input.value.trim();
-      if (q) { clearTimeout(debounceTimer); doSearch(q); }
+      if (q && q.length >= 2) { clearTimeout(debounceTimer); doSearch(q); }
     }
   });
 })();

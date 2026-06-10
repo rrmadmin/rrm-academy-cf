@@ -99,7 +99,7 @@ const mobileNavSections: { heading: string; items: MobileNavItem[] }[] = [
             {item.current ? (
               <a href="/library/" class="nav-link nav-link--active">{item.label}</a>
             ) : item.children ? (
-              <button class="nav-link nav-link--dropdown" type="button">
+              <button class="nav-link nav-link--dropdown" type="button" aria-haspopup="true" aria-expanded="false">
                 {item.label}
                 <svg class="chevron" width="10" height="10" viewBox="0 0 10 10"><path d="M2.5 4L5 6.5L7.5 4" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
               </button>
@@ -484,33 +484,6 @@ const mobileNavSections: { heading: string; items: MobileNavItem[] }[] = [
     gap: var(--space-3);
     margin-left: auto;
   }
-  .saved-link {
-    display: inline-flex;
-    align-items: center;
-    gap: 4px;
-    font-size: 0.75rem;
-    font-weight: 500;
-    color: var(--text-tertiary);
-    text-decoration: none;
-    padding: 5px 8px;
-    border-radius: var(--radius-sm);
-    transition: color 0.15s, background 0.15s, box-shadow 0.15s, transform 0.1s;
-  }
-  .saved-link:hover {
-    color: var(--accent);
-    background: color-mix(in srgb, var(--accent) 8%, transparent);
-    box-shadow: 0 1px 3px rgba(0,0,0,0.06);
-    text-decoration: none;
-  }
-  .saved-link:active {
-    transform: scale(0.95);
-  }
-  .saved-link.has-items { color: var(--accent); }
-  .saved-link.has-items svg path:first-child { fill: currentColor; }
-  .saved-link.has-items .book-body { fill: color-mix(in srgb, currentColor 12%, transparent); }
-  .saved-count { font-variant-numeric: tabular-nums; }
-  .saved-link:not(.has-items) { display: none; }
-
   /* Desktop search icon */
   .desktop-search-btn {
     display: flex;
@@ -828,11 +801,13 @@ const mobileNavSections: { heading: string; items: MobileNavItem[] }[] = [
     .site-header:has(#nav-toggle:checked) .mobile-nav-group:nth-of-type(1) li:nth-child(3) .mobile-nav-link { transition-delay: 0.11s; }
     .site-header:has(#nav-toggle:checked) .mobile-nav-group:nth-of-type(1) li:nth-child(4) .mobile-nav-link { transition-delay: 0.14s; }
     .site-header:has(#nav-toggle:checked) .mobile-nav-group:nth-of-type(1) li:nth-child(5) .mobile-nav-link { transition-delay: 0.17s; }
-    .site-header:has(#nav-toggle:checked) .mobile-nav-group:nth-of-type(2) li:nth-child(1) .mobile-nav-link { transition-delay: 0.20s; }
-    .site-header:has(#nav-toggle:checked) .mobile-nav-group:nth-of-type(2) li:nth-child(2) .mobile-nav-link { transition-delay: 0.22s; }
+    .site-header:has(#nav-toggle:checked) .mobile-nav-group:nth-of-type(1) li:nth-child(6) .mobile-nav-link { transition-delay: 0.20s; }
+    .site-header:has(#nav-toggle:checked) .mobile-nav-group:nth-of-type(1) li:nth-child(7) .mobile-nav-link { transition-delay: 0.23s; }
+    .site-header:has(#nav-toggle:checked) .mobile-nav-group:nth-of-type(2) li:nth-child(1) .mobile-nav-link { transition-delay: 0.26s; }
+    .site-header:has(#nav-toggle:checked) .mobile-nav-group:nth-of-type(2) li:nth-child(2) .mobile-nav-link { transition-delay: 0.28s; }
     /* Account row now leads the drawer (top header), so it settles first. */
     .site-header:has(#nav-toggle:checked) .mobile-account { transition-delay: 0.02s; }
-    .site-header:has(#nav-toggle:checked) .mobile-nav-footer__actions { transition-delay: 0.28s; }
+    .site-header:has(#nav-toggle:checked) .mobile-nav-footer__actions { transition-delay: 0.31s; }
 
     /* Mobile dropdown — collapsed by default, opened via <details> */
     .mobile-dropdown {
@@ -1038,14 +1013,10 @@ const mobileNavSections: { heading: string; items: MobileNavItem[] }[] = [
 
 <script>
   // @ts-nocheck
-  // Shared saved-pages primitives (single source of truth — INV-1). The Header
-  // badge IIFE below imports these instead of re-implementing the url minter,
-  // the server-shape mapper, the adopt/merge, and the chunked push (H4/H5/M3/M4).
-  import {
-    readSaved,
-    updateBadge as savedUpdateBadge,
-    syncBadgeFromServer,
-  } from '../scripts/saved.ts';
+  // Shared saved-pages primitives (single source of truth — INV-1). Imported
+  // instead of re-implementing the url minter, the server-shape mapper, the
+  // adopt/merge, and the chunked push (H4/H5/M3/M4).
+  import { syncBadgeFromServer } from '../scripts/saved.ts';
   // Moved off is:inline (2026-05-14) so Astro extracts this to a hashed,
   // long-cached, deferred module bundle (`/_astro/*.js`) instead of inlining
   // ~6.5 KiB into every HTML response (Header.astro is global, so every page
@@ -1057,9 +1028,21 @@ const mobileNavSections: { heading: string; items: MobileNavItem[] }[] = [
   (function() {
     var dd = document.querySelector('.has-dropdown .dropdown');
     if (!dd) return;
-    dd.closest('.has-dropdown').addEventListener('mouseenter', function() {
+    var item = dd.closest('.has-dropdown');
+    item.addEventListener('mouseenter', function() {
       dd.classList.add('dropdown--entered');
     }, { once: true });
+    // aria-expanded mirrors the CSS-driven :hover/:focus-within open state.
+    var btn = item.querySelector('.nav-link--dropdown');
+    if (btn) {
+      var setExpanded = function(open) { btn.setAttribute('aria-expanded', open ? 'true' : 'false'); };
+      item.addEventListener('mouseenter', function() { setExpanded(true); });
+      item.addEventListener('mouseleave', function() { setExpanded(false); });
+      item.addEventListener('focusin', function() { setExpanded(true); });
+      item.addEventListener('focusout', function(e) {
+        if (!item.contains(e.relatedTarget)) setExpanded(false);
+      });
+    }
   })();
 
   // Theme toggle with expanding circle animation (View Transitions API)
@@ -1068,7 +1051,7 @@ const mobileNavSections: { heading: string; items: MobileNavItem[] }[] = [
     var current = html.getAttribute('data-theme');
     var next = current === 'dark' ? 'light' : 'dark';
     html.setAttribute('data-theme', next);
-    localStorage.setItem('rrm_theme', next);
+    try { localStorage.setItem('rrm_theme', next); } catch (e) {}
     // GA4 theme_toggle via the global bridge (track-auto.ts).
     try { if (window.__rrmTrack__) window.__rrmTrack__('theme_toggle', { to: next }); } catch (e) {}
   }
@@ -1113,6 +1096,13 @@ const mobileNavSections: { heading: string; items: MobileNavItem[] }[] = [
       navToggle.checked = false;
       if (typeof navToggle.focus === 'function') navToggle.focus();
     }
+  });
+
+  // bfcache restore: never land with the drawer open.
+  window.addEventListener('pageshow', function(e) {
+    if (!e.persisted) return;
+    var navToggle = document.getElementById('nav-toggle');
+    if (navToggle) navToggle.checked = false;
   });
 
   // Smooth reveal for mobile dropdown groups (Conditions). Native <details> snaps
@@ -1301,40 +1291,16 @@ const mobileNavSections: { heading: string; items: MobileNavItem[] }[] = [
       .then(applyState);
   });
 
-  // Saved pages badge (desktop + mobile). All save logic — the url minter, the
-  // server-shape mapper, the adopt/merge, the chunked push — lives in
-  // src/scripts/saved.ts (INV-1, single source). This block only wires the
-  // Header badge: instant paint from localStorage, deferred server sync, and a
-  // cross-tab storage listener (mirrors the rrm_theme listener pattern).
-  (function() {
-    // Instant: show badge from localStorage (no network, no delay). readSaved()
-    // is fully defensive (never throws) and migrates legacy shapes.
-    try {
-      savedUpdateBadge(readSaved().length);
-    } catch (e) {
-      /* localStorage unavailable (private mode / disabled): leave badge unset.
-         Browser bundle — no server to log to; non-critical UI affordance. */
-    }
-
-    // Deferred: for logged-in users, push local saves up (chunked, ALL of them
-    // — M3), GET the authoritative server set, adopt via union-merge (M4, never
-    // clobbers a concurrent optimistic save), and repaint the badge. Anonymous
-    // fast path: no hint cookie => localStorage only (no network call).
-    deferWork(function() {
-      syncBadgeFromServer().catch(function() {});
-    });
-
-    // Cross-tab: when another tab mutates rrm_saved, repaint the badge here
-    // (mirror the existing rrm_theme cross-tab listener so the count stays in
-    // sync across tabs without a reload).
-    window.addEventListener('storage', function(e) {
-      if (e.key !== 'rrm_saved') return;
-      try {
-        savedUpdateBadge(readSaved().length);
-      } catch (err) {
-        /* localStorage read failed — keep the current badge value. */
-      }
-    });
-  })();
+  // Saved-pages server reconcile. All save logic lives in src/scripts/saved.ts
+  // (INV-1, single source). The Header badge surface was removed in ab2ea146
+  // (the only remaining count surface is the shell sidebar's #shell-saved-count,
+  // painted by initSavedShell on shell pages), so this only schedules the
+  // deferred logged-in localStorage<->server sync: push local saves up
+  // (chunked, ALL of them — M3), GET the authoritative server set, adopt via
+  // union-merge (M4). Anonymous fast path inside syncBadgeFromServer: no hint
+  // cookie => no network call.
+  deferWork(function() {
+    syncBadgeFromServer().catch(function() {});
+  });
 
 </script>
