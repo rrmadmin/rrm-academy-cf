@@ -173,7 +173,7 @@ function applyLocalRefNumbers(html: string, map: Map<number, number>): string {
   // NOT in the local map (missing from citedReferences) point at the pillar's
   // master list instead of a dead local anchor.
   return html.replace(
-    /(<sup[^>]*>\s*<a\b)([^>]*?)href=(["'])#ref-(\d+)\3([^>]*)>([^<]*)(<\/a>\s*<\/sup>)/g,
+    /(<sup[^>]*>\s*<a\b)([^>]*?)href=(["'])#ref-(\d+)\3([^>]*)>(.*?)(<\/a>\s*<\/sup>)/g,
     (_full, supOpen, preAttrs, _q, hrefNum, postAttrs, _visible, supClose) => {
       const globalNum = parseInt(hrefNum, 10);
       const localNum = map.get(globalNum);
@@ -927,9 +927,10 @@ function textToParagraphs(text: string): string {
       const url = activeAiTrigger.dataset.shareUrl || window.location.href;
       const title = activeAiTrigger.dataset.shareTitle || document.title;
       const prompt = buildAiPrompt(title, url);
-      try { await navigator.clipboard.writeText(prompt); } catch {}
+      let copied = true;
+      try { await navigator.clipboard.writeText(prompt); } catch { copied = false; }
       window.open(provider.url(prompt), '_blank', 'noopener,noreferrer');
-      showToast(`Prompt copied, opening ${provider.name}`);
+      showToast(copied ? `Prompt copied, opening ${provider.name}` : `Opening ${provider.name} (copy failed)`);
       closeMenu();
     });
   });

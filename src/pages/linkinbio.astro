@@ -26,7 +26,8 @@ const INITIAL_BATCH = 15;
   <meta name="twitter:image" content="https://rrmacademy.org/images/og-default.png" />
   <script is:inline>
     (function() {
-      var saved = localStorage.getItem('rrm_theme');
+      var saved = null;
+      try { saved = localStorage.getItem('rrm_theme'); } catch (e) {}
       if (saved) {
         document.documentElement.setAttribute('data-theme', saved);
       } else if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
