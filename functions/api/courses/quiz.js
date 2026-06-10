@@ -203,6 +203,9 @@ async function handleQuizSubmit(request, env) {
         if (!Array.isArray(answer) || answer.length === 0) {
           return json({ ok: false, error: `Invalid answer for question ${i + 1}` }, 400);
         }
+        if (answer.length > q.options.length) {
+          return json({ ok: false, error: `Invalid answer for question ${i + 1}` }, 400);
+        }
         for (const sel of answer) {
           if (typeof sel !== 'number' || !Number.isFinite(sel) || sel < 0 || sel >= q.options.length) {
             return json({ ok: false, error: `Invalid answer for question ${i + 1}` }, 400);
