@@ -26,6 +26,7 @@ interface Props {
   keyTakeawaysHtml?: string;
   disclaimerHtml?: string;
   editingNotice?: boolean;
+  editingNoticeHtml?: string;   // inner-<p> HTML override for the editing notice (per-page authored copy)
   disambigHtml?: string;
   citeThisPage?: boolean;
   hasRail?: boolean;
@@ -42,6 +43,7 @@ const {
   keyTakeawaysHtml,
   disclaimerHtml = 'This content is for educational and reference purposes only and does not constitute medical advice, diagnosis, or treatment. Consult a qualified clinician about your specific situation.',
   editingNotice = false,
+  editingNoticeHtml,
   disambigHtml,
   citeThisPage = false,
   hasRail = false,
@@ -117,8 +119,6 @@ const baseLayoutProps = {
           </div>
         </div>
 
-        {disambigHtml && <aside class="disambig" set:html={disambigHtml} />}
-
         {showToc && tocItems.length > 0 && (
           <details class="toc-mobile">
             <summary>On this page</summary>
@@ -136,11 +136,14 @@ const baseLayoutProps = {
           )}
 
           <article class="prose">
-            {editingNotice && (
+            {(editingNoticeHtml || editingNotice) && (
               <aside class="editing-notice" role="status" aria-label="Editor's note">
-                <p><strong>Editor's note:</strong> This guide is newly published and being actively reviewed. Content and citations may be refined over the next few days.</p>
+                {editingNoticeHtml
+                  ? <p set:html={editingNoticeHtml} />
+                  : <p><strong>Editor's note:</strong> This guide is newly published and being actively reviewed. Content and citations may be refined over the next few days.</p>}
               </aside>
             )}
+            {disambigHtml && <aside class="disambig" aria-label="Disambiguation" set:html={disambigHtml} />}
             {keyTakeawaysHtml && (
               <aside class="tldr"><h2 id="key-takeaways">Key Takeaways</h2><Fragment set:html={keyTakeawaysHtml} /></aside>
             )}
@@ -152,7 +155,7 @@ const baseLayoutProps = {
                 <h2>Frequently Asked Questions</h2>
                 <div class="faq-accordion" data-pagefind-ignore>
                   {faqs.map((f) => (
-                    <details class="faq-item">
+                    <details>
                       <summary>{f.question}</summary>
                       <div class="faq-answer"><Fragment set:html={f.answerHtml} /></div>
                     </details>
