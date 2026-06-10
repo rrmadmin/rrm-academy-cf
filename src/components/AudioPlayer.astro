@@ -103,6 +103,16 @@ class AudioPlayerElement extends HTMLElement {
       playBtn.setAttribute('aria-label', 'Play');
     });
 
+    this._audio.addEventListener('error', () => {
+      this._playing = false;
+      time.textContent = 'Audio unavailable';
+      playBtn.disabled = true;
+      progress.disabled = true;
+      speedBtn.disabled = true;
+      playBtn.innerHTML = '<svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><polygon points="6,4 20,12 6,20"/></svg>';
+      playBtn.setAttribute('aria-label', 'Play');
+    });
+
     playBtn.addEventListener('click', () => this._toggle());
 
     progress.addEventListener('input', () => {
@@ -120,10 +130,17 @@ class AudioPlayerElement extends HTMLElement {
     });
 
     this._playBtn = playBtn;
-    this._audio.play();
+    const playPromise = this._audio.play();
     this._playing = true;
     playBtn.innerHTML = '<svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><rect x="6" y="4" width="4" height="16"/><rect x="14" y="4" width="4" height="16"/></svg>';
     playBtn.setAttribute('aria-label', 'Pause');
+    if (playPromise && playPromise.catch) {
+      playPromise.catch(() => {
+        this._playing = false;
+        playBtn.innerHTML = '<svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><polygon points="6,4 20,12 6,20"/></svg>';
+        playBtn.setAttribute('aria-label', 'Play');
+      });
+    }
   }
 
   _toggle() {
@@ -134,10 +151,17 @@ class AudioPlayerElement extends HTMLElement {
       this._playBtn.innerHTML = '<svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><polygon points="6,4 20,12 6,20"/></svg>';
       this._playBtn.setAttribute('aria-label', 'Play');
     } else {
-      this._audio.play();
+      const playPromise = this._audio.play();
       this._playing = true;
       this._playBtn.innerHTML = '<svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><rect x="6" y="4" width="4" height="16"/><rect x="14" y="4" width="4" height="16"/></svg>';
       this._playBtn.setAttribute('aria-label', 'Pause');
+      if (playPromise && playPromise.catch) {
+        playPromise.catch(() => {
+          this._playing = false;
+          this._playBtn.innerHTML = '<svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><polygon points="6,4 20,12 6,20"/></svg>';
+          this._playBtn.setAttribute('aria-label', 'Play');
+        });
+      }
     }
   }
 }

@@ -54,8 +54,15 @@ const uniqueInputId = inputId ?? `newsletter-email-${crypto.randomUUID().slice(0
 
 <script define:vars={{ TURNSTILE_SITE_KEY }}>
 (function () {
-  const forms = document.querySelectorAll('[data-newsletter-form]');
+  // define:vars emits one inline copy per component instance; single deferred
+  // init sees ALL forms and wires each exactly once.
+  if (window.__rrmNewsletterInit__) return;
+  window.__rrmNewsletterInit__ = true;
+  function init() {
+  const forms = Array.from(document.querySelectorAll('[data-newsletter-form]'))
+    .filter((form) => !form.hasAttribute('data-newsletter-wired'));
   if (!forms.length) return;
+  forms.forEach((form) => form.setAttribute('data-newsletter-wired', ''));
 
   // Lazy-load Turnstile script on first user interaction (not on page load)
   let turnstileReady = false;
@@ -159,6 +166,12 @@ const uniqueInputId = inputId ?? `newsletter-email-${crypto.randomUUID().slice(0
       }
     });
   });
+  }
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', init);
+  } else {
+    init();
+  }
 })();
 </script>
 

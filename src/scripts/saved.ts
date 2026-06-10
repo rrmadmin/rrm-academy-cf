@@ -299,6 +299,16 @@ export function queuePending(item: SavedItem): void {
   writePending(Array.from(byUrl.values()));
 }
 
+/** Drop a queued save (mirrors dequeuePendingDelete): the user unsaved a url
+ *  whose failed POST is still pending, so flushing it later would resurrect
+ *  the item. */
+export function dequeuePending(url: string): void {
+  if (typeof url !== 'string' || !url) return;
+  const pend = readPending();
+  const next = pend.filter((p) => p.url !== url);
+  if (next.length !== pend.length) writePending(next);
+}
+
 /** Chunk an array into ≤size pieces (server caps batch at 100, §3.4/§3.8). */
 function chunk<T>(arr: T[], size: number): T[][] {
   const out: T[][] = [];
@@ -519,20 +529,12 @@ export async function flushPendingDelete(): Promise<void> {
 // ---- Badge / count update path (§3.9) ----
 
 /**
- * Update every save badge surface from a count:
- *  - global Header badge (saved-link/saved-count + mobile-*) — display:none on
- *    desktop shell, but kept in sync for non-shell pages / mobile.
- *  - desktop sidebar Save iconbtn count (shell-saved-count).
+ * Update the save-count surface from a count:
+ *  - desktop sidebar Save iconbtn count (shell-saved-count). The legacy global
+ *    Header badge (saved-link/saved-count + mobile-*) was removed in ab2ea146;
+ *    no other surface exists.
  */
 export function updateBadge(count: number): void {
-  const linkIds = ['saved-link', 'mobile-saved-link'];
-  const countIds = ['saved-count', 'mobile-saved-count'];
-  for (let i = 0; i < linkIds.length; i++) {
-    const link = document.getElementById(linkIds[i]);
-    const c = document.getElementById(countIds[i]);
-    if (c) c.textContent = String(count);
-    if (link) link.classList.toggle('has-items', count > 0);
-  }
   const shellCount = document.getElementById('shell-saved-count');
   if (shellCount) {
     shellCount.textContent = count > 0 ? String(count) : '';
@@ -651,7 +653,9 @@ export function initSavedShell(): void {
       const title = resolveTitle(btn);
       const loggedIn = hasAuthHint();
       if (isSaved) {
-        // Unsave: optimistic local remove + DELETE.
+        // Unsave: optimistic local remove + DELETE. Drop any queued failed
+        // save first so a later flush can't resurrect the item.
+        dequeuePending(url);
         const remaining = readSaved().filter((it) => it.url !== url);
         const persisted = replaceSaved(remaining);
         if (persisted) {
@@ -727,10 +731,13 @@ export function initSavedShell(): void {
     });
   }
 
-  // Logged-in: flush any pending failed writes (§3.6 / CMD-6) AND failed
-  // deletes (L1). Fire-and-forget; both retried on the next shell load.
+  // Logged-in: flush any pending failed deletes (L1) FIRST, then pending
+  // failed writes (§3.6 / CMD-6), so a delete-then-resave sequence can't
+  // race. Fire-and-forget; both retried on the next shell load.
   if (hasAuthHint()) {
-    flushPending().catch(() => { /* retried next load */ });
-    flushPendingDelete().catch(() => { /* retried next load */ });
+    flushPendingDelete()
+      .catch(() => { /* retried next load */ })
+      .then(() => flushPending())
+      .catch(() => { /* retried next load */ });
   }
 }
