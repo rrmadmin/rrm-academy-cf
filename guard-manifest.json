@@ -19,7 +19,7 @@
       "note": "Password reset tokens + email"
     },
     "functions/api/auth/reset-password.js": {
-      "hash": "01740001e7e38dc7d9fc3b8d04661f058b862521ab9e5e862d40940a5f0ff216",
+      "hash": "69523d4a8d50e8ef357e929a49f3d3058018c16114d94f9d85099e4749bb4ab4",
       "note": "Reset token consumption + password change"
     },
     "functions/api/auth/change-password.js": {
