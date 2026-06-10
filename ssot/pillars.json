@@ -58,7 +58,7 @@
       "pageH1": "NaProTechnology: How It Works, What It Treats, and How to Find a Provider",
       "breadcrumbName": "NaProTechnology",
       "authorId": "#naomi-whittaker",
-      "usesPillarLayout": false
+      "usesPillarLayout": true
     },
     {
       "slug": "femm",
