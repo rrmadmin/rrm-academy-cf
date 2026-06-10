@@ -120,6 +120,7 @@ const baseLayoutProps = {
   ))}
 
   <MaybeShell enabled={SHELL_ENABLED} context="page" currentPath={Astro.url.pathname} saveTitle={entry.breadcrumbName} hasRail={hasRail}>
+    {hasRail && <slot name="rail" slot="rail" />}
     <div class="page-wrapper" data-pagefind-body>
       <div class:list={['container', { 'container--wide': wideContainer }]}>
         <nav class="breadcrumb" aria-label="Breadcrumb">
@@ -213,7 +214,7 @@ const baseLayoutProps = {
             )}
           </article>
 
-          {hasRail && <slot name="rail" />}
+          {!SHELL_ENABLED && hasRail && <slot name="rail" />}
         </div>
       </div>
     </div>

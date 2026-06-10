@@ -79,10 +79,14 @@ for (const f of renditionFormats) {
 const lessonTabs = TAB_DEFS.filter((t) => presentFormats.has(t.format));
 // More than one format -> tab bar. One/zero -> today's single-panel behavior.
 const showTabs = lessonTabs.length > 1;
+// Effective primary: the declared primary if present, otherwise the first available format.
+const effectivePrimary = presentFormats.has(primaryFormat)
+  ? primaryFormat
+  : (lessonTabs[0]?.format ?? primaryFormat);
 // Secondary panels render only for non-primary formats present as renditions.
-const hasSecondaryReading = showTabs && primaryFormat !== 'reading' && presentFormats.has('reading');
+const hasSecondaryReading = showTabs && effectivePrimary !== 'reading' && presentFormats.has('reading');
 const hasSecondaryFlashcards = showTabs && presentFormats.has('flashcards');
-const hasSecondaryQuiz = showTabs && primaryFormat !== 'quiz' && presentFormats.has('quiz');
+const hasSecondaryQuiz = showTabs && effectivePrimary !== 'quiz' && presentFormats.has('quiz');
 const hasSecondaryAudio = showTabs && presentFormats.has('audio');
 ---
 <BaseLayout
@@ -481,7 +485,8 @@ const hasSecondaryAudio = showTabs && presentFormats.has('audio');
           }
         })
         .catch(function () {
-          // Silently fail — user may not be logged in
+          var loading = document.getElementById('stream-loading');
+          if (loading) loading.textContent = 'Unable to load. Please refresh.';
         });
 
       // --- Video progress tracking (Cloudflare Stream) ---
@@ -593,9 +598,9 @@ const hasSecondaryAudio = showTabs && presentFormats.has('audio');
                 } catch (e) {}
 
                 if (!isCompleted) {
-                  isCompleted = true;
                   saveProgress(null, true).then(function (res) {
                     if (res && res.ok) {
+                      isCompleted = true;
                       markBtn.textContent = 'Completed';
                       markBtn.classList.add('mark-complete-btn--done');
                       markBtn.disabled = true;
@@ -612,8 +617,11 @@ const hasSecondaryAudio = showTabs && presentFormats.has('audio');
                     } else if (autoplayNext && nextStepUrl) {
                       showAutoplayCountdown();
                     }
+                  } else {
+                    markBtn.disabled = false;
+                    markBtn.textContent = 'Mark Complete';
                   }
-                });
+                  });
               }
               // No autoplay on rewatch: countdown only fires on the first-completion path above.
             });
@@ -826,7 +834,7 @@ const hasSecondaryAudio = showTabs && presentFormats.has('audio');
         data.questions.forEach(function (q, i) {
           // Pre-initialize optional answer types so they don't block submission
           if (q.type === 'freetext') answers['q-' + q.id] = '';
-          if (q.type === 'multiselect') answers['q-' + q.id] = '';
+          if (q.type === 'multiselect') answers['q-' + q.id] = [];
 
           if (data.type === 'questionnaire' && q.type === 'likert') {
             html += buildLikert(q, i);
@@ -868,8 +876,8 @@ const hasSecondaryAudio = showTabs && presentFormats.has('audio');
             var name = this.dataset.group;
             var checks = questionsEl.querySelectorAll('input[data-group="' + name + '"]');
             var sel = [];
-            checks.forEach(function (c) { if (c.checked) sel.push(c.value); });
-            answers[name] = sel.join(',') || '';
+            checks.forEach(function (c) { if (c.checked) sel.push(Number(c.value)); });
+            answers[name] = sel;
             checks.forEach(function (c) {
               var label = c.closest('.qo');
               if (label) label.classList.toggle('qo--sel', c.checked);
@@ -955,12 +963,12 @@ const hasSecondaryAudio = showTabs && presentFormats.has('audio');
       function checkReady() {
         if (!quizData) return;
         if (quizData.type === 'questionnaire') {
-          // For questionnaires, require at least all non-freetext questions answered
-          var required = quizData.questions.filter(function (q) { return q.type !== 'freetext'; }).length;
           var answered = 0;
           quizData.questions.forEach(function (q) {
+            var a = answers['q-' + q.id];
             if (q.type === 'freetext') { answered++; return; }
-            if (answers['q-' + q.id] !== undefined) answered++;
+            if (q.type === 'multiselect') { if (Array.isArray(a) && a.length > 0) answered++; return; }
+            if (a !== undefined) answered++;
           });
           submitBtn.disabled = answered < quizData.questions.length;
         } else {
@@ -1117,7 +1125,7 @@ const hasSecondaryAudio = showTabs && presentFormats.has('audio');
   <script is:inline define:vars={{
     tCourseId: course.id,
     tStepId: step.id,
-    tPrimaryFormat: primaryFormat,
+    tPrimaryFormat: effectivePrimary,
     tShowTabs: showTabs,
   }}>
     (function () {
@@ -1146,17 +1154,20 @@ const hasSecondaryAudio = showTabs && presentFormats.has('audio');
       var hasAuthHint = /(?:^|;\s*)rrm_auth=1(?:;|$)/.test(document.cookie || '');
       if (!hasAuthHint) {
         clearFlashcardKeys();
+        window.__rrmUserIdReady__ = Promise.resolve(null);
       } else {
-        fetch('/api/auth/session', { credentials: 'same-origin' })
+        window.__rrmUserIdReady__ = fetch('/api/auth/session', { credentials: 'same-origin' })
           .then(function (r) { return r.json(); })
           .then(function (data) {
             if (data && data.ok && data.user && data.user.id) {
               window.__rrmUserId__ = data.user.id;
+              return data.user.id;
             } else {
               clearFlashcardKeys();
+              return null;
             }
           })
-          .catch(function () {});
+          .catch(function () { return null; });
       }
 
       function panelFor(format) {
@@ -1188,10 +1199,10 @@ const hasSecondaryAudio = showTabs && presentFormats.has('audio');
             box.hidden = false;
           }
           var l1 = panel.querySelector('[data-rendition-loading]'); if (l1) l1.hidden = true;
-        } else if (status === 403 || error === 'Not enrolled') {
-          showMessage(panel, 'Enroll in this course to access this format.');
         } else if (error === 'Previous step not completed') {
           showMessage(panel, 'Complete the previous step to unlock this format.');
+        } else if (status === 403 || error === 'Not enrolled') {
+          showMessage(panel, 'Enroll in this course to access this format.');
         } else {
           showMessage(panel, 'This format could not be loaded. Please try refreshing.');
         }
@@ -1235,14 +1246,34 @@ const hasSecondaryAudio = showTabs && presentFormats.has('audio');
         var cards = (data.cards || []).slice();
         if (cards.length === 0) { showMessage(panel, 'No flashcards are available for this lesson yet.'); return; }
 
+        (window.__rrmUserIdReady__ || Promise.resolve(null)).then(function (resolvedId) {
         var order = cards.map(function (_, i) { return i; });
         var idx = 0;
-        var userId = window.__rrmUserId__ || 'anon';
+        var userId = resolvedId || window.__rrmUserId__ || 'anon';
         var storeKey = 'flashcards:' + userId + ':' + tStepId;
         var piles = {}; // cardIndex -> 'gotit' | 'again'
+        var PRUNE_MS = 180 * 24 * 60 * 60 * 1000;
         try {
+          var nowTs = Date.now();
+          var fcKeys = [];
+          for (var ki = 0; ki < localStorage.length; ki++) {
+            var kk = localStorage.key(ki);
+            if (kk && kk.indexOf('flashcards:') === 0) fcKeys.push(kk);
+          }
+          fcKeys.forEach(function (k) {
+            try {
+              var raw = JSON.parse(localStorage.getItem(k) || '{}');
+              if (raw && typeof raw === 'object' && typeof raw._ts === 'number' && (nowTs - raw._ts) > PRUNE_MS) {
+                localStorage.removeItem(k);
+              }
+            } catch (e2) {}
+          });
           var saved = JSON.parse(localStorage.getItem(storeKey) || '{}');
-          if (saved && typeof saved === 'object') piles = saved;
+          if (saved && typeof saved === 'object') {
+            var p = {};
+            for (var pk in saved) { if (pk !== '_ts') p[pk] = saved[pk]; }
+            piles = p;
+          }
         } catch (e) { piles = {}; }
 
         var deck = panel.querySelector('[data-flashcards]');
@@ -1259,7 +1290,25 @@ const hasSecondaryAudio = showTabs && presentFormats.has('audio');
         var againCount = panel.querySelector('[data-fc-again-count]');
 
         function persist() {
-          try { localStorage.setItem(storeKey, JSON.stringify(piles)); } catch (e) {}
+          try {
+            var toStore = Object.assign({}, piles, { _ts: Date.now() });
+            try {
+              localStorage.setItem(storeKey, JSON.stringify(toStore));
+            } catch (quota) {
+              var allFcKeys = [];
+              for (var qi = 0; qi < localStorage.length; qi++) {
+                var qk = localStorage.key(qi);
+                if (qk && qk.indexOf('flashcards:') === 0 && qk !== storeKey) allFcKeys.push(qk);
+              }
+              if (allFcKeys.length > 0) {
+                var oldest = allFcKeys.reduce(function (a, b) {
+                  try { var ta = JSON.parse(localStorage.getItem(a) || '{}')._ts || 0; var tb = JSON.parse(localStorage.getItem(b) || '{}')._ts || 0; return ta <= tb ? a : b; } catch (e2) { return a; }
+                });
+                localStorage.removeItem(oldest);
+                try { localStorage.setItem(storeKey, JSON.stringify(toStore)); } catch (e3) {}
+              }
+            }
+          } catch (e) {}
         }
         function refreshCounts() {
           var g = 0, a = 0;
@@ -1299,6 +1348,7 @@ const hasSecondaryAudio = showTabs && presentFormats.has('audio');
         refreshCounts();
         showCard();
         if (deck) deck.hidden = false;
+        }); // __rrmUserIdReady__
       }
 
       // --- Secondary quiz (reads data.quiz.*; never gates completion) ---
@@ -1358,11 +1408,25 @@ const hasSecondaryAudio = showTabs && presentFormats.has('audio');
           fetch('/api/courses/quiz', {
             method: 'POST', credentials: 'same-origin',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ courseId: tCourseId, stepId: tStepId, answers: ansArr }),
+            body: JSON.stringify({ courseId: tCourseId, stepId: tStepId, answers: ansArr, practice: true }),
           })
             .then(function (r) { return r.json(); })
             .then(function (res) {
-              if (!res || !res.ok) { submitBtn.disabled = false; submitBtn.textContent = 'Submit Answers'; return; }
+              if (!res || !res.ok) {
+                submitBtn.disabled = false;
+                submitBtn.textContent = 'Submit Answers';
+                var msgEl = panel.querySelector('[data-rendition-message]');
+                if (msgEl) {
+                  var errText = (res && res.error === 'Not authenticated')
+                    ? 'Please sign in to submit.'
+                    : (res && res.error === 'rate_limited')
+                      ? 'Too many attempts. Try again in a minute.'
+                      : 'Submission failed. Please try again.';
+                  msgEl.textContent = errText;
+                  msgEl.hidden = false;
+                }
+                return;
+              }
               // Secondary tab: show score only, never touch step completion / sidebar.
               if (wrap) wrap.hidden = true;
               var rh = '<div class="qr-card ' + (res.passed ? 'qr-card--pass' : 'qr-card--fail') + '">';
@@ -1372,7 +1436,12 @@ const hasSecondaryAudio = showTabs && presentFormats.has('audio');
               rh += '</div>';
               if (resultsEl) { resultsEl.innerHTML = rh; resultsEl.hidden = false; }
             })
-            .catch(function () { submitBtn.disabled = false; submitBtn.textContent = 'Submit Answers'; });
+            .catch(function () {
+              submitBtn.disabled = false;
+              submitBtn.textContent = 'Submit Answers';
+              var msgEl = panel.querySelector('[data-rendition-message]');
+              if (msgEl) { msgEl.textContent = 'Network error. Please try again.'; msgEl.hidden = false; }
+            });
         });
       }
 
@@ -1486,7 +1555,19 @@ const hasSecondaryAudio = showTabs && presentFormats.has('audio');
           .then(function (data) {
             submitBtn.disabled = false;
             submitBtn.textContent = 'Post';
-            if (!data.ok) return;
+            if (!data.ok) {
+              var errEl = document.getElementById('comment-error');
+              if (!errEl) {
+                errEl = document.createElement('p');
+                errEl.id = 'comment-error';
+                errEl.className = 'lesson-comments__error';
+                compose.appendChild(errEl);
+              }
+              errEl.textContent = data.error || 'Could not post. Try again.';
+              return;
+            }
+            var existingErr = document.getElementById('comment-error');
+            if (existingErr) existingErr.remove();
 
             input.value = '';
             charCount.textContent = '0 / 2000';
@@ -1511,6 +1592,14 @@ const hasSecondaryAudio = showTabs && presentFormats.has('audio');
           .catch(function () {
             submitBtn.disabled = false;
             submitBtn.textContent = 'Post';
+            var errEl = document.getElementById('comment-error');
+            if (!errEl) {
+              errEl = document.createElement('p');
+              errEl.id = 'comment-error';
+              errEl.className = 'lesson-comments__error';
+              compose.appendChild(errEl);
+            }
+            errEl.textContent = 'Could not post. Try again.';
           });
       });
 
