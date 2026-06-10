@@ -1228,18 +1228,13 @@ const mobileNavSections: { heading: string; items: MobileNavItem[] }[] = [
       window.__rrmCommunityStatus__ = community;
       window.dispatchEvent(new CustomEvent('rrm:community-status', { detail: community }));
 
-      // STUC link: swap text for members
+      // STUC link: swap text for members (desktop only — the mobile nav item is
+      // statically labeled "Save the Uterus Club" -> /community/ for everyone)
       if (community && community.ok && community.access === 'member') {
         var desktopLink = document.getElementById('stuc-nav-link');
-        var mobileLink = document.getElementById('stuc-mobile-nav-link');
         if (desktopLink) {
           desktopLink.textContent = 'Save the Uterus Club';
           desktopLink.href = '/community/';
-        }
-        if (mobileLink) {
-          var label = mobileLink.querySelector('.nav-label');
-          if (label) label.textContent = 'Save the Uterus Club';
-          mobileLink.href = '/community/';
         }
       }
 
