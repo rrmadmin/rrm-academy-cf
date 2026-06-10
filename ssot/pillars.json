@@ -82,7 +82,7 @@
       "reviewer": {
         "name": "Erin Kay, DO"
       },
-      "usesPillarLayout": false
+      "usesPillarLayout": true
     },
     {
       "slug": "neofertility",
@@ -150,7 +150,7 @@
         "name": "Dr. Naomi Whittaker, MD",
         "id": "#naomi-whittaker"
       },
-      "usesPillarLayout": false
+      "usesPillarLayout": true
     },
     {
       "slug": "art-registries-and-codes",
@@ -238,7 +238,7 @@
       "pageH1": "Chronic Endometritis: The Missed Diagnosis Behind Recurrent Loss and Failed IVF",
       "breadcrumbName": "Endometritis",
       "authorId": "#naomi-whittaker",
-      "usesPillarLayout": false
+      "usesPillarLayout": true
     },
     {
       "slug": "isthmocele",
@@ -263,7 +263,7 @@
         "name": "Dr. Naomi Whittaker, MD",
         "id": "#naomi-whittaker"
       },
-      "usesPillarLayout": false
+      "usesPillarLayout": true
     },
     {
       "slug": "miscarriage",

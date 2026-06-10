@@ -24,12 +24,16 @@ interface Props {
   tocItems?: TocItem[];
   faqs?: Faq[];
   keyTakeawaysHtml?: string;
-  disclaimerHtml?: string;
+  disclaimerHtml?: string | null;   // pass null to suppress the layout disclaimer (page renders its own, scoped-styled, in a slot)
   editingNotice?: boolean;
+  editingNoticeHtml?: string;   // inner-<p> HTML override for the editing notice (per-page authored copy)
   disambigHtml?: string;
+  bylineDatePrefix?: string;    // LastUpdated prefix override (e.g. glossary uses "Updated"); undefined -> component default "Last updated"
   citeThisPage?: boolean;
   hasRail?: boolean;
   showToc?: boolean;
+  wideContainer?: boolean;      // opt into the wide article container (femm/glossary table-heavy pages)
+  proseClass?: string;          // extra class on <article class="prose"> (e.g. glossary-content)
   baseLayout?: Record<string, unknown>;
 }
 
@@ -42,10 +46,14 @@ const {
   keyTakeawaysHtml,
   disclaimerHtml = 'This content is for educational and reference purposes only and does not constitute medical advice, diagnosis, or treatment. Consult a qualified clinician about your specific situation.',
   editingNotice = false,
+  editingNoticeHtml,
   disambigHtml,
+  bylineDatePrefix,
   citeThisPage = false,
   hasRail = false,
   showToc = true,
+  wideContainer = false,
+  proseClass,
   baseLayout = {},
 } = Astro.props;
 
@@ -71,6 +79,7 @@ const AVATAR: Record<string, string> = {
 };
 const NAOMI_BYLINE = 'Dr. Naomi Whittaker, MD, Board-Certified OBGYN, MIGS, NFPMC, FCI';
 const authorIsNaomi = entry.authorId === '#naomi-whittaker';
+const reviewerIsNaomi = entry.reviewer?.id === '#naomi-whittaker';
 const authorAvatar = AVATAR[entry.authorId] || null;
 const reviewerAvatar = entry.reviewer?.id ? AVATAR[entry.reviewer.id] : (entry.reviewer ? '/images/authors/erin-kay.webp' : null);
 
@@ -92,7 +101,7 @@ const baseLayoutProps = {
 
   <MaybeShell enabled={SHELL_ENABLED} context="page" currentPath={Astro.url.pathname} saveTitle={entry.breadcrumbName} hasRail={hasRail}>
     <div class="page-wrapper" data-pagefind-body>
-      <div class="container">
+      <div class:list={['container', { 'container--wide': wideContainer }]}>
         <nav class="breadcrumb" aria-label="Breadcrumb">
           <a href="/">Home</a>
           <span aria-hidden="true"> &rsaquo; </span>
@@ -112,12 +121,12 @@ const baseLayoutProps = {
             <span class="byline-author">By <strong>{authorIsNaomi
               ? <a href="/commentary/rrm-spotlight-naomi-whittaker-md/">{NAOMI_BYLINE}</a>
               : 'RRM Academy'}</strong></span>
-            {entry.reviewer && <span class="byline-reviewer">Reviewed by <strong>{entry.reviewer.name}</strong></span>}
-            <LastUpdated path={`/${slug}/`} class="byline-date" />
+            {entry.reviewer && <span class="byline-reviewer">Reviewed by <strong>{reviewerIsNaomi
+              ? <a href="/commentary/rrm-spotlight-naomi-whittaker-md/">{NAOMI_BYLINE}</a>
+              : entry.reviewer.name}</strong></span>}
+            <LastUpdated path={`/${slug}/`} prefix={bylineDatePrefix} class="byline-date" />
           </div>
         </div>
-
-        {disambigHtml && <aside class="disambig" set:html={disambigHtml} />}
 
         {showToc && tocItems.length > 0 && (
           <details class="toc-mobile">
@@ -127,6 +136,8 @@ const baseLayoutProps = {
         )}
         {SHELL_ENABLED && showToc && tocItems.length > 0 && <SectionTocChips items={tocItems} />}
 
+        <slot name="preContent" />
+
         <div class:list={['article-layout', { 'article-layout--no-toc': SHELL_ENABLED || tocItems.length === 0 }]}>
           {!SHELL_ENABLED && showToc && tocItems.length > 0 && (
             <nav class="toc" aria-label="Table of contents">
@@ -135,12 +146,15 @@ const baseLayoutProps = {
             </nav>
           )}
 
-          <article class="prose">
-            {editingNotice && (
+          <article class:list={['prose', proseClass]}>
+            {(editingNoticeHtml || editingNotice) && (
               <aside class="editing-notice" role="status" aria-label="Editor's note">
-                <p><strong>Editor's note:</strong> This guide is newly published and being actively reviewed. Content and citations may be refined over the next few days.</p>
+                {editingNoticeHtml
+                  ? <p set:html={editingNoticeHtml} />
+                  : <p><strong>Editor's note:</strong> This guide is newly published and being actively reviewed. Content and citations may be refined over the next few days.</p>}
               </aside>
             )}
+            {disambigHtml && <aside class="disambig" aria-label="Disambiguation" set:html={disambigHtml} />}
             {keyTakeawaysHtml && (
               <aside class="tldr"><h2 id="key-takeaways">Key Takeaways</h2><Fragment set:html={keyTakeawaysHtml} /></aside>
             )}
@@ -152,7 +166,7 @@ const baseLayoutProps = {
                 <h2>Frequently Asked Questions</h2>
                 <div class="faq-accordion" data-pagefind-ignore>
                   {faqs.map((f) => (
-                    <details class="faq-item">
+                    <details>
                       <summary>{f.question}</summary>
                       <div class="faq-answer"><Fragment set:html={f.answerHtml} /></div>
                     </details>
@@ -163,18 +177,29 @@ const baseLayoutProps = {
 
             {citeThisPage && <slot name="cite" />}
 
-            <p class="disclaimer"><em><Fragment set:html={disclaimerHtml} /></em></p>
+            {disclaimerHtml !== null && (
+              <p class="disclaimer"><em><Fragment set:html={disclaimerHtml} /></em></p>
+            )}
           </article>
 
           {hasRail && <slot name="rail" />}
         </div>
       </div>
     </div>
+    <slot name="afterContent" />
     <BackToTop />
   </MaybeShell>
 </BaseLayout>
 
 <style>
+  /* Wide article container for table-heavy pillar pages (femm/glossary). Matches
+     the per-page `.container` override those pages used pre-migration. */
+  @media (min-width: 1024px) {
+    .container--wide {
+      max-width: calc(var(--max-width-article) + 220px + var(--space-10) + var(--space-8) * 2);
+    }
+  }
+
   .disambig {
     background: var(--bg-surface);
     border-left: 3px solid var(--purple-500);
