@@ -308,7 +308,7 @@
         "name": "Dr. Naomi Whittaker, MD",
         "id": "#naomi-whittaker"
       },
-      "usesPillarLayout": false
+      "usesPillarLayout": true
     }
   ]
 }
