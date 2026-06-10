@@ -229,13 +229,15 @@ if (!jsonLd) {
     // explicit `=== true` opts out, so behavior is unchanged when GPC is
     // unset/false.
     if (navigator.globalPrivacyControl !== true) {
-      if (!sessionStorage.getItem('entry_ref') && !document.cookie.includes('entry_ref=')) {
-        var r = document.referrer, u = location.href;
-        sessionStorage.setItem('entry_ref', r);
-        sessionStorage.setItem('entry_url', u);
-        document.cookie = 'entry_ref=' + encodeURIComponent(r) + ';path=/;SameSite=Lax;Secure';
-        document.cookie = 'entry_url=' + encodeURIComponent(u) + ';path=/;SameSite=Lax;Secure';
-      }
+      try {
+        if (!sessionStorage.getItem('entry_ref') && !document.cookie.includes('entry_ref=')) {
+          var r = document.referrer, u = location.href;
+          sessionStorage.setItem('entry_ref', r);
+          sessionStorage.setItem('entry_url', u);
+          document.cookie = 'entry_ref=' + encodeURIComponent(r) + ';path=/;SameSite=Lax;Secure';
+          document.cookie = 'entry_url=' + encodeURIComponent(u) + ';path=/;SameSite=Lax;Secure';
+        }
+      } catch (e) {}
       // list_source: non-UTM custom param appended to email links so we can
       // attribute conversions back to the original subscriber-acquisition surface
       // (endo-survey signup, course page, etc.). 30-day cookie survives internal

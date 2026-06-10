@@ -1209,6 +1209,8 @@ const hasSecondaryAudio = showTabs && presentFormats.has('audio');
       }
 
       function fetchRendition(format, panel, render) {
+        var loadingEl = panel.querySelector('[data-rendition-loading]');
+        if (loadingEl) loadingEl.hidden = false;
         fetch('/api/courses/rendition?stepId=' + encodeURIComponent(tStepId) + '&format=' + encodeURIComponent(format), { credentials: 'same-origin' })
           .then(function (r) {
             return r.json().then(function (data) { return { status: r.status, data: data }; }, function () { return { status: r.status, data: null }; });
@@ -1221,6 +1223,8 @@ const hasSecondaryAudio = showTabs && presentFormats.has('audio');
             }
             var loading = panel.querySelector('[data-rendition-loading]');
             if (loading) loading.hidden = true;
+            var msg = panel.querySelector('[data-rendition-message]');
+            if (msg) msg.hidden = true;
             render(res.data, panel);
           })
           .catch(function () {
@@ -1371,6 +1375,10 @@ const hasSecondaryAudio = showTabs && presentFormats.has('audio');
           showMessage(panel, 'Quiz content is being prepared and will be available shortly.');
           return;
         }
+        if (quiz.questions.some(function (q) { return q && q.type; })) {
+          showMessage(panel, 'This practice format is unavailable for this lesson.');
+          return;
+        }
         var wrap = panel.querySelector('[data-rquiz]');
         var titleEl = panel.querySelector('[data-rquiz-title]');
         var descEl = panel.querySelector('[data-rquiz-desc]');
@@ -1417,6 +1425,8 @@ const hasSecondaryAudio = showTabs && presentFormats.has('audio');
           if (submitBtn.disabled) return;
           submitBtn.disabled = true;
           submitBtn.textContent = 'Submitting…';
+          var topMsg = panel.querySelector('[data-rendition-message]');
+          if (topMsg) topMsg.hidden = true;
           var ansArr = quiz.questions.map(function (q) { var k = 'rq-' + q.id; return answers[k] !== undefined ? answers[k] : -1; });
           fetch('/api/courses/quiz', {
             method: 'POST', credentials: 'same-origin',
