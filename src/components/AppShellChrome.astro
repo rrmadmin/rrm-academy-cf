@@ -673,7 +673,7 @@ const NAV_ICONS: Record<string, string> = {
       try { sessionStorage.removeItem('rrm-shell-context'); } catch (e) {}
     };
     document.querySelectorAll('[data-clear-shell-context]').forEach(function (el) {
-      el.addEventListener('pointerdown', clearShellContext);
+      el.addEventListener('pointerdown', function (ev) { if (ev.button === 0) clearShellContext(); });
       el.addEventListener('click', function (ev) { if (ev.detail === 0) clearShellContext(); });
     });
   })();
@@ -835,7 +835,9 @@ const NAV_ICONS: Record<string, string> = {
     });
 
     window.addEventListener('pageshow', function (e) {
-      if (e.persisted) close();
+      if (!e.persisted) return;
+      if (drawer.dataset.open !== 'true') return;
+      close();
     });
   })();
 </script>

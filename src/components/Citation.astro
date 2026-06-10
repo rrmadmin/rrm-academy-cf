@@ -89,6 +89,8 @@ const hasCitations = apa || vancouver || mla;
 
   document.querySelectorAll('.citation-copy-btn').forEach(btn => {
     btn.addEventListener('click', async () => {
+      if ((btn as HTMLButtonElement).disabled) return;
+      (btn as HTMLButtonElement).disabled = true;
       const text = (btn as HTMLElement).dataset.copy || '';
       const original = btn.innerHTML;
       try {
@@ -97,7 +99,10 @@ const hasCitations = apa || vancouver || mla;
       } catch {
         btn.textContent = 'Copy failed';
       }
-      setTimeout(() => { btn.innerHTML = original; }, 1500);
+      setTimeout(() => {
+        btn.innerHTML = original;
+        (btn as HTMLButtonElement).disabled = false;
+      }, 1500);
     });
   });
 </script>
