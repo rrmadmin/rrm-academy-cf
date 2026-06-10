@@ -651,12 +651,13 @@ const NAV_ICONS: Record<string, string> = {
     }
 
     // Commit on pagehide (top-level navigation race-safe on Safari iOS).
-    // Capture-and-reset __rrmClearRequested__ so non-navigating pointerdowns
-    // (right-click, drag-cancel) don't poison subsequent legitimate writes,
-    // and bfcache restore can never see a stale flag (/arise --deep #1).
+    // Read __rrmClearRequested__ but do NOT reset it here -- SearchBar and
+    // MobileSearchModal have their own pagehide listeners that check the same
+    // flag; resetting it early causes them to see false and re-write cleared
+    // context (/arise --deep pass 2 #D1). Flag re-initializes on load (above)
+    // and on pageshow (bfcache restore path above).
     window.addEventListener('pagehide', function () {
       var wasClear = window.__rrmClearRequested__;
-      window.__rrmClearRequested__ = false;
       if (wasClear) return;
       if (!pendingContext) return;
       try { sessionStorage.setItem('rrm-shell-context', JSON.stringify(pendingContext)); } catch (e) {}
