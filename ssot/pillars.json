@@ -37,7 +37,7 @@
       "pageH1": "What is Restorative Reproductive Medicine (RRM)?",
       "breadcrumbName": "What is RRM?",
       "authorId": "#naomi-whittaker",
-      "usesPillarLayout": false
+      "usesPillarLayout": true
     },
     {
       "slug": "naprotechnology",
@@ -58,7 +58,7 @@
       "pageH1": "NaProTechnology: How It Works, What It Treats, and How to Find a Provider",
       "breadcrumbName": "NaProTechnology",
       "authorId": "#naomi-whittaker",
-      "usesPillarLayout": false
+      "usesPillarLayout": true
     },
     {
       "slug": "femm",
@@ -103,7 +103,7 @@
       "pageH1": "What is NeoFertility? How It Works, What Are NeoFertility's Success Rates?, and How to Find a Provider",
       "breadcrumbName": "NeoFertility",
       "authorId": "#naomi-whittaker",
-      "usesPillarLayout": false
+      "usesPillarLayout": true
     },
     {
       "slug": "common-questions-about-rrm",
