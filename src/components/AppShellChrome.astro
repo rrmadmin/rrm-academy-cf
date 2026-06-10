@@ -667,11 +667,13 @@ const NAV_ICONS: Record<string, string> = {
   // Per /arise B1 — was previously scoped to the writer IIFE which early-returns
   // on non-index, leaving stale context on article-page drawer/bottom-nav navs.
   (function () {
+    var clearShellContext = function () {
+      window.__rrmClearRequested__ = true;
+      try { sessionStorage.removeItem('rrm-shell-context'); } catch (e) {}
+    };
     document.querySelectorAll('[data-clear-shell-context]').forEach(function (el) {
-      el.addEventListener('pointerdown', function () {
-        window.__rrmClearRequested__ = true;
-        try { sessionStorage.removeItem('rrm-shell-context'); } catch (e) {}
-      });
+      el.addEventListener('pointerdown', clearShellContext);
+      el.addEventListener('click', function (ev) { if (ev.detail === 0) clearShellContext(); });
     });
   })();
 
@@ -794,6 +796,7 @@ const NAV_ICONS: Record<string, string> = {
   // open shell + non-shell tabs stay in lockstep without requiring a reload.
   window.addEventListener('storage', function (e) {
     if (e.key !== 'rrm_theme') return;
+    if (e.newValue == null) return;
     var theme = e.newValue === 'dark' ? 'dark' : 'light';
     document.documentElement.setAttribute('data-theme', theme);
   });

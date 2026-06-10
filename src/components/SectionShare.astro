@@ -16,10 +16,14 @@ interface Props {
   id: string;
   title: string;
   share?: boolean;
+  /** GA4 share_click surface label. Defaults to the historical value used by
+   *  the original /rrm-success-rates/ host page. */
+  surface?: string;
 }
 
-const { id, title, share = true } = Astro.props;
-const url = `https://rrmacademy.org/rrm-success-rates/#${id}`;
+const { id, title, share = true, surface = 'success-rates-section' } = Astro.props;
+const pagePath = Astro.url.pathname.endsWith('/') ? Astro.url.pathname : `${Astro.url.pathname}/`;
+const url = `https://rrmacademy.org${pagePath}#${id}`;
 ---
 
 <div class="section-head">
@@ -32,6 +36,7 @@ const url = `https://rrmacademy.org/rrm-success-rates/#${id}`;
       data-share-url={url}
       data-anchor-only="1"
       data-share-title={title}
+      data-share-surface={surface}
     >
       <LinkIcon size={16} aria-hidden="true" />
     </button>
@@ -43,6 +48,7 @@ const url = `https://rrmacademy.org/rrm-success-rates/#${id}`;
       aria-label={`Share "${title}"`}
       data-share-url={url}
       data-share-title={`RRM Success Rates: ${title}`}
+      data-share-surface={surface}
     >
       <Share2 class="section-share__icon" size={14} aria-hidden="true" />
       <Check class="section-share__icon section-share__icon--check" size={14} aria-hidden="true" />
@@ -95,7 +101,7 @@ const url = `https://rrmacademy.org/rrm-success-rates/#${id}`;
         try {
           if ((window as any).__rrmTrack__) {
             (window as any).__rrmTrack__('share_click', {
-              surface: 'success-rates-section',
+              surface: btn.dataset.shareSurface || 'success-rates-section',
               network: hasWebShare ? 'web-share' : 'copy-link',
             });
           }

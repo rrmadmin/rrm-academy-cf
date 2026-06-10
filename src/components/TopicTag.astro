@@ -10,6 +10,6 @@ const { topic } = Astro.props;
 // whitespace, but enforcing the strip at the encoder closes the
 // regression class for any future ingest that lets one through.
 const cleanTopic = topic.replace(/[\r\n\t]+/g, ' ').replace(/\s+/g, ' ').trim();
-const href = `/library?topic=${encodeURIComponent(cleanTopic)}`;
+const href = `/library/?topic=${encodeURIComponent(cleanTopic)}`;
 ---
 <a href={href} class="topic-pill">{topic}</a>
