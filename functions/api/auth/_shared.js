@@ -67,9 +67,14 @@ export function generateToken() {
 
 // --- Password hashing (PBKDF2 via Web Crypto) ---
 
-// OWASP recommended for PBKDF2-SHA256 (2023+). Requires Workers Paid plan
-// ($5/mo) for the 30s CPU budget; the free plan's 10ms limit is too tight for 600K.
-export const PBKDF2_ITERATIONS = 600000;
+// HARD CAP: the Workers runtime rejects PBKDF2 above 100,000 iterations
+// ("Pbkdf2 failed: iteration counts above 100000 are not supported") regardless
+// of plan or CPU budget. The 2026-06-07 bump to OWASP's 600K (babf58ab) made
+// hashPassword() throw on every call, breaking signup/reset/change-password in
+// production until reverted 2026-06-10. Do NOT raise this above 100000 while
+// hashing runs on workerd's crypto.subtle; reaching OWASP 600K requires moving
+// to a different KDF or hashing off-Worker.
+export const PBKDF2_ITERATIONS = 100000;
 
 // Dummy hash for constant-time login path when user is not found.
 // Constructed from PBKDF2_ITERATIONS so it stays in sync if the iteration count changes.
