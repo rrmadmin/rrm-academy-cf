@@ -385,6 +385,9 @@ jobs:
       - name: Audit design tokens (no phantoms)
         run: npm run design-tokens:audit
 
+      - name: CSS drift gate (criticals 0 + category ratchet)
+        run: node scripts/css-audit/audit.mjs --gate
+
       - name: Verify mobile hamburger (present + right-aligned)
         run: npm run verify-hamburger
 
