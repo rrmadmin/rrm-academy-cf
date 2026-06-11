@@ -2022,8 +2022,8 @@ const hasSecondaryAudio = showTabs && presentFormats.has('audio');
 
   /* Guest preview banner — guestReadable courses, logged-out visitors */
   :global(.guest-preview-banner) {
-    background: var(--bg-surface, #f3f0ee);
-    border: 1px solid var(--border-color, #e2dcd6);
+    background: var(--bg-surface);
+    border: 1px solid var(--border-color);
     border-radius: var(--radius-md);
     padding: var(--space-3) var(--space-4);
     margin: 0 0 var(--space-5);
@@ -2641,7 +2641,7 @@ const hasSecondaryAudio = showTabs && presentFormats.has('audio');
     border-radius: var(--radius-md);
   }
   :global(.cert-banner svg) {
-    color: var(--purple-500, #8b5cf6);
+    color: var(--purple-500);
     flex-shrink: 0;
   }
   :global(.cert-banner__text) {
@@ -2660,7 +2660,7 @@ const hasSecondaryAudio = showTabs && presentFormats.has('audio');
     font-weight: 600;
   }
   :global(.qr-cert__link:hover) {
-    color: var(--purple-700, #7c3aed);
+    color: var(--purple-700);
   }
 
   /* ═══════ Comments ═══════ */
@@ -2693,7 +2693,7 @@ const hasSecondaryAudio = showTabs && presentFormats.has('audio');
     font-weight: 500;
     color: var(--text-secondary);
     background: var(--bg-surface);
-    padding: 0.125rem 0.5rem;
+    padding: 0.125rem var(--space-2);
     border-radius: var(--radius-pill);
   }
   .lesson-comments__count:empty {
@@ -2724,7 +2724,7 @@ const hasSecondaryAudio = showTabs && presentFormats.has('audio');
     box-shadow: 0 0 0 3px var(--focus-ring);
   }
   .lesson-comments__input::placeholder {
-    color: var(--text-muted, var(--text-secondary));
+    color: var(--text-muted);
   }
   .lesson-comments__compose-footer {
     display: flex;
@@ -2773,16 +2773,16 @@ const hasSecondaryAudio = showTabs && presentFormats.has('audio');
     gap: var(--space-3);
   }
   :global(.comment--reply) {
-    margin-left: 2.5rem;
+    margin-left: var(--space-10);
     padding-left: var(--space-3);
-    border-left: 2px solid var(--border-light, var(--border-color));
+    border-left: 2px solid var(--border-light);
   }
   :global(.comment__avatar) {
     width: 2rem;
     height: 2rem;
     border-radius: 50%;
-    background: var(--purple-100, #f3e8ff);
-    color: var(--purple-700, #7c3aed);
+    background: var(--purple-100);
+    color: var(--purple-700);
     display: flex;
     align-items: center;
     justify-content: center;

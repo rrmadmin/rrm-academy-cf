@@ -76,7 +76,7 @@ aggregate but never block pre-commit — they need human judgment per finding.
 ## Documented exceptions (approved 2026-06-11)
 
 - `src/pages/openapi.astro` method badges: GET blue `#2563eb` / POST green `#16a34a`.
-  REST-client convention; deliberately kept off-palette. Counted in baseline.
+  Plus PUT yellow `#ca8a04` / DELETE red `#dc2626`. REST-client convention; deliberately kept off-palette (gate allowlist in audit.mjs). Counted in baseline.
 
 ## Divergence exceptions
 

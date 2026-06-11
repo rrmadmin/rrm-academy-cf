@@ -147,11 +147,11 @@ const INITIAL_BATCH = 15;
   .linkinbio {
     width: 100%;
     max-width: 480px;
-    padding: 32px 20px 40px;
+    padding: var(--space-8) var(--space-5) var(--space-10);
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: 20px;
+    gap: var(--space-5);
   }
 
   /* ── Profile ── */
@@ -160,7 +160,7 @@ const INITIAL_BATCH = 15;
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: 8px;
+    gap: var(--space-2);
   }
   .profile__avatar {
     width: 80px;
@@ -170,7 +170,7 @@ const INITIAL_BATCH = 15;
     display: flex;
     align-items: center;
     justify-content: center;
-    margin-bottom: 4px;
+    margin-bottom: var(--space-1);
   }
   .profile__initials {
     font-family: 'Cormorant Garamond', 'Georgia', serif;
@@ -198,12 +198,12 @@ const INITIAL_BATCH = 15;
   .featured-card {
     display: flex;
     align-items: center;
-    gap: 16px;
+    gap: var(--space-4);
     width: 100%;
     background: var(--bg-surface);
     border: 1px solid var(--border-color);
     border-radius: var(--radius-lg);
-    padding: 20px;
+    padding: var(--space-5);
     text-decoration: none;
     transition: box-shadow 0.15s, border-color 0.15s;
   }
@@ -247,7 +247,7 @@ const INITIAL_BATCH = 15;
     align-items: center;
     justify-content: center;
     width: 100%;
-    padding: 14px 24px;
+    padding: 14px var(--space-6);
     font-family: 'Inter', sans-serif;
     font-size: 0.9375rem;
     font-weight: 500;
@@ -277,7 +277,7 @@ const INITIAL_BATCH = 15;
   .post-grid {
     display: grid;
     grid-template-columns: repeat(3, 1fr);
-    gap: 4px;
+    gap: var(--space-1);
     width: 100%;
     border-radius: var(--radius-md);
     overflow: hidden;
@@ -319,8 +319,8 @@ const INITIAL_BATCH = 15;
   .bio-footer {
     display: flex;
     align-items: center;
-    gap: 8px;
-    margin-top: 8px;
+    gap: var(--space-2);
+    margin-top: var(--space-2);
     font-size: 0.75rem;
     color: var(--text-secondary);
   }
