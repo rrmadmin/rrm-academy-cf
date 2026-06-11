@@ -50,11 +50,12 @@ export async function onRequestGet({ request, env, waitUntil }) {
 
   try {
     const stripe = getStripeClient(env);
-    let hasMore = true;
-    let startingAfter = undefined;
 
+    let searchFailed = false;
     try {
       // Prefer search API (filters server-side by metadata)
+      let hasMore = true;
+      let startingAfter = undefined;
       while (hasMore) {
         const params = {
           query: `status:'succeeded' AND metadata['campaign']:'${CAMPAIGN}'`,
@@ -77,10 +78,13 @@ export async function onRequestGet({ request, env, waitUntil }) {
         }
       }
     } catch (searchErr) {
-      if (!searchErr.message?.includes('is not a valid')) {
-        throw searchErr;
-      }
-      // Search unavailable: fall back to list + filter
+      // Any search failure (invalid query, rate limit, transient 5xx, network)
+      // falls through to the always-correct list+filter path below.
+      log(env, waitUntil, 'billing', 'fund_progress_search_fallback', 'warn', searchErr.message, 0, 0);
+      searchFailed = true;
+    }
+
+    if (searchFailed) {
       raised_cents = 0;
       count = 0;
       let cursor = undefined;
