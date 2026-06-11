@@ -2771,12 +2771,16 @@ const SHELL_ENABLED = isShellEnabled('community');
     color: var(--text-secondary);
   }
   .post-tier-badge--hero {
-    background: #fef3c7;
-    color: #92400e;
+    background: var(--status-warn-bg);
+    color: var(--status-warn-text);
   }
   .post-tier-badge--superhero {
     background: #fce7f3;
     color: #9d174d;
+  }
+  [data-theme="dark"] .post-tier-badge--superhero {
+    background: #3a1626;
+    color: #f0a8c8;
   }
   .post-sep {
     color: var(--text-muted);
