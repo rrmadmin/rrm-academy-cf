@@ -1056,19 +1056,19 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
   .admin-bar__link {
     font-size: 0.8125rem;
     font-weight: 400;
-    color: rgba(255,255,255,0.6);
+    color: var(--white);
     text-decoration: none;
-    padding: 4px 12px;
+    padding: var(--space-1) var(--space-3);
     border-radius: var(--radius-sm);
     transition: color 0.15s, background 0.15s;
   }
   .admin-bar__link:hover {
-    color: #fff;
+    color: var(--white);
     text-decoration: none;
   }
   .admin-bar__link--active {
-    color: #fff;
-    background: rgba(255,255,255,0.1);
+    color: var(--white);
+    background: var(--white);
     font-weight: 500;
   }
   .admin-bar__actions {
@@ -1082,28 +1082,28 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
     font-weight: 500;
     color: var(--admin-rose-300);
     text-decoration: none;
-    padding: 5px 16px;
+    padding: 5px var(--space-4);
     border: 1px solid var(--admin-rose-300);
     border-radius: var(--radius-pill);
     transition: color 0.15s, border-color 0.15s;
   }
   .admin-bar__site-link:hover {
-    color: #fff;
-    border-color: #fff;
+    color: var(--white);
+    border-color: var(--white);
     text-decoration: none;
   }
   .admin-bar__logout {
     font-size: 0.8125rem;
     font-weight: 400;
-    color: rgba(255,255,255,0.5);
+    color: var(--white);
     background: none;
     border: none;
     cursor: pointer;
-    padding: 4px 8px;
+    padding: var(--space-1) var(--space-2);
     transition: color 0.15s;
   }
   .admin-bar__logout:hover {
-    color: #fff;
+    color: var(--white);
   }
 
   /* Dashboard section */
@@ -1145,7 +1145,7 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
   .dash-refresh-btn {
     background: var(--admin-rose-700);
     border-color: var(--admin-rose-700);
-    color: #fff;
+    color: var(--white);
     font-size: 0.8125rem;
   }
   .dash-refresh-btn:hover {
@@ -1164,7 +1164,7 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
     background: none;
     border: 1px solid var(--admin-border);
     border-radius: var(--radius-sm);
-    padding: 6px 8px;
+    padding: 6px var(--space-2);
     cursor: pointer;
     color: var(--admin-text-faint);
     display: flex;
@@ -1193,7 +1193,7 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
     background: var(--admin-surface);
     border: 1px solid var(--admin-border);
     border-radius: var(--radius-md);
-    box-shadow: 0 4px 16px rgba(0,0,0,0.1);
+    box-shadow: 0 4px 16px var(--footer-border);
     width: 320px;
     max-height: 400px;
     overflow-y: auto;
@@ -1476,7 +1476,7 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
   .kw-modal-overlay {
     position: fixed;
     inset: 0;
-    background: rgba(0,0,0,0.4);
+    background: var(--footer-border);
     z-index: 200;
     display: flex;
     align-items: center;
@@ -1491,7 +1491,7 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
     max-height: 80vh;
     display: flex;
     flex-direction: column;
-    box-shadow: 0 8px 32px rgba(0,0,0,0.2);
+    box-shadow: 0 8px 32px var(--footer-border);
   }
   .kw-modal__header {
     display: flex;
@@ -1616,7 +1616,7 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
     color: #C53030;
   }
   .delta--neutral {
-    color: #949392;
+    color: var(--neutral-500);
   }
 
   /* Sparkline */
@@ -1640,11 +1640,11 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
   }
   .tier-badge--active {
     background: #2D8A4E;
-    color: #fff;
+    color: var(--white);
   }
   .tier-badge--watch {
     background: #D4840A;
-    color: #fff;
+    color: var(--white);
   }
 
   /* SERP feature badge */
@@ -1686,13 +1686,13 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
   .health-row__name {
     font-size: 0.8125rem;
     font-weight: 500;
-    color: #313131;
+    color: var(--neutral-900);
     text-transform: capitalize;
     min-width: 80px;
   }
   .health-row__detail {
     font-size: 0.75rem;
-    color: #949392;
+    color: var(--neutral-500);
     flex: 1;
     text-align: right;
     word-break: break-word;
@@ -1711,12 +1711,12 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
   }
   .worker-row__label {
     font-size: 0.8125rem;
-    color: #313131;
+    color: var(--neutral-900);
   }
   .worker-row__value {
     font-size: 0.8125rem;
     font-family: 'SF Mono', 'Fira Code', monospace;
-    color: #949392;
+    color: var(--neutral-500);
   }
   .worker-row__value--ok {
     color: #2D8A4E;
@@ -1746,7 +1746,7 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
   .dash-alert-item__path {
     font-size: 0.75rem;
     font-family: 'SF Mono', 'Fira Code', monospace;
-    color: #313131;
+    color: var(--neutral-900);
     flex: 1;
     min-width: 0;
     overflow: hidden;
@@ -1755,7 +1755,7 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
   }
   .dash-alert-item__views {
     font-size: 0.75rem;
-    color: #949392;
+    color: var(--neutral-500);
     white-space: nowrap;
   }
   .dash-alert-item__delta {
@@ -1777,7 +1777,7 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
   }
   .dash-bell__item-text {
     font-size: 0.8125rem;
-    color: #313131;
+    color: var(--neutral-900);
     flex: 1;
     line-height: 1.4;
   }
@@ -1787,13 +1787,13 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
   }
   .dash-bell__item-detail {
     font-size: 0.75rem;
-    color: #949392;
+    color: var(--neutral-500);
   }
   .dash-bell__dismiss {
     background: none;
     border: none;
     font-size: 1.125rem;
-    color: #949392;
+    color: var(--neutral-500);
     cursor: pointer;
     padding: 0 var(--space-1);
     line-height: 1;
@@ -1808,7 +1808,7 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
     display: block;
     font-size: 2rem;
     font-weight: 700;
-    color: #949392;
+    color: var(--neutral-500);
     margin-bottom: var(--space-1);
     line-height: 1.2;
   }
@@ -1821,7 +1821,7 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
   .obs-alert-card__detail {
     display: block;
     font-size: 0.75rem;
-    color: #636261;
+    color: var(--neutral-700);
     line-height: 1.4;
     word-break: break-word;
     white-space: normal;
@@ -1838,10 +1838,10 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
     flex: 1;
     padding: var(--space-2) var(--space-3);
     border: 1px solid #d9d3cc;
-    border-radius: 4px;
+    border-radius: var(--radius-sm);
     font-size: 0.8125rem;
     font-family: 'Inter', sans-serif;
-    color: #313131;
+    color: var(--neutral-900);
   }
   .kw-row__input:focus {
     outline: none;
@@ -1850,7 +1850,7 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
   .kw-row__toggle {
     background: #f0e5e9;
     border: none;
-    border-radius: 4px;
+    border-radius: var(--radius-sm);
     font-size: 0.625rem;
     font-weight: 700;
     width: 28px;
@@ -1861,15 +1861,15 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
   }
   .kw-row__toggle:hover {
     background: #c9a8b2;
-    color: #fff;
+    color: var(--white);
   }
   .kw-row__delete {
     background: none;
     border: none;
     font-size: 1.125rem;
-    color: #949392;
+    color: var(--neutral-500);
     cursor: pointer;
-    padding: 0 4px;
+    padding: 0 var(--space-1);
     line-height: 1;
   }
   .kw-row__delete:hover {

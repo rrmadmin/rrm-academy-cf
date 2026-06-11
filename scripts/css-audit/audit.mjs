@@ -287,10 +287,12 @@ function colorDist(a, b) {
  *  legitimate dark-override literals match their tokens instead of reading off-palette. */
 const palette = [];
 for (const [name, val] of tokenLight) {
+  if (!siteWideTokens.has(name)) continue; // page-local tokens must not drive suggestions for other files
   const rgb = parseColorLiteral(val);
   if (rgb) palette.push({ name, rgb, raw: val });
 }
 for (const [name, val] of tokenDark) {
+  if (!siteWideTokens.has(name)) continue;
   const rgb = parseColorLiteral(val);
   if (rgb) palette.push({ name: `${name} (dark)`, rgb, raw: val });
 }
@@ -842,6 +844,31 @@ if (GATE || GATE_CRITICAL) {
     failures.push(`${criticals.length} critical finding(s) — criticals must be 0:`);
     for (const f of criticals) failures.push(`  ${f.file}:${f.line} ${f.selector} { ${f.prop}: ${f.value} } — ${f.message}`);
   }
+
+  // ZERO-LOCKED categories: drained to 0 in waves 1-3b (2026-06-11); may never regress.
+  for (const cat of ['undefined-var', 'selector-divergence']) {
+    const hits = findings.filter((f) => f.category === cat);
+    if (hits.length) {
+      failures.push(`${cat} is zero-locked (drained 2026-06-11) — found ${hits.length}:`);
+      for (const f of hits.slice(0, 5)) failures.push(`  ${f.file}:${f.line} ${f.selector} — ${f.message.slice(0, 110)}`);
+    }
+  }
+
+  // PUBLIC-SURFACE locks: category totals include admin/dev/functions debt, so a new
+  // public regression could net out against an admin fix. Lock public surfaces directly.
+  const isPublic = (f) => !f.file.startsWith('src/pages/admin/') && !f.file.startsWith('src/pages/dev/') && !f.file.startsWith('functions/');
+  const pubDark = findings.filter((f) => f.category === 'dark-unthemed' && isPublic(f));
+  if (pubDark.length) {
+    failures.push(`dark-unthemed on PUBLIC surfaces is zero-locked (wave 2A) — found ${pubDark.length}:`);
+    for (const f of pubDark.slice(0, 5)) failures.push(`  ${f.file}:${f.line} ${f.selector} { ${f.prop}: ${f.value} }`);
+  }
+  // Allowed public off-palette colors (documented exceptions, see README):
+  const OFF_PALETTE_ALLOWLIST = new Set(['src/pages/openapi.astro:399', 'src/pages/openapi.astro:400', 'src/pages/openapi.astro:401', 'src/pages/openapi.astro:402']);
+  const pubOff = findings.filter((f) => f.category === 'raw-color' && f.kind === 'off-palette' && isPublic(f) && !OFF_PALETTE_ALLOWLIST.has(`${f.file}:${f.line}`));
+  if (pubOff.length) {
+    failures.push(`off-palette colors on PUBLIC surfaces beyond the documented allowlist (wave 2B) — found ${pubOff.length}:`);
+    for (const f of pubOff.slice(0, 5)) failures.push(`  ${f.file}:${f.line} { ${f.prop}: ${f.value} } — ${f.suggestion.slice(0, 90)}`);
+  }
   if (GATE) {
     let baseline = null;
     try { baseline = JSON.parse(fs.readFileSync(BASELINE_PATH, 'utf8')); } catch {
@@ -864,7 +891,7 @@ if (GATE || GATE_CRITICAL) {
     console.error('\nBypass (emergencies only): CSS_AUDIT_DISABLE=1 or git commit --no-verify');
     process.exit(1);
   }
-  console.log(`css-audit gate PASS — 0 criticals${GATE ? `, all ${Object.keys(byCategory).length} categories within baseline` : ''} (${summary.totalFindings} findings total)`);
+  console.log(`css-audit gate PASS — 0 criticals, zero-locks hold (undefined-var, selector-divergence, public dark/off-palette)${GATE ? `, all ${Object.keys(byCategory).length} categories within baseline` : ''} (${summary.totalFindings} findings total)`);
   process.exit(0);
 }
 

@@ -75,7 +75,7 @@ const ICONS: Record<string, string> = {
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    color: var(--footer-link, var(--text-secondary));
+    color: var(--footer-link);
     transition: color 0.15s ease, transform 0.15s ease;
     padding: var(--space-2);
   }
@@ -84,7 +84,7 @@ const ICONS: Record<string, string> = {
   }
   .social-row__link:hover,
   .social-row__link:focus-visible {
-    color: var(--footer-link-hover, var(--accent-hover));
+    color: var(--footer-link-hover);
     transform: translateY(-1px);
   }
   .social-row--page .social-row__link:hover,
@@ -94,6 +94,6 @@ const ICONS: Record<string, string> = {
   .social-row__link:focus-visible {
     outline: 2px solid currentColor;
     outline-offset: 4px;
-    border-radius: 4px;
+    border-radius: var(--radius-sm);
   }
 </style>

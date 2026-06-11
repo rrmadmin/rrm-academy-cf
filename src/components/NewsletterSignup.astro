@@ -195,7 +195,7 @@ const uniqueInputId = inputId ?? `newsletter-email-${crypto.randomUUID().slice(0
   .newsletter-label {
     font-size: 0.8125rem;
     font-weight: 500;
-    color: var(--footer-heading, var(--text-primary));
+    color: var(--footer-heading);
     margin-bottom: var(--space-3);
   }
   .newsletter-row {
@@ -204,7 +204,7 @@ const uniqueInputId = inputId ?? `newsletter-email-${crypto.randomUUID().slice(0
   }
   .newsletter-input {
     flex: 1;
-    padding: 8px 14px;
+    padding: var(--space-2) 14px;
     font-size: 0.875rem;
     font-family: 'Inter', system-ui, sans-serif;
     border: 1.5px solid var(--neutral-300);
@@ -220,10 +220,10 @@ const uniqueInputId = inputId ?? `newsletter-email-${crypto.randomUUID().slice(0
     box-shadow: 0 0 0 3px var(--focus-ring);
   }
   .newsletter-input::placeholder {
-    color: var(--text-tertiary, var(--neutral-400));
+    color: var(--text-tertiary);
   }
   .newsletter-btn {
-    padding: 8px 20px;
+    padding: var(--space-2) var(--space-5);
     font-size: 0.8125rem;
     font-weight: 500;
     font-family: 'Inter', system-ui, sans-serif;
@@ -254,7 +254,7 @@ const uniqueInputId = inputId ?? `newsletter-email-${crypto.randomUUID().slice(0
     color: var(--green-700);
   }
   .newsletter-feedback--error {
-    color: var(--color-error, #dc2626);
+    color: var(--color-error);
   }
 
   /* Compact mode for footer */
@@ -262,11 +262,11 @@ const uniqueInputId = inputId ?? `newsletter-email-${crypto.randomUUID().slice(0
     max-width: 100%;
   }
   .newsletter-signup--compact .newsletter-input {
-    padding: 6px 12px;
+    padding: 6px var(--space-3);
     font-size: 0.8125rem;
   }
   .newsletter-signup--compact .newsletter-btn {
-    padding: 6px 16px;
+    padding: 6px var(--space-4);
     font-size: 0.75rem;
   }
 

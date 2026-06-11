@@ -333,20 +333,20 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
     display: flex;
     gap: var(--space-1);
   } @media (max-width: 768px) { .admin-bar__nav { display: none; } }
-  .admin-bar__link { font-size: 0.8125rem; font-weight: 400; color: rgba(255,255,255,0.6); text-decoration: none; padding: 4px 12px; border-radius: var(--radius-sm); transition: color 0.15s, background 0.15s; }
-  .admin-bar__link:hover { color: #fff; text-decoration: none; }
-  .admin-bar__link--active { color: #fff; background: rgba(255,255,255,0.1); font-weight: 500; }
+  .admin-bar__link { font-size: 0.8125rem; font-weight: 400; color: var(--white); text-decoration: none; padding: var(--space-1) var(--space-3); border-radius: var(--radius-sm); transition: color 0.15s, background 0.15s; }
+  .admin-bar__link:hover { color: var(--white); text-decoration: none; }
+  .admin-bar__link--active { color: var(--white); background: var(--white); font-weight: 500; }
   .admin-bar__actions { display: flex; align-items: center; gap: var(--space-3); margin-left: auto; }
-  .admin-bar__site-link { font-size: 0.8125rem; font-weight: 500; color: var(--admin-rose-300); text-decoration: none; padding: 5px 16px; border: 1px solid var(--admin-rose-300); border-radius: var(--radius-pill); transition: color 0.15s, border-color 0.15s; }
-  .admin-bar__site-link:hover { color: #fff; border-color: #fff; text-decoration: none; }
-  .admin-bar__logout { font-size: 0.8125rem; color: rgba(255,255,255,0.5); background: none; border: none; cursor: pointer; padding: 4px 8px; }
-  .admin-bar__logout:hover { color: #fff; }
+  .admin-bar__site-link { font-size: 0.8125rem; font-weight: 500; color: var(--admin-rose-300); text-decoration: none; padding: 5px var(--space-4); border: 1px solid var(--admin-rose-300); border-radius: var(--radius-pill); transition: color 0.15s, border-color 0.15s; }
+  .admin-bar__site-link:hover { color: var(--white); border-color: var(--white); text-decoration: none; }
+  .admin-bar__logout { font-size: 0.8125rem; color: var(--white); background: none; border: none; cursor: pointer; padding: var(--space-1) var(--space-2); }
+  .admin-bar__logout:hover { color: var(--white); }
 
   .en-section { padding: var(--space-8) 0; background: var(--admin-bg); min-height: 80vh; }
   .en-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: var(--space-6); flex-wrap: wrap; gap: var(--space-3); }
   .en-header h1 { margin-bottom: 0; color: var(--admin-text); }
   .en-controls { display: flex; gap: var(--space-3); align-items: center; }
-  .en-btn { background: var(--admin-rose-700); border-color: var(--admin-rose-700); color: #fff; }
+  .en-btn { background: var(--admin-rose-700); border-color: var(--admin-rose-700); color: var(--white); }
   .en-btn:hover { background: #764d5e; }
 
   .en-heading { color: var(--admin-text); margin-bottom: var(--space-4); margin-top: var(--space-6); font-size: 1.125rem; }
@@ -363,7 +363,7 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
 
   .en-table-wrap { overflow-x: auto; border: 1px solid var(--admin-border); border-radius: var(--radius-md); background: var(--admin-surface); margin-bottom: var(--space-4); }
   .en-empty { text-align: center; color: var(--admin-text-faint); padding: var(--space-8) var(--space-4); }
-  .en-error { color: #c0392b; }
+  .en-error { color: var(--status-error-text); }
 
   .en-col-time { white-space: nowrap; font-size: 0.8125rem; }
   .en-col-email { max-width: 220px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 0.8125rem; }
@@ -374,18 +374,18 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
 <style is:global>
   .en-table { width: 100%; border-collapse: collapse; font-size: 0.875rem; }
   .en-table th, .en-table td { padding: var(--space-3) var(--space-4); text-align: left; border-bottom: 1px solid #d9d3cc; vertical-align: top; }
-  .en-table th { background: #eee5dd; font-weight: 600; font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.04em; color: #636261; }
+  .en-table th { background: var(--cream); font-weight: 600; font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.04em; color: var(--neutral-700); }
   .en-table tbody tr:last-child td { border-bottom: none; }
   .en-table tbody tr:hover { background: #f0e5e9; }
-  .en-action { font-size: 0.75rem; font-weight: 600; padding: 4px 10px; border-radius: var(--radius-sm); border: 1px solid transparent; cursor: pointer; margin-right: 4px; }
-  .en-action--approve { background: #e8f5e9; color: #2e7d32; border-color: #c8e6c9; }
-  .en-action--approve:hover:not(:disabled) { background: #2e7d32; color: #fff; }
+  .en-action { font-size: 0.75rem; font-weight: 600; padding: var(--space-1) 10px; border-radius: var(--radius-sm); border: 1px solid transparent; cursor: pointer; margin-right: var(--space-1); }
+  .en-action--approve { background: var(--green-100); color: var(--green-700); border-color: #c8e6c9; }
+  .en-action--approve:hover:not(:disabled) { background: var(--green-700); color: var(--white); }
   .en-action--reject { background: #ffebee; color: #c62828; border-color: #ffcdd2; }
-  .en-action--reject:hover:not(:disabled) { background: #c62828; color: #fff; }
+  .en-action--reject:hover:not(:disabled) { background: #c62828; color: var(--white); }
   .en-action--revoke { background: #fff3e0; color: #e65100; border-color: #ffe0b2; }
-  .en-action--revoke:hover:not(:disabled) { background: #e65100; color: #fff; }
+  .en-action--revoke:hover:not(:disabled) { background: #e65100; color: var(--white); }
   .en-action:disabled { opacity: 0.5; cursor: not-allowed; }
-  .en-badge { display: inline-block; padding: 2px 8px; border-radius: var(--radius-sm); font-size: 0.6875rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.03em; }
+  .en-badge { display: inline-block; padding: 2px var(--space-2); border-radius: var(--radius-sm); font-size: 0.6875rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.03em; }
   .en-badge--rejected { background: #ffebee; color: #c62828; }
   .en-badge--revoked { background: #fff3e0; color: #e65100; }
 </style>

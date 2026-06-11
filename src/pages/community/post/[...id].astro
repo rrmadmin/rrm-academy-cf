@@ -1355,7 +1355,7 @@ const SHELL_ENABLED = isShellEnabled('community');
     max-width: 100%;
     max-height: 480px;
     object-fit: contain;
-    border-radius: 8px;
+    border-radius: var(--radius-md);
     margin: var(--space-2) 0;
   }
 
@@ -1376,8 +1376,8 @@ const SHELL_ENABLED = isShellEnabled('community');
   .reaction-btn {
     display: inline-flex;
     align-items: center;
-    gap: 4px;
-    padding: 4px 10px;
+    gap: var(--space-1);
+    padding: var(--space-1) 10px;
     font-size: 0.875rem;
     background: var(--bg-surface);
     border: 1px solid var(--border-color);
@@ -1559,8 +1559,8 @@ const SHELL_ENABLED = isShellEnabled('community');
   }
   .comment-edit-actions {
     display: flex;
-    gap: 8px;
-    margin-top: 8px;
+    gap: var(--space-2);
+    margin-top: var(--space-2);
   }
 
   /* Reply compose */
@@ -1609,7 +1609,7 @@ const SHELL_ENABLED = isShellEnabled('community');
     align-items: center;
     justify-content: center;
     z-index: 100;
-    padding: 16px;
+    padding: var(--space-4);
   }
   .modal-overlay.is-open {
     display: flex;
@@ -1617,7 +1617,7 @@ const SHELL_ENABLED = isShellEnabled('community');
   .modal-card {
     background: var(--white, #fff);
     border-radius: 12px;
-    padding: 24px;
+    padding: var(--space-6);
     max-width: 400px;
     width: 100%;
     box-shadow: 0 20px 60px rgba(0, 0, 0, 0.2);
@@ -1625,12 +1625,12 @@ const SHELL_ENABLED = isShellEnabled('community');
   .modal-title {
     font-size: 18px;
     font-weight: 700;
-    margin: 0 0 16px;
+    margin: 0 0 var(--space-4);
   }
   .modal-actions {
     display: flex;
-    gap: 8px;
-    margin-top: 16px;
+    gap: var(--space-2);
+    margin-top: var(--space-4);
   }
 
   /* Responsive */
@@ -1649,7 +1649,7 @@ const SHELL_ENABLED = isShellEnabled('community');
   .link-card {
     display: flex;
     align-items: stretch;
-    margin: 8px 0 4px;
+    margin: var(--space-2) 0 var(--space-1);
     border: 1px solid var(--border-color);
     border-radius: var(--radius-md);
     background: var(--bg-surface);
@@ -1682,7 +1682,7 @@ const SHELL_ENABLED = isShellEnabled('community');
     flex-direction: column;
     justify-content: center;
     gap: 3px;
-    padding: 10px 12px;
+    padding: 10px var(--space-3);
   }
   .link-card__domain {
     font-size: 11px;

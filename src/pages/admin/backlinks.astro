@@ -416,19 +416,19 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
   .admin-bar__link {
     font-size: 0.8125rem;
     font-weight: 400;
-    color: rgba(255,255,255,0.6);
+    color: var(--white);
     text-decoration: none;
-    padding: 4px 12px;
+    padding: var(--space-1) var(--space-3);
     border-radius: var(--radius-sm);
     transition: color 0.15s, background 0.15s;
   }
   .admin-bar__link:hover {
-    color: #fff;
+    color: var(--white);
     text-decoration: none;
   }
   .admin-bar__link--active {
-    color: #fff;
-    background: rgba(255,255,255,0.1);
+    color: var(--white);
+    background: var(--white);
     font-weight: 500;
   }
   .admin-bar__actions {
@@ -442,28 +442,28 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
     font-weight: 500;
     color: var(--admin-rose-300);
     text-decoration: none;
-    padding: 5px 16px;
+    padding: 5px var(--space-4);
     border: 1px solid var(--admin-rose-300);
     border-radius: var(--radius-pill);
     transition: color 0.15s, border-color 0.15s;
   }
   .admin-bar__site-link:hover {
-    color: #fff;
-    border-color: #fff;
+    color: var(--white);
+    border-color: var(--white);
     text-decoration: none;
   }
   .admin-bar__logout {
     font-size: 0.8125rem;
     font-weight: 400;
-    color: rgba(255,255,255,0.5);
+    color: var(--white);
     background: none;
     border: none;
     cursor: pointer;
-    padding: 4px 8px;
+    padding: var(--space-1) var(--space-2);
     transition: color 0.15s;
   }
   .admin-bar__logout:hover {
-    color: #fff;
+    color: var(--white);
   }
 
   /* Layout */
@@ -546,7 +546,7 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
   .bl-filters .btn--primary {
     background: var(--admin-rose-700);
     border-color: var(--admin-rose-700);
-    color: #fff;
+    color: var(--white);
   }
   .bl-filters .btn--primary:hover {
     background: #764d5e;
@@ -581,12 +581,12 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
     max-width: 0;
   }
   .bl-table th {
-    background: #eee5dd;
+    background: var(--cream);
     font-weight: 600;
     font-size: 0.75rem;
     text-transform: uppercase;
     letter-spacing: 0.04em;
-    color: #636261;
+    color: var(--neutral-700);
     resize: horizontal;
     overflow: auto;
     min-width: 60px;
@@ -620,7 +620,7 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
   }
   .bl-empty {
     text-align: center;
-    color: #949392;
+    color: var(--neutral-500);
     padding: var(--space-8) var(--space-4);
   }
   .bl-badge {
@@ -633,11 +633,11 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
     letter-spacing: 0.03em;
   }
   .bl-badge--live {
-    background: #e8f5e9;
-    color: #2e7d32;
+    background: var(--green-100);
+    color: var(--green-700);
   }
   .bl-badge--dead {
-    background: rgba(192, 57, 43, 0.1);
+    background: var(--status-error-text);
     color: var(--color-error);
   }
   .bl-badge--nofollow_changed {
@@ -647,7 +647,7 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
   .bl-badge--unchecked,
   .bl-badge--timeout {
     background: #f0e5e9;
-    color: #636261;
+    color: var(--neutral-700);
   }
   .bl-btn-check {
     background: none;

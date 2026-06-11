@@ -224,7 +224,7 @@ const SHELL_ENABLED =
     color: var(--text-tertiary);
     background: var(--neutral-100);
     border-radius: var(--radius-pill);
-    padding: 1px 8px;
+    padding: 1px var(--space-2);
     min-width: 20px;
     text-align: center;
     font-variant-numeric: tabular-nums;
@@ -295,8 +295,8 @@ const SHELL_ENABLED =
     color: var(--text-tertiary);
     background: var(--neutral-100);
     border-radius: var(--radius-pill);
-    padding: 1px 8px;
-    margin-top: 4px;
+    padding: 1px var(--space-2);
+    margin-top: var(--space-1);
   }
   .saved-groups :global(.saved-item__remove) {
     flex-shrink: 0;
@@ -304,7 +304,7 @@ const SHELL_ENABLED =
     border: none;
     cursor: pointer;
     color: var(--neutral-400);
-    padding: 4px;
+    padding: var(--space-1);
     transition: color 0.15s;
     margin-top: 2px;
   }
@@ -388,13 +388,13 @@ const SHELL_ENABLED =
     font-weight: 600;
     color: var(--white);
     background: var(--accent);
-    padding: 6px 16px;
+    padding: 6px var(--space-4);
     border-radius: var(--radius-pill);
     text-decoration: none;
     white-space: nowrap;
     transition: background 0.15s;
   }
-  .sync-nudge__signup:hover { background: var(--accent-hover, var(--purple-900)); }
+  .sync-nudge__signup:hover { background: var(--accent-hover); }
   .sync-nudge__login { font-size: 0.75rem; color: var(--accent); text-decoration: none; }
   .sync-nudge__login:hover { text-decoration: underline; }
   @media (max-width: 600px) {
