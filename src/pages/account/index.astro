@@ -678,7 +678,7 @@ for (const c of coursesData) {
     background: var(--bg-surface); border: 1px solid var(--border-color); border-radius: var(--radius-lg); text-align: center;
   }
   .auth-card h1 { margin-bottom: var(--space-3); font-size: 1.75rem; }
-  .auth-intro { color: var(--text-secondary); margin-bottom: var(--space-6); }
+  .auth-intro { text-align: center; color: var(--text-secondary); margin-bottom: var(--space-8); font-size: 0.9375rem; }
   .auth-submit { display: block; width: 100%; text-align: center; text-decoration: none; }
   .auth-links { margin-top: var(--space-6); font-size: 0.8125rem; }
   .auth-links a { color: var(--accent); margin-left: var(--space-2); }
@@ -716,6 +716,7 @@ for (const c of coursesData) {
   .account-placeholder { color: var(--text-muted); font-size: 0.875rem; }
 
   .profile-edit-form .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: var(--space-4); }
+  @media (max-width: 640px) { .profile-edit-form .form-row { grid-template-columns: 1fr; } }
   .profile-edit-form .form-group { margin-bottom: var(--space-4); }
   .profile-edit-form .form-label { display: block; font-family: 'Inter', sans-serif; font-size: 0.8125rem; font-weight: 500; margin-bottom: var(--space-2); }
   .profile-edit-form .form-input {
