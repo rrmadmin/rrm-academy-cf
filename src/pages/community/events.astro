@@ -76,14 +76,14 @@ const SHELL_ENABLED = isShellEnabled('community');
 
         <!-- Upcoming events -->
         <section id="upcoming-section">
-          <h2 class="section-label">Upcoming</h2>
+          <h2 class="events-title">Upcoming</h2>
           <div id="upcoming-list" class="events-list"></div>
           <p id="upcoming-empty" class="events-empty" hidden>No upcoming events. Check back soon!</p>
         </section>
 
         <!-- Past events -->
         <section id="past-section" hidden>
-          <h2 class="section-label section-label--past">Past Events</h2>
+          <h2 class="events-title events-title--past">Past Events</h2>
           <div id="past-list" class="events-list events-list--past"></div>
         </section>
 
@@ -541,14 +541,14 @@ const SHELL_ENABLED = isShellEnabled('community');
   }
 
   /* Section labels */
-  .section-label {
+  .events-title {
     font-size: 1.125rem;
     color: var(--text-primary);
     margin-bottom: var(--space-5);
     padding-bottom: var(--space-2);
     border-bottom: 1px solid var(--border-light);
   }
-  .section-label--past {
+  .events-title--past {
     margin-top: var(--space-10);
     color: var(--text-tertiary);
   }
