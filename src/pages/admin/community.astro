@@ -240,7 +240,7 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
   .cm-controls { display: flex; gap: var(--space-3); align-items: center; }
   .cm-btn { background: var(--admin-rose-700); border-color: var(--admin-rose-700); color: var(--white); }
   .cm-btn:hover { background: #764d5e; }
-  .cm-intro { color: var(--admin-text-muted); font-size: 0.9rem; max-width: 60ch; margin-bottom: var(--space-6); }
+  .cm-intro { color: var(--admin-text-muted); font-size: 0.9375rem; max-width: 60ch; margin-bottom: var(--space-6); }
   .cm-heading { color: var(--admin-text); margin-bottom: var(--space-4); font-size: 1.125rem; }
 
   .cm-table-wrap { overflow-x: auto; border: 1px solid var(--admin-border); border-radius: var(--radius-md); background: var(--admin-surface); margin-bottom: var(--space-4); }
@@ -250,15 +250,15 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
   .cm-col-note { max-width: 320px; }
   .cm-col-time { white-space: nowrap; font-size: 0.8125rem; }
   .cm-col-actions { white-space: nowrap; }
-  .cm-flag { font-size: 0.7rem; font-weight: 600; color: var(--status-error-text); }
+  .cm-flag { font-size: 0.6875rem; font-weight: 600; color: var(--status-error-text); }
 
-  .cm-act { font: inherit; font-size: 0.78rem; font-weight: 600; border-radius: var(--radius-sm); padding: 5px var(--space-3); cursor: pointer; margin-right: var(--space-2); }
+  .cm-act { font: inherit; font-size: 0.8125rem; font-weight: 600; border-radius: var(--radius-sm); padding: 5px var(--space-3); cursor: pointer; margin-right: var(--space-2); }
   .cm-act:disabled { opacity: 0.5; cursor: default; }
   .cm-act--approve { background: var(--admin-rose-700); border: 1px solid var(--admin-rose-700); color: var(--white); }
   .cm-act--approve:hover:not(:disabled) { background: #764d5e; }
   .cm-act--reject { background: none; border: 1px solid var(--admin-border); color: var(--admin-text-muted); }
   .cm-act--reject:hover:not(:disabled) { border-color: var(--admin-text-muted); }
-  .cm-act-error { display: block; color: var(--status-error-text); font-size: 0.72rem; margin-top: var(--space-1); }
+  .cm-act-error { display: block; color: var(--status-error-text); font-size: 0.75rem; margin-top: var(--space-1); }
 </style>
 
 <style is:global>

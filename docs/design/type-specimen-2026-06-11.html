@@ -1,0 +1,86 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>RRM Academy — Paired Type Scale Proposal</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;600&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root { --ink: #313131; --ink2: #636261; --ink3: #8a8784; --paper: #f7f5f3; --line: #dddbd8; --accent: #725e7e; }
+  * { box-sizing: border-box; }
+  body { font-family: Inter, sans-serif; background: #efe9e2; color: var(--ink); margin: 0; padding: 28px; }
+  h1.page { font-family: 'Cormorant Garamond', serif; font-size: 28px; font-weight: 600; margin: 0 0 4px; }
+  .sub { font-size: 13px; color: var(--ink2); margin-bottom: 24px; max-width: 900px; line-height: 1.6; }
+  .panel { background: #fff; border: 1px solid #ddd; border-radius: 10px; padding: 22px 26px; margin-bottom: 20px; }
+  .panel h2 { font-family: 'Cormorant Garamond', serif; font-size: 20px; margin: 0 0 14px; }
+  .step { display: grid; grid-template-columns: 150px 1fr; gap: 18px; padding: 14px 0; border-bottom: 1px solid #eee; align-items: baseline; }
+  .step:last-child { border-bottom: none; }
+  .meta { font-family: ui-monospace, Menlo, monospace; font-size: 10.5px; color: var(--ink3); line-height: 1.7; }
+  .meta b { color: var(--accent); font-weight: 600; }
+  .demo { min-width: 0; }
+  .cg { font-family: 'Cormorant Garamond', serif; font-weight: 600; color: var(--ink); }
+  .in { color: var(--ink); }
+  table { border-collapse: collapse; font-size: 12px; width: 100%; }
+  th, td { text-align: left; padding: 5px 12px 5px 0; border-bottom: 1px solid #eee; vertical-align: top; }
+  th { font-size: 10px; text-transform: uppercase; letter-spacing: .07em; color: var(--ink3); }
+  td.mono { font-family: ui-monospace, Menlo, monospace; font-size: 11px; }
+  .pair-demo { background: var(--paper); border: 1px solid var(--line); border-radius: 8px; padding: 26px 30px; max-width: 660px; }
+  .note { font-size: 11.5px; color: var(--ink2); background: #f6f2ec; border: 1px dashed #d8d2c8; border-radius: 6px; padding: 8px 12px; margin-top: 12px; line-height: 1.6; }
+</style>
+</head>
+<body>
+<h1 class="page">Paired Type Scale — lock the optical relationship once</h1>
+<div class="sub">Cormorant Garamond has a low x-height and high contrast; Inter has a tall x-height. At equal px they read as different sizes, which is why per-page compensation crept in (75 distinct font-sizes live today). This locks <b>11 steps + 8 line-heights</b> as the complete vocabulary; the remaining 222 type-scale findings then snap mechanically to the nearest step.</div>
+
+<div class="panel">
+  <h2>Display steps — Cormorant Garamond 600, tight leading</h2>
+  <div class="step"><div class="meta"><b>D1 hero</b><br>clamp(2rem, 1.25rem+2.5vw, 3.25rem)<br>lh 1.1 &middot; ls -0.015em</div><div class="demo cg" style="font-size:clamp(2rem,1.25rem + 2.5vw,3.25rem);line-height:1.1;letter-spacing:-0.015em">Restorative medicine treats the cause</div></div>
+  <div class="step"><div class="meta"><b>D2 section</b><br>1.75rem &middot; lh 1.15</div><div class="demo cg" style="font-size:1.75rem;line-height:1.15">Diagnosis before technology</div></div>
+  <div class="step"><div class="meta"><b>D3 subsection</b><br>1.5rem &middot; lh 1.15</div><div class="demo cg" style="font-size:1.5rem;line-height:1.15">The evidence for cause-based care</div></div>
+  <div class="step"><div class="meta"><b>D4 card title</b><br>1.25rem &middot; lh 1.2</div><div class="demo cg" style="font-size:1.25rem;line-height:1.2">Cycle charting as a diagnostic window</div></div>
+  <div class="step"><div class="meta"><b>D5 detail heading</b><br>1.125rem &middot; lh 1.25</div><div class="demo cg" style="font-size:1.125rem;line-height:1.25">Abstract &middot; Topics &middot; Cite this article</div></div>
+</div>
+
+<div class="panel">
+  <h2>Text steps — Inter, sized for the job</h2>
+  <div class="step"><div class="meta"><b>B1 reading</b><br>1rem &middot; lh 1.75 (articles 1.8)</div><div class="demo in" style="font-size:1rem;line-height:1.75">Long-form reading text. Restorative reproductive medicine identifies and treats the underlying causes of infertility rather than bypassing them.</div></div>
+  <div class="step"><div class="meta"><b>B2 UI text</b><br>0.9375rem &middot; lh 1.6<br><span style="color:#a06030">legitimizes the de facto 1.6</span></div><div class="demo in" style="font-size:0.9375rem;line-height:1.6">Interface prose: descriptions, form intros, feed text. Today's most-used line-height on the site (1.6, 75 uses) becomes official here.</div></div>
+  <div class="step"><div class="meta"><b>B3 meta-large</b><br>0.875rem &middot; lh 1.5</div><div class="demo in" style="font-size:0.875rem;line-height:1.5">Bylines, secondary descriptions, button-adjacent text.</div></div>
+  <div class="step"><div class="meta"><b>B4 meta</b><br>0.8125rem &middot; lh 1.5</div><div class="demo in" style="font-size:0.8125rem;line-height:1.5">Breadcrumbs, citations, timestamps, hints — the workhorse small size (267 uses).</div></div>
+  <div class="step"><div class="meta"><b>B5 caption</b><br>0.75rem &middot; lh 1.4</div><div class="demo in" style="font-size:0.75rem;line-height:1.4">Captions, footnotes, fine print.</div></div>
+  <div class="step"><div class="meta"><b>B6 label</b><br>0.6875rem &middot; lh 1.2 &middot; 600 &middot; caps</div><div class="demo in" style="font-size:0.6875rem;line-height:1.2;font-weight:600;text-transform:uppercase;letter-spacing:.08em;color:#636261">Eyebrow labels &middot; badges &middot; chips</div></div>
+</div>
+
+<div class="panel">
+  <h2>The pairing, together</h2>
+  <div class="pair-demo">
+    <div class="in" style="font-size:0.6875rem;font-weight:600;text-transform:uppercase;letter-spacing:.08em;color:var(--accent);margin-bottom:10px">B6 eyebrow</div>
+    <div class="cg" style="font-size:1.75rem;line-height:1.15;margin-bottom:10px">D2: Cormorant sits one optical size up</div>
+    <div class="in" style="font-size:0.9375rem;line-height:1.6;color:#555;margin-bottom:14px">B2: Inter UI text under it. The display step is ~1.15&ndash;1.25&times; its sans optical equivalent, so headings and body read as one intentional system instead of two fonts fighting. Vertical gaps come only from the 4px scale (here: 10px is banned &mdash; this mock uses it to show what we kill).</div>
+    <div class="in" style="font-size:0.8125rem;line-height:1.5;color:#888">B4: meta line &middot; June 11, 2026 &middot; 4 min read</div>
+  </div>
+  <div class="note"><b>Weights:</b> Cormorant 400/600, Inter 400/500/600 only (the 42 faux-bold 700s snap to 600). <b>Line-height vocabulary (8):</b> display 1.1 / 1.15 / 1.2 / 1.25 &middot; text 1.75 (1.8 articles) / 1.6 / 1.5 / 1.4. Unitless only; the px line-heights (18px etc.) convert.</div>
+</div>
+
+<div class="panel">
+  <h2>Mechanical mapping — what the 222 findings snap to</h2>
+  <table>
+    <tr><th>Today (uses)</th><th>Becomes</th><th>Rendered change</th></tr>
+    <tr><td class="mono">1.0625rem (21), 1.05rem (6), 17px</td><td class="mono">1.125rem (D5) or 1rem (B1) by role</td><td>&plusmn;1px</td></tr>
+    <tr><td class="mono">15px (12), 0.95rem (4), 0.9rem (6)</td><td class="mono">0.9375rem (B2)</td><td>0&ndash;1px</td></tr>
+    <tr><td class="mono">14px (13), 0.85rem (8)</td><td class="mono">0.875rem (B3)</td><td>0&ndash;0.4px</td></tr>
+    <tr><td class="mono">13px (19), 0.8rem, 0.78rem (6)</td><td class="mono">0.8125rem (B4)</td><td>0&ndash;0.5px</td></tr>
+    <tr><td class="mono">12px (7), 0.76rem (4), 0.72rem (4)</td><td class="mono">0.75rem (B5)</td><td>0&ndash;0.6px</td></tr>
+    <tr><td class="mono">11px (14), 0.7rem (7), 0.66rem, .6rem</td><td class="mono">0.6875rem (B6)</td><td>0&ndash;1.4px</td></tr>
+    <tr><td class="mono">2.25rem (6), 1.3rem (4), 1.1875rem (3)</td><td class="mono">D-steps by role (case-by-case list in PR)</td><td>visible; itemized</td></tr>
+    <tr><td class="mono">line-heights 1.45, 1.1, 1.25, 18px, 20px&hellip;</td><td class="mono">nearest of the 8 vocabulary values</td><td>sub-pixel to 1px</td></tr>
+    <tr><td class="mono">font-weight 700/bold (42)</td><td class="mono">600</td><td>kills faux-bold smearing</td></tr>
+    <tr><td class="mono">off-scale spacing 6/10/14/18px&hellip; (369)</td><td class="mono">nearest --space-N step</td><td>&plusmn;2px max, itemized in PR</td></tr>
+  </table>
+  <div class="note"><b>Process if approved:</b> scale lands in global.css as tokens (--text-d1&hellip;--text-b6 + --leading-*) + design-system.json + STYLE-GUIDE; the codemod gets a type-snap mode driven by the findings; anything with a visible delta (&gt;1px) ships with before/after composites like the previous waves; the scanner's vocabulary check then gates on the 11 steps so the 75-sizes problem can never return.</div>
+</div>
+
+<div class="sub">Approve as-is, tweak steps (e.g. "B2 line-height should be 1.55"), or flag roles you want itemized before snapping. Nothing applies until you sign off.</div>
+</body>
+</html>
