@@ -427,7 +427,7 @@ const definedTermSetSchema = {
     justify-content: center;
     min-width: 30px;
     height: 30px;
-    padding: 0 4px;
+    padding: 0 var(--space-1);
     font-family: 'Inter', sans-serif;
     font-size: 0.8125rem;
     font-weight: 600;
@@ -634,7 +634,7 @@ const definedTermSetSchema = {
   /* Reuse the SearchBar pill input look. */
   .glossary-search .search-input {
     width: 100%;
-    padding: 12px 40px 12px 42px;
+    padding: var(--space-3) var(--space-10) 12px 42px;
     font-size: 16px;
     font-family: 'Inter', sans-serif;
     border: 1px solid var(--border-light);
@@ -769,7 +769,7 @@ const definedTermSetSchema = {
     display: inline-flex;
     align-items: center;
     gap: 6px;
-    padding: 6px 12px;
+    padding: 6px var(--space-3);
     font-family: 'Inter', sans-serif;
     font-size: 0.75rem;
     font-weight: 500;
@@ -800,7 +800,7 @@ const definedTermSetSchema = {
     font-weight: 600;
     color: var(--text-tertiary);
     background: var(--bg-body);
-    border-radius: 8px;
+    border-radius: var(--radius-md);
     font-variant-numeric: tabular-nums;
   }
   .glossary-pills .sr-chip--active {

@@ -296,12 +296,12 @@ const accessKind: 'restricted' | 'open' | 'free' | 'none' =
     background: var(--bg-surface);
     border: 1px solid var(--border-color);
     border-radius: var(--radius-md);
-    padding: 20px 22px 16px;
+    padding: var(--space-5) 22px var(--space-4);
     margin: 0 0 var(--space-6);
     color: var(--text-primary);
   }
   @media (min-width: 640px) {
-    .article-hero { padding: 24px 32px 18px; }
+    .article-hero { padding: var(--space-6) var(--space-8) 18px; }
   }
 
   /* Row 1: venue + icon actions */
@@ -309,7 +309,7 @@ const accessKind: 'restricted' | 'open' | 'free' | 'none' =
     display: flex;
     align-items: flex-start;
     justify-content: space-between;
-    gap: 12px;
+    gap: var(--space-3);
     margin: 0 0 6px;
   }
   .article-hero__venue {
@@ -343,7 +343,7 @@ const accessKind: 'restricted' | 'open' | 'free' | 'none' =
   }
   .icon-action:hover {
     border-color: var(--accent);
-    background: var(--purple-50, var(--bg-body));
+    background: var(--purple-50);
     color: var(--accent);
   }
   .icon-action.copied {
@@ -351,7 +351,7 @@ const accessKind: 'restricted' | 'open' | 'free' | 'none' =
     color: var(--accent);
     width: auto;
     padding: 0 6px;
-    gap: 4px;
+    gap: var(--space-1);
   }
   .action-label {
     display: none;
@@ -370,17 +370,17 @@ const accessKind: 'restricted' | 'open' | 'free' | 'none' =
     line-height: 1.15;
     letter-spacing: -0.01em;
     color: var(--text-primary);
-    margin: 0 0 12px;
+    margin: 0 0 var(--space-3);
   }
 
   /* Authors */
   .authors-line {
-    margin: 0 0 4px;
+    margin: 0 0 var(--space-1);
     font-size: 14px;
     line-height: 1.6;
     color: var(--text-secondary);
   }
-  .authors-block { margin-bottom: 4px; }
+  .authors-block { margin-bottom: var(--space-1); }
   .author-chunk { display: inline; }
   .author-name { color: var(--text-secondary); }
   .orcid-link {
@@ -393,7 +393,7 @@ const accessKind: 'restricted' | 'open' | 'free' | 'none' =
   .authors-more {
     display: inline-block;
     margin-left: 6px;
-    padding: 1px 8px;
+    padding: 1px var(--space-2);
     background: var(--neutral-100);
     border: 0;
     border-radius: var(--radius-pill);
@@ -407,7 +407,7 @@ const accessKind: 'restricted' | 'open' | 'free' | 'none' =
   .authors-more:hover { background: var(--purple-100); color: var(--accent); }
   .authors-block[data-open="true"] .authors-more { background: var(--purple-100); color: var(--accent); }
   .authors-more--end {
-    margin-left: 8px;
+    margin-left: var(--space-2);
     background: var(--purple-100);
     color: var(--accent);
     vertical-align: 1px;
@@ -457,7 +457,7 @@ const accessKind: 'restricted' | 'open' | 'free' | 'none' =
     cursor: pointer;
     display: inline-flex;
     align-items: center;
-    gap: 4px;
+    gap: var(--space-1);
     color: var(--text-tertiary);
     transition: color 0.15s;
   }
@@ -467,11 +467,11 @@ const accessKind: 'restricted' | 'open' | 'free' | 'none' =
   .article-hero__affiliations summary svg { transition: transform 0.2s; }
   .article-hero__affiliations ul {
     list-style: none;
-    padding: 8px 0 0;
-    margin: 4px 0 0;
+    padding: var(--space-2) 0 0;
+    margin: var(--space-1) 0 0;
     display: flex;
     flex-direction: column;
-    gap: 4px;
+    gap: var(--space-1);
   }
   .article-hero__affiliations li {
     font-size: 12px;
@@ -498,8 +498,8 @@ const accessKind: 'restricted' | 'open' | 'free' | 'none' =
   .aff-ror:hover { color: var(--accent); border-color: var(--accent); text-decoration: none; }
 
   .article-hero__sentiment {
-    margin: 8px 0;
-    padding: 6px 12px;
+    margin: var(--space-2) 0;
+    padding: 6px var(--space-3);
     background: var(--rose-100, #fdf0f4);
     border-radius: var(--radius-sm);
     font-size: 12px;
@@ -510,7 +510,7 @@ const accessKind: 'restricted' | 'open' | 'free' | 'none' =
   .article-hero__ids {
     display: flex;
     flex-wrap: wrap;
-    gap: 8px;
+    gap: var(--space-2);
     align-items: center;
     margin: 14px 0 10px;
   }
@@ -518,7 +518,7 @@ const accessKind: 'restricted' | 'open' | 'free' | 'none' =
     display: inline-flex;
     align-items: center;
     gap: 6px;
-    padding: 5px 12px;
+    padding: 5px var(--space-3);
     background: transparent;
     border: 1px solid var(--border-color);
     border-radius: var(--radius-sm);
@@ -530,7 +530,7 @@ const accessKind: 'restricted' | 'open' | 'free' | 'none' =
   }
   .id-pill:hover {
     border-color: var(--accent);
-    background: var(--purple-50, var(--bg-body));
+    background: var(--purple-50);
     color: var(--accent);
     text-decoration: none;
   }
@@ -547,7 +547,7 @@ const accessKind: 'restricted' | 'open' | 'free' | 'none' =
     width: 13px;
     height: 13px;
     opacity: 0.45;
-    margin-left: 4px;
+    margin-left: var(--space-1);
     flex-shrink: 0;
   }
   .id-pill:hover .id-pill__copy { opacity: 1; color: var(--accent); }
@@ -556,7 +556,7 @@ const accessKind: 'restricted' | 'open' | 'free' | 'none' =
   .article-hero__foot {
     display: flex;
     flex-wrap: wrap;
-    gap: 12px;
+    gap: var(--space-3);
     align-items: center;
     justify-content: space-between;
     margin: 0;
@@ -564,7 +564,7 @@ const accessKind: 'restricted' | 'open' | 'free' | 'none' =
   .article-hero__read {
     display: inline-flex;
     align-items: center;
-    gap: 4px;
+    gap: var(--space-1);
     color: var(--accent);
     font-size: 13px;
     font-weight: 500;
@@ -572,13 +572,13 @@ const accessKind: 'restricted' | 'open' | 'free' | 'none' =
     transition: color 0.15s;
   }
   .article-hero__read:hover {
-    color: var(--purple-900, var(--accent));
+    color: var(--purple-900);
     text-decoration: underline;
   }
   .article-hero__license-block {
     display: inline-flex;
     align-items: center;
-    gap: 8px;
+    gap: var(--space-2);
     font-size: 11px;
     color: var(--text-tertiary);
   }
@@ -587,7 +587,7 @@ const accessKind: 'restricted' | 'open' | 'free' | 'none' =
     text-transform: uppercase;
     letter-spacing: 0.05em;
     color: var(--text-tertiary);
-    margin-right: 4px;
+    margin-right: var(--space-1);
   }
   .article-hero__license { color: var(--text-tertiary); }
   .article-hero__access {

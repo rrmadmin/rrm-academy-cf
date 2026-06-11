@@ -76,8 +76,8 @@ import BaseLayout from '../layouts/BaseLayout.astro';
     font-size: 0.6875rem;
     font-weight: 700;
     letter-spacing: 0.5px;
-    padding: 2px 8px;
-    border-radius: 4px;
+    padding: 2px var(--space-2);
+    border-radius: var(--radius-sm);
     margin-bottom: var(--space-4);
     text-transform: uppercase;
   }
@@ -117,7 +117,7 @@ import BaseLayout from '../layouts/BaseLayout.astro';
     gap: var(--space-2);
     background: var(--purple-50);
     border: 1px solid var(--purple-200);
-    border-radius: 999px;
+    border-radius: var(--radius-pill);
     padding: var(--space-2) var(--space-5);
     font-size: 0.75rem;
     font-weight: 500;
@@ -226,7 +226,7 @@ import BaseLayout from '../layouts/BaseLayout.astro';
   .info-box p { font-size: 0.8125rem; color: var(--text-secondary); line-height: 1.6; }
   .cite-link { font-size: 0.75rem; color: var(--accent); text-align: center; display: block; margin-top: var(--space-2); }
 
-  .dot-grid { display: flex; flex-wrap: wrap; gap: 4px; justify-content: center; margin: var(--space-4) auto var(--space-6); max-width: 340px; }
+  .dot-grid { display: flex; flex-wrap: wrap; gap: var(--space-1); justify-content: center; margin: var(--space-4) auto var(--space-6); max-width: 340px; }
   .dot { width: 8px; height: 8px; border-radius: 50%; background: var(--neutral-200); }
   .dot.filled { background: var(--accent); }
 
