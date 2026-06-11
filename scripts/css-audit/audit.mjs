@@ -354,6 +354,10 @@ for (const p of parsed) {
     if (decl.prop === 'line-height') lineHeightVocab.add(normalizeVal(decl.value));
   });
 }
+// Approved paired type scale (2026-06-11) — always part of the vocabulary.
+for (const v of ['clamp(2rem, 1.25rem + 2.5vw, 3.25rem)', '1.75rem', '1.5rem', '1.25rem', '1.125rem', '1rem', '0.9375rem', '0.875rem', '0.8125rem', '0.75rem', '0.6875rem']) fontSizeVocab.add(normalizeVal(v));
+for (const v of ['1.1', '1.15', '1.2', '1.25', '1.75', '1.8', '1.6', '1.5', '1.4']) lineHeightVocab.add(v);
+
 const scale = designSystem.typography?.scale || {};
 for (const def of Object.values(scale)) {
   if (def.fontSize) fontSizeVocab.add(normalizeVal(String(def.fontSize)));

@@ -385,6 +385,29 @@
   --space-16: 64px;
   --space-24: 96px;
 
+  /* Paired type scale (approved 2026-06-11). Display = Cormorant 600, Text = Inter.
+     These 11 steps + 9 leadings are the complete typographic vocabulary. */
+  --text-d1: clamp(2rem, 1.25rem + 2.5vw, 3.25rem);
+  --text-d2: 1.75rem;
+  --text-d3: 1.5rem;
+  --text-d4: 1.25rem;
+  --text-d5: 1.125rem;
+  --text-b1: 1rem;
+  --text-b2: 0.9375rem;
+  --text-b3: 0.875rem;
+  --text-b4: 0.8125rem;
+  --text-b5: 0.75rem;
+  --text-b6: 0.6875rem;
+  --leading-display-tight: 1.1;
+  --leading-display: 1.15;
+  --leading-display-loose: 1.2;
+  --leading-heading: 1.25;
+  --leading-body: 1.75;
+  --leading-article: 1.8;
+  --leading-ui: 1.6;
+  --leading-meta: 1.5;
+  --leading-caption: 1.4;
+
   --max-width-article: 780px;
   --max-width-page: 1120px;
 
@@ -933,7 +956,7 @@ blockquote a {
 /* Search */
 .search-input {
   width: 100%;
-  padding: var(--space-3) var(--space-4) 12px var(--space-12);
+  padding: var(--space-3) var(--space-4) var(--space-3) var(--space-12);
   font-size: 16px;
   font-family: 'Inter', sans-serif;
   border: 1.5px solid var(--neutral-300);

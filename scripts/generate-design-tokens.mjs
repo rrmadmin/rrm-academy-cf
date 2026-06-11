@@ -152,6 +152,10 @@ function classify(name) {
   if (radiusMatch) return { group: 'radius', step: radiusMatch[1] };
   const maxWidthMatch = name.match(/^max-width-(\w+)$/);
   if (maxWidthMatch) return { group: 'maxWidth', prop: maxWidthMatch[1] };
+  const typeMatch = name.match(/^text-(d[1-5]|b[1-6])$/);
+  if (typeMatch) return { group: 'typeScale', step: typeMatch[1] };
+  const leadMatch = name.match(/^leading-([\w-]+)$/);
+  if (leadMatch) return { group: 'leading', step: leadMatch[1] };
   const fontMatch = name.match(/^font-(\w+)$/);
   if (fontMatch) return { group: 'fontFamily', prop: fontMatch[1] };
 
@@ -236,12 +240,18 @@ function buildTheme(tokens) {
 }
 
 function buildShared(tokens) {
-  const out = { spacing: {}, radius: {}, maxWidth: {}, fontFamily: {} };
+  const out = { spacing: {}, radius: {}, maxWidth: {}, fontFamily: {}, typeScale: {}, leading: {} };
   for (const [name, value] of Object.entries(tokens)) {
     const c = classify(name);
     const type = typeOf(c.group);
     const leaf = { value, type, cssVariable: `--${name}` };
     switch (c.group) {
+      case 'typeScale':
+        out.typeScale[c.step] = leaf;
+        break;
+      case 'leading':
+        out.leading[c.step] = leaf;
+        break;
       case 'spacing':
         out.spacing[c.step] = leaf;
         break;
