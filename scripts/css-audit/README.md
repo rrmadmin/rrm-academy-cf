@@ -72,3 +72,8 @@ the unchecked-drift roadmap live in `docs/design/css-drift-audit-2026-06-11.md`.
 Bypass: `CSS_AUDIT_DISABLE=1` or `git commit --no-verify`. Advisory categories
 (selector-divergence, type-scale, line-height, inline-style) are ratcheted in
 aggregate but never block pre-commit — they need human judgment per finding.
+
+## Documented exceptions (approved 2026-06-11)
+
+- `src/pages/openapi.astro` method badges: GET blue `#2563eb` / POST green `#16a34a`.
+  REST-client convention; deliberately kept off-palette. Counted in baseline.

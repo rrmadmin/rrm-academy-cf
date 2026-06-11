@@ -2267,7 +2267,7 @@ const hasSecondaryAudio = showTabs && presentFormats.has('audio');
   :global(.ft-input:focus) {
     outline: none;
     border-color: var(--accent);
-    box-shadow: 0 0 0 3px rgba(147, 51, 234, 0.1);
+    box-shadow: 0 0 0 3px var(--focus-ring);
   }
 
   /* Quiz footer */
@@ -2636,8 +2636,8 @@ const hasSecondaryAudio = showTabs && presentFormats.has('audio');
     gap: var(--space-3);
     padding: var(--space-4);
     margin-top: var(--space-4);
-    background: linear-gradient(135deg, rgba(139, 92, 246, 0.08), rgba(139, 92, 246, 0.04));
-    border: 1px solid rgba(139, 92, 246, 0.2);
+    background: linear-gradient(135deg, color-mix(in srgb, var(--accent) 8%, transparent), color-mix(in srgb, var(--accent) 4%, transparent));
+    border: 1px solid color-mix(in srgb, var(--accent) 20%, transparent);
     border-radius: var(--radius-md);
   }
   :global(.cert-banner svg) {
@@ -2721,7 +2721,7 @@ const hasSecondaryAudio = showTabs && presentFormats.has('audio');
   .lesson-comments__input:focus {
     outline: none;
     border-color: var(--accent);
-    box-shadow: 0 0 0 3px rgba(139, 92, 246, 0.1);
+    box-shadow: 0 0 0 3px var(--focus-ring);
   }
   .lesson-comments__input::placeholder {
     color: var(--text-muted, var(--text-secondary));

@@ -76,6 +76,7 @@
   --status-info-bg: #e0f0ff;
   --status-info-text: #1a6bb5;
   --status-info-border: #b3d9f7;
+  --editorial-accent: #8a6308;
   --amber-700: #b45309;
   --amber-100: #fef3c7;
   --yellow-700: #eab308;
@@ -197,6 +198,7 @@
   --status-info-bg: #1a2a38;
   --status-info-text: #82b5dd;
   --status-info-border: #2e4a63;
+  --editorial-accent: #d4b454;
   --amber-700: #fbbf24;
   --amber-100: #3a3420;
   --yellow-700: #facc15;
@@ -316,6 +318,7 @@
   --status-info-bg: #e0e8f0;
   --status-info-text: #3a5a78;
   --status-info-border: #b8c8d8;
+  --editorial-accent: #7a6828;
   --amber-700: #7a6850;
   --amber-100: #f0e8e0;
   --yellow-700: #8a7320;
@@ -714,7 +717,7 @@ blockquote a {
 }
 
 .access-badge--hostile {
-  color: #991b1b;
+  color: var(--status-error-text);
   background: #fef2f2;
 }
 
@@ -1708,7 +1711,7 @@ blockquote cite {
 .editorial-notice {
   font-size: 0.8125rem;
   line-height: 1.6;
-  color: #6b5a00;
+  color: var(--editorial-accent);
   background: #fdf6e3;
   border: 1px solid #e0d5a0;
   padding: var(--space-3) var(--space-4);
