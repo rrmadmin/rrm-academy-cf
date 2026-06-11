@@ -32,6 +32,7 @@ const icons: Record<string, string> = {
   'message-circle': '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>',
   'map-pin': '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/><circle cx="12" cy="10" r="3"/></svg>',
   'book': '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>',
+  'book-open': '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 7v14"/><path d="M3 18a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1h5a4 4 0 0 1 4 4 4 4 0 0 1 4-4h5a1 1 0 0 1 1 1v13a1 1 0 0 1-1 1h-6a3 3 0 0 0-3 3 3 3 0 0 0-3-3z"/></svg>',
 };
 
 interface MobileNavItem {
@@ -42,11 +43,15 @@ interface MobileNavItem {
   hoverIcon?: string;
   children?: { label: string; href: string }[];
 }
-// Fast-path mobile drawer (2026-05-23): curated to the highest-intent destinations,
-// NOT a mirror of the footer sitemap. The search modal handles "find any page", so the
-// drawer stays short and stable as the site grows. Method pillars (NaPro/FEMM/etc.),
-// Glossary, Commentary, Partners, IVF Calculator, Self-Survey, Connect AI live in the
-// footer + are one search away. Two groups separated by a divider; no section headings.
+// Mobile drawer (regrouped 2026-06-11, Brian-approved mockup): three labeled groups
+// (Learn / Browse / Community). The 2026-05-23 fast-path curation cut Guides,
+// Commentary, and FAQs and leaned on search, which underserved returning users and
+// browse-mode visitors -- the hamburger is the user's mental site map; search
+// complements it, never substitutes. Accordion rules: one level deep only; a parent
+// that is itself a page exposes itself as first child ("All Guides"). Guides children
+// mirror ssot/pillars.json catalogue order minus condition pillars (those live under
+// Conditions) and common-questions-about-rrm (intentionally hidden from the guides
+// catalogue too). Partners, IVF Calculator, Self-Survey, Connect AI stay footer-only.
 //
 // Conditions order is by GSC search intent (90d impressions, 2026-05): isthmocele
 // ~8.3k (its commentary post is the site's #1 organic non-brand page), PCOS ~5.4k,
@@ -56,9 +61,20 @@ interface MobileNavItem {
 // 2026-05-24 (it's a coming-soon placeholder); re-add when the directory ships.
 const mobileNavSections: { heading: string; items: MobileNavItem[] }[] = [
   {
-    heading: '',
+    heading: 'Learn',
     items: [
       { label: 'What is RRM?', href: '/what-is-rrm/', icon: 'compass' },
+      {
+        label: 'Guides',
+        icon: 'book-open',
+        children: [
+          { label: 'All Guides', href: '/guides/' },
+          { label: 'NaProTechnology', href: '/naprotechnology/' },
+          { label: 'FEMM', href: '/femm/' },
+          { label: 'NeoFertility', href: '/neofertility/' },
+          { label: 'ART Registries & Codes', href: '/art-registries-and-codes/' },
+        ],
+      },
       {
         label: 'Conditions',
         icon: 'heart',
@@ -70,16 +86,23 @@ const mobileNavSections: { heading: string; items: MobileNavItem[] }[] = [
           { label: 'Miscarriage', href: '/miscarriage/' },
         ],
       },
-      { label: 'Research Library', href: '/library/', icon: 'library-big' },
-      { label: 'Glossary', href: '/glossary/', icon: 'book' },
       { label: 'Courses', href: '/courses/', icon: 'graduation' },
-      { label: 'Ask RRM AI', href: '/ask/', icon: 'message-circle' },
-      { label: 'Save the Uterus Club', href: '/community/', icon: 'users' },
+      { label: 'FAQs', href: '/faqs/', icon: 'help-circle' },
     ],
   },
   {
-    heading: '',
+    heading: 'Browse',
     items: [
+      { label: 'Research Library', href: '/library/', icon: 'library-big' },
+      { label: 'Commentary', href: '/commentary/', icon: 'pen' },
+      { label: 'Glossary', href: '/glossary/', icon: 'book' },
+      { label: 'Ask RRM AI', href: '/ask/', icon: 'message-circle' },
+    ],
+  },
+  {
+    heading: 'Community',
+    items: [
+      { label: 'Save the Uterus Club', href: '/community/', icon: 'users' },
       { label: 'About', href: '/about/', icon: 'info' },
       { label: 'Contact', href: '/contact/', icon: 'mail' },
     ],
