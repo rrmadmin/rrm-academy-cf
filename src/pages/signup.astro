@@ -263,6 +263,7 @@ import { TURNSTILE_SITE_KEY } from '../lib/turnstile';
   .auth-card h1 { text-align: center; margin-bottom: var(--space-4); font-size: 1.75rem; }
   .signup-subheading { text-align: center; color: var(--text-secondary); font-size: 0.9375rem; line-height: 1.5; margin-bottom: var(--space-6); }
   .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: var(--space-4); }
+  @media (max-width: 640px) { .form-row { grid-template-columns: 1fr; } }
   .auth-form .form-group { margin-bottom: var(--space-5); }
   .auth-form .form-label { display: block; font-family: 'Inter', sans-serif; font-size: 0.8125rem; font-weight: 500; margin-bottom: var(--space-2); }
   .auth-form .form-input {

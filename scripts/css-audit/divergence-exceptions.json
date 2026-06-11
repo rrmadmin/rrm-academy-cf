@@ -1,0 +1,32 @@
+{
+  "note": "Selectors whose cross-file divergence is a DELIBERATE design variant, verified by hand (wave 3, 2026-06-11). Each entry suppresses selector-divergence findings for that selector. Remove entries when the underlying surfaces get redesigned.",
+  "exceptions": {
+    ".post-card": "archive pages use a quiet reading-card layout vs the dense live feed; systematic, intentional",
+    ".post-card__header": "archive reading-view variant",
+    ".post-author-name": "archive reading-view variant",
+    ".post-time": "archive reading-view variant",
+    ".post-card__body": "archive reading-view variant",
+    ".post-comment-count": "archive reading-view variant",
+    ".posts-empty": "archive reading-view variant",
+    ".community-page": "archive pages use the standard page wrapper; feed is full-height app surface",
+    ".reaction-bar": "post detail uses bordered controls vs flat feed controls; revisit in community design pass",
+    ".reaction-btn": "post detail bordered variant; revisit in community design pass",
+    ".reaction-btn--sm": "post detail bordered variant",
+    ".reaction-count": "post detail variant",
+    ".comment": "post detail spacing variant",
+    ".comment--reply": "post detail thread-rail variant",
+    ".comment-time": "post detail variant",
+    ".compose-card": "feed inline composer vs events page card composer; different contexts",
+    ".compose-actions": "composer context variant",
+    ".hub-btn-join": "index renders the compact hub rail; areas pages render the full-size hub (shipped 2026-05-31)",
+    ".hub-volunteer__btn": "compact vs full hub variant",
+    ".hub-volunteer__pending": "compact vs full hub variant",
+    ".hub-volunteer__withdraw": "compact vs full hub variant",
+    ".hub-impact": "compact vs full hub variant",
+    ".hub-stream-lock__text": "compact vs full hub variant",
+    ".search-input": "input padding is coupled to each context's icon geometry (header vs SearchBar vs glossary); do not blind-align",
+    ".abstract": "library renders the abstract as a callout box deliberately; global is the plain variant",
+    ".container": "six pillar pages deliberately widen the article container (PillarLayout wideContainer pattern)",
+    ".pill": "dev/providers.astro is a self-contained sandbox mirror, not a site surface"
+  }
+}
