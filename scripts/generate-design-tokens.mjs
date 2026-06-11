@@ -117,6 +117,10 @@ function classify(name) {
   const statusMatch = name.match(/^(green|amber|yellow)-(\d+)$/);
   if (statusMatch) return { group: 'status', family: statusMatch[1], step: statusMatch[2] };
 
+  // Semantic status tokens: status-success-bg, status-warn-text, status-info-border, ...
+  const semStatusMatch = name.match(/^status-(success|warn|error|info)-(bg|text|border)$/);
+  if (semStatusMatch) return { group: 'status', family: semStatusMatch[1], step: semStatusMatch[2] };
+
   // Tier tokens: tier1-accent, tier2-bg, tier3-border
   const tierMatch = name.match(/^tier([123])-(accent|bg|border)$/);
   if (tierMatch) return { group: 'tier', tier: `tier${tierMatch[1]}`, prop: tierMatch[2] };
@@ -181,7 +185,7 @@ function typeOf(group) {
 function buildTheme(tokens) {
   const out = {
     palette: { purple: {}, neutral: {}, sand: {}, rose: {}, sage: {} },
-    status: { green: {}, amber: {}, yellow: {} },
+    status: { green: {}, amber: {}, yellow: {}, success: {}, warn: {}, error: {}, info: {} },
     tier: { tier1: {}, tier2: {}, tier3: {} },
     semantic: {},
     footer: {},

@@ -241,13 +241,13 @@ const cardCohortText = onWaitlist && course.nextCohortLabel ? `Next: ${course.ne
   }
   .course-card__badge--partner {
     left: var(--space-3);
-    background: #e0f0ff;
-    color: #1a6bb5;
+    background: var(--status-info-bg);
+    color: var(--status-info-text);
   }
   .course-card__badge--waitlist {
     left: var(--space-3);
-    background: #fef3c7;
-    color: #92400e;
+    background: var(--status-warn-bg);
+    color: var(--status-warn-text);
   }
   .course-card__badge--members {
     left: var(--space-3);
@@ -255,7 +255,7 @@ const cardCohortText = onWaitlist && course.nextCohortLabel ? `Next: ${course.ne
     color: var(--rose-700);
   }
   .course-card__image--placeholder {
-    background: linear-gradient(135deg, var(--purple-50) 0%, #efe9f5 50%, #faf3f8 100%);
+    background: linear-gradient(135deg, var(--purple-50) 0%, var(--purple-100) 50%, var(--neutral-100) 100%);
   }
   .course-card__cover-placeholder {
     width: 100%;

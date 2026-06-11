@@ -387,8 +387,8 @@ const SHELL_ENABLED = isShellEnabled('community');
       font-weight: 700;
       letter-spacing: 0.08em;
       text-transform: uppercase;
-      color: #7c3aed;
-      background: #f3eeff;
+      color: var(--purple-700);
+      background: var(--purple-100);
       padding: 3px 8px;
       border-radius: 6px;
       line-height: 1.2;
@@ -408,12 +408,16 @@ const SHELL_ENABLED = isShellEnabled('community');
       color: var(--text-secondary, #555);
     }
     .post-tier-badge--hero {
-      background: #fef3c7;
-      color: #92400e;
+      background: var(--status-warn-bg);
+      color: var(--status-warn-text);
     }
     .post-tier-badge--superhero {
       background: #fce7f3;
       color: #9d174d;
+    }
+    [data-theme="dark"] .post-tier-badge--superhero {
+      background: #3a1626;
+      color: #f0a8c8;
     }
 
     /* Achievement chips */
