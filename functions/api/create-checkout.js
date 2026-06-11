@@ -319,16 +319,16 @@ async function handleCheckout(request, env, waitUntil) {
       ...(entry_platform && { ga_entry_platform: entry_platform }),
     };
 
-    // Carry migration metadata into subscription_data so webhook can read it
+    // Carry migration metadata + tier into subscription_data so webhook can read it.
+    // tier on subscription.metadata enables admin/revenue.js MRR grouping and
+    // tierFromPriceOrAmount() short-circuit for all new Stripe-era subscriptions.
     const offAmountSubMeta = useCustomAmount && wixLookup
       ? { tier_custom: '1', amount_cents: String(wixLookup.amount_cents) }
       : {};
-    if (Object.keys(migrationMetadata).length > 0 || Object.keys(offAmountSubMeta).length > 0) {
-      sessionParams.subscription_data = {
-        ...(trialEndUnix ? { trial_end: trialEndUnix } : {}),
-        metadata: { ...migrationMetadata, ...offAmountSubMeta },
-      };
-    }
+    sessionParams.subscription_data = {
+      ...(trialEndUnix ? { trial_end: trialEndUnix } : {}),
+      metadata: { tier: effectiveTier, ...migrationMetadata, ...offAmountSubMeta },
+    };
 
     let checkoutSession;
     try {
