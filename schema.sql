@@ -158,7 +158,7 @@ CREATE TABLE IF NOT EXISTS contact (
     stripe_customer_id TEXT,
     created_at TEXT DEFAULT (datetime('now')),
     updated_at TEXT DEFAULT (datetime('now'))
-);
+, first_gift_at TEXT, last_gift_at TEXT, gift_count INTEGER DEFAULT 0, donor_stage TEXT);
 CREATE INDEX IF NOT EXISTS idx_contact_first_seen ON contact(first_seen_at);
 CREATE INDEX IF NOT EXISTS idx_contact_source ON contact(source);
 CREATE INDEX IF NOT EXISTS idx_contact_user ON contact(user_id);
@@ -1047,6 +1047,33 @@ CREATE INDEX IF NOT EXISTS idx_wix_pay_email   ON wix_payment(email);
 CREATE INDEX IF NOT EXISTS idx_wix_pay_paid_at ON wix_payment(paid_at);
 CREATE INDEX IF NOT EXISTS idx_wix_pay_sub     ON wix_payment(wix_subscription_id);
 CREATE INDEX IF NOT EXISTS idx_wix_pay_user    ON wix_payment(user_id);
+
+-- ============================================================
+-- donor_gift (migration 030; CRM mirror of giving history -- NOT accounting truth,
+-- the RRM Foundation Google Sheet ledger remains the 990 SSOT)
+-- ============================================================
+CREATE TABLE IF NOT EXISTS donor_gift (
+  id            TEXT PRIMARY KEY,
+  email         TEXT NOT NULL COLLATE NOCASE,
+  display_name  TEXT,
+  amount_cents  INTEGER NOT NULL,
+  currency      TEXT NOT NULL DEFAULT 'USD',
+  source        TEXT NOT NULL CHECK(source IN ('stripe','wix','paypal','manual')),
+  source_id     TEXT NOT NULL,
+  entity        TEXT NOT NULL DEFAULT 'foundation' CHECK(entity IN ('foundation','academy')),
+  kind          TEXT NOT NULL DEFAULT 'one_time' CHECK(kind IN ('one_time','recurring','membership','course')),
+  ppgf          INTEGER NOT NULL DEFAULT 0,
+  occurred_at   TEXT NOT NULL,
+  receipt_year  INTEGER,
+  receipted_at  TEXT,
+  contact_id    TEXT,
+  refunded_at   TEXT,
+  created_at    TEXT DEFAULT (datetime('now')),
+  UNIQUE(source, source_id)
+);
+CREATE INDEX IF NOT EXISTS idx_donor_gift_email ON donor_gift(email);
+CREATE INDEX IF NOT EXISTS idx_donor_gift_occurred ON donor_gift(occurred_at);
+CREATE INDEX IF NOT EXISTS idx_donor_gift_receipt_year ON donor_gift(receipt_year);
 
 -- ============================================================
 -- wix_subscription

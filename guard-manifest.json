@@ -55,7 +55,7 @@
       "note": "Stripe portal"
     },
     "functions/api/billing/_webhook-checkout.js": {
-      "hash": "b7be56441905811a962176606bef296b0d719bcfe525cc2802ed472faf480c6a",
+      "hash": "e6cc8264df5860314d2a76604911d8fee5bc2836c7fe119005605985805f9e55",
       "note": "Stripe checkout completion handler"
     },
     "functions/api/billing/_webhook-subscription.js": {
@@ -139,7 +139,7 @@
       "note": "Admin endpoint: manually link wix_subscription to CF user (Layer 4 reconciliation)"
     },
     "scripts/guard.mjs": {
-      "hash": "aeb92259da8ebc1834b40dfbb5cc372e106aa6976dc4085cae338dd4e68dc7e4",
+      "hash": "bc15122aefeb9175201af7b7b5a14f59c7569b776eaefd24087bd5dfaf4c02b8",
       "note": "Guard script (self-guarding)"
     },
     "functions/api/auth/verify-email.js": {
@@ -169,6 +169,10 @@
     "functions/api/billing/_migration-handoff.js": {
       "hash": "56727e589cbeade90e1d70d625c41444a8381370d1048805ccea81a5dab15af5",
       "note": "Wix-to-Stripe migration handoff lock primitives"
+    },
+    "functions/api/billing/_donor-gift.js": {
+      "hash": "2fee5567be2c94635f9de7684a9390e6cfc976f3a51025dd6183680c5c9f3ee2",
+      "note": "Donor gift recording + contact rollups/stage derivation"
     },
     "functions/api/community/upload.js": {
       "hash": "01326e09ae56984a61e8253352204d4a6cdfcf57d34ce0fcd2919bfcd49c2850",
