@@ -1,8 +1,8 @@
 ---
 import BaseLayout from '../../layouts/BaseLayout.astro';
 
-const pageTitle = 'Help Build the RRM Provider Directory';
-const pageDescription = 'Support the rebuild of the RRM Provider Directory. Every listing verified, more clinicians added, kept current. A one-time gift to the RRM Foundation makes it possible.';
+const pageTitle = 'Help the Next Generation Find Restorative Care';
+const pageDescription = 'Women lose years searching for real care. Your one-time gift to the RRM Foundation builds the verified RRM Provider Directory, so the next generation of women and girls finds an RRM-trained clinician on the first try.';
 const canonical = 'https://rrmacademy.org/providers/';
 
 // $10,000 goal. The live thermometer fetches real dollars raised from
@@ -13,7 +13,7 @@ const GOAL_CENTS = 1000000;
 const jsonLd = {
   '@context': 'https://schema.org',
   '@type': 'DonateAction',
-  name: 'Help Build the RRM Provider Directory',
+  name: pageTitle,
   description: pageDescription,
   url: canonical,
   recipient: {
@@ -38,13 +38,13 @@ const jsonLd = {
       <!-- Hero -->
       <header class="fund-hero">
         <p class="fund-eyebrow">RRM Provider Directory</p>
-        <h1 class="fund-title">Help us build the directory that connects families to the right care</h1>
-        <p class="fund-subhead">Every listing verified. Every clinician confirmed. A resource the RRM community can trust.</p>
+        <h1 class="fund-title">Help the next generation of women and girls find restorative care</h1>
+        <p class="fund-subhead">You remember what the search cost you: the years, the dismissals, the doors that closed. Your gift builds the verified directory of RRM-trained clinicians, so the next girl never has to search the way you did.</p>
       </header>
 
       <!-- Live thermometer + give widget -->
-      <section class="fund-panel card" aria-labelledby="fund-give-heading">
-        <h2 id="fund-give-heading" class="sr-only">Donate to the provider directory rebuild</h2>
+      <section id="give" class="fund-panel card" aria-labelledby="fund-give-heading">
+        <h2 id="fund-give-heading" class="sr-only">Donate to the provider directory</h2>
 
         <div
           class="fund-thermo"
@@ -67,10 +67,10 @@ const jsonLd = {
 
         <div class="fund-give">
           <div class="fund-amounts" role="group" aria-label="Choose a gift amount">
-            <button type="button" class="fund-amount-btn" data-amount="2500">$25</button>
-            <button type="button" class="fund-amount-btn active" data-amount="5000">$50</button>
-            <button type="button" class="fund-amount-btn" data-amount="10000">$100</button>
-            <button type="button" class="fund-amount-btn" data-amount="25000">$250</button>
+            <button type="button" class="fund-amount-btn" data-amount="2500" aria-pressed="false">$25</button>
+            <button type="button" class="fund-amount-btn active" data-amount="5000" aria-pressed="true">$50</button>
+            <button type="button" class="fund-amount-btn" data-amount="10000" aria-pressed="false">$100</button>
+            <button type="button" class="fund-amount-btn" data-amount="25000" aria-pressed="false">$250</button>
           </div>
           <div class="fund-custom">
             <label for="fund-custom-amount" class="form-label">Or enter another amount</label>
@@ -79,48 +79,69 @@ const jsonLd = {
               <input type="number" id="fund-custom-amount" class="form-input" min="5" max="999999" inputmode="numeric" placeholder="Enter amount" />
             </div>
           </div>
-          <button type="button" id="fund-give-btn" class="btn btn--primary btn--lg fund-give-btn">Give $50 to the directory</button>
-          <p id="fund-error" class="fund-error" hidden></p>
+          <button type="button" id="fund-give-btn" class="btn btn--primary btn--lg fund-give-btn">Give $50 for the next generation</button>
+          <p id="fund-error" class="fund-error" role="alert" hidden></p>
           <p class="fund-onetime-note">This is a one-time gift. You will not be enrolled in a recurring charge.</p>
         </div>
       </section>
 
       <!-- The ask -->
       <section class="fund-section">
-        <p class="fund-ask">We are raising $10,000 in one-time gifts to fund this rebuild. If restorative reproductive care has mattered to you, or to someone you love, a gift to the RRM Foundation makes this resource possible. Every dollar goes directly to verification, expansion, and maintenance of the directory.</p>
+        <p class="fund-ask">You remember the years it took: appointments that went nowhere, answers that were not answers, time you cannot get back. The next generation of women and girls does not have to inherit that. We are raising $10,000 in one-time gifts to build and launch the RRM Provider Directory, so that when a daughter, a niece, or a young woman you will never meet starts looking for real care, she finds a verified, RRM-trained clinician on the first try. Your gift to the RRM Foundation funds verification, expansion, and the infrastructure that keeps every listing current.</p>
+      </section>
+
+      <!-- Stat band: the cost of the wait -->
+      <section class="fund-stats" aria-labelledby="fund-stats-heading">
+        <h2 id="fund-stats-heading" class="fund-stats__heading">This is the wait we are trying to end</h2>
+        <div class="fund-stats__grid">
+          <div class="fund-stat">
+            <span class="fund-stat__num">9 years</span>
+            <span class="fund-stat__label">The median time a woman waits, from her first symptom to a diagnosis of endometriosis.</span>
+          </div>
+          <div class="fund-stat">
+            <span class="fund-stat__num">Up to 1 in 10</span>
+            <span class="fund-stat__label">Women of reproductive age live with endometriosis. Many are still waiting for someone to name it.</span>
+          </div>
+          <div class="fund-stat">
+            <span class="fund-stat__num">6+ visits</span>
+            <span class="fund-stat__label">A third of women see a doctor six or more times before anyone takes their pain seriously.</span>
+          </div>
+        </div>
+        <p class="fund-stats__note">Endometriosis is the clearest measure of a pattern that repeats across the conditions restorative medicine treats: real, diagnosable, and missed for years. A directory of clinicians actually trained to look is how the wait gets shorter.</p>
       </section>
 
       <!-- Why your gift matters -->
       <section class="fund-section" aria-labelledby="fund-why-heading">
-        <h2 id="fund-why-heading">Where your gift goes</h2>
+        <h2 id="fund-why-heading">What your gift makes possible</h2>
         <div class="fund-why-grid">
           <div class="fund-why-card card">
-            <h3>Verification</h3>
-            <p>Each clinician listing is cross-checked against training credentials, contact data, and practice status. No ghost listings. No outdated phone numbers.</p>
+            <h3>A name she can trust</h3>
+            <p>When she finds a clinician here, the listing is real: restorative training confirmed, practice verified, contact information that works. Her first call is not another dead end.</p>
           </div>
           <div class="fund-why-card card">
-            <h3>Expansion</h3>
-            <p>We are adding providers trained in NaProTechnology, FEMM, and related methods who have never appeared in any single directory. More clinicians, more regions, more methods.</p>
+            <h3>Care within reach</h3>
+            <p>More clinicians trained in NaProTechnology, FEMM, and related methods, in more places, so the nearest real answer is not three states away and no one has to settle for being dismissed.</p>
           </div>
           <div class="fund-why-card card">
-            <h3>Maintenance</h3>
-            <p>A directory that goes stale in 18 months helps no one. We are building the infrastructure to keep it current.</p>
+            <h3>Ready when she needs it</h3>
+            <p>The girl asking her first hard questions years from now will find a directory that is still accurate, still current, and waiting for her.</p>
           </div>
         </div>
       </section>
 
       <!-- Story -->
       <section class="fund-section" aria-labelledby="fund-story-heading">
-        <h2 id="fund-story-heading">Why we took it offline</h2>
-        <p>Finding an RRM-trained clinician is hard. The directories that exist are scattered, outdated, or incomplete. Couples doing the work of restorative care, charting cycles, tracking hormones, pursuing diagnosis, deserve a resource that is accurate and current. That is what we are rebuilding.</p>
-        <p>We pulled the RRM Provider Directory offline to do this right. Every provider listing is being verified. We are expanding coverage, adding clinicians trained in NaProTechnology, FEMM, and related methods, and building the infrastructure to keep it current. The goal is a searchable, trustworthy resource that works the first time someone needs it.</p>
-        <p>That work costs money. Verification, data infrastructure, ongoing maintenance. We are asking supporters who believe in restorative care to fund it directly.</p>
+        <h2 id="fund-story-heading">She should not have to search like you did</h2>
+        <p>Most women lose those years the same way: pain called normal, symptoms waved off, birth control offered as the only answer, and the slow, grinding sense that no one is ever going to look deeper. And the years are not empty. The disease progresses. Pain worsens. For many, fertility quietly narrows. By the time a woman finally finds a clinician trained to treat root causes, some of what the waiting cost her cannot be given back.</p>
+        <p>The RRM Provider Directory will be one searchable, trustworthy home for clinicians trained in NaProTechnology, FEMM, and related restorative methods. Every listing is verified against training credentials, contact information, and practice status before it goes live, and kept current after it does, so it works the first time someone needs it.</p>
+        <p>Verification, data infrastructure, and upkeep cost real money. Most of us would never spend this on ourselves. But this is not for you. It is for the teenage girl whose pain is being dismissed today, for your daughters and nieces, and for women you will never meet who are still being told nothing more can be done. Build it so they never search the way you did.</p>
       </section>
 
-      <!-- Patient escape hatch -->
-      <aside class="fund-patient" aria-label="For patients seeking care">
-        <p>If you landed here looking for a clinician trained in restorative care, you are in the right place. <a href="/what-is-rrm/#get-started">Learn about what RRM is and how to get started.</a></p>
-      </aside>
+      <!-- Closing CTA -->
+      <section class="fund-cta-close">
+        <p class="fund-cta-close__line">Nine years, or one search. Your gift decides which one the next girl gets.</p>
+        <a href="#give" class="btn btn--primary btn--lg fund-cta-close__btn">Give for the next generation</a>
+      </section>
 
       <!-- Donor FAQ -->
       <section class="fund-section" aria-labelledby="fund-faq-heading">
@@ -136,7 +157,11 @@ const jsonLd = {
           </details>
           <details class="fund-faq-item">
             <summary>How will my gift be used?</summary>
-            <p>Funds go directly to provider verification, directory expansion, and the infrastructure needed to keep listings current. No administrative overhead. The directory is the deliverable.</p>
+            <p>Your gift funds provider verification, directory expansion, and the infrastructure that keeps listings current. After standard payment processing fees, gifts are applied to building and maintaining the directory.</p>
+          </details>
+          <details class="fund-faq-item">
+            <summary>When will the directory launch?</summary>
+            <p>The directory launches once provider verification is complete. Funding directly accelerates that work. Every listing is checked before it goes live, because a directory you cannot trust is worse than no directory at all.</p>
           </details>
         </div>
       </section>
@@ -190,19 +215,35 @@ const jsonLd = {
       var errorEl = document.getElementById('fund-error');
       var selectedCents = 5000;
 
-      var entryReferrer = sessionStorage.getItem('entry_ref') || '';
-      var entryUrl = sessionStorage.getItem('entry_url') || '';
+      var entryReferrer = '';
+      var entryUrl = '';
+      try {
+        entryReferrer = sessionStorage.getItem('entry_ref') || '';
+        entryUrl = sessionStorage.getItem('entry_url') || '';
+      } catch (e) { /* storage blocked (Safari strict / private mode) — proceed without attribution */ }
 
       function setButtonLabel(cents) {
-        var dollars = Math.round(cents / 100);
-        giveBtn.textContent = 'Give $' + dollars.toLocaleString() + ' to the directory';
+        var d = cents / 100;
+        var amount = (cents % 100 === 0)
+          ? Math.round(d).toLocaleString()
+          : d.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+        giveBtn.textContent = 'Give $' + amount + ' for the next generation';
       }
 
       function selectAmount(cents) {
         selectedCents = cents;
         setButtonLabel(cents);
         amountBtns.forEach(function (b) {
-          b.classList.toggle('active', parseInt(b.dataset.amount, 10) === cents);
+          var isSel = parseInt(b.dataset.amount, 10) === cents;
+          b.classList.toggle('active', isSel);
+          b.setAttribute('aria-pressed', isSel ? 'true' : 'false');
+        });
+      }
+
+      function clearAmountSelection() {
+        amountBtns.forEach(function (b) {
+          b.classList.remove('active');
+          b.setAttribute('aria-pressed', 'false');
         });
       }
 
@@ -222,12 +263,12 @@ const jsonLd = {
         var val = parseFloat(raw);
         if (val >= 5) {
           selectedCents = Math.round(val * 100);
-          giveBtn.textContent = 'Give $' + val.toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: 2 }) + ' to the directory';
-          amountBtns.forEach(function (b) { b.classList.remove('active'); });
+          giveBtn.textContent = 'Give $' + val.toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: 2 }) + ' for the next generation';
+          clearAmountSelection();
         } else {
           selectedCents = Math.round((val || 0) * 100);
-          giveBtn.textContent = 'Give to the directory';
-          amountBtns.forEach(function (b) { b.classList.remove('active'); });
+          giveBtn.textContent = 'Give for the next generation';
+          clearAmountSelection();
         }
       });
 
@@ -271,6 +312,14 @@ const jsonLd = {
             giveBtn.disabled = false;
             giveBtn.textContent = label;
           });
+      });
+
+      // bfcache restore: if the donor went to Stripe and hit back, the button
+      // can be restored in its disabled "Redirecting..." state. Re-enable it.
+      window.addEventListener('pageshow', function (e) {
+        if (!e.persisted) return;
+        giveBtn.disabled = false;
+        setButtonLabel(selectedCents);
       });
     })();
   </script>
@@ -479,25 +528,64 @@ const jsonLd = {
     margin: 0;
   }
 
-  /* Patient escape hatch */
-  .fund-patient {
-    background: var(--purple-50, #f4f1f8);
-    border-radius: var(--radius-md);
-    padding: var(--space-5) var(--space-6);
+  /* Stat band */
+  .fund-stats {
+    margin: 0 auto var(--space-10);
+    text-align: center;
+  }
+  .fund-stats__heading {
+    font-size: 1.5rem;
+    margin-bottom: var(--space-6);
+  }
+  .fund-stats__grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: var(--space-6);
+    margin-bottom: var(--space-6);
+  }
+  .fund-stat {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-2);
+    align-items: center;
+  }
+  .fund-stat__num {
+    font-family: 'Cormorant Garamond', 'Georgia', serif;
+    font-size: 2.75rem;
+    font-weight: 600;
+    line-height: 1;
+    color: var(--accent);
+  }
+  .fund-stat__label {
+    font-size: 0.9375rem;
+    line-height: 1.6;
+    color: var(--text-secondary);
+    max-width: 280px;
+    margin: 0 auto;
+  }
+  .fund-stats__note {
+    font-size: 0.9375rem;
+    line-height: 1.8;
+    color: var(--text-secondary);
+    max-width: 600px;
+    margin: 0 auto;
+  }
+
+  /* Closing CTA */
+  .fund-cta-close {
+    text-align: center;
     margin: 0 auto var(--space-10);
   }
-  .fund-patient p {
-    font-size: 0.9375rem;
-    line-height: 1.7;
-    color: var(--text-secondary);
-    margin: 0;
+  .fund-cta-close__line {
+    font-family: 'Cormorant Garamond', 'Georgia', serif;
+    font-size: 1.5rem;
+    line-height: 1.4;
+    color: var(--text-primary);
+    max-width: 520px;
+    margin: 0 auto var(--space-5);
   }
-  .fund-patient a {
-    color: var(--accent);
-    text-decoration: underline;
-  }
-  .fund-patient a:hover {
-    color: var(--accent-hover);
+  .fund-cta-close__btn {
+    display: inline-block;
   }
 
   /* Donor FAQ */
@@ -552,6 +640,10 @@ const jsonLd = {
   @media (min-width: 640px) {
     .fund-why-grid {
       grid-template-columns: repeat(3, 1fr);
+    }
+    .fund-stats__grid {
+      grid-template-columns: repeat(3, 1fr);
+      align-items: start;
     }
   }
 
