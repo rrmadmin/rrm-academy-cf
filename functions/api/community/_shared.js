@@ -30,6 +30,47 @@ export const TIER_DISPLAY = {
   superhero: '🦸‍♀️ Superhero',
 };
 
+// Inverted map: tier name -> canonical label string used in user_label table.
+export const LABEL_FOR_TIER = Object.fromEntries(
+  Object.entries(TIER_LABEL_MAP).map(([label, tier]) => [tier, label])
+);
+
+/**
+ * Derive a STUC tier ('member' | 'hero' | 'superhero') from a Stripe subscription object.
+ *
+ * Resolution order:
+ *   1. subscription.metadata.tier (set by create-checkout subscription_data.metadata)
+ *   2. price ID match against STRIPE_PRICE_* env vars
+ *   3. unit_amount fallback for tier_custom price_data subscriptions:
+ *      >= 9900 cents -> superhero, >= 1900 -> hero, else -> member
+ *
+ * Always returns a string ('member' | 'hero' | 'superhero'), never null.
+ * Defaults to 'member' when no signal is available.
+ *
+ * @param {object} sub - Stripe subscription object
+ * @param {object} env - CF Pages env (STRIPE_PRICE_MEMBER, STRIPE_PRICE_HERO, STRIPE_PRICE_SUPERHERO)
+ * @returns {'member'|'hero'|'superhero'}
+ */
+export function tierFromPriceOrAmount(sub, env) {
+  const VALID_TIERS = new Set(['member', 'hero', 'superhero']);
+
+  const metaTier = sub.metadata?.tier;
+  if (metaTier && VALID_TIERS.has(metaTier)) return metaTier;
+
+  const priceToTier = {};
+  if (env.STRIPE_PRICE_MEMBER) priceToTier[env.STRIPE_PRICE_MEMBER] = 'member';
+  if (env.STRIPE_PRICE_HERO) priceToTier[env.STRIPE_PRICE_HERO] = 'hero';
+  if (env.STRIPE_PRICE_SUPERHERO) priceToTier[env.STRIPE_PRICE_SUPERHERO] = 'superhero';
+
+  const price = sub.items?.data?.[0]?.price;
+  if (price?.id && priceToTier[price.id]) return priceToTier[price.id];
+
+  const unitAmount = price?.unit_amount ?? 0;
+  if (unitAmount >= 9900) return 'superhero';
+  if (unitAmount >= 1900) return 'hero';
+  return 'member';
+}
+
 // --- Post type permissions ---
 
 const STAFF_ONLY_TYPES = ['announcement', 'event', 'resource'];

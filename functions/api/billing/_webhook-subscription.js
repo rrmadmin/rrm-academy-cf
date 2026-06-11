@@ -2,21 +2,25 @@
  * Handlers for Stripe subscription webhook events.
  * Prefixed with _ so CF Pages doesn't treat it as a route.
  *
- * - customer.subscription.created: insert STUC user_label if eligible
- * - customer.subscription.updated: log status change + insert STUC user_label if eligible
- * - customer.subscription.deleted: send cancellation confirmation
+ * - customer.subscription.created: sync STUC tier label if eligible
+ * - customer.subscription.updated: sync STUC tier label (handles portal upgrades/downgrades)
+ * - customer.subscription.deleted: remove STUC bare label + all three tier labels
  */
 import { SITE_URL } from '../auth/_shared.js';
 import { log } from '../_log.js';
 import { getEmailByStripeCustomer, sendEmailSafe } from './_webhook-shared.js';
+import { TIER_LABELS, LABEL_FOR_TIER, tierFromPriceOrAmount } from '../community/_shared.js';
 
 const STUC_PRODUCT_ID = 'prod_U1VCTgB3uBP0KX';
 const STUC_LABEL = 'Save the Uterus Club 🏷️';
 const STUC_MEMBER_STATUSES = ['active', 'trialing', 'past_due'];
 
 /**
- * If the subscription is a terminal STUC subscription, DELETE the STUC user_label.
- * Idempotent: DELETE no-ops when the row is already absent.
+ * Remove the bare STUC label AND all three tier labels for a user.
+ * Called on terminal statuses and subscription.deleted.
+ * Idempotent: DELETEs are no-ops when rows are already absent.
+ * Wix-era grandfather members have no Stripe sub so their labels are untouched
+ * (this function is only reachable via a Stripe subscription event).
  */
 async function maybeRemoveStucLabel(db, sub, env, waitUntil) {
   const isStucProduct = (sub.items?.data || []).some(
@@ -32,17 +36,26 @@ async function maybeRemoveStucLabel(db, sub, env, waitUntil) {
     return;
   }
 
-  await db.prepare('DELETE FROM user_label WHERE user_id = ? AND label = ?')
-    .bind(user.id, STUC_LABEL).run();
+  const allLabels = [STUC_LABEL, ...TIER_LABELS];
+  await db.batch(
+    allLabels.map(label =>
+      db.prepare('DELETE FROM user_label WHERE user_id = ? AND label = ?')
+        .bind(user.id, label)
+    )
+  );
   log(env, waitUntil, 'billing', 'stuc_label_removed', 'ok',
     `user=${user.id} sub=${sub.id} status=${sub.status}`);
 }
 
 /**
- * If the subscription is an active STUC subscription, INSERT OR IGNORE the STUC user_label.
- * Looks up user by stripe_customer_id. Logs warn and bails if no user row found.
+ * For an active STUC subscription, derive the tier and sync the user_label rows:
+ *   - INSERT OR IGNORE the matching tier label
+ *   - DELETE the other two tier labels (handles portal upgrades/downgrades)
+ *   - INSERT OR IGNORE the bare STUC label (for legacy access checks)
+ *
+ * All three mutations run as a batch so partial-write risk is minimised.
  */
-async function maybeInsertStucLabel(db, sub, env, waitUntil) {
+async function maybeSyncStucTierLabel(db, sub, env, waitUntil) {
   const isStucProduct = (sub.items?.data || []).some(
     item => item.price?.product === STUC_PRODUCT_ID
   );
@@ -57,10 +70,22 @@ async function maybeInsertStucLabel(db, sub, env, waitUntil) {
     return;
   }
 
-  await db.prepare('INSERT OR IGNORE INTO user_label (user_id, label) VALUES (?, ?)')
-    .bind(user.id, STUC_LABEL).run();
-  log(env, waitUntil, 'billing', 'stuc_label_inserted', 'ok',
-    `user=${user.id} sub=${sub.id} status=${sub.status}`);
+  const tier = tierFromPriceOrAmount(sub, env);
+  const tierLabel = LABEL_FOR_TIER[tier];
+  const otherTierLabels = TIER_LABELS.filter(l => l !== tierLabel);
+
+  await db.batch([
+    db.prepare('INSERT OR IGNORE INTO user_label (user_id, label) VALUES (?, ?)')
+      .bind(user.id, STUC_LABEL),
+    db.prepare('INSERT OR IGNORE INTO user_label (user_id, label) VALUES (?, ?)')
+      .bind(user.id, tierLabel),
+    ...otherTierLabels.map(label =>
+      db.prepare('DELETE FROM user_label WHERE user_id = ? AND label = ?')
+        .bind(user.id, label)
+    ),
+  ]);
+  log(env, waitUntil, 'billing', 'stuc_tier_label_synced', 'ok',
+    `user=${user.id} sub=${sub.id} status=${sub.status} tier=${tier}`);
 }
 
 /**
@@ -76,7 +101,7 @@ export async function handleSubscriptionCreated(db, event, env, request, waitUnt
   log(env, waitUntil, 'billing', 'subscription_created', 'ok', `${sub.id} status=${sub.status}`);
 
   try {
-    await maybeInsertStucLabel(db, sub, env, waitUntil);
+    await maybeSyncStucTierLabel(db, sub, env, waitUntil);
   } catch (err) {
     log(env, waitUntil, 'billing', 'stuc_label_fail', 'error',
       `sub=${sub.id}: ${err.message}`);
@@ -108,7 +133,7 @@ export async function handleSubscriptionUpdated(db, event, env, request, waitUnt
     }
   } else {
     try {
-      await maybeInsertStucLabel(db, sub, env, waitUntil);
+      await maybeSyncStucTierLabel(db, sub, env, waitUntil);
     } catch (err) {
       log(env, waitUntil, 'billing', 'stuc_label_fail', 'error',
         `sub=${sub.id}: ${err.message}`);
