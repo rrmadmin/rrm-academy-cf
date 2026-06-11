@@ -19,6 +19,7 @@ import { log } from '../_log.js';
 import { sendEmailSafe } from './_webhook-shared.js';
 import { verifyAndTagEmail } from '../_elv.js';
 import { notifyAdminEnrollment } from '../courses/_notify-admin.js';
+import { recordDonorGift, giftFromCheckoutSession } from './_donor-gift.js';
 
 /**
  * @param {D1Database} db
@@ -571,6 +572,21 @@ Manually set migration_status='stripe_active' and stripe_subscription_id to the 
           log(env, waitUntil, 'billing', 'handoff_fallback_email_failed', 'error', _emailErr.message);
         }
       }
+    }
+  }
+
+  // Donor data layer: record one-time donations in donor_gift (CRM mirror).
+  // STUC/course payments are swept by the rrm-observatory donor-gift-feed daemon
+  // from Stripe charges, keyed on payment_intent, so they are skipped here.
+  const donorGift = giftFromCheckoutSession(session, event.created);
+  if (donorGift && db) {
+    try {
+      const res = await recordDonorGift(db, donorGift);
+      log(env, waitUntil, 'billing', 'donor_gift_record', res.recorded ? 'ok' : 'skipped',
+        res.recorded ? donorGift.sourceId : res.reason);
+    } catch (err) {
+      // Never fail the webhook over CRM mirroring; the daily daemon sweep self-heals.
+      log(env, waitUntil, 'billing', 'donor_gift_record', 'error', err.message);
     }
   }
 
