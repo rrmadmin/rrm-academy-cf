@@ -49,6 +49,20 @@ function argVal(flag, dflt) {
 }
 const OUT_JSON = argVal('--json', null);
 const OUT_MD = argVal('--md', null);
+// Gate modes (see baseline.json + README):
+//   --gate            criticals must be 0 AND no category may exceed baseline.json (CI ratchet)
+//   --gate-critical   criticals must be 0 (pre-commit fast path; zero verified false positives)
+//   --update-baseline rewrite baseline.json from the current run (tighten after a drain wave)
+// Bypass: CSS_AUDIT_DISABLE=1
+const GATE = args.includes('--gate');
+const GATE_CRITICAL = args.includes('--gate-critical');
+const UPDATE_BASELINE = args.includes('--update-baseline');
+const BASELINE_PATH = path.join(ROOT, 'scripts/css-audit/baseline.json');
+
+if ((GATE || GATE_CRITICAL) && process.env.CSS_AUDIT_DISABLE === '1') {
+  console.log('css-audit gate: skipped (CSS_AUDIT_DISABLE=1)');
+  process.exit(0);
+}
 
 // ---------------------------------------------------------------------------
 // Source collection
@@ -780,6 +794,53 @@ const summary = {
     fontWeight: histToObj(hist.fontWeight),
   },
 };
+
+// ---------------------------------------------------------------------------
+// Gate modes
+// ---------------------------------------------------------------------------
+
+if (UPDATE_BASELINE) {
+  fs.writeFileSync(BASELINE_PATH, JSON.stringify({
+    note: 'css-audit ratchet baseline. Counts may only go DOWN; tighten with --update-baseline after a drain wave.',
+    updated: summary.generated,
+    byCategory: Object.fromEntries(Object.entries(byCategory).sort()),
+  }, null, 2) + '\n');
+  console.log(`Baseline written to ${BASELINE_PATH}:`, JSON.stringify(byCategory));
+  process.exit(0);
+}
+
+if (GATE || GATE_CRITICAL) {
+  const failures = [];
+  const criticals = findings.filter((f) => f.severity === 'critical');
+  if (criticals.length) {
+    failures.push(`${criticals.length} critical finding(s) — criticals must be 0:`);
+    for (const f of criticals) failures.push(`  ${f.file}:${f.line} ${f.selector} { ${f.prop}: ${f.value} } — ${f.message}`);
+  }
+  if (GATE) {
+    let baseline = null;
+    try { baseline = JSON.parse(fs.readFileSync(BASELINE_PATH, 'utf8')); } catch {
+      failures.push(`baseline missing/unreadable at ${BASELINE_PATH} — run --update-baseline and commit it`);
+    }
+    if (baseline) {
+      for (const [cat, n] of Object.entries(byCategory)) {
+        const allowed = baseline.byCategory[cat] ?? 0;
+        if (n > allowed) {
+          failures.push(`${cat}: ${n} findings > baseline ${allowed} (+${n - allowed}) — new drift introduced. Fix it or, if deliberate, run: node scripts/css-audit/audit.mjs --update-baseline`);
+          const examples = findings.filter((f) => f.category === cat).slice(0, 5);
+          for (const f of examples) failures.push(`  e.g. ${f.file}:${f.line} { ${f.prop}: ${f.value} } — ${f.suggestion}`);
+        }
+      }
+    }
+  }
+  if (failures.length) {
+    console.error(`\ncss-audit gate FAILED (${GATE ? 'criticals + ratchet' : 'criticals'}):\n`);
+    for (const line of failures) console.error(line);
+    console.error('\nBypass (emergencies only): CSS_AUDIT_DISABLE=1 or git commit --no-verify');
+    process.exit(1);
+  }
+  console.log(`css-audit gate PASS — 0 criticals${GATE ? `, all ${Object.keys(byCategory).length} categories within baseline` : ''} (${summary.totalFindings} findings total)`);
+  process.exit(0);
+}
 
 console.log(JSON.stringify(summary, null, 2));
 console.log(`\nTop 15 files by drift score:`);

@@ -21,6 +21,21 @@ guard-manifest.json
 
 STAGED=$(git diff --cached --name-only)
 
+# --- CSS token guard: any staged .astro/.css/.js style surface ---
+# Blocks undefined-var criticals (var(--x) that resolves nowhere -- the
+# white-cards-in-dark-mode bug class). Zero verified false positives.
+# Full category ratchet runs in CI (deploy.yml css drift gate).
+# Bypass: CSS_AUDIT_DISABLE=1 or --no-verify
+if echo "$STAGED" | grep -qE '^(src/.*\.(astro|css)|functions/.*\.js)$'; then
+  node scripts/css-audit/audit.mjs --gate-critical
+  if [ $? -ne 0 ]; then
+    echo ""
+    echo "Commit blocked by css-audit guard (broken design-token reference)."
+    echo "Fix the var() reference shown above, or bypass with --no-verify."
+    exit 1
+  fi
+fi
+
 # --- iOS auto-zoom guard: any staged .astro or .css file under src/ ---
 if echo "$STAGED" | grep -qE '^src/.*\.(astro|css)$'; then
   node scripts/guard-ios-zoom.mjs
