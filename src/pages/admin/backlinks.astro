@@ -410,6 +410,9 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
     display: flex;
     gap: var(--space-1);
   }
+  @media (max-width: 768px) {
+    .admin-bar__nav { display: none; }
+  }
   .admin-bar__link {
     font-size: 0.8125rem;
     font-weight: 400;
@@ -442,7 +445,7 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
     padding: 5px 16px;
     border: 1px solid var(--admin-rose-300);
     border-radius: var(--radius-pill);
-    transition: color 0.15s, border-color 0.15s, background 0.15s;
+    transition: color 0.15s, border-color 0.15s;
   }
   .admin-bar__site-link:hover {
     color: #fff;

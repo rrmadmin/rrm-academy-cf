@@ -342,15 +342,18 @@ const RAIL_SECTIONS = [
   }
   .author-byline__photo {
     flex-shrink: 0;
-    width: 40px;
-    height: 40px;
+    width: 36px;
+    height: 36px;
     border-radius: 50%;
     object-fit: cover;
+  }
+  @media (min-width: 769px) {
+    .author-byline__photo { width: 48px; height: 48px; }
   }
   .author-byline__text {
     display: flex;
     flex-direction: column;
-    gap: 2px;
+    gap: 0.1em;
     font-size: 0.8125rem;
     color: var(--text-secondary);
     line-height: 1.4;
@@ -496,7 +499,7 @@ const RAIL_SECTIONS = [
 
   .disclaimer {
     font-size: 0.8125rem;
-    color: var(--text-secondary);
+    color: var(--text-tertiary);
     margin-top: var(--space-8);
     line-height: 1.6;
   }
