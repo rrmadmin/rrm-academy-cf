@@ -967,12 +967,7 @@ blockquote a {
   text-decoration: none;
 }
 
-/* Related articles */
-.related-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-  gap: var(--space-6);
-}
+/* Related-articles grid lives in the library/commentary templates (page-scoped). */
 
 /* Pagination */
 .pagination {
@@ -1655,9 +1650,6 @@ blockquote cite {
     font-size: 1.25rem;
   }
 
-  .related-grid {
-    grid-template-columns: 1fr;
-  }
 
 }
 

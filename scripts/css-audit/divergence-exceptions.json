@@ -27,6 +27,21 @@
     ".search-input": "input padding is coupled to each context's icon geometry (header vs SearchBar vs glossary); do not blind-align",
     ".abstract": "library renders the abstract as a callout box deliberately; global is the plain variant",
     ".container": "six pillar pages deliberately widen the article container (PillarLayout wideContainer pattern)",
-    ".pill": "dev/providers.astro is a self-contained sandbox mirror, not a site surface"
+    ".pill": "dev/providers.astro is a self-contained sandbox mirror, not a site surface",
+    ".tier-grid": "donate fundraiser tiers, STUC membership tiers, and partners showcase are three distinct page designs; revisit if a shared tier component lands",
+    ".tier-card": "three distinct tier-page designs (see .tier-grid)",
+    ".tier-badge": "three distinct tier-page designs + admin scoreboard chip; unrelated contexts",
+    ".tier-badge--active": "admin scoreboard vs partners showcase; unrelated contexts",
+    ".stat-card": "page-local data-viz cards (ivf calculator / rrm-success-rates / what-is-rrm) pending a shared stat component",
+    ".stat-card__label": "page-local data-viz cards (see .stat-card)",
+    ".author-byline": "pillar inline byline vs article flex byline (global) vs glossary avatar byline are different contexts; canonical avatar-stack pattern documented in STYLE-GUIDE",
+    ".connect-field": "label-column width fits each page's label lengths (connect 7rem vs agent-auth 12rem)",
+    ".faq-list": "partners page uses a card-list FAQ variant vs the global accordion",
+    ".faq-item": "partners card-list FAQ variant (see .faq-list)",
+    ".card": "dev/providers self-contained sandbox mirror",
+    ".actions": "standalone functions/ document shells (certificate, migrate)",
+    ".page-wrap": "standalone functions/ document shells",
+    ".site-footer": "standalone functions/ document shells vs site Footer component",
+    ".related-grid": "commentary related grid steps to 3 columns on desktop (smaller cards), library stays 2 (wider article cards); deliberate per content type"
   }
 }

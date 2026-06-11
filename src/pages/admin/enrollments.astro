@@ -292,7 +292,7 @@ const courseMap = Object.fromEntries(coursesData.map(c => [c.id, c.title]));
   .admin-bar { background: #3d2a32; color: #f0e5e9; position: sticky; top: 0; z-index: 100; }
   .admin-bar__inner { display: flex; align-items: center; height: 48px; gap: var(--space-6); }
   .admin-bar__title { font-family: 'Cormorant Garamond', 'Georgia', serif; font-weight: 600; font-size: 1.25rem; color: var(--admin-rose-300); white-space: nowrap; }
-  .admin-bar__nav { display: flex; gap: var(--space-1); }
+  .admin-bar__nav { display: flex; gap: var(--space-1); } @media (max-width: 768px) { .admin-bar__nav { display: none; } }
   .admin-bar__link { font-size: 0.8125rem; font-weight: 400; color: rgba(255,255,255,0.6); text-decoration: none; padding: 4px 12px; border-radius: var(--radius-sm); transition: color 0.15s, background 0.15s; }
   .admin-bar__link:hover { color: #fff; text-decoration: none; }
   .admin-bar__link--active { color: #fff; background: rgba(255,255,255,0.1); font-weight: 500; }
