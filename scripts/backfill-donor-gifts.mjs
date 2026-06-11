@@ -44,7 +44,8 @@ function d1(cmd, file = null) {
   const jsonStart = out.search(/^\[$|^\[\{/m);
   if (jsonStart === -1) throw new Error(`no JSON in wrangler output: ${out.slice(0, 400)}`);
   const parsed = JSON.parse(out.slice(jsonStart));
-  return parsed[0]?.results ?? [];
+  if (parsed[0]?.success !== true || !Array.isArray(parsed[0]?.results)) throw new Error('unexpected wrangler d1 result envelope; refusing to treat as empty');
+  return parsed[0].results;
 }
 
 function emitAndMaybeApply(name, statements) {
@@ -101,6 +102,13 @@ function parseCsvLine(line) {
   return out;
 }
 if (has('--wix-csv')) {
+  // CSV dates are ET-local and the synthetic ids bake in local parsing; running on a
+  // non-Eastern machine regenerates different source_ids AND defeats the 2h dedupe.
+  const resolvedTz = Intl.DateTimeFormat().resolvedOptions().timeZone;
+  if (resolvedTz !== 'America/New_York') {
+    console.error(`--wix-csv must run with TZ=America/New_York (resolved: ${resolvedTz}); re-run as: TZ=America/New_York node scripts/backfill-donor-gifts.mjs ...`);
+    process.exit(1);
+  }
   const raw = readFileSync(argAfter('--wix-csv'), 'utf8');
   const rows = raw.split('\n').slice(1).filter(Boolean).map(parseCsvLine);
   // Dedupe against rows --wix-d1 already inserted: the two modes use different source_id
@@ -114,6 +122,13 @@ if (has('--wix-csv')) {
     const k = `${canonical(r.email)}|${r.amount_cents}`;
     if (!existing.has(k)) existing.set(k, []);
     existing.get(k).push({ ms: Date.parse(r.occurred_at), used: false });
+  }
+  if (existing.size === 0) {
+    const wixCount = d1(`SELECT COUNT(*) n FROM donor_gift WHERE source='wix'`)[0]?.n ?? 0;
+    if (wixCount > 0) {
+      console.error(`dedupe pre-pass returned 0 wix rows but donor_gift has ${wixCount} wix rows; envelope changed or query silently failed. Aborting.`);
+      process.exit(1);
+    }
   }
   let skippedDupes = 0;
   const stmts = [];
@@ -203,7 +218,7 @@ if (has('--paypal')) {
         const pn = t.payer_info?.payer_name;
         const name = pn?.alternate_full_name || [pn?.given_name, pn?.surname].filter(Boolean).join(' ') || '';
         const email = (t.payer_info?.email_address || '').toLowerCase();
-        const ppgf = /giving\s*fund/i.test(name) || /givingfund|paypal\.com$/.test(email) ? 1 : 0;
+        const ppgf = /giving\s*fund/i.test(name) || /givingfund|@paypal\.com$/.test(email) ? 1 : 0;
         if (!email) { console.warn(`UNATTRIBUTABLE paypal donation ${info.transaction_id} $${amount} ${info.transaction_initiation_date}`); continue; }
         stmts.push(giftInsert({
           id: `dg_pp_${info.transaction_id}`, email, displayName: name || null,
@@ -221,6 +236,11 @@ if (has('--paypal')) {
 // contact.total_donated carries legacy (pre-2024 / SQSP-era) history not reconstructable from
 // any API. Synthesize one source='manual' residual row per contact so recompute preserves it.
 if (has('--legacy-snapshot')) {
+  const existingLegacy = d1(`SELECT COUNT(*) n FROM donor_gift WHERE source_id LIKE 'legacy-total:%'`)[0]?.n ?? 0;
+  if (existingLegacy > 0 && !has('--legacy-rerun')) {
+    console.error(`legacy-snapshot already ran (${existingLegacy} rows). Residuals computed after other writers mutate total_donated can fabricate phantom gifts. Pass --legacy-rerun only if you understand this.`);
+    process.exit(1);
+  }
   const rows = d1(`SELECT c.email, c.total_donated, c.first_seen_at,
       COALESCE((SELECT SUM(g.amount_cents) FROM donor_gift g
         WHERE g.email = c.email COLLATE NOCASE AND g.refunded_at IS NULL AND g.kind IN ${DONATION_KINDS}), 0) AS gift_cents
