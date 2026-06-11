@@ -383,6 +383,9 @@ import { TURNSTILE_SITE_KEY } from '../lib/turnstile';
     grid-template-columns: 1fr 1fr;
     gap: var(--space-4);
   }
+  @media (max-width: 640px) {
+    .contact-form .form-row { grid-template-columns: 1fr; }
+  }
   .contact-form .form-row .form-group {
     margin-bottom: var(--space-5);
   }
