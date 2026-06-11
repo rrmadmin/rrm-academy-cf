@@ -60,3 +60,15 @@ the unchecked-drift roadmap live in `docs/design/css-drift-audit-2026-06-11.md`.
 5. FP regressions: no `#fff` vs `#ffffff` fallback-divergence; no dark-unthemed at
    endo-survey/take.astro:229 (same-file dark override); no type-scale flag for
    `.8125rem` (leading zero).
+
+## Guard modes
+
+| Mode | Where | What |
+|---|---|---|
+| `--gate-critical` | pre-commit (`hooks/pre-commit`, staged .astro/.css/functions .js) | criticals must be 0. The undefined-var class verified at 100% precision — zero legitimate uses. |
+| `--gate` | CI (`deploy.yml` after design-tokens:audit) | criticals 0 AND no category may exceed `baseline.json` (ratchet — counts only go down). |
+| `--update-baseline` | manual, after a drain wave | tighten `baseline.json` to current counts. Commit the result. |
+
+Bypass: `CSS_AUDIT_DISABLE=1` or `git commit --no-verify`. Advisory categories
+(selector-divergence, type-scale, line-height, inline-style) are ratcheted in
+aggregate but never block pre-commit — they need human judgment per finding.
