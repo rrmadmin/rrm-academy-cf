@@ -303,8 +303,8 @@ const SHELL_ENABLED = isShellEnabled('community');
       text-align: center;
       gap: 12px;
       padding: 24px 16px 20px;
-      background: var(--surface, #ffffff);
-      border: 1px solid var(--border, #e8e2d8);
+      background: var(--bg-surface);
+      border: 1px solid var(--border-color);
       border-radius: 16px;
       transition: transform 180ms ease, box-shadow 180ms ease, border-color 180ms ease;
       position: relative;
@@ -312,7 +312,7 @@ const SHELL_ENABLED = isShellEnabled('community');
     .member-card:hover {
       transform: translateY(-2px);
       box-shadow: 0 8px 24px rgba(31, 41, 55, 0.06);
-      border-color: var(--accent, #c97b63);
+      border-color: var(--accent);
     }
 
     /* Avatar with tier-themed ring */
@@ -320,7 +320,7 @@ const SHELL_ENABLED = isShellEnabled('community');
       position: relative;
       padding: 3px;
       border-radius: 50%;
-      background: var(--border, #e8e2d8);
+      background: var(--border-color);
       flex-shrink: 0;
     }
     .member-card--hero .member-card__avatar-wrap {
@@ -338,18 +338,18 @@ const SHELL_ENABLED = isShellEnabled('community');
       border-radius: 50%;
       object-fit: cover;
       display: block;
-      background: var(--neutral-100, #f5f5f5);
-      box-shadow: 0 0 0 3px var(--surface, #ffffff);
+      background: var(--neutral-100);
+      box-shadow: 0 0 0 3px var(--bg-surface);
     }
     .member-avatar--initial {
       display: flex;
       align-items: center;
       justify-content: center;
-      background: var(--neutral-200, #e5e5e5);
-      color: var(--text-secondary, #666);
+      background: var(--neutral-200);
+      color: var(--text-secondary);
       font-size: 34px;
       font-weight: 600;
-      font-family: var(--font-display, Georgia, serif);
+      font-family: var(--font-display);
       line-height: 1;
     }
 
@@ -404,7 +404,7 @@ const SHELL_ENABLED = isShellEnabled('community');
       gap: 3px;
     }
     .post-tier-badge--member {
-      background: var(--neutral-100, #f5f5f5);
+      background: var(--neutral-100);
       color: var(--text-secondary, #555);
     }
     .post-tier-badge--hero {
@@ -444,7 +444,7 @@ const SHELL_ENABLED = isShellEnabled('community');
     .member-activity {
       display: block;
       font-size: 11px;
-      color: var(--text-tertiary, #888);
+      color: var(--text-tertiary);
       letter-spacing: 0.02em;
     }
     .member-activity--none {
@@ -454,16 +454,16 @@ const SHELL_ENABLED = isShellEnabled('community');
     .member-card__admin {
       margin-top: 8px;
       padding-top: 8px;
-      border-top: 1px dashed var(--border, #e8e2d8);
+      border-top: 1px dashed var(--border-color);
       width: 100%;
     }
     .member-ban-btn {
-      color: var(--text-tertiary, #888);
+      color: var(--text-tertiary);
       font-size: 11px;
       letter-spacing: 0.04em;
     }
     .member-ban-btn:hover {
-      color: var(--color-error, #b91c1c);
+      color: var(--color-error);
     }
 
     /* Responsive */
