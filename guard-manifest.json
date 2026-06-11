@@ -43,7 +43,7 @@
       "note": "Webhook + signature verification"
     },
     "functions/api/create-checkout.js": {
-      "hash": "d5e5f43b40be254c01b88eed373469b40c8a73495722a1caf2c084c514b5a1cd",
+      "hash": "4ef0413fc1c35c29c57ac0359ecc9e120f696197da2275920d7e0253279893d8",
       "note": "Stripe checkout"
     },
     "functions/api/billing/status.js": {
@@ -59,7 +59,7 @@
       "note": "Stripe checkout completion handler"
     },
     "functions/api/billing/_webhook-subscription.js": {
-      "hash": "9056598212c9e57f6aa97f11062ba75e53a0c4eee508874fbcd064c048df4874",
+      "hash": "427f42e37693d210e81d4fb3b98b6844662c46629b87a332e1dbc0936d65833a",
       "note": "Subscription lifecycle handler"
     },
     "functions/api/billing/_webhook-shared.js": {
@@ -127,7 +127,7 @@
       "note": "FOUC theme + chrome prop SEO invariants"
     },
     "functions/api/community/_shared.js": {
-      "hash": "c508aa31aecbfb18097df1946ace531d06d9f6953f2713912d0d0d8506aed3a9",
+      "hash": "786b012ea1801f9a3fbe09c2e591cc4ab0bc4f2ced71e231af5963297087714a",
       "note": "Community access control (requireMember)"
     },
     "functions/api/admin/cleanup.js": {
