@@ -657,12 +657,12 @@ const jsonLd = {
     display: flex;
     align-items: center;
     gap: var(--space-4);
-    border: 2px solid #27ae60;
-    background: rgba(39, 174, 96, 0.06);
+    border: 2px solid var(--status-success-text);
+    background: var(--status-success-bg);
     padding: var(--space-4) var(--space-5);
   }
   .member-banner__check {
-    color: #27ae60;
+    color: var(--status-success-text);
     flex-shrink: 0;
   }
   .member-banner__info {
@@ -686,8 +686,8 @@ const jsonLd = {
 
   /* Welcome-back banner (cancelled subscribers) */
   .member-banner--cancelled .member-banner__inner {
-    border-color: var(--accent, #c97b63);
-    background: rgba(201, 123, 99, 0.06);
+    border-color: var(--status-warn-border);
+    background: var(--status-warn-bg);
   }
   .member-banner--cancelled .member-banner__check {
     color: var(--accent, #c97b63);

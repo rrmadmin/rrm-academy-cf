@@ -2687,7 +2687,7 @@ const SHELL_ENABLED = isShellEnabled('community');
     color: var(--text-tertiary);
   }
   .post-context__label--announcement {
-    color: #1e5c99;
+    color: var(--status-info-text);
   }
   .post-context__label--event {
     color: var(--green-700);
@@ -2771,16 +2771,12 @@ const SHELL_ENABLED = isShellEnabled('community');
     color: var(--text-secondary);
   }
   .post-tier-badge--hero {
-    background: var(--status-warn-bg);
-    color: var(--status-warn-text);
+    background: var(--amber-100);
+    color: var(--amber-700);
   }
   .post-tier-badge--superhero {
-    background: #fce7f3;
-    color: #9d174d;
-  }
-  [data-theme="dark"] .post-tier-badge--superhero {
-    background: #3a1626;
-    color: #f0a8c8;
+    background: var(--rose-100);
+    color: var(--rose-700);
   }
   .post-sep {
     color: var(--text-muted);
@@ -3240,8 +3236,8 @@ const SHELL_ENABLED = isShellEnabled('community');
   /* Event info block in feed cards */
   .event-info-card {
     padding: var(--space-4) var(--space-5);
-    background: rgba(34,197,94,0.06);
-    border: 1px solid rgba(34,197,94,0.2);
+    background: var(--sage-100);
+    border: 1px solid var(--sage-300);
     border-radius: var(--radius-md);
     margin-top: var(--space-3);
     margin-bottom: var(--space-2);

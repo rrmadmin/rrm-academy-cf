@@ -324,13 +324,13 @@ const SHELL_ENABLED = isShellEnabled('community');
       flex-shrink: 0;
     }
     .member-card--hero .member-card__avatar-wrap {
-      background: linear-gradient(135deg, #f5c773, #d4a574);
+      background: linear-gradient(135deg, var(--sand-500), var(--sand-700));
     }
     .member-card--superhero .member-card__avatar-wrap {
-      background: linear-gradient(135deg, #c97b63, #9a5d4a);
+      background: linear-gradient(135deg, var(--rose-500), var(--rose-700));
     }
     .member-card--staff .member-card__avatar-wrap {
-      background: linear-gradient(135deg, #a78bfa, #7c3aed);
+      background: linear-gradient(135deg, var(--purple-500), var(--purple-700));
     }
     .member-avatar {
       width: 88px;
@@ -405,19 +405,15 @@ const SHELL_ENABLED = isShellEnabled('community');
     }
     .post-tier-badge--member {
       background: var(--neutral-100);
-      color: var(--text-secondary, #555);
+      color: var(--text-secondary);
     }
     .post-tier-badge--hero {
-      background: var(--status-warn-bg);
-      color: var(--status-warn-text);
+      background: var(--amber-100);
+      color: var(--amber-700);
     }
     .post-tier-badge--superhero {
-      background: #fce7f3;
-      color: #9d174d;
-    }
-    [data-theme="dark"] .post-tier-badge--superhero {
-      background: #3a1626;
-      color: #f0a8c8;
+      background: var(--rose-100);
+      color: var(--rose-700);
     }
 
     /* Achievement chips */
@@ -432,9 +428,9 @@ const SHELL_ENABLED = isShellEnabled('community');
     .achievement-badge {
       font-size: 10px;
       font-weight: 500;
-      color: var(--text-secondary, #555);
-      background: rgba(201, 123, 99, 0.08);
-      border: 1px solid rgba(201, 123, 99, 0.18);
+      color: var(--text-secondary);
+      background: color-mix(in srgb, var(--sand-500) 10%, transparent);
+      border: 1px solid var(--sand-300);
       padding: 2px 7px;
       border-radius: 999px;
       line-height: 1.4;
