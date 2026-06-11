@@ -1224,7 +1224,7 @@ const relatedCourses = course.relatedCourses
   }
   .course-hero__image--placeholder {
     aspect-ratio: 16 / 9;
-    background: linear-gradient(135deg, var(--purple-50) 0%, #efe9f5 50%, #faf3f8 100%);
+    background: linear-gradient(135deg, var(--purple-50) 0%, var(--purple-100) 50%, var(--neutral-100) 100%);
   }
   .course-hero__cover-placeholder {
     width: 100%;
@@ -1443,16 +1443,16 @@ const relatedCourses = course.relatedCourses
 
   /* Partner Course pill (blue) */
   .meta-pill--partner {
-    color: #1a6bb5;
-    background: #e0f0ff;
-    border-color: #b3d9f7;
+    color: var(--status-info-text);
+    background: var(--status-info-bg);
+    border-color: var(--status-info-border);
   }
 
   /* Waitlist Open pill (amber) */
   .meta-pill--waitlist {
-    color: #92400e;
-    background: #fef3c7;
-    border-color: #fcd34d;
+    color: var(--status-warn-text);
+    background: var(--status-warn-bg);
+    border-color: var(--status-warn-border);
   }
 
   /* Waitlist status text in hero CTA */

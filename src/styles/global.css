@@ -64,6 +64,18 @@
   /* Accent */
   --green-700: #2e7d32;
   --green-100: #e8f5e9;
+
+  /* Status colors (success / warn / error / info) -- semantic, theme-aware */
+  --status-success-bg: #e8f5e9;
+  --status-success-text: #2e7d32;
+  --status-warn-bg: #fef3c7;
+  --status-warn-text: #92400e;
+  --status-warn-border: #fcd34d;
+  --status-error-bg: #fdecea;
+  --status-error-text: #c0392b;
+  --status-info-bg: #e0f0ff;
+  --status-info-text: #1a6bb5;
+  --status-info-border: #b3d9f7;
   --amber-700: #b45309;
   --amber-100: #fef3c7;
   --yellow-700: #eab308;
@@ -174,6 +186,17 @@
 
   --green-700: #66bb6a;
   --green-100: #2a3a2a;
+
+  --status-success-bg: #2a3a2a;
+  --status-success-text: #66bb6a;
+  --status-warn-bg: #3a2f14;
+  --status-warn-text: #e8c474;
+  --status-warn-border: #6b5526;
+  --status-error-bg: #3a201d;
+  --status-error-text: #e98b80;
+  --status-info-bg: #1a2a38;
+  --status-info-text: #82b5dd;
+  --status-info-border: #2e4a63;
   --amber-700: #fbbf24;
   --amber-100: #3a3420;
   --yellow-700: #facc15;
@@ -282,6 +305,17 @@
 
   --green-700: #506040;
   --green-100: #e8f0e0;
+
+  --status-success-bg: #e8f0e0;
+  --status-success-text: #506040;
+  --status-warn-bg: #f5ecd8;
+  --status-warn-text: #7a5828;
+  --status-warn-border: #d8c8a0;
+  --status-error-bg: #f0e0dd;
+  --status-error-text: #8a5048;
+  --status-info-bg: #e0e8f0;
+  --status-info-text: #3a5a78;
+  --status-info-border: #b8c8d8;
   --amber-700: #7a6850;
   --amber-100: #f0e8e0;
   --yellow-700: #8a7320;
