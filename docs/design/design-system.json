@@ -1759,13 +1759,117 @@
         "type": "fontFamily",
         "cssVariable": "--font-body"
       }
+    },
+    "typeScale": {
+      "d1": {
+        "value": "clamp(2rem, 1.25rem + 2.5vw, 3.25rem)",
+        "type": "other",
+        "cssVariable": "--text-d1"
+      },
+      "d2": {
+        "value": "1.75rem",
+        "type": "other",
+        "cssVariable": "--text-d2"
+      },
+      "d3": {
+        "value": "1.5rem",
+        "type": "other",
+        "cssVariable": "--text-d3"
+      },
+      "d4": {
+        "value": "1.25rem",
+        "type": "other",
+        "cssVariable": "--text-d4"
+      },
+      "d5": {
+        "value": "1.125rem",
+        "type": "other",
+        "cssVariable": "--text-d5"
+      },
+      "b1": {
+        "value": "1rem",
+        "type": "other",
+        "cssVariable": "--text-b1"
+      },
+      "b2": {
+        "value": "0.9375rem",
+        "type": "other",
+        "cssVariable": "--text-b2"
+      },
+      "b3": {
+        "value": "0.875rem",
+        "type": "other",
+        "cssVariable": "--text-b3"
+      },
+      "b4": {
+        "value": "0.8125rem",
+        "type": "other",
+        "cssVariable": "--text-b4"
+      },
+      "b5": {
+        "value": "0.75rem",
+        "type": "other",
+        "cssVariable": "--text-b5"
+      },
+      "b6": {
+        "value": "0.6875rem",
+        "type": "other",
+        "cssVariable": "--text-b6"
+      }
+    },
+    "leading": {
+      "display-tight": {
+        "value": "1.1",
+        "type": "other",
+        "cssVariable": "--leading-display-tight"
+      },
+      "display": {
+        "value": "1.15",
+        "type": "other",
+        "cssVariable": "--leading-display"
+      },
+      "display-loose": {
+        "value": "1.2",
+        "type": "other",
+        "cssVariable": "--leading-display-loose"
+      },
+      "heading": {
+        "value": "1.25",
+        "type": "other",
+        "cssVariable": "--leading-heading"
+      },
+      "body": {
+        "value": "1.75",
+        "type": "other",
+        "cssVariable": "--leading-body"
+      },
+      "article": {
+        "value": "1.8",
+        "type": "other",
+        "cssVariable": "--leading-article"
+      },
+      "ui": {
+        "value": "1.6",
+        "type": "other",
+        "cssVariable": "--leading-ui"
+      },
+      "meta": {
+        "value": "1.5",
+        "type": "other",
+        "cssVariable": "--leading-meta"
+      },
+      "caption": {
+        "value": "1.4",
+        "type": "other",
+        "cssVariable": "--leading-caption"
+      }
     }
   },
   "counts": {
     "light": 87,
     "dark": 87,
     "eink": 87,
-    "shared": 19,
-    "total": 280
+    "shared": 39,
+    "total": 300
   }
 }

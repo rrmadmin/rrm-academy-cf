@@ -27,6 +27,22 @@ const { findings } = JSON.parse(fs.readFileSync(findingsPath, 'utf8'));
 
 const isAdminDev = (f) => f.file.startsWith('src/pages/admin/') || f.file.startsWith('src/pages/dev/');
 const SPACE_TOKEN_BY_PX = { 4: '--space-1', 8: '--space-2', 12: '--space-3', 16: '--space-4', 20: '--space-5', 24: '--space-6', 32: '--space-8', 40: '--space-10', 48: '--space-12', 64: '--space-16', 96: '--space-24' };
+// Approved type-scale snapping (2026-06-11 specimen). px entries are EXACT rem
+// equivalents (zero visual change); fractional rem entries move <=1.4px.
+// Sizes above 1.125rem-equivalents stay unmapped -> itemized for the manual pass.
+const TYPE_SNAP = {
+  '16px': '1rem', '15px': '0.9375rem', '14px': '0.875rem', '13px': '0.8125rem',
+  '12px': '0.75rem', '11px': '0.6875rem', '10px': '0.625rem', '17px': '1.125rem', '18px': '1.125rem',
+  '20px': '1.25rem', '24px': '1.5rem', '28px': '1.75rem', '32px': '2rem',
+  '1.0625rem': '1.125rem', '1.05rem': '1rem', '0.95rem': '0.9375rem', '0.92rem': '0.9375rem',
+  '0.9rem': '0.9375rem', '0.85rem': '0.875rem', '0.8rem': '0.8125rem', '0.78rem': '0.8125rem',
+  '0.76rem': '0.75rem', '0.74rem': '0.75rem', '0.72rem': '0.75rem', '0.7rem': '0.6875rem',
+  '0.66rem': '0.6875rem', '0.65rem': '0.6875rem', '.6rem': '0.625rem', '0.6rem': '0.625rem',
+  '0.98rem': '1rem', '1.02rem': '1rem', '0.93rem': '0.9375rem', '0.84rem': '0.875rem',
+  '0.83rem': '0.8125rem', '0.82rem': '0.8125rem', '12.5px': '0.8125rem', '1.35rem': '1.375rem',
+};
+const LEADING_SNAP = { '1.45': '1.5', '1.35': '1.4', '1.55': '1.5', '1.65': '1.6', '1.05': '1.1', '1.08': '1.1', '1.3': '1.25' };
+
 const RADIUS_TOKEN_BY_PX = { 4: '--radius-sm', 8: '--radius-md', 16: '--radius-lg', 9999: '--radius-pill' };
 
 const siteWideTokens = (() => {
@@ -76,6 +92,21 @@ for (const f of findings) {
     const m = f.message.match(/^Fallback "(.+?)" diverges from defined (--[a-zA-Z0-9_-]+):/);
     if (!m) { bump(stats.skipped, 'fb-no-parse'); continue; }
     jobs.push({ ...loc(f), cat: 'fallback-divergence', regex: new RegExp('var\\(\\s*' + esc(m[2]) + '\\s*,\\s*' + esc(m[1]) + '\\s*\\)'), repl: `var(${m[2]})` });
+  } else if (f.category === 'type-scale') {
+    const v = f.value.trim();
+    const repl = TYPE_SNAP[v];
+    if (!repl) { bump(stats.skipped, 'type-unmapped:' + v); continue; }
+    jobs.push({ ...loc(f), cat: 'type-scale', lit: v, repl });
+  } else if (f.category === 'line-height-drift') {
+    const v = f.value.trim();
+    const repl = LEADING_SNAP[v];
+    if (!repl) { bump(stats.skipped, 'leading-unmapped:' + v); continue; }
+    jobs.push({ ...loc(f), cat: 'line-height', lit: v, repl });
+  } else if (f.category === 'font-weight-unsupported') {
+    const v = f.value.trim();
+    const repl = { '700': '600', 'bold': '600', '300': '400' }[v];
+    if (!repl) { bump(stats.skipped, 'weight-unmapped:' + v); continue; }
+    jobs.push({ ...loc(f), cat: 'font-weight', lit: v, repl });
   } else if (f.category === 'raw-color' && f.kind === 'tokenizable' && isAdminDev(f)) {
     const m = f.suggestion.match(/^Use var\((--[a-zA-Z0-9_-]+)\) instead of (.+)$/);
     if (!m) { bump(stats.skipped, 'color-no-parse'); continue; }
