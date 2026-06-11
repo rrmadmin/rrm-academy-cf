@@ -186,10 +186,10 @@
   height: 15px;
   padding: 0 3px;
   font-size: 0.5625rem;
-  font-weight: 700;
+  font-weight: 600;
   line-height: 15px;
   text-align: center;
-  color: var(--white, #fff);
+  color: var(--white);
   background: var(--accent);
   border-radius: var(--radius-pill);
   font-variant-numeric: tabular-nums;

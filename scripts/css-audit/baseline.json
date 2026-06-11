@@ -1,6 +1,6 @@
 {
   "note": "css-audit ratchet baseline. Counts may only go DOWN; tighten with --update-baseline after a drain wave.",
-  "updated": "2026-06-11T17:44:04.590Z",
+  "updated": "2026-06-11T17:49:42.327Z",
   "byCategory": {
     "breakpoint-drift": 35,
     "dark-unthemed": 99,
