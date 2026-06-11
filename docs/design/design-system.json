@@ -405,6 +405,64 @@
             "type": "color",
             "cssVariable": "--yellow-700"
           }
+        },
+        "success": {
+          "bg": {
+            "value": "#e8f5e9",
+            "type": "color",
+            "cssVariable": "--status-success-bg"
+          },
+          "text": {
+            "value": "#2e7d32",
+            "type": "color",
+            "cssVariable": "--status-success-text"
+          }
+        },
+        "warn": {
+          "bg": {
+            "value": "#fef3c7",
+            "type": "color",
+            "cssVariable": "--status-warn-bg"
+          },
+          "text": {
+            "value": "#92400e",
+            "type": "color",
+            "cssVariable": "--status-warn-text"
+          },
+          "border": {
+            "value": "#fcd34d",
+            "type": "color",
+            "cssVariable": "--status-warn-border"
+          }
+        },
+        "error": {
+          "bg": {
+            "value": "#fdecea",
+            "type": "color",
+            "cssVariable": "--status-error-bg"
+          },
+          "text": {
+            "value": "#c0392b",
+            "type": "color",
+            "cssVariable": "--status-error-text"
+          }
+        },
+        "info": {
+          "bg": {
+            "value": "#e0f0ff",
+            "type": "color",
+            "cssVariable": "--status-info-bg"
+          },
+          "text": {
+            "value": "#1a6bb5",
+            "type": "color",
+            "cssVariable": "--status-info-text"
+          },
+          "border": {
+            "value": "#b3d9f7",
+            "type": "color",
+            "cssVariable": "--status-info-border"
+          }
         }
       },
       "tier": {
@@ -824,6 +882,64 @@
             "value": "#facc15",
             "type": "color",
             "cssVariable": "--yellow-700"
+          }
+        },
+        "success": {
+          "bg": {
+            "value": "#2a3a2a",
+            "type": "color",
+            "cssVariable": "--status-success-bg"
+          },
+          "text": {
+            "value": "#66bb6a",
+            "type": "color",
+            "cssVariable": "--status-success-text"
+          }
+        },
+        "warn": {
+          "bg": {
+            "value": "#3a2f14",
+            "type": "color",
+            "cssVariable": "--status-warn-bg"
+          },
+          "text": {
+            "value": "#e8c474",
+            "type": "color",
+            "cssVariable": "--status-warn-text"
+          },
+          "border": {
+            "value": "#6b5526",
+            "type": "color",
+            "cssVariable": "--status-warn-border"
+          }
+        },
+        "error": {
+          "bg": {
+            "value": "#3a201d",
+            "type": "color",
+            "cssVariable": "--status-error-bg"
+          },
+          "text": {
+            "value": "#e98b80",
+            "type": "color",
+            "cssVariable": "--status-error-text"
+          }
+        },
+        "info": {
+          "bg": {
+            "value": "#1a2a38",
+            "type": "color",
+            "cssVariable": "--status-info-bg"
+          },
+          "text": {
+            "value": "#82b5dd",
+            "type": "color",
+            "cssVariable": "--status-info-text"
+          },
+          "border": {
+            "value": "#2e4a63",
+            "type": "color",
+            "cssVariable": "--status-info-border"
           }
         }
       },
@@ -1245,6 +1361,64 @@
             "type": "color",
             "cssVariable": "--yellow-700"
           }
+        },
+        "success": {
+          "bg": {
+            "value": "#e8f0e0",
+            "type": "color",
+            "cssVariable": "--status-success-bg"
+          },
+          "text": {
+            "value": "#506040",
+            "type": "color",
+            "cssVariable": "--status-success-text"
+          }
+        },
+        "warn": {
+          "bg": {
+            "value": "#f5ecd8",
+            "type": "color",
+            "cssVariable": "--status-warn-bg"
+          },
+          "text": {
+            "value": "#7a5828",
+            "type": "color",
+            "cssVariable": "--status-warn-text"
+          },
+          "border": {
+            "value": "#d8c8a0",
+            "type": "color",
+            "cssVariable": "--status-warn-border"
+          }
+        },
+        "error": {
+          "bg": {
+            "value": "#f0e0dd",
+            "type": "color",
+            "cssVariable": "--status-error-bg"
+          },
+          "text": {
+            "value": "#8a5048",
+            "type": "color",
+            "cssVariable": "--status-error-text"
+          }
+        },
+        "info": {
+          "bg": {
+            "value": "#e0e8f0",
+            "type": "color",
+            "cssVariable": "--status-info-bg"
+          },
+          "text": {
+            "value": "#3a5a78",
+            "type": "color",
+            "cssVariable": "--status-info-text"
+          },
+          "border": {
+            "value": "#b8c8d8",
+            "type": "color",
+            "cssVariable": "--status-info-border"
+          }
         }
       },
       "tier": {
@@ -1573,10 +1747,10 @@
     }
   },
   "counts": {
-    "light": 76,
-    "dark": 76,
-    "eink": 76,
+    "light": 86,
+    "dark": 86,
+    "eink": 86,
     "shared": 19,
-    "total": 247
+    "total": 277
   }
 }
