@@ -524,6 +524,11 @@
           "type": "color",
           "cssVariable": "--bg-card"
         },
+        "editorial-accent": {
+          "value": "#8a6308",
+          "type": "color",
+          "cssVariable": "--editorial-accent"
+        },
         "bg-body": {
           "value": "#f7f5f3",
           "type": "color",
@@ -1001,6 +1006,11 @@
           "value": "#2e2a24",
           "type": "color",
           "cssVariable": "--bg-card"
+        },
+        "editorial-accent": {
+          "value": "#d4b454",
+          "type": "color",
+          "cssVariable": "--editorial-accent"
         },
         "bg-body": {
           "value": "#1e1a16",
@@ -1480,6 +1490,11 @@
           "type": "color",
           "cssVariable": "--bg-card"
         },
+        "editorial-accent": {
+          "value": "#7a6828",
+          "type": "color",
+          "cssVariable": "--editorial-accent"
+        },
         "bg-body": {
           "value": "#f7f0e8",
           "type": "color",
@@ -1747,10 +1762,10 @@
     }
   },
   "counts": {
-    "light": 86,
-    "dark": 86,
-    "eink": 86,
+    "light": 87,
+    "dark": 87,
+    "eink": 87,
     "shared": 19,
-    "total": 277
+    "total": 280
   }
 }

@@ -135,6 +135,7 @@ function classify(name) {
     'accent', 'accent-hover',
     'border-color', 'border-light',
     'color-error',
+    'editorial-accent',
   ]);
   if (semanticAliases.has(name)) return { group: 'semantic', prop: name };
 
