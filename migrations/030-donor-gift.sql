@@ -7,14 +7,16 @@
 --   occurred_at  UTC ISO-8601 with 'T' and 'Z' (new Date(x).toISOString()); writers
 --                MUST normalize before insert -- mixed formats break lexicographic
 --                ordering and recency queries.
---   source_id    stripe = payment_intent id (fallback charge id; per-charge, NEVER
---                the subscription id), wix = wix_order_id, paypal = transaction_id,
+--   source_id    stripe = payment_intent id (fallback: any per-payment-unique id --
+--                charge id in API sweeps, checkout session id in the webhook; NEVER
+--                subscription id), wix = wix_order_id, paypal = transaction_id,
 --                manual = caller-chosen deterministic id (re-runs must not duplicate).
 --   inserts      use INSERT ... ON CONFLICT(source, source_id) DO NOTHING, not bare
 --                INSERT OR IGNORE: dedupe stays silent but NOT NULL / CHECK
 --                violations must throw, not vanish.
 --   ppgf         1 = PayPal Giving Fund gift (PPGF sends its own receipts; receipt
 --                queries must exclude ppgf=1 rows to honor the no-double-receipt rule).
+--   receipt_year is the UTC year of occurred_at (CRM convention, not accounting truth).
 --   contact_id   intentionally NO foreign key: backfill may insert gifts before the
 --                contact row exists; email (COLLATE NOCASE) is the canonical join key.
 --

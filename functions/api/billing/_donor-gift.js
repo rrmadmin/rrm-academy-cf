@@ -5,9 +5,14 @@
  *
  * Exports:
  *   recordDonorGift(db, gift)                      -- idempotent insert + contact rollup recompute
+ *   recomputeContactRollups(db, email)             -- rollup recompute from donor_gift (derived state)
  *   giftFromCheckoutSession(session, epoch)        -- map Stripe checkout.session.completed -> gift (or null)
  *   deriveStage(aggregates, nowMs)                 -- donor_stage from per-email aggregates
  *   MAJOR_DONOR_DOLLARS, RECURRING_LAPSE_DAYS      -- stage thresholds
+ *
+ * ORDERING: the donor_gift backfill (incl. legacy total_donated snapshot rows) MUST
+ * complete before this writer goes live; recompute derives total_donated solely from
+ * donor_gift and would clobber legacy history otherwise.
  *
  * Writer conventions are pinned in migrations/030-donor-gift.sql and are binding.
  * The rrm-observatory daemon `donor-gift-feed` duplicates the insert + stage rules
@@ -17,7 +22,7 @@
 export const MAJOR_DONOR_DOLLARS = 500;
 export const RECURRING_LAPSE_DAYS = 45;
 
-/** Stage from per-email aggregates. donatedCents excludes kind='course' and refunded rows. */
+/** Stage from per-email aggregates. Aggregates exclude kind='course' and refunded rows. */
 export function deriveStage({ giftCount, donatedCents, lastRecurringAt }, nowMs = Date.now()) {
   if (donatedCents >= MAJOR_DONOR_DOLLARS * 100) return 'major';
   if (lastRecurringAt) {
@@ -45,54 +50,38 @@ export function giftFromCheckoutSession(session, eventCreatedEpoch) {
   };
 }
 
+/**
+ * Normalize a timestamp to UTC ISO-8601, or null when unparseable. Space-separated
+ * SQLite-style strings ('2026-06-11 12:00:00') are pinned to UTC before parsing:
+ * V8's Date.parse treats them as LOCAL time, which would skew occurred_at by the
+ * machine timezone.
+ */
+function toIsoUtc(value) {
+  let s = value;
+  if (typeof value === 'string' && value.includes(' ') && !value.includes('T')) {
+    s = value.replace(' ', 'T') + (/(Z|[+-]\d\d:?\d\d)$/.test(value) ? '' : 'Z');
+  }
+  const parsed = Date.parse(s);
+  return Number.isFinite(parsed) ? new Date(parsed).toISOString() : null;
+}
+
 const AGGREGATE_SQL = `
   SELECT
-    COALESCE(SUM(CASE WHEN kind IN ('one_time','recurring','membership') THEN amount_cents ELSE 0 END), 0) AS donated_cents,
+    COALESCE(SUM(amount_cents), 0) AS donated_cents,
     MIN(occurred_at) AS first_gift_at,
     MAX(occurred_at) AS last_gift_at,
     COUNT(*) AS gift_count,
     MAX(CASE WHEN kind IN ('recurring','membership') THEN occurred_at END) AS last_recurring_at
-  FROM donor_gift WHERE email = ? COLLATE NOCASE AND refunded_at IS NULL`;
+  FROM donor_gift
+  WHERE email = ? COLLATE NOCASE AND refunded_at IS NULL
+    AND kind IN ('one_time','recurring','membership')`;
 
 /**
- * Idempotently record a gift and recompute the contact's donor rollups.
- * Returns { recorded, reason?|id? }; DB errors propagate to the caller, which must
- * not leak err.message to the client (sibling pattern: log + generic error response).
- *
- * Sequential statements (not db.batch) are intentional: the ON CONFLICT DO NOTHING
- * insert is the atomic dedupe gate; rollups are derived state recomputed from
- * donor_gift on every event and by the daily daemon, so a mid-sequence failure
- * self-heals on next run. (arise-ignore unbatched-writes)
+ * Recompute a contact's donor rollups from donor_gift (derived state, safe to
+ * re-run any time), then backlink any donor_gift rows still missing contact_id.
+ * Aggregates exclude kind='course' and refunded rows.
  */
-export async function recordDonorGift(db, gift) {
-  const email = String(gift.email || '').trim().toLowerCase();
-  if (!email || !email.includes('@')) return { recorded: false, reason: 'no_email' };
-  const amountCents = Math.round(Number(gift.amountCents) || 0);
-  if (amountCents <= 0) return { recorded: false, reason: 'non_positive_amount' };
-  const occurredMs = Date.parse(gift.occurredAt);
-  if (!Number.isFinite(occurredMs)) return { recorded: false, reason: 'bad_occurred_at' };
-  const occurredAt = new Date(occurredMs).toISOString();
-
-  const id = 'dg_' + crypto.randomUUID();
-  const ins = await db.prepare(
-    `INSERT INTO donor_gift
-       (id, email, display_name, amount_cents, currency, source, source_id, entity, kind, ppgf, occurred_at, receipt_year)
-     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, CAST(strftime('%Y', ?) AS INTEGER))
-     ON CONFLICT(source, source_id) DO NOTHING`
-  ).bind(
-    id, email, gift.displayName || null, amountCents, gift.currency || 'USD',
-    gift.source, String(gift.sourceId), gift.entity || 'foundation', gift.kind || 'one_time',
-    gift.ppgf ? 1 : 0, occurredAt, occurredAt
-  ).run();
-  if (ins.meta.changes === 0) return { recorded: false, reason: 'duplicate' };
-
-  const [first = '', ...restName] = String(gift.displayName || '').trim().split(/\s+/);
-  await db.prepare(
-    `INSERT INTO contact (id, email, first_name, last_name, source, first_seen_at)
-     VALUES (?, ?, ?, ?, 'donor-gift', ?)
-     ON CONFLICT(email) DO NOTHING`
-  ).bind(crypto.randomUUID(), email, first, restName.join(' '), occurredAt).run();
-
+export async function recomputeContactRollups(db, email) {
   const agg = await db.prepare(AGGREGATE_SQL).bind(email).first();
   const stage = deriveStage({
     giftCount: agg?.gift_count || 0,
@@ -108,8 +97,59 @@ export async function recordDonorGift(db, gift) {
          agg?.gift_count || 0, stage, email).run();
 
   await db.prepare(
-    `UPDATE donor_gift SET contact_id = (SELECT id FROM contact WHERE email = ? COLLATE NOCASE) WHERE id = ?`
-  ).bind(email, id).run();
+    `UPDATE donor_gift SET contact_id = (SELECT id FROM contact WHERE email = ? COLLATE NOCASE)
+     WHERE email = ? COLLATE NOCASE AND contact_id IS NULL`
+  ).bind(email, email).run();
+}
+
+/**
+ * Idempotently record a gift and recompute the contact's donor rollups.
+ * Returns { recorded, reason?|id? }; DB errors propagate to the caller, which must
+ * not leak err.message to the client (sibling pattern: log + generic error response).
+ *
+ * Sequential statements (not db.batch) are intentional: the ON CONFLICT DO NOTHING
+ * insert is the atomic dedupe gate; rollups are derived state recomputed from
+ * donor_gift on every event and by the daily daemon, so a mid-sequence failure
+ * self-heals on next run. (arise-ignore unbatched-writes)
+ */
+export async function recordDonorGift(db, gift) {
+  const email = String(gift.email || '').trim().toLowerCase().slice(0, 320);
+  if (!email || !email.includes('@')) return { recorded: false, reason: 'no_email' };
+  const amountCents = Math.round(Number(gift.amountCents) || 0);
+  if (amountCents <= 0) return { recorded: false, reason: 'non_positive_amount' };
+  if (!gift.sourceId) return { recorded: false, reason: 'no_source_id' };
+  const occurredAt = toIsoUtc(gift.occurredAt);
+  if (!occurredAt) return { recorded: false, reason: 'bad_occurred_at' };
+  const displayName = String(gift.displayName || '').trim().slice(0, 200);
+
+  const id = 'dg_' + crypto.randomUUID();
+  const ins = await db.prepare(
+    `INSERT INTO donor_gift
+       (id, email, display_name, amount_cents, currency, source, source_id, entity, kind, ppgf, occurred_at, receipt_year)
+     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, CAST(strftime('%Y', ?) AS INTEGER))
+     ON CONFLICT(source, source_id) DO NOTHING`
+  ).bind(
+    id, email, displayName || null, amountCents, gift.currency || 'USD',
+    gift.source, String(gift.sourceId), gift.entity || 'foundation', gift.kind || 'one_time',
+    gift.ppgf ? 1 : 0, occurredAt, occurredAt
+  ).run();
+  if (ins.meta.changes === 0) {
+    // Stripe retries the webhook on prior 5xx: the gift row may exist while the
+    // rollups from that interrupted run are stale. Recompute heals them.
+    await recomputeContactRollups(db, email);
+    return { recorded: false, reason: 'duplicate' };
+  }
+
+  const [first = '', ...restName] = displayName.split(/\s+/);
+  await db.prepare(
+    `INSERT INTO contact (id, email, first_name, last_name, source, first_seen_at)
+     VALUES (?, ?, ?, ?, 'donor-gift', ?)
+     ON CONFLICT(email) DO UPDATE SET
+       first_name = COALESCE(NULLIF(excluded.first_name, ''), first_name),
+       last_name = COALESCE(NULLIF(excluded.last_name, ''), last_name)`
+  ).bind(crypto.randomUUID(), email, first, restName.join(' '), occurredAt).run();
+
+  await recomputeContactRollups(db, email);
 
   return { recorded: true, id };
 }
