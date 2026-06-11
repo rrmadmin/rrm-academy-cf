@@ -46,7 +46,7 @@
   }
   .search-input {
     width: 100%;
-    padding: 12px 40px 12px 42px;
+    padding: var(--space-3) var(--space-10) 12px 42px;
     font-size: 16px;
     font-family: 'Inter', sans-serif;
     border: 1px solid var(--border-light);
@@ -136,12 +136,12 @@
   .search-results :global(.sr-item) {
     display: block;
     padding: var(--space-5) 0;
-    border-bottom: 1px solid var(--border-light, var(--border-color));
+    border-bottom: 1px solid var(--border-light);
     text-decoration: none;
     transition: background 0.1s;
   }
   .search-results :global(.sr-item:first-of-type) {
-    border-top: 1px solid var(--border-light, var(--border-color));
+    border-top: 1px solid var(--border-light);
   }
   .search-results :global(.sr-item:hover) {
     text-decoration: none;
@@ -169,7 +169,7 @@
     gap: 2px 0;
     font-size: 0.75rem;
     line-height: 1.5;
-    margin-bottom: 8px;
+    margin-bottom: var(--space-2);
   }
   .search-results :global(.sr-authors) {
     color: var(--text-secondary);
@@ -294,7 +294,7 @@
     display: inline-flex;
     align-items: center;
     gap: 6px;
-    padding: 6px 12px;
+    padding: 6px var(--space-3);
     font-family: 'Inter', sans-serif;
     font-size: 0.75rem;
     font-weight: 500;
@@ -321,7 +321,7 @@
     font-weight: 600;
     color: var(--text-tertiary);
     background: var(--bg-body);
-    border-radius: 8px;
+    border-radius: var(--radius-md);
     font-variant-numeric: tabular-nums;
   }
   .search-results :global(.sr-chip--active) {
@@ -348,7 +348,7 @@
   .search-results :global(.sr-group-heading) {
     display: flex;
     align-items: center;
-    gap: 8px;
+    gap: var(--space-2);
     margin: 0 0 var(--space-2);
     padding: 0;
     font-family: 'Inter', sans-serif;
@@ -402,7 +402,7 @@
     display: block;
     width: 100%;
     margin-top: var(--space-3);
-    padding: 8px 14px;
+    padding: var(--space-2) 14px;
     font-family: 'Inter', sans-serif;
     font-size: 0.75rem;
     font-weight: 500;

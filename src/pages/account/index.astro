@@ -740,7 +740,7 @@ for (const c of coursesData) {
   /* STUC member courses section (decoration sourced from /api/community/status) */
   .member-courses-header { display: flex; align-items: center; flex-wrap: wrap; gap: var(--space-3); margin-bottom: var(--space-4); }
   .member-courses-header h2 { margin: 0; }
-  .member-courses-tier { font-size: 0.75rem; font-weight: 500; color: var(--purple-700); background: var(--purple-50); padding: 4px 10px; border-radius: var(--radius-pill); }
+  .member-courses-tier { font-size: 0.75rem; font-weight: 500; color: var(--purple-700); background: var(--purple-50); padding: var(--space-1) 10px; border-radius: var(--radius-pill); }
   .member-courses-banner { padding: var(--space-3) var(--space-4); background: var(--status-warn-bg); border: 1px solid var(--status-warn-border); color: var(--status-warn-text); border-radius: var(--radius-md); font-size: 0.875rem; margin-bottom: var(--space-4); }
   .member-courses-banner a { color: var(--status-warn-text); font-weight: 600; text-decoration: underline; }
   :global(.course-mini) {
@@ -814,17 +814,17 @@ for (const c of coursesData) {
     margin-top: var(--space-1);
   }
   :global(.course-mini__status) { font-size: 0.8125rem; font-weight: 500; }
-  :global(.course-mini__status--done) { color: var(--green-700, #2d7a4f); }
+  :global(.course-mini__status--done) { color: var(--green-700); }
   :global(.course-mini__status--progress) { color: var(--purple-700); }
   :global(.course-mini__status--new) { color: var(--text-muted); }
   :global(.course-mini__lessons) { font-size: 0.75rem; color: var(--text-tertiary); }
 
   .billing-cancel-notice {
     font-size: 0.8125rem;
-    color: #e67e22;
+    color: var(--status-warn-text);
     margin-top: var(--space-3);
     padding: var(--space-2) var(--space-4);
-    background: rgba(230, 126, 34, 0.08);
+    background: var(--status-warn-bg);
     border-radius: var(--radius-md);
   }
   .billing-wix-note {

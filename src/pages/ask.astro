@@ -858,7 +858,7 @@ const ASK_CATEGORIES = [
   .ask-citations a { color: var(--accent); text-decoration: underline; }
   .ask-citations a:hover { color: var(--accent-hover); }
 
-  .ask-dots { display: inline-flex; gap: 4px; }
+  .ask-dots { display: inline-flex; gap: var(--space-1); }
   .ask-dots span {
     width: 6px; height: 6px; border-radius: 50%; background: var(--text-muted);
     animation: ask-bounce 1s infinite;
@@ -907,7 +907,7 @@ const ASK_CATEGORIES = [
   .ask-source b { color: var(--accent); font-weight: 600; }
   .ask-cats { display: grid; grid-template-columns: repeat(3, 1fr); gap: var(--space-10); }
   .ask-cat__name {
-    display: flex; align-items: center; gap: 8px;
+    display: flex; align-items: center; gap: var(--space-2);
     font-size: 0.75rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.07em;
     color: var(--text-muted);
     padding-bottom: var(--space-2); margin-bottom: var(--space-2);
@@ -939,7 +939,7 @@ const ASK_CATEGORIES = [
     display: inline-flex;
     align-items: center;
     gap: 6px;
-    padding: 4px 10px;
+    padding: var(--space-1) 10px;
     background: transparent;
     border: 1px solid color-mix(in srgb, var(--accent) 25%, var(--border-color));
     border-radius: var(--radius-pill);

@@ -831,7 +831,7 @@ const citationMeta = {
   .abstract {
     background: transparent;
     border: none;
-    border-top: 1px solid var(--border-light, var(--border-color));
+    border-top: 1px solid var(--border-light);
     border-radius: 0;
     padding: var(--space-6) 0 0 0;
     margin-bottom: var(--space-8);
@@ -846,7 +846,7 @@ const citationMeta = {
     color: var(--neutral-500);
     display: flex;
     align-items: center;
-    gap: 8px;
+    gap: var(--space-2);
     flex-wrap: wrap;
   }
   .abstract-fulltext-link {
@@ -859,7 +859,7 @@ const citationMeta = {
     transition: color 0.15s;
   }
   .abstract-fulltext-link:hover {
-    color: var(--purple-900, var(--accent));
+    color: var(--purple-900);
     text-decoration: underline;
   }
   .abstract-backfill-note {
@@ -908,7 +908,7 @@ const citationMeta = {
     font-size: 0.875em;
     background: var(--neutral-100);
     padding: 0.125em 0.375em;
-    border-radius: 4px;
+    border-radius: var(--radius-sm);
   }
   .abstract-section :global(blockquote) {
     margin: var(--space-3) 0;
@@ -927,8 +927,8 @@ const citationMeta = {
   .editorial-response-callout {
     background: var(--neutral-100);
     border: 1px solid var(--border-color);
-    border-left: 4px solid #b8860b;
-    border-radius: var(--radius-md, 8px);
+    border-left: 4px solid var(--editorial-accent);
+    border-radius: var(--radius-md);
     padding: var(--space-6) var(--space-8);
     margin-bottom: var(--space-8);
   }
@@ -964,19 +964,19 @@ const citationMeta = {
     font-weight: 600;
     color: var(--editorial-accent);
     text-decoration: underline;
-    text-decoration-color: rgba(184, 134, 11, 0.4);
+    text-decoration-color: color-mix(in srgb, var(--editorial-accent) 40%, transparent);
     text-underline-offset: 2px;
   }
   .editorial-response-link:hover {
-    text-decoration-color: rgba(184, 134, 11, 1);
+    text-decoration-color: var(--editorial-accent);
   }
 
   /* Editorial body (full markdown rendered inline on type='editorial' pages). */
   .editorial-body {
     background: var(--bg-surface);
     border: 1px solid var(--border-color);
-    border-left: 4px solid #b8860b;
-    border-radius: var(--radius-md, 8px);
+    border-left: 4px solid var(--editorial-accent);
+    border-radius: var(--radius-md);
     padding: var(--space-8);
     margin-bottom: var(--space-8);
     font-size: 1rem;
@@ -1007,11 +1007,11 @@ const citationMeta = {
   .editorial-body a {
     color: var(--editorial-accent);
     text-decoration: underline;
-    text-decoration-color: rgba(184, 134, 11, 0.4);
+    text-decoration-color: color-mix(in srgb, var(--editorial-accent) 40%, transparent);
     text-underline-offset: 2px;
   }
   .editorial-body a:hover {
-    text-decoration-color: rgba(184, 134, 11, 1);
+    text-decoration-color: var(--editorial-accent);
   }
   .editorial-body hr {
     border: none;
@@ -1030,7 +1030,7 @@ const citationMeta = {
   .article-insights {
     background: var(--bg-surface);
     border: 1px solid var(--border-color);
-    border-radius: var(--radius-md, 8px);
+    border-radius: var(--radius-md);
     padding: var(--space-8);
     margin-bottom: var(--space-8);
   }
@@ -1130,8 +1130,8 @@ const citationMeta = {
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    gap: 4px;
-    padding: 4px;
+    gap: var(--space-1);
+    padding: var(--space-1);
     font-size: 0.6875rem;
     font-weight: 500;
     font-family: 'Inter', sans-serif;

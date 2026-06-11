@@ -450,22 +450,22 @@ function textToParagraphs(text: string): string {
      auto-switch via the [data-theme] attribute on <html>. */
   .cited-refs {
     margin-top: 1.75rem;
-    padding: 1.25rem 1.5rem;
+    padding: var(--space-5) var(--space-6);
     background: var(--bg-body);
     border-left: 3px solid var(--accent);
-    border-radius: 4px;
+    border-radius: var(--radius-sm);
   }
   .cited-refs__title {
     font-size: 1.05rem;
     text-transform: uppercase;
     letter-spacing: 0.06em;
-    margin: 0 0 0.75rem 0;
+    margin: 0 0 var(--space-3) 0;
     color: var(--text-secondary);
     font-weight: 600;
   }
   .cited-refs__list {
     margin: 0;
-    padding-left: 1.5rem;
+    padding-left: var(--space-6);
     font-size: 0.92rem;
     color: var(--text-primary);
     line-height: 1.55;
@@ -489,24 +489,24 @@ function textToParagraphs(text: string): string {
   }
 
   .def-sources {
-    margin-top: 2rem;
-    padding: 1.5rem;
+    margin-top: var(--space-8);
+    padding: var(--space-6);
     background: var(--bg-body);
     border-left: 3px solid var(--sand-500);
-    border-radius: 4px;
+    border-radius: var(--radius-sm);
   }
   .def-sources__title {
     font-size: 1.05rem;
     text-transform: uppercase;
     letter-spacing: 0.06em;
-    margin: 0 0 0.5rem 0;
+    margin: 0 0 var(--space-2) 0;
     color: var(--text-secondary);
     font-weight: 600;
   }
   .def-sources__intro {
     font-size: 0.875rem;
     color: var(--text-secondary);
-    margin: 0 0 1.25rem 0;
+    margin: 0 0 var(--space-5) 0;
     line-height: 1.5;
   }
   .def-sources__list {
@@ -515,11 +515,11 @@ function textToParagraphs(text: string): string {
     margin: 0;
     display: flex;
     flex-direction: column;
-    gap: 1.25rem;
+    gap: var(--space-5);
   }
   .def-source {
     border-top: 1px solid var(--border-light);
-    padding-top: 1rem;
+    padding-top: var(--space-4);
   }
   .def-source:first-child {
     border-top: none;
@@ -528,9 +528,9 @@ function textToParagraphs(text: string): string {
   .def-source__header {
     display: flex;
     flex-wrap: wrap;
-    gap: 0.5rem 0.75rem;
+    gap: var(--space-2) var(--space-3);
     align-items: baseline;
-    margin-bottom: 0.5rem;
+    margin-bottom: var(--space-2);
   }
   .def-source__label {
     font-weight: 600;
@@ -555,8 +555,8 @@ function textToParagraphs(text: string): string {
     border-radius: 2px;
   }
   .def-source__quote {
-    margin: 0 0 0.5rem 0;
-    padding: 0 0 0 0.75rem;
+    margin: 0 0 var(--space-2) 0;
+    padding: 0 0 0 var(--space-3);
     border-left: 2px solid var(--border-light);
     font-size: 0.95rem;
     color: var(--text-primary);
@@ -564,7 +564,7 @@ function textToParagraphs(text: string): string {
     font-style: normal;
   }
   .def-source__quote p {
-    margin: 0 0 0.5rem 0;
+    margin: 0 0 var(--space-2) 0;
   }
   .def-source__quote p:last-child {
     margin-bottom: 0;
@@ -572,7 +572,7 @@ function textToParagraphs(text: string): string {
   .def-source__footer {
     display: flex;
     flex-wrap: wrap;
-    gap: 0.5rem 1rem;
+    gap: var(--space-2) var(--space-4);
     font-size: 0.8rem;
     color: var(--text-secondary);
     align-items: baseline;
@@ -615,7 +615,7 @@ function textToParagraphs(text: string): string {
     display: inline-flex;
     align-items: center;
     gap: 5px;
-    padding: 4px 9px;
+    padding: var(--space-1) 9px;
     border-radius: var(--radius-pill);
     font-family: 'Inter', sans-serif;
     font-size: 0.6875rem;
@@ -747,7 +747,7 @@ function textToParagraphs(text: string): string {
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    padding: 10px 12px;
+    padding: 10px var(--space-3);
     background: var(--bg-surface);
     border: 1px solid var(--border-color);
     border-radius: var(--radius-sm);
@@ -774,7 +774,7 @@ function textToParagraphs(text: string): string {
     z-index: 9999;
     background: var(--text-primary);
     color: var(--bg-body);
-    padding: 10px 20px;
+    padding: 10px var(--space-5);
     border-radius: var(--radius-pill);
     font-family: 'Inter', sans-serif;
     font-size: 0.8125rem;
