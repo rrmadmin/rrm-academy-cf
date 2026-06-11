@@ -755,7 +755,9 @@ function normalizeVal(v) {
     // expand 3/4-digit hex shorthand (#fff -> #ffffff) so notation differences don't read as divergence
     .replace(/#([0-9a-f])([0-9a-f])([0-9a-f])([0-9a-f]?)\b/g, (m, r, g, b, a) => `#${r}${r}${g}${g}${b}${b}${a ? a + a : ''}`)
     // normalize leading zeros (.8125rem -> 0.8125rem), anchored so 10.5px is untouched
-    .replace(/(^|[\s(,:])\.(\d)/g, '$10.$2');
+    .replace(/(^|[\s(,:])\.(\d)/g, '$10.$2')
+    // normalize comma spacing so 'a,b' and 'a, b' compare equal (font lists, rgba)
+    .replace(/,\s*/g, ', ');
 }
 
 function nearestSpace(px) {
