@@ -179,6 +179,33 @@ Both are self-hosted via `@fontsource` packages and preloaded as WOFF2 in `<head
 | Meta | Inter | `0.75rem`–`0.875rem` | 500 | varies | Journal lines, timestamps, counts |
 | Small labels | Inter | `0.6875rem` | 600 | — | Eyebrow labels, badge text, uppercase |
 
+### Paired Type Scale (approved 2026-06-11)
+
+The complete typographic vocabulary is **11 steps + 9 leadings**, tokenized in
+`global.css` (`--text-d1..d5`, `--text-b1..b6`, `--leading-*`). Cormorant's low
+x-height means a display step sits ~1.15-1.25x its Inter optical equivalent —
+the pairing is locked here so pages never compensate by eye again. Specimen:
+`docs/design/type-specimen-2026-06-11.html`.
+
+| Step | Size | Leading | Role |
+|---|---|---|---|
+| D1 | `clamp(2rem, 1.25rem + 2.5vw, 3.25rem)` | 1.1 | hero h1 |
+| D2 | `1.75rem` | 1.15 | section h2 |
+| D3 | `1.5rem` | 1.15 | subsection h3 |
+| D4 | `1.25rem` | 1.2 | card title h4 |
+| D5 | `1.125rem` | 1.25 | detail heading |
+| B1 | `1rem` | 1.75 (1.8 articles) | reading text |
+| B2 | `0.9375rem` | 1.6 | UI text |
+| B3 | `0.875rem` | 1.5 | meta-large |
+| B4 | `0.8125rem` | 1.5 | meta (workhorse) |
+| B5 | `0.75rem` | 1.4 | caption |
+| B6 | `0.6875rem` | 1.2 | label/eyebrow (600, caps) |
+
+**Weights:** Cormorant 400/600, Inter 400/500/600 only — no 700 (no font file
+ships; browsers synthesize faux bold). **Off-scale sizes are gated** by
+css-audit; remaining custom clamps are itemized in
+`scripts/css-audit/type-scale-manual-pass.md`.
+
 ### Hero Typography
 
 Heroes use fluid `clamp()` sizing. Interior page heroes share the `.hero-title` class:
