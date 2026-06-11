@@ -215,7 +215,7 @@ const jsonLd = {
     <!-- Hero -->
     <section class="hp-hero" aria-labelledby="hp-hero-h1">
       <div class="container container--narrow">
-        <p class="hp-hero__descriptor">An education project of Restorative Reproductive Medicine Foundation, Inc., a 501(c)(3) public charity. EIN 93-4594315.</p>
+        <p class="hp-hero__descriptor">An education project of Restorative Reproductive Medicine Foundation, Inc.</p>
         <h1 id="hp-hero-h1">Reclaim Reproductive Health with the Evidence</h1>
         <p class="hp-hero__subtitle">
           The online educational home of <strong>Restorative Reproductive Medicine</strong>.
@@ -237,6 +237,7 @@ const jsonLd = {
           <span class="hp-hero__link-dot" aria-hidden="true">·</span>
           <a href="/donate/" class="hp-hero__link" data-track-cta="hero-donate">Donate</a>
         </p>
+        <p class="hp-hero__legal">A 501(c)(3) public charity · EIN 93-4594315</p>
         <p class="hp-hero__updated"><LastUpdated path="/" /></p>
       </div>
       <div class="hp-hero__trust">
@@ -676,30 +677,31 @@ const jsonLd = {
     margin-bottom: auto;
   }
 
-  .hp-hero__descriptor {
-    font-size: 0.75rem;
-    letter-spacing: 0.12em;
-    line-height: 1.5;
+  .hp-hero .hp-hero__descriptor {
+    font-size: var(--text-b6);
+    letter-spacing: 0.1em;
+    line-height: var(--leading-ui);
     text-transform: uppercase;
     color: var(--text-tertiary);
-    max-width: 52ch;
-    margin-bottom: var(--space-5);
+    margin-bottom: var(--space-6);
   }
 
   .hp-hero h1 {
     font-size: clamp(2rem, 1.2rem + 3.5vw, 4.5rem);
     line-height: 1.1;
     letter-spacing: -0.03em;
-    margin-bottom: var(--space-5);
+    margin-bottom: var(--space-6);
     color: var(--text-primary);
+    text-wrap: balance;
   }
 
-  .hp-hero__subtitle {
+  .hp-hero .hp-hero__subtitle {
     font-size: 1.125rem;
     line-height: 1.75;
     color: var(--text-secondary);
     max-width: 60ch;
     margin-bottom: var(--space-8);
+    text-wrap: pretty;
   }
 
   .hp-hero__nonprofit {
@@ -710,10 +712,18 @@ const jsonLd = {
     margin-bottom: var(--space-2);
   }
 
-  .hp-hero__updated {
+  .hp-hero .hp-hero__legal {
+    font-size: var(--text-b5);
+    line-height: var(--leading-ui);
+    color: var(--text-muted);
+    margin-top: var(--space-10);
+    margin-bottom: 0;
+  }
+
+  .hp-hero .hp-hero__updated {
     font-size: 0.75rem;
     color: var(--text-muted);
-    margin-top: var(--space-8);
+    margin-top: var(--space-1);
     margin-bottom: var(--space-5);
   }
   .hp-hero__updated time {
@@ -764,7 +774,7 @@ const jsonLd = {
     justify-content: flex-start;
     align-items: center;
     gap: var(--space-3);
-    margin: 0 0 var(--space-4);
+    margin: 0 0 var(--space-6);
   }
   .hp-hero__cta .btn {
     text-decoration: none;
@@ -802,20 +812,19 @@ const jsonLd = {
       min-height: calc(100vh - 56px);
       padding: var(--space-10) 0 var(--space-8);
     }
-    .hp-hero__updated {
+    .hp-hero .hp-hero__updated {
       display: none;
     }
-    .hp-hero__descriptor {
-      font-size: 0.6875rem;
-      margin-bottom: var(--space-3);
+    .hp-hero .hp-hero__descriptor {
+      margin-bottom: var(--space-4);
     }
     .hp-hero h1 {
       font-size: 2.5rem;
-      margin-bottom: var(--space-4);
+      margin-bottom: var(--space-6);
     }
-    .hp-hero__subtitle {
+    .hp-hero .hp-hero__subtitle {
       font-size: 0.9375rem;
-      margin-bottom: var(--space-2);
+      margin-bottom: var(--space-8);
     }
     .hp-hero__nonprofit {
       font-size: 0.75rem;
@@ -825,7 +834,11 @@ const jsonLd = {
       flex-direction: column;
       align-items: stretch;
       gap: var(--space-2);
-      margin-bottom: var(--space-3);
+      margin-bottom: var(--space-6);
+    }
+    .hp-hero .hp-hero__legal {
+      margin-top: var(--space-6);
+      font-size: var(--text-b6);
     }
     .hp-hero__cta .btn {
       width: 100%;
