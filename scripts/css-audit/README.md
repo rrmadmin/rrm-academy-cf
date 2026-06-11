@@ -77,3 +77,13 @@ aggregate but never block pre-commit — they need human judgment per finding.
 
 - `src/pages/openapi.astro` method badges: GET blue `#2563eb` / POST green `#16a34a`.
   REST-client convention; deliberately kept off-palette. Counted in baseline.
+
+## Divergence exceptions
+
+`divergence-exceptions.json` lists selectors whose cross-file divergence is a
+verified deliberate variant (archive reading-view, post-detail controls,
+compact-vs-full hub, icon-coupled search geometry). The scanner skips these and
+reports the count as `divergenceExcepted`. Margins are excluded from divergence
+comparison entirely (placement context, not component identity), and selectors
+are compared within cascade domains (src vs functions) since standalone
+functions/ HTML never shares a cascade with site pages.

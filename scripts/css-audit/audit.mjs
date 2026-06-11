@@ -667,36 +667,59 @@ for (const p of parsed) {
     }
   });
 
-  // selector-divergence collection
+  // selector-divergence collection.
+  // functions/ emit standalone HTML that never shares a cascade with src/ pages,
+  // so divergence is only meaningful within a domain — key by domain + selector.
+  const domain = file.startsWith('functions/') ? 'functions' : 'src';
   p.root.walkRules((rule) => {
     if (!rule.selector || !rule.selector.startsWith('.')) return;
     if (rule.selector.includes(':') || rule.selector.includes(' ') || rule.selector.includes(',')) return; // simple class selectors only
     const declSet = new Set();
     rule.walkDecls((d) => declSet.add(`${d.prop}:${normalizeVal(d.value)}`));
     if (!declSet.size) return;
-    if (!selectorMap.has(rule.selector)) selectorMap.set(rule.selector, new Map());
-    const fileMap = selectorMap.get(rule.selector);
+    const key = `${domain}\u0000${rule.selector}`;
+    if (!selectorMap.has(key)) selectorMap.set(key, new Map());
+    const fileMap = selectorMap.get(key);
     if (!fileMap.has(file)) fileMap.set(file, new Set());
     for (const d of declSet) fileMap.get(file).add(d);
   });
 }
 
 // --- 8. selector-divergence findings
-for (const [selector, fileMap] of selectorMap) {
+// Documented deliberate variants live in divergence-exceptions.json (selector -> reason).
+let divergenceExceptions = {};
+try {
+  divergenceExceptions = JSON.parse(fs.readFileSync(path.join(ROOT, 'scripts/css-audit/divergence-exceptions.json'), 'utf8')).exceptions || {};
+} catch { /* no exceptions file */ }
+let divergenceExcepted = 0;
+for (const [key, fileMap] of selectorMap) {
+  const selector = key.split('\u0000')[1];
   if (fileMap.size < 2) continue;
+  if (divergenceExceptions[selector]) { divergenceExcepted++; continue; }
   const files = [...fileMap.keys()];
   const allDecls = [...fileMap.values()];
   const union = new Set(allDecls.flatMap((s) => [...s]));
   const common = [...union].filter((d) => allDecls.every((s) => s.has(d)));
   if (common.length === union.size) continue; // identical everywhere
-  // props that differ in VALUE across files (same prop, different value) — the real drift signal
-  const propVals = new Map();
-  for (const s of allDecls) for (const d of s) {
-    const [prop] = d.split(':');
-    if (!propVals.has(prop)) propVals.set(prop, new Set());
-    propVals.get(prop).add(d);
-  }
-  const conflicting = [...propVals.entries()].filter(([, vals]) => vals.size > 1).map(([prop]) => prop);
+  // props that differ in VALUE across files — compare each file's value-SET per prop,
+  // so a base+media pair (two values) identical in every file is not a conflict.
+  // margin* props are excluded: margins are placement context, not component identity.
+  const perFileProp = [...fileMap.values()].map((declSet) => {
+    const m = new Map();
+    for (const d of declSet) {
+      const i = d.indexOf(':');
+      const prop = d.slice(0, i);
+      if (!m.has(prop)) m.set(prop, new Set());
+      m.get(prop).add(d.slice(i + 1));
+    }
+    return m;
+  });
+  const allProps = new Set(perFileProp.flatMap((m) => [...m.keys()]));
+  const conflicting = [...allProps].filter((prop) => {
+    if (/^margin/.test(prop)) return false;
+    const sets = perFileProp.filter((m) => m.has(prop)).map((m) => [...m.get(prop)].sort().join('|'));
+    return sets.length >= 2 && new Set(sets).size > 1;
+  });
   if (!conflicting.length) continue;
   add({
     category: 'selector-divergence', severity: 'medium',
@@ -785,6 +808,7 @@ const summary = {
   parseErrors,
   tokensDefined: tokenDefs.size,
   totalFindings: findings.length,
+  divergenceExcepted,
   byCategory,
   bySeverity,
   histograms: {
