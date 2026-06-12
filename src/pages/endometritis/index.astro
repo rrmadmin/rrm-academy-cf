@@ -1,5 +1,5 @@
 ---
-import PillarLayout from '../../layouts/PillarLayout.astro';
+import GuideLayout from '../../layouts/GuideLayout.astro';
 import CiteThisPage from '../../components/CiteThisPage.astro';
 import pageDates from '../../data/page-dates.json';
 import endometritisData from '../../data/endometritis.json';
@@ -267,7 +267,7 @@ const EDITING_NOTICE_HTML = `<strong>Editor's note:</strong> This guide is being
 const DISCLAIMER_HTML = `This content is for educational and reference purposes only and does not constitute medical advice, diagnosis, or treatment. Decisions about evaluation or care for chronic endometritis should be made in consultation with a qualified clinician who knows your specific clinical context. Citations to specific studies and consensus documents do not imply individual-patient applicability.`;
 ---
 
-<PillarLayout
+<GuideLayout
   slug="endometritis"
   jsonLd={pageSchema}
   extraSchema={[faqSchema]}
@@ -496,7 +496,7 @@ const DISCLAIMER_HTML = `This content is for educational and reference purposes 
             url="https://rrmacademy.org/endometritis/"
           />
   </Fragment>
-</PillarLayout>
+</GuideLayout>
 
 <style>
   .condition-grid {

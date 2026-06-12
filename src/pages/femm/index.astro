@@ -1,5 +1,5 @@
 ---
-import PillarLayout from '../../layouts/PillarLayout.astro';
+import GuideLayout from '../../layouts/GuideLayout.astro';
 import CiteThisPage from '../../components/CiteThisPage.astro';
 import pageDates from '../../data/page-dates.json';
 import { buildScholarlyArticleStub } from '../../lib/identity';
@@ -161,7 +161,7 @@ const faqSchema = {
 };
 ---
 
-<PillarLayout
+<GuideLayout
   slug="femm"
   jsonLd={pageSchema}
   extraSchema={[faqSchema]}
@@ -492,7 +492,7 @@ const faqSchema = {
           />
 
           <p class="disclaimer"><em>This content is for educational purposes only and does not constitute medical advice. Consult a FEMM-trained provider or qualified healthcare professional for guidance specific to your situation.</em></p>
-</PillarLayout>
+</GuideLayout>
 
 <style>
   .author-byline {

@@ -105,14 +105,14 @@ const REQUIRED_FIELDS = [
   'in_guides_catalogue',
   'category',
   'in_shell_guides_nav',
-  // PillarLayout foundation fields (added 2026-06-08). reviewer is intentionally
+  // GuideLayout foundation fields (added 2026-06-08). reviewer is intentionally
   // NOT here: 9 pillars have no reviewer and gateG1 fails on `=== undefined`.
   'pageTitle',
   'pageDescription',
   'pageH1',
   'breadcrumbName',
   'authorId',
-  'usesPillarLayout',
+  'usesGuideLayout',
 ];
 
 // G6 reverse check: a clinical pillar page must be REGISTERED (which is what gives
@@ -161,7 +161,7 @@ function gateG6(registry) {
   return issues;
 }
 
-const IMPORT_PILLAR_RE = /^\s*import\s+PillarLayout\s+from\s+['"][^'"]*PillarLayout\.astro['"]/m;
+const IMPORT_PILLAR_RE = /^\s*import\s+GuideLayout\s+from\s+['"][^'"]*GuideLayout\.astro['"]/m;
 const IMPORT_BASE_RE = /^\s*import\s+BaseLayout\s+from\s+['"][^'"]*BaseLayout\.astro['"]/m;
 const USES_BASE_TAG_RE = /<BaseLayout[\s>]/;
 const HANDROLLED_BREADCRUMB_RE = /['"]@type['"]\s*:\s*['"]BreadcrumbList['"]/;
@@ -169,19 +169,19 @@ const HANDROLLED_BREADCRUMB_RE = /['"]@type['"]\s*:\s*['"]BreadcrumbList['"]/;
 export function gateG7(registry, readFile = (p) => readFileSync(p, 'utf-8')) {
   const issues = [];
   for (const p of registry.guides || []) {
-    if (typeof p.usesPillarLayout !== 'boolean' || !p.file) continue; // gateG1 already flagged a missing flag/file
+    if (typeof p.usesGuideLayout !== 'boolean' || !p.file) continue; // gateG1 already flagged a missing flag/file
     const fullPath = join(ROOT, 'src', 'pages', p.file);
     let src;
     try { src = readFile(fullPath); } catch { continue; } // gateG1 already flagged a missing file
     const importsPillar = IMPORT_PILLAR_RE.test(src);
-    if (p.usesPillarLayout) {
-      if (!importsPillar) issues.push(`G7 ${p.slug}: usesPillarLayout:true -- page must import PillarLayout (does not import PillarLayout)`);
+    if (p.usesGuideLayout) {
+      if (!importsPillar) issues.push(`G7 ${p.slug}: usesGuideLayout:true -- page must import GuideLayout (does not import GuideLayout)`);
       if (IMPORT_BASE_RE.test(src) || USES_BASE_TAG_RE.test(src))
-        issues.push(`G7 ${p.slug}: usesPillarLayout:true -- page must NOT import or use BaseLayout directly (PillarLayout wraps it)`);
+        issues.push(`G7 ${p.slug}: usesGuideLayout:true -- page must NOT import or use BaseLayout directly (GuideLayout wraps it)`);
       if (HANDROLLED_BREADCRUMB_RE.test(src))
-        issues.push(`G7 ${p.slug}: usesPillarLayout:true but hand-rolls a BreadcrumbList literal (the layout owns it; @graph pages must delete the in-graph BreadcrumbList)`);
+        issues.push(`G7 ${p.slug}: usesGuideLayout:true but hand-rolls a BreadcrumbList literal (the layout owns it; @graph pages must delete the in-graph BreadcrumbList)`);
     } else if (importsPillar) {
-      issues.push(`G7 ${p.slug}: usesPillarLayout:false -- page must NOT import PillarLayout (half-revert?)`);
+      issues.push(`G7 ${p.slug}: usesGuideLayout:false -- page must NOT import GuideLayout (half-revert?)`);
     }
   }
   return issues;
@@ -288,7 +288,7 @@ if (import.meta.url === `file://${process.argv[1]}`) {
     } else {
       console.log(`[validate-guides-registry] checking ${registry.guides?.length ?? 0} pillars against ${CONSUMERS.length} consumers`);
       if (errors.length === 0) {
-        console.log('[validate-guides-registry] G1-G3 + G6 + G7 ALL CLEAR -- SSOT integrity + consumer derivation + no-hardcoded-bypass + clinical-page registration + PillarLayout enforcement');
+        console.log('[validate-guides-registry] G1-G3 + G6 + G7 ALL CLEAR -- SSOT integrity + consumer derivation + no-hardcoded-bypass + clinical-page registration + GuideLayout enforcement');
       } else {
         console.error(`[validate-guides-registry] BLOCKED -- ${errors.length} issue(s):`);
         for (const e of errors) console.error(`  - ${e}`);

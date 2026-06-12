@@ -26,7 +26,7 @@
     ".hub-stream-lock__text": "compact vs full hub variant",
     ".search-input": "input padding is coupled to each context's icon geometry (header vs SearchBar vs glossary); do not blind-align",
     ".abstract": "library renders the abstract as a callout box deliberately; global is the plain variant",
-    ".container": "six pillar pages deliberately widen the article container (PillarLayout wideContainer pattern)",
+    ".container": "six pillar pages deliberately widen the article container (GuideLayout wideContainer pattern)",
     ".pill": "dev/providers.astro is a self-contained sandbox mirror, not a site surface",
     ".tier-grid": "donate fundraiser tiers, STUC membership tiers, and partners showcase are three distinct page designs; revisit if a shared tier component lands",
     ".tier-card": "three distinct tier-page designs (see .tier-grid)",

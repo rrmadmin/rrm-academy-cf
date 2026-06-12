@@ -30,7 +30,7 @@ const GUIDES = PILLAR_REGISTRY.guides
   .map((p) => ({
     slug: p.slug,
     file: p.file,
-    usesPillarLayout: p.usesPillarLayout === true,
+    usesGuideLayout: p.usesGuideLayout === true,
     pageH1: p.pageH1,
     pageDescription: p.pageDescription,
   }))
@@ -199,8 +199,8 @@ function build() {
     const { frontmatter, body } = splitFrontmatter(src);
 
     let title, description;
-    if (g.usesPillarLayout) {
-      // Migrated pages render the <h1> and wrap BaseLayout inside PillarLayout,
+    if (g.usesGuideLayout) {
+      // Migrated pages render the <h1> and wrap BaseLayout inside GuideLayout,
       // so there is no literal <h1>/<BaseLayout> to scrape. Read the verbatim
       // values the registry captured. pageH1 (NOT pageTitle) is the guides-card
       // title -- they differ on many pillars and this string is embedded 3x

@@ -1,5 +1,5 @@
 ---
-import PillarLayout from '../../layouts/PillarLayout.astro';
+import GuideLayout from '../../layouts/GuideLayout.astro';
 import pageDates from '../../data/page-dates.json';
 import isthmoceleData from '../../data/isthmocele.json';
 import { buildScholarlyArticleStub } from '../../lib/identity';
@@ -270,7 +270,7 @@ const FAQ_ITEMS = [
 const DISCLAIMER_HTML = `This content is for educational and reference purposes only and does not constitute medical advice, diagnosis, or treatment. Decisions about evaluation or care for a uterine isthmocele should be made in consultation with a qualified clinician who knows your specific clinical context. Citations to specific studies do not imply individual-patient applicability.`;
 ---
 
-<PillarLayout
+<GuideLayout
   slug="isthmocele"
   jsonLd={pageSchema}
   extraSchema={[faqSchema]}
@@ -510,7 +510,7 @@ const DISCLAIMER_HTML = `This content is for educational and reference purposes 
             <p><a href="/what-is-rrm/" class="btn btn--secondary">What is Restorative Reproductive Medicine?</a> <a href="/library/" class="btn btn--secondary">Browse the Research Library</a></p>
           </div>
   </Fragment>
-</PillarLayout>
+</GuideLayout>
 
 <style>
   .editing-notice {

@@ -4,7 +4,7 @@
 
 **Goal:** Build and publish the comprehensive, citable RRM/NaPro outcomes evidence pillar at `/rrm-success-rates/` per the approved spec `docs/superpowers/specs/2026-06-03-rrm-success-rates-guide-design.md`.
 
-**Architecture:** Static Astro pillar page driven by a committed schema'd JSON SSOT (`src/data/rrm-success-rates.json`), rendered with the house chart-figure light/dark SVG pattern, per-section share/anchor controls via a new `SectionShare.astro`, study-level `citation` JSON-LD, print stylesheet, and (final step) a branded static PDF handout. Wiring follows `/pillar-create` Gate 11.5 (`ssot/pillars.json` SSOT + rrm-router `ASTRO_ROUTES`).
+**Architecture:** Static Astro pillar page driven by a committed schema'd JSON SSOT (`src/data/rrm-success-rates.json`), rendered with the house chart-figure light/dark SVG pattern, per-section share/anchor controls via a new `SectionShare.astro`, study-level `citation` JSON-LD, print stylesheet, and (final step) a branded static PDF handout. Wiring follows `/pillar-create` Gate 11.5 (`ssot/guides.json` SSOT + rrm-router `ASTRO_ROUTES`).
 
 **Tech Stack:** Astro 5.3 static, CF Pages, D1 (`rrm-library` for citations, `rrm-auth` for glossary), rrm-cli, hand-authored SVG charts, CF Browser Rendering (PDF).
 
@@ -39,7 +39,7 @@
 | `src/components/SectionShare.astro` | Create (heading + anchor + share) | 5 |
 | `public/images/rrm-success-rates/*.svg` | Create (10 light + 10 dark) | 6 |
 | `src/pages/rrm-success-rates/index.astro` | Create (the page) | 7–11 |
-| `ssot/pillars.json` | Modify (append entry) | 12 |
+| `ssot/guides.json` | Modify (append entry) | 12 |
 | `static-overrides/llms.txt` | Modify (bullet + paragraph) | 12 |
 | `ssot/agent-surfaces.json` | Modify (`llms.primary_urls`) | 12 |
 | `src/pages/art-registries-and-codes/index.astro` | Modify (cross-link back) | 12 |
@@ -541,7 +541,7 @@ const TOC_ITEMS = SECTIONS.map((s) => ({ href: `#${s.id}`, label: s.title }));
 :global([data-theme="dark"]) .chart-dark { display: block; }
 ```
 
-- [ ] **Step 7.5:** Build smoke: `npm run build` → exits 0, `dist/rrm-success-rates/index.html` exists. (pillars.json registration comes in Task 12; the sitemap integration only validates slugs that are registered, so an unregistered page builds fine.)
+- [ ] **Step 7.5:** Build smoke: `npm run build` → exits 0, `dist/rrm-success-rates/index.html` exists. (guides.json registration comes in Task 12; the sitemap integration only validates slugs that are registered, so an unregistered page builds fine.)
 - [ ] **Step 7.6:** Commit: `git add src/pages/rrm-success-rates && git commit -m "feat(success-rates): page skeleton + JSON-LD evidence compendium"`
 
 ### Task 8: Evidence table + references render
@@ -596,7 +596,7 @@ const TOC_ITEMS = SECTIONS.map((s) => ({ href: `#${s.id}`, label: s.title }));
 
 ### Task 12: Wiring (pillar-create Gate 11.5, in-repo half)
 
-- [ ] **Step 12.1:** Append to `ssot/pillars.json` `pillars[]` (read the file first; use max existing `_order` + 1):
+- [ ] **Step 12.1:** Append to `ssot/guides.json` `pillars[]` (read the file first; use max existing `_order` + 1):
 
 ```json
 {
@@ -618,7 +618,7 @@ const TOC_ITEMS = SECTIONS.map((s) => ({ href: `#${s.id}`, label: s.title }));
 - [ ] **Step 12.2:** `static-overrides/llms.txt`: add one bullet under "Pillar Guides" + one paragraph summary (use Gianna's meta description as the base).
 - [ ] **Step 12.3:** `ssot/agent-surfaces.json`: add `{ "label": "RRM Success Rates", "path": "/rrm-success-rates/" }` to `llms.primary_urls`.
 - [ ] **Step 12.4:** Cross-link back: in `src/pages/art-registries-and-codes/index.astro`, add one in-context sentence linking `/rrm-success-rates/` (this is a correctness/wiring link required by the approved spec §11, not unsolicited copy).
-- [ ] **Step 12.5:** Run `node scripts/gates/validate-pillar-registry.mjs` → pass (G5 router warning expected until Task 15). Run `npm run ssot:validate` → pass. `npm run build` → 0 and `dist/sitemap-pillars.xml`... (sitemap is emitted at build; grep `dist/sitemap-pillars.xml` for `/rrm-success-rates/` → present).
+- [ ] **Step 12.5:** Run `node scripts/gates/validate-guides-registry.mjs` → pass (G5 router warning expected until Task 15). Run `npm run ssot:validate` → pass. `npm run build` → 0 and `dist/sitemap-pillars.xml`... (sitemap is emitted at build; grep `dist/sitemap-pillars.xml` for `/rrm-success-rates/` → present).
 - [ ] **Step 12.6:** Commit: `git commit -am "feat(success-rates): register pillar (ssot, llms, agent-surfaces, cross-links)"`
 
 ### Task 13: Claim audit + external fact-check (Gates 7 + 9 + 10)
@@ -630,7 +630,7 @@ const TOC_ITEMS = SECTIONS.map((s) => ({ href: `#${s.id}`, label: s.title }));
 
 ### Task 14: Local QA gates
 
-- [ ] **Step 14.1:** `npm run design-tokens:audit` → "No phantom tokens". `npm run check-types` → errors ≤ baseline (if over baseline: FIX the errors; a baseline bump is a decision requiring explicit authorization, never a mechanical step). `npm run lint` → 0. SVG XML gate (Task 6.3 command) → ok. `node scripts/gates/validate-pillar-registry.mjs` → pass.
+- [ ] **Step 14.1:** `npm run design-tokens:audit` → "No phantom tokens". `npm run check-types` → errors ≤ baseline (if over baseline: FIX the errors; a baseline bump is a decision requiring explicit authorization, never a mechanical step). `npm run lint` → 0. SVG XML gate (Task 6.3 command) → ok. `node scripts/gates/validate-guides-registry.mjs` → pass.
 - [ ] **Step 14.2:** `npm run build && npx wrangler pages dev dist` (or `astro preview` for non-404 work) → invoke the `web-page-qa` skill against `http://localhost:8788/rrm-success-rates/`: mobile 393x852 AND desktop; horizontal-overflow, table responsiveness, chart rendering (BOTH themes — toggle `data-theme`), anchor landings clear the header, share buttons + toast work, print preview sane (Playwright `page.emulateMedia({media:'print'})` screenshot).
 - [ ] **Step 14.3:** Verify every internal link resolves in dist (`/library/<slug>/` pages exist live — curl each cited library URL → 200). Verify JSON-LD parses: extract the `@graph` from dist HTML and `JSON.parse` it.
 - [ ] **Step 14.4:** Fix findings, re-run, commit: `git commit -am "fix(success-rates): QA pass"`

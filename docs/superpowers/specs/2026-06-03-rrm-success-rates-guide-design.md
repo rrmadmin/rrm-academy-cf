@@ -157,7 +157,7 @@ Alternatives considered: inline typed array (mixes data + presentation — rejec
 
 ## 11. Wiring & surfaces (via `/pillar-create` Gate 11.5)
 
-- Register in `ssot/pillars.json` (`slug: rrm-success-rates`, `author: RRM Academy`, accent, `in_guides_catalogue: true`, `in_shell_guides_nav: true`, `_order`). This drives the guides catalogue, sitemaps, shell nav, OG index, and `navigate_to_section`.
+- Register in `ssot/guides.json` (`slug: rrm-success-rates`, `author: RRM Academy`, accent, `in_guides_catalogue: true`, `in_shell_guides_nav: true`, `_order`). This drives the guides catalogue, sitemaps, shell nav, OG index, and `navigate_to_section`.
 - **Add `/rrm-success-rates` to rrm-router `ASTRO_ROUTES`** (`~/iCode/projects/rrm-router/src/index.js`) — separate repo/deploy; without it the page 404s on the apex while working on `pages.dev` (ref memory `rrm-router-new-root-paths`).
 - OG image entry; verify `routeToOgSlug()` maps `/rrm-success-rates` → `rrm-success-rates`.
 - **Update the glossary entry** `/glossary/rrm-outcomes-published-evidence/` to cross-link up to the full guide (set `pillar_link`); keep the entry as a summary tier (do not delete — SEO).

@@ -23,7 +23,7 @@
 
 ```
 BaseLayout.astro (exists, unchanged)
-├── PillarLayout.astro          [Full SEO + Full AEO/GEO]
+├── GuideLayout.astro          [Full SEO + Full AEO/GEO]
 │   └── 6 pages: /naprotechnology, /what-is-rrm, /femm, /neofertility,
 │       /glossary, /common-questions-about-rrm
 ├── ComparisonLayout.astro      [Full SEO + Full AEO/GEO]
@@ -118,7 +118,7 @@ Not all pages should receive AEO/GEO optimization. Commentary is personal voice 
 - **Structural CSS in layouts, content CSS in pages.** TOC, breadcrumbs, prose typography owned by layout. Custom tables, unique visuals stay in the page.
 - **TOC auto-generated from props.** articleSections[] prop builds both the visible TOC and the hasPart schema. Single source of truth.
 - **Editorial notice default-on.** editorialNotice defaults to true. Set false explicitly to suppress.
-- **Pages must NOT inject JSON-LD in the default slot.** Layout handles all schema emission. PillarLayout passes the Article schema via BaseLayout's `jsonLd` prop and renders BreadcrumbList + FAQPage as additional `<script type="application/ld+json">` tags itself. This preserves the three-part structure without requiring pages to manage schema.
+- **Pages must NOT inject JSON-LD in the default slot.** Layout handles all schema emission. GuideLayout passes the Article schema via BaseLayout's `jsonLd` prop and renders BreadcrumbList + FAQPage as additional `<script type="application/ld+json">` tags itself. This preserves the three-part structure without requiring pages to manage schema.
 
 ---
 
@@ -126,7 +126,7 @@ Not all pages should receive AEO/GEO optimization. Commentary is personal voice 
 
 | Layout | Props (data) | Slots (content) |
 |--------|-------------|-----------------|
-| PillarLayout | title, description, canonicalUrl, datePublished, dateModified, wordCount, articleSections[], faqSchema[], editorialNotice?, showPdfDownload? | `default` (prose sections -- no JSON-LD here; layout emits all schema) |
+| GuideLayout | title, description, canonicalUrl, datePublished, dateModified, wordCount, articleSections[], faqSchema[], editorialNotice?, showPdfDownload? | `default` (prose sections -- no JSON-LD here; layout emits all schema) |
 | ComparisonLayout | title, description, canonicalUrl, datePublished, dateModified, wordCount, subjects[], faqSchema[] | `default` (comparison content) |
 | FaqHubLayout | title, description, canonicalUrl, faqSchema[] | `default` (accordion list) |
 | FaqDetailLayout | title, description, canonicalUrl, question, answer | `default` (full answer), `related` (related questions) |
@@ -274,7 +274,7 @@ Only fires on pillar guides + FAQ pages (full) and library/course detail (partia
 
 1. **Build all 15 layouts** with TypeScript interfaces, no page changes yet
 2. **Reference implementations** (one per layout type):
-   - PillarLayout: /naprotechnology (most complex, best test)
+   - GuideLayout: /naprotechnology (most complex, best test)
    - AuthLayout: /login (simplest)
    - LegalLayout: /terms-of-use
    - AdminLayout: /admin/seo

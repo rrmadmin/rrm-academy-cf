@@ -1,5 +1,5 @@
 ---
-import PillarLayout from '../../layouts/PillarLayout.astro';
+import GuideLayout from '../../layouts/GuideLayout.astro';
 import CiteThisPage from '../../components/CiteThisPage.astro';
 import pageDates from '../../data/page-dates.json';
 import artRegistries from '../../data/art-registries.json';
@@ -65,7 +65,7 @@ const itemListSchema = {
   itemListElement: [...codeItems, ...registryItems],
 };
 
-// JSON-LD @graph block. The BreadcrumbList node is NOT here: PillarLayout owns
+// JSON-LD @graph block. The BreadcrumbList node is NOT here: GuideLayout owns
 // the single BreadcrumbList. Article + FAQPage + ItemList pass through verbatim.
 const jsonLd = {
   '@context': 'https://schema.org',
@@ -182,7 +182,7 @@ const jsonLd = {
 };
 ---
 
-<PillarLayout
+<GuideLayout
   slug="art-registries-and-codes"
   jsonLd={jsonLd}
   tocItems={TOC_ITEMS}
@@ -534,7 +534,7 @@ const jsonLd = {
 
           <p class="disclaimer"><em>This content is for educational and reference purposes only and does not constitute medical advice. Registry and code-of-practice information reflects publicly available primary sources at the time of writing. For clinical questions about evaluating fertility care options, consult an RRM clinician or qualified healthcare provider.</em></p>
 
-</PillarLayout>
+</GuideLayout>
 
 <style>
   .author-byline {
@@ -697,7 +697,7 @@ const jsonLd = {
     border-top: 1px solid var(--border-color);
   }
 
-  /* Container width override removed: PillarLayout's wideContainer prop
+  /* Container width override removed: GuideLayout's wideContainer prop
      renders .container--wide with the identical max-width formula. */
 
   /* Registry comparison frames -- inferential lens before per-registry detail */
