@@ -1,0 +1,588 @@
+---
+import GuideLayout from '../../layouts/GuideLayout.astro';
+
+const TOC_ITEMS = [
+  { href: '#crms-chart-dual-purpose', label: 'The Chart Is Two Things at Once' },
+  { href: '#what-crms-is', label: 'What CrMS Is' },
+  { href: '#how-it-works', label: 'How It Works' },
+  { href: '#instructor-led-model', label: 'The Instructor-Led Model' },
+  { href: '#what-crms-is-used-for', label: 'What CrMS Is Used For' },
+  { href: '#how-effective-is-crms', label: 'How Effective Is CrMS?' },
+  { href: '#crms-and-naprotechnology', label: 'CrMS and NaProTechnology: Treatment Outcomes' },
+  { href: '#who-it-suits', label: 'Who It Suits' },
+  { href: '#how-crms-differs', label: 'How CrMS Differs from Other FABMs' },
+  { href: '#how-to-learn', label: 'How to Learn CrMS' },
+  { href: '#closing', label: 'Closing: From Chart to Care' },
+];
+
+const MOBILE_TOC_ITEMS = [...TOC_ITEMS, { href: '#references', label: 'References' }];
+
+const PAGE_URL = 'https://rrmacademy.org/creighton-model/';
+
+// Block 1: Article + MedicalWebPage (injected via GuideLayout jsonLd prop)
+// All @id and url values use the root path /creighton-model/ (not /guides/).
+const pageSchema = {
+  '@context': 'https://schema.org',
+  '@graph': [
+    {
+      '@type': 'WebSite',
+      '@id': 'https://rrmacademy.org/#website',
+      url: 'https://rrmacademy.org/',
+      name: 'RRM Academy',
+      description: 'Education platform for Restorative Reproductive Medicine.',
+      publisher: { '@id': 'https://rrmacademy.org/#organization' },
+      inLanguage: 'en',
+      potentialAction: {
+        '@type': 'SearchAction',
+        target: {
+          '@type': 'EntryPoint',
+          urlTemplate: 'https://rrmacademy.org/?q={search_term_string}',
+        },
+        'query-input': 'required name=search_term_string',
+      },
+    },
+    {
+      '@type': 'Organization',
+      '@id': 'https://rrmacademy.org/#organization',
+      name: 'RRM Academy',
+      url: 'https://rrmacademy.org/',
+      logo: {
+        '@type': 'ImageObject',
+        '@id': 'https://rrmacademy.org/#logo',
+        url: 'https://rrmacademy.org/logo.png',
+      },
+      description: 'Nonprofit education platform for Restorative Reproductive Medicine. A program of RRM Foundation, a 501(c)(3) organization (EIN 93-4594315).',
+      publishingPrinciples: 'https://rrmacademy.org/editorial-policy/',
+      correctionsPolicy: 'https://rrmacademy.org/corrections-policy/',
+      verificationFactCheckingPolicy: 'https://rrmacademy.org/fact-checking-policy/',
+      knowsAbout: [
+        'Restorative Reproductive Medicine',
+        'NaProTechnology',
+        'Creighton Model FertilityCare System',
+        'Fertility Awareness-Based Methods',
+        'Cervical mucus charting',
+        'Peak Day',
+      ],
+    },
+    {
+      '@type': 'MedicalWebPage',
+      '@id': `${PAGE_URL}#webpage`,
+      url: PAGE_URL,
+      name: 'The Creighton Model FertilityCare System (CrMS): A Clinician-Reviewed Guide',
+      headline: 'The Creighton Model FertilityCare System (CrMS): A Clinician-Reviewed Guide',
+      description: 'A clinician-reviewed guide to the Creighton Model FertilityCare System (CrMS): how the cervical-mucus charting method works, what the evidence says about effectiveness, who it suits, and how it serves as the diagnostic record for NaProTechnology.',
+      inLanguage: 'en',
+      isPartOf: { '@id': 'https://rrmacademy.org/#website' },
+      datePublished: '2026-06-12',
+      dateModified: '2026-06-12',
+      about: {
+        '@type': 'MedicalProcedure',
+        name: 'Creighton Model FertilityCare System (CrMS)',
+        procedureType: 'https://schema.org/NoninvasiveProcedure',
+      },
+      medicalAudience: [
+        { '@type': 'MedicalAudience', audienceType: 'Patient' },
+        { '@type': 'MedicalAudience', audienceType: 'Clinician' },
+      ],
+      lastReviewed: '2026-06-12',
+      reviewedBy: { '@id': `${PAGE_URL}#author` },
+      author: { '@id': `${PAGE_URL}#author` },
+      publisher: { '@id': 'https://rrmacademy.org/#organization' },
+      copyrightHolder: { '@id': 'https://rrmacademy.org/#organization' },
+      mainEntityOfPage: PAGE_URL,
+      significantLink: [
+        'https://rrmacademy.org/what-is-rrm/',
+        'https://rrmacademy.org/naprotechnology/',
+        'https://rrmacademy.org/glossary/',
+        'https://rrmacademy.org/providers/',
+      ],
+      citation: [
+        {
+          '@type': 'ScholarlyArticle',
+          name: 'Pregnancy probabilities during use of the Creighton Model Fertility Care System.',
+          author: 'Howard MP, Stanford JB',
+          datePublished: '1999',
+          isPartOf: { '@type': 'PublicationIssue', isPartOf: { '@type': 'Periodical', name: 'Archives of Family Medicine' } },
+          identifier: [
+            { '@type': 'PropertyValue', propertyID: 'PMID', value: '10500511' },
+            { '@type': 'PropertyValue', propertyID: 'DOI', value: '10.1001/archfami.8.5.391' },
+          ],
+        },
+        {
+          '@type': 'ScholarlyArticle',
+          name: 'Pregnancies, intentions, and fertility behaviors during use of the Creighton Model FertilityCare System after initial intention to avoid pregnancy: Results from the Creighton Model Effectiveness, Intentions, Behaviors Assessment study.',
+          author: 'Stanford JB, Najmabadi S, Chang CE, et al.',
+          datePublished: '2025',
+          isPartOf: { '@type': 'PublicationIssue', isPartOf: { '@type': 'Periodical', name: 'PLoS One' } },
+          identifier: [
+            { '@type': 'PropertyValue', propertyID: 'PMID', value: '40729325' },
+            { '@type': 'PropertyValue', propertyID: 'DOI', value: '10.1371/journal.pone.0328806' },
+          ],
+        },
+        {
+          '@type': 'ScholarlyArticle',
+          name: 'Use effectiveness of the Creighton Model Ovulation Method of natural family planning.',
+          author: 'Fehring RJ, Lawrence D, Philpot C',
+          datePublished: '1994',
+          isPartOf: { '@type': 'PublicationIssue', isPartOf: { '@type': 'Periodical', name: 'Journal of Obstetric, Gynecologic and Neonatal Nursing' } },
+          identifier: [
+            { '@type': 'PropertyValue', propertyID: 'PMID', value: '8057183' },
+            { '@type': 'PropertyValue', propertyID: 'DOI', value: '10.1111/j.1552-6909.1994.tb01881.x' },
+          ],
+        },
+        {
+          '@type': 'ScholarlyArticle',
+          name: 'Fertility awareness-based methods of family planning: A review of effectiveness for avoiding pregnancy using SORT.',
+          author: 'Manhart MD, Duane M, Lind A, Sinai I, Golden-Tevald J',
+          datePublished: '2013',
+          isPartOf: { '@type': 'PublicationIssue', isPartOf: { '@type': 'Periodical', name: 'Osteopathic Family Physician' } },
+          identifier: [
+            { '@type': 'PropertyValue', propertyID: 'DOI', value: '10.1016/j.osfp.2012.09.002' },
+          ],
+        },
+        {
+          '@type': 'ScholarlyArticle',
+          name: 'Effectiveness of Fertility Awareness-Based Methods for Pregnancy Prevention: A Systematic Review.',
+          author: 'Peragallo Urrutia R, Polis CB, Jensen ET, et al.',
+          datePublished: '2018',
+          isPartOf: { '@type': 'PublicationIssue', isPartOf: { '@type': 'Periodical', name: 'Obstetrics and Gynecology' } },
+          identifier: [
+            { '@type': 'PropertyValue', propertyID: 'PMID', value: '30095777' },
+            { '@type': 'PropertyValue', propertyID: 'DOI', value: '10.1097/AOG.0000000000002784' },
+          ],
+        },
+        {
+          '@type': 'ScholarlyArticle',
+          name: 'Natural procreative technology for infertility and recurrent miscarriage: outcomes in a Canadian family practice.',
+          author: 'Tham E, Schliep K, Stanford J',
+          datePublished: '2012',
+          isPartOf: { '@type': 'PublicationIssue', isPartOf: { '@type': 'Periodical', name: 'Canadian Family Physician' } },
+          identifier: [
+            { '@type': 'PropertyValue', propertyID: 'PMID', value: '22734170' },
+          ],
+        },
+        {
+          '@type': 'ScholarlyArticle',
+          name: 'Natural procreative technology (NaProTechnology) for infertility: take-home baby rate and clinical outcomes in a 5-year single-center cohort of 1,310 couples.',
+          author: 'Sanchez-Mendez JI, Lombarte M, Abengozar-Muela R, et al.',
+          datePublished: '2025',
+          isPartOf: { '@type': 'PublicationIssue', isPartOf: { '@type': 'Periodical', name: 'Frontiers in Reproductive Health' } },
+          identifier: [
+            { '@type': 'PropertyValue', propertyID: 'PMID', value: '41323405' },
+            { '@type': 'PropertyValue', propertyID: 'DOI', value: '10.3389/frph.2025.1696679' },
+          ],
+        },
+        {
+          '@type': 'ScholarlyArticle',
+          name: 'Characteristics of the menstrual cycle after discontinuation of oral contraceptives.',
+          author: 'Nassaralla CL, Stanford JB, Daly KD, et al.',
+          datePublished: '2011',
+          isPartOf: { '@type': 'PublicationIssue', isPartOf: { '@type': 'Periodical', name: "Journal of Women's Health" } },
+          identifier: [
+            { '@type': 'PropertyValue', propertyID: 'PMID', value: '21219248' },
+            { '@type': 'PropertyValue', propertyID: 'DOI', value: '10.1089/jwh.2010.2001' },
+          ],
+        },
+        {
+          '@type': 'ScholarlyArticle',
+          name: 'The menstrual cycle as a vital sign: the use of naprotechnology.',
+          author: 'Gonzales S',
+          datePublished: '2017',
+          isPartOf: { '@type': 'PublicationIssue', isPartOf: { '@type': 'Periodical', name: 'Issues in Law and Medicine' } },
+          identifier: [
+            { '@type': 'PropertyValue', propertyID: 'PMID', value: '29108152' },
+          ],
+        },
+      ],
+    },
+    {
+      '@type': 'Physician',
+      '@id': `${PAGE_URL}#author`,
+      name: 'Dr. Naomi Whittaker',
+      honorificPrefix: 'Dr.',
+      honorificSuffix: 'MD',
+      jobTitle: 'Lead Instructor, Board-Certified OBGYN',
+      description: 'Dr. Naomi M. Whittaker, MD, Board-Certified OBGYN, MIGS, NFPMC, FCI. Creighton-credentialed, having completed Creighton Education Phase I and II.',
+      medicalSpecialty: [
+        'Obstetrics and Gynecology',
+        'Minimally Invasive Gynecologic Surgery',
+        'Restorative Reproductive Medicine',
+      ],
+      identifier: [
+        { '@type': 'PropertyValue', propertyID: 'NPI', value: '1881034908' },
+        { '@type': 'PropertyValue', propertyID: 'ORCID', value: '0000-0003-3706-3112' },
+      ],
+      worksFor: { '@id': 'https://rrmacademy.org/#organization' },
+      sameAs: [
+        'https://orcid.org/0000-0003-3706-3112',
+        'https://npiregistry.cms.hhs.gov/provider-view/1881034908',
+      ],
+    },
+  ],
+};
+
+// FAQPage block (separate from the MedicalWebPage per spec to avoid Google validation issues)
+const faqSchema = {
+  '@context': 'https://schema.org',
+  '@type': 'FAQPage',
+  '@id': `${PAGE_URL}#faq`,
+  isPartOf: { '@id': `${PAGE_URL}#webpage` },
+  mainEntity: [
+    {
+      '@type': 'Question',
+      name: 'Is the Creighton Model an effective way to avoid pregnancy?',
+      acceptedAnswer: {
+        '@type': 'Answer',
+        text: 'When taught by a certified FertilityCare Practitioner and used correctly and consistently, true method failures are uncommon. The largest cohort study found a method-related pregnancy probability of 0.14 per 100 couples at 12 months, using a net life-table analysis (Howard and Stanford, 1999). CrMS has no standard, comparable typical-use rate, because it classifies deliberate intercourse on a day a couple identified as fertile as using the method to achieve pregnancy, not as a method failure. With thorough instruction and consistent avoidance of the fertile window, method failures are rare.',
+      },
+    },
+    {
+      '@type': 'Question',
+      name: 'Do I really need a teacher, or can I learn CrMS from a book or app?',
+      acceptedAnswer: {
+        '@type': 'Answer',
+        text: 'CrMS is an instructor-led, case-managed method, not a self-administered charting tool. The recognized protocol includes an introductory session with a certified FertilityCare Practitioner followed by approximately eight follow-up visits across the first year. At each visit the practitioner reviews the chart, corrects observation and recording errors, and adjusts instruction. Research links instruction quality and teacher expertise directly to effectiveness. Self-teaching from a book or app is not how the method is designed and carries lower effectiveness.',
+      },
+    },
+    {
+      '@type': 'Question',
+      name: 'Can I use CrMS if my cycles are irregular or very long?',
+      acceptedAnswer: {
+        '@type': 'Answer',
+        text: 'In many cases, yes. CrMS reads actual cervical-mucus biology rather than making assumptions about cycle length, so irregular cycles, long cycles, and unpredictable patterns do not disqualify use. The chart follows the mucus signal wherever the cycle goes, and the Howard and Stanford 1999 cohort found similar pregnancy probabilities across regular and long-cycle categories. Irregular cycles often mean more variability in chart interpretation, which makes adequate instruction and follow-up more important, not less.',
+      },
+    },
+    {
+      '@type': 'Question',
+      name: 'What is NaProTechnology, and how does my Creighton chart fit in?',
+      acceptedAnswer: {
+        '@type': 'Answer',
+        text: 'Restorative reproductive medicine uses CrMS and NaProTechnology as two parts of the same clinical framework. A NaProTechnology physician reads the chart the way a clinician reads a longitudinal vital-sign record, noting where the fertile window was, when Peak Day arrived, and what the mucus pattern showed. Those patterns can be consistent with conditions such as luteal-phase insufficiency, anovulation, PCOS/PMOS, or endometriosis-associated cycle disruption. The chart enables timing of laboratory evaluation to Peak Day rather than a calendar assumption.',
+      },
+    },
+    {
+      '@type': 'Question',
+      name: 'Can CrMS help me get pregnant, not just avoid pregnancy?',
+      acceptedAnswer: {
+        '@type': 'Answer',
+        text: 'In many cases, yes. Restorative reproductive medicine approaches conception differently from methods that bypass the cycle. CrMS identifies the fertile window with precision: the days leading up to Peak Day and Peak Day itself indicate the highest-fertility period for most couples. The deeper contribution is the diagnostic layer: the chart, read by a NaProTechnology physician, can reveal treatable conditions such as luteal-phase insufficiency or anovulation. The restorative aim is to identify and treat those conditions so the couple can conceive naturally.',
+      },
+    },
+    {
+      '@type': 'Question',
+      name: 'How is Creighton different from the Billings or symptothermal methods?',
+      acceptedAnswer: {
+        '@type': 'Answer',
+        text: 'CrMS is the FABM designed from the outset as the diagnostic record for NaProTechnology -- that specific clinical integration is one of three meaningful differences within restorative reproductive medicine. Symptothermal methods such as Sensiplan add basal body temperature as a second biomarker alongside mucus; CrMS uses cervical mucus only. The Billings Ovulation Method is also mucus-only and uses vulvar observation, but its observation frameworks and organizational lineage differ: Billings comes from the WOOMB tradition and CrMS from Dr. Hilgers\' work at Creighton University, standardized through the Saint Paul VI Institute. The Marquette Method uses a urinary hormone monitor, which CrMS does not use in its standard protocol.',
+      },
+    },
+    {
+      '@type': 'Question',
+      name: 'Can I use CrMS while breastfeeding or after stopping the pill?',
+      acceptedAnswer: {
+        '@type': 'Answer',
+        text: 'Often, yes. Restorative reproductive medicine values CrMS in these situations because the method reads actual biology rather than assuming hormonal normalcy. CrMS has a dedicated postpartum protocol, and the Howard and Stanford 1999 cohort included a breastfeeding subgroup with similar pregnancy probabilities to other categories. Note that ovulation can precede the first postpartum period, so close instructor follow-up matters. After stopping hormonal contraception, mucus quality is measurably altered, often for at least two cycles (Nassaralla et al., 2011), so charting through that transition tracks the actual return of fertility in real time.',
+      },
+    },
+    {
+      '@type': 'Question',
+      name: 'Does the evidence on Creighton come from high-quality studies?',
+      acceptedAnswer: {
+        '@type': 'Answer',
+        text: 'Restorative reproductive medicine values honesty about evidence quality. All CrMS effectiveness evidence is observational cohort data; no randomized controlled trial exists for CrMS, and the 2018 systematic review of fertility awareness-based methods found zero high-quality studies across the entire FABM field (Peragallo Urrutia et al., 2018). The primary cohorts are demographically narrow. The context that belongs alongside that limitation: contraceptive effectiveness across family planning rests on the same observational and life-table designs, not on randomized trials. The certainty standard that applies to CrMS applies identically to its comparators.',
+      },
+    },
+  ],
+};
+
+const faqs = [
+  {
+    question: 'Is the Creighton Model an effective way to avoid pregnancy?',
+    answerHtml: `<p>Restorative reproductive medicine asks a precise question about effectiveness, and CrMS deserves a precise answer. When taught by a certified FertilityCare Practitioner and used correctly and consistently, true method failures are uncommon. The largest cohort study found a method-related pregnancy probability of 0.14 per 100 couples at 12 months, using a net life-table analysis (Howard MP and Stanford JB, 1999; n=701). That is the correct/method-use figure: it tells you how reliable the biology is when the rules are followed.</p>
+<p>What does not exist for CrMS is a standard, comparable typical-use rate. This is a documented methodological reality (Manhart MD et al., 2013): CrMS classifies deliberate intercourse on a day the couple identified as fertile as "using the method to achieve pregnancy," not as a method failure. Other methods count that behavior as an unintended pregnancy. Because the denominators are built differently, placing CrMS alongside a Pearl Index from the pill and calling it a fair comparison is not supportable.</p>
+<p>The honest answer: with thorough instruction and consistent avoidance of the identified fertile window, method failures are rare. How consistently a couple avoids intercourse during that window is the primary driver of real-world outcomes.</p>`,
+  },
+  {
+    question: 'Do I really need a teacher, or can I learn CrMS from a book or app?',
+    answerHtml: `<p>Restorative reproductive medicine uses CrMS in a specific way: as an instructor-led, case-managed method, not a self-administered charting tool. The recognized protocol for CrMS includes an introductory session with a certified FertilityCare Practitioner followed by approximately eight follow-up visits across the first year. At each visit, the FCP reviews the chart, corrects observation and recording errors, and adjusts instruction to what the chart is actually showing.</p>
+<p>The research supports the importance of that structure. Instruction quality and teacher expertise link directly to effectiveness (Barron ML et al., 2001; Fehring RJ et al., 1994). Self-teaching from a book or app is not how the method is designed and carries lower effectiveness.</p>
+<p>Certified FCPs are available through the American Academy of FertilityCare Professionals (<a href="https://www.aafcp.org" rel="noopener">aafcp.org</a>) and FertilityCare Centers of America (<a href="https://fertilitycare.org" rel="noopener">fertilitycare.org</a>). For clinicians who integrate CrMS with NaProTechnology evaluation, see <a href="/providers/">rrmacademy.org/providers/</a>.</p>`,
+  },
+  {
+    question: 'Can I use CrMS if my cycles are irregular or very long?',
+    answerHtml: `<p>In many cases, yes. Restorative reproductive medicine values CrMS in part because it reads actual cervical-mucus biology rather than making assumptions about cycle length. Irregular cycles, long cycles, and unpredictable patterns do not disqualify use, because the chart follows the mucus signal wherever the cycle goes. The Howard and Stanford 1999 cohort found similar pregnancy probabilities across regular and long-cycle categories.</p>
+<p>That said, irregular cycles often mean more variability in chart interpretation, which makes adequate instruction and follow-up more important, not less. A certified FertilityCare Practitioner who has worked with a range of cycle patterns is well placed to guide that interpretation.</p>`,
+  },
+  {
+    question: 'What is NaProTechnology, and how does my Creighton chart fit in?',
+    answerHtml: `<p>Restorative reproductive medicine uses CrMS and NaProTechnology as two parts of the same clinical framework. NaProTechnology is a medical and surgical approach designed to identify and treat the underlying causes of reproductive conditions, using the CrMS chart as its primary clinical record.</p>
+<p>A NaProTechnology physician reads the chart the way any clinician reads a longitudinal vital-sign record (Gonzales S, 2017). The chart shows where the fertile window was, when and how Peak Day arrived, and what the mucus pattern looked like across the cycle. Those patterns can be consistent with conditions such as luteal-phase insufficiency, anovulation, PCOS/PMOS, endometriosis-associated cycle disruption, or cervical-factor subfertility. The chart also enables timing of laboratory evaluation to Peak Day rather than to a calendar assumption, which allows more accurate characterization of hormone levels at specific points in the cycle.</p>
+<p>The NaProTechnology evaluation works from what the chart reveals. No chart, no evaluation. That is why learning to chart accurately is the first step for anyone entering this pathway. The <a href="/naprotechnology/">NaProTechnology</a> guide covers the evaluation framework. For a clinician who can interpret your chart and guide next steps, visit <a href="/providers/">rrmacademy.org/providers/</a>.</p>`,
+  },
+  {
+    question: 'Can CrMS help me get pregnant, not just avoid pregnancy?',
+    answerHtml: `<p>In many cases, yes. Restorative reproductive medicine approaches the question of conception differently from methods that bypass the cycle. CrMS identifies the fertile window with precision: the days leading up to Peak Day and Peak Day itself indicate the highest-fertility period for most couples. For couples trying to conceive, the chart targets intercourse toward those days, informed by the actual mucus signal, not a calendar estimate.</p>
+<p>The deeper contribution comes from the diagnostic layer. The CrMS chart, read by a NaProTechnology physician, can reveal treatable conditions that may be contributing to difficulty conceiving, including luteal-phase insufficiency and anovulation, among others. The restorative aim is to identify and treat those conditions so that the couple can conceive naturally, rather than bypassing them. How that evaluation and treatment proceeds is a clinician-to-clinician question. This guide describes the approach without reproducing protocols.</p>
+<p>For evaluation and care, visit <a href="/providers/">rrmacademy.org/providers/</a>.</p>`,
+  },
+  {
+    question: 'How is Creighton different from the Billings or symptothermal methods?',
+    answerHtml: `<p>Restorative reproductive medicine works with several FABMs, but CrMS is the one designed from the outset as the diagnostic record for NaProTechnology. That specific clinical integration is one of three meaningful differences.</p>
+<p><strong>Symptothermal methods</strong> (including Sensiplan) add basal body temperature as a second biomarker alongside mucus. CrMS uses cervical mucus only. The two-biomarker design provides an additional post-ovulatory confirmation that CrMS does not include.</p>
+<p><strong>Billings Ovulation Method</strong> is also mucus-only and uses vulvar observation. But the observation and recording frameworks differ, as does the organizational lineage. Billings comes from the WOOMB tradition; CrMS from Dr. Hilgers' work at Creighton University, standardized through the Saint Paul VI Institute. They are separate methods with different charting conventions.</p>
+<p><strong>Marquette Method</strong> uses a urinary hormone monitor as the primary or supplementary biomarker. CrMS does not use a hormone monitor in its standard protocol.</p>
+<p>Across all these comparisons: direct effectiveness comparisons are limited by methodological differences between studies, including different denominators and classification conventions (Peragallo Urrutia R et al., 2018). Numbers from one method's cohort should not be placed beside another method's Pearl Index as if they measure the same thing.</p>`,
+  },
+  {
+    question: 'Can I use CrMS while breastfeeding or after stopping the pill?',
+    answerHtml: `<p>Often, yes. Restorative reproductive medicine values CrMS in these two specific situations because the method reads actual biology rather than assuming hormonal normalcy.</p>
+<p><strong>Postpartum and breastfeeding:</strong> CrMS has a dedicated postpartum protocol. The Howard and Stanford 1999 cohort included a breastfeeding subgroup and found similar pregnancy probabilities to other categories, with the caveat that close instructor follow-up matters. The breastfeeding subgroup in that cohort showed numerically higher pregnancy probabilities than regular-cycle users, a difference the authors characterized as broadly similar given the small subgroup size. One important biological reality: ovulation can precede the first postpartum menstrual period. A mucus-based method is directly relevant to that window.</p>
+<p>A disclosure that matters here: frequently cited postpartum FABM effectiveness figures in recent literature come from the Marquette hormone-monitor postpartum protocol (Bouchard T et al., 2013; Schneider MM et al., 2023), not from CrMS mucus-only instruction. Those figures belong to Marquette, not CrMS.</p>
+<p><strong>Post-oral contraceptive:</strong> Stopping hormonal contraception measurably alters mucus quality, often for at least two cycles (Nassaralla CL et al., 2011). Charting through that transition tracks the actual return of fertility in real time rather than assuming the cycle has normalized. A certified FCP familiar with post-pill patterns will help interpret what the chart is showing.</p>`,
+  },
+  {
+    question: 'Does the evidence on Creighton come from high-quality studies?',
+    answerHtml: `<p>Restorative reproductive medicine values honesty about evidence quality, and the honest answer here has two parts.</p>
+<p>The limitation: all CrMS effectiveness evidence is observational cohort data. No randomized controlled trial exists for CrMS. The 2018 systematic review of fertility awareness-based methods found zero high-quality studies across the entire FABM field (Peragallo Urrutia R et al., 2018). The primary cohorts are also demographically narrow (predominantly white, college-educated, married, often Catholic North American populations), which limits generalizability to other populations.</p>
+<p>The context that belongs alongside that: contraceptive effectiveness across family planning rests on the same observational and life-table designs, not on randomized trials. The typical-use rates for the pill and condoms in every comparison table come from cohorts and life-table analyses. The certainty standard that applies to CrMS applies identically to its comparators. The limitation is real. The double standard often applied to FABM evidence is not.</p>`,
+  },
+];
+---
+
+<GuideLayout
+  slug="creighton-model"
+  jsonLd={pageSchema}
+  extraSchema={[faqSchema]}
+  tocItems={TOC_ITEMS}
+  mobileTocItems={MOBILE_TOC_ITEMS}
+  bylineLegacy={true}
+  faqs={faqs}
+  baseLayout={{ ogType: 'article', publishDate: '2026-06-12', trackScroll: true }}
+>
+  <span data-pagefind-meta="type:Guide" style="display:none"></span>
+  <span data-pagefind-meta="title:Creighton Model FertilityCare System (CrMS): A Clinician-Reviewed Guide" style="display:none"></span>
+
+  <section id="crms-chart-dual-purpose">
+    <h2>The Creighton chart is two things at once</h2>
+
+    <p>The CrMS chart is a family-planning tool. It is also a standardized clinical record.</p>
+
+    <p>Those two functions are not coincidental. Research leading to the Creighton Model began in the late 1970s under Dr. Thomas W. Hilgers, and the system was first described as the Creighton Model in 1980. In 1985 Hilgers founded the Pope Paul VI Institute (now the Saint Paul VI Institute), which became the ongoing home for CrMS standardization and NaProTechnology research. The explicit aim was creating a mucus-observation system precise enough to serve clinical medicine, not just cycle tracking. The result was a method with a standardized vocabulary, a color-coded paper chart designed for reproducibility across practitioners, and a defined set of biomarker categories that a trained clinician can read as a longitudinal record of how the cycle is functioning.</p>
+
+    <p>That dual design is the reason CrMS sits at the center of NaProTechnology. A NaProTechnology physician does not estimate cycle phase from a calendar. The physician reads the chart. The chart tells the story: where the fertile window was, when and how Peak Day arrived, what the mucus patterns looked like before and after, and whether any patterns suggest a condition worth investigating.</p>
+
+    <p>For readers new to the broader framework, the <a href="/what-is-rrm/">What is RRM</a> and <a href="/naprotechnology/">NaProTechnology</a> guides cover the restorative-medicine context in depth.</p>
+  </section>
+
+  <section id="what-crms-is">
+    <h2>What CrMS is</h2>
+
+    <p>CrMS is a single-biomarker method. It uses cervical mucus only. No basal body temperature. No thermometer. No ovulation predictor kit. No hormone monitor. The standard CrMS protocol relies entirely on daily observation of cervical mucus characteristics at the vulva, recorded using a codified system of abbreviations and color-coded stamps.</p>
+
+    <p>Each day, the woman observes and records:</p>
+
+    <ul>
+      <li><strong>Sensation:</strong> the quality of feeling at the vulva (dry, damp, wet, slippery, or lubricative)</li>
+      <li><strong>Visible characteristics:</strong> the appearance, stretch, and quantity of any mucus present</li>
+      <li><strong>The summary code:</strong> a standardized abbreviation from the CrMS vocabulary, entered on the chart for that day</li>
+    </ul>
+
+    <p>The chart's primary fertility marker is <strong>Peak Day</strong>: the last day of the most fertile-type mucus in a pattern, identified retrospectively at the end of the pattern once the dry post-Peak phase has begun. Peak Day is the reference point for everything downstream: family-planning decisions, the post-Peak phase of the cycle, and in the clinical context, the timing of laboratory evaluation.</p>
+
+    <p>CrMS uses cervical mucus as its sole input because mucus is a direct biological expression of the hormonal cycle. Rising estrogen drives mucus production toward the fertile window. The transition through Peak correlates with the LH surge and the ovulatory event. The dry post-Peak phase reflects progesterone production from the corpus luteum. The chart records that biological sequence, day by day, without imposing a calendar assumption.</p>
+
+    <p>For definitions of terms used throughout this guide, see the <a href="/glossary/">Glossary</a>: Peak Day, cervical mucus, fertility awareness-based methods (FABM).</p>
+  </section>
+
+  <section id="how-it-works">
+    <h2>How it works: reading the body's own signal</h2>
+
+    <p>Daily observation takes place at the vulva only. No internal examination. The sensation observed during ordinary activities and any visible mucus at the end of the day are noted and coded using the CrMS vocabulary.</p>
+
+    <p>The underlying biology gives the chart its clinical meaning. In the days approaching ovulation, rising estrogen drives the cervix to produce mucus that increases in quantity, becomes clearer and more stretchy, and creates a characteristic lubricative sensation. This build-up toward Peak Day marks the fertile window. After Peak, progesterone from the corpus luteum suppresses mucus, producing the dry post-Peak phase. The length, quality, and hormonal context of that post-Peak phase carry diagnostic information a trained physician can read.</p>
+
+    <p>Because CrMS reads actual mucus biology rather than estimating from calendar averages, it does not require a regular cycle. Long cycles, irregular cycles, cycles during the post-oral-contraceptive transition, and postpartum cycles all produce the same underlying mucus signal. The chart follows the signal, wherever it goes.</p>
+
+    <p>One conceptual point matters for understanding the NaProTechnology connection: in a clinical evaluation, bloodwork can be timed to the chart's Peak Day rather than to an assumed calendar day. That timing distinction is central to how NaProTechnology identifies certain cycle abnormalities. The specific parameters involved are clinician-to-clinician decisions, made within a supervised evaluation. This guide describes the principle.</p>
+  </section>
+
+  <section id="instructor-led-model">
+    <h2>The instructor-led model: certified FertilityCare Practitioners</h2>
+
+    <p>CrMS is explicitly instructor-led. Self-teaching from a book or app is not the recognized protocol, and the research links effectiveness directly to instruction quality and teacher expertise (Barron ML et al., 2001; Fehring RJ et al., 1994). This is not a minor caveat. It is structural.</p>
+
+    <p>A certified FertilityCare Practitioner (FCP) teaches CrMS through a defined case-management model: an introductory session followed by approximately eight follow-up visits across the first year. At each follow-up, the FCP reviews the chart, identifies any observation or recording errors, and adjusts instruction to the couple's current circumstances. Post-pill transitions, irregular cycles, postpartum changes, and variations in mucus patterns all require that kind of individualized, chart-by-chart guidance.</p>
+
+    <p>FCPs are certified by the American Academy of FertilityCare Professionals (AAFCP), which credentials individual practitioners. FertilityCare Centers of America (FCCA) affiliates and supports local FertilityCare Centers and requires each to have an AAFCP-certified practitioner. This structure ensures that FCPs have demonstrated proficiency in the observation system, the charting conventions, and the case-management model.</p>
+
+    <p>When the chart reveals patterns consistent with a treatable condition, the FCP can co-manage with a NaProTechnology physician. That coordination, FCP-to-physician, is part of how the diagnostic layer functions.</p>
+  </section>
+
+  <section id="what-crms-is-used-for">
+    <h2>What CrMS is used for: avoiding, achieving, and diagnosing</h2>
+
+    <p>CrMS serves three related purposes.</p>
+
+    <p><strong>Avoiding pregnancy.</strong> The couple identifies the fertile window from the chart and avoids genital contact on those days. The effectiveness of this depends on consistent adherence to the method's guidelines, the quality of instruction received, and correct, consistent daily observation.</p>
+
+    <p><strong>Achieving pregnancy.</strong> The same chart that identifies when to avoid intercourse also identifies the most fertile days for couples trying to conceive. The mucus pattern and the approach of Peak Day indicate the optimal timing window. The chart is a tool for targeting intercourse toward the highest-fertility days, not for guessing at them.</p>
+
+    <p><strong>Serving as the clinical diagnostic record for NaProTechnology.</strong> This is the function that sets CrMS apart from other FABMs within restorative reproductive medicine. The accumulated chart is a longitudinal record of the cycle that a trained NaProTechnology physician reads the way a clinician reads any vital-sign log (Gonzales S, 2017). Patterns in the chart can be consistent with luteal-phase insufficiency, anovulation, polycystic ovary syndrome (PCOS, also transitioning toward the clinical term PMOS), endometriosis-associated cycle disruption, cycle patterns consistent with a systemic endocrine disruption, such as hypothyroidism, that warrants laboratory evaluation, and cervical-factor subfertility, among others. The physician times laboratory evaluation to the chart's Peak Day rather than to a calendar assumption, allowing more accurate characterization of where in the cycle a given value was obtained.</p>
+
+    <p>The restorative aim is to diagnose and treat underlying conditions rather than bypass them. For readers who want to understand that clinical framework more fully, the <a href="/naprotechnology/">NaProTechnology</a> and <a href="/what-is-rrm/">What is RRM</a> guides go deeper.</p>
+
+    <p>A clear boundary applies. This guide describes the approach, the biomarker, and the kinds of conditions the chart can flag. It does not reproduce dosing schedules, lab target values, surgical protocols, or treatment algorithms. Those are clinician-to-clinician decisions, made within a supervised NaProTechnology evaluation.</p>
+  </section>
+
+  <section id="how-effective-is-crms">
+    <h2>How effective is CrMS? (Honestly framed)</h2>
+
+    <p>This section requires more honesty than a single number can carry. Giving a headline rate without context would mislead the reader. Here is what the evidence actually shows, stated plainly.</p>
+
+    <h3>Perfect-use (method-related) effectiveness</h3>
+
+    <p>When the method's rules are followed exactly and couples avoid genital contact on all identified fertile days, true method failures are rare. In the largest cohort study, the method-related (true method failure) pregnancy probability at 12 months was <strong>0.14 per 100 couples</strong> using a net life-table analysis (Howard MP and Stanford JB, 1999; n=701). This is the figure that answers: how reliable is the biology when couples follow the rules? It answers that question only. It is not what a typical user experiences.</p>
+
+    <p>A second figure, from a smaller single-center cohort, placed method-effectiveness at approximately 98.8% and use-effectiveness at 98.0% at 12 months (Fehring RJ et al., 1994; n=242, 1,793 months of use). This is not a Pearl Index. It is a 12-month cumulative rate and is not directly comparable to per-100-woman-year figures from other methods. The cohort was also highly unrepresentative: 93% white, 98% college-educated, 80% Catholic, all at one university center. These demographic limitations matter for interpreting the numbers.</p>
+
+    <p>A correct-use figure of about 0.5 per 100 woman-years (derived from the 99.5% method effectiveness reported by Hilgers 1998, via Manhart 2013; this is a life-table figure rather than a formal Pearl Index) appears in an earlier study (Hilgers TW et al., 1998; reported in Manhart MD et al., 2013). This figure comes from a different study with a different metric and a different denominator than the Howard and Stanford net life-table figure. The two numbers must not be averaged or treated as cross-validating each other. The Hilgers 1998 figure comes through the Manhart 2013 review rather than from the primary text directly, which is a relevant provenance qualifier.</p>
+
+    <h3>Why no standard comparable typical-use rate exists</h3>
+
+    <p>CrMS has no standard, comparable typical-use rate in the published literature. This is not a hedge. It is a documented methodological fact.</p>
+
+    <p>CrMS classifies a pregnancy that results from a couple deliberately having genital contact on a day they themselves identified as fertile as "using the method to achieve pregnancy," not as a method failure. Other methods pool that behavior into the unintended-pregnancy total. Because the denominators are built differently, the numbers cannot be placed side by side with a Pearl Index from the pill or condoms and called a fair comparison (Manhart MD et al., 2013).</p>
+
+    <p>The real-world numbers that exist must be read with that classification in mind. In the Howard and Stanford 1999 study, the total 12-month pregnancy probability across all categories was 17.12 per 100 couples. But 12.84 of that 17.12 came from achieving-related behavior: deliberate genital contact on a day the couple themselves identified as fertile. That is not method failure by CrMS classification. Presenting 17.12 as a "typical-use rate" would misrepresent both the method and the data.</p>
+
+    <p>The 2025 CEIBA study (Stanford JB et al., 2025; n=296, 2,894 cycles, 17 CrMS centers) followed couples who initially stated they intended to avoid pregnancy. The cumulative 13-cycle pregnancy rate in that group ranged from 29.1% to 35.3% across sensitivity scenarios. But 44% of cycles in which couples expressed strong intentions to avoid pregnancy still included intercourse on potentially fertile days or days of undetermined fertility. The strongest predictor of pregnancy in the study was the couples' underlying desire to have a baby within two years, not their stated cycle-by-cycle intention. These figures largely measure how couples behaved around the fertile window, not whether the method correctly identified it.</p>
+
+    <p>The honest summary: with thorough instruction and consistent avoidance of intercourse during the identified fertile window, method failures are rare. Real-world outcomes depend heavily on how consistently a couple actually avoids intercourse during that window, and a single comparable typical-use percentage does not exist for this method.</p>
+
+    <h3>Evidence quality</h3>
+
+    <p>All CrMS effectiveness evidence is observational. No randomized controlled trial exists. The 2018 systematic review of fertility awareness-based methods found zero high-quality studies across the entire FABM field (Peragallo Urrutia R et al., 2018). That is a real and genuine limitation on certainty, and this guide states it plainly.</p>
+
+    <p>It is not grounds to dismiss the method. Contraceptive effectiveness across family planning, including the typical-use rates for the pill and condoms that appear in every comparison table, rests on the same cohort and life-table designs, not on randomized trials. The same evidentiary standard that applies to CrMS applies to every comparator method.</p>
+
+    <h3>Cohort demographics and generalizability</h3>
+
+    <p>All primary CrMS effectiveness cohorts are demographically narrow: predominantly white, college-educated, married, often Catholic North American couples. Effectiveness in more diverse populations has not received independent validation. This is a real generalizability limitation, the same kind of concern a careful reviewer raises about a single-center IVF cohort, and it should be weighed accordingly.</p>
+  </section>
+
+  <section id="crms-and-naprotechnology">
+    <h2>CrMS and NaProTechnology: treatment outcomes (a separate question)</h2>
+
+    <p>When CrMS charting feeds into NaProTechnology medical and surgical management, observational cohorts report meaningful outcomes in challenging populations.</p>
+
+    <p>In a Canadian family medicine practice, a NaProTechnology treatment cohort reached a cumulative adjusted live-birth rate of 66 per 100 couples at 24 months, with a crude proportion of 38% (Tham E et al., 2012; n=108). The gap between the crude and adjusted figures reflects life-table dropout imputation, the same denominator question that applies to cumulative IVF live-birth rate figures. The population was not favorable: mean female age 35.4, average 3.2 years trying, with prior ART failure and prior IUI in a portion of the cohort.</p>
+
+    <p>A larger retrospective single-center cohort in Spain reported a crude take-home baby rate of 35.3% (463 live births among 1,310 couples), and an adjusted cumulative figure of 62.1% over a median treatment duration of 10.9 months (Sanchez-Mendez JI et al., 2025; n=1,310 couples). The adjusted cumulative figure depends on dropout assumptions, and the study ran sensitivity analyses. It should not be presented as a bare point estimate. The outcomes were strongly age-dependent: 83.7% (age 18-30), 53.3% (age 36-40), and 24.4% (over 40). A single pooled number obscures clinically important variation.</p>
+
+    <p>Outcomes vary by setting: a two-practice family-medicine cohort in New England reported a cumulative live-birth rate of about 29% at two years (unadjusted) among 370 couples (Stanford et al., 2021).</p>
+
+    <p>These are achieving-pregnancy treatment outcomes. They answer a different clinical question from the avoiding-pregnancy effectiveness figures covered earlier. The two questions must stay separate.</p>
+  </section>
+
+  <section id="who-it-suits">
+    <h2>Who it suits, and special populations</h2>
+
+    <p>CrMS suits couples who want a hormone-free, device-free method with structured clinician support. It also suits anyone entering a restorative reproductive medicine or NaProTechnology evaluation, since the CrMS chart is the required clinical input for that pathway.</p>
+
+    <p><strong>Irregular and long cycles.</strong> Because CrMS reads actual mucus biology rather than calendar assumptions, cycle irregularity does not disqualify use. The Howard and Stanford 1999 cohort found similar pregnancy probabilities across regular and long-cycle categories. Adequate instruction and follow-up matter more than cycle regularity in determining how well the method functions.</p>
+
+    <p><strong>Postpartum and breastfeeding.</strong> CrMS has a dedicated postpartum protocol. The Howard and Stanford 1999 cohort included a breastfeeding subgroup and found similar pregnancy probabilities to other categories. The breastfeeding subgroup in that cohort showed numerically higher pregnancy probabilities than regular-cycle users, a difference the authors characterized as broadly similar given the small subgroup size. An important caveat applies: ovulation can precede the first postpartum menstrual period, which means a couple can enter the fertile window without a bleed as a warning. A mucus-based approach is directly relevant here, and close follow-up with the FCP during the postpartum period matters.</p>
+
+    <p>One disclosure is important for anyone researching postpartum effectiveness. Frequently cited postpartum FABM figures in the recent literature come from the Marquette hormone-monitor postpartum protocol (Bouchard T et al., 2013; Schneider MM et al., 2023), not from CrMS mucus-only instruction. Those figures belong to Marquette, not CrMS.</p>
+
+    <p><strong>Post-oral-contraceptive transition.</strong> Stopping hormonal contraception alters mucus quality measurably, often for at least two cycles after the last pill (Nassaralla CL et al., 2011). Charting through that transition tracks the actual return of fertility rather than assuming it has normalized. FCP-guided follow-up during this period supports correct interpretation of what the chart is showing.</p>
+
+    <p><strong>Perimenopause.</strong> Manhart and Fehring 2018 identify perimenopause as an active research gap in the FABM evidence base. Existing CrMS data do not support specific effectiveness estimates for perimenopausal women, and this guide discloses that gap rather than implying validated coverage.</p>
+
+    <p><strong>STI protection.</strong> CrMS, like all FABMs, provides no protection against sexually transmitted infections.</p>
+  </section>
+
+  <section id="how-crms-differs">
+    <h2>How CrMS differs from other FABMs (in brief)</h2>
+
+    <p>Several distinctions are worth naming briefly. A dedicated FABM comparison guide covers the full side-by-side.</p>
+
+    <p><strong>Single-biomarker, mucus only.</strong> CrMS observes cervical mucus at the vulva. No basal body temperature, no thermometer, no hormone monitor. Symptothermal methods (such as Sensiplan) add basal body temperature as a second confirmation signal. The Marquette Method uses a urinary hormone monitor. CrMS does not.</p>
+
+    <p><strong>High standardization and purpose-built clinical chart.</strong> CrMS uses a codified observation vocabulary and a color-coded chart designed from the outset to be readable by a clinician as a diagnostic record. This level of standardization is not characteristic of all mucus-only methods.</p>
+
+    <p><strong>Instructor credential and structured case management.</strong> FCPs are certified by AAFCP. The teaching model is structured: an introductory session plus approximately eight follow-up visits in the first year, with chart review at each. Methods like the Standard Days Method or app-based approaches do not require ongoing practitioner-guided case management.</p>
+
+    <p><strong>Creighton and Billings are not the same method.</strong> Both are mucus-only. Both use vulvar observation. But the observation and recording frameworks, the organizational lineage, and the clinical-integration model differ. CrMS comes from Dr. Hilgers' work at Creighton University, standardized through the Saint Paul VI Institute. The Billings Ovulation Method comes from the WOOMB lineage. They are separate methods with different charting conventions.</p>
+
+    <p><strong>NaProTechnology integration.</strong> CrMS is the FABM purpose-built as the diagnostic record for NaProTechnology. The chart is not an input a NaProTechnology physician adapts from another method. It is the tool the NaProTechnology evaluation was designed around.</p>
+
+    <p>One broader note: direct effectiveness comparisons across FABMs are limited by methodological differences between studies, including different denominators and classification conventions (Peragallo Urrutia R et al., 2018). A CrMS effectiveness figure cannot be reliably placed beside a Pearl Index from another method.</p>
+  </section>
+
+  <section id="how-to-learn">
+    <h2>How to learn CrMS</h2>
+
+    <p>The recognized pathway is instruction by a certified FertilityCare Practitioner. Self-teaching from a book or app is not the protocol, and instruction quality links directly to effectiveness.</p>
+
+    <p>The following organizations credential CrMS practitioners and can help you find one:</p>
+
+    <ul>
+      <li><strong>American Academy of FertilityCare Professionals (AAFCP):</strong> <a href="https://www.aafcp.org" rel="noopener">https://www.aafcp.org</a></li>
+      <li><strong>FertilityCare Centers of America (FCCA):</strong> <a href="https://fertilitycare.org" rel="noopener">https://fertilitycare.org</a></li>
+      <li><strong>Saint Paul VI Institute (formerly the Pope Paul VI Institute):</strong> <a href="https://saintpaulvi.com" rel="noopener">https://saintpaulvi.com</a></li>
+    </ul>
+
+    <p>If you are seeking evaluation or treatment of an underlying reproductive condition, the CrMS chart is the clinical input a NaProTechnology evaluation uses. Learning the chart is the first step toward that pathway. The <a href="/naprotechnology/">NaProTechnology</a> guide describes what happens next.</p>
+
+    <p>To find a provider who integrates CrMS charting with restorative reproductive medicine, visit <a href="/providers/">rrmacademy.org/providers/</a>.</p>
+  </section>
+
+  <section id="closing">
+    <h2>Closing: from chart to care</h2>
+
+    <p>The Creighton chart is two things at once. A tool for identifying fertile and infertile days. A standardized biomarker record that a trained clinician reads to investigate what the cycle is doing and why.</p>
+
+    <p>That dual design is what places CrMS at the center of restorative reproductive medicine. The chart does not ask the body to suppress its signal or work around it. It asks the body to speak, in a language that a trained practitioner can read.</p>
+
+    <p>If you are looking for a certified FertilityCare Practitioner or a clinician trained in NaProTechnology, the <a href="/providers/">Find a Provider</a> directory at rrmacademy.org/providers/ is the right starting point.</p>
+
+    <p>To understand the broader restorative-medicine framework, <a href="/what-is-rrm/">What is RRM</a> and <a href="/naprotechnology/">NaProTechnology</a> go deeper.</p>
+  </section>
+
+  <section id="references" class="references">
+    <h2>References</h2>
+    <ol>
+      <li id="ref-1">Howard MP, Stanford JB. Pregnancy probabilities during use of the Creighton Model Fertility Care System. <em>Arch Fam Med.</em> 1999;8(5):391-402. PMID: 10500511. DOI: <a href="https://doi.org/10.1001/archfami.8.5.391" rel="noopener">10.1001/archfami.8.5.391</a></li>
+      <li id="ref-2">Stanford JB, Najmabadi S, Chang CE, et al. Pregnancies, intentions, and fertility behaviors during use of the Creighton Model FertilityCare System after initial intention to avoid pregnancy: Results from the Creighton Model Effectiveness, Intentions, Behaviors Assessment study. <em>PLoS One.</em> 2025;20(7):e0328806. PMID: 40729325. DOI: <a href="https://doi.org/10.1371/journal.pone.0328806" rel="noopener">10.1371/journal.pone.0328806</a></li>
+      <li id="ref-3">Fehring RJ, Lawrence D, Philpot C. Use effectiveness of the Creighton model ovulation method of natural family planning. <em>J Obstet Gynecol Neonatal Nurs.</em> 1994;23(4):303-309. PMID: 8057183. DOI: <a href="https://doi.org/10.1111/j.1552-6909.1994.tb01881.x" rel="noopener">10.1111/j.1552-6909.1994.tb01881.x</a></li>
+      <li id="ref-4">Hilgers TW, Stanford JB. Creighton Model NaProEducation Technology for avoiding pregnancy. Use effectiveness. <em>J Reprod Med.</em> 1998;43(6):495-502. PMID: 9653695. [No DOI indexed; the 0.5 per 100 woman-years figure is sourced via Manhart 2013, not extracted from this primary text directly.]</li>
+      <li id="ref-5">Manhart MD, Duane M, Lind A, Sinai I, Golden-Tevald J. Fertility awareness-based methods of family planning: A review of effectiveness for avoiding pregnancy using SORT. <em>Osteopath Fam Physician.</em> 2013;5(1):2-8. DOI: <a href="https://doi.org/10.1016/j.osfp.2012.09.002" rel="noopener">10.1016/j.osfp.2012.09.002</a>. [No PMID indexed]</li>
+      <li id="ref-6">Peragallo Urrutia R, Polis CB, Jensen ET, et al. Effectiveness of Fertility Awareness-Based Methods for Pregnancy Prevention: A Systematic Review. <em>Obstet Gynecol.</em> 2018;132(3):591-604. PMID: 30095777. DOI: <a href="https://doi.org/10.1097/AOG.0000000000002784" rel="noopener">10.1097/AOG.0000000000002784</a></li>
+      <li id="ref-7">Tham E, Schliep K, Stanford J. Natural procreative technology for infertility and recurrent miscarriage: outcomes in a Canadian family practice. <em>Can Fam Physician.</em> 2012;58(5):e267-e274. PMID: 22734170. [DOI 10.46747/cfp.5805e267 not registered in CrossRef; cite by PMID]</li>
+      <li id="ref-8">Sanchez-Mendez JI, Lombarte M, Abengozar-Muela R, et al. Natural procreative technology (NaProTechnology) for infertility: take-home baby rate and clinical outcomes in a 5-year single-center cohort of 1,310 couples. <em>Front Reprod Health.</em> 2025;7:1696679. PMID: 41323405. DOI: <a href="https://doi.org/10.3389/frph.2025.1696679" rel="noopener">10.3389/frph.2025.1696679</a></li>
+      <li id="ref-9">Barron ML, Daly KD. Expert in fertility appreciation: the Creighton Model practitioner. <em>J Obstet Gynecol Neonatal Nurs.</em> 2001;30(4):386-391. PMID: 11461022. DOI: <a href="https://doi.org/10.1111/j.1552-6909.2001.tb01557.x" rel="noopener">10.1111/j.1552-6909.2001.tb01557.x</a></li>
+      <li id="ref-10">Nassaralla CL, Stanford JB, Daly KD, et al. Characteristics of the menstrual cycle after discontinuation of oral contraceptives. <em>J Womens Health (Larchmt).</em> 2011;20(2):169-177. PMID: 21219248. DOI: <a href="https://doi.org/10.1089/jwh.2010.2001" rel="noopener">10.1089/jwh.2010.2001</a></li>
+      <li id="ref-11">Bouchard T, Fehring RJ, Schneider M. Efficacy of a new postpartum transition protocol for avoiding pregnancy. <em>J Am Board Fam Med.</em> 2013;26(1):35-44. PMID: 23288279. DOI: <a href="https://doi.org/10.3122/jabfm.2013.01.120126" rel="noopener">10.3122/jabfm.2013.01.120126</a>. [Marquette hormone-monitor postpartum protocol; not CrMS mucus-only instruction]</li>
+      <li id="ref-12">Schneider MM, Fehring RJ, Bouchard TP. Effectiveness of a Postpartum Breastfeeding Protocol for Avoiding Pregnancy. <em>Linacre Q.</em> 2023;90(2):182-193. PMID: 37325426. DOI: <a href="https://doi.org/10.1177/00243639231167235" rel="noopener">10.1177/00243639231167235</a>. [Marquette-based postpartum protocol; not CrMS]</li>
+      <li id="ref-13">Manhart MD, Fehring RJ. The State of the Science of Natural Family Planning Fifty Years after Humanae Vitae: A Report from NFP Scientists' Meeting. <em>Linacre Q.</em> 2018;85(4):339-347. PMID: 32431371. DOI: <a href="https://doi.org/10.1177/0024363918809699" rel="noopener">10.1177/0024363918809699</a></li>
+      <li id="ref-14">Gonzales S. The menstrual cycle as a vital sign: the use of naprotechnology. <em>Issues Law Med.</em> 2017;32(2):277-286. PMID: 29108152. [No DOI indexed]</li>
+      <li id="ref-15">Duane M, Stanford JB, Porucznik CA, et al. Fertility Awareness-Based Methods for Women's Health and Family Planning. <em>Front Med (Lausanne).</em> 2022;9:858977. PMID: 35685421. DOI: <a href="https://doi.org/10.3389/fmed.2022.858977" rel="noopener">10.3389/fmed.2022.858977</a></li>
+      <li id="ref-16">Stanford JB, Porucznik CA. Enrollment, Childbearing Motivations, and Intentions of Couples in the Creighton Model Effectiveness, Intentions, and Behaviors Assessment (CEIBA) Study. <em>Front Med (Lausanne).</em> 2017;4:147. PMID: 28944223. DOI: <a href="https://doi.org/10.3389/fmed.2017.00147" rel="noopener">10.3389/fmed.2017.00147</a></li>
+      <li id="ref-17">Stanford JB, Carpentier PA, Meier BL, et al. Restorative reproductive medicine for infertility in two family medicine clinics in New England, an observational study. <em>BMC Pregnancy Childbirth.</em> 2021;21(1):495. PMID: 34233646. DOI: <a href="https://doi.org/10.1186/s12884-021-03946-8" rel="noopener">10.1186/s12884-021-03946-8</a></li>
+      <li id="ref-18">Hilgers TW. The Identification of Postovulation Infertility with the Measurement of Early Luteal Phase Progesterone Production. <em>Linacre Q.</em> 2020;87(1):78-84. PMID: 32431450. DOI: <a href="https://doi.org/10.1177/0024363919885551" rel="noopener">10.1177/0024363919885551</a>. [Method-validation reference; not a lab target value or clinical protocol parameter]</li>
+    </ol>
+  </section>
+</GuideLayout>
+
+<style>
+  .references {
+    font-size: 0.8125rem;
+    line-height: 1.7;
+    color: var(--text-secondary);
+  }
+
+  .references li {
+    margin-bottom: var(--space-3);
+  }
+</style>
