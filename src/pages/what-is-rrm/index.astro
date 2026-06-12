@@ -1,5 +1,5 @@
 ---
-import PillarLayout from '../../layouts/PillarLayout.astro';
+import GuideLayout from '../../layouts/GuideLayout.astro';
 import CiteThisPage from '../../components/CiteThisPage.astro';
 import pageDates from '../../data/page-dates.json';
 import { buildScholarlyArticleStub } from '../../lib/identity';
@@ -140,7 +140,7 @@ const jsonLd = {
         }),
       ],
     },
-    // BreadcrumbList node deleted from this @graph: PillarLayout owns the single
+    // BreadcrumbList node deleted from this @graph: GuideLayout owns the single
     // BreadcrumbList (pillar-layout normalization, Phase 3 wave 1).
     {
       '@type': 'FAQPage',
@@ -335,7 +335,7 @@ const jsonLd = {
 };
 ---
 
-<PillarLayout
+<GuideLayout
   slug="what-is-rrm"
   jsonLd={jsonLd}
   tocItems={TOC_ITEMS}
@@ -1328,7 +1328,7 @@ const jsonLd = {
 
           <p class="disclaimer"><em>This content is for educational purposes only and does not constitute medical advice. Consult an RRM clinician or healthcare provider for guidance specific to your situation. Statistics represent published research averages, not guarantees of individual outcomes.</em></p>
 
-</PillarLayout>
+</GuideLayout>
 
 <style>
   .author-byline {
@@ -1546,5 +1546,5 @@ const jsonLd = {
 
   }
 
-  /* Container width override moved to PillarLayout (wideContainer={true}). */
+  /* Container width override moved to GuideLayout (wideContainer={true}). */
 </style>

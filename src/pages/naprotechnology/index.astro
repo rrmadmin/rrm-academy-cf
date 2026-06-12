@@ -1,5 +1,5 @@
 ---
-import PillarLayout from '../../layouts/PillarLayout.astro';
+import GuideLayout from '../../layouts/GuideLayout.astro';
 import CiteThisPage from '../../components/CiteThisPage.astro';
 import pageDates from '../../data/page-dates.json';
 import { buildScholarlyArticleStub } from '../../lib/identity';
@@ -18,7 +18,7 @@ const TOC_ITEMS = [
 ];
 
 // The hand-written mobile TOC historically carries a References entry the
-// desktop TOC lacks; preserved verbatim via PillarLayout's mobileTocItems.
+// desktop TOC lacks; preserved verbatim via GuideLayout's mobileTocItems.
 const MOBILE_TOC_ITEMS = [...TOC_ITEMS, { href: '#references', label: 'References' }];
 
 // Helper: build a ScholarlyArticle stub for citation embedding (strip @context).
@@ -116,7 +116,7 @@ const pageSchema = {
   ],
 };
 
-// BreadcrumbList block deleted: PillarLayout owns the single BreadcrumbList
+// BreadcrumbList block deleted: GuideLayout owns the single BreadcrumbList
 // (pillar-layout normalization, Phase 3 wave 1).
 
 // FAQPage (separate block per spec -- avoids Google validation issues with merged schemas)
@@ -168,7 +168,7 @@ const faqSchema = {
 };
 ---
 
-<PillarLayout
+<GuideLayout
   slug="naprotechnology"
   jsonLd={pageSchema}
   extraSchema={[faqSchema]}
@@ -624,7 +624,7 @@ const faqSchema = {
           />
 
           <p class="disclaimer"><em>This content is for educational purposes only and does not constitute medical advice. Consult an RRM clinician or healthcare provider for guidance specific to your situation. Statistics represent published research averages, not guarantees of individual outcomes.</em></p>
-</PillarLayout>
+</GuideLayout>
 
 <style>
   .author-byline {
@@ -721,7 +721,7 @@ const faqSchema = {
     line-height: 1.6;
   }
 
-  /* Container width override moved to PillarLayout (wideContainer={true}). */
+  /* Container width override moved to GuideLayout (wideContainer={true}). */
 
   /* Chart light/dark toggle */
   .chart-figure {

@@ -1,5 +1,5 @@
 ---
-import PillarLayout from '../../layouts/PillarLayout.astro';
+import GuideLayout from '../../layouts/GuideLayout.astro';
 import CiteThisPage from '../../components/CiteThisPage.astro';
 import pageDates from '../../data/page-dates.json';
 import { buildScholarlyArticleStub } from '../../lib/identity';
@@ -106,7 +106,7 @@ const pageSchema = {
   ],
 };
 
-// BreadcrumbList block deleted: PillarLayout owns the single BreadcrumbList
+// BreadcrumbList block deleted: GuideLayout owns the single BreadcrumbList
 // (pillar-layout normalization, Phase 3 wave 1).
 
 // FAQPage (separate block per spec, avoids Google validation issues with merged schemas)
@@ -190,7 +190,7 @@ const faqSchema = {
 };
 ---
 
-<PillarLayout
+<GuideLayout
   slug="neofertility"
   jsonLd={pageSchema}
   extraSchema={[faqSchema]}
@@ -639,7 +639,7 @@ const faqSchema = {
           />
 
           <p class="disclaimer"><em>This content is for educational purposes only and does not constitute medical advice. Consult a NeoFertility-trained clinician or healthcare provider for guidance specific to your situation.</em></p>
-</PillarLayout>
+</GuideLayout>
 
 <style>
   .author-byline {
@@ -736,5 +736,5 @@ const faqSchema = {
     line-height: 1.6;
   }
 
-  /* Container width override moved to PillarLayout (wideContainer={true}). */
+  /* Container width override moved to GuideLayout (wideContainer={true}). */
 </style>

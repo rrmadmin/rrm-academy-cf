@@ -6,7 +6,7 @@
 
 **Architecture:** Static Astro pages built from `src/pages/<slug>/index.astro` using the established pillar template (BaseLayout + AppShellChrome via `<MaybeShell>`, `<SectionTocChips>` for mobile TOC). Cross-pillar rails use a shared `<AudienceRail>` Astro component with two modes (inert + live). 28 D-decisions in the v1.3 spec lock the design; this plan implements them mechanically. Cross-cutting prerequisites land in `rrm-library-worker` (errata_count column + PubMed parser) and rrm-academy-cf scripts (gate helpers, citation cron). Phase 1 ships patient pillar standalone (with inert provider rail); Phase 2 ships provider pillar in a single PR that also flips patient pillar's rail live.
 
-**Tech Stack:** Astro 5.3 (static), Cloudflare Pages Functions, D1 (rrm-library + rrm-auth), GitHub Actions, `<MaybeShell>` + `<SectionTocChips>` shell components, `ssot/pillars.json` SSOT, `scripts/gates/*.mjs` deterministic gates, `/pillar-create` skill for drafting, `/rrm-ingest` skill for citation ingest, `/arise --deep` for pre-merge review.
+**Tech Stack:** Astro 5.3 (static), Cloudflare Pages Functions, D1 (rrm-library + rrm-auth), GitHub Actions, `<MaybeShell>` + `<SectionTocChips>` shell components, `ssot/guides.json` SSOT, `scripts/gates/*.mjs` deterministic gates, `/pillar-create` skill for drafting, `/rrm-ingest` skill for citation ingest, `/arise --deep` for pre-merge review.
 
 **Spec:** `docs/superpowers/specs/2026-05-14-getting-started-pillars-design.md` (v1.3, 591 lines)
 
@@ -86,7 +86,7 @@ git add scripts/backfill-errata.mjs
 git commit -m "feat(library): backfill errata data for pillar suite citations"
 ```
 
-**Task 4 Step 6 — Replace "adjust based on current build chain" with a deterministic decision rule (Serious):** Read `package.json` `scripts.build` field; if it includes `&& node scripts/build-og-index.mjs`, insert `&& node scripts/build-pillar-reviews.mjs` after `build-og-index.mjs` and before any subsequent `&&`. If `build-og-index.mjs` is not chained in `build`, append `build-pillar-reviews.mjs` directly to `astro build` (i.e., `astro build && node scripts/build-pillar-reviews.mjs && npx pagefind --site dist`). Verify with `npm run build` locally; expected: pillar reviews JSON emitted to `src/data/pillar-reviews.json`. No guessing — the decision is mechanical.
+**Task 4 Step 6 — Replace "adjust based on current build chain" with a deterministic decision rule (Serious):** Read `package.json` `scripts.build` field; if it includes `&& node scripts/build-og-index.mjs`, insert `&& node scripts/build-guide-reviews.mjs` after `build-og-index.mjs` and before any subsequent `&&`. If `build-og-index.mjs` is not chained in `build`, append `build-guide-reviews.mjs` directly to `astro build` (i.e., `astro build && node scripts/build-guide-reviews.mjs && npx pagefind --site dist`). Verify with `npm run build` locally; expected: pillar reviews JSON emitted to `src/data/pillar-reviews.json`. No guessing — the decision is mechanical.
 
 **Task 15 Step 7 — IndexNow convention (Minor):** Read `~/iCode/projects/rrm-academy-cf/scripts/indexnow-ping.mjs` if it exists; otherwise use `curl -X POST 'https://api.indexnow.org/IndexNow' -H 'Content-Type: application/json' -d '{"host":"rrmacademy.org","key":"<key>","urlList":["https://rrmacademy.org/getting-started/"]}'` — the key is at `op read 'op://Automation/IndexNow Key/credential'` (verify path before relying). If neither the script nor the key exists, skip the IndexNow ping and document the skip in the PR description.
 
@@ -128,7 +128,7 @@ Propagation table:
 | Affected task | Change |
 |---|---|
 | Task 8 (built tonight) | Gate code MUST depth-aware-strip `<div class="author-byline">…</div>` (the simple non-greedy regex won't work because the wrapper has nested `<div>` children). Fix landed as a follow-up commit on the same branch. New test: glossary-style byline with full Naomi credentials must allowlist clean. |
-| Task 12 (supervised — ssot patient entry) | `"author": "RRM Academy"` (matches the `/art-registries-and-codes/` precedent in `ssot/pillars.json`, NOT the `"Dr. Naomi Whittaker"` value used by the existing 11 clinical pillars). |
+| Task 12 (supervised — ssot patient entry) | `"author": "RRM Academy"` (matches the `/art-registries-and-codes/` precedent in `ssot/guides.json`, NOT the `"Dr. Naomi Whittaker"` value used by the existing 11 clinical pillars). |
 | Task 13 (supervised — patient draft) | When invoking `/pillar-create`, pass byline directive: org-authored + clinically reviewed pattern per D49, NOT primary-Naomi-author. The author-byline `<div>` block above is the rendered output the skill should emit. JSON-LD: `author = #organization`, `reviewedBy = #naomi-whittaker`. |
 | Task 18 (supervised — ssot provider entry) | `"author": "RRM Academy"` (same as Task 12). |
 | Task 19 (supervised — provider draft) | Same byline directive as Task 13. |
@@ -459,13 +459,13 @@ fields added in prior commit. Any flagged errata logged for review."
 
 ---
 
-### Task 4: build-pillar-reviews.mjs script + JSON emit
+### Task 4: build-guide-reviews.mjs script + JSON emit
 
 **Files:**
-- Create: `scripts/build-pillar-reviews.mjs`
+- Create: `scripts/build-guide-reviews.mjs`
 - Modify: `package.json` (add to `build` chain)
 - Modify: `scripts/build-guides-data.mjs` (read pillar-reviews.json when emitting guides.json) - read this file first to understand existing patterns
-- Test: `scripts/build-pillar-reviews.test.mjs`
+- Test: `scripts/build-guide-reviews.test.mjs`
 
 This script extracts `lastReviewed` frontmatter from each pillar `.astro` file and emits `src/data/pillar-reviews.json` for the quarterly citation cron to compare against.
 
@@ -478,12 +478,12 @@ Note the file-discovery + frontmatter-parsing pattern used. Mirror it.
 
 - [ ] **Step 2: Write the failing test**
 
-Create `scripts/build-pillar-reviews.test.mjs`:
+Create `scripts/build-guide-reviews.test.mjs`:
 
 ```javascript
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { extractLastReviewed } from './build-pillar-reviews.mjs';
+import { extractLastReviewed } from './build-guide-reviews.mjs';
 
 test('extractLastReviewed returns ISO date from frontmatter', () => {
   const astro = `---
@@ -520,13 +520,13 @@ const lastReviewed = 'not-a-date';
 - [ ] **Step 3: Run test, verify fail**
 
 ```bash
-node --test scripts/build-pillar-reviews.test.mjs
+node --test scripts/build-guide-reviews.test.mjs
 ```
 Expected: FAIL with "extractLastReviewed is not exported."
 
 - [ ] **Step 4: Implement build script**
 
-Create `scripts/build-pillar-reviews.mjs`:
+Create `scripts/build-guide-reviews.mjs`:
 
 ```javascript
 import fs from 'node:fs';
@@ -534,7 +534,7 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
-const SSOT_PATH = path.join(__dirname, '..', 'ssot', 'pillars.json');
+const SSOT_PATH = path.join(__dirname, '..', 'ssot', 'guides.json');
 const PAGES_DIR = path.join(__dirname, '..', 'src', 'pages');
 const OUTPUT_PATH = path.join(__dirname, '..', 'src', 'data', 'pillar-reviews.json');
 
@@ -578,16 +578,16 @@ if (import.meta.url === `file://${process.argv[1]}`) {
 - [ ] **Step 5: Run test, verify pass**
 
 ```bash
-node --test scripts/build-pillar-reviews.test.mjs
+node --test scripts/build-guide-reviews.test.mjs
 ```
 Expected: all 4 tests pass.
 
 - [ ] **Step 6: Wire into npm build**
 
-Read `package.json`. Find the `build` script. Add `node scripts/build-pillar-reviews.mjs` BEFORE `astro build`:
+Read `package.json`. Find the `build` script. Add `node scripts/build-guide-reviews.mjs` BEFORE `astro build`:
 
 ```json
-"build": "node scripts/build-pillar-reviews.mjs && astro build && npx pagefind --site dist"
+"build": "node scripts/build-guide-reviews.mjs && astro build && npx pagefind --site dist"
 ```
 
 (Adjust based on current build chain; insert pillar-reviews after ssot-prebuild but before astro.)
@@ -606,7 +606,7 @@ It's a build artifact, not source-of-truth. Read .gitignore; add line `src/data/
 - [ ] **Step 9: Commit**
 
 ```bash
-git add scripts/build-pillar-reviews.mjs scripts/build-pillar-reviews.test.mjs package.json .gitignore
+git add scripts/build-guide-reviews.mjs scripts/build-guide-reviews.test.mjs package.json .gitignore
 git commit -m "feat(build): emit pillar-reviews.json from .astro lastReviewed frontmatter
 
 Phase 1 prereq for citation accuracy watch (quarterly erratum cron
@@ -636,7 +636,7 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
-const SSOT_PATH = path.join(__dirname, '..', '..', 'ssot', 'pillars.json');
+const SSOT_PATH = path.join(__dirname, '..', '..', 'ssot', 'guides.json');
 const PAGES_DIR = path.join(__dirname, '..', '..', 'src', 'pages');
 const SITE_URL = 'https://rrmacademy.org';
 
@@ -1489,8 +1489,8 @@ function gitChangedFilesAgainstMain() {
 }
 
 function shippedSlugsFromMain() {
-  // Pillars considered "shipped" = present in main branch's ssot/pillars.json AND src/pages/<slug>/index.astro exists
-  const out = execSync('git show origin/main:ssot/pillars.json', { encoding: 'utf8' });
+  // Pillars considered "shipped" = present in main branch's ssot/guides.json AND src/pages/<slug>/index.astro exists
+  const out = execSync('git show origin/main:ssot/guides.json', { encoding: 'utf8' });
   const ssot = JSON.parse(out);
   return ssot.pillars.filter(p => PILLAR_SLUGS.includes(p.slug)).map(p => p.slug);
 }
@@ -1594,14 +1594,14 @@ This task produces D1 state changes via the worker, not repo file changes. The s
 
 ---
 
-### Task 12: Add patient pillar to `ssot/pillars.json`
+### Task 12: Add patient pillar to `ssot/guides.json`
 
 **Files:**
-- Modify: `ssot/pillars.json`
+- Modify: `ssot/guides.json`
 
 - [ ] **Step 1: Read current schema and existing pillar entries**
 
-Read `ssot/pillars.json` fully. Note the structure of an existing entry (e.g., `naprotechnology` entry). The patient pillar entry follows the same shape with adjusted values.
+Read `ssot/guides.json` fully. Note the structure of an existing entry (e.g., `naprotechnology` entry). The patient pillar entry follows the same shape with adjusted values.
 
 - [ ] **Step 2: Add patient pillar entry**
 
@@ -1629,7 +1629,7 @@ Add to `pillars` array (preserve `_order` ascending; new entry gets the next ava
 - [ ] **Step 3: Run CI gate**
 
 ```bash
-node scripts/gates/validate-pillar-registry.mjs
+node scripts/gates/validate-guides-registry.mjs
 ```
 Expected: PASS or skip-due-to-missing-file (file doesn't exist yet; this gate may require file to exist).
 
@@ -1713,7 +1713,7 @@ node scripts/gates/validate-naomi-attribution.mjs --file=dist/getting-started/in
 node scripts/gates/faq-no-affirmative-lead.mjs --file=dist/getting-started/index.html
 
 # Pillar registry
-node scripts/gates/validate-pillar-registry.mjs
+node scripts/gates/validate-guides-registry.mjs
 
 # Library citation 200 (Tasks 11 verified Fuldeore/Chandra are live; check all 8)
 for slug in $(grep -oP '/library/[a-z0-9-]+/' dist/getting-started/index.html | sort -u); do
@@ -1735,12 +1735,12 @@ Brian reviews the draft for:
 
 - [ ] **Step 5: Run /arise --deep against the pillar**
 
-Invoke `/arise --deep` with scope = `src/pages/getting-started/index.astro` + `src/components/AudienceRail.astro` + `ssot/pillars.json`. Max 3 passes. Fix all CRITICAL + HIGH findings. Document any remaining HIGHs in §15 decisions log if pass 3 still produces them (per D14).
+Invoke `/arise --deep` with scope = `src/pages/getting-started/index.astro` + `src/components/AudienceRail.astro` + `ssot/guides.json`. Max 3 passes. Fix all CRITICAL + HIGH findings. Document any remaining HIGHs in §15 decisions log if pass 3 still produces them (per D14).
 
 - [ ] **Step 6: Commit (bundled with Task 12 ssot + deploy.yml changes)**
 
 ```bash
-git add src/pages/getting-started/index.astro ssot/pillars.json .github/workflows/deploy.yml
+git add src/pages/getting-started/index.astro ssot/guides.json .github/workflows/deploy.yml
 git commit -m "feat(pillar): ship patient-pillar /getting-started/
 
 Spec: docs/superpowers/specs/2026-05-14-getting-started-pillars-design.md v1.3
@@ -1751,7 +1751,7 @@ opt-in entry 4), 8 library citations with verified slugs, JSON-LD
 Article + MedicalWebPage(audienceType=Patient) + BreadcrumbList +
 FAQPage. Primary CTA fallback /what-is-rrm/#get-started per D21.
 
-ssot/pillars.json bumped from 11 to 12 entries. deploy.yml
+ssot/guides.json bumped from 11 to 12 entries. deploy.yml
 guides_count assertion bumped accordingly per D33."
 ```
 
@@ -1839,7 +1839,7 @@ Ships `/getting-started/` patient pillar per spec `docs/superpowers/specs/2026-0
 - Primary CTA falls back to `/what-is-rrm/#get-started` (per D21)
 - Secondary CTA points to `/what-is-rrm/#fabms` (per D31)
 
-## ssot/pillars.json
+## ssot/guides.json
 - New entry: `getting-started`
 - Count bumped from 11 to 12
 
@@ -1996,15 +1996,15 @@ Append to working notes: which URLs passed audit, which were dropped, and any al
 
 ---
 
-### Task 18: Add provider pillar to `ssot/pillars.json` + bump deploy.yml
+### Task 18: Add provider pillar to `ssot/guides.json` + bump deploy.yml
 
 **Files:**
-- Modify: `ssot/pillars.json`
+- Modify: `ssot/guides.json`
 - Modify: `.github/workflows/deploy.yml`
 
 - [ ] **Step 1: Add provider pillar entry**
 
-Add to `ssot/pillars.json` `pillars` array (next `_order`):
+Add to `ssot/guides.json` `pillars` array (next `_order`):
 
 ```json
 {
@@ -2147,7 +2147,7 @@ Expected: both PASS.
 
 ```bash
 # Stage all changes
-git add src/pages/getting-started/index.astro src/pages/for-providers/index.astro ssot/pillars.json .github/workflows/deploy.yml
+git add src/pages/getting-started/index.astro src/pages/for-providers/index.astro ssot/guides.json .github/workflows/deploy.yml
 
 # Run the lockdown gate (uses git diff against origin/main)
 node scripts/gates/validate-back-edit-in-pr.mjs
@@ -2173,7 +2173,7 @@ Back-edit: src/pages/getting-started/index.astro
   - AudienceRail to /for-providers/ flipped inert→live
   - Phase 1 Action JSON-LD node (PotentialActionStatus) removed
 
-ssot/pillars.json: count 12→13
+ssot/guides.json: count 12→13
 deploy.yml: guides_count assertion 12→13
 
 Same-PR back-edit lockdown per gate #15 (D32 + D48): both pillar
@@ -2231,7 +2231,7 @@ Phase 2 of 2-pillar suite per spec v1.3.
 
 - New `/for-providers/` clinician pillar (~5,500-7,000 words)
 - Back-edit `/getting-started/` rail to /for-providers/ from inert → live
-- ssot/pillars.json count 12 → 13
+- ssot/guides.json count 12 → 13
 - deploy.yml guides_count assertion bumped
 
 ## Atomic same-PR lockdown
@@ -2356,13 +2356,13 @@ Plan covers spec v1.3 §4 (in-scope), Prerequisites (Tasks 1-5), Shared Infrastr
 | Naomi-leak Whitaker typo | Task 8 (`Whit{1,2}aker` regex per D42) |
 | Citation cron host | Task 5 (GitHub Actions schedule, NOT n8n) |
 | errata_count library migration | Tasks 1-3 (rrm-library-worker prereqs) |
-| pillar.last_reviewed source | Task 4 (build-pillar-reviews.mjs emits JSON) |
+| pillar.last_reviewed source | Task 4 (build-guide-reviews.mjs emits JSON) |
 
 Placeholder scan: every code block contains actual content. No "TBD" / "TODO" / "implement later". Function names consistent: `checkRails`, `checkNaomiAttribution`, `checkFaqAnswers`, `checkBackEditInPr`, `extractLastReviewed`, `parseErrataFromPubMed`.
 
 Type consistency: helper-script `opts` objects carry consistent field names (`mode`, `target`, `sibling`, `pillar`). AudienceRail Props interface used identically in both pillars (Task 13 + Task 19).
 
-Files referenced exist or are explicitly to-create: `ssot/pillars.json` exists (verified), `.github/workflows/deploy.yml` line 402 exists (verified), `~/iCode/projects/rrm-router/src/index.js` ASTRO_ROUTES exists (verified), `src/pages/femm/` precedent exists.
+Files referenced exist or are explicitly to-create: `ssot/guides.json` exists (verified), `.github/workflows/deploy.yml` line 402 exists (verified), `~/iCode/projects/rrm-router/src/index.js` ASTRO_ROUTES exists (verified), `src/pages/femm/` precedent exists.
 
 Plan complete.
 

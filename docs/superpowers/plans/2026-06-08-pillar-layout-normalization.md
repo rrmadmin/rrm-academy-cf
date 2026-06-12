@@ -1,12 +1,12 @@
-# PillarLayout Normalization Implementation Plan
+# GuideLayout Normalization Implementation Plan
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
-**Goal:** Replace 13 hand-cloned pillar/condition `.astro` pages with a single `PillarLayout` that owns the registry-driven SEO foundation, while each page passes its rich schema through verbatim, so the foundation can never drift or be forgotten and migration is provably additive-only.
+**Goal:** Replace 13 hand-cloned pillar/condition `.astro` pages with a single `GuideLayout` that owns the registry-driven SEO foundation, while each page passes its rich schema through verbatim, so the foundation can never drift or be forgotten and migration is provably additive-only.
 
-**Architecture:** Hybrid passthrough. `PillarLayout.astro` wraps `BaseLayout` and emits the foundation (title/description/canonical/OG from registry, the `<h1>`, breadcrumb + `BreadcrumbList`, byline, TOC, FAQ accordion, disclaimer/cite). The page keeps authoring its domain JSON-LD (Article + `about` + `citation` + `image` + `wordCount` + `ItemList` + `DefinedTermSet` + `FAQPage`) and hands it to the layout via `jsonLd` + `extraSchema`; the layout never re-derives a domain node. A flag-based gate (G7) + a semantic comparator make every migration commit additive-only and gate-green. Rollout is Phase 0 (atomic registry + validator + build-script) -> Phase 1 (layout + comparator) -> Phase 2 (7-page proof) -> Phase 3 (waves of 3).
+**Architecture:** Hybrid passthrough. `GuideLayout.astro` wraps `BaseLayout` and emits the foundation (title/description/canonical/OG from registry, the `<h1>`, breadcrumb + `BreadcrumbList`, byline, TOC, FAQ accordion, disclaimer/cite). The page keeps authoring its domain JSON-LD (Article + `about` + `citation` + `image` + `wordCount` + `ItemList` + `DefinedTermSet` + `FAQPage`) and hands it to the layout via `jsonLd` + `extraSchema`; the layout never re-derives a domain node. A flag-based gate (G7) + a semantic comparator make every migration commit additive-only and gate-green. Rollout is Phase 0 (atomic registry + validator + build-script) -> Phase 1 (layout + comparator) -> Phase 2 (7-page proof) -> Phase 3 (waves of 3).
 
-**Tech Stack:** Astro 5.3 (static), CF Pages, Node ESM build scripts, the existing `scripts/gates/validate-pillar-registry.mjs` proof gate, Playwright for visual parity. No new runtime dependencies.
+**Tech Stack:** Astro 5.3 (static), CF Pages, Node ESM build scripts, the existing `scripts/gates/validate-guides-registry.mjs` proof gate, Playwright for visual parity. No new runtime dependencies.
 
 **Spec:** `docs/superpowers/specs/2026-06-06-pillar-layout-normalization-design.md` (v6, converged after 5 `/arise --deep` traces).
 
@@ -20,7 +20,7 @@
 - **Abort conditions (STOP, do not commit, do not proceed to the next page; surface the output and halt for human review):**
   - the comparator (`compare-pillar-migration.mjs`) returns `NOT ADDITIVE` on any page;
   - `npm run build` fails;
-  - `node scripts/gates/validate-pillar-registry.mjs` reports any G1-G7 error after an edit;
+  - `node scripts/gates/validate-guides-registry.mjs` reports any G1-G7 error after an edit;
   - `npm run lint` fails (merge.yml Lint gate blocks the auto-merge push regardless of whether the change touches `functions/`);
   - Playwright body-prose parity shows a visible body change.
 - **Revert authority:**
@@ -29,14 +29,14 @@
 
 ## Revert Procedure
 
-Every commit in this plan is a self-contained, revertable unit (page `.astro` + its `ssot/pillars.json` flag flip together for migrations; the foundation as one atomic commit for Phase 0).
+Every commit in this plan is a self-contained, revertable unit (page `.astro` + its `ssot/guides.json` flag flip together for migrations; the foundation as one atomic commit for Phase 0).
 
 - **Revert one migration commit (whole-commit only, never partial):**
   ```bash
-  git revert <commit-sha> --no-edit   # reverts BOTH the page .astro and its usesPillarLayout flag
+  git revert <commit-sha> --no-edit   # reverts BOTH the page .astro and its usesGuideLayout flag
   ```
   Then push the revert through the same `claude/* -> auto-merge -> Build & Deploy` path. NEVER revert the page `.astro` without its flag (or vice versa): a partial revert leaves the flag and import disagreeing and re-trips G7 (which is the intended local guard).
-- **Phase 0 / Phase 1 revert (requires human authorization):** same `git revert <sha> --no-edit`; the revert leaves all `usesPillarLayout` flags false and G7 inert, so it is safe, but it un-bases every migration committed on top, so do not do it autonomously.
+- **Phase 0 / Phase 1 revert (requires human authorization):** same `git revert <sha> --no-edit`; the revert leaves all `usesGuideLayout` flags false and G7 inert, so it is safe, but it un-bases every migration committed on top, so do not do it autonomously.
 
 ## Deploy Choreography (batch the deploys)
 
@@ -44,7 +44,7 @@ Per `feedback-batch-arise-deploys.md`, each push to a `claude/*` branch burns ~2
 
 | Group | Commits | Branch | Deploys |
 |-------|---------|--------|---------|
-| Phase 0 + Phase 1 | foundation (1 atomic) + PillarLayout + comparator (inert, no page changed) | `claude/pillar-layout-foundation` | 1 |
+| Phase 0 + Phase 1 | foundation (1 atomic) + GuideLayout + comparator (inert, no page changed) | `claude/pillar-layout-foundation` | 1 |
 | Phase 2 group A | Tasks 2.1-2.4 (endometritis, isthmocele, glossary, femm), one commit each | `claude/pillar-layout-proof-a` | 1 |
 | Phase 2 group B | Tasks 2.5-2.7 (common-questions, rrm-success-rates, art-registries), one commit each | `claude/pillar-layout-proof-b` | 1 |
 | Phase 3 wave 1 | Task 3.1 (what-is-rrm, naprotechnology, neofertility) | `claude/pillar-layout-wave-1` | 1 |
@@ -57,17 +57,17 @@ Per `feedback-batch-arise-deploys.md`, each push to a `claude/*` branch burns ~2
 ## File Structure
 
 **Created:**
-- `scripts/migrations/2026-06-08-capture-pillar-fields.mjs` — one-shot: scrapes the 7 new fields from each pillar's current source into `ssot/pillars.json`. Run once in Phase 0, then archived.
-- `src/layouts/PillarLayout.astro` — the layout. Owns the foundation; forwards `BaseLayout` props; relays page schema.
+- `scripts/migrations/2026-06-08-capture-pillar-fields.mjs` — one-shot: scrapes the 7 new fields from each pillar's current source into `ssot/guides.json`. Run once in Phase 0, then archived.
+- `src/layouts/GuideLayout.astro` — the layout. Owns the foundation; forwards `BaseLayout` props; relays page schema.
 - `scripts/gates/compare-pillar-migration.mjs` — the semantic comparator. Diffs pre/post rendered HTML for one page; asserts additive-only.
-- `tests/gates/validate-pillar-registry-g7.test.mjs` — G7 unit tests (poison cases).
+- `tests/gates/validate-guides-registry-g7.test.mjs` — G7 unit tests (poison cases).
 - `tests/gates/compare-pillar-migration.test.mjs` — comparator self-test (synthetic pre/post).
 
 **Modified:**
-- `ssot/pillars.json` — +7 fields per entry (`pageTitle`, `pageDescription`, `pageH1`, `breadcrumbName`, `authorId`, optional `reviewer`, `usesPillarLayout`).
-- `scripts/gates/validate-pillar-registry.mjs` — extend `REQUIRED_FIELDS` (+6, not `reviewer`); add `gateG7`; wire into the error set.
-- `scripts/build-guides-data.mjs` — read `pageH1`/`pageDescription` from the registry for `usesPillarLayout:true` pages instead of scraping.
-- `src/pages/<slug>/index.astro` (×13) — swap `BaseLayout` -> `PillarLayout`, move prose into the slot, pass schema via `jsonLd`/`extraSchema`, flip `usesPillarLayout:true` in the same commit. The 3 `@graph` pages (what-is-rrm, common-questions-about-rrm, art-registries-and-codes) decompose their `@graph` in the process.
+- `ssot/guides.json` — +7 fields per entry (`pageTitle`, `pageDescription`, `pageH1`, `breadcrumbName`, `authorId`, optional `reviewer`, `usesGuideLayout`).
+- `scripts/gates/validate-guides-registry.mjs` — extend `REQUIRED_FIELDS` (+6, not `reviewer`); add `gateG7`; wire into the error set.
+- `scripts/build-guides-data.mjs` — read `pageH1`/`pageDescription` from the registry for `usesGuideLayout:true` pages instead of scraping.
+- `src/pages/<slug>/index.astro` (×13) — swap `BaseLayout` -> `GuideLayout`, move prose into the slot, pass schema via `jsonLd`/`extraSchema`, flip `usesGuideLayout:true` in the same commit. The 3 `@graph` pages (what-is-rrm, common-questions-about-rrm, art-registries-and-codes) decompose their `@graph` in the process.
 
 ---
 
@@ -75,11 +75,11 @@ Per `feedback-batch-arise-deploys.md`, each push to a `claude/*` branch burns ~2
 
 Everything in Phase 0 lands in ONE commit so every intermediate state passes the gates. Build the pieces across Tasks 0.1-0.4, stage them together, run the green-check, then a single commit.
 
-### Task 0.1: Capture the 7 new registry fields into `ssot/pillars.json`
+### Task 0.1: Capture the 7 new registry fields into `ssot/guides.json`
 
 **Files:**
 - Create: `scripts/migrations/2026-06-08-capture-pillar-fields.mjs`
-- Modify: `ssot/pillars.json` (written by the script)
+- Modify: `ssot/guides.json` (written by the script)
 
 - [ ] **Step 1: Write the capture script**
 
@@ -87,7 +87,7 @@ Everything in Phase 0 lands in ONE commit so every intermediate state passes the
 // scripts/migrations/2026-06-08-capture-pillar-fields.mjs
 // One-shot: scrape pageTitle, pageH1, pageDescription, breadcrumbName, authorId,
 // reviewer (optional) from each pillar's current .astro source and add them +
-// usesPillarLayout:false to ssot/pillars.json. Idempotent: re-running overwrites
+// usesGuideLayout:false to ssot/guides.json. Idempotent: re-running overwrites
 // the same fields with the same scraped values. Run ONCE in Phase 0, then archive.
 //
 // Usage: node scripts/migrations/2026-06-08-capture-pillar-fields.mjs [--check]
@@ -99,7 +99,7 @@ import { fileURLToPath } from 'url';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const ROOT = join(__dirname, '..', '..');
-const SSOT = join(ROOT, 'ssot', 'pillars.json');
+const SSOT = join(ROOT, 'ssot', 'guides.json');
 const PAGES = join(ROOT, 'src', 'pages');
 
 function splitFrontmatter(src) {
@@ -190,14 +190,14 @@ for (const p of registry.pillars) {
   p.breadcrumbName = breadcrumbName;
   p.authorId = authorId;
   if (reviewer) p.reviewer = reviewer; else delete p.reviewer;
-  p.usesPillarLayout = false;
+  p.usesGuideLayout = false;
   report.push({ slug: p.slug, pageTitle, pageH1, breadcrumbName, authorId, reviewer: reviewer || null });
 }
 if (check) {
   console.table(report);
 } else {
   writeFileSync(SSOT, JSON.stringify(registry, null, 2) + '\n');
-  console.log(`Captured 7 fields for ${registry.pillars.length} pillars into ssot/pillars.json`);
+  console.log(`Captured 7 fields for ${registry.pillars.length} pillars into ssot/guides.json`);
   console.table(report);
 }
 ```
@@ -210,73 +210,73 @@ Expected: a 13-row table. Verify by hand: `pageH1` differs from `pageTitle` on w
 - [ ] **Step 3: Write the fields**
 
 Run: `node scripts/migrations/2026-06-08-capture-pillar-fields.mjs`
-Expected: `Captured 7 fields for 13 pillars`. Confirm: `node -e "const p=require('./ssot/pillars.json').pillars; console.log(p.every(x=>x.pageTitle&&x.pageH1&&x.pageDescription&&x.breadcrumbName&&x.authorId&&x.usesPillarLayout===false))"` prints `true`.
+Expected: `Captured 7 fields for 13 pillars`. Confirm: `node -e "const p=require('./ssot/guides.json').pillars; console.log(p.every(x=>x.pageTitle&&x.pageH1&&x.pageDescription&&x.breadcrumbName&&x.authorId&&x.usesGuideLayout===false))"` prints `true`.
 
 (No commit yet — Phase 0 commits atomically in Task 0.4.)
 
 ### Task 0.2: Extend `REQUIRED_FIELDS` + add `gateG7`
 
 **Files:**
-- Modify: `scripts/gates/validate-pillar-registry.mjs:REQUIRED_FIELDS` (append 6) and add `gateG7` + wire into `errors`
-- Test: `tests/gates/validate-pillar-registry-g7.test.mjs`
+- Modify: `scripts/gates/validate-guides-registry.mjs:REQUIRED_FIELDS` (append 6) and add `gateG7` + wire into `errors`
+- Test: `tests/gates/validate-guides-registry-g7.test.mjs`
 
 - [ ] **Step 1: Write the failing G7 test**
 
 ```javascript
-// tests/gates/validate-pillar-registry-g7.test.mjs
+// tests/gates/validate-guides-registry-g7.test.mjs
 import { test } from 'node:test';
 import assert from 'node:assert';
-import { gateG7 } from '../../scripts/gates/validate-pillar-registry.mjs';
+import { gateG7 } from '../../scripts/gates/validate-guides-registry.mjs';
 
 const mkReg = (overrides) => ({
-  pillars: [{ slug: 'demo', file: 'demo/index.astro', usesPillarLayout: false, ...overrides }],
+  pillars: [{ slug: 'demo', file: 'demo/index.astro', usesGuideLayout: false, ...overrides }],
 });
 
-test('G7: usesPillarLayout:true page that imports BaseLayout directly fails', () => {
+test('G7: usesGuideLayout:true page that imports BaseLayout directly fails', () => {
   const src = `---\nimport BaseLayout from '../../layouts/BaseLayout.astro';\n---\n<BaseLayout title="x">y</BaseLayout>`;
-  const issues = gateG7(mkReg({ usesPillarLayout: true }), () => src);
-  assert.ok(issues.some((i) => i.includes('must import PillarLayout') || i.includes('must NOT import or use BaseLayout')));
+  const issues = gateG7(mkReg({ usesGuideLayout: true }), () => src);
+  assert.ok(issues.some((i) => i.includes('must import GuideLayout') || i.includes('must NOT import or use BaseLayout')));
 });
 
-test('G7: usesPillarLayout:true page that imports PillarLayout and has no BaseLayout passes', () => {
-  const src = `---\nimport PillarLayout from '../../layouts/PillarLayout.astro';\n---\n<PillarLayout slug="demo">y</PillarLayout>`;
-  const issues = gateG7(mkReg({ usesPillarLayout: true }), () => src);
+test('G7: usesGuideLayout:true page that imports GuideLayout and has no BaseLayout passes', () => {
+  const src = `---\nimport GuideLayout from '../../layouts/GuideLayout.astro';\n---\n<GuideLayout slug="demo">y</GuideLayout>`;
+  const issues = gateG7(mkReg({ usesGuideLayout: true }), () => src);
   assert.deepStrictEqual(issues, []);
 });
 
-test('G7: usesPillarLayout:false page that imports PillarLayout fails (half-revert)', () => {
-  const src = `---\nimport PillarLayout from '../../layouts/PillarLayout.astro';\n---\n<PillarLayout slug="demo">y</PillarLayout>`;
-  const issues = gateG7(mkReg({ usesPillarLayout: false }), () => src);
-  assert.ok(issues.some((i) => i.includes('must NOT import PillarLayout')));
+test('G7: usesGuideLayout:false page that imports GuideLayout fails (half-revert)', () => {
+  const src = `---\nimport GuideLayout from '../../layouts/GuideLayout.astro';\n---\n<GuideLayout slug="demo">y</GuideLayout>`;
+  const issues = gateG7(mkReg({ usesGuideLayout: false }), () => src);
+  assert.ok(issues.some((i) => i.includes('must NOT import GuideLayout')));
 });
 
 test('G7: a commented import does not satisfy the anchored regex', () => {
-  const src = `---\n// import PillarLayout from '../../layouts/PillarLayout.astro';\nimport BaseLayout from '../../layouts/BaseLayout.astro';\n---\n<BaseLayout title="x">y</BaseLayout>`;
-  const issues = gateG7(mkReg({ usesPillarLayout: true }), () => src);
+  const src = `---\n// import GuideLayout from '../../layouts/GuideLayout.astro';\nimport BaseLayout from '../../layouts/BaseLayout.astro';\n---\n<BaseLayout title="x">y</BaseLayout>`;
+  const issues = gateG7(mkReg({ usesGuideLayout: true }), () => src);
   assert.ok(issues.length > 0);
 });
 
 test('G7: migrated page may keep an ItemList literal (passthrough, not banned)', () => {
-  const src = `---\nimport PillarLayout from '../../layouts/PillarLayout.astro';\nconst extra = [{ '@type': 'ItemList' }];\n---\n<PillarLayout slug="demo" extraSchema={extra}>y</PillarLayout>`;
-  const issues = gateG7(mkReg({ usesPillarLayout: true }), () => src);
+  const src = `---\nimport GuideLayout from '../../layouts/GuideLayout.astro';\nconst extra = [{ '@type': 'ItemList' }];\n---\n<GuideLayout slug="demo" extraSchema={extra}>y</GuideLayout>`;
+  const issues = gateG7(mkReg({ usesGuideLayout: true }), () => src);
   assert.deepStrictEqual(issues, []);
 });
 
 test('G7: migrated page that hand-rolls a BreadcrumbList literal fails', () => {
-  const src = `---\nimport PillarLayout from '../../layouts/PillarLayout.astro';\nconst bc = { '@type': 'BreadcrumbList' };\n---\n<PillarLayout slug="demo">y</PillarLayout>`;
-  const issues = gateG7(mkReg({ usesPillarLayout: true }), () => src);
+  const src = `---\nimport GuideLayout from '../../layouts/GuideLayout.astro';\nconst bc = { '@type': 'BreadcrumbList' };\n---\n<GuideLayout slug="demo">y</GuideLayout>`;
+  const issues = gateG7(mkReg({ usesGuideLayout: true }), () => src);
   assert.ok(issues.some((i) => i.includes('BreadcrumbList')));
 });
 ```
 
 - [ ] **Step 2: Run the test, verify it fails**
 
-Run: `node --test tests/gates/validate-pillar-registry-g7.test.mjs`
+Run: `node --test tests/gates/validate-guides-registry-g7.test.mjs`
 Expected: FAIL — `gateG7` is not exported / not defined.
 
 - [ ] **Step 3: Extend `REQUIRED_FIELDS` and add `gateG7`**
 
-In `scripts/gates/validate-pillar-registry.mjs`, change the `REQUIRED_FIELDS` array to append the 6 required new fields (NOT `reviewer`):
+In `scripts/gates/validate-guides-registry.mjs`, change the `REQUIRED_FIELDS` array to append the 6 required new fields (NOT `reviewer`):
 
 ```javascript
 const REQUIRED_FIELDS = [
@@ -291,21 +291,21 @@ const REQUIRED_FIELDS = [
   'accent',
   'in_guides_catalogue',
   'in_shell_guides_nav',
-  // PillarLayout foundation fields (added 2026-06-08). reviewer is intentionally
+  // GuideLayout foundation fields (added 2026-06-08). reviewer is intentionally
   // NOT here: 9 pillars have no reviewer and gateG1 fails on `=== undefined`.
   'pageTitle',
   'pageDescription',
   'pageH1',
   'breadcrumbName',
   'authorId',
-  'usesPillarLayout',
+  'usesGuideLayout',
 ];
 ```
 
 Add the gate function (place it next to `gateG6`). It takes an optional `readFile` injector so the test can pass synthetic source:
 
 ```javascript
-const IMPORT_PILLAR_RE = /^\s*import\s+PillarLayout\s+from\s+['"][^'"]*PillarLayout\.astro['"]/m;
+const IMPORT_PILLAR_RE = /^\s*import\s+GuideLayout\s+from\s+['"][^'"]*GuideLayout\.astro['"]/m;
 const IMPORT_BASE_RE = /^\s*import\s+BaseLayout\s+from\s+['"][^'"]*BaseLayout\.astro['"]/m;
 const USES_BASE_TAG_RE = /<BaseLayout[\s>]/;
 const HANDROLLED_BREADCRUMB_RE = /['"]@type['"]\s*:\s*['"]BreadcrumbList['"]/;
@@ -313,19 +313,19 @@ const HANDROLLED_BREADCRUMB_RE = /['"]@type['"]\s*:\s*['"]BreadcrumbList['"]/;
 export function gateG7(registry, readFile = (p) => readFileSync(p, 'utf-8')) {
   const issues = [];
   for (const p of registry.pillars || []) {
-    if (typeof p.usesPillarLayout !== 'boolean' || !p.file) continue; // gateG1 already flagged a missing flag/file
+    if (typeof p.usesGuideLayout !== 'boolean' || !p.file) continue; // gateG1 already flagged a missing flag/file
     const fullPath = join(ROOT, 'src', 'pages', p.file);
     let src;
     try { src = readFile(fullPath); } catch { continue; } // gateG1 already flagged a missing file
     const importsPillar = IMPORT_PILLAR_RE.test(src);
-    if (p.usesPillarLayout) {
-      if (!importsPillar) issues.push(`G7 ${p.slug}: usesPillarLayout:true but does not import PillarLayout`);
+    if (p.usesGuideLayout) {
+      if (!importsPillar) issues.push(`G7 ${p.slug}: usesGuideLayout:true but does not import GuideLayout`);
       if (IMPORT_BASE_RE.test(src) || USES_BASE_TAG_RE.test(src))
-        issues.push(`G7 ${p.slug}: usesPillarLayout:true but still imports/uses BaseLayout directly (PillarLayout wraps it)`);
+        issues.push(`G7 ${p.slug}: usesGuideLayout:true but still imports/uses BaseLayout directly (GuideLayout wraps it)`);
       if (HANDROLLED_BREADCRUMB_RE.test(src))
-        issues.push(`G7 ${p.slug}: usesPillarLayout:true but hand-rolls a BreadcrumbList literal (the layout owns it; @graph pages must delete the in-graph BreadcrumbList)`);
+        issues.push(`G7 ${p.slug}: usesGuideLayout:true but hand-rolls a BreadcrumbList literal (the layout owns it; @graph pages must delete the in-graph BreadcrumbList)`);
     } else if (importsPillar) {
-      issues.push(`G7 ${p.slug}: usesPillarLayout:false but imports PillarLayout (half-revert?)`);
+      issues.push(`G7 ${p.slug}: usesGuideLayout:false but imports GuideLayout (half-revert?)`);
     }
   }
   return issues;
@@ -345,13 +345,13 @@ And update the ALL CLEAR log string to mention G7.
 
 - [ ] **Step 4: Run the test, verify it passes**
 
-Run: `node --test tests/gates/validate-pillar-registry-g7.test.mjs`
+Run: `node --test tests/gates/validate-guides-registry-g7.test.mjs`
 Expected: PASS (6 tests).
 
 - [ ] **Step 5: Run the full validator against the captured registry**
 
-Run: `node scripts/gates/validate-pillar-registry.mjs`
-Expected: `G1-G3 + G6 ... ALL CLEAR` (now also G7). All 13 pillars have `usesPillarLayout:false` and still import BaseLayout, so G7 is green. Exit 0.
+Run: `node scripts/gates/validate-guides-registry.mjs`
+Expected: `G1-G3 + G6 ... ALL CLEAR` (now also G7). All 13 pillars have `usesGuideLayout:false` and still import BaseLayout, so G7 is green. Exit 0.
 
 (No commit yet.)
 
@@ -370,7 +370,7 @@ const GUIDES = PILLAR_REGISTRY.pillars
   .map((p) => ({
     slug: p.slug,
     file: p.file,
-    usesPillarLayout: p.usesPillarLayout === true,
+    usesGuideLayout: p.usesGuideLayout === true,
     pageH1: p.pageH1,
     pageDescription: p.pageDescription,
   }))
@@ -383,8 +383,8 @@ In `build()`, replace the `const title = extractH1(body);` / `const description 
 
 ```javascript
     let title, description;
-    if (g.usesPillarLayout) {
-      // Migrated pages render the <h1> and wrap BaseLayout inside PillarLayout,
+    if (g.usesGuideLayout) {
+      // Migrated pages render the <h1> and wrap BaseLayout inside GuideLayout,
       // so there is no literal <h1>/<BaseLayout> to scrape. Read the verbatim
       // values the registry captured. pageH1 (NOT pageTitle) is the guides-card
       // title -- they differ on 6 concept pillars and this string is embedded 3x
@@ -410,8 +410,8 @@ Expected: the `<h1>` text (e.g. `What is Restorative Reproductive Medicine (RRM)
 
 - [ ] **Step 4: Confirm the validator still passes (build-guides-data is a G2/G3 consumer)**
 
-Run: `node scripts/gates/validate-pillar-registry.mjs`
-Expected: ALL CLEAR (the refactor keeps the `join(ROOT, 'ssot', 'pillars.json')` import and introduces no hardcoded pillar list).
+Run: `node scripts/gates/validate-guides-registry.mjs`
+Expected: ALL CLEAR (the refactor keeps the `join(ROOT, 'ssot', 'guides.json')` import and introduces no hardcoded pillar list).
 
 ### Task 0.4: Green-check and commit Phase 0 atomically
 
@@ -419,8 +419,8 @@ Expected: ALL CLEAR (the refactor keeps the `join(ROOT, 'ssot', 'pillars.json')`
 
 Run:
 ```bash
-node scripts/gates/validate-pillar-registry.mjs && \
-node --test tests/gates/validate-pillar-registry-g7.test.mjs && \
+node scripts/gates/validate-guides-registry.mjs && \
+node --test tests/gates/validate-guides-registry-g7.test.mjs && \
 npm run build
 ```
 Expected: validator ALL CLEAR; G7 tests PASS; `npm run build` clean and prints `Wrote 13 guide entries`.
@@ -428,7 +428,7 @@ Expected: validator ALL CLEAR; G7 tests PASS; `npm run build` clean and prints `
 - [ ] **Step 2: Stage everything and commit as one atomic Phase 0 commit**
 
 ```bash
-git add ssot/pillars.json scripts/gates/validate-pillar-registry.mjs scripts/build-guides-data.mjs scripts/migrations/2026-06-08-capture-pillar-fields.mjs tests/gates/validate-pillar-registry-g7.test.mjs
+git add ssot/guides.json scripts/gates/validate-guides-registry.mjs scripts/build-guides-data.mjs scripts/migrations/2026-06-08-capture-pillar-fields.mjs tests/gates/validate-guides-registry-g7.test.mjs
 git commit -m "pillar-layout phase 0: registry foundation fields + G7 + guides-data refactor
 
 Adds 7 registry fields (6 required + optional reviewer), gateG7 (flag-based,
@@ -440,10 +440,10 @@ migrated pages. No page migrated; gates + build green."
 
 ## Phase 1: Build the layout and the comparator (inert, zero-risk)
 
-### Task 1.1: `PillarLayout.astro`
+### Task 1.1: `GuideLayout.astro`
 
 **Files:**
-- Create: `src/layouts/PillarLayout.astro`
+- Create: `src/layouts/GuideLayout.astro`
 
 The layout reproduces the canonical pillar DOM (breadcrumb, byline, TOC, accordion, disclaimer, cite) that today lives hand-copied in every page, driven by registry fields + props. It forwards the full BaseLayout prop surface via a single spread so no prop is dropped.
 
@@ -451,7 +451,7 @@ The layout reproduces the canonical pillar DOM (breadcrumb, byline, TOC, accordi
 
 ```astro
 ---
-// src/layouts/PillarLayout.astro
+// src/layouts/GuideLayout.astro
 // Owns the registry-driven SEO foundation + uniform scaffolding for pillar guides.
 // The page passes its domain schema verbatim (jsonLd + extraSchema); the layout
 // NEVER re-derives a domain node. It emits the one foundation node it owns:
@@ -463,7 +463,7 @@ import BackToTop from '../components/BackToTop.astro';
 import LastUpdated from '../components/LastUpdated.astro';
 import { isShellEnabled } from '../lib/shell-routes';
 import { safeJsonLd } from '../lib/jsonld';
-import pillarRegistry from '../../ssot/pillars.json';
+import guideRegistry from '../../ssot/guides.json';
 
 interface Reviewer { name: string; id?: string; }
 interface TocItem { href: string; label: string; }
@@ -506,8 +506,8 @@ const {
   baseLayout = {},
 } = Astro.props;
 
-const entry = pillarRegistry.pillars.find((p) => p.slug === slug);
-if (!entry) throw new Error(`PillarLayout: slug "${slug}" not in ssot/pillars.json`);
+const entry = guideRegistry.pillars.find((p) => p.slug === slug);
+if (!entry) throw new Error(`GuideLayout: slug "${slug}" not in ssot/guides.json`);
 
 const PAGE_URL = `https://rrmacademy.org/${slug}/`;
 const SHELL_ENABLED = isShellEnabled('guides');
@@ -650,7 +650,7 @@ const baseLayoutProps = {
 
 - [ ] **Step 2: Lift the shared `<style>` block verbatim**
 
-Open `src/pages/isthmocele/index.astro`, copy its entire `<style>` block (the `.editing-notice`, `.author-byline*`, `.condition-grid`, `.pathway-*`, `.toc*`, `.faq-*`, `.disclaimer` rules) into PillarLayout's `<style>`, replacing the placeholder comment. Keep card-grid rules (`.condition-grid`, `.pathway-grid`) since condition pages render those grids in the slot.
+Open `src/pages/isthmocele/index.astro`, copy its entire `<style>` block (the `.editing-notice`, `.author-byline*`, `.condition-grid`, `.pathway-*`, `.toc*`, `.faq-*`, `.disclaimer` rules) into GuideLayout's `<style>`, replacing the placeholder comment. Keep card-grid rules (`.condition-grid`, `.pathway-grid`) since condition pages render those grids in the slot.
 
 - [ ] **Step 3: Type-check + build (layout is unused, must not break the build)**
 
@@ -660,8 +660,8 @@ Expected: no new type errors above baseline; build clean. The layout is imported
 - [ ] **Step 4: Commit**
 
 ```bash
-git add src/layouts/PillarLayout.astro
-git commit -m "pillar-layout phase 1: add PillarLayout.astro (inert, unused)"
+git add src/layouts/GuideLayout.astro
+git commit -m "pillar-layout phase 1: add GuideLayout.astro (inert, unused)"
 ```
 
 ### Task 1.2: The semantic comparator
@@ -846,14 +846,14 @@ Each migration is the same recipe. Steps marked (@graph) apply only to what-is-r
    ```
    The `guides-pre.json` built here is the spec's "build the un-migrated page" baseline (not a git read, not a registry read), so the comparator's guides.json byte-equality check is non-tautological.
 2. **Edit the page `.astro`:**
-   - Replace `import BaseLayout from '...'` with `import PillarLayout from '../../layouts/PillarLayout.astro'`.
+   - Replace `import BaseLayout from '...'` with `import GuideLayout from '../../layouts/GuideLayout.astro'`.
    - Keep the frontmatter that builds the domain schema object (`pageSchema`/`jsonLd`). DELETE the frontmatter that builds the BreadcrumbList (the layout owns it).
    - (@graph) Split the single `@graph` object: the Article/MedicalWebPage node becomes the `jsonLd` object; FAQPage / ItemList / DefinedTermSet become entries in an `extraSchema` array; the in-`@graph` BreadcrumbList node is deleted.
    - For separate-block pages: the standalone `<script set:html={safeJsonLd(faqSchema)} />` etc. become `extraSchema={[faqSchema, ...]}`; the standalone BreadcrumbList block is deleted.
-   - Replace the `<BaseLayout ...> ... </BaseLayout>` wrapper with `<PillarLayout slug="<slug>" jsonLd={pageSchema} extraSchema={[...]} tocItems={TOC_ITEMS} faqs={FAQ_ITEMS} baseLayout={{ ...the props the page passed to BaseLayout EXCEPT title/description/jsonLd/chrome... }}>`.
+   - Replace the `<BaseLayout ...> ... </BaseLayout>` wrapper with `<GuideLayout slug="<slug>" jsonLd={pageSchema} extraSchema={[...]} tocItems={TOC_ITEMS} faqs={FAQ_ITEMS} baseLayout={{ ...the props the page passed to BaseLayout EXCEPT title/description/jsonLd/chrome... }}>`.
    - Move ONLY the prose sections + card grids into the default slot. Delete the now-duplicated breadcrumb nav, `<h1>`, byline, TOC markup, FAQ accordion markup, disclaimer, and `<BackToTop/>` from the page body (the layout renders them). Delete the page's `<style>` rules that the layout now owns (keep page-unique styles, e.g. a condition-specific grid that is not in the layout).
    - Build `FAQ_ITEMS` as `[{question, answerHtml}]` from the visible accordion the page had (answerHtml preserves inline `<a href="/library/...">` links). The FAQPage SCHEMA stays in `extraSchema`/`jsonLd` verbatim.
-3. **Flip the flag in the SAME edit:** set `"usesPillarLayout": true` for this slug in `ssot/pillars.json`.
+3. **Flip the flag in the SAME edit:** set `"usesGuideLayout": true` for this slug in `ssot/guides.json`.
 4. **Capture the POST render + compare:**
    ```bash
    npm run build
@@ -862,7 +862,7 @@ Each migration is the same recipe. Steps marked (@graph) apply only to what-is-r
      --slug <slug> --guides-pre /tmp/guides-pre.json --guides-post src/data/guides.json
    ```
    Expected: `ADDITIVE: ...`. If `NOT ADDITIVE`, read each issue and fix the page edit (a removed node = a schema block you forgot to pass via extraSchema; a changed meta = a BaseLayout prop you forgot to forward in `baseLayout`; a changed byline = an authorId/reviewer mismatch in the registry).
-5. **Gates green:** `node scripts/gates/validate-pillar-registry.mjs` (G7 now checks this page imports PillarLayout, no BaseLayout, no BreadcrumbList literal).
+5. **Gates green:** `node scripts/gates/validate-guides-registry.mjs` (G7 now checks this page imports GuideLayout, no BaseLayout, no BreadcrumbList literal).
 6. **Visual parity (body prose):** the comparator already proved the byline/breadcrumb/`<head>`/schema are byte-identical; this step guards the prose move into the slot. Serve the built site and screenshot pre vs post:
    ```bash
    # PRE (before editing the page, on the un-migrated build from step 1's dist):
@@ -875,12 +875,12 @@ Each migration is the same recipe. Steps marked (@graph) apply only to what-is-r
    npx playwright screenshot --viewport-size=393,852  http://localhost:8789/<slug>/ /tmp/<slug>-post-mobile.png
    ```
    Compare each pre/post pair (the Playwright MCP `browser_take_screenshot` + visual inspection, or `node -e` pixel diff). The body prose must be visually identical; the byline/h1/breadcrumb were already byte-verified by the comparator. Any visible body delta is an ABORT condition (a prose section was dropped or reordered during the slot move).
-7. **Commit** (one page per commit, on the GROUP branch from the Deploy Choreography table): `git commit -m "pillar-layout: migrate /<slug>/ to PillarLayout"`. Do NOT push per page — accumulate the group's commits, then at the end of the group run `npm run lint && node scripts/gates/validate-pillar-registry.mjs && npm run build` once more and push the whole group branch ONE time.
+7. **Commit** (one page per commit, on the GROUP branch from the Deploy Choreography table): `git commit -m "pillar-layout: migrate /<slug>/ to GuideLayout"`. Do NOT push per page — accumulate the group's commits, then at the end of the group run `npm run lint && node scripts/gates/validate-guides-registry.mjs && npm run build` once more and push the whole group branch ONE time.
 
 ### Task 2.1: Migrate `/endometritis/` (worked example — Person-author, hand-authored FAQPage, accordion)
 
 **Files:**
-- Modify: `src/pages/endometritis/index.astro`, `ssot/pillars.json`
+- Modify: `src/pages/endometritis/index.astro`, `ssot/guides.json`
 
 - [ ] **Step 1: PRE render** — `npm run build && cp dist/endometritis/index.html /tmp/endometritis-pre.html && cp src/data/guides.json /tmp/guides-pre.json`
 
@@ -889,7 +889,7 @@ Each migration is the same recipe. Steps marked (@graph) apply only to what-is-r
   - Keep `pageSchema` (the Article+MedicalWebPage node) and `faqSchema` (the hand-authored FAQPage).
   - Wrapper becomes:
     ```astro
-    <PillarLayout
+    <GuideLayout
       slug="endometritis"
       jsonLd={pageSchema}
       extraSchema={[faqSchema]}
@@ -899,11 +899,11 @@ Each migration is the same recipe. Steps marked (@graph) apply only to what-is-r
       baseLayout={{ ogType: 'article', publishDate: PUBLISH_DATE, speakable: ['.pillar-lead','h1'], trackScroll: true }}
     >
       {/* prose sections only */}
-    </PillarLayout>
+    </GuideLayout>
     ```
   - `FAQ_ITEMS = [{ question, answerHtml }]` built from the 9 visible accordion entries (NOT from `faqSchema.mainEntity` — the accordion answers carry inline library links the schema text omits).
   - Remove the page body's breadcrumb nav, `<h1>`, byline, `.toc`, `.toc-mobile`, the `<section id="faq">` accordion, the disclaimer, `<BackToTop/>`. Move the remaining `<section>` prose into the slot.
-  - Set `"usesPillarLayout": true` for endometritis in `ssot/pillars.json`.
+  - Set `"usesGuideLayout": true` for endometritis in `ssot/guides.json`.
 
 - [ ] **Step 3: POST render + comparator**
 
@@ -914,9 +914,9 @@ node scripts/gates/compare-pillar-migration.mjs /tmp/endometritis-pre.html /tmp/
 ```
 Expected: `ADDITIVE: ...`.
 
-- [ ] **Step 4: Gate + visual parity** — `node scripts/gates/validate-pillar-registry.mjs` (ALL CLEAR) + Playwright desktop/mobile screenshot of `/endometritis/` matches pre.
+- [ ] **Step 4: Gate + visual parity** — `node scripts/gates/validate-guides-registry.mjs` (ALL CLEAR) + Playwright desktop/mobile screenshot of `/endometritis/` matches pre.
 
-- [ ] **Step 5: Commit** — `git add src/pages/endometritis/index.astro ssot/pillars.json && git commit -m "pillar-layout: migrate /endometritis/ to PillarLayout"`
+- [ ] **Step 5: Commit** — `git add src/pages/endometritis/index.astro ssot/guides.json && git commit -m "pillar-layout: migrate /endometritis/ to GuideLayout"`
 
 ### Tasks 2.2-2.7: Migrate the remaining 6 proof pages
 
@@ -951,7 +951,7 @@ Same Task 2.0 procedure, one commit per page. Batch each wave on one branch; pus
 - [ ] **`/miscarriage/`** — condition, separate blocks, Person-author. `pageH1` ≠ `pageTitle`.
 - [ ] Build all three, comparator per page, gates green, Playwright parity, push the wave once.
 
-After Task 3.2: all 13 `usesPillarLayout:true`; G7 enforces the import on every pillar; `npm run build` lists 13 guides; `sitemap-pillars.xml` + `/guides/` + OG index unchanged (registry display fields were never touched). Archive the capture script: `git mv scripts/migrations/2026-06-08-capture-pillar-fields.mjs scripts/migrations/_archive/` with a note that it was one-shot.
+After Task 3.2: all 13 `usesGuideLayout:true`; G7 enforces the import on every pillar; `npm run build` lists 13 guides; `sitemap-pillars.xml` + `/guides/` + OG index unchanged (registry display fields were never touched). Archive the capture script: `git mv scripts/migrations/2026-06-08-capture-pillar-fields.mjs scripts/migrations/_archive/` with a note that it was one-shot.
 
 ---
 
@@ -973,6 +973,6 @@ After Task 3.2: all 13 `usesPillarLayout:true`; G7 enforces the import on every 
 
 **Placeholder scan:** The only intentional "fill from source" is the lifted `<style>` block (Task 1.1 step 2, an explicit copy-from-isthmocele instruction, not a TODO) and the per-page prose moves (mechanical, specified in 2.0). All scripts/gates/comparator are complete code.
 
-**Type/name consistency:** `gateG7(registry, readFile)` signature matches the test injector; `usesPillarLayout` boolean is the same field in capture (0.1), validator (0.2), build-guides-data (0.3), and G7; `pageH1`/`pageDescription`/`pageTitle`/`breadcrumbName`/`authorId`/`reviewer` consistent across 0.1/0.3/1.1; comparator exports `compare`/`extractLdJson`/`extractHead`/`extractBodyAttrs`/`extractByline` used by its test.
+**Type/name consistency:** `gateG7(registry, readFile)` signature matches the test injector; `usesGuideLayout` boolean is the same field in capture (0.1), validator (0.2), build-guides-data (0.3), and G7; `pageH1`/`pageDescription`/`pageTitle`/`breadcrumbName`/`authorId`/`reviewer` consistent across 0.1/0.3/1.1; comparator exports `compare`/`extractLdJson`/`extractHead`/`extractBodyAttrs`/`extractByline` used by its test.
 
 **Known follow-up (not blocking):** the comparator's `guides.json` baseline requires building the page at the parent commit first (Task 2.0 step 1 captures `/tmp/guides-pre.json`); this is the spec's "build the un-migrated page" mechanism, not a git read.

@@ -1,5 +1,5 @@
 ---
-import PillarLayout from '../../layouts/PillarLayout.astro';
+import GuideLayout from '../../layouts/GuideLayout.astro';
 import CiteThisPage from '../../components/CiteThisPage.astro';
 import pageDates from '../../data/page-dates.json';
 import { buildScholarlyArticleStub } from '../../lib/identity';
@@ -214,7 +214,7 @@ const FAQS: { question: string; answer: string; answerHtml: string }[] = [
 ];
 
 // Single JSON-LD @graph block (precedent: art-registries-and-codes). The
-// BreadcrumbList node is NOT here: PillarLayout owns the single BreadcrumbList.
+// BreadcrumbList node is NOT here: GuideLayout owns the single BreadcrumbList.
 const graph: Record<string, unknown>[] = [
   {
     '@type': ['Article', 'MedicalWebPage'],
@@ -268,7 +268,7 @@ const jsonLd = {
 };
 ---
 
-<PillarLayout
+<GuideLayout
   slug="rrm-success-rates"
   jsonLd={jsonLd}
   tocItems={TOC_ITEMS}
@@ -567,7 +567,7 @@ const jsonLd = {
 
           <p class="disclaimer"><em>This content is for educational purposes only and does not constitute medical advice. Consult an RRM clinician or healthcare provider for guidance specific to your situation. Statistics represent published research averages, not guarantees of individual outcomes.</em></p>
 
-</PillarLayout>
+</GuideLayout>
 
 <style>
   .author-byline {
@@ -855,7 +855,7 @@ const jsonLd = {
     line-height: 1.6;
   }
 
-  /* Container width override removed: PillarLayout's wideContainer prop
+  /* Container width override removed: GuideLayout's wideContainer prop
      renders .container--wide with the identical max-width formula. */
 
   /* Chart light/dark toggle. Copy VERBATIM from naprotechnology -- do NOT add
@@ -930,7 +930,7 @@ const jsonLd = {
      --------------------------------------------------------------------------- */
   @media print {
     /* Hide chrome + interactive affordances. SectionShare + BackToTop +
-       Header + the PillarLayout-rendered TOC render their own scope hash,
+       Header + the GuideLayout-rendered TOC render their own scope hash,
        so target them with :global(). */
     :global(.site-header),
     :global(.back-to-top),

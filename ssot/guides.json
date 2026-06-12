@@ -38,7 +38,7 @@
       "pageH1": "What is Restorative Reproductive Medicine (RRM)?",
       "breadcrumbName": "What is RRM?",
       "authorId": "#naomi-whittaker",
-      "usesPillarLayout": true
+      "usesGuideLayout": true
     },
     {
       "slug": "naprotechnology",
@@ -60,7 +60,7 @@
       "pageH1": "NaProTechnology: How It Works, What It Treats, and How to Find a Provider",
       "breadcrumbName": "NaProTechnology",
       "authorId": "#naomi-whittaker",
-      "usesPillarLayout": true
+      "usesGuideLayout": true
     },
     {
       "slug": "femm",
@@ -85,7 +85,7 @@
       "reviewer": {
         "name": "Erin Kay, DO"
       },
-      "usesPillarLayout": true
+      "usesGuideLayout": true
     },
     {
       "slug": "neofertility",
@@ -107,7 +107,7 @@
       "pageH1": "What is NeoFertility? How It Works, What Are NeoFertility's Success Rates?, and How to Find a Provider",
       "breadcrumbName": "NeoFertility",
       "authorId": "#naomi-whittaker",
-      "usesPillarLayout": true
+      "usesGuideLayout": true
     },
     {
       "slug": "common-questions-about-rrm",
@@ -129,7 +129,7 @@
       "pageH1": "Common Questions About Restorative Reproductive Medicine",
       "breadcrumbName": "Common Questions About RRM",
       "authorId": "#naomi-whittaker",
-      "usesPillarLayout": false
+      "usesGuideLayout": false
     },
     {
       "slug": "glossary",
@@ -156,7 +156,7 @@
         "name": "Dr. Naomi Whittaker, MD",
         "id": "#naomi-whittaker"
       },
-      "usesPillarLayout": true
+      "usesGuideLayout": true
     },
     {
       "slug": "art-registries-and-codes",
@@ -182,7 +182,7 @@
         "name": "Dr. Naomi Whittaker, MD",
         "id": "#naomi-whittaker"
       },
-      "usesPillarLayout": true
+      "usesGuideLayout": true
     },
     {
       "slug": "pcos",
@@ -204,7 +204,7 @@
       "pageH1": "PCOS Explained: Diagnosis, Phenotypes, and the RRM Approach",
       "breadcrumbName": "PCOS",
       "authorId": "#naomi-whittaker",
-      "usesPillarLayout": false
+      "usesGuideLayout": false
     },
     {
       "slug": "endometriosis",
@@ -226,7 +226,7 @@
       "pageH1": "Endometriosis Explained: Diagnosis, Excision Surgery, and the RRM Approach",
       "breadcrumbName": "Endometriosis",
       "authorId": "#naomi-whittaker",
-      "usesPillarLayout": false
+      "usesGuideLayout": false
     },
     {
       "slug": "endometritis",
@@ -248,7 +248,7 @@
       "pageH1": "Chronic Endometritis: The Missed Diagnosis Behind Recurrent Loss and Failed IVF",
       "breadcrumbName": "Endometritis",
       "authorId": "#naomi-whittaker",
-      "usesPillarLayout": true
+      "usesGuideLayout": true
     },
     {
       "slug": "isthmocele",
@@ -274,7 +274,7 @@
         "name": "Dr. Naomi Whittaker, MD",
         "id": "#naomi-whittaker"
       },
-      "usesPillarLayout": true
+      "usesGuideLayout": true
     },
     {
       "slug": "miscarriage",
@@ -296,7 +296,7 @@
       "pageH1": "Miscarriage and Recurrent Pregnancy Loss: The Workup Most Women Never Get",
       "breadcrumbName": "Miscarriage and Recurrent Pregnancy Loss",
       "authorId": "#naomi-whittaker",
-      "usesPillarLayout": false
+      "usesGuideLayout": false
     },
     {
       "slug": "rrm-success-rates",
@@ -321,7 +321,7 @@
         "name": "Dr. Naomi Whittaker, MD",
         "id": "#naomi-whittaker"
       },
-      "usesPillarLayout": true
+      "usesGuideLayout": true
     }
   ]
 }

@@ -5,7 +5,7 @@ import { readFileSync } from 'fs';
 
 // Astro stamps a per-component-FILE scope hash (data-astro-cid-<hash>) on every
 // element of a scoped template. When byline markup moves from a page file to the
-// PillarLayout file, that hash VALUE changes legitimately. Strip it everywhere
+// GuideLayout file, that hash VALUE changes legitimately. Strip it everywhere
 // before any structural HTML compare so it is never mistaken for a real change.
 const stripAstroCid = (s) => s.replace(/\s+data-astro-cid-[a-z0-9]+(="[^"]*")?/gi, '');
 

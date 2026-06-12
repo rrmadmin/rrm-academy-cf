@@ -1,5 +1,5 @@
 ---
-// src/layouts/PillarLayout.astro
+// src/layouts/GuideLayout.astro
 // Owns the registry-driven SEO foundation + uniform scaffolding for pillar guides.
 // The page passes its domain schema verbatim (jsonLd + extraSchema); the layout
 // NEVER re-derives a domain node. It emits the one foundation node it owns:
@@ -71,9 +71,9 @@ const {
 } = Astro.props;
 
 const entry = guideRegistry.guides.find((p) => p.slug === slug);
-if (!entry) throw new Error(`PillarLayout: slug "${slug}" not in ssot/guides.json`);
+if (!entry) throw new Error(`GuideLayout: slug "${slug}" not in ssot/guides.json`);
 if (bylineLegacy && entry.authorId !== '#naomi-whittaker') {
-  throw new Error(`PillarLayout: bylineLegacy requires authorId #naomi-whittaker (slug "${slug}" has ${entry.authorId})`);
+  throw new Error(`GuideLayout: bylineLegacy requires authorId #naomi-whittaker (slug "${slug}" has ${entry.authorId})`);
 }
 
 // Mobile <details> TOC list: defaults to the shared tocItems; legacy method pillars

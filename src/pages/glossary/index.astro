@@ -1,5 +1,5 @@
 ---
-import PillarLayout from '../../layouts/PillarLayout.astro';
+import GuideLayout from '../../layouts/GuideLayout.astro';
 import { isShellEnabled } from '../../lib/shell-routes';
 import GlossaryTerm from '../../components/GlossaryTerm.astro';
 import glossaryData from '../../data/glossary.json';
@@ -190,7 +190,7 @@ const definedTermSetSchema = {
 };
 ---
 
-<PillarLayout
+<GuideLayout
   slug="glossary"
   jsonLd={pageSchema}
   extraSchema={[definedTermSetSchema]}
@@ -406,7 +406,7 @@ const definedTermSetSchema = {
   <Fragment slot="afterContent">
     <p class="page-updated">Last updated: April 2026 &middot; {terms.length} terms &middot; {references.length} references</p>
   </Fragment>
-</PillarLayout>
+</GuideLayout>
 
 <style is:global>
   /* Rail A-Z jump nav (shell-enabled glossary). is:global so the rules apply

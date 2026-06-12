@@ -1,7 +1,7 @@
 // scripts/migrations/2026-06-08-capture-pillar-fields.mjs
 // One-shot: scrape pageTitle, pageH1, pageDescription, breadcrumbName, authorId,
 // reviewer (optional) from each pillar's current .astro source and add them +
-// usesPillarLayout:false to ssot/guides.json. Idempotent: re-running overwrites
+// usesGuideLayout:false to ssot/guides.json. Idempotent: re-running overwrites
 // the same fields with the same scraped values. Run ONCE in Phase 0, then archive.
 //
 // Usage: node scripts/migrations/2026-06-08-capture-pillar-fields.mjs [--check]
@@ -102,7 +102,7 @@ for (const p of registry.guides) {
   p.breadcrumbName = breadcrumbName;
   p.authorId = authorId;
   if (reviewer) p.reviewer = reviewer; else delete p.reviewer;
-  p.usesPillarLayout = false;
+  p.usesGuideLayout = false;
   report.push({ slug: p.slug, pageTitle, pageH1, breadcrumbName, authorId, reviewer: reviewer || null });
 }
 if (check) {
