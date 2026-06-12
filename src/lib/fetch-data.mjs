@@ -54,6 +54,7 @@ export function mapWorkerRecord(r) {
     journalAbbv: strOr(r.journalAbbv),
     doi: strOr(r.doi),
     pmid: strOr(r.pmid),
+    wikidataQid: strOr(r.wikidataQid),
     sourceUrl: strOr(r.sourceUrl),
     datePublished: strOr(r.datePublished),
     volume: strOr(r.volume),
