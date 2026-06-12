@@ -70,7 +70,7 @@ jobs:
         run: node scripts/agent-discovery-check.mjs
 
       - name: Pillar registry guard
-        run: node scripts/gates/validate-pillar-registry.mjs
+        run: node scripts/gates/validate-guides-registry.mjs
 
       - name: Canonical lockdown
         run: node scripts/check-canonical-lockdown.mjs
@@ -419,12 +419,12 @@ jobs:
           guides_count=$(node -e "console.log(JSON.parse(require('fs').readFileSync('$guides_file','utf8')).length)")
           # Expected count is derived from the pillar SSOT (build-guides-data.mjs emits
           # one guides.json entry per pillar) so adding a pillar never trips this gate.
-          expected_count=$(node -e "console.log(JSON.parse(require('fs').readFileSync('ssot/pillars.json','utf8')).pillars.length)")
+          expected_count=$(node -e "console.log(JSON.parse(require('fs').readFileSync('ssot/guides.json','utf8')).guides.length)")
           if [ "$guides_count" -ne "$expected_count" ]; then
-            echo "ERROR: $guides_file has $guides_count entries (expected $expected_count from ssot/pillars.json)"
+            echo "ERROR: $guides_file has $guides_count entries (expected $expected_count from ssot/guides.json)"
             exit 1
           fi
-          echo "OK: $guides_file has $guides_count entries (matches ssot/pillars.json)"
+          echo "OK: $guides_file has $guides_count entries (matches ssot/guides.json)"
 
       - name: Validate glossary gates (always)
         # G1-G5 static gates have no dist dependency and snapshot:glossary only

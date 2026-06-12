@@ -19,14 +19,14 @@ const ROOT = join(__dirname, '..');
 const PAGES = join(ROOT, 'src', 'pages');
 const OUT = join(ROOT, 'src', 'data', 'guides.json');
 
-// Derived from ssot/pillars.json -- single source for every pillar surface.
+// Derived from ssot/guides.json -- single source for every pillar surface.
 // Sort by slug for stable embedder output across builds (matches the legacy
 // order; the semantic embedder is order-agnostic but stable diffs make
 // downstream Vectorize change detection cleaner).
 const PILLAR_REGISTRY = JSON.parse(
-  readFileSync(join(ROOT, 'ssot', 'pillars.json'), 'utf-8'),
+  readFileSync(join(ROOT, 'ssot', 'guides.json'), 'utf-8'),
 );
-const GUIDES = PILLAR_REGISTRY.pillars
+const GUIDES = PILLAR_REGISTRY.guides
   .map((p) => ({
     slug: p.slug,
     file: p.file,

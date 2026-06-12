@@ -12,7 +12,7 @@
 // AND Vite (the Astro client bundle). A static JSON import can't satisfy all
 // three: bare breaks raw node v25 (needs an import attribute), `with { type:
 // 'json' }` breaks wrangler 3.90's older esbuild. The pillar allowlist therefore
-// lives in saved-pillars.mjs (bundler-only consumers) and is passed into
+// lives in saved-guides.mjs (bundler-only consumers) and is passed into
 // pageTypeFromUrl. See its header for the full rationale.
 
 // Closed enum of saved types. 'guide' is intentionally absent: guides live only at the
@@ -48,7 +48,7 @@ export function canonicalSaveUrl(path) {
  * advisory `type` (INV-4).
  *
  * @param {string} path
- * @param {Set<string>} [pillarPaths] Canonical pillar urls (from saved-pillars.mjs).
+ * @param {Set<string>} [pillarPaths] Canonical pillar urls (from saved-guides.mjs).
  *   Pass it in bundler contexts (API, client) so pillar pages resolve to 'pillar'.
  *   Omit in JSON-free contexts (the migration, which only ever maps /library/ urls
  *   and so never needs pillar detection).

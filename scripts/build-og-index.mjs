@@ -101,7 +101,7 @@ const STATIC_PAGES = {
   },
   // Pillar entries (what-is-rrm, naprotechnology, femm, neofertility,
   // common-questions-about-rrm, glossary, art-registries-and-codes, pcos)
-  // are merged in from ssot/pillars.json below using og_title + og_description.
+  // are merged in from ssot/guides.json below using og_title + og_description.
   // Do not hardcode them here.
   'endo-survey': {
     title: 'Endometriosis Survey',
@@ -192,14 +192,14 @@ function readJsonOrNull(name) {
 
 const readJsonSafely = readJsonOrThrow;
 
-// Merge pillar entries from ssot/pillars.json into the OG index. og_title +
+// Merge pillar entries from ssot/guides.json into the OG index. og_title +
 // og_description live in the SSOT so adding a new pillar doesn't require an
 // edit here. clamp() applies in main() once the entries are folded into index.
 function loadPillarEntries() {
-  const path = join(ROOT, 'ssot', 'pillars.json');
+  const path = join(ROOT, 'ssot', 'guides.json');
   const registry = JSON.parse(readFileSync(path, 'utf-8'));
   const out = {};
-  for (const p of registry.pillars) {
+  for (const p of registry.guides) {
     out[p.slug] = {
       title: p.og_title || p.title,
       description: p.og_description || p.description,
@@ -231,7 +231,7 @@ function extractGlossaryDescription(bodyHtml) {
 function main() {
   const PILLAR_ENTRIES = loadPillarEntries();
   const index = { ...STATIC_PAGES, ...PILLAR_ENTRIES };
-  const counts = { static: Object.keys(STATIC_PAGES).length, pillars: Object.keys(PILLAR_ENTRIES).length, library: 0, commentary: 0, faqs: 0, courses: 0, glossary: 0, providers: 0 };
+  const counts = { static: Object.keys(STATIC_PAGES).length, guides: Object.keys(PILLAR_ENTRIES).length, library: 0, commentary: 0, faqs: 0, courses: 0, glossary: 0, providers: 0 };
 
   const articles = readJsonSafely('articles.json');
   if (Array.isArray(articles)) {
@@ -372,7 +372,7 @@ function main() {
   const sizeKb = (JSON.stringify(index).length / 1024).toFixed(1);
   console.log(
     `[build-og-index] wrote ${Object.keys(index).length} entries (${sizeKb} KB): ` +
-    `${counts.static} static, ${counts.pillars} pillars, ${counts.library} library, ${counts.commentary} commentary, ` +
+    `${counts.static} static, ${counts.guides} guides, ${counts.library} library, ${counts.commentary} commentary, ` +
     `${counts.faqs} faqs, ${counts.courses} courses, ${counts.glossary} glossary, ${counts.providers} providers`
   );
 }

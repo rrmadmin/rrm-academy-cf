@@ -1,7 +1,7 @@
 // scripts/migrations/2026-06-08-capture-pillar-fields.mjs
 // One-shot: scrape pageTitle, pageH1, pageDescription, breadcrumbName, authorId,
 // reviewer (optional) from each pillar's current .astro source and add them +
-// usesPillarLayout:false to ssot/pillars.json. Idempotent: re-running overwrites
+// usesPillarLayout:false to ssot/guides.json. Idempotent: re-running overwrites
 // the same fields with the same scraped values. Run ONCE in Phase 0, then archive.
 //
 // Usage: node scripts/migrations/2026-06-08-capture-pillar-fields.mjs [--check]
@@ -13,7 +13,7 @@ import { fileURLToPath } from 'url';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const ROOT = join(__dirname, '..', '..');
-const SSOT = join(ROOT, 'ssot', 'pillars.json');
+const SSOT = join(ROOT, 'ssot', 'guides.json');
 const PAGES = join(ROOT, 'src', 'pages');
 
 function splitFrontmatter(src) {
@@ -80,7 +80,7 @@ const BYLINE_REVIEWER_OVERRIDE = {
 const registry = JSON.parse(readFileSync(SSOT, 'utf-8'));
 const check = process.argv.includes('--check');
 const report = [];
-for (const p of registry.pillars) {
+for (const p of registry.guides) {
   const path = join(PAGES, p.file);
   if (!existsSync(path)) { console.error(`MISSING ${p.file}`); process.exit(1); }
   const { frontmatter, body } = splitFrontmatter(readFileSync(path, 'utf-8'));
@@ -109,6 +109,6 @@ if (check) {
   console.table(report);
 } else {
   writeFileSync(SSOT, JSON.stringify(registry, null, 2) + '\n');
-  console.log(`Captured 7 fields for ${registry.pillars.length} pillars into ssot/pillars.json`);
+  console.log(`Captured 7 fields for ${registry.guides.length} pillars into ssot/guides.json`);
   console.table(report);
 }

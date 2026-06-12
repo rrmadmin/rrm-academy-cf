@@ -1,10 +1,10 @@
-// tests/gates/validate-pillar-registry-g7.test.mjs
+// tests/gates/validate-guides-registry-g7.test.mjs
 import { test } from 'node:test';
 import assert from 'node:assert';
-import { gateG7 } from '../../scripts/gates/validate-pillar-registry.mjs';
+import { gateG7 } from '../../scripts/gates/validate-guides-registry.mjs';
 
 const mkReg = (overrides) => ({
-  pillars: [{ slug: 'demo', file: 'demo/index.astro', usesPillarLayout: false, ...overrides }],
+  guides: [{ slug: 'demo', file: 'demo/index.astro', usesPillarLayout: false, ...overrides }],
 });
 
 test('G7: usesPillarLayout:true page that imports BaseLayout directly fails', () => {

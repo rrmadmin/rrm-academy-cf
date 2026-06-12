@@ -24,9 +24,9 @@
 import '../styles/app-shell.css';
 import Footer from './Footer.astro';
 import Header from './Header.astro';
-import pillarRegistry from '../../ssot/pillars.json';
+import guideRegistry from '../../ssot/guides.json';
 import { canonicalSaveUrl, pageTypeFromUrl } from '../lib/saved-url.mjs';
-import { PILLAR_PATHS } from '../lib/saved-pillars.mjs';
+import { GUIDE_PATHS } from '../lib/saved-guides.mjs';
 
 // AppShellChrome runs INSIDE BaseLayout's slot. The `<body>` element belongs
 // to BaseLayout (`<body class:list={[bodyClass]}>` around line 267), so this
@@ -76,7 +76,7 @@ const { context, currentPath, relatedSections = [], hasRail = false, saveTitle }
 // client-side to re-assert; server gating keeps unsaveable pages from ever
 // shipping a live control. Reserved/index/pagination paths derive null.
 const saveCanonicalUrl = canonicalSaveUrl(currentPath);
-const saveType = saveCanonicalUrl ? pageTypeFromUrl(saveCanonicalUrl, PILLAR_PATHS) : null;
+const saveType = saveCanonicalUrl ? pageTypeFromUrl(saveCanonicalUrl, GUIDE_PATHS) : null;
 const isSaveable = !!saveCanonicalUrl && !!saveType;
 // `hasRelatedSections` was previously gated on `context === 'article'` because
 // the original design only emitted a rail for articles. The 'page' context now
@@ -98,20 +98,20 @@ const inCourses = currentPath === '/courses' || currentPath === '/courses/' || c
 const inCommunity = currentPath === '/community' || currentPath === '/community/' || currentPath.startsWith('/community/');
 const inProviders = currentPath === '/providers' || currentPath === '/providers/' || currentPath.startsWith('/providers/');
 // "Guides" surface = the /guides/ index AND the pillar guide pages, which live
-// Derived from ssot/pillars.json (in_shell_guides_nav filter) + the /guides/
-// catalogue. Adding a new pillar = adding it to pillars.json with
+// Derived from ssot/guides.json (in_shell_guides_nav filter) + the /guides/
+// catalogue. Adding a new pillar = adding it to guides.json with
 // in_shell_guides_nav=true; no edit required here. Glossary is wrapped by
 // the same shell route but gets its own permanent sidebar link, so it
 // stays in_shell_guides_nav=false and aria-current on Guides excludes
 // /glossary/.
-// Derive from ssot/pillars.json. Each pillar with in_shell_guides_nav=true
+// Derive from ssot/guides.json. Each pillar with in_shell_guides_nav=true
 // contributes both slash forms (/foo and /foo/) so aria-current matches the
 // canonical currentPath shape Astro renders. /glossary/ stays excluded via
 // in_shell_guides_nav=false because the glossary has its own permanent sidebar
 // link via the separate inGlossary check below.
 const GUIDES_PATHS = new Set([
   '/guides', '/guides/',
-  ...pillarRegistry.pillars
+  ...guideRegistry.guides
     .filter((p) => p.in_shell_guides_nav)
     .flatMap((p) => [`/${p.slug}`, `/${p.slug}/`]),
 ]);

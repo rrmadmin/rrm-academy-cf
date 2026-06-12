@@ -9,14 +9,14 @@
 // client) — never by raw node — so a bare JSON import is safe here: esbuild and
 // Vite both inline JSON natively without an attribute.
 //
-// Pass PILLAR_PATHS into pageTypeFromUrl(url, PILLAR_PATHS) wherever pillar pages
+// Pass GUIDE_PATHS into pageTypeFromUrl(url, GUIDE_PATHS) wherever pillar pages
 // must resolve to type 'pillar'.
-import pillarsData from '../../ssot/pillars.json';
+import pillarsData from '../../ssot/guides.json';
 
 // Saveable pillar pages = pillars surfaced in the shell guides nav (own shell pages).
 // Excludes glossary (it has its own /glossary/<slug>/ detail route).
-export const PILLAR_PATHS = new Set(
-  (pillarsData.pillars || [])
+export const GUIDE_PATHS = new Set(
+  (pillarsData.guides || [])
     .filter((p) => p && p.in_shell_guides_nav)
     .map((p) => `/${String(p.slug).toLowerCase()}/`)
 );

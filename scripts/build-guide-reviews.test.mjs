@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { extractLastReviewed } from './build-pillar-reviews.mjs';
+import { extractLastReviewed } from './build-guide-reviews.mjs';
 
 test('extractLastReviewed returns ISO date from frontmatter', () => {
   const astro = `---

@@ -1,28 +1,28 @@
 #!/usr/bin/env node
 /**
- * scripts/gates/validate-pillar-registry.mjs
+ * scripts/gates/validate-guides-registry.mjs
  *
- * CI gate: assert that ssot/pillars.json is the single source of truth for
+ * CI gate: assert that ssot/guides.json is the single source of truth for
  * every pillar surface, and that no consumer has snuck in a hardcoded pillar
  * list that bypasses the SSOT.
  *
  * What this gate proves:
- *   G1 SSOT integrity         every pillar in ssot/pillars.json has the required fields and a real .astro file
- *   G2 No-drift-by-derivation each known consumer imports ssot/pillars.json (greps for the import line)
+ *   G1 SSOT integrity         every pillar in ssot/guides.json has the required fields and a real .astro file
+ *   G2 No-drift-by-derivation each known consumer imports ssot/guides.json (greps for the import line)
  *   G3 No-hardcoded-bypass    each known consumer does NOT carry the legacy hardcoded list
  *   G4 Schema completeness    every pillar's slug appears in the in-page H2 articleSection JSON-LD (optional, warn only)
- *   G5 Router parity warning  ssot/pillars.json slugs that aren't in rrm-router's ASTRO_ROUTES (separate repo) -- WARN not FAIL
+ *   G5 Router parity warning  ssot/guides.json slugs that aren't in rrm-router's ASTRO_ROUTES (separate repo) -- WARN not FAIL
  *
  * Exit codes:
  *   0 -- all gates pass
  *   1 -- any G1-G3 fails (drift detected)
  *
  * Run:
- *   node scripts/gates/validate-pillar-registry.mjs
- *   node scripts/gates/validate-pillar-registry.mjs --json
+ *   node scripts/gates/validate-guides-registry.mjs
+ *   node scripts/gates/validate-guides-registry.mjs --json
  *
  * Auto-fired by:
- *   - pre-commit hook on changes to ssot/pillars.json or any consumer file
+ *   - pre-commit hook on changes to ssot/guides.json or any consumer file
  *   - CI deploy workflow before astro build
  */
 
@@ -33,7 +33,7 @@ import { fileURLToPath } from 'url';
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const ROOT = join(__dirname, '..', '..');
 
-const SSOT_PATH = join(ROOT, 'ssot', 'pillars.json');
+const SSOT_PATH = join(ROOT, 'ssot', 'guides.json');
 
 // Each entry: { file, must_import (substring), must_not_match (regex array) }.
 // must_not_match catches hardcoded pillar lists that bypass the SSOT. The
@@ -42,7 +42,7 @@ const SSOT_PATH = join(ROOT, 'ssot', 'pillars.json');
 const CONSUMERS = [
   {
     file: 'src/pages/guides/index.astro',
-    must_import: "from '../../../ssot/pillars.json'",
+    must_import: "from '../../../ssot/guides.json'",
     must_not_match: [
       // Old guides[] array literal had specific signature: `const guides = [{`
       /^const\s+guides\s*=\s*\[\s*\{\s*$/m,
@@ -50,15 +50,15 @@ const CONSUMERS = [
   },
   {
     file: 'src/integrations/library-sitemaps.mjs',
-    must_import: "ssot', 'pillars.json",
+    must_import: "ssot', 'guides.json",
     must_not_match: [
-      // Old PILLAR_PATHS literal: 9 entries inside an array
-      /const\s+PILLAR_PATHS\s*=\s*\[\s*['"]\/what-is-rrm/,
+      // Old GUIDE_PATHS literal: 9 entries inside an array
+      /const\s+GUIDE_PATHS\s*=\s*\[\s*['"]\/what-is-rrm/,
     ],
   },
   {
     file: 'src/components/AppShellChrome.astro',
-    must_import: "from '../../ssot/pillars.json'",
+    must_import: "from '../../ssot/guides.json'",
     must_not_match: [
       // Old GUIDES_PATHS literal had 8 slash-pair entries
       /'\/what-is-rrm',\s*'\/what-is-rrm\/'/,
@@ -66,7 +66,7 @@ const CONSUMERS = [
   },
   {
     file: 'src/layouts/BaseLayout.astro',
-    must_import: "from '../../ssot/pillars.json'",
+    must_import: "from '../../ssot/guides.json'",
     must_not_match: [
       // Old navigate_to_section enum had the inline pillar slugs
       /enum:\s*\[\s*'home',\s*'library'[^\]]*'naprotechnology'/,
@@ -76,7 +76,7 @@ const CONSUMERS = [
   },
   {
     file: 'scripts/build-guides-data.mjs',
-    must_import: "join(ROOT, 'ssot', 'pillars.json')",
+    must_import: "join(ROOT, 'ssot', 'guides.json')",
     must_not_match: [
       // Old GUIDES = [...] literal with file paths
       /\{\s*slug:\s*'art-registries-and-codes',\s*file:/,
@@ -84,7 +84,7 @@ const CONSUMERS = [
   },
   {
     file: 'scripts/build-og-index.mjs',
-    must_import: "join(ROOT, 'ssot', 'pillars.json')",
+    must_import: "join(ROOT, 'ssot', 'guides.json')",
     must_not_match: [
       // Old hardcoded pillar entries inside STATIC_PAGES
       /'art-registries-and-codes':\s*\{\s*\n\s*title:\s*'ART Registries/,
@@ -118,7 +118,7 @@ const REQUIRED_FIELDS = [
 // G6 reverse check: a clinical pillar page must be REGISTERED (which is what gives
 // it a per-page OG card via build-og-index + a sitemap entry + guides/nav surfacing).
 // Any root-level page that emits MedicalWebPage/MedicalCondition schema is treated as
-// a clinical pillar and MUST be in ssot/pillars.json, UNLESS it is a known non-pillar
+// a clinical pillar and MUST be in ssot/guides.json, UNLESS it is a known non-pillar
 // clinical page (e.g. the endo survey landing). This closes the gap where a manually
 // authored pillar page (bypassing the pillar-create skill) ships with the generic
 // fallback OG card and no sitemap/guides presence.
@@ -148,13 +148,13 @@ function clinicalRootSlugs() {
 
 function gateG6(registry) {
   const issues = [];
-  const registered = new Set((registry.pillars || []).map((p) => p.slug));
+  const registered = new Set((registry.guides || []).map((p) => p.slug));
   for (const slug of clinicalRootSlugs()) {
     if (!registered.has(slug) && !NON_PILLAR_CLINICAL.has(slug)) {
       issues.push(
-        `G6 src/pages/${slug}/ emits clinical schema (MedicalWebPage/MedicalCondition) but is NOT in ssot/pillars.json. ` +
+        `G6 src/pages/${slug}/ emits clinical schema (MedicalWebPage/MedicalCondition) but is NOT in ssot/guides.json. ` +
         `It will fall back to the generic OG card and be absent from the sitemap/guides. ` +
-        `Register it (pillar-create, or add a pillars.json entry) or add '${slug}' to NON_PILLAR_CLINICAL.`,
+        `Register it (pillar-create, or add a guides.json entry) or add '${slug}' to NON_PILLAR_CLINICAL.`,
       );
     }
   }
@@ -168,7 +168,7 @@ const HANDROLLED_BREADCRUMB_RE = /['"]@type['"]\s*:\s*['"]BreadcrumbList['"]/;
 
 export function gateG7(registry, readFile = (p) => readFileSync(p, 'utf-8')) {
   const issues = [];
-  for (const p of registry.pillars || []) {
+  for (const p of registry.guides || []) {
     if (typeof p.usesPillarLayout !== 'boolean' || !p.file) continue; // gateG1 already flagged a missing flag/file
     const fullPath = join(ROOT, 'src', 'pages', p.file);
     let src;
@@ -189,19 +189,19 @@ export function gateG7(registry, readFile = (p) => readFileSync(p, 'utf-8')) {
 
 function readPillars() {
   if (!existsSync(SSOT_PATH)) {
-    throw new Error(`ssot/pillars.json not found at ${SSOT_PATH}`);
+    throw new Error(`ssot/guides.json not found at ${SSOT_PATH}`);
   }
   return JSON.parse(readFileSync(SSOT_PATH, 'utf-8'));
 }
 
 function gateG1(registry) {
   const issues = [];
-  if (!Array.isArray(registry.pillars)) {
+  if (!Array.isArray(registry.guides)) {
     issues.push('pillars must be an array');
     return issues;
   }
   const seenSlugs = new Set();
-  for (const p of registry.pillars) {
+  for (const p of registry.guides) {
     for (const f of REQUIRED_FIELDS) {
       if (p[f] === undefined) {
         issues.push(`pillar slug=${p.slug ?? '?'} missing required field: ${f}`);
@@ -237,7 +237,7 @@ function gateG2andG3() {
     }
     for (const re of c.must_not_match) {
       if (re.test(src)) {
-        issues.push(`G3 ${c.file}: hardcoded pillar list detected (regex: ${re}) -- derive from ssot/pillars.json`);
+        issues.push(`G3 ${c.file}: hardcoded pillar list detected (regex: ${re}) -- derive from ssot/guides.json`);
       }
     }
   }
@@ -255,7 +255,7 @@ function gateG5(registry) {
     return warnings;
   }
   const routerSrc = readFileSync(ROUTER_PATH, 'utf-8');
-  for (const p of registry.pillars) {
+  for (const p of registry.guides) {
     const expected = `'/${p.slug}',`;
     if (!routerSrc.includes(expected)) {
       warnings.push(`G5 rrm-router/src/index.js: ASTRO_ROUTES missing /${p.slug} (deploy needed via 'npx wrangler deploy' in ~/iCode/projects/rrm-router)`);
@@ -283,25 +283,25 @@ if (import.meta.url === `file://${process.argv[1]}`) {
         pass: errors.length === 0,
         errors,
         warnings: g5,
-        pillar_count: registry.pillars?.length ?? 0,
+        pillar_count: registry.guides?.length ?? 0,
       }, null, 2));
     } else {
-      console.log(`[validate-pillar-registry] checking ${registry.pillars?.length ?? 0} pillars against ${CONSUMERS.length} consumers`);
+      console.log(`[validate-guides-registry] checking ${registry.guides?.length ?? 0} pillars against ${CONSUMERS.length} consumers`);
       if (errors.length === 0) {
-        console.log('[validate-pillar-registry] G1-G3 + G6 + G7 ALL CLEAR -- SSOT integrity + consumer derivation + no-hardcoded-bypass + clinical-page registration + PillarLayout enforcement');
+        console.log('[validate-guides-registry] G1-G3 + G6 + G7 ALL CLEAR -- SSOT integrity + consumer derivation + no-hardcoded-bypass + clinical-page registration + PillarLayout enforcement');
       } else {
-        console.error(`[validate-pillar-registry] BLOCKED -- ${errors.length} issue(s):`);
+        console.error(`[validate-guides-registry] BLOCKED -- ${errors.length} issue(s):`);
         for (const e of errors) console.error(`  - ${e}`);
       }
       if (g5.length > 0) {
-        console.warn(`[validate-pillar-registry] G5 WARNINGS (router parity, non-blocking):`);
+        console.warn(`[validate-guides-registry] G5 WARNINGS (router parity, non-blocking):`);
         for (const w of g5) console.warn(`  - ${w}`);
       }
     }
 
     process.exit(errors.length === 0 ? 0 : 1);
   } catch (err) {
-    console.error(`[validate-pillar-registry] FATAL: ${err.message}`);
+    console.error(`[validate-guides-registry] FATAL: ${err.message}`);
     process.exit(1);
   }
 }
