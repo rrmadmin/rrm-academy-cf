@@ -4,6 +4,7 @@ import MaybeShell from '../../components/MaybeShell.astro';
 import { isShellEnabled } from '../../lib/shell-routes';
 import coursesData from '../../data/courses.json';
 import { TURNSTILE_SITE_KEY } from '../../lib/turnstile';
+import { NAOMI_SAME_AS } from '../../lib/identity';
 
 const SHELL_ENABLED = isShellEnabled('courses');
 
@@ -216,10 +217,7 @@ const whittakerPersonNode = {
   description: "Board-certified obstetrician-gynecologist, Physician Lead at UPMC Divine Mercy Women's Health, and founder of RRM Academy.",
   url: 'https://rrmacademy.org/commentary/rrm-spotlight-naomi-whittaker-md/',
   image: 'https://rrmacademy.org/images/authors/naomi-whittaker.webp',
-  sameAs: [
-    'https://www.instagram.com/napro_fertility_surgeon/',
-    'https://www.linkedin.com/in/naomi-whittaker-md-906b13101/',
-  ],
+  sameAs: [...NAOMI_SAME_AS],
   affiliation: [
     {
       '@type': 'MedicalOrganization',

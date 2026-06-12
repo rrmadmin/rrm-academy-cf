@@ -4,7 +4,7 @@ import LastUpdated from '../components/LastUpdated.astro';
 import { fetchAllArticles } from '../lib/airtable';
 import coursesData from '../data/courses.json';
 import surveyCountData from '../data/survey-count.json';
-import { buildIdentityGraph, getFoundationJsonLd } from '../lib/identity';
+import { buildIdentityGraph, getFoundationJsonLd, NAOMI_SAME_AS } from '../lib/identity';
 
 const articles = await fetchAllArticles();
 const articleCount = articles.length;
@@ -92,6 +92,9 @@ if (naomiIdx >= 0) {
     existingIdentifiers.push({ '@type': 'PropertyValue', propertyID: 'NPI', value: '1881034908' });
   }
   naomi.identifier = existingIdentifiers;
+  // Entity-anchor sameAs (Wikidata/ORCID/OpenAlex/NPI + social). SSOT snapshot
+  // does not carry these on the Person node, so set from the shared constant.
+  naomi.sameAs = [...NAOMI_SAME_AS];
   if (!naomi.worksFor) {
     naomi.worksFor = { '@id': 'https://rrmacademy.org/#organization' };
   }
