@@ -36,15 +36,15 @@ const guides = guideRegistry.guides
 
 // Catalogue is grouped by content-type category. Order, display labels, and
 // intro copy live here; membership (the `category` field) lives in ssot/guides.json.
-const CATEGORY_ORDER = ['basics', 'conditions', 'compare', 'reference'];
+const CATEGORY_ORDER = ['methods', 'conditions', 'compare', 'reference'];
 const CATEGORY_LABELS = {
-  basics: 'Basics',
+  methods: 'Methods',
   conditions: 'Conditions',
   compare: 'Comparisons',
   reference: 'Reference',
 };
 const CATEGORY_BLURBS = {
-  basics: 'Start here. What restorative reproductive medicine is, and the methods it is built on.',
+  methods: 'What restorative reproductive medicine is, and the charting methods and clinical systems it is built on.',
   conditions: 'In-depth guides to the conditions RRM-trained clinicians diagnose and treat at the root.',
   compare: 'Decision guides that weigh the options side by side.',
   reference: 'Look-up resources: terminology and the registries and codes that govern fertility care.',
@@ -106,12 +106,34 @@ const jsonLd = {
         That download link is invalid or has expired. Find your guide below and request a new link.
       </div>
 
-      {groupedGuides.map((group) => (
-        <section class="guide-cat">
-          <div class="guide-cat__head">
-            <h2 class="guide-cat__name">{group.label}</h2>
-            <span class="guide-cat__count">{group.items.length} {group.items.length === 1 ? 'guide' : 'guides'}</span>
-          </div>
+      <div class="guide-tabs" role="tablist" aria-label="Guide categories">
+        {groupedGuides.map((group, i) => (
+          <button
+            type="button"
+            role="tab"
+            id={`guide-tab-${group.key}`}
+            class:list={['guide-tab', { active: i === 0 }]}
+            aria-selected={i === 0 ? 'true' : 'false'}
+            aria-controls={`guide-panel-${group.key}`}
+            tabindex={i === 0 ? 0 : -1}
+            data-tab={group.key}
+          >
+            {group.label}
+            <span class="guide-tab__count">{group.items.length}</span>
+          </button>
+        ))}
+      </div>
+
+      {groupedGuides.map((group, i) => (
+        <section
+          class="guide-panel"
+          id={`guide-panel-${group.key}`}
+          role="tabpanel"
+          aria-labelledby={`guide-tab-${group.key}`}
+          data-panel={group.key}
+          hidden={i !== 0}
+          tabindex="0"
+        >
           {group.blurb && <p class="guide-cat__blurb">{group.blurb}</p>}
           <div class="guides-list">
         {group.items.map((guide) => (
@@ -201,6 +223,37 @@ const jsonLd = {
 </BaseLayout>
 
 <script>
+  // Category tabs: switch panels, manage aria-selected + roving tabindex + keyboard nav.
+  (function () {
+    const tablist = document.querySelector('.guide-tabs');
+    if (!tablist) return;
+    const tabs = Array.from(tablist.querySelectorAll<HTMLButtonElement>('.guide-tab'));
+    const panels = Array.from(document.querySelectorAll<HTMLElement>('.guide-panel'));
+    function activate(key: string | undefined, focus?: boolean) {
+      if (!key) return;
+      tabs.forEach((t) => {
+        const on = t.dataset.tab === key;
+        t.classList.toggle('active', on);
+        t.setAttribute('aria-selected', on ? 'true' : 'false');
+        t.tabIndex = on ? 0 : -1;
+        if (on && focus) t.focus();
+      });
+      panels.forEach((p) => { p.hidden = p.dataset.panel !== key; });
+    }
+    tabs.forEach((tab) => {
+      tab.addEventListener('click', () => activate(tab.dataset.tab));
+      tab.addEventListener('keydown', (e: KeyboardEvent) => {
+        const idx = tabs.indexOf(tab);
+        let next: HTMLButtonElement | null = null;
+        if (e.key === 'ArrowRight' || e.key === 'ArrowDown') next = tabs[(idx + 1) % tabs.length];
+        else if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') next = tabs[(idx - 1 + tabs.length) % tabs.length];
+        else if (e.key === 'Home') next = tabs[0];
+        else if (e.key === 'End') next = tabs[tabs.length - 1];
+        if (next) { e.preventDefault(); activate(next.dataset.tab, true); }
+      });
+    });
+  })();
+
   const notice = document.getElementById('guides-pdf-error');
   if (notice && new URLSearchParams(window.location.search).get('pdf_error') === 'notfound') {
     notice.style.display = '';
@@ -393,35 +446,61 @@ const jsonLd = {
     max-width: 640px;
   }
 
-  /* Category sections: Basics / Conditions / Comparisons / Reference */
-  .guide-cat {
-    margin-bottom: var(--space-12);
-  }
-  .guide-cat__head {
+  /* Category tabs: sticky horizontal tab bar (Methods / Conditions / Comparisons / Reference) */
+  .guide-tabs {
     display: flex;
-    align-items: baseline;
-    gap: var(--space-3);
-    margin-bottom: var(--space-3);
-    padding-bottom: var(--space-3);
+    gap: var(--space-1);
     border-bottom: 1px solid var(--border-color);
+    margin: 0 0 var(--space-8);
+    overflow-x: auto;
+    scrollbar-width: none;
+    position: sticky;
+    top: 0;
+    z-index: 20;
+    background: var(--bg-body);
   }
-  .guide-cat__name {
-    font-family: 'Cormorant Garamond', 'Georgia', serif;
-    font-size: 1.5rem;
-    font-weight: 600;
-    letter-spacing: -0.01em;
-    color: var(--text-primary);
-    margin: 0;
-  }
-  .guide-cat__count {
+  .guide-tabs::-webkit-scrollbar { display: none; }
+  .guide-tab {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-2);
+    padding: var(--space-3) var(--space-4);
     font-family: 'Inter', sans-serif;
+    font-size: 0.875rem;
+    font-weight: 500;
+    color: var(--text-secondary);
+    background: transparent;
+    border: none;
+    border-bottom: 2px solid transparent;
+    cursor: pointer;
+    white-space: nowrap;
+    transition: color 0.15s ease, border-color 0.15s ease;
+  }
+  .guide-tab:hover { color: var(--text-primary); }
+  .guide-tab[aria-selected="true"] {
+    color: var(--purple-700);
+    border-bottom-color: var(--purple-700);
+    font-weight: 600;
+  }
+  .guide-tab:focus-visible {
+    outline: 2px solid var(--purple-500);
+    outline-offset: -2px;
+    border-radius: var(--radius-sm);
+  }
+  .guide-tab__count {
     font-size: 0.75rem;
     font-weight: 600;
     color: var(--text-secondary);
     background: color-mix(in srgb, var(--purple-500) 12%, transparent);
-    padding: var(--space-1) var(--space-3);
+    padding: 0 var(--space-2);
     border-radius: var(--radius-pill);
   }
+  .guide-tab[aria-selected="true"] .guide-tab__count {
+    color: var(--purple-700);
+    background: color-mix(in srgb, var(--purple-500) 18%, transparent);
+  }
+  .guide-panel[hidden] { display: none; }
+  .guide-panel:focus { outline: none; }
   .guide-cat__blurb {
     font-size: 0.8125rem;
     color: var(--text-secondary);

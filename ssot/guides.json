@@ -21,7 +21,7 @@
   "guides": [
     {
       "slug": "what-is-rrm",
-      "category": "basics",
+      "category": "methods",
       "file": "what-is-rrm/index.astro",
       "title": "What is Restorative Reproductive Medicine?",
       "description": "The diagnostic and treatment philosophy behind RRM. How cause-based care differs from suppressive medicine, and what to expect from an RRM-trained clinician.",
@@ -42,7 +42,7 @@
     },
     {
       "slug": "naprotechnology",
-      "category": "basics",
+      "category": "methods",
       "file": "naprotechnology/index.astro",
       "title": "NaProTechnology: A Clinician's Guide",
       "description": "NaProTechnology diagnoses and treats the underlying conditions driving infertility, menstrual disorders, and early pregnancy loss. This guide covers how the method works, published outcomes data, how to find a qualified provider, and what to expect on cost and insurance.",
@@ -64,7 +64,7 @@
     },
     {
       "slug": "femm",
-      "category": "basics",
+      "category": "methods",
       "file": "femm/index.astro",
       "title": "What is FEMM?",
       "description": "FEMM (Fertility Education and Medical Management) teaches women to monitor hormonal biomarkers and connects them with trained providers who diagnose and treat the underlying conditions driving their symptoms.",
@@ -89,7 +89,7 @@
     },
     {
       "slug": "neofertility",
-      "category": "basics",
+      "category": "methods",
       "file": "neofertility/index.astro",
       "title": "What is NeoFertility?",
       "description": "NeoFertility diagnoses and treats the underlying causes of infertility and recurrent miscarriage using cycle-based evaluation, immunological testing, and targeted treatment to restore natural conception.",
@@ -111,7 +111,7 @@
     },
     {
       "slug": "common-questions-about-rrm",
-      "category": "basics",
+      "category": "methods",
       "file": "common-questions-about-rrm.astro",
       "title": "Common Questions About RRM",
       "description": "We address common questions about RRM with published evidence, acknowledge limitations, and clarify what RRM is and is not.",
