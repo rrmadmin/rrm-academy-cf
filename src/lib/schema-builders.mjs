@@ -245,12 +245,26 @@ export function buildMedicalScholarlyArticle(article) {
   // Identifiers
   const identifiers = [];
   const doiUrl = article.doi ? `https://doi.org/${article.doi}` : '';
+  // sameAs collects external-identity links (DOI + Wikidata) so the entity
+  // graph resolves the paper across authorities. Promoted from a scalar DOI
+  // string to an array so a Wikidata link never clobbers the DOI link.
+  const sameAs = [];
   if (article.doi) {
     identifiers.push({ '@type': 'PropertyValue', propertyID: 'doi', value: article.doi });
-    node.sameAs = doiUrl;
+    sameAs.push(doiUrl);
   }
   if (article.pmid) {
     identifiers.push({ '@type': 'PropertyValue', propertyID: 'PMID', value: article.pmid });
+  }
+  // Wikidata QID (verified n==1 match). Empty string on unmatched rows → emit nothing.
+  if (article.wikidataQid) {
+    identifiers.push({ '@type': 'PropertyValue', propertyID: 'wikidata', value: article.wikidataQid });
+    sameAs.push(`https://www.wikidata.org/wiki/${article.wikidataQid}`);
+  }
+  if (sameAs.length === 1) {
+    node.sameAs = sameAs[0];
+  } else if (sameAs.length > 1) {
+    node.sameAs = sameAs;
   }
   if (identifiers.length) node.identifier = identifiers;
 
