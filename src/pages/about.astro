@@ -5,7 +5,7 @@ import TeamCard from '../components/TeamCard.astro';
 import SocialRow from '../components/SocialRow.astro';
 import articlesData from '../data/articles.json';
 import coursesData from '../data/courses.json';
-import { getOrganizationJsonLd, getTeam, getFoundationJsonLd } from '../lib/identity';
+import { getOrganizationJsonLd, getTeam, getFoundationJsonLd, NAOMI_SAME_AS } from '../lib/identity';
 
 const libraryCount = articlesData.length.toLocaleString();
 const courseCount = coursesData.length;
@@ -96,17 +96,7 @@ const jsonLd = {
           url: 'https://api.abog.org/diplomate/9032678/verify',
         },
       ],
-      sameAs: [
-        'https://orcid.org/0000-0003-3706-3112',
-        'https://www.wikidata.org/wiki/Q139936526',
-        'https://openalex.org/A5035074827',
-        'https://npiregistry.cms.hhs.gov/provider-view/1881034908',
-        'https://www.instagram.com/napro_fertility_surgeon/',
-        'https://www.linkedin.com/in/naomi-whittaker-md-906b13101/',
-        'https://x.com/naomimwhittaker',
-        'https://www.tiktok.com/@fertilitysurgeon',
-        'https://irrma.org/case-report-a-life-saving-fertility-surgery-and-an-impossible-case-of-spontaneous-pregnancy/',
-      ],
+      sameAs: [...NAOMI_SAME_AS],
       alumniOf: [
         {
           '@type': 'CollegeOrUniversity',
