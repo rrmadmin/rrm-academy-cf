@@ -122,7 +122,7 @@ function d1Backup(db, table) {
   // wrangler d1 export accepts --table and --output
   const r = spawnSync('npx', [
     'wrangler', 'd1', 'export', db,
-    '--remote', '-y',
+    '--remote',
     `--table=${table}`,
     `--output=${backupPath}`,
   ], { stdio: 'inherit' });
@@ -277,13 +277,12 @@ async function main() {
   //    monitoring can catch the half-complete state.
   console.log(`\n[rebuild] triggering single workflow_dispatch full rebuild ...`);
   try {
-    const ghToken = execSync(`op read 'op://Automation/<redacted>/credential'`, { encoding: 'utf8' }).trim();
     const r = spawnSync('gh', [
       'workflow', 'run', 'deploy.yml',
       '--repo', 'rrmadmin/rrm-academy-cf',
       '--ref', 'main',
     ], {
-      env: { ...process.env, GH_TOKEN: ghToken },
+      env: { ...process.env },
       stdio: 'inherit',
     });
     if (r.status === 0) {
