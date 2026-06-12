@@ -44,6 +44,10 @@ export interface Article {
   journalAbbv: string;
   doi: string;
   pmid: string;
+  /** Wikidata item QID (e.g. 'Q90652051') when the paper has a verified
+   * Wikidata entity. Emitted as a JSON-LD sameAs + identifier. Empty string
+   * on unmatched rows (worker safeStr coalesces null → ''). */
+  wikidataQid?: string;
   sourceUrl: string;
   datePublished: string;
   volume: string;
