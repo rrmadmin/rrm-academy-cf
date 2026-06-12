@@ -3,7 +3,7 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
-const SSOT_PATH = path.join(__dirname, '..', 'ssot', 'pillars.json');
+const SSOT_PATH = path.join(__dirname, '..', 'ssot', 'guides.json');
 const PAGES_DIR = path.join(__dirname, '..', 'src', 'pages');
 const OUTPUT_PATH = path.join(__dirname, '..', 'src', 'data', 'pillar-reviews.json');
 
@@ -25,7 +25,7 @@ function main() {
   const ssot = JSON.parse(fs.readFileSync(SSOT_PATH, 'utf8'));
   const reviews = {};
 
-  for (const pillar of ssot.pillars) {
+  for (const pillar of ssot.guides) {
     const filePath = path.join(PAGES_DIR, pillar.file);
     if (!fs.existsSync(filePath)) {
       console.warn(`[pillar-reviews] missing: ${filePath}`);

@@ -14,7 +14,7 @@
  * client-accepted item always passes the server.
  */
 import { canonicalSaveUrl, pageTypeFromUrl, SAVED_TYPES } from '../lib/saved-url.mjs';
-import { PILLAR_PATHS } from '../lib/saved-pillars.mjs';
+import { GUIDE_PATHS } from '../lib/saved-guides.mjs';
 
 export { canonicalSaveUrl, pageTypeFromUrl, SAVED_TYPES };
 
@@ -73,7 +73,7 @@ export function readSaved(): SavedItem[] {
         // Already page-shaped. Canonicalize defensively; drop if non-canonical.
         const u = canonicalSaveUrl(rec.url);
         if (!u) continue;
-        const type = typeof rec.type === 'string' ? rec.type : (pageTypeFromUrl(u, PILLAR_PATHS) || 'article');
+        const type = typeof rec.type === 'string' ? rec.type : (pageTypeFromUrl(u, GUIDE_PATHS) || 'article');
         out.push({
           ...rec,
           url: u,
@@ -245,7 +245,7 @@ export function serverSetFromResponse(result: {
       out.push({
         url: u,
         title: clampTitle(p.title) || u,
-        type: typeof p.type === 'string' ? p.type : (pageTypeFromUrl(u, PILLAR_PATHS) || 'article'),
+        type: typeof p.type === 'string' ? p.type : (pageTypeFromUrl(u, GUIDE_PATHS) || 'article'),
         savedAt: typeof p.savedAt === 'string' ? p.savedAt : nowISO(),
       });
     }
@@ -655,7 +655,7 @@ export function initSavedShell(): void {
   // but re-assert here so a stale SSR can never produce a live-but-unsaveable
   // control.
   const url = canonicalSaveUrl(location.pathname);
-  const type = url ? pageTypeFromUrl(url, PILLAR_PATHS) : null;
+  const type = url ? pageTypeFromUrl(url, GUIDE_PATHS) : null;
 
   if (btn && (!url || !type)) {
     btn.hidden = true;

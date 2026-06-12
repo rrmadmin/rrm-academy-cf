@@ -5,17 +5,17 @@ import pageDates from '../data/page-dates.json';
 import { OG_VERSION } from '../lib/og-config';
 import { getOrganizationJsonLd, getWebsiteJsonLd, getFoundationJsonLd, buildSpeakable } from '../lib/identity';
 import { safeJsonLd } from '../lib/jsonld';
-import pillarRegistry from '../../ssot/pillars.json';
+import guideRegistry from '../../ssot/guides.json';
 import libraryStats from '../data/library-stats.json';
 import '../styles/fonts.css';
 import '../styles/global.css';
 
-// Derived from ssot/pillars.json. Powers the WebMCP navigate_to_section tool
+// Derived from ssot/guides.json. Powers the WebMCP navigate_to_section tool
 // (defined inline below as is:inline so non-Astro AI hosts can read it). Both
 // the inputSchema.enum and the runtime map are computed once at build time
 // and passed through define:vars so they cannot drift from each other.
 const PILLAR_SLUG_TO_PATH = Object.fromEntries(
-  pillarRegistry.pillars.map((p) => [p.slug, `/${p.slug}/`]),
+  guideRegistry.guides.map((p) => [p.slug, `/${p.slug}/`]),
 );
 const PILLAR_SLUGS = Object.keys(PILLAR_SLUG_TO_PATH);
 const LIBRARY_COUNT = libraryStats.displayCount;
@@ -422,7 +422,7 @@ if (!jsonLd) {
     // WebMCP tool exposure for AI agents browsing the page.
     // Spec: https://webmachinelearning.github.io/webmcp/
     // Validator: https://isitagentready.com (checks navigator.modelContext on load)
-    // PILLAR_SLUGS + PILLAR_SLUG_TO_PATH come from ssot/pillars.json via
+    // PILLAR_SLUGS + PILLAR_SLUG_TO_PATH come from ssot/guides.json via
     // define:vars (computed once in frontmatter). enum and map can't drift.
     (function registerWebMCPTools() {
       if (typeof navigator === 'undefined') return;
@@ -490,7 +490,7 @@ if (!jsonLd) {
             properties: {
               section: {
                 type: 'string',
-                // Always-on (non-pillar) routes + every pillar from ssot/pillars.json.
+                // Always-on (non-pillar) routes + every pillar from ssot/guides.json.
                 enum: ['home', 'library', 'faqs', 'commentary', 'courses', 'community', 'donate', 'contact'].concat(PILLAR_SLUGS),
                 description: 'Named site section.'
               }
@@ -503,7 +503,7 @@ if (!jsonLd) {
             // WebMCP host forwards adversarial section names. The schema enum
             // is the primary defense; this is defense-in-depth.
             // Always-on entries are inline; pillar entries come from
-            // PILLAR_SLUG_TO_PATH (define:vars from ssot/pillars.json).
+            // PILLAR_SLUG_TO_PATH (define:vars from ssot/guides.json).
             var map = Object.create(null);
             map.home = '/';
             map.library = '/library/';

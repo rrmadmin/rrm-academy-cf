@@ -30,23 +30,23 @@ import { fileURLToPath } from 'url';
 const SITE = 'https://rrmacademy.org';
 const BUILD_DATE = new Date().toISOString().split('T')[0];
 
-// Derive from ssot/pillars.json + the /guides/ catalogue index. Adding /guides/
+// Derive from ssot/guides.json + the /guides/ catalogue index. Adding /guides/
 // here keeps the index page in the pillar sitemap (it's a hub, not a pillar
-// per se -- so it's not in pillars.json -- but it belongs in the high-priority
+// per se -- so it's not in guides.json -- but it belongs in the high-priority
 // chunk for crawlers).
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const PILLAR_REGISTRY = JSON.parse(
-  readFileSync(join(__dirname, '..', '..', 'ssot', 'pillars.json'), 'utf-8'),
+  readFileSync(join(__dirname, '..', '..', 'ssot', 'guides.json'), 'utf-8'),
 );
-// /common-questions-about-rrm/ is still listed in ssot/pillars.json (its
+// /common-questions-about-rrm/ is still listed in ssot/guides.json (its
 // .astro source survives so the build emits an index.html) but the live route
 // 301-redirects to /faqs/ (public/_redirects). Emitting it into
 // sitemap-pillars.xml advertises a redirecting URL to crawlers, so drop it
 // from the pillar chunk. It is already excluded from sitemap-0 via the
 // chunkedPillars list in astro.config.mjs, so this removes it from ALL sitemaps.
 const REDIRECTING_PILLAR_SLUGS = new Set(['common-questions-about-rrm']);
-const PILLAR_PATHS = [
-  ...PILLAR_REGISTRY.pillars
+const GUIDE_PATHS = [
+  ...PILLAR_REGISTRY.guides
     .slice()
     .filter((p) => !REDIRECTING_PILLAR_SLUGS.has(p.slug))
     .sort((a, b) => (a._order ?? 999) - (b._order ?? 999))
@@ -196,19 +196,19 @@ export default function librarySitemaps() {
 
         // -- Pillars chunk
         // Assert every pillar path resolved to a real dist artifact before emit.
-        // PILLAR_PATHS pointing at a slug with no corresponding .astro file
+        // GUIDE_PATHS pointing at a slug with no corresponding .astro file
         // (deleted source, build skipped, typo) would otherwise emit a soft-404
         // URL into sitemap-pillars.xml and waste Google crawl budget.
-        const missingPillars = PILLAR_PATHS.filter(
+        const missingPillars = GUIDE_PATHS.filter(
           (p) => !existsSync(join(outDir, p, 'index.html'))
         );
         if (missingPillars.length > 0) {
           throw new Error(
-            `[library-sitemaps] PILLAR_PATHS entries missing from dist/: ${missingPillars.join(', ')}. ` +
-            `Add the missing src/pages/<slug>/index.astro file or remove the path from PILLAR_PATHS.`
+            `[library-sitemaps] GUIDE_PATHS entries missing from dist/: ${missingPillars.join(', ')}. ` +
+            `Add the missing src/pages/<slug>/index.astro file or remove the path from GUIDE_PATHS.`
           );
         }
-        const pillarUrls = PILLAR_PATHS.map((p) => ({
+        const pillarUrls = GUIDE_PATHS.map((p) => ({
           loc: `${SITE}${p}`,
           lastmod: dateForPath(pageDates, p),
         }));

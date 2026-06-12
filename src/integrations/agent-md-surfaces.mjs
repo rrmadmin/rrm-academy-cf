@@ -2,7 +2,7 @@
  * agent-md-surfaces -- build-time generation of the two Wave-3 agent surfaces:
  *
  *   1. Pillar markdown twins: dist/<slug>.md for every pillar in
- *      ssot/pillars.json (audit GEO-002 / AR-02). Pillars are hand-authored
+ *      ssot/guides.json (audit GEO-002 / AR-02). Pillars are hand-authored
  *      .astro pages with no clean body data source, so the twin is extracted
  *      from the BUILT page: read dist/<slug>/index.html, take the outermost
  *      <article> element, convert to house-styled Markdown.
@@ -250,9 +250,9 @@ export default function agentMdSurfaces() {
         const distDir = fileURLToPath(dir);
         const root = process.cwd();
         const registry = JSON.parse(
-          readFileSync(join(root, 'ssot', 'pillars.json'), 'utf8'),
+          readFileSync(join(root, 'ssot', 'guides.json'), 'utf8'),
         );
-        const pillars = registry.pillars.filter((p) => !TWIN_EXCLUDE.has(p.slug));
+        const pillars = registry.guides.filter((p) => !TWIN_EXCLUDE.has(p.slug));
 
         // 1. Pillar twins (fail-loud).
         const twins = [];

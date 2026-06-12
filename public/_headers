@@ -55,7 +55,7 @@
   Cache-Control: public, max-age=0, s-maxage=3600, stale-while-revalidate=86400
   No-Vary-Search: params, except=("q" "topic" "page" "sort")
 
-# Pillar guide pages (11 total — match ssot/pillars.json)
+# Guide pages (13 total, match ssot/guides.json)
 /what-is-rrm/*
   Cache-Control: public, max-age=0, s-maxage=3600, stale-while-revalidate=86400
   No-Vary-Search: params, except=("q" "topic" "page" "sort")

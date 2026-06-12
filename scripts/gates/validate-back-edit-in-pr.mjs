@@ -35,10 +35,10 @@ function gitChangedFilesAgainstMain() {
 }
 
 function shippedSlugsFromMain() {
-  // "Shipped" = present in main branch's ssot/pillars.json AND in PILLAR_SLUGS allowlist
-  const out = execSync('git show origin/main:ssot/pillars.json', { encoding: 'utf8' });
+  // "Shipped" = present in main branch's ssot/guides.json AND in PILLAR_SLUGS allowlist
+  const out = execSync('git show origin/main:ssot/guides.json', { encoding: 'utf8' });
   const ssot = JSON.parse(out);
-  return ssot.pillars
+  return ssot.guides
     .map(p => p.slug)
     .filter(slug => PILLAR_SLUGS.includes(slug));
 }

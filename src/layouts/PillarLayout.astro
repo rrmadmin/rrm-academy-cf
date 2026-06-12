@@ -12,7 +12,7 @@ import LastUpdated from '../components/LastUpdated.astro';
 import PdfDownload from '../components/PdfDownload.astro';
 import { isShellEnabled } from '../lib/shell-routes';
 import { safeJsonLd } from '../lib/jsonld';
-import pillarRegistry from '../../ssot/pillars.json';
+import guideRegistry from '../../ssot/guides.json';
 
 interface Reviewer { name: string; id?: string; }
 interface TocItem { href: string; label: string; }
@@ -70,8 +70,8 @@ const {
   baseLayout = {},
 } = Astro.props;
 
-const entry = pillarRegistry.pillars.find((p) => p.slug === slug);
-if (!entry) throw new Error(`PillarLayout: slug "${slug}" not in ssot/pillars.json`);
+const entry = guideRegistry.guides.find((p) => p.slug === slug);
+if (!entry) throw new Error(`PillarLayout: slug "${slug}" not in ssot/guides.json`);
 if (bylineLegacy && entry.authorId !== '#naomi-whittaker') {
   throw new Error(`PillarLayout: bylineLegacy requires authorId #naomi-whittaker (slug "${slug}" has ${entry.authorId})`);
 }
