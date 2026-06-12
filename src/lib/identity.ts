@@ -33,6 +33,27 @@ import {
   buildMedicalScholarlyArticle as _buildMedicalScholarlyArticle,
 } from './schema-builders.mjs';
 
+/**
+ * Canonical `sameAs` array for Dr. Naomi Whittaker's Person node
+ * (`@id: https://rrmacademy.org/#naomi-whittaker`).
+ *
+ * SINGLE SOURCE OF TRUTH. Every page that emits a Naomi Person node in JSON-LD
+ * (homepage, /about/, commentary posts, course pages) must reference THIS array
+ * rather than pasting literals, so the entity-anchor links can never drift.
+ * Mirrors the entity identifiers asserted on Wikidata Q139936526.
+ */
+export const NAOMI_SAME_AS: readonly string[] = [
+  'https://orcid.org/0000-0003-3706-3112',
+  'https://www.wikidata.org/wiki/Q139936526',
+  'https://openalex.org/A5035074827',
+  'https://npiregistry.cms.hhs.gov/provider-view/1881034908',
+  'https://www.instagram.com/napro_fertility_surgeon/',
+  'https://www.linkedin.com/in/naomi-whittaker-md-906b13101/',
+  'https://x.com/naomimwhittaker',
+  'https://www.tiktok.com/@fertilitysurgeon',
+  'https://irrma.org/case-report-a-life-saving-fertility-surgery-and-an-impossible-case-of-spontaneous-pregnancy/',
+];
+
 type SchemaNode = Record<string, unknown> & { '@id'?: string };
 
 interface OrgNode extends SchemaNode {
