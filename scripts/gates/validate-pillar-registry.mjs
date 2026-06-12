@@ -103,6 +103,7 @@ const REQUIRED_FIELDS = [
   'read_time',
   'accent',
   'in_guides_catalogue',
+  'category',
   'in_shell_guides_nav',
   // PillarLayout foundation fields (added 2026-06-08). reviewer is intentionally
   // NOT here: 9 pillars have no reviewer and gateG1 fails on `=== undefined`.

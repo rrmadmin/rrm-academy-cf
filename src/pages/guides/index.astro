@@ -30,7 +30,33 @@ const guides = pillarRegistry.pillars
     author: p.author,
     readTime: p.read_time,
     accent: p.accent,
+    category: p.category,
+    comingSoon: p.comingSoon ?? false,
   }));
+
+// Catalogue is grouped by content-type category. Order, display labels, and
+// intro copy live here; membership (the `category` field) lives in ssot/pillars.json.
+const CATEGORY_ORDER = ['basics', 'conditions', 'compare', 'reference'];
+const CATEGORY_LABELS = {
+  basics: 'Basics',
+  conditions: 'Conditions',
+  compare: 'Comparisons',
+  reference: 'Reference',
+};
+const CATEGORY_BLURBS = {
+  basics: 'Start here. What restorative reproductive medicine is, and the methods it is built on.',
+  conditions: 'In-depth guides to the conditions RRM-trained clinicians diagnose and treat at the root.',
+  compare: 'Decision guides that weigh the options side by side.',
+  reference: 'Look-up resources: terminology and the registries and codes that govern fertility care.',
+};
+const groupedGuides = CATEGORY_ORDER
+  .map((key) => ({
+    key,
+    label: CATEGORY_LABELS[key],
+    blurb: CATEGORY_BLURBS[key],
+    items: guides.filter((g) => g.category === key),
+  }))
+  .filter((group) => group.items.length > 0);
 
 const published = guides.filter(g => !g.comingSoon);
 const collectionPageNode = {
@@ -80,20 +106,27 @@ const jsonLd = {
         That download link is invalid or has expired. Find your guide below and request a new link.
       </div>
 
-      <div class="guides-list">
-        {guides.map((guide) => (
+      {groupedGuides.map((group) => (
+        <section class="guide-cat">
+          <div class="guide-cat__head">
+            <h2 class="guide-cat__name">{group.label}</h2>
+            <span class="guide-cat__count">{group.items.length} {group.items.length === 1 ? 'guide' : 'guides'}</span>
+          </div>
+          {group.blurb && <p class="guide-cat__blurb">{group.blurb}</p>}
+          <div class="guides-list">
+        {group.items.map((guide) => (
           guide.comingSoon ? (
             <div class="guide-card guide-card--soon">
               <div class="guide-card__badge">Coming Soon</div>
-              <h2 class="guide-card__title">{guide.title}</h2>
+              <h3 class="guide-card__title">{guide.title}</h3>
               <p class="guide-card__desc">{guide.description}</p>
               <span class="guide-card__author">{guide.author}</span>
             </div>
           ) : (
             <article class="guide-card" style={`--card-accent: ${guide.accent};`}>
-              <h2 class="guide-card__title">
+              <h3 class="guide-card__title">
                 <a class="guide-card__link" href={guide.href}>{guide.title}</a>
-              </h2>
+              </h3>
               <div class="guide-card__divider"></div>
               <p class="guide-card__desc">{guide.description}</p>
               <div class="guide-card__footer">
@@ -130,7 +163,9 @@ const jsonLd = {
             </article>
           )
         ))}
-      </div>
+          </div>
+        </section>
+      ))}
 
     </div>
   </div>
@@ -355,6 +390,43 @@ const jsonLd = {
     font-size: 0.9375rem;
     color: var(--text-secondary);
     line-height: 1.7;
+    max-width: 640px;
+  }
+
+  /* Category sections: Basics / Conditions / Comparisons / Reference */
+  .guide-cat {
+    margin-bottom: var(--space-12);
+  }
+  .guide-cat__head {
+    display: flex;
+    align-items: baseline;
+    gap: var(--space-3);
+    margin-bottom: var(--space-3);
+    padding-bottom: var(--space-3);
+    border-bottom: 1px solid var(--border-color);
+  }
+  .guide-cat__name {
+    font-family: 'Cormorant Garamond', 'Georgia', serif;
+    font-size: 1.5rem;
+    font-weight: 600;
+    letter-spacing: -0.01em;
+    color: var(--text-primary);
+    margin: 0;
+  }
+  .guide-cat__count {
+    font-family: 'Inter', sans-serif;
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: var(--text-secondary);
+    background: color-mix(in srgb, var(--purple-500) 12%, transparent);
+    padding: 2px 10px;
+    border-radius: var(--radius-pill);
+  }
+  .guide-cat__blurb {
+    font-size: 0.8125rem;
+    color: var(--text-secondary);
+    line-height: 1.6;
+    margin: 0 0 var(--space-6);
     max-width: 640px;
   }
 
