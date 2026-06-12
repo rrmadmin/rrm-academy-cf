@@ -312,19 +312,19 @@ Do NOT ask Brian for these URLs. Resolve any rrmadmin artifact repo with `gh rep
 
 ## Information Architecture
 
-**Decision (2026-03-12):** Flat URL structure for pillar pages. Nav dropdown for UX grouping. URL structure and navigation structure are independent.
+**Decision (2026-03-12):** Flat URL structure for guide pages. Nav dropdown for UX grouping. URL structure and navigation structure are independent.
 
-**Pillar pages live at root** for maximum SEO authority: `/naprotechnology/`, `/what-is-rrm/`, `/common-questions-about-rrm`. Future pillar guides (`/endometriosis/`, `/pcos/`, etc.) also go at root. Short vanity URLs (e.g. `/napro`) 301 via rrm-router.
+**Guide pages live at root** for maximum SEO authority: `/naprotechnology/`, `/what-is-rrm/`, `/common-questions-about-rrm`. Future pillar guides (`/endometriosis/`, `/pcos/`, etc.) also go at root. Short vanity URLs (e.g. `/napro`) 301 via rrm-router.
 
 **`/guides/` is an index page**, not a URL parent. It lists and links to all pillar guides. Guides do NOT live under `/guides/[slug]`.
 
 **Nav structure (3 items):** Research Library, Commentary, Learn (dropdown: Guides, FAQs, Courses). "Learn" groups educational content in the UI without nesting URLs.
 
-**Do not** move FAQs, courses, or pillar pages under a `/learn/` path. The 301 redirect tax and URL depth penalty outweigh the organizational neatness.
+**Do not** move FAQs, courses, or guide pages under a `/learn/` path. The 301 redirect tax and URL depth penalty outweigh the organizational neatness.
 
 ## App Shell
 
-Wraps `/library/*`, `/commentary/*`, `/guides/`, `/faqs/*`, `/account/*`, `/ask/`, and 6 pillar pages (`/what-is-rrm/`, `/naprotechnology/`, `/femm/`, `/neofertility/`, `/common-questions-about-rrm/`, `/glossary/`) with a left-sidebar app shell instead of the global Header. Code on main, **production INERT** until activated via:
+Wraps `/library/*`, `/commentary/*`, `/guides/`, `/faqs/*`, `/account/*`, `/ask/`, and 6 guide pages (`/what-is-rrm/`, `/naprotechnology/`, `/femm/`, `/neofertility/`, `/common-questions-about-rrm/`, `/glossary/`) with a left-sidebar app shell instead of the global Header. Code on main, **production INERT** until activated via:
 
 ```bash
 gh variable set PUBLIC_SHELL_ROUTES --body "library,commentary,guides,faqs,account,ask"
@@ -336,13 +336,13 @@ Rollback: `gh variable set PUBLIC_SHELL_ROUTES --body ""` + redeploy.
 **Components:**
 - `src/components/AppShellChrome.astro` — desktop sidebar + middle column. Mobile renders the global Header inside `.app-shell-mobile-header`; the legacy shell mobile UI (bottom nav, hamburger drawer, AppShellSheet pull-up sheet) was DELETED 2026-06-10 after a month permanently `display:none`.
 - `src/components/MaybeShell.astro` — conditional wrapper for shell-on/shell-off without duplicating page body across two ternary branches. Forwards `hasRail` prop and `rail` named slot. Use this on every new wrap target.
-- `src/components/SectionTocChips.astro` — chip-pill "On this page" callout that replaces the sticky internal `.toc` sidebar on shell-enabled pillar pages. Pair with `.article-layout--no-toc` modifier.
+- `src/components/SectionTocChips.astro` — chip-pill "On this page" callout that replaces the sticky internal `.toc` sidebar on shell-enabled guide pages. Pair with `.article-layout--no-toc` modifier.
 - `src/styles/app-shell.css` — grid, tokens, mobile rules.
 - Helper: `src/lib/shell-routes.ts` exports `isShellEnabled(route)` reading `PUBLIC_SHELL_ROUTES`. `ShellRoute = 'commentary' | 'library' | 'guides' | 'faqs' | 'account' | 'ask'`.
 
 **Activation gating:** every wrapped page tests `isShellEnabled(...)` to decide between `chrome="shell"` (sidebar) and `chrome="default"` (Header). BaseLayout's `chrome="shell"` prop suppresses Header AND outer `<main>` (AppShellChrome emits its own); Footer renders inside AppShellChrome's grid.
 
-**Context types:** `'index' | 'article' | 'saved' | 'page'`. The `'page'` context (added 2026-05-07) is the generic 2-col baseline used by guides/faqs/account/ask/pillar pages — no card writer, no rail unless `hasRail` prop is set.
+**Context types:** `'index' | 'article' | 'saved' | 'page'`. The `'page'` context (added 2026-05-07) is the generic 2-col baseline used by guides/faqs/account/ask/guide pages — no card writer, no rail unless `hasRail` prop is set.
 
 **Right rail.** Two opt-in mechanisms:
 1. `relatedSections={Array<{heading, items}>}` — server-rendered list. Library articles pass `[Topics, By this author, Related research]`. Commentary posts pass `[Pillar, More by this author, Related commentary]`. Helpers: `getArticlesByAuthor()` / `getRelatedArticles()` in `src/lib/airtable.ts`, `getRelatedPosts()` in `src/lib/blog.ts`. Empty sections drop; cross-section dedup by id.
@@ -877,7 +877,7 @@ Scanner rules are the source of truth. If arise-scanner catches it, the coder ag
 - When editing `src/styles/global.css` or `docs/design/design-system.manual.json`, run `npm run design-tokens` and commit the regenerated `docs/design/design-system.json`. CI will block on drift.
 - Keep edits focused, show before/after summaries
 - After modifying a guarded file, run `npm run guard:update` before committing
-- **When adding new images to a pillar page**: a 200 from `curl` is necessary but **not sufficient**. Images can serve correctly and still render broken because of CSS specificity bugs, double-rendering of theme variants, lazy-load + viewport timing, or aspect-ratio collapse. Mandatory verification: load the page in claude-in-chrome, scroll the image into viewport (lazy-loaded), then screenshot and visually confirm. Don't claim "images live" off URL 200 alone.
+- **When adding new images to a guide page**: a 200 from `curl` is necessary but **not sufficient**. Images can serve correctly and still render broken because of CSS specificity bugs, double-rendering of theme variants, lazy-load + viewport timing, or aspect-ratio collapse. Mandatory verification: load the page in claude-in-chrome, scroll the image into viewport (lazy-loaded), then screenshot and visually confirm. Don't claim "images live" off URL 200 alone.
 - **chart-figure light/dark SVG pattern (per naprotechnology)**: copy the CSS block VERBATIM from `src/pages/naprotechnology/index.astro`. Specifically, do **not** add `display:` to `.chart-figure img` — its specificity (0,1,1) beats `.chart-dark { display: none }` (0,1,0) and both theme variants will render at once. Canonical block:
   ```css
   .chart-figure { margin: var(--space-8) 0; }
