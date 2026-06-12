@@ -142,7 +142,7 @@
       "author": "Dr. Naomi Whittaker",
       "read_time": "12 min read",
       "accent": "var(--purple-700)",
-      "in_guides_catalogue": false,
+      "in_guides_catalogue": true,
       "in_guides_catalogue_note": "Intentionally hidden from the /guides/ catalogue UI but discoverable via search and direct link. Kept in shell nav + sitemap + navigate_to_section.",
       "in_shell_guides_nav": true,
       "_order": 5,
