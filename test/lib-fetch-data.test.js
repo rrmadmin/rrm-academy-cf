@@ -174,7 +174,7 @@ test('mapWorkerRecord: returns full shape with all expected keys', () => {
   const expected = [
     'id', 'slug', 'type', 'sourceType', 'title', 'authors', 'shortCitation', 'year', 'abstract',
     'body', 'bodyFormat', 'mdR2Key',
-    'journal', 'journalAbbv', 'doi', 'pmid', 'sourceUrl', 'datePublished',
+    'journal', 'journalAbbv', 'doi', 'pmid', 'wikidataQid', 'sourceUrl', 'datePublished',
     'volume', 'issue', 'pages', 'keywords', 'apaCitation', 'vancouverCitation',
     'mlaCitation', 'topics', 'searchTerms', 'enrichmentStatus', 'identifiers',
     'isOpenAccess', 'isCopyrighted', 'oaType', 'license', 'oaUrl',
