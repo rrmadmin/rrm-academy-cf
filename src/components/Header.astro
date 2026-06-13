@@ -1103,10 +1103,21 @@ const totalStaggerSlots = _staggerAcc;
 
   function handleThemeToggle(e) {
     var btn = e.currentTarget;
+    var navToggle = document.getElementById('nav-toggle');
+    var drawerOpen = !!(navToggle && navToggle.checked);
 
-    // Fallback: no View Transitions API or reduced-motion -> swap theme directly.
+    // Swap theme directly (no reveal) when: the View Transitions API is missing,
+    // reduced-motion is requested, OR the mobile drawer is open. The drawer case is
+    // the important one: startViewTransition paints a full-viewport root snapshot in
+    // the top layer that intercepts pointer events for the whole reveal, and this
+    // toggle lives INSIDE the drawer, so the expanding-circle animation covers the
+    // open nav and the user can't tap a nav row until it finishes (and on some
+    // browsers the snapshot lingers, reading as a permanent freeze). pointer-events
+    // on the ::view-transition pseudos does not pass taps through (the root stays the
+    // hit-test target), so the only reliable fix is to skip the reveal here.
     if (!document.startViewTransition ||
-        window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+        window.matchMedia('(prefers-reduced-motion: reduce)').matches ||
+        drawerOpen) {
       applyTheme();
       return;
     }
