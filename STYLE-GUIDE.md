@@ -44,7 +44,7 @@ The site uses an **e-ink paper aesthetic** — muted saturation, paper-grain tex
 **Core principles:**
 - **Readability first.** Long-form scientific content demands generous line-height, constrained line-length, and clear typographic hierarchy.
 - **Purple as authority.** The brand purple (`#725e7e`) is used sparingly — accent links, buttons, and interactive states. It never competes with content.
-- **Paper, not screen.** The body filter desaturates and adds sepia warmth. An SVG grain texture completes the tactile illusion.
+- **Paper, not screen.** The dark/e-ink root filter desaturates and adds sepia warmth. An SVG grain texture completes the tactile illusion.
 - **Couple-centered language.** Content addresses women and couples, never patients in isolation.
 
 ---
@@ -320,13 +320,25 @@ Shadows are used sparingly — card hover states, dropdown menus, and the header
 
 ## E-Ink Filter & Grain
 
-### Body Filter
+### Root Filter
+
+The e-ink filter is applied to the `<html>` root, and only in dark and e-ink
+modes (light mode has no filter). It lives on `<html>` rather than `<body>` on
+purpose: a `filter` on `<body>` makes it the containing block for every
+`position:fixed` descendant, which re-anchors viewport-fixed UI (the mobile nav
+drawer) to the full page height and breaks its scroll. A root-level filter has
+the same visual effect without that side effect. Do not move it to `body`.
 
 ```css
-body {
+html[data-theme="dark"] {
   filter: saturate(0.7) sepia(0.04) brightness(0.98) contrast(1.05);
 }
+html[data-theme="eink"] {
+  filter: grayscale(100%) contrast(1.1) brightness(0.97);
+}
 ```
+
+Dark-mode filter, decomposed:
 
 | Property | Value | Effect |
 |----------|-------|--------|
@@ -999,7 +1011,7 @@ All decorative SVG icon spans (mobile nav icons, footer icons) must include `ari
 ### No-animation elements
 
 - E-ink grain: always-on, no transition
-- Body filter: constant, no animation
+- Root filter (dark/e-ink): constant, no animation
 - Theme toggle icons: instant swap (display:none toggle)
 
 ---
