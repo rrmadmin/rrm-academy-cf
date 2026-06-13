@@ -424,11 +424,17 @@
 /* ═══════════════════════════════════════════════
    E-INK FILTER + GRAIN (dark + eink modes)
    ═══════════════════════════════════════════════ */
-[data-theme="dark"] body {
+/* The e-ink filter lives on <html>, NOT <body>. A `filter` on <body> makes it
+   the containing block for every position:fixed descendant, which re-anchors the
+   mobile nav drawer to the full page height instead of the viewport, so the drawer
+   runs off-screen and can't be scrolled in dark/eink mode (light mode has no
+   filter, so it never broke). A filter on the root element has the same visual
+   effect without trapping fixed elements. Do not move this back to `body`. */
+html[data-theme="dark"] {
   filter: saturate(0.7) sepia(0.04) brightness(0.98) contrast(1.05);
 }
 
-[data-theme="eink"] body {
+html[data-theme="eink"] {
   filter: grayscale(100%) contrast(1.1) brightness(0.97);
 }
 
