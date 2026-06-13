@@ -108,6 +108,20 @@ const mobileNavSections: { heading: string; items: MobileNavItem[] }[] = [
     ],
   },
 ];
+
+// Global running index for every mobile-drawer row, so the staggered-entrance
+// delay is index-driven (one CSS calc) instead of a hard-coded nth-child list
+// that drifts every time the groups are reshuffled. Each group heading also joins
+// the cascade and occupies the slot just before its items: sectionBases[s] = the
+// heading's index; item i in that group = sectionBases[s] + 1 + i. The footer
+// actions trail one step past the last row at `--stagger = totalStaggerSlots`.
+let _staggerAcc = 0;
+const sectionBases = mobileNavSections.map((section) => {
+  const base = _staggerAcc;
+  _staggerAcc += 1 + section.items.length; // +1 = the group heading
+  return base;
+});
+const totalStaggerSlots = _staggerAcc;
 ---
 <header class="site-header">
   <div class="header-inner container">
@@ -161,12 +175,12 @@ const mobileNavSections: { heading: string; items: MobileNavItem[] }[] = [
 
       <!-- Mobile nav — full site navigation (hidden on desktop, replaces nav-list on mobile) -->
       <div class="mobile-nav-sections">
-        {mobileNavSections.map((section) => (
+        {mobileNavSections.map((section, sIdx) => (
           <div class="mobile-nav-group">
-            {section.heading && <div class="mobile-nav-group__heading">{section.heading}</div>}
+            {section.heading && <div class="mobile-nav-group__heading" style={`--stagger:${sectionBases[sIdx]}`}>{section.heading}</div>}
             <ul class="mobile-nav-group__list">
-              {section.items.map((item) => (
-                <li class:list={[{ 'has-hover-icon': item.hoverIcon }]}>
+              {section.items.map((item, iIdx) => (
+                <li class:list={[{ 'has-hover-icon': item.hoverIcon }]} style={`--stagger:${sectionBases[sIdx] + 1 + iIdx}`}>
                   {item.children ? (
                     <details class="mobile-has-dropdown">
                       <summary class="mobile-nav-link">
@@ -196,7 +210,7 @@ const mobileNavSections: { heading: string; items: MobileNavItem[] }[] = [
 
       <!-- Mobile-only footer inside nav panel (account row moved to the top header) -->
       <div class="mobile-nav-footer">
-        <div class="mobile-nav-footer__actions">
+        <div class="mobile-nav-footer__actions" style={`--stagger:${totalStaggerSlots}`}>
           <a href="/donate/" class="donate-btn mobile-donate" data-track-cta="donate-mobile-nav">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
             Donate
@@ -806,6 +820,7 @@ const mobileNavSections: { heading: string; items: MobileNavItem[] }[] = [
        Drawer contents start offset + transparent and settle in sequence as the
        panel slides in. Delays live only in the :checked rules, so closing snaps
        back instantly while the panel slides away (no reverse stagger). */
+    .mobile-nav-group__heading,
     .mobile-nav-link,
     .mobile-account,
     .mobile-nav-footer__actions {
@@ -813,24 +828,29 @@ const mobileNavSections: { heading: string; items: MobileNavItem[] }[] = [
       transform: translateX(12px);
       transition: opacity 0.3s ease, transform 0.3s cubic-bezier(0.22, 1, 0.36, 1);
     }
+    .site-header:has(#nav-toggle:checked) .mobile-nav-group__heading,
     .site-header:has(#nav-toggle:checked) .mobile-nav-link,
     .site-header:has(#nav-toggle:checked) .mobile-account,
     .site-header:has(#nav-toggle:checked) .mobile-nav-footer__actions {
       opacity: 1;
       transform: translateX(0);
     }
-    .site-header:has(#nav-toggle:checked) .mobile-nav-group:nth-of-type(1) li:nth-child(1) .mobile-nav-link { transition-delay: 0.05s; }
-    .site-header:has(#nav-toggle:checked) .mobile-nav-group:nth-of-type(1) li:nth-child(2) .mobile-nav-link { transition-delay: 0.08s; }
-    .site-header:has(#nav-toggle:checked) .mobile-nav-group:nth-of-type(1) li:nth-child(3) .mobile-nav-link { transition-delay: 0.11s; }
-    .site-header:has(#nav-toggle:checked) .mobile-nav-group:nth-of-type(1) li:nth-child(4) .mobile-nav-link { transition-delay: 0.14s; }
-    .site-header:has(#nav-toggle:checked) .mobile-nav-group:nth-of-type(1) li:nth-child(5) .mobile-nav-link { transition-delay: 0.17s; }
-    .site-header:has(#nav-toggle:checked) .mobile-nav-group:nth-of-type(1) li:nth-child(6) .mobile-nav-link { transition-delay: 0.20s; }
-    .site-header:has(#nav-toggle:checked) .mobile-nav-group:nth-of-type(1) li:nth-child(7) .mobile-nav-link { transition-delay: 0.23s; }
-    .site-header:has(#nav-toggle:checked) .mobile-nav-group:nth-of-type(2) li:nth-child(1) .mobile-nav-link { transition-delay: 0.26s; }
-    .site-header:has(#nav-toggle:checked) .mobile-nav-group:nth-of-type(2) li:nth-child(2) .mobile-nav-link { transition-delay: 0.28s; }
-    /* Account row now leads the drawer (top header), so it settles first. */
+    /* Per-row entrance delay is index-driven, not hard-coded per nth-child.
+       Each row carries `--stagger` (its global position across all groups, set
+       in the markup); the delay is one calc shared by every row. The old
+       hard-coded list only reached the first 7 + 2 rows, so rows added by the
+       2026-06-11 regroup (Glossary, Ask RRM AI, and the whole Community group)
+       had NO delay and popped in out of sequence instead of cascading. The 0.05s
+       base + 0.03s step preserves the original Learn-group cadence exactly and
+       simply extends it across every row. Each group heading leads its own group
+       in the cascade (its `--stagger` is the slot before its items). Account row
+       leads the whole drawer; footer actions trail one step past the last row. */
     .site-header:has(#nav-toggle:checked) .mobile-account { transition-delay: 0.02s; }
-    .site-header:has(#nav-toggle:checked) .mobile-nav-footer__actions { transition-delay: 0.31s; }
+    .site-header:has(#nav-toggle:checked) .mobile-nav-group__heading,
+    .site-header:has(#nav-toggle:checked) .mobile-nav-link,
+    .site-header:has(#nav-toggle:checked) .mobile-nav-footer__actions {
+      transition-delay: calc(0.05s + var(--stagger, 0) * 0.03s);
+    }
 
     /* Mobile dropdown — collapsed by default, opened via <details> */
     .mobile-dropdown {
@@ -1017,12 +1037,14 @@ const mobileNavSections: { heading: string; items: MobileNavItem[] }[] = [
     @media (prefers-reduced-motion: reduce) {
       .main-nav,
       .nav-overlay,
+      .mobile-nav-group__heading,
       .mobile-nav-link,
       .mobile-account,
       .mobile-nav-footer__actions,
       .mobile-has-dropdown .chevron {
         transition: none;
       }
+      .mobile-nav-group__heading,
       .mobile-nav-link,
       .mobile-account,
       .mobile-nav-footer__actions {
