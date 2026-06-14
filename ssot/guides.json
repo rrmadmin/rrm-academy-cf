@@ -344,6 +344,32 @@
         "id": "#naomi-whittaker"
       },
       "usesGuideLayout": true
+    },
+    {
+      "slug": "fertility-awareness-methods-compared",
+      "category": "compare",
+      "file": "fertility-awareness-methods-compared/index.astro",
+      "title": "Fertility Awareness-Based Methods Compared",
+      "description": "Clinician-reviewed comparison of fertility awareness-based methods (Billings, Creighton, Sensiplan, Marquette, Standard Days, apps). Every effectiveness figure cited and labeled by metric.",
+      "og_title": "Fertility Awareness Methods Compared: Effectiveness & How to Choose",
+      "og_description": "Clinician-reviewed comparison of fertility awareness-based methods (Billings, Creighton, Sensiplan, Marquette, Standard Days, apps). Every effectiveness figure cited and labeled by metric.",
+      "author": "RRM Academy",
+      "read_time": "30 min read",
+      "accent": "var(--purple-700)",
+      "accent_note": "Placeholder Compare-cluster color; TBD final assignment.",
+      "in_guides_catalogue": true,
+      "in_shell_guides_nav": true,
+      "_order": 13,
+      "pageTitle": "Fertility Awareness Methods Compared: Effectiveness & How to Choose | RRM Academy",
+      "pageDescription": "Clinician-reviewed comparison of fertility awareness-based methods (Billings, Creighton, Sensiplan, Marquette, Standard Days, apps). Every effectiveness figure cited and labeled by metric.",
+      "pageH1": "Fertility Awareness-Based Methods Compared: A Clinician-Reviewed Guide to Effectiveness, Biomarkers, and How to Choose",
+      "breadcrumbName": "Fertility Awareness Methods Compared",
+      "authorId": "#organization",
+      "reviewer": {
+        "name": "Dr. Naomi Whittaker, MD",
+        "id": "#naomi-whittaker"
+      },
+      "usesGuideLayout": true
     }
   ]
 }

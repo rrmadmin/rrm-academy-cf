@@ -1,0 +1,621 @@
+---
+import GuideLayout from '../../layouts/GuideLayout.astro';
+
+const PAGE_URL = 'https://rrmacademy.org/fertility-awareness-methods-compared/';
+const PUBLISH_DATE = '2026-06-12';
+
+const TOC_ITEMS = [
+  { href: '#comparison-table', label: 'At-a-Glance Comparison Table' },
+  { href: '#how-to-read-numbers', label: 'How to Read Effectiveness Numbers' },
+  { href: '#methods', label: 'The Methods in Brief' },
+  { href: '#how-to-choose', label: 'How to Choose' },
+  { href: '#where-to-learn', label: 'Where to Learn' },
+  { href: '#faq', label: 'Frequently Asked Questions' },
+  { href: '#sources', label: 'Sources' },
+];
+
+const FAQS: { question: string; answer: string; answerHtml: string }[] = [
+  {
+    "question": "How effective are fertility awareness-based methods at preventing pregnancy?",
+    "answer": "In restorative reproductive medicine, how well these methods work depends on three things: which method you use, how well you were taught, and how consistently you follow the rules. With correct, careful use, the best instructor-taught methods have very low pregnancy rates. Sensiplan reports 0.4 pregnancies per 100 women per year for perfect use (Peragallo Urrutia 2018, PMID 30095777). The Marquette monitor method reports about 2 per 100 women at 12 months with careful use (Fehring 2007, PMID 17371516). In everyday use, the numbers are higher and vary a lot across methods, roughly 2 to 33 per 100 women. All FABM research is rated low to moderate quality, which means no single number is certain.",
+    "answerHtml": "<p>In restorative reproductive medicine, how well these methods work depends on three things: which method you use, how well you were taught, and how consistently you follow the rules. With correct, careful use, the best instructor-taught methods have very low pregnancy rates. Sensiplan reports 0.4 pregnancies per 100 women per year for perfect use (Peragallo Urrutia 2018, PMID 30095777). The Marquette monitor method reports about 2 per 100 women at 12 months with careful use (Fehring 2007, PMID 17371516). In everyday use, the numbers are higher and vary a lot across methods, roughly 2 to 33 per 100 women. All FABM research is rated low to moderate quality, which means no single number is certain.</p>"
+  },
+  {
+    "question": "Which fertility awareness-based method is the most effective?",
+    "answer": "In restorative reproductive medicine, the research does not support a clear head-to-head ranking right now. A large 2018 review (Peragallo Urrutia, PMID 30095777) looked at 53 FABM effectiveness studies and rated zero of them as high quality. Among instructor-taught methods, Sensiplan reports the lowest perfect-use rate at 0.4 pregnancies per 100 women per year, and Marquette reports about 2 per 100 women at 12 months. But these studies used different populations and different ways of counting, so the numbers cannot be compared directly. The quality of your instruction matters more than any single headline number.",
+    "answerHtml": "<p>In restorative reproductive medicine, the research does not support a clear head-to-head ranking right now. A large 2018 review (Peragallo Urrutia, PMID 30095777) looked at 53 FABM effectiveness studies and rated zero of them as high quality. Among instructor-taught methods, Sensiplan reports the lowest perfect-use rate at 0.4 pregnancies per 100 women per year, and Marquette reports about 2 per 100 women at 12 months. But these studies used different populations and different ways of counting, so the numbers cannot be compared directly. The quality of your instruction matters more than any single headline number.</p>"
+  },
+  {
+    "question": "Can I use a fertility awareness-based method if my cycles are irregular?",
+    "answer": "In restorative reproductive medicine, many people with irregular cycles can use a FABM, but the method choice matters a lot. Calendar-based methods like the Standard Days Method are built for cycles that fall between 26 and 32 days. They do not reliably identify your fertile window outside that range. Mucus-based methods like Billings and Creighton, and the hormone monitor Marquette model, read your body's actual daily signals. They adapt to irregular cycles. Marquette's study with an irregular-cycle subgroup showed 4.3 pregnancies per 100 women at 12 months (Mu 2022, PMID 35321484). Irregular cycles are also a clinical signal worth discussing with a doctor, since they can reflect a problem with ovulation. Find a Provider connects you with clinicians who can read these charts to look for an underlying cause.",
+    "answerHtml": "<p>In restorative reproductive medicine, many people with irregular cycles can use a FABM, but the method choice matters a lot. Calendar-based methods like the Standard Days Method are built for cycles that fall between 26 and 32 days. They do not reliably identify your fertile window outside that range. Mucus-based methods like Billings and Creighton, and the hormone monitor Marquette model, read your body's actual daily signals. They adapt to irregular cycles. Marquette's study with an irregular-cycle subgroup showed 4.3 pregnancies per 100 women at 12 months (Mu 2022, PMID 35321484). Irregular cycles are also a clinical signal worth discussing with a doctor, since they can reflect a problem with ovulation. <a href=\"/providers/\">Find a Provider</a> connects you with clinicians who can read these charts to look for an underlying cause.</p>"
+  },
+  {
+    "question": "Can fertility awareness charting help diagnose a fertility or cycle problem?",
+    "answer": "In restorative reproductive medicine, yes, often it can, when the chart is read by a trained clinician. The cycle chart is a daily record of your body's signals, not just a family-planning tool. Little or no mucus can point to a cervical problem or low estrogen. A short or delayed temperature rise after the egg is released suggests that the second half of the cycle is not producing enough progesterone. A missing hormone surge can point to a problem with ovulation (Duane 2022, PMID 35685421). When a doctor calls a case unexplained infertility, it often means undiagnosed, not truly without cause. Find a Provider connects you with clinicians trained to read cycle charts as a clinical record.",
+    "answerHtml": "<p>In restorative reproductive medicine, yes, often it can, when the chart is read by a trained clinician. The cycle chart is a daily record of your body's signals, not just a family-planning tool. Little or no mucus can point to a cervical problem or low estrogen. A short or delayed temperature rise after the egg is released suggests that the second half of the cycle is not producing enough progesterone. A missing hormone surge can point to a problem with ovulation (Duane 2022, PMID 35685421). When a doctor calls a case unexplained infertility, it often means undiagnosed, not truly without cause. <a href=\"/providers/\">Find a Provider</a> connects you with clinicians trained to read cycle charts as a clinical record.</p>"
+  },
+  {
+    "question": "Can I use a fertility awareness-based method while breastfeeding or after having a baby?",
+    "answer": "In restorative reproductive medicine, many people can use a FABM after having a baby, but the postpartum window is one of the harder charting periods. Your cycles have not returned yet, and mucus patterns are often unusual while you are breastfeeding. Method choice matters more here than at any other time. Marquette has a published postpartum and breastfeeding approach with two studies behind it (Bouchard 2013, PMID 23288279; Schneider 2023, PMID 37325426). Billings and Creighton also have documented postpartum approaches. The overall evidence base for FABMs used after birth is thin and mostly low quality (Redmond 2022, PMID 35716805). That makes trained instruction more important here, not less.",
+    "answerHtml": "<p>In restorative reproductive medicine, many people can use a FABM after having a baby, but the postpartum window is one of the harder charting periods. Your cycles have not returned yet, and mucus patterns are often unusual while you are breastfeeding. Method choice matters more here than at any other time. Marquette has a published postpartum and breastfeeding approach with two studies behind it (Bouchard 2013, PMID 23288279; Schneider 2023, PMID 37325426). Billings and Creighton also have documented postpartum approaches. The overall evidence base for FABMs used after birth is thin and mostly low quality (Redmond 2022, PMID 35716805). That makes trained instruction more important here, not less.</p>"
+  },
+  {
+    "question": "What is the difference between perfect use and typical use, and why is the gap so big for these methods?",
+    "answer": "In restorative reproductive medicine, perfect use means the couple correctly identified the fertile window and followed the method rules exactly. Typical use includes everyone in the study, including couples who correctly identified a fertile day and then chose to have sex anyway. That second group is not a method failure. The biology did not fail. The behavior changed. For FABMs, this gap tends to be larger than for methods that work automatically, because the method requires daily tracking and then a decision. The Sensiplan data makes this concrete: couples with no unprotected sex during the correctly identified fertile window had 0.6 pregnancies per 100 women over 13 cycles. The whole group in the same study had 1.8 per 100 women over 13 cycles (Frank-Herrmann 2007, PMID 17314078). Same method. Different behavior.",
+    "answerHtml": "<p>In restorative reproductive medicine, perfect use means the couple correctly identified the fertile window and followed the method rules exactly. Typical use includes everyone in the study, including couples who correctly identified a fertile day and then chose to have sex anyway. That second group is not a method failure. The biology did not fail. The behavior changed. For FABMs, this gap tends to be larger than for methods that work automatically, because the method requires daily tracking and then a decision. The Sensiplan data makes this concrete: couples with no unprotected sex during the correctly identified fertile window had 0.6 pregnancies per 100 women over 13 cycles. The whole group in the same study had 1.8 per 100 women over 13 cycles (Frank-Herrmann 2007, PMID 17314078). Same method. Different behavior.</p>"
+  },
+  {
+    "question": "Do I need a teacher, or can I learn a fertility awareness-based method on my own?",
+    "answer": "In restorative reproductive medicine, the low pregnancy rates that make these methods credible come from instructor-taught populations. The major methods, Creighton, Billings, Marquette, and Sensiplan, are built around a structured teaching relationship with certified follow-up. A large 2018 review (Peragallo Urrutia, PMID 30095777) found that instruction quality was a key reason the outcomes varied so much across studies. Self-taught use consistently shows higher pregnancy rates in the data. Your chart is also a daily clinical record. That record is only as useful as the charting is accurate, and good instruction is what makes it accurate.",
+    "answerHtml": "<p>In restorative reproductive medicine, the low pregnancy rates that make these methods credible come from instructor-taught populations. The major methods, Creighton, Billings, Marquette, and Sensiplan, are built around a structured teaching relationship with certified follow-up. A large 2018 review (Peragallo Urrutia, PMID 30095777) found that instruction quality was a key reason the outcomes varied so much across studies. Self-taught use consistently shows higher pregnancy rates in the data. Your chart is also a daily clinical record. That record is only as useful as the charting is accurate, and good instruction is what makes it accurate.</p>"
+  },
+  {
+    "question": "Are fertility awareness-based methods a form of contraception, or are they something different?",
+    "answer": "In restorative reproductive medicine, FABMs are a distinct category. Rather than changing your body's hormonal signals, they identify when you are fertile so you and your partner can decide how to act on that information. FABMs do not suppress ovulation. They work with your cycle, not against it. The same chart you use to avoid pregnancy can support you in achieving pregnancy. And the same daily record can be read by a trained clinician to identify a diagnosable cycle problem. That two-function capacity is central to how restorative reproductive medicine works. Two important limits: FABMs do not protect against sexually transmitted infections, and they require consistent daily tracking and trained instruction to work as the studies describe.",
+    "answerHtml": "<p>In restorative reproductive medicine, FABMs are a distinct category. Rather than changing your body's hormonal signals, they identify when you are fertile so you and your partner can decide how to act on that information. FABMs do not suppress ovulation. They work with your cycle, not against it. The same chart you use to avoid pregnancy can support you in achieving pregnancy. And the same daily record can be read by a trained clinician to identify a diagnosable cycle problem. That two-function capacity is central to how restorative reproductive medicine works. Two important limits: FABMs do not protect against sexually transmitted infections, and they require consistent daily tracking and trained instruction to work as the studies describe.</p>"
+  }
+];
+
+const citationNodes = [
+  { name: 'Effectiveness of Fertility Awareness-Based Methods for Pregnancy Prevention: A Systematic Review', pmid: '30095777' },
+  { name: 'Pregnancy probabilities during use of the Creighton Model Fertility Care System', pmid: '10500511' },
+  { name: 'The effectiveness of a fertility awareness based method to avoid pregnancy in relation to a couple\'s sexual behaviour during the fertile time', pmid: '17314078' },
+  { name: 'Prospective multicentre trial of the ovulation method of natural family planning, II', pmid: '7308503' },
+  { name: 'Multisite Effectiveness Study of the Marquette Method of Natural Family Planning', pmid: '35321484' },
+  { name: 'Pregnancies, intentions, and fertility behaviors during use of the Creighton Model Fertility Care System at 17 United States centers (CEIBA)', pmid: '40729325' },
+  { name: 'Efficacy of cervical mucus observations plus electronic hormonal fertility monitoring as a method of natural family planning', pmid: '17371516' },
+  { name: 'Cohort comparison of two fertility awareness methods of family planning', pmid: '19370902' },
+  { name: 'Efficacy of a new method of family planning: the Standard Days Method', pmid: '12057784' },
+  { name: 'Efficacy of the new TwoDay Method of family planning', pmid: '15482764' },
+  { name: 'Fertility Awareness-Based Methods for Women\'s Health and Family Planning', pmid: '35685421' },
+  { name: 'Time to pregnancy: results of the German prospective study and impact on the management of infertility', pmid: '12923157' },
+  { name: 'Cumulative pregnancy rates in patients with apparently normal fertility and fertility-focused intercourse', pmid: '1479570' },
+  { name: 'Achieving Pregnancy Using Primary Care Interventions to Identify the Fertile Window', pmid: '29376054' },
+];
+
+const graph: Record<string, unknown>[] = [
+  {
+    '@type': ['MedicalWebPage', 'Article'],
+    '@id': `${PAGE_URL}#article`,
+    url: PAGE_URL,
+    name: 'Fertility Awareness-Based Methods Compared: A Clinician-Reviewed Guide to Effectiveness, Biomarkers, and How to Choose',
+    headline: 'Fertility Awareness-Based Methods Compared: A Clinician-Reviewed Guide to Effectiveness, Biomarkers, and How to Choose',
+    description: 'A criteria-led, clinician-reviewed comparison of the major fertility awareness-based methods (Standard Days, TwoDay, Billings, Creighton, Sensiplan, Marquette, and app-based methods) by effectiveness metric, biomarker tracked, instruction model, and diagnostic value in restorative reproductive medicine. Every effectiveness figure is cited and labeled by metric type.',
+    inLanguage: 'en-US',
+    datePublished: '2026-06-12T00:00:00-04:00',
+    dateModified: '2026-06-12T00:00:00-04:00',
+    lastReviewed: '2026-06-12',
+    about: [
+      { '@type': 'MedicalEntity', name: 'Fertility awareness-based methods', alternateName: ['FABM', 'Natural Family Planning', 'Fertility awareness methods'] },
+      { '@type': 'Thing', name: 'Restorative reproductive medicine', sameAs: 'https://www.wikidata.org/wiki/Q139807849' },
+    ],
+    audience: { '@type': 'MedicalAudience', audienceType: 'Patient' },
+    isPartOf: { '@id': 'https://rrmacademy.org/#website' },
+    author: { '@id': 'https://rrmacademy.org/#organization' },
+    publisher: { '@id': 'https://rrmacademy.org/#organization' },
+    reviewedBy: { '@id': 'https://rrmacademy.org/#naomi-whittaker' },
+    reviewedByCredential: 'Dr. Naomi Whittaker, MD, Board-Certified OBGYN, MIGS, NFPMC, FCI',
+    mainEntityOfPage: PAGE_URL,
+    citation: citationNodes.map((c) => ({
+      '@type': 'ScholarlyArticle',
+      name: c.name,
+      identifier: { '@type': 'PropertyValue', propertyID: 'PMID', value: c.pmid },
+      sameAs: `https://pubmed.ncbi.nlm.nih.gov/${c.pmid}/`,
+    })),
+    articleSection: TOC_ITEMS.map((t) => t.label),
+  },
+  {
+    '@type': 'FAQPage',
+    '@id': `${PAGE_URL}#faq`,
+    url: PAGE_URL,
+    isPartOf: { '@id': `${PAGE_URL}#article` },
+    mainEntity: FAQS.map((f) => ({
+      '@type': 'Question',
+      name: f.question,
+      acceptedAnswer: { '@type': 'Answer', text: f.answer },
+    })),
+  },
+  {
+    '@type': 'ItemList',
+    '@id': `${PAGE_URL}#methods`,
+    name: 'Fertility Awareness-Based Methods Compared',
+    description: 'The fertility awareness-based methods compared in this guide, presented in order of biomarker complexity. Order reflects mechanism, not quality ranking.',
+    itemListOrder: 'https://schema.org/ItemListUnordered',
+    numberOfItems: 7,
+    isPartOf: { '@id': `${PAGE_URL}#article` },
+    itemListElement: [
+      { '@type': 'ListItem', position: 1, item: { '@type': 'MedicalProcedure', name: 'Standard Days Method', description: 'Cycle-day count (days 8-19 of a 26-32 day cycle). Brief counselor-assisted instruction. No physiological biomarker.', url: 'https://irh.org/' } },
+      { '@type': 'ListItem', position: 2, item: { '@type': 'MedicalProcedure', name: 'TwoDay Method', description: 'Single daily binary cervical-secretion check. Brief counselor-assisted instruction.', url: 'https://irh.org/' } },
+      { '@type': 'ListItem', position: 3, item: { '@type': 'MedicalProcedure', name: 'Billings Ovulation Method', description: 'Cervical mucus tracked via vulvar sensation and mucus appearance, identifying Peak Day. Instructor-led through WOOMB-certified teachers.', url: 'https://www.woomb.org/' } },
+      { '@type': 'ListItem', position: 4, item: { '@type': 'MedicalProcedure', name: 'Creighton Model FertilityCare System', description: 'Standardized cervical-mucus charting with stamp codes and Peak Day; the required clinical record for NaProTechnology. Instructor-led through certified FertilityCare Practitioners.', url: 'https://www.fertilitycare.org/' } },
+      { '@type': 'ListItem', position: 5, item: { '@type': 'MedicalProcedure', name: 'Sympto-Thermal Method (Sensiplan)', description: 'Dual biomarker: cervical mucus plus basal body temperature used as a double-check. Instructor-led with standardized couple counseling.', url: 'https://ccli.org/' } },
+      { '@type': 'ListItem', position: 6, item: { '@type': 'MedicalProcedure', name: 'Marquette Model', description: 'Urinary estrogen (E3G) and luteinizing hormone via an electronic hormonal monitor; optional mucus adjunct. Instructor-led through Marquette-certified professionals.', url: 'https://www.marquette.edu/natural-family-planning/' } },
+      { '@type': 'ListItem', position: 7, item: { '@type': 'MedicalProcedure', name: 'FEMM (Fertility Education and Medical Management)', description: 'Cervical-mucus observation with optional urinary LH/hormone testing (symptohormonal); app-supported, instructor-taught through FEMM Health with a medical-management arm. No published method-specific effectiveness study.', url: 'https://femmhealth.org/' } },
+    ],
+  },
+  {
+    '@type': ['Organization', 'EducationalOrganization', 'MedicalOrganization'],
+    '@id': 'https://rrmacademy.org/#organization',
+    name: 'RRM Academy',
+    url: 'https://rrmacademy.org',
+    logo: 'https://rrmacademy.org/logo.png',
+    sameAs: ['https://www.instagram.com/rrmacademy', 'https://www.youtube.com/@rrmacademy', 'https://www.wikidata.org/wiki/Q140041065'],
+    publishingPrinciples: 'https://rrmacademy.org/policies/editorial/',
+    correctionsPolicy: 'https://rrmacademy.org/policies/corrections/',
+    verificationFactCheckingPolicy: 'https://rrmacademy.org/policies/fact-checking/',
+    knowsAbout: ['Restorative reproductive medicine', 'NaProTechnology', 'Fertility awareness-based methods'],
+  },
+  {
+    '@type': ['Physician', 'Person'],
+    '@id': 'https://rrmacademy.org/#naomi-whittaker',
+    name: 'Naomi M. Whittaker',
+    honorificPrefix: 'Dr.',
+    honorificSuffix: 'MD',
+    givenName: 'Naomi',
+    familyName: 'Whittaker',
+    jobTitle: 'Board-Certified Obstetrician-Gynecologist',
+    medicalSpecialty: ['Obstetrics and Gynecology', 'Minimally Invasive Gynecologic Surgery', 'Restorative Reproductive Medicine'],
+    identifier: [
+      { '@type': 'PropertyValue', propertyID: 'ORCID', value: '0000-0003-3706-3112' },
+      { '@type': 'PropertyValue', propertyID: 'NPI', value: '1881034908' },
+    ],
+    sameAs: ['https://orcid.org/0000-0003-3706-3112', 'https://npiregistry.cms.hhs.gov/provider-view/1881034908'],
+    worksFor: { '@id': 'https://rrmacademy.org/#organization' },
+    knowsAbout: ['Restorative reproductive medicine', 'NaProTechnology', 'Fertility awareness-based methods', 'Endometriosis', 'Infertility'],
+  },
+  {
+    '@type': 'WebSite',
+    '@id': 'https://rrmacademy.org/#website',
+    url: 'https://rrmacademy.org/',
+    name: 'RRM Academy',
+    publisher: { '@id': 'https://rrmacademy.org/#organization' },
+  },
+];
+
+const jsonLd = {
+  '@context': 'https://schema.org',
+  '@graph': graph,
+};
+---
+
+<GuideLayout
+  slug="fertility-awareness-methods-compared"
+  jsonLd={jsonLd}
+  tocItems={TOC_ITEMS}
+  wideContainer={true}
+  faqs={FAQS}
+  disclaimerHtml={null}
+  baseLayout={{ ogType: 'article', publishDate: PUBLISH_DATE, speakable: ['.pillar-lead', 'h1'], trackScroll: true }}
+>
+  <span data-pagefind-meta="type:Guide" style="display:none"></span>
+  <span data-pagefind-meta="title:Fertility Awareness-Based Methods Compared" style="display:none"></span>
+
+  <p class="pillar-lead"><strong>Fertility awareness-based methods (FABMs) are ways to track your body's daily signals to know when you are and are not fertile. This guide compares seven: Standard Days, TwoDay, Billings, Creighton, Sensiplan, Marquette, and FEMM. Used carefully with a trained teacher, the best methods mean fewer than 2 in 100 women get pregnant in a year. Everyday-use numbers are higher, and no single method is best for everyone.</strong></p>
+
+<section id="comparison-table">
+<h2>How the Methods Compare at a Glance</h2>
+
+<p>The numbers below come from studies that used different designs and different ways of counting pregnancies. You cannot compare them straight across. All the research behind them is low to moderate quality. No method is ranked as better than another.</p>
+<div class="table-wrap">
+<table>
+  <thead>
+    <tr>
+      <th scope="col"></th>
+      <th scope="col">Standard Days</th>
+      <th scope="col">TwoDay</th>
+      <th scope="col">Billings</th>
+      <th scope="col">Creighton</th>
+      <th scope="col">Sensiplan</th>
+      <th scope="col">Marquette</th>
+      <th scope="col">FEMM</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <th scope="row">Biomarker</th>
+      <td>Calendar count (days 8-19)</td>
+      <td>Daily secretion check</td>
+      <td>Cervical mucus</td>
+      <td>Cervical mucus (coded)</td>
+      <td>Mucus + temperature</td>
+      <td>Urine hormones (E3G, LH)</td>
+      <td>Mucus + optional urine hormones</td>
+    </tr>
+    <tr>
+      <th scope="row">Taught by</th>
+      <td>Counselor (brief)</td>
+      <td>Counselor (brief)</td>
+      <td>Instructor (WOOMB)</td>
+      <td>Instructor (FertilityCare)</td>
+      <td>Instructor</td>
+      <td>Instructor (Marquette)</td>
+      <td>Instructor (FEMM Health)</td>
+    </tr>
+    <tr>
+      <th scope="row">Tools needed</th>
+      <td>None (CycleBeads optional)</td>
+      <td>None</td>
+      <td>None</td>
+      <td>None</td>
+      <td>Basal thermometer</td>
+      <td>Hormone monitor + strips</td>
+      <td>App; optional LH strips</td>
+    </tr>
+    <tr class="group-band">
+      <th colspan="8" scope="colgroup">Avoiding pregnancy <span class="band-note">(lower is better)</span></th>
+    </tr>
+    <tr>
+      <th scope="row">Perfect use</th>
+      <td>4.8/100 (PI)<br>(<a class="cite" href="https://pubmed.ncbi.nlm.nih.gov/30095777/" rel="noopener">Peragallo 2018</a>)</td>
+      <td>3.5/100 (PI)<br>(<a class="cite" href="https://pubmed.ncbi.nlm.nih.gov/15482764/" rel="noopener">Arevalo 2004</a>)</td>
+      <td>2.8/100 (PI)<br>(<a class="cite" href="https://pubmed.ncbi.nlm.nih.gov/7308503/" rel="noopener">WHO 1981</a>)</td>
+      <td>0.5/100 (PI)<br>(<a class="cite" href="https://pubmed.ncbi.nlm.nih.gov/9653695/" rel="noopener">Hilgers 1998</a>)</td>
+      <td>0.4/100 (PI)<br>(<a class="cite" href="https://pubmed.ncbi.nlm.nih.gov/30095777/" rel="noopener">Peragallo 2018</a>)</td>
+      <td>~2/100 (KM12)<br>(<a class="cite" href="https://pubmed.ncbi.nlm.nih.gov/17371516/" rel="noopener">Fehring 2007</a>)</td>
+      <td>No published study&#8224;</td>
+    </tr>
+    <tr>
+      <th scope="row">Typical use</th>
+      <td>11-14/100 (PI)<br>(<a class="cite" href="https://pubmed.ncbi.nlm.nih.gov/30095777/" rel="noopener">Peragallo 2018</a>)</td>
+      <td>13.7/100 (PI)<br>(<a class="cite" href="https://pubmed.ncbi.nlm.nih.gov/15482764/" rel="noopener">Arevalo 2004</a>)</td>
+      <td>10.5-33.6/100 (PI)<br>(<a class="cite" href="https://pubmed.ncbi.nlm.nih.gov/30095777/" rel="noopener">Peragallo 2018</a>)</td>
+      <td>Not defined*</td>
+      <td>1.8/100<br>(<a class="cite" href="https://pubmed.ncbi.nlm.nih.gov/17314078/" rel="noopener">Frank-Herrmann 2007</a>)</td>
+      <td>6.7-14/100 (KM12)<br>(<a class="cite" href="https://pubmed.ncbi.nlm.nih.gov/35321484/" rel="noopener">Mu 2022</a>; <a class="cite" href="https://pubmed.ncbi.nlm.nih.gov/17371516/" rel="noopener">Fehring 2007</a>)</td>
+      <td>No published study&#8224;</td>
+    </tr>
+    <tr class="group-band">
+      <th colspan="8" scope="colgroup">Trying to conceive <span class="band-note">(higher is better)</span></th>
+    </tr>
+    <tr>
+      <th scope="row">Cumulative rate</th>
+      <td>No published rate</td>
+      <td>No published rate</td>
+      <td>No published rate</td>
+      <td>98% by 6 cycles<br>(<a class="cite" href="https://pubmed.ncbi.nlm.nih.gov/1479570/" rel="noopener">Hilgers 1992</a>)</td>
+      <td>81% by 6 cycles<br>(<a class="cite" href="https://pubmed.ncbi.nlm.nih.gov/12923157/" rel="noopener">Gnoth 2003</a>)</td>
+      <td>83% by 12 cycles<br>(<a class="cite" href="https://pubmed.ncbi.nlm.nih.gov/29376054/" rel="noopener">Bouchard 2017</a>)</td>
+      <td>No published study&#8224;</td>
+    </tr>
+    <tr>
+      <th scope="row">Studied in</th>
+      <td>Latin America, Philippines</td>
+      <td>Latin America, Philippines</td>
+      <td>Multinational (WHO)</td>
+      <td>US / Canada</td>
+      <td>Europe (Germany)</td>
+      <td>US</td>
+      <td>No effectiveness cohort</td>
+    </tr>
+    <tr>
+      <th scope="row">RRM value</th>
+      <td>Low</td>
+      <td>Low</td>
+      <td>High</td>
+      <td>High</td>
+      <td>High</td>
+      <td>High</td>
+      <td>High</td>
+    </tr>
+    <tr>
+      <th scope="row">Learn from</th>
+      <td>Georgetown IRH</td>
+      <td>Georgetown IRH</td>
+      <td>WOOMB Intl</td>
+      <td>FertilityCare; Saint Paul VI</td>
+      <td>CCL; FACTS</td>
+      <td>Marquette Univ</td>
+      <td>FEMM Health</td>
+    </tr>
+  </tbody>
+</table>
+</div>
+<p class="table-note"><em>Headline figures only; full numbers and citations are in each method's description below and in Sources. The studies use different designs, so the numbers are not directly comparable (PI = Pearl Index, pregnancies per 100 women per year; KM12 = chance of pregnancy by 12 months). All of this evidence is low to moderate quality. *Creighton counts fertile-day intercourse separately from method failure, so a standard typical-use rate is not defined (Manhart 2013). To conceive, normal-fertility couples who time intercourse to the fertile window conceive at high rates within a few cycles (about 81% by 6 cycles and 92% by 12 cycles; Gnoth 2003, PMID 12923157). &#8224;FEMM has no published method-specific effectiveness study; it is classified as a symptohormonal method (Duane 2022, PMID 35685421) but is absent from the major effectiveness review (Peragallo Urrutia 2018, PMID 30095777), so its own rates have not been measured. No method is ranked as best.</em></p>
+
+    <aside class="method-note">
+      <p><strong>A note on Boston Cross-Check.</strong> Boston Cross-Check is a newer method that watches several signals together: cervical mucus, your waking temperature, and an electronic hormone monitor (with test strips added when needed, such as after a baby). Reading signals together can make the fertile window easier to spot. It is not in the table above because it has not been studied as its own method, so it has no published effectiveness rate of its own; any number quoted for it is borrowed from the separate methods whose tools it uses. You can learn it at <a href="https://www.bostoncrosscheck.com/" rel="noopener">Boston Cross Check</a>.</p>
+    </aside>
+</section>
+
+<section id="how-to-read-numbers">
+<h2>How to Read the Effectiveness Numbers</h2>
+
+<p>Two things get mixed up all the time. The difference matters a lot here.</p>
+
+<p><strong>Perfect use</strong> means a couple correctly spotted the fertile days and followed the method rules exactly. <strong>Typical use</strong> covers everyone in a study. That includes couples who correctly spotted a fertile day and then chose to have sex anyway. That is not a method failure. The biology worked. The behavior changed.</p>
+
+<p>Here is a real example. In the Sensiplan study, couples who had no unprotected sex during the correctly identified fertile window: 0.6 pregnancies per 100 women over 13 cycles. Across the whole group in the same study: 1.8 per 100 women over 13 cycles (<a href="https://pubmed.ncbi.nlm.nih.gov/17314078/" rel="noopener">Frank-Herrmann 2007, PMID 17314078</a>). Same method. Different behavior. That is why the two numbers look so different.</p>
+
+<p>The studies in this guide use three different ways to count pregnancies. They cannot be compared directly across methods:</p>
+<ul>
+  <li><strong>Pearl Index (PI):</strong> pregnancies per 100 women per year of use.</li>
+  <li><strong>13-cycle cumulative probability (CP13):</strong> the share of women who got pregnant by their 13th cycle of use.</li>
+  <li><strong>Kaplan-Meier 12-month probability (KM12):</strong> the chance of getting pregnant at 12 months of use.</li>
+</ul>
+
+<p>One more thing about these numbers. A large review in 2018 looked at 53 FABM effectiveness studies (<a href="https://pubmed.ncbi.nlm.nih.gov/30095777/" rel="noopener">Peragallo Urrutia 2018, PMID 30095777</a>). It rated zero of them as high quality: 21 were moderate, 32 were low. That is a real limit on how certain any single number can be. It does not mean these methods do not work. It means no single number settles the comparison.</p>
+
+<p>If you have ever seen a chart showing "fertility awareness" at about 24 percent failure, that row lumps together several very different approaches. Simple calendar counting, mucus-only, and full symptothermal methods are all mixed together. The number is dominated by simple calendar users. It does not describe any of the seven methods below.</p>
+
+<p>One special note on Creighton. That method classifies couples who had sex on a day they correctly identified as fertile in a separate category from method failure. So a standard typical-use rate is not defined in the Creighton research (Manhart 2013). The table reflects this honestly.</p>
+</section>
+
+<section id="methods">
+<h2>The Methods in Brief</h2>
+
+<p>These are listed from the simplest to the most detailed in terms of what they track. That order reflects how each method works. It is not a ranking.</p>
+
+<h3>Standard Days Method and TwoDay Method</h3>
+
+<p>Both methods come from the Georgetown Institute for Reproductive Health. Both are designed to be quick to learn.</p>
+
+<p>The Standard Days Method is the simpler of the two. You count cycle days 8 through 19 as fertile. That is it. The one requirement is that your cycles stay between 26 and 32 days long. If your cycles are shorter or longer than that range, this method does not reliably work for you.</p>
+
+<p>The TwoDay Method asks one question each day: did I notice any secretions today or yesterday? Secretions are the natural moisture or fluid your body makes from the cervix (the lower part of the uterus). If yes, that day is possibly fertile. If no to both, it is likely not fertile. Brief training with a counselor is enough to get started.</p>
+
+<p>Neither method creates a daily record that a doctor could use to look for a cycle problem. If you have regular cycles and want the least time-intensive option, these are worth looking at. If your cycles vary a lot, you need a method that reads your body's actual daily signals rather than a fixed calendar window.</p>
+
+<p><em>Learn it:</em> <a href="https://irh.org/" rel="noopener">Georgetown IRH</a>, <a href="https://cyclebeads.com/" rel="noopener">CycleBeads</a>.</p>
+
+<h3>Billings Ovulation Method</h3>
+
+<p>Billings tracks cervical mucus. Cervical mucus is the natural fluid your body makes near the cervix. You observe how it feels and what it looks like each day. These observations change across your cycle in a pattern that follows your hormones.</p>
+
+<p>The method identifies a key marker called <strong>Peak Day</strong>. This is the last day of the most slippery or stretchy mucus. Peak Day closely follows ovulation, which is when an egg is released.</p>
+
+<p>There is no device and no thermometer. The skill is entirely observation-based. A certified teacher from WOOMB International trains you in it.</p>
+
+<p>Because Billings reads actual daily body signals instead of a fixed calendar, it adapts to irregular cycles, the time after having a baby, and the months after stopping hormonal medications. A large World Health Organization trial tested it across many countries and literacy levels because of this adaptability.</p>
+
+<p>The mucus record matters clinically. The patterns reflect how your hormones are working. Little or no mucus can point to low estrogen or a cervical problem. A doctor trained in restorative reproductive medicine can read this record to look for things a standard office visit would miss.</p>
+
+<p><em>Learn it:</em> <a href="https://www.woomb.org/" rel="noopener">WOOMB International</a>, <a href="https://www.boma-usa.org/" rel="noopener">BOMA-USA</a>.</p>
+
+<h3>Creighton Model FertilityCare System</h3>
+
+<p>Creighton takes the mucus observation and makes it more precise. You use a set of standardized visual codes, like stamps on a chart, to describe what you see each day. The method defines Peak Day clearly.</p>
+
+<p>A certified FertilityCare Practitioner teaches you through about eight appointments in your first year.</p>
+
+<p>Creighton has the highest clinical value of any mucus-only method. It is the required charting record for <a href="/naprotechnology/">NaProTechnology</a>, a detailed medical approach to diagnosing and treating cycle problems. Your mucus patterns, Peak Day timing, spotting, and cycle length all feed into a doctor's ability to evaluate your hormones. When surgery is being considered, the chart guides that planning too.</p>
+
+<p>On the effectiveness side, Creighton does not have a standard typical-use rate in the research (Manhart 2013). This is because the method intentionally separates couples who had sex on a correctly identified fertile day from those who did not. That is methodological honesty, not a gap in the evidence.</p>
+
+<p>Used to conceive, couples of normal fertility reach about 98% pregnancy by six cycles of well-timed intercourse (Hilgers 1992, PMID 1479570).</p>
+
+    <p><em>Learn it:</em> <a href="https://www.fertilitycare.org/" rel="noopener">FertilityCare Centers of America</a>, <a href="https://www.saintpaulvi.com/" rel="noopener">Saint Paul VI Institute</a>.</p>
+
+<h3>Sympto-Thermal Method (Sensiplan)</h3>
+
+<p>Sensiplan adds a second signal to the mucus observation: your basal body temperature. That means your resting temperature, taken first thing in the morning before you get up.</p>
+
+<p>After ovulation, your temperature rises and stays higher. This rise is caused by progesterone, a hormone made after the egg is released.</p>
+
+<p>Mucus tells you in real time that the fertile window is open or closing. Temperature confirms it is over. Two independent signals checking each other. This double-check is why Sensiplan's perfect-use numbers are so low.</p>
+
+<p>Learning takes three to six cycles with a trained instructor. The temperature record also has value for a doctor. The length and shape of the temperature rise after ovulation can show whether your progesterone response is working well. If something looks off, a trained clinician has a visible record to work from.</p>
+
+<p>Used to conceive, normal-fertility couples reach about 81% pregnancy by six cycles and 92% by twelve (Gnoth 2003, PMID 12923157).</p>
+
+    <p><em>Learn it:</em> <a href="https://ccli.org/" rel="noopener">Couple to Couple League</a>, <a href="https://www.factsaboutfertility.org/" rel="noopener">FACTS</a>.</p>
+
+<h3>Marquette Model</h3>
+
+<p>Marquette uses a small electronic device called the Clearblue hormonal monitor. Each morning you test your urine. The monitor measures two hormones: estrogen (called E3G) and luteinizing hormone (LH), which surges right before the egg is released. The monitor gives you a digital readout. You can also add mucus observation alongside it.</p>
+
+<p>A Marquette-certified professional teaches you how to use the monitor and read your results. Some people find the daily digital readout easier to start with than learning to describe mucus in words. The monitor does not require the same trained observation skill that mucus charting does.</p>
+
+<p>Marquette has the most clearly documented approach for the time right after having a baby. It has two published studies specifically on that transition (<a href="https://pubmed.ncbi.nlm.nih.gov/23288279/" rel="noopener">Bouchard 2013, PMID 23288279</a>; <a href="https://pubmed.ncbi.nlm.nih.gov/37325426/" rel="noopener">Schneider 2023, PMID 37325426</a>).</p>
+
+<p>The daily hormone readout is the most detailed record of any method in this guide. It can show problems with follicle development, missed ovulation, and a short or weak second half of the cycle (the part after the egg is released). Mucus observation alone can only suggest those problems. The Marquette record can show them directly.</p>
+
+<p>Used to conceive, couples using the monitor reach about 83% pregnancy by twelve cycles (Bouchard 2017, PMID 29376054).</p>
+
+    <p><em>Learn it:</em> <a href="https://www.marquette.edu/natural-family-planning/" rel="noopener">Marquette University Institute for NFP</a>.</p>
+
+<h3>FEMM</h3>
+
+<p>FEMM stands for Fertility Education and Medical Management. It is a symptohormonal method, which means it combines two types of observation: daily cervical mucus charting and optional urinary hormone testing. The mucus observation draws from the Billings tradition. The hormone testing, which measures LH and related hormones, overlaps with what the Marquette method uses. FEMM brings both together in one system.</p>
+
+<p>Each day you record your cervical mucus. The pattern tells you where you are in your ovulatory cycle. If you add urine testing, you get a second layer of confirmation. An instructor certified through FEMM Health or the Reproductive Health Research Institute (RHRI) teaches you both. The FEMM app supports your daily tracking and charting.</p>
+
+<p>What sets FEMM apart from most other methods in this guide is its medical-management arm. FEMM-trained physicians can review your chart data, evaluate underlying hormonal or cycle problems, and treat what they find. This makes FEMM one of the most clinically integrated options available. It is designed not only to time fertility, but to surface health information that a standard cycle tracking app would miss entirely. Couples trying to conceive, women working to avoid pregnancy, and those monitoring reproductive health for other reasons all use it.</p>
+
+<p>One important note: FEMM does not yet have its own published effectiveness study. Unlike Billings, Marquette, or the Creighton Model, no peer-reviewed trial has measured FEMM-specific pregnancy rates or pregnancy prevention rates in a defined cohort. Its biomarkers overlap with methods that do have published data, but those numbers belong to those methods, not to FEMM. That gap is worth knowing going in.</p>
+
+<p>If cycle irregularities, hormonal questions, or a diagnosis are part of why you are exploring fertility awareness, the clinical model behind FEMM may be worth a closer look. Finding a FEMM-trained provider in your area is a reasonable starting point. You can also search for a restorative reproductive medicine clinician through <a href="/providers/">Find a Provider</a>.</p>
+
+<p><em>Learn it:</em> <a href="https://femmhealth.org/" rel="noopener">FEMM Health</a>.</p>
+
+</section>
+
+<section id="how-to-choose">
+<h2>How to Choose</h2>
+
+<p>There is no single right answer. The best method is the one you can learn well, use consistently, and, if a doctor needs to read your chart, one that creates a record they can actually use.</p>
+
+<ul>
+  <li><strong>Regular cycles (26 to 32 days):</strong> all seven methods are available to you. The Standard Days Method has the lightest learning burden. Sensiplan and Marquette give the most precise read of your fertile window.</li>
+  <li><strong>Irregular, long, postpartum, or post-pill cycles:</strong> choose a method that reads real body signals, not a fixed calendar. Billings, Creighton, FEMM, Sensiplan, and Marquette all adapt to cycle changes. The Standard Days Method does not. Irregular cycles are also worth discussing with a doctor, since they can point to an underlying problem.</li>
+  <li><strong>You want your charting tied closely to medical care:</strong> FEMM pairs cervical-mucus observation, with optional hormone testing, with a medical-management model in which FEMM-trained physicians evaluate and treat cycle problems. It does not yet have its own published effectiveness study, so weigh that against its clinical focus.</li>
+  <li><strong>No devices preferred:</strong> Billings or Creighton, both mucus-only with instructor follow-up.</li>
+  <li><strong>Prefer a digital daily readout:</strong> Marquette measures your hormones with an electronic monitor each morning, with instructor guidance.</li>
+  <li><strong>You want the same chart for both avoiding and achieving pregnancy:</strong> every instructor-taught method works for both goals. If getting pregnant has been difficult, a method that creates a detailed daily record for a trained clinician is especially useful.</li>
+</ul>
+
+<p>The effectiveness numbers in these studies all come from people who were taught by a certified instructor. Self-teaching alone does not reproduce those results. For clinical use of your chart, <a href="/providers/">Find a Provider</a>.</p>
+</section>
+
+<section id="where-to-learn">
+<h2>Where to Learn Each Method</h2>
+
+<p>Every method has an official teaching organization. These links go directly to each one. RRM Academy does not endorse any single method and receives no referral fees.</p>
+
+<ul>
+  <li><strong>Creighton Model FertilityCare System:</strong> <a href="https://www.fertilitycare.org/" rel="noopener">FertilityCare Centers of America</a> and the <a href="https://www.saintpaulvi.com/" rel="noopener">Saint Paul VI Institute</a>; instructor search via the <a href="https://www.aafcp.org/" rel="noopener">American Academy of FertilityCare Professionals</a></li>
+  <li><strong>Billings Ovulation Method:</strong> <a href="https://www.woomb.org/" rel="noopener">WOOMB International</a>; <a href="https://www.boma-usa.org/" rel="noopener">BOMA-USA</a></li>
+  <li><strong>Marquette Model:</strong> <a href="https://www.marquette.edu/natural-family-planning/" rel="noopener">Marquette University Institute for Natural Family Planning</a></li>
+  <li><strong>Sympto-Thermal Method / Sensiplan:</strong> <a href="https://ccli.org/" rel="noopener">Couple to Couple League</a>; <a href="https://www.factsaboutfertility.org/" rel="noopener">FACTS</a></li>
+  <li><strong>Standard Days and TwoDay Methods:</strong> <a href="https://irh.org/" rel="noopener">Georgetown Institute for Reproductive Health</a>; <a href="https://cyclebeads.com/" rel="noopener">CycleBeads</a></li>
+  <li><strong>FEMM:</strong> <a href="https://femmhealth.org/" rel="noopener">FEMM Health</a> (Reproductive Health Research Institute)</li>
+</ul>
+
+<p><strong>To use your chart for clinical or diagnostic purposes:</strong> <a href="/providers/">Find a Provider</a>. RRM Academy is a 501(c)(3) education nonprofit. We do not sell any of these methods or receive referral fees.</p>
+</section>
+
+<section class="closing-section">
+<p>A cycle chart, used well and taught by a certified instructor, does two things most clinical tools do not. It supports informed decisions about family planning. And in the hands of a trained clinician, it becomes a diagnostic record. The right method is the one you can learn accurately and use consistently. If you also want your chart to have clinical value, choose one that creates a biomarker record a doctor trained in restorative reproductive medicine can actually read.</p>
+
+<p><a href="/providers/">Find a Provider</a></p>
+
+<p><em>Clinically reviewed by Dr. Naomi Whittaker, MD, Board-Certified OBGYN, MIGS, NFPMC, FCI.</em></p>
+</section>
+
+  <section id="sources">
+    <h2>Sources</h2>
+    <ol class="sources-list">
+      <li>Howard MP, Stanford JB. Pregnancy probabilities during use of the Creighton Model Fertility Care System. Arch Fam Med. 1999;8(5):391-402. PMID: 10500511. DOI: 10.1001/archfami.8.5.391</li>
+      <li>Hilgers TW et al. Creighton Model NaProEducation Technology for avoiding pregnancy. Use effectiveness. J Reprod Med. 1998;43(6):495-502. PMID: 9653695. [Figure sourced through Manhart 2013; primary full text not independently reviewed.]</li>
+      <li>Stanford JB et al. (CEIBA study group). Pregnancies, intentions, and fertility behaviors during use of the Creighton Model Fertility Care System at 17 United States centers. PLoS One. 2025;20(6):e0328806. PMID: 40729325. DOI: 10.1371/journal.pone.0328806</li>
+      <li>WHO Task Force on Methods for the Determination of the Fertile Period. Prospective multicentre trial of the ovulation method of natural family planning, II. The effectiveness phase. Fertil Steril. 1981;36(5):591-598. PMID: 7308503. DOI: 10.1016/S0015-0282(16)45856-5</li>
+      <li>Bhargava H et al. Field trial of Billings ovulation method of natural family planning. Contraception. 1996;53(2):69-74. PMID: 8838482. DOI: 10.1016/0010-7824(95)00269-3</li>
+      <li>Xu JX et al. A study of 1000 cases of Billings natural family planning in Shanghai, China. Adv Contracept. 1994;10(3):219-224. PMID: 7863845. DOI: 10.1007/BF01983351</li>
+      <li>Fehring RJ et al. Efficacy of cervical mucus observations plus electronic hormonal fertility monitoring as a method of natural family planning. J Obstet Gynecol Neonatal Nurs. 2007;36(2):152-160. PMID: 17371516. DOI: 10.1111/j.1552-6909.2007.000129.x</li>
+      <li>Fehring RJ et al. Cohort comparison of two fertility awareness methods of family planning. J Reprod Med. 2009;54(3):165-170. PMID: 19370902.</li>
+      <li>Mu Q et al. Multisite Effectiveness Study of the Marquette Method of Natural Family Planning. Linacre Q. 2022;89(1):85-96. PMID: 35321484. DOI: 10.1177/0024363920957515</li>
+      <li>Fehring RJ et al. Effectiveness of a Natural Family Planning Service Program. MCN Am J Matern Child Nurs. 2017;42(1):43-49. PMID: 27926599. DOI: 10.1097/NMC.0000000000000296</li>
+      <li>Bouchard T et al. Efficacy of a new postpartum transition protocol for avoiding pregnancy. J Am Board Fam Med. 2013;26(1):35-44. PMID: 23288279. DOI: 10.3122/jabfm.2013.01.120126</li>
+      <li>Schneider MM et al. Effectiveness of a Postpartum Breastfeeding Protocol for Avoiding Pregnancy Using the Marquette Natural Family Planning Method. Linacre Q. 2023;90(3):252-263. PMID: 37325426. DOI: 10.1177/00243639231167235</li>
+      <li>Frank-Herrmann P et al. The effectiveness of a fertility awareness based method to avoid pregnancy in relation to a couple's sexual behaviour during the fertile time: a prospective longitudinal study. Hum Reprod. 2007;22(5):1310-1319. PMID: 17314078. DOI: 10.1093/humrep/dem003</li>
+      <li>Arevalo M et al. Efficacy of a new method of family planning: the Standard Days Method. Contraception. 2002;65(5):333-338. PMID: 12057784. DOI: 10.1016/S0010-7824(02)00288-3</li>
+      <li>Arevalo M et al. Efficacy of the new TwoDay Method of family planning. Fertil Steril. 2004;82(4):885-892. PMID: 15482764. DOI: 10.1016/j.fertnstert.2004.03.040</li>
+      <li>Arevalo M et al. Adding the Standard Days Method to the contraceptive method mix in Peru. Rev Panam Salud Publica. 2010;27(4):253-259. PMID: 20963273. DOI: 10.1590/s1020-49892010000800002</li>
+      <li>Schneider M, Fehring RJ. Descriptive Statistical Evaluation of the Standard Days Method of Family Planning. Linacre Q. 2012;79(4):460-473. PMID: 30082989.</li>
+      <li>Peragallo Urrutia R et al. Effectiveness of Fertility Awareness-Based Methods for Pregnancy Prevention: A Systematic Review. Obstet Gynecol. 2018;132(3):591-604. PMID: 30095777. DOI: 10.1097/AOG.0000000000002784. [Erratum: Obstet Gynecol. 2019;133(2):382.]</li>
+      <li>Redmond JJ et al. Effectiveness of fertility awareness-based methods for pregnancy prevention during the postpartum period: a systematic review. Contraception. 2022;113:11-17. PMID: 35716805. DOI: 10.1016/j.contraception.2022.06.007</li>
+      <li>Manhart MD et al. Fertility awareness-based methods of family planning: a review of effectiveness for avoiding pregnancy using SORT. Osteopath Fam Physician. 2013;5(1):2-8. DOI: 10.1016/j.osfp.2012.09.002. [No PMID indexed.]</li>
+      <li>Manhart MD, Fehring RJ. The State of the Science of Natural Family Planning Fifty Years after Humanae Vitae. Linacre Q. 2018;85(4):348-360. PMID: 32431371. DOI: 10.1177/0024363918809699</li>
+      <li>Duane M, Stanford JB, Porucznik CA, Vigil P. Fertility Awareness-Based Methods for Women's Health and Family Planning. Front Med (Lausanne). 2022;9:858977. PMID: 35685421. DOI: 10.3389/fmed.2022.858977</li>
+      <li>Gnoth C, Godehardt D, Godehardt E, Frank-Herrmann P, Freundl G. Time to pregnancy: results of the German prospective study and impact on the management of infertility. Hum Reprod. 2003;18(9):1959-1966. PMID: 12923157. DOI: 10.1093/humrep/deg366</li>
+      <li>Hilgers TW, Daly KD, Prebil AM, Hilgers SK. Cumulative pregnancy rates in patients with apparently normal fertility and fertility-focused intercourse. J Reprod Med. 1992;37(10):864-866. PMID: 1479570.</li>
+      <li>Bouchard TP, Fehring RJ, Schneider MM. Achieving Pregnancy Using Primary Care Interventions to Identify the Fertile Window. Front Med (Lausanne). 2017;4:250. PMID: 29376054. DOI: 10.3389/fmed.2017.00250</li>
+    </ol>
+  </section>
+
+</GuideLayout>
+
+<style>
+  .table-wrap {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    margin-bottom: var(--space-6);
+  }
+
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.875rem;
+  }
+
+  th {
+    background: var(--bg-surface);
+    font-weight: 600;
+    padding: var(--space-2) var(--space-3);
+    text-align: left;
+    border-bottom: 2px solid var(--border-color);
+  }
+
+  td {
+    padding: var(--space-2) var(--space-3);
+    border-bottom: 1px solid var(--border-color);
+    vertical-align: top;
+    line-height: 1.5;
+  }
+
+  tr:last-child td {
+    border-bottom: none;
+  }
+
+  tbody th {
+    border-bottom: 1px solid var(--border-color);
+  }
+
+  .group-band th {
+    font-weight: 700;
+    letter-spacing: 0.02em;
+    text-transform: uppercase;
+    font-size: 0.8125rem;
+  }
+
+  .table-note {
+    font-size: 0.875rem;
+    margin-top: var(--space-3);
+  }
+
+  .method-note {
+    border-left: 3px solid var(--border-color);
+    background: var(--bg-surface);
+    padding: var(--space-4);
+    border-radius: var(--radius-md);
+    margin-top: var(--space-6);
+  }
+
+  .method-note p {
+    margin: 0;
+  }
+
+  .faq-item {
+    border-bottom: 1px solid var(--border-color);
+    padding: var(--space-4) 0;
+  }
+
+  .faq-question {
+    font-weight: 600;
+    cursor: pointer;
+    list-style: none;
+  }
+
+  .faq-question::-webkit-details-marker {
+    display: none;
+  }
+
+  .faq-answer {
+    margin-top: var(--space-3);
+    line-height: 1.7;
+  }
+
+  .faq-answer p + p {
+    margin-top: var(--space-3);
+  }
+
+  .sources-list {
+    font-size: 0.875rem;
+    line-height: 1.6;
+  }
+
+  .sources-list li {
+    margin-bottom: var(--space-3);
+  }
+
+  section + section {
+    margin-top: var(--space-12);
+  }
+
+  h3 {
+    margin-top: var(--space-8);
+    margin-bottom: var(--space-4);
+  }
+
+  hr {
+    border: none;
+    border-top: 1px solid var(--border-color);
+    margin: var(--space-12) 0;
+  }
+
+  .closing-section {
+    margin-top: var(--space-12);
+    padding-top: var(--space-8);
+    border-top: 1px solid var(--border-color);
+  }
+</style>
