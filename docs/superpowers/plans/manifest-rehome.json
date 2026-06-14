@@ -1,0 +1,163 @@
+[
+  {
+    "id": "recLvaGkDzhGgfU8x",
+    "title": "Balanced actions of estradiol and progesterone\u2014A new paradigm of women\u2019s reproductive health",
+    "current_topics": "[\"Reproductive Endocrinology > Estrogen-Progesterone Balance > Paradigm Review\",\"Reproductive Endocrinology > Progesterone > Physiological Actions\"]",
+    "proposed": "Menstrual Cycle",
+    "reason": "estradiol/progesterone cycle physiology"
+  },
+  {
+    "id": "rec1kAwitXDaSafW1",
+    "title": "Nutraceutical Supplements in the Thyroid Setting: Health Benefits beyond Basic Nutrition",
+    "current_topics": "[\"Reproductive Endocrinology\"]",
+    "proposed": "search-only",
+    "reason": "thyroid nutraceuticals; tangential to RRM browse"
+  },
+  {
+    "id": "recI4REOvQQRxwIY7",
+    "title": "Dietary carbohydrate restriction improves metabolic syndrome independent of  weight loss",
+    "current_topics": "[\"Reproductive Endocrinology\"]",
+    "proposed": "search-only",
+    "reason": "general metabolic syndrome / carb restriction"
+  },
+  {
+    "id": "recdhfjs0lboRHN3x",
+    "title": "Treatment with Myo-Inositol and Selenium Ensures Euthyroidism in Patients with Autoimmune Thyroiditis",
+    "current_topics": "[\"Reproductive Endocrinology\"]",
+    "proposed": "PCOS",
+    "reason": "myo-inositol + selenium; myo-inositol is a core PCOS topic"
+  },
+  {
+    "id": "recHvY60Tln3KnnZD",
+    "title": "Delphinidin-Rich Maqui Berry Extract (Delphinol\u00ae) Lowers Fasting and Postprandial  Glycemia and Insulinemia in Prediabetic Individuals during Oral Glucose Tolerance  Tests",
+    "current_topics": "[\"Reproductive Endocrinology\"]",
+    "proposed": "search-only",
+    "reason": "maqui berry glucose-lowering; tangential"
+  },
+  {
+    "id": "recrX7iNVk70xeZJa",
+    "title": "Influence of sex steroid hormones on the adolescent brain and behavior: An  update",
+    "current_topics": "[\"Reproductive Endocrinology\"]",
+    "proposed": "search-only",
+    "reason": "sex steroids & adolescent brain/behavior; off curated browse"
+  },
+  {
+    "id": "recLCZjt7HdHkUjFs",
+    "title": "Epigenetic effects of casein-derived opioid peptides in SH-SY5Y human neuroblastoma cells",
+    "current_topics": "[\"Reproductive Endocrinology\"]",
+    "proposed": "search-only",
+    "reason": "casein opioid peptides in neuroblastoma; off-topic basic science"
+  },
+  {
+    "id": "reciB5XYNBW3hn3XZ",
+    "title": "Evaluating Endocrine Disruption Activity of Deposits on Firefighting Gear Using a  Sensitive and High Throughput Screening Method",
+    "current_topics": "[\"Reproductive Endocrinology\"]",
+    "proposed": "search-only",
+    "reason": "endocrine disruptors on firefighting gear; off-topic"
+  },
+  {
+    "id": "recC0Hn3dTZdLAxIp",
+    "title": "Estrogens and Progestins in Goodman and Gillman\u2019s The Pharmacologic Basis of Therapeutics",
+    "current_topics": "[\"Reproductive Endocrinology > Estrogen > Physiology\",\"Reproductive Endocrinology > Progesterone > Physiology\"]",
+    "proposed": "Menstrual Cycle",
+    "reason": "estrogens/progestins pharmacology reference (Goodman & Gilman)"
+  },
+  {
+    "id": "recu026hTjOFUbmvh",
+    "title": "Transvaginal administration of progesterone",
+    "current_topics": "[\"Reproductive Endocrinology > Progesterone > Vaginal Administration\",\"Reproductive Endocrinology > Endometrium > Secretory Transformation\",\"Reproductive Endocrinology > Progesterone > First Uterine Pass Effect\"]",
+    "proposed": "Menstrual Cycle",
+    "reason": "transvaginal progesterone administration; luteal/cycle hormone"
+  },
+  {
+    "id": "rec6SctSH5qPuP1tF",
+    "title": "Spironolactone with physiological female steroids for presurgical therapy of male-to-female transsexualism",
+    "current_topics": "[\"Reproductive Endocrinology > Antiandrogen Therapy > Spironolactone\",\"Reproductive Endocrinology > Hormone Therapy > Gender Transition\"]",
+    "proposed": "search-only",
+    "reason": "spironolactone for male-to-female transition; not RRM-relevant"
+  },
+  {
+    "id": "recS5W7E5M2cwPnpj",
+    "title": "Gonadal and extragonadal expression of inhibin alpha, beta A, and beta B subunits in various tissues predicts diverse functions",
+    "current_topics": "[\"Reproductive Endocrinology\"]",
+    "proposed": "search-only",
+    "reason": "inhibin subunit expression; basic reproductive science"
+  },
+  {
+    "id": "recn4O8o2gDEofY2U",
+    "title": "Functional Ultrastructure of Gonadotropes: A Review",
+    "current_topics": "[\"Reproductive Endocrinology > Pituitary Function > Gonadotrope Biology\",\"Reproductive Endocrinology > Neuroendocrinology > Cellular Ultrastructure\"]",
+    "proposed": "search-only",
+    "reason": "gonadotrope ultrastructure; basic science"
+  },
+  {
+    "id": "rec1k8IbdmS4vmjG8",
+    "title": "Neuroendocrinology of opioid peptides and their role in the control of gonadotropin and prolactin secretion",
+    "current_topics": "[\"Reproductive Endocrinology > Neuroendocrinology > Opioid Peptide Regulation\",\"Reproductive Endocrinology > Hypothalamic-Pituitary Axis > GnRH Pulsatility\",\"Reproductive Endocrinology > Hormone Regulation > Prolactin Secretion\"]",
+    "proposed": "search-only",
+    "reason": "opioid-peptide control of gonadotropin; basic neuroendocrinology"
+  },
+  {
+    "id": "recW3GydxEEegD0QB",
+    "title": "Natural progesterone and antihypertensive action",
+    "current_topics": "[\"Reproductive Endocrinology\"]",
+    "proposed": "search-only",
+    "reason": "natural progesterone & antihypertensive action; tangential"
+  },
+  {
+    "id": "rec2OsZTqXO1CTEZ2",
+    "title": "The physiology of gonadotropin-releasing hormone (GnRH) secretion in men and women",
+    "current_topics": "[\"Reproductive Endocrinology > Hypothalamic-Pituitary Axis > GnRH Secretion\",\"Reproductive Endocrinology > Neuroendocrinology > Gonadotropin Regulation\"]",
+    "proposed": "Menstrual Cycle",
+    "reason": "GnRH secretion physiology in men & women"
+  },
+  {
+    "id": "recE2fHqQ1bC7IXnF",
+    "title": "High affinity progesterone binding sites of human uterine microsomal membranes",
+    "current_topics": "[\"Reproductive Endocrinology > Progesterone > Receptor Binding Mechanisms\",\"Reproductive Endocrinology > Uterine Physiology > Microsomal Membrane Receptors\"]",
+    "proposed": "search-only",
+    "reason": "progesterone binding sites in uterine microsomes; basic science"
+  },
+  {
+    "id": "recjK8MNLOwjbk5tk",
+    "title": "A new cetrorelix-based estrogen-free ovarian synchronization protocol for fixed-time artificial insemination in beef cattle.",
+    "current_topics": "[\"Reproductive Endocrinology > Ovulation Synchronization > GnRH Antagonist Protocols\",\"Reproductive Endocrinology > Animal Models > Bovine Reproduction\"]",
+    "proposed": "search-only",
+    "reason": "cetrorelix fixed-time ovarian synchronization; likely veterinary/ART protocol"
+  },
+  {
+    "id": "rec2CukVqzsKxUIKa",
+    "title": "Factors altering thyroid hormone metabolism",
+    "current_topics": "[\"Reproductive Endocrinology\"]",
+    "proposed": "search-only",
+    "reason": "thyroid hormone metabolism; basic endocrinology"
+  },
+  {
+    "id": "recPX7aFojZWlGtWx",
+    "title": "Dynorphin-(1-13), an extraordinarily potent opioid peptide",
+    "current_topics": "[\"Reproductive Endocrinology\"]",
+    "proposed": "search-only",
+    "reason": "dynorphin opioid peptide; basic science"
+  },
+  {
+    "id": "recsPTu4PCtwcZAhQ",
+    "title": "Morphine and beta-endorphin influence the secretion of the endocrine pancreas",
+    "current_topics": "[\"Reproductive Endocrinology > Neuroendocrinology > Opioid Peptides\",\"Reproductive Endocrinology > Hormonal Regulation > Endocrine Pancreas\"]",
+    "proposed": "search-only",
+    "reason": "morphine/beta-endorphin & endocrine pancreas; off-topic"
+  },
+  {
+    "id": "recsEI7lj4inghugl",
+    "title": "LIPOTROPIN, A NEW ACTIVE PEPTIDE FROM PITUITARY GLANDS",
+    "current_topics": "[\"Reproductive Endocrinology > Pituitary Hormones > Peptide Discovery\",\"Reproductive Endocrinology > Neuroendocrinology > Pituitary Peptides\"]",
+    "proposed": "search-only",
+    "reason": "lipotropin pituitary peptide; basic science"
+  },
+  {
+    "id": "recux79lo9YADcmLx",
+    "title": "Pancreatic neuroendocrine tumor producing vasopressin: A case report.",
+    "current_topics": "[\"Reproductive Endocrinology\"]",
+    "proposed": "search-only",
+    "reason": "pancreatic neuroendocrine tumor / vasopressin; off-topic"
+  }
+]
