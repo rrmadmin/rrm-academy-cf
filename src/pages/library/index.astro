@@ -17,6 +17,8 @@ import iconContraception from '../../icons/healthicons/contraception.svg?raw';
 import iconNapro from '../../icons/healthicons/naprotechnology.svg?raw';
 import iconFabm from '../../icons/healthicons/fertility-awareness.svg?raw';
 import iconSurgery from '../../icons/healthicons/surgery.svg?raw';
+import iconDiagnostics from '../../icons/healthicons/diagnostics.svg?raw';
+import { ATLAS_TILES, isCategorySafe, topicSlug, topLevelTopics } from '../../data/library-topics';
 
 const TOPIC_ICONS: Record<string, string> = {
   Endometriosis: iconEndo,
@@ -24,6 +26,7 @@ const TOPIC_ICONS: Record<string, string> = {
   PCOS: iconPcos,
   Pregnancy: iconPregnancy,
   'Hormones & Cycle': iconHormones,
+  Diagnostics: iconDiagnostics,
   Contraception: iconContraception,
   NaProTECHNOLOGY: iconNapro,
   'Fertility Awareness': iconFabm,
@@ -33,9 +36,12 @@ const TOPIC_ICONS: Record<string, string> = {
 const SHELL_ENABLED = isShellEnabled('library');
 
 const articles = await fetchAllArticles();
+// Anti-RRM papers (sentiment hostile/critical) are excluded from tiles + recent additions,
+// but NOT from the headline corpus count (numberOfItems / title / hero stay on `articles`).
+const safeArticles = articles.filter(isCategorySafe);
 
 // Compact homepage card data — derive once at build time so the JSX stays trivial.
-const recent = articles.slice(0, 6).map((a: Article) => {
+const recent = safeArticles.slice(0, 6).map((a: Article) => {
   const authorsRaw = String(a.authors || '');
   const firstAuthor = authorsRaw.split(';')[0]?.split(',')[0]?.trim() || '';
   // Multi-author detection: semicolons are the canonical separator, but some
@@ -61,63 +67,19 @@ const recent = articles.slice(0, 6).map((a: Article) => {
   };
 });
 
-// Build-time topic counts. articles.json topics are hierarchical
-// ("Endometriosis > Disease Classification > ..."); match on top segment.
-// `match` aliases let display labels stay patient-friendly while counting
-// against the canonical data labels (e.g. "Contraception" → "Contraception/Comparison").
+// Atlas tile counts come from the SSOT registry (src/data/library-topics.ts). Count the
+// SAFE set for parity with the category pages — anti-RRM papers don't inflate tile counts.
+// The corpus headline count above stays on the FULL `articles` set.
 function countTopic(matchTargets: string[]): number {
   const targets = new Set(matchTargets.map(s => s.toLowerCase()));
   let n = 0;
-  for (const a of articles) {
-    for (const t of (a.topics ?? [])) {
-      if (targets.has(String(t).split(' > ')[0].trim().toLowerCase())) { n++; break; }
-    }
+  for (const a of safeArticles) {
+    if (topLevelTopics(a.topics).some(t => targets.has(t.toLowerCase()))) n++;
   }
   return n;
 }
 
-const TOPICS = [
-  { name: 'Endometriosis',       accent: 'y',
-    match: ['Endometriosis'],
-    desc: 'Excision, AMH, recurrence, biomarkers.' },
-  { name: 'Infertility',         accent: 'r',
-    match: ['Infertility'],
-    desc: 'RRM work-up, IVF outcomes, recurrent loss.' },
-  { name: 'PCOS',                accent: 'g',
-    match: ['PCOS'],
-    desc: 'Phenotype, insulin resistance, progesterone.' },
-  { name: 'Pregnancy',           accent: 'r',
-    match: ['Pregnancy'],
-    desc: 'Progesterone support, miscarriage, neonatal outcomes.' },
-  { name: 'Hormones & Cycle',    accent: 'p',
-    match: ['Menstrual Cycle'],
-    desc: 'Cycle physiology, mucus biomarkers, ovulation.' },
-  { name: 'Contraception',       accent: 's',
-    match: ['Contraception/Comparison'],
-    desc: 'Side effects, long-term outcomes, comparison studies.' },
-  { name: 'NaProTECHNOLOGY',     accent: 'p',
-    match: ['NaProTECHNOLOGY', 'RRM Methods'],
-    desc: 'Cumulative pregnancy rates, protocols, vs IVF.' },
-  { name: 'Fertility Awareness', accent: 'g',
-    match: ['Fertility Awareness'],
-    desc: 'Method efficacy, Creighton, Marquette, Billings, FEMM.' },
-  { name: 'Surgery',             accent: 's',
-    match: ['Surgery'],
-    desc: 'Excision, laparoscopy, fertility-sparing approaches.' },
-];
-
-function topicSlug(topic: string): string {
-  return topic
-    .toLowerCase()
-    .replace(/\//g, '-')
-    .replace(/\s+&\s+/g, '-and-')
-    .replace(/\s+/g, '-')
-    .replace(/[^a-z0-9-]/g, '')
-    .replace(/-+/g, '-')
-    .replace(/^-|-$/g, '');
-}
-
-const topicTiles = TOPICS.map(t => ({
+const topicTiles = ATLAS_TILES.map(t => ({
   ...t,
   count: countTopic(t.match),
   href: `/library/topics/${topicSlug(t.match[0])}/`,
@@ -225,7 +187,7 @@ const jsonLd = {
           {topicTiles.map(t => (
             <li>
               <a href={t.href} class={`topic-tile topic-tile--${t.accent}`} aria-label={`${t.name} — ${t.count} articles`}>
-                <span class="topic-tile__icon" aria-hidden="true" set:html={TOPIC_ICONS[t.name]} />
+                <span class="topic-tile__icon" aria-hidden="true" set:html={TOPIC_ICONS[t.iconKey]} />
                 <h3 class="topic-tile__name">{t.name}</h3>
                 <p class="topic-tile__desc">{t.desc}</p>
                 <div class="topic-tile__foot">
