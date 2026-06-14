@@ -1,0 +1,152 @@
+{
+  "_comment": "SSOT for the /fertility-preserving-surgery/ pillar guide. tiers[] seeds the hero comparison + ItemList JSON-LD. conditions[] seeds the per-condition rows; citationsHtml carries inline /library/ links rendered with set:html. Slugs verified in docs/research/2026-06-13-fertility-preserving-surgery-evidence.md. PCOS leads with RRM wedge resection as the restorative best approach; drilling is the destructive lesser approach and is not platformed. v2 2026-06-13: tubal expanded, Asherman's + adenomyosis + cesarean scar added, adhesions deepened. v3 2026-06-14: male reproductive surgery added (varicocele; obstruction/vasectomy reversal) per Dr. Whittaker, restore-the-cause vs bypass-with-ICSI framing.",
+  "tiers": [
+    {
+      "id": "restorative",
+      "rank": 1,
+      "label": "Restorative reproductive (RRM) surgery",
+      "shortLabel": "Restorative",
+      "goal": "Remove the disease and leave the reproductive organs more functional than before.",
+      "hallmarks": [
+        "Complete excision or removal of disease",
+        "Microsurgical, near-contiguous dissection and reconstruction",
+        "Deliberate adhesion prevention with technique and barriers",
+        "Ovarian-reserve sparing",
+        "Treats the root cause, not only the symptoms"
+      ],
+      "fertilityImpact": "Protected, and often improved",
+      "whoPerformsIt": "RRM and restorative reproductive surgeons"
+    },
+    {
+      "id": "specialist",
+      "rank": 2,
+      "label": "Specialist surgery",
+      "shortLabel": "Specialist",
+      "goal": "Remove the disease competently. The specialty is treating the disease, not preserving fertility.",
+      "hallmarks": [
+        "Skilled at removing the disease (excision, myomectomy, cystectomy)",
+        "Fertility preservation is not the focus of the specialty",
+        "Reconstruction and restorative steps are applied inconsistently, if at all",
+        "Adhesion prevention is often not part of the treatment, or not known"
+      ],
+      "fertilityImpact": "Often preserved, but not the aim",
+      "whoPerformsIt": "Skilled gynecologic surgeons focused on the disease"
+    },
+    {
+      "id": "conventional",
+      "rank": 3,
+      "label": "Conventional surgery",
+      "shortLabel": "Conventional",
+      "goal": "Control symptoms, with fertility a lower priority.",
+      "hallmarks": [
+        "Ablation or destruction of tissue rather than restorative removal",
+        "Technique that can deplete ovarian reserve",
+        "Default removal of an organ where conservation was possible",
+        "Fertility is frequently a casualty"
+      ],
+      "fertilityImpact": "Often reduced or lost",
+      "whoPerformsIt": "A general approach where fertility is not the goal"
+    }
+  ],
+  "conditions": [
+    {
+      "id": "endometriosis",
+      "name": "Endometriosis",
+      "route": "/endometriosis/",
+      "tier1": "Wide excision of disease with reconstruction and adhesion prevention, including laser excision when used to clear disease from fallopian tubes with minimal thermal damage, with histology confirming complete removal.",
+      "tier2": "Excision by a surgeon focused on removing the disease, with adhesion prevention and reconstruction often left out.",
+      "tier3": "Ablation or fulguration of the surface, which can leave deeper disease behind.",
+      "citationsHtml": "<a href=\"/library/complete-laparoscopic-excision-of-endometriosis-in-teenagers-is-postoperative-ho-recxfcsmpuo5jwlej/\">Complete excision without mandatory hormonal suppression</a>; <a href=\"/library/reproductive-capacity-and-recurrence-of-disease-after-surgery-for-moderate-and-s-recf1vqv2ggxv7b0v/\">reproductive capacity and recurrence after surgery</a>."
+    },
+    {
+      "id": "ovarian-cysts-endometriomas",
+      "name": "Ovarian cysts and endometriomas",
+      "route": "/endometriosis/",
+      "tier1": "Tissue-conserving removal that takes out the cyst while sparing healthy ovary and conserving the ovary itself.",
+      "tier2": "Cystectomy focused on removing the cyst, with less attention to sparing healthy ovarian tissue.",
+      "tier3": "Aggressive stripping, or removing the ovary, when conservation was possible.",
+      "citationsHtml": "<a href=\"/library/the-optimal-time-for-laparoscopic-excision-of-ovarian-endometrioma-a-prospective-rec4vsb4efgco6mfz/\">the timing and technique of endometrioma excision</a>; <a href=\"/library/endometriosis-and-infertility-a-long-life-approach-to-preserve-reproductive-inte-rec1j6zrndjomx72h/\">a long-life approach to preserving reproductive integrity</a>."
+    },
+    {
+      "id": "pcos-wedge-resection",
+      "name": "PCOS (ovarian wedge resection)",
+      "route": "/pcos/",
+      "tier1": "RRM ovarian wedge resection: meticulous microsurgical reduction of androgen-producing stroma that restores spontaneous ovulation and durable hormonal normalization.",
+      "tier2": "Wedge resection performed without the full restorative microsurgical technique.",
+      "tier3": "Destructive ovarian surgery, such as drilling or diathermy, that ablates ovarian tissue rather than restoring it.",
+      "citationsHtml": "<a href=\"/library/changes-in-circulating-hormone-levels-after-ovarian-wedge-resection-in-patients--recptuctsdp4xkvri/\">hormonal normalization after wedge resection</a>; <a href=\"/library/women-with-polycystic-ovary-syndrome-wedge-resected-in-1956-to-1965-a-long-term--rechefhwrego8w9tt/\">durable long-term outcomes</a>; <a href=\"/library/fertility-following-bilateral-ovarian-wedge-resection-a-critical-analysis-of-90--recf4rzpjdymgulkf/\">restored ovulation and conception</a>."
+    },
+    {
+      "id": "fibroids",
+      "name": "Fibroids",
+      "route": "/library/",
+      "tier1": "Myomectomy that removes fibroids and conserves the uterus for a future pregnancy.",
+      "tier2": "Myomectomy with less attention to reconstruction or adhesion prevention.",
+      "tier3": "Hysterectomy in a woman whose uterus could have been conserved.",
+      "citationsHtml": "<a href=\"/library/myomectomy-as-a-reproductive-procedure-recqxq9rewjphran7/\">myomectomy as a reproductive procedure</a>; <a href=\"/library/myomectomy-for-fertility-enhancement-and-preservation-recoch84wsdle6ucr/\">fertility enhancement and preservation</a>."
+    },
+    {
+      "id": "tubal-disease",
+      "name": "Tubal disease",
+      "route": "/library/",
+      "tier1": "Selective HSG or tubal cannulation for proximal occlusion; laparoscopic fimbrioplasty or salpingostomy for distal disease; microsurgical anastomosis when indicated: evaluation precedes every decision.",
+      "tier2": "Tubal surgery without microsurgical assessment of mucosal integrity, or referral for bypass before reconstruction has been offered.",
+      "tier3": "Bilateral salpingectomy recommended as the only option without first assessing whether the tubes are reconstructable.",
+      "citationsHtml": "<a href=\"/library/tuboplasty-b1yfsfsh/\">Nolan &amp; Whittaker, Tuboplasty (2026)</a>; <a href=\"/library/reconstructive-tubal-surgery-uxepd2vs/\">McEwen, reconstructive tubal surgery</a>; <a href=\"/library/reconstructive-tubal-microsurgery-and-assisted-reproductive-technology-recy0syhapupg3mrj/\">reconstructive tubal microsurgery</a>; <a href=\"/library/salpingoscopic-findings-in-women-with-occlusive-and-nonocclusive-salpingitis-ist-recrgl4yyuxbqviyo/\">assessing which tubes are reconstructable</a>."
+    },
+    {
+      "id": "ashermans-syndrome",
+      "name": "Asherman's syndrome",
+      "route": "/library/",
+      "tier1": "Hysteroscopic lysis of intrauterine adhesions, followed by endometrial optimization: intrauterine estradiol, adhesion barriers such as Interceed, and endometrial cultures or biopsy to address underlying pathology.",
+      "tier2": "Hysteroscopic adhesiolysis without systematic endometrial optimization or adhesion-barrier placement.",
+      "tier3": "No operative intervention, or expectant management that accepts a scarred cavity without attempting restoration.",
+      "citationsHtml": "Hysteroscopic lysis and endometrial optimization: see <a href=\"/glossary/ashermans-syndrome/\">intrauterine adhesions (Asherman's syndrome)</a> in the glossary; <a href=\"/library/a-narrative-review-of-platelet-rich-plasma-prp-in-reproductive-medicine-recqzxtfd6o2nayxb/\">PRP is an emerging adjunct studied for thin or scarred endometrium</a>."
+    },
+    {
+      "id": "adenomyosis",
+      "name": "Adenomyosis (focal)",
+      "route": "/library/",
+      "tier1": "Uterine-sparing adenomyomectomy: surgical removal of focal adenomyosis from the uterine wall with reconstruction, preserving the uterus for future pregnancy.",
+      "tier2": "Hormonal suppression of symptoms without addressing the focal disease surgically.",
+      "tier3": "Hysterectomy where the disease was focal and uterine conservation was possible.",
+      "citationsHtml": "Focal adenomyosis and uterine-sparing adenomyomectomy: see <a href=\"/glossary/adenomyosis/\">adenomyosis</a> in the glossary; <a href=\"/library/clinical-efficacy-of-a-novel-method-of-fertilitypreserving-adenomyomectomy-in-in-ubtvtshp/\">a fertility-preserving adenomyomectomy with myometrial reconstruction relieved symptoms and preserved fertility potential</a>."
+    },
+    {
+      "id": "cesarean-scar",
+      "name": "Cesarean scar and fertility-friendly cesarean",
+      "route": "/isthmocele/",
+      "tier1": "Isthmocele repair for an established niche; and a prevention-first mindset at every cesarean: non-inclusion of the endometrium in closure, double-layer closure, non-locking stitches, and peritoneal closure.",
+      "tier2": "Standard cesarean technique without deliberate niche-prevention steps; isthmocele repaired only if symptomatic.",
+      "tier3": "No attention to scar architecture or niche prevention; isthmocele left unaddressed even when it impairs implantation.",
+      "citationsHtml": "See <a href=\"/glossary/isthmocele/\">uterine isthmocele (cesarean scar defect)</a> in the glossary and the <a href=\"/isthmocele/\">isthmocele guide</a>; <a href=\"/library/uterine-closure-after-cesarean-delivery-surgical-technique-biological-rationale--rec6gsyv5fuvlpt24/\">closure location and technique are the main determinants of hysterotomy healing</a>; isthmocele can <a href=\"/library/isthmocele-and-infertility-recwpl3h1tdyzcxia/\">impair fertility</a> and is <a href=\"/library/isthmocele-from-risk-factors-to-management-reca7lowkovmdh8tr/\">addressed by repair</a>."
+    },
+    {
+      "id": "adhesions",
+      "name": "Pelvic adhesions",
+      "route": "/library/",
+      "tier1": "Microsurgical handling, minimizing blood on the surgical field, physiologic irrigation (lactated Ringer's), peritoneal closure as an active adhesion barrier, and barrier membranes (Gore-Tex/ePTFE or Interceed) placed before closing.",
+      "tier2": "Competent disease removal, with adhesion prevention applied inconsistently or not at all.",
+      "tier3": "Little attention to adhesion prevention, accepting reformation as inevitable.",
+      "citationsHtml": "<a href=\"/library/an-overview-of-postoperative-intraabdominal-adhesions-and-their-role-on-female-i-dlffz7cn/\">adhesions and female infertility</a>; <a href=\"/library/contemporary-adhesion-prevention-recoz8w7aaxsp162t/\">contemporary adhesion-prevention principles</a>."
+    },
+    {
+      "id": "male-varicocele",
+      "name": "Varicocele",
+      "route": "/library/",
+      "tier1": "Microsurgical subinguinal varicocelectomy, or varicocele embolization as a minimally invasive alternative, to correct the most common reversible cause of male infertility and move semen parameters back toward natural conception: technique determines the outcome.",
+      "tier2": "Varicocele ligation performed competently but without microsurgical technique, where higher recurrence and hydrocele rates are accepted and fertility restoration is not the organizing aim.",
+      "tier3": "Proceeding directly to IVF-ICSI for a clinically significant, correctable varicocele without first offering repair.",
+      "citationsHtml": "<a href=\"/library/comprehensive-diagnostic-and-therapeutic-approach-to-male-factor-infertility-8decfdf8/\">a comprehensive andrological workup restored natural fertility in 40.9% of couples seeking natural conception</a>; <a href=\"/library/varicocele-management-for-infertility-and-pain-a-systematic-review-hothgmie/\">microsurgical repair carries the highest fertility rates and lowest complication rates</a>; <a href=\"/library/recurrent-varicocele-3adlmoxn/\">recurrence varies with technique from 0% to 35%</a>. See also <a href=\"/library/male-reproductive-surgery-uaxq6stm/\">quantified varicocele-repair outcomes</a> and <a href=\"/library/surgical-treatment-for-male-infertility-vapnlvfo/\">microsurgical varicocelectomy technique</a>."
+    },
+    {
+      "id": "male-obstruction",
+      "name": "Obstruction and vasectomy reversal",
+      "route": "/library/",
+      "tier1": "Microsurgical reconstruction: vasovasostomy or vasoepididymostomy for vasal or epididymal obstruction, and transurethral resection of the ejaculatory duct for ejaculatory-duct obstruction, returning sperm to the ejaculate so natural conception becomes possible.",
+      "tier2": "Surgical sperm retrieval (TESE, PESA, or MESA) performed competently, but as a direct feeder to ICSI, without first assessing whether reconstruction could restore natural fertility.",
+      "tier3": "Defaulting to sperm retrieval and ICSI, or to donor sperm, for a reconstructable obstruction without evaluating whether reconnection could restore natural fertility.",
+      "citationsHtml": "<a href=\"/library/comprehensive-diagnostic-and-therapeutic-approach-to-male-factor-infertility-8decfdf8/\">treating the cause rather than bypassing it restored natural fertility in male-factor couples</a>; <a href=\"/library/surgical-techniques-for-the-management-of-male-infertility-r8tbf6dd/\">surgical techniques to restore sperm delivery versus retrieval for IVF-ICSI</a>. See also <a href=\"/library/infertility-surgery-for-men-vlrcydag/\">vasectomy reversal succeeds in around 60 to 80% of cases</a> and <a href=\"/library/surgery-for-male-infertility-s5kogar6/\">the range of surgical options for male infertility</a>."
+    }
+  ]
+}
