@@ -14,6 +14,20 @@
 /library/saved /saved/ 301
 /library/saved/ /saved/ 301
 
+# Demoted library categories 2026-06-14: tag-only topics lost their browse page (fusion
+# verdict). Library-scoped path->path 301s (same shape as /library/saved above, which is
+# verified to fire through the rrm-router service binding). Both slash forms per convention.
+/library/topics/reproductive-endocrinology /library/ 301
+/library/topics/reproductive-endocrinology/ /library/ 301
+/library/topics/research-methodology /library/ 301
+/library/topics/research-methodology/ /library/ 301
+/library/topics/general-ob-gyn /library/ 301
+/library/topics/general-ob-gyn/ /library/ 301
+/library/topics/ethics-philosophy /library/ 301
+/library/topics/ethics-philosophy/ /library/ 301
+/library/topics/patient-education /library/ 301
+/library/topics/patient-education/ /library/ 301
+
 # Old Wix course/page slugs — linked from naomiwhittaker.com biosite and possibly other sources
 /endometriosis-and-surgery-101 /courses/masterclass-in-endometriosis-and-surgery/ 301
 /endometriosis-and-surgery-101/ /courses/masterclass-in-endometriosis-and-surgery/ 301

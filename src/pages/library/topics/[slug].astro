@@ -4,71 +4,32 @@ import ArticleCard from '../../../components/ArticleCard.astro';
 import AppShellChrome from '../../../components/AppShellChrome.astro';
 import { isShellEnabled } from '../../../lib/shell-routes';
 import { fetchAllArticles } from '../../../lib/airtable';
+import {
+  CATEGORY_ALLOWLIST, TOPIC_DESCRIPTORS, GENERIC_DESCRIPTOR,
+  isCategorySafe, topicSlug, topLevelTopics,
+} from '../../../data/library-topics';
 
 const SHELL_ENABLED = isShellEnabled('library');
 
-// Curated descriptors for the 9 topics surfaced on /library/ atlas.
-// Other top-level segments get a generic descriptor.
-const TOPIC_DESCRIPTORS: Record<string, string> = {
-  'Endometriosis':            'Excision, AMH, recurrence, biomarkers.',
-  'Infertility':              'RRM work-up, IVF outcomes, recurrent loss.',
-  'PCOS':                     'Phenotype, insulin resistance, progesterone.',
-  'Pregnancy':                'Progesterone support, miscarriage, neonatal outcomes.',
-  'Menstrual Cycle':          'Cycle physiology, mucus biomarkers, ovulation.',
-  'Contraception/Comparison': 'Side effects, long-term outcomes, comparison studies.',
-  'NaProTECHNOLOGY':          'Cumulative pregnancy rates, protocols, vs IVF.',
-  'Fertility Awareness':      'Method efficacy, Creighton, Marquette, Billings, FEMM.',
-  'Surgery':                  'Excision, laparoscopy, fertility-sparing approaches.',
-};
-
-function topicSlug(topic: string): string {
-  return topic
-    .toLowerCase()
-    .replace(/\//g, '-')
-    .replace(/\s+&\s+/g, '-and-')
-    .replace(/\s+/g, '-')
-    .replace(/[^a-z0-9-]/g, '')
-    .replace(/-+/g, '-')
-    .replace(/^-|-$/g, '');
-}
-
 export async function getStaticPaths() {
-  const articles = await fetchAllArticles();
+  // Anti-RRM papers (sentiment hostile/critical) never count toward category membership.
+  const articles = (await fetchAllArticles()).filter(isCategorySafe);
 
+  // Only allowlisted top-level topics get a browse page (prune the junk-drawer auto-cats).
   const segmentLabels = new Map<string, string>();
   for (const a of articles) {
-    for (const t of (a.topics ?? [])) {
-      const label = String(t).split(' > ')[0].trim();
-      if (!label) continue;
+    for (const label of topLevelTopics(a.topics)) {
       const key = label.toLowerCase();
-      if (!segmentLabels.has(key)) segmentLabels.set(key, label);
+      if (CATEGORY_ALLOWLIST.has(key) && !segmentLabels.has(key)) segmentLabels.set(key, label);
     }
   }
 
   return Array.from(segmentLabels.values()).map(label => {
-    const slug = label
-      .toLowerCase()
-      .replace(/\//g, '-')
-      .replace(/\s+&\s+/g, '-and-')
-      .replace(/\s+/g, '-')
-      .replace(/[^a-z0-9-]/g, '')
-      .replace(/-+/g, '-')
-      .replace(/^-|-$/g, '');
-
     const matched = articles.filter(a =>
-      (a.topics ?? []).some(t => String(t).split(' > ')[0].trim().toLowerCase() === label.toLowerCase())
+      topLevelTopics(a.topics).some(t => t.toLowerCase() === label.toLowerCase())
     );
-
-    matched.sort((a, b) => {
-      const ya = a.year ? Number(a.year) : 0;
-      const yb = b.year ? Number(b.year) : 0;
-      return yb - ya;
-    });
-
-    return {
-      params: { slug },
-      props: { topicLabel: label, topicArticles: matched },
-    };
+    matched.sort((a, b) => (Number(b.year) || 0) - (Number(a.year) || 0));
+    return { params: { slug: topicSlug(label) }, props: { topicLabel: label, topicArticles: matched } };
   });
 }
 
@@ -78,7 +39,7 @@ interface Props {
 }
 
 const { topicLabel, topicArticles } = Astro.props;
-const descriptor = TOPIC_DESCRIPTORS[topicLabel] ?? 'Research articles on this topic in the RRM Academy library.';
+const descriptor = TOPIC_DESCRIPTORS[topicLabel] ?? GENERIC_DESCRIPTOR;
 const slug = topicSlug(topicLabel);
 
 const canonicalUrl = `https://rrmacademy.org/library/topics/${slug}/`;
