@@ -1,0 +1,413 @@
+---
+// /fertility-preserving-surgery/ pillar guide.
+// Conventions via GuideLayout (breadcrumb, byline, TOC, Key Takeaways, FAQ,
+// disclaimer, BreadcrumbList schema). Comparison data from the SSOT.
+// PCOS leads with RRM ovarian wedge resection as the restorative best approach;
+// drilling is the destructive lesser approach and is not platformed.
+// Prose marked {/* GIANNA */} is drafted by the gianna-copywriter agent.
+import GuideLayout from '../../layouts/GuideLayout.astro';
+import pillar from '../../data/fertility-preserving-surgery.json';
+
+const SLUG = 'fertility-preserving-surgery';
+const PAGE_URL = `https://rrmacademy.org/${SLUG}/`;
+const PUBLISHED = '2026-06-13';
+const MODIFIED = '2026-06-14';
+
+const TOC_ITEMS = [
+  { href: '#key-takeaways', label: 'Key takeaways' },
+  { href: '#two-operations', label: 'Same name, opposite results' },
+  { href: '#three-tiers', label: 'The three tiers' },
+  { href: '#endometriosis', label: 'Endometriosis' },
+  { href: '#endometriomas', label: 'Ovarian cysts & endometriomas' },
+  { href: '#pcos', label: 'PCOS (wedge resection)' },
+  { href: '#fibroids', label: 'Fibroids' },
+  { href: '#tubal', label: 'Tubal disease' },
+  { href: '#ashermans', label: "Asherman's syndrome" },
+  { href: '#adenomyosis', label: 'Adenomyosis (focal)' },
+  { href: '#cesarean-scar', label: 'Cesarean scar' },
+  { href: '#adhesions', label: 'Pelvic adhesions' },
+  { href: '#male-varicocele', label: 'Varicocele (male factor)' },
+  { href: '#male-obstruction', label: 'Obstruction & vasectomy reversal' },
+  { href: '#what-sets-apart', label: 'What sets restorative apart' },
+  { href: '#find-a-surgeon', label: 'Finding a surgeon' },
+  { href: '#faq', label: 'FAQ' },
+];
+
+// GIANNA fills these. Placeholder content keeps the structure valid pre-draft.
+const KEY_TAKEAWAYS_HTML = `<ul>
+  <li>Fertility-preserving surgery is not a single standard: two surgeons performing the same operation can produce opposite results depending on technique, philosophy, and what happens after the disease is removed.</li>
+  <li>The highest-quality tier, restorative reproductive (RRM) surgery, removes the disease completely and applies a full toolkit: microsurgical dissection, reconstruction of normal anatomy, deliberate adhesion prevention, and ovarian-reserve conservation.</li>
+  <li>For endometriosis, excision removes the disease and provides tissue for histologic confirmation; for deep and recurrent disease, excision reduces recurrence compared with ablation, which burns the surface and can leave deeper lesions behind.</li>
+  <li>For ovarian cysts and endometriomas, the restorative goal is to remove the diseased tissue while conserving the healthy ovary; over-coagulation, aggressive stripping of healthy ovarian cortex, and removing the ovary when conservation is possible are the technique failures that harm future fertility.</li>
+  <li>RRM ovarian wedge resection for PCOS (now also called PMOS) targets the root cause: it reduces the androgen-producing ovarian stroma to restore spontaneous ovulation and achieve durable hormonal normalization, not just cycle-by-cycle ovulation induction.</li>
+  <li>For tubal disease, a selective HSG or microsurgical repair is often a real first step. No head-to-head randomized trial has compared bilateral salpingectomy against corrective tubal surgery; a trial of natural conception after reconstruction is reasonable before committing to removal or bypass.</li>
+  <li>Adhesion prevention is a hallmark of restorative surgery, not an afterthought; postoperative adhesions are a major driver of infertility and their formation is a modifiable surgical variable. Every reproductive surgery, including a cesarean section, is an opportunity to protect future fertility.</li>
+  <li>Male factor contributes to roughly half of infertility, yet couples with a correctable male cause are frequently routed straight to IVF-ICSI before the cause is evaluated. Varicocele is the most common correctable cause, and microsurgical repair carries the highest fertility rates and lowest complication rates among surgical approaches; for obstruction, reconstruction can return sperm to the ejaculate and make natural conception possible. Technique determines the outcome in male reproductive surgery just as it does on the female side.</li>
+</ul>`;
+
+const FAQS = [
+  {
+    question: 'What is the difference between excision and ablation for endometriosis?',
+    answerHtml: `<p>Excision removes endometriosis tissue from the body. Ablation burns or destroys the surface of the tissue. The critical difference is that ablation can leave deeper disease behind and provides no tissue for pathology confirmation. For <a href="/library/endometriosis-and-infertility-how-and-when-to-treat-recmestgyultav3cx/">deep and recurrent endometriosis</a>, excision reduces the likelihood of reoperation and confirms the diagnosis with tissue. For superficial peritoneal disease, clinical research shows the two approaches produce broadly similar pain outcomes, so the advantage of excision is strongest where disease is deep or has recurred after prior surgery.</p>`,
+  },
+  {
+    question: 'Does endometriosis surgery always preserve fertility?',
+    answerHtml: `<p>In many cases, surgery for endometriosis improves the conditions for conception by removing disease and restoring pelvic anatomy. But recurrence is a real outcome even after thorough excision. A <a href="/library/reproductive-capacity-and-recurrence-of-disease-after-surgery-for-moderate-and-s-recf1vqv2ggxv7b0v/">study of women treated for moderate to severe disease</a> found that reproductive capacity was preserved in a meaningful share, while a minority experienced disease recurrence. The goal of restorative surgery is to remove disease as completely as possible and address adhesions at the same time; no single operation permanently eliminates the possibility of recurrence, which is why ongoing monitoring matters.</p>`,
+  },
+  {
+    question: 'Will removing an ovarian cyst hurt my fertility?',
+    answerHtml: `<p>In many cases, cystectomy can be performed while conserving the healthy ovary, and the restorative standard is to do exactly that. The fertility risk from surgery is not from the procedure name but from technique: over-coagulation, aggressive stripping of healthy ovarian cortex, and removing the ovary when it could have been preserved all reduce future fertility in ways that careful technique avoids. You may hear AMH cited in this conversation; AMH mainly predicts egg-retrieval yield in an IVF context, not a woman's ability to conceive naturally. The right question is whether a surgeon prioritizes conserving the healthy ovary and taking only the diseased tissue. A <a href="/library/endometriosis-and-infertility-a-long-life-approach-to-preserve-reproductive-inte-rec1j6zrndjomx72h/">long-life approach to reproductive integrity</a> makes the case that conserving the ovary, even imperfectly, is the fertility-preserving choice when conservation is possible. For bilateral disease or situations where the ovary itself is heavily involved, an experienced restorative surgeon will discuss technique tradeoffs honestly rather than defaulting to a single approach.</p>`,
+  },
+  {
+    question: 'What is ovarian wedge resection and how does it differ from ovarian drilling for PCOS?',
+    answerHtml: `<p>RRM ovarian wedge resection is a microsurgical procedure that removes a carefully measured wedge of androgen-producing ovarian stroma. By reducing that tissue, it corrects the hormonal root cause of anovulation in PCOS (PMOS), restoring spontaneous ovulation and achieving durable normalization of circulating androgens. This is a different question from what ovulation-induction medications address: drugs stimulate ovulation cycle by cycle without changing the underlying ovary. Ovarian drilling, by contrast, destroys ovarian tissue through electrocoagulation rather than removing it with restorative technique. The restorative difference is not just procedure name; it is microsurgical precision and deliberate adhesion prevention applied throughout the operation.</p>`,
+  },
+  {
+    question: 'Do blocked tubes mean I need IVF?',
+    answerHtml: `<p>In many cases, no. The answer depends on where the blockage is and what the tube looks like inside. Proximal occlusion, a blockage near the uterus, can often be addressed with a selective HSG or tubal cannulation. These are procedural options, not surgery, and a selective HSG is sometimes therapeutic: the gentle pressure of the procedure can open a tube that was closed. Distal disease, including hydrosalpinx at the fimbriated end, may be amenable to fimbrioplasty or salpingostomy performed laparoscopically. Mucosal assessment matters: when the inside of the tube is damaged, reconstruction is less likely to succeed, and an experienced restorative surgeon evaluates this before recommending a path. <a href="/library/tuboplasty-b1yfsfsh/">Nolan and Whittaker's tuboplasty chapter</a> notes that there is no head-to-head randomized trial of salpingectomy against corrective tubal surgery, and that a trial of natural conception after reconstruction is a reasonable first step for many couples before committing to removal or bypass. Surgical training in tubal repair has declined significantly; finding a surgeon with this skill set is the practical first challenge.</p>`,
+  },
+  {
+    question: 'Can a cesarean section be done in a way that protects my fertility?',
+    answerHtml: `<p>In many cases, yes. Every cesarean creates a scar in the lower uterine segment, and how that scar heals affects future fertility and implantation. A cesarean scar niche, or isthmocele, can impair implantation and contribute to abnormal bleeding after delivery. Techniques that reduce niche formation include not including the endometrium in the uterine closure, using a double-layer closure, avoiding locking stitches, and closing the peritoneum. None of these require extra operating time; they require a deliberate, fertility-aware technique. For women who already have an isthmocele from a prior cesarean, surgical repair is possible. See the <a href="/isthmocele/">isthmocele guide</a> for a detailed overview. A surgeon with a restorative mindset applies adhesion-prevention and scar-protection principles at a cesarean for the same reason they apply them at a myomectomy: every reproductive surgery is an opportunity to protect future fertility, not just to complete the immediate procedure.</p>`,
+  },
+  {
+    question: 'Is tubal surgery ever a better option than bypassing the tubes?',
+    answerHtml: `<p>In many cases, yes, for selected, well-assessed tubal disease. <a href="/library/reconstructive-tubal-microsurgery-and-assisted-reproductive-technology-recy0syhapupg3mrj/">Reconstructive microsurgery</a> is a legitimate restorative option when the tube's mucosal lining is intact and the blockage is in the proximal segment. Assessment matters: <a href="/library/salpingoscopic-findings-in-women-with-occlusive-and-nonocclusive-salpingitis-ist-recrgl4yyuxbqviyo/">salpingoscopic evaluation</a> distinguishes which tubes are viable candidates for reconstruction from those where the mucosal damage is too extensive. The honest answer is that not all tubal disease is reconstructable, and an experienced restorative surgeon evaluates this carefully rather than defaulting to bypass.</p>`,
+  },
+  {
+    question: 'Does male-factor infertility mean we need IVF?',
+    answerHtml: `<p>In many cases, no. Male factor is a diagnosable, often correctable condition, not a reason to bypass the male partner. A <a href="/library/comprehensive-diagnostic-and-therapeutic-approach-to-male-factor-infertility-8decfdf8/">2025 study of 1,014 couples</a> seeking natural conception, including 266 who had already been through ART without success, found that a thorough andrological evaluation that treated the underlying cause achieved spontaneous pregnancy in 40.9% of couples and cut the share labeled unexplained from the usual 30% to 50% down to 8%. Many of those causes were medical, such as genital-tract inflammation or infection, rather than surgical. Where the cause is structural, varicocele, the <a href="/library/varicocele-management-for-infertility-and-pain-a-systematic-review-hothgmie/">most common correctable cause of male infertility</a>, responds well to microsurgical repair, and obstruction can in many cases be addressed with reconstruction that returns sperm to the ejaculate. Male factor contributes to roughly half of all infertility, on its own or in combination, so the couple's evaluation should include both partners. Proceeding directly to sperm retrieval and ICSI for a correctable condition bypasses a treatable cause and adds cost and procedure to both partners. The first question is what is causing the problem, not which technology can work around it.</p>`,
+  },
+  {
+    question: 'How do I know if a surgeon takes a restorative approach?',
+    answerHtml: `<p>The right questions reveal a surgeon's philosophy quickly. Ask whether they use excision or ablation for endometriosis, and how they handle the tissue afterward. Ask what adhesion-prevention measures they routinely apply. Ask how they conserve the healthy ovary during cyst removal, and what technique they use when disease is bilateral or the ovary is heavily involved. Ask whether they would consider reconstructive options for tubal disease before recommending bypass. A restorative surgeon will answer those questions specifically and will discuss the tradeoffs honestly. A surgeon who deflects, gives vague answers, or reaches for a definitive procedure without a thorough workup is worth a second opinion. Find an RRM-trained provider at <a href="/providers/">/providers/</a>.</p>`,
+  },
+];
+
+// Section prose (GIANNA). Keyed by section id; placeholder keeps build green.
+const PROSE = {
+  intro: `<p>Fertility-preserving surgery differs not by procedure name but by the surgeon's technique and philosophy: two operations with the same label can leave one woman's reproductive organs more functional than before and another's with reduced reserve, new adhesions, or disease still present. The restorative approach, practiced by RRM surgeons, combines complete disease removal with microsurgical reconstruction, deliberate adhesion prevention, and ovarian-reserve conservation as a unified standard of care, not a set of optional add-ons.</p>
+<p>This guide compares three tiers of reproductive surgery across the conditions most likely to lead to reproductive surgery: endometriosis, ovarian cysts and endometriomas, PCOS, fibroids, tubal disease, Asherman's syndrome, adenomyosis, cesarean scar, pelvic adhesions, and male reproductive causes including varicocele and obstruction. Male factor contributes to roughly half of infertility, so a guide on preserving fertility cannot be only about women. Each section identifies what the evidence shows about technique differences and what to ask before consenting to surgery.</p>`,
+
+  twoOperations: `<p>A laparoscopy for endometriosis performed by one surgeon and by another can look identical on the operative note and produce entirely different outcomes. The difference is in what happens during those 90 minutes: whether the disease is excised completely or burned at the surface; whether adhesions are actively prevented or accepted as inevitable; whether ovarian tissue is treated as something to conserve or something in the way.</p>
+<p>The procedure's name is not the variable. The surgeon's training, philosophy, and toolkit are. This is not a small distinction. For a couple who wants to conceive, a surgery that leaves disease behind, removes excess ovarian cortex, generates new adhesions, or bypasses a correctable cause can close options rather than open them. The tier model on this page makes that distinction visible across every condition in this guide, in both partners.</p>`,
+
+  threeTiersLead: `<p>The three tiers below describe surgical approaches by philosophy and technique, not by skill level alone. A surgeon can be technically proficient and still practice tier-2 or tier-3 surgery if their goal is symptom control rather than restoration. The tiers follow from what the evidence shows about specific technique contrasts, not from a claim that one approach is inherently superior in every clinical context.</p>`,
+
+  endometriosis: `<p>Excision removes endometriosis tissue and delivers it for pathology; ablation destroys the surface and confirms nothing. For deep infiltrating and recurrent disease, excision reduces the rate of reoperation and establishes the histologic diagnosis that ablation cannot provide. <a href="/library/complete-laparoscopic-excision-of-endometriosis-in-teenagers-is-postoperative-ho-recxfcsmpuo5jwlej/">Complete laparoscopic excision in a series of adolescents</a> achieved durable symptom relief without mandatory hormonal suppression afterward, though 47% required a repeat procedure by five years in that severe referral population, which reflects the honest reality that recurrence is real even with good surgery.</p>
+<p>For superficial peritoneal disease specifically, clinical studies show excision and ablation produce broadly similar pain outcomes; the advantage of excision is strongest where disease is deep, recurrent, or where histologic confirmation of the diagnosis matters. When disease involves the fallopian tubes, laser excision allows clearing adhesions and deposits with minimal thermal spread, reducing the risk of damaging the delicate tubal mucosa. Hormonal suppression after surgery does not treat the disease; it masks it.</p>`,
+
+  endometriomas: `<p>The goal of ovarian endometrioma surgery is to remove the diseased tissue while conserving the healthy ovary. That sounds straightforward; the surgery is not. The technical failures that damage future fertility are specific: stripping healthy ovarian cortex along with the cyst wall, over-coagulation of the residual tissue, and removing the ovary when it could have been preserved. A <a href="/library/the-optimal-time-for-laparoscopic-excision-of-ovarian-endometrioma-a-prospective-rec4vsb4efgco6mfz/">prospective study of excision timing</a> documents the technique and case-selection choices that shape the outcome, not procedure name alone. A note on AMH: clinicians sometimes cite AMH in this context, but AMH mainly reflects IVF egg-retrieval yield, not a woman's capacity to conceive naturally. The more useful question is how much healthy ovarian tissue was conserved. <a href="/library/endometriosis-and-infertility-a-long-life-approach-to-preserve-reproductive-inte-rec1j6zrndjomx72h/">A long-life approach to reproductive integrity</a> makes the case that conserving the ovary, even imperfectly, is the fertility-preserving choice when conservation is possible.</p>`,
+
+  pcos: `<p>RRM ovarian wedge resection addresses the root cause of anovulation in PCOS, recently renamed polyendocrine metabolic ovarian syndrome (PMOS): it reduces the androgen-producing ovarian stroma through meticulous microsurgical technique, restoring spontaneous ovulation and achieving durable hormonal normalization. <a href="/library/changes-in-circulating-hormone-levels-after-ovarian-wedge-resection-in-patients--recptuctsdp4xkvri/">Studies documenting hormonal change after wedge resection</a> show circulating androgen levels fall following the procedure, and <a href="/library/women-with-polycystic-ovary-syndrome-wedge-resected-in-1956-to-1965-a-long-term--rechefhwrego8w9tt/">long-term follow-up of women operated on decades earlier</a> confirms this normalization persists. This is a different question from what ovulation-induction drugs answer: they manage anovulation cycle by cycle without correcting the ovarian pathology that drives it.</p>
+<p><a href="/library/fertility-following-bilateral-ovarian-wedge-resection-a-critical-analysis-of-90--recf4rzpjdymgulkf/">A critical analysis</a> of 90 cases found ovulation restored in 91% and a cumulative conception probability of 73%, with the supporting evidence drawn from observational cohorts spanning several decades. Ovarian drilling, the destructive alternative, ablates ovarian tissue through electrocoagulation rather than removing it with restorative technique; it is a tier-3 procedure precisely because it destroys rather than restores. The restorative difference in wedge resection is the microsurgical precision and deliberate adhesion prevention applied throughout, not the procedure name alone.</p>`,
+
+  fibroids: `<p>Myomectomy removes fibroids while conserving the uterus for future pregnancy. For fibroids that distort the uterine cavity or impair implantation, removal can both enhance and preserve fertility. <a href="/library/myomectomy-as-a-reproductive-procedure-recqxq9rewjphran7/">Myomectomy as a reproductive procedure</a> establishes this as the fertility-first standard; hysterectomy, where the uterus could have been conserved, is tier-3 thinking applied to a woman whose reproductive goals required a different decision. Technique matters here too: restorative myomectomy pays attention to uterine reconstruction and adhesion prevention, not just fibroid removal.</p>`,
+
+  tubal: `<p>The default recommendation for many women with blocked tubes is bilateral salpingectomy followed by IVF. That pathway reflects declining surgical training in tubal repair, not the evidence. There is no head-to-head randomized trial comparing salpingectomy against corrective tubal surgery. A trial of natural conception after reconstruction is a reasonable first step for many couples, particularly when the disease is proximal, the mucosa is intact, or the patient declines bypass for personal reasons. <a href="/library/tuboplasty-b1yfsfsh/">Nolan and Whittaker's tuboplasty chapter</a> and <a href="/library/reconstructive-tubal-surgery-uxepd2vs/">McEwen's foundational review of reconstructive tubal surgery</a> both document that success with tubal repair was meaningful before the IVF era, and that this skill set has become rarer, not because the results were poor, but because bypass became the path of least resistance.</p>
+<p>The anatomy of the blockage determines the options. Proximal occlusion, a blockage close to the uterus, often responds to selective HSG or tubal cannulation: a catheter is advanced under fluoroscopic or hysteroscopic guidance and gentle pressure can open the tube. A selective HSG is sometimes therapeutic, not only diagnostic. Distal disease, including hydrosalpinx at the fimbriated end, may be addressed with fimbrioplasty to open a partially obstructed fimbria, or salpingostomy to create a new opening in a completely occluded distal tube. <a href="/library/reconstructive-tubal-microsurgery-and-assisted-reproductive-technology-recy0syhapupg3mrj/">Reconstructive microsurgery</a> remains a legitimate option for selected disease. The key word is selected: <a href="/library/salpingoscopic-findings-in-women-with-occlusive-and-nonocclusive-salpingitis-ist-recrgl4yyuxbqviyo/">salpingoscopic assessment</a> of the tubal mucosa distinguishes candidates for reconstruction from those where damage is too extensive. Evaluating the tube before deciding its fate is the restorative standard. <a href="/library/pathophysiology-and-management-of-proximal-tubal-blockage-recjtyqpvyttoyym1/">Proximal blockage</a> in particular has identifiable pathophysiology and management options well short of removing or bypassing the tube.</p>`,
+
+  ashermans: `<p>Intrauterine adhesions, called Asherman's syndrome when severe, form after uterine trauma and can reduce the functional lining available for implantation. Healing is possible. The restorative approach combines hysteroscopic lysis of the adhesions under direct visualization with a systematic plan to optimize the endometrium afterward: intrauterine estradiol to encourage regrowth, adhesion barriers such as Interceed placed at the time of surgery to reduce re-scarring, and endometrial cultures or biopsy to identify and treat any underlying infection or inflammatory process that contributed to the initial injury. The goal is a normal-appearing cavity with functional endometrium. Not every case achieves it, and the extent of the original scarring shapes the prognosis. However, leaving a scarred cavity without attempting restoration is not a neutral choice for a woman who wants to conceive. An emerging adjunct, platelet-rich plasma (PRP), is being studied for its potential to support endometrial regeneration in cases of thin or scarred lining; evidence remains early and should be framed as emerging rather than established.</p>`,
+
+  adenomyosis: `<p>Adenomyosis is not a single disease. The diffuse form, where endometrial glands infiltrate throughout the uterine muscle, is a different clinical entity from focal adenomyosis, where the disease is concentrated in a discrete adenomyoma. That distinction matters for fertility-preserving surgery. Where disease is focal, uterine-sparing adenomyomectomy, the surgical removal of the adenomyoma with reconstruction of the myometrium, offers a meaningful alternative to hysterectomy for women who want to conceive. The restorative goal is to excise the focal disease while preserving as much healthy myometrium as possible and closing the defect in layers to restore uterine integrity. This is technically demanding surgery; not all gynecologic surgeons perform it, and a restorative reproductive surgeon with specific experience in uterine reconstruction is the appropriate referral. Suppressive medications do not remove the disease; they manage symptoms while the disease continues. For diffuse disease where the uterus is extensively involved, the surgical options narrow significantly, and the honest clinical answer is that prognosis depends heavily on disease extent and the individual case.</p>`,
+
+  cesareanScar: `<p>Every cesarean section creates a scar in the lower uterine segment. How that scar heals is not fixed; it is shaped by surgical decisions made in the operating room. A cesarean scar niche, or isthmocele, is a defect in the myometrium at the scar site that can accumulate fluid, impair sperm transport, and reduce subendometrial blood flow at the implantation zone. For women with an established niche causing symptoms or implantation difficulty, surgical repair is possible; see the <a href="/isthmocele/">isthmocele guide</a> for an overview of repair options and outcomes.</p>
+<p>Prevention matters more than repair. Techniques that reduce niche formation can be applied at the time of cesarean delivery without adding operating time: avoiding inclusion of the endometrium in the uterine closure, using a double-layer closure, choosing non-locking sutures for the myometrium, and closing the visceral and parietal peritoneum. These choices reflect the same principle that governs every restorative operation: the surgeon's job is not only to complete the immediate procedure, but to leave the reproductive system in the best possible condition for what comes next. Any reproductive surgery, a laparoscopy, a myomectomy, a cesarean, is an opportunity to protect future fertility. That mindset is the hallmark of tier-1 care.</p>`,
+
+  adhesions: `<p>Postoperative pelvic adhesions are a major, underappreciated driver of female infertility, and they are substantially modifiable. <a href="/library/an-overview-of-postoperative-intraabdominal-adhesions-and-their-role-on-female-i-dlffz7cn/">A 2023 overview</a> establishes adhesion formation as a surgical-quality variable, not an inevitable outcome. The concrete techniques that reduce formation start intraoperatively: minimizing blood on the surgical field, using physiologic irrigation such as lactated Ringer's rather than reactive solutions, and handling tissue gently throughout. Peritoneal closure is an active intervention, not just closure; the peritoneum itself serves as a natural barrier against adhesion formation, and closing it restores that function. Physical barrier membranes, including Gore-Tex (ePTFE) and absorbable barriers such as Interceed, placed over dissected surfaces before closing, add another layer of protection. PRP is under investigation as an adjunct for adhesion prevention following reproductive surgery; current evidence is early and should be characterized as promising rather than established. <a href="/library/contemporary-adhesion-prevention-recoz8w7aaxsp162t/">Contemporary adhesion-prevention principles</a> combine all of these elements. Adhesion prevention is a hallmark of tier-1 restorative surgery because it is the difference between an operation that restores anatomy and one that, over the following months, partially undoes itself.</p>`,
+
+  varicocele: `<p>Male factor contributes to roughly half of all infertility, on its own or in combination with a female factor, yet couples are frequently routed straight to IVF-ICSI before the man is fully evaluated. In many cases the cause is diagnosable and correctable. A <a href="/library/comprehensive-diagnostic-and-therapeutic-approach-to-male-factor-infertility-8decfdf8/">2025 multicentric study of 1,014 couples</a> seeking natural conception, including 266 who had already been through ART without success, found that a thorough andrological workup, acting on the identified cause rather than bypassing it, achieved spontaneous pregnancy in 40.9% of couples and cut the share labeled unexplained from the usual 30% to 50% down to 8%. The male partner is half of the evaluation, not a footnote to it.</p>
+<p>Varicocele is the <a href="/library/varicocele-management-for-infertility-and-pain-a-systematic-review-hothgmie/">most common correctable cause of male infertility</a>. Enlarged scrotal veins raise testicular temperature and impair sperm production, and that pathology can often be corrected. A systematic review of 112 studies found that microsurgical subinguinal varicocelectomy carries the highest fertility rates and the lowest complication rates among the surgical approaches. Technique also governs durability: a review of recurrent varicocele documents <a href="/library/recurrent-varicocele-3adlmoxn/">recurrence rates from 0% to 35%</a> depending on the approach used. Not every varicocele needs repair; an experienced surgeon weighs clinical significance, semen parameters, and the couple's full picture before recommending intervention. The restorative principle is the same here as everywhere in this guide: correct the cause, restore the physiology, and make natural conception possible.</p>`,
+
+  obstruction: `<p>The logic that governs tubal reconstruction applies on the male side too. When a blockage keeps sperm from reaching the ejaculate, the restorative question is whether reconnection can reopen that pathway. Vasovasostomy reconnects a divided vas deferens after a <a href="/library/vasectomy-0vspbjww/">vasectomy</a>; vasoepididymostomy bypasses an epididymal blockage at a point where sperm are present; and transurethral resection can open an obstructed ejaculatory duct. <a href="/library/surgical-techniques-for-the-management-of-male-infertility-r8tbf6dd/">A review of surgical techniques for male infertility</a> groups these operations by purpose, separating surgery that restores sperm delivery from surgery that merely retrieves sperm for IVF-ICSI, and argues for couple-based evaluation before either. Each restorative procedure returns sperm to the ejaculate, so that natural conception or simple insemination becomes possible without bypassing the man entirely. The same <a href="/library/comprehensive-diagnostic-and-therapeutic-approach-to-male-factor-infertility-8decfdf8/">comprehensive andrological approach</a> that restored natural fertility in male-factor couples treats the cause first rather than routing the couple straight to retrieval and ICSI. Not every obstruction is reconstructable: the duration of obstruction and the condition of the epididymis shape the prognosis, and an experienced microsurgeon assesses candidacy before recommending a path. Some male contributors are medical rather than surgical, such as seminal-tract inflammation or prostatitis, which are treated medically; the surgical tiers below apply to obstructive causes specifically.</p>`,
+
+  whatSetsApart: `<p>The common thread across endometriosis, ovarian cysts, PCOS, fibroids, tubal disease, Asherman's syndrome, adenomyosis, cesarean scar, pelvic adhesions, varicocele, and male reproductive obstruction is the same: restorative surgery asks a different question than conventional surgery. The conventional question is "how do I remove this problem?" The restorative question is "how do I remove this problem and leave the reproductive system more functional than I found it?"</p>
+<p>That second question requires a full toolkit: complete removal rather than surface treatment; reconstruction rather than simple closure; deliberate adhesion prevention rather than accepting reformation; reserve-conscious technique rather than expediency. None of these are proprietary; they are choices made, or not made, at every step of an operation. The tier distinction is real, and a patient who understands it can ask the right questions before consenting to surgery.</p>`,
+
+  findSurgeon: `<p>Finding a restorative reproductive surgeon starts with knowing what to ask. These questions cut through vague answers quickly:</p>
+<ul>
+  <li><strong>Endometriosis:</strong> Do you excise or ablate? What do you do with the tissue afterward? Do you use laser to clear disease from the tubes with minimal thermal damage?</li>
+  <li><strong>Ovarian cysts:</strong> How do you conserve the healthy ovary during cyst removal? What technique do you use when disease is bilateral or the ovary is heavily involved?</li>
+  <li><strong>PCOS:</strong> Are you trained in ovarian wedge resection using microsurgical technique? What adhesion-prevention measures do you use?</li>
+  <li><strong>Tubal disease:</strong> Do you evaluate the tubal mucosa before recommending removal or bypass? Under what conditions would you consider a selective HSG, tubal cannulation, fimbrioplasty, or salpingostomy?</li>
+  <li><strong>Asherman's syndrome:</strong> Do you use adhesion barriers at the time of hysteroscopic lysis? What is your approach to endometrial optimization afterward?</li>
+  <li><strong>Adenomyosis:</strong> Do you perform adenomyomectomy for focal disease? What is your experience with myometrial reconstruction?</li>
+  <li><strong>Cesarean:</strong> What steps do you take to reduce niche formation? Do you close the peritoneum and use a double-layer, non-locking closure?</li>
+  <li><strong>Male factor:</strong> Has the male partner had a full andrological workup, including semen analysis, before any move to sperm retrieval or ART? For varicocele, which surgical approach do you use, and what are your recurrence rates? For obstruction, do you assess whether reconstruction is feasible before recommending retrieval?</li>
+  <li><strong>All surgery:</strong> What adhesion-prevention barriers do you routinely use? How do you approach reconstruction of normal anatomy after removing disease?</li>
+</ul>
+<p>A restorative surgeon will answer these specifically. Vague answers, or a quick pivot to a definitive procedure without thorough workup, warrant a second opinion. Find an RRM-trained provider at <a href="/providers/">rrmacademy.org/providers/</a>.</p>`,
+};
+
+const conditionsById = Object.fromEntries(pillar.conditions.map((c) => [c.id, c]));
+const CONDITION_ORDER = [
+  { id: 'endometriosis', anchor: 'endometriosis', h2: 'Endometriosis: excision versus ablation', prose: 'endometriosis' },
+  { id: 'ovarian-cysts-endometriomas', anchor: 'endometriomas', h2: 'Ovarian cysts and endometriomas: conserving the healthy ovary', prose: 'endometriomas' },
+  { id: 'pcos-wedge-resection', anchor: 'pcos', h2: 'PCOS: ovarian wedge resection', prose: 'pcos' },
+  { id: 'fibroids', anchor: 'fibroids', h2: 'Fibroids: myomectomy versus hysterectomy', prose: 'fibroids' },
+  { id: 'tubal-disease', anchor: 'tubal', h2: 'Tubal disease: reconstruction versus bypass', prose: 'tubal' },
+  { id: 'ashermans-syndrome', anchor: 'ashermans', h2: 'Asherman syndrome: restoring the uterine cavity', prose: 'ashermans' },
+  { id: 'adenomyosis', anchor: 'adenomyosis', h2: 'Adenomyosis: uterine-sparing surgery for focal disease', prose: 'adenomyosis' },
+  { id: 'cesarean-scar', anchor: 'cesarean-scar', h2: 'Cesarean scar and the fertility-friendly cesarean', prose: 'cesareanScar' },
+  { id: 'adhesions', anchor: 'adhesions', h2: 'Pelvic adhesions: prevention as technique', prose: 'adhesions' },
+  { id: 'male-varicocele', anchor: 'male-varicocele', h2: 'Varicocele: microsurgical repair versus bypass', prose: 'varicocele' },
+  { id: 'male-obstruction', anchor: 'male-obstruction', h2: 'Obstruction and vasectomy reversal: reconnection versus retrieval', prose: 'obstruction' },
+];
+
+const TIER_LABELS = { tier1: 'Restorative', tier2: 'Specialist', tier3: 'Conventional' };
+
+// articleSection MUST match in-page H2 text exactly.
+const ARTICLE_SECTIONS = [
+  'Key Takeaways',
+  'Why two operations with the same name can have opposite results',
+  'The three tiers of reproductive surgery',
+  ...CONDITION_ORDER.map((c) => c.h2),
+  'What sets restorative surgery apart',
+  'How to find a restorative surgeon and what to ask',
+  'Frequently Asked Questions',
+  'Continue exploring',
+];
+
+const jsonLd = {
+  '@context': 'https://schema.org',
+  '@type': ['MedicalWebPage', 'Article'],
+  headline: 'Fertility-Preserving Surgery: Restorative, Specialist, and Conventional Approaches Compared',
+  description: 'How fertility-preserving surgery differs by approach: restorative (RRM), specialist, and conventional, across endometriosis, PCOS, fibroids, tubal disease, Asherman\'s syndrome, adenomyosis, cesarean scar, and male-factor causes including varicocele and obstruction.',
+  url: PAGE_URL,
+  inLanguage: 'en',
+  author: { '@id': 'https://rrmacademy.org/#organization' },
+  reviewedBy: { '@id': 'https://rrmacademy.org/#naomi-whittaker' },
+  publisher: { '@id': 'https://rrmacademy.org/#organization' },
+  datePublished: PUBLISHED,
+  dateModified: MODIFIED,
+  image: 'https://rrmacademy.org/og/fertility-preserving-surgery.png',
+  mainEntityOfPage: { '@type': 'WebPage', '@id': PAGE_URL },
+  about: [
+    { '@type': 'MedicalCondition', name: 'Endometriosis' },
+    { '@type': 'MedicalCondition', name: 'Ovarian cyst' },
+    { '@type': 'MedicalCondition', name: 'Polycystic ovary syndrome' },
+    { '@type': 'MedicalCondition', name: 'Uterine fibroid' },
+    { '@type': 'MedicalCondition', name: 'Tubal occlusion' },
+    { '@type': 'MedicalCondition', name: "Asherman's syndrome" },
+    { '@type': 'MedicalCondition', name: 'Adenomyosis' },
+    { '@type': 'MedicalCondition', name: 'Cesarean scar niche' },
+    { '@type': 'MedicalCondition', name: 'Pelvic adhesions' },
+    { '@type': 'MedicalCondition', name: 'Varicocele' },
+    { '@type': 'MedicalCondition', name: 'Male infertility' },
+    { '@type': 'MedicalProcedure', name: 'Fertility-preserving surgery' },
+    { '@type': 'MedicalProcedure', name: 'Ovarian wedge resection' },
+    { '@type': 'MedicalProcedure', name: 'Endometriosis excision' },
+    { '@type': 'MedicalProcedure', name: 'Tubal cannulation' },
+    { '@type': 'MedicalProcedure', name: 'Selective hysterosalpingogram' },
+    { '@type': 'MedicalProcedure', name: 'Fimbrioplasty' },
+    { '@type': 'MedicalProcedure', name: 'Hysteroscopic adhesiolysis' },
+    { '@type': 'MedicalProcedure', name: 'Adenomyomectomy' },
+    { '@type': 'MedicalProcedure', name: 'Microsurgical varicocelectomy' },
+    { '@type': 'MedicalProcedure', name: 'Vasectomy reversal' },
+    { '@type': 'MedicalProcedure', name: 'Vasovasostomy' },
+  ],
+  articleSection: ARTICLE_SECTIONS,
+};
+
+const faqSchema = {
+  '@context': 'https://schema.org',
+  '@type': 'FAQPage',
+  mainEntity: FAQS.map((f) => ({
+    '@type': 'Question',
+    name: f.question,
+    acceptedAnswer: { '@type': 'Answer', text: f.answerHtml.replace(/<[^>]+>/g, '') },
+  })),
+};
+
+const itemListSchema = {
+  '@context': 'https://schema.org',
+  '@type': 'ItemList',
+  name: 'Tiers of reproductive surgery',
+  itemListElement: pillar.tiers.map((t) => ({
+    '@type': 'ListItem',
+    position: t.rank,
+    name: t.label,
+    description: t.goal,
+  })),
+};
+---
+
+<GuideLayout
+  slug={SLUG}
+  jsonLd={jsonLd}
+  extraSchema={[faqSchema, itemListSchema]}
+  tocItems={TOC_ITEMS}
+  faqs={FAQS}
+  keyTakeawaysHtml={KEY_TAKEAWAYS_HTML}
+>
+  <Fragment set:html={PROSE.intro} />
+
+  <section id="two-operations">
+    <h2>Why two operations with the same name can have opposite results</h2>
+    <Fragment set:html={PROSE.twoOperations} />
+  </section>
+
+  <section id="three-tiers">
+    <h2>The three tiers of reproductive surgery</h2>
+    <Fragment set:html={PROSE.threeTiersLead} />
+    <div class="tier-cards">
+      {pillar.tiers.map((t) => (
+        <article class="tier-card" data-tier={t.id}>
+          <p class="tier-card__rank">Tier {t.rank}</p>
+          <h3 class="tier-card__label">{t.label}</h3>
+          <p class="tier-card__goal">{t.goal}</p>
+          <ul class="tier-card__hallmarks">
+            {t.hallmarks.map((h) => <li>{h}</li>)}
+          </ul>
+          <dl class="tier-card__meta">
+            <dt>Fertility impact</dt>
+            <dd>{t.fertilityImpact}</dd>
+            <dt>Typically performed by</dt>
+            <dd>{t.whoPerformsIt}</dd>
+          </dl>
+        </article>
+      ))}
+    </div>
+  </section>
+
+  {CONDITION_ORDER.map((c) => {
+    const cond = conditionsById[c.id];
+    return (
+      <section id={c.anchor}>
+        <h2>{c.h2}</h2>
+        <Fragment set:html={PROSE[c.prose]} />
+        <div class="tier-rows" aria-label={`${cond.name}: approach by tier`}>
+          {['tier1', 'tier2', 'tier3'].map((tk) => (
+            <div class="tier-row" data-tier={tk}>
+              <span class="tier-row__label">{TIER_LABELS[tk]}</span>
+              <span class="tier-row__text">{cond[tk]}</span>
+            </div>
+          ))}
+        </div>
+        <p class="tier-rows__cite" set:html={cond.citationsHtml} />
+      </section>
+    );
+  })}
+
+  <section id="what-sets-apart">
+    <h2>What sets restorative surgery apart</h2>
+    <Fragment set:html={PROSE.whatSetsApart} />
+  </section>
+
+  <section id="find-a-surgeon">
+    <h2>How to find a restorative surgeon and what to ask</h2>
+    <Fragment set:html={PROSE.findSurgeon} />
+  </section>
+
+  <section id="continue-exploring">
+    <h2>Continue exploring</h2>
+    <ul>
+      <li><a href="/endometriosis/">Endometriosis: a restorative reproductive approach</a></li>
+      <li><a href="/pcos/">PCOS: a restorative reproductive approach</a></li>
+      <li><a href="/isthmocele/">Isthmocele: cesarean scar niche repair</a></li>
+      <li><a href="/what-is-rrm/">What is restorative reproductive medicine?</a></li>
+      <li><a href="/naprotechnology/">NaProTechnology</a></li>
+      <li><a href="/providers/">Find an RRM provider</a></li>
+    </ul>
+  </section>
+</GuideLayout>
+
+<style>
+  .tier-cards {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    gap: var(--space-4);
+    margin: var(--space-5) 0;
+  }
+  .tier-card {
+    background: var(--bg-card);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-md);
+    padding: var(--space-4);
+  }
+  .tier-card[data-tier="restorative"] { border-left: 4px solid var(--purple-700); }
+  .tier-card[data-tier="specialist"] { border-left: 4px solid var(--sand-700); }
+  .tier-card[data-tier="conventional"] { border-left: 4px solid var(--text-muted); }
+  .tier-card__rank {
+    margin: 0;
+    font-size: 0.75rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: var(--text-muted);
+  }
+  .tier-card__label {
+    margin: var(--space-1) 0 var(--space-2);
+    font-size: 1.0625rem;
+    color: var(--text-primary);
+  }
+  .tier-card__goal {
+    margin: 0 0 var(--space-3);
+    font-size: 0.9375rem;
+    color: var(--text-primary);
+    line-height: 1.55;
+  }
+  .tier-card__hallmarks {
+    margin: 0 0 var(--space-3);
+    padding-left: var(--space-4);
+    font-size: 0.9375rem;
+    color: var(--text-secondary);
+    line-height: 1.5;
+  }
+  .tier-card__hallmarks li { margin-bottom: var(--space-1); }
+  .tier-card__meta { margin: 0; }
+  .tier-card__meta dt {
+    font-size: 0.75rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: var(--text-muted);
+    margin-top: var(--space-2);
+  }
+  .tier-card__meta dd {
+    margin: var(--space-1) 0 0 0;
+    font-size: 0.9375rem;
+    color: var(--text-primary);
+  }
+
+  .tier-rows {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-2);
+    margin: var(--space-4) 0 var(--space-2);
+  }
+  .tier-row {
+    display: grid;
+    grid-template-columns: 7.5rem 1fr;
+    gap: var(--space-3);
+    align-items: baseline;
+    padding: var(--space-2) var(--space-3);
+    background: var(--bg-surface);
+    border-radius: var(--radius-md);
+    min-width: 0;
+  }
+  .tier-row[data-tier="tier1"] { border-left: 3px solid var(--purple-700); }
+  .tier-row[data-tier="tier2"] { border-left: 3px solid var(--sand-700); }
+  .tier-row[data-tier="tier3"] { border-left: 3px solid var(--text-muted); }
+  .tier-row__label {
+    font-size: 0.75rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: var(--text-muted);
+  }
+  .tier-row__text {
+    font-size: 0.9375rem;
+    color: var(--text-primary);
+    line-height: 1.5;
+    min-width: 0;
+  }
+  .tier-rows__cite {
+    margin: 0 0 var(--space-2);
+    font-size: 0.8125rem;
+    color: var(--text-secondary);
+  }
+  @media (max-width: 30rem) {
+    .tier-row { grid-template-columns: 1fr; gap: var(--space-1); }
+  }
+</style>
