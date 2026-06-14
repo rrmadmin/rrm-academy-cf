@@ -133,7 +133,7 @@
     },
     {
       "slug": "common-questions-about-rrm",
-      "category": "methods",
+      "category": "reference",
       "file": "common-questions-about-rrm.astro",
       "title": "Common Questions About RRM",
       "description": "We address common questions about RRM with published evidence, acknowledge limitations, and clarify what RRM is and is not.",
@@ -143,7 +143,7 @@
       "read_time": "12 min read",
       "accent": "var(--purple-700)",
       "in_guides_catalogue": true,
-      "in_guides_catalogue_note": "Intentionally hidden from the /guides/ catalogue UI but discoverable via search and direct link. Kept in shell nav + sitemap + navigate_to_section.",
+      "in_guides_catalogue_note": "Surfaced in the /guides/ catalogue under the Reference group, plus shell nav, sitemap, and navigate_to_section.",
       "in_shell_guides_nav": true,
       "_order": 5,
       "pageTitle": "Common Questions About Restorative Reproductive Medicine",
