@@ -11,7 +11,8 @@ fertility, the outcome depends far more on the surgeon's philosophy and
 technique than on the procedure's name. This guide makes that legible as a
 three-tier surgical-quality spectrum and applies it across the conditions that
 send women to the operating room: endometriosis, ovarian cysts and
-endometriomas, fibroids, tubal disease, and pelvic adhesions.
+endometriomas, fibroids, tubal disease, pelvic adhesions, and polycystic ovary
+syndrome (ovarian wedge resection).
 
 The top tier is what restorative reproductive medicine (RRM) surgeons do:
 complete disease removal plus the full restorative toolkit. The guide earns
@@ -23,12 +24,20 @@ that ranking through cited outcome differences, not rhetoric.
   searchable umbrella term; the RRM-specific tier is labeled "restorative
   reproductive surgery" inside the page. Confirmed not an existing route
   (existing: `/endometriosis/`, `/endometritis/`; no surgery route yet).
-- **Working title:** "Fertility-Preserving Surgery: Restorative, Excision, and
-  Conventional Approaches Compared."
-- **Audience tilt:** Balanced patient + clinician. Patients first in each
-  section (why it matters, what to ask), with a deeper technique/evidence layer
-  for referring clinicians and surgeons. AI retrieval third (the tier table is
-  the quotable, citable block).
+- **Working title:** "Fertility-Preserving Surgery: Restorative, Specialist, and
+  Conventional Approaches Compared." The tier triad is Restorative / Specialist
+  / Conventional.
+- **Audience tilt:** Balanced patient + clinician, AEO co-primary. Patients
+  first in each section (why it matters, what to ask), a tight technique/evidence
+  layer for referring clinicians, and structure built so search engines and AI
+  retrieval can quote it cleanly (the tier table, Key Takeaways, and FAQ are the
+  citable blocks).
+- **Design posture (goal, 2026-06-13):** Citeable, not exhaustive. The aim is a
+  concise pillar that AI and search engines cite, NOT maximum depth. Target
+  ~1200 to 1800 words. Every clinical claim is still sourced, but the page wins
+  on structure and quotability, not length. The intro paragraph must be plain
+  English and AEO-optimized: a direct, self-contained answer to "how do
+  fertility-preserving surgeries differ" in the first two sentences.
 - **Editorial stance:** RRM-aligned, critical-not-rhetorical. Excision-only for
   endometriosis. Every tier distinction anchored in a cited outcome. No public
   protocols or dosings.
@@ -46,22 +55,23 @@ that ranking through cited outcome differences, not rhetoric.
 This block is the spine. It renders as the hero comparison and seeds the
 JSON-LD ItemList.
 
-### Tier 1: Restorative reproductive (RRM) surgery, the fertility-first standard
-Complete excision or removal of disease **plus** the full restorative toolkit:
-microsurgical, near-contiguous dissection; reconstruction of normal anatomy;
-deliberate adhesion prevention (technique plus barriers); ovarian-reserve
-sparing; and a root-cause focus that treats the disease rather than only its
-symptoms. Goal: remove the disease and leave the reproductive organs more
-functional than before.
+### Tier 1: Restorative surgery, the fertility-first standard
+Restorative reproductive (RRM) surgery. Complete excision or removal of disease
+**plus** the full restorative toolkit: microsurgical, near-contiguous
+dissection; reconstruction of normal anatomy; deliberate adhesion prevention
+(technique plus barriers); ovarian-reserve sparing; and a root-cause focus that
+treats the disease rather than only its symptoms. Goal: remove the disease and
+leave the reproductive organs more functional than before.
 
-### Tier 2: Standard specialist / conservative surgery, good but variable
-Removes the disease (for example, excision of endometriosis, myomectomy for
-fibroids, cystectomy for an ovarian cyst) but may not employ the full
-restorative toolkit. Adhesion barriers, microsurgical reconstructive closure,
-and explicit ovarian-reserve-sparing technique are inconsistent. Outcomes are
-good and often very good, but depend heavily on the individual surgeon.
+### Tier 2: Specialist surgery, good but variable
+A skilled specialist removes the disease (for example, excision of
+endometriosis, myomectomy for fibroids, cystectomy for an ovarian cyst) but may
+not employ the full restorative toolkit. Adhesion barriers, microsurgical
+reconstructive closure, and explicit ovarian-reserve-sparing technique are
+inconsistent. Outcomes are good and often very good, but depend heavily on the
+individual surgeon.
 
-### Tier 3: Conventional / destructive / definitive surgery, often sacrifices fertility
+### Tier 3: Conventional surgery, often sacrifices fertility
 Ablation or fulguration of endometriosis (burning the surface rather than
 removing the disease); reserve-depleting cyst stripping; "burn and move on";
 default hysterectomy or oophorectomy where conservation was possible; or
@@ -85,19 +95,34 @@ follow. Language is "many/often," never "non-negotiable/always."
 5. **Ovarian cysts and endometriomas: protecting ovarian reserve** (cystectomy
    technique and AMH/reserve impact; ablative/vaporization debate; why "just
    take the ovary" is tier 3 when conservation was possible).
-6. **Fibroids: myomectomy vs hysterectomy** (fertility-preserving removal vs
+6. **PCOS: ovarian wedge resection** (the purest illustration of the thesis.
+   RRM ovarian wedge resection is the restorative, root-cause approach and the
+   best option: with meticulous near-contiguous microsurgical technique and
+   adhesion prevention it reduces the androgen-producing ovarian stroma to
+   restore spontaneous ovulation and durable hormonal normalization, where
+   drug-based ovulation induction only manages anovulation cycle by cycle
+   without correcting the underlying ovarian pathology. NaPro/RRM technique is
+   the whole point: the historical adhesion concern belongs to old-style
+   bilateral wedge resection performed WITHOUT restorative technique, not to the
+   RRM procedure, so non-RRM-technique adhesion data is not cited against it.
+   Ovarian drilling is a destructive, tissue-ablating approach and is not
+   presented as a competitive option. Cited to the library's wedge-resection
+   hormone-normalization, long-term-effect, and fertility records plus the NaPro
+   surgical-technique source. Non-surgical PCOS care cross-links to the PCOS
+   pillar).
+7. **Fibroids: myomectomy vs hysterectomy** (fertility-preserving removal vs
    definitive surgery; when each is appropriate).
-7. **Tubal disease: reconstruction vs bypass** (microsurgical tubal repair /
+8. **Tubal disease: reconstruction vs bypass** (microsurgical tubal repair /
    reversal as a restorative option vs default-to-IVF framing).
-8. **Pelvic adhesions: prevention as technique** (adhesion barriers and
+9. **Pelvic adhesions: prevention as technique** (adhesion barriers and
    microsurgical handling; why prevention is a tier-1 hallmark).
-9. **What sets restorative surgery apart** (synthesis: the toolkit as a through
-   line across conditions).
-10. **How to find a restorative surgeon and what to ask** (patient action;
+10. **What sets restorative surgery apart** (synthesis: the toolkit as a through
+    line across conditions).
+11. **How to find a restorative surgeon and what to ask** (patient action;
     routes to `/providers/`; a concrete question list for a surgical consult).
-11. **Frequently Asked Questions** (FAQPage JSON-LD; no "Yes" leads on
+12. **Frequently Asked Questions** (FAQPage JSON-LD; no "Yes" leads on
     fertility/treatment questions).
-12. **Continue exploring** (internal links to `/endometriosis/`, `/pcos/`,
+13. **Continue exploring** (internal links to `/endometriosis/`, `/pcos/`,
     `/what-is-rrm/`, `/naprotechnology/`, relevant library records).
 
 ## 5. Evidence Backbone (research + ingest before drafting)
@@ -117,20 +142,31 @@ every PMID, and ingest missing sources. Claim targets, by section:
   alternative to default IVF.
 - **Adhesion prevention:** barrier agents and microsurgical technique on
   adhesion reformation and subsequent fertility.
+- **PCOS ovarian wedge resection:** ovulation and pregnancy outcomes plus
+  hormonal normalization after RRM wedge resection, and the NaPro surgical
+  technique that distinguishes the RRM procedure from old-style wedge resection.
+  The library holds 12+ wedge-resection records (long-term effects, hormone
+  studies, fertility outcomes); cite the RRM-favorable outcome and technique
+  records. Do NOT cite non-RRM-technique adhesion-comparison series (old
+  bilateral wedge or drilling series) against the RRM procedure.
 - **Restorative / microsurgical principles:** near-contiguous dissection and
   reconstructive technique in the RRM / NaPro surgical literature.
 
-Citation density target: 100+ inline `/library/` links for a 2500 to 3000 word
-guide; every clinical claim sourced. External links reserved for legal/policy
-refs where no library record fits. The specific PMID/DOI set is produced by the
-Gate-0 research pass and recorded in the implementation plan, not invented here.
+Citation density: every clinical claim carries an inline `/library/` link, but
+the page chases citeability, not a link count. For a ~1200 to 1800 word guide
+that is roughly 25 to 45 inline links, concentrated where claims are
+contestable (excision vs ablation, reserve impact, wedge vs drilling). External
+links reserved for legal/policy refs where no library record fits. The specific
+PMID/DOI set is produced by the Gate-0 research pass and recorded in the
+implementation plan, not invented here.
 
 ## 6. Comparison SSOT (`src/data/fertility-preserving-surgery.json`)
 
 Two arrays:
 
 - `tiers`: `[{ id, rank, label, shortLabel, goal, hallmarks[], fertilityImpact,
-  whoPerformsIt }]` for the hero table.
+  whoPerformsIt }]` for the hero table. `shortLabel` values are
+  `Restorative` / `Specialist` / `Conventional`.
 - `conditions`: `[{ id, name, route, tier1, tier2, tier3, citationsHtml }]`
   where each `tierN` is the approach-at-that-tier for that condition, and
   `citationsHtml` carries inline `<a href="/library/...">` markup rendered with
@@ -182,10 +218,24 @@ reviewer signal. JSON-LD `reviewedBy = #naomi-whittaker`.
 - Built via the `guide-create` pillar workflow; structure copied from the
   closest matches (`/art-registries-and-codes/` for the comparison-frame card
   grid + ItemList; `/endometriosis/` for clinical-pillar voice).
+- **Prose drafted/checked by the `gianna-copywriter` agent** (Dr. Whittaker's
+  clinical voice, RRM compliance) and **the page checked by the
+  `rrma-seo-operator` agent** for AEO/retrieval optimization (schema, FAQ
+  schema, meta, quotable structure) before staging.
+- **Plain-English AEO intro:** the lead paragraph answers the core question
+  directly in its first two sentences, self-contained enough for an AI to quote.
+- **Guide-convention compliance:** breadcrumb, org-author + Naomi-reviewed
+  byline, `LastUpdated`, `SectionTocChips` on shell, `MaybeShell` wrap with
+  `route='guides'` shell key, BackToTop, JSON-LD `@graph`, `articleSection`
+  strings matching in-page H2 text exactly. Verified against an existing pillar.
 - Register the guide in `ssot/guides.json` and `src/data/guides.json`
   (slug, title, description, url, sectionHeadings matching in-page H2s).
+- **Routing:** add `/fertility-preserving-surgery` to `ASTRO_ROUTES` in
+  `rrm-router/src/index.js` and deploy the router, or the page 404s on the apex
+  even after the Pages deploy (new root paths route to Wix until listed).
 - Pre-push: `npm run lint`, design-tokens check, lint-identity byline gate,
-  arise-scan + lint-secrets pre-commit chain.
+  arise-scan + lint-secrets pre-commit chain, `web-page-qa` render gate (mobile
+  393x852 + desktop).
 - Deploy guard floors unaffected (guide is a static page, not a counted
   pipeline). Single `workflow_dispatch` deploy after staging review.
 - **Held at the go-live gate.** "Build it" and "fix all" mean technical work
@@ -198,8 +248,12 @@ reviewer signal. JSON-LD `reviewedBy = #naomi-whittaker`.
 
 - No surgeon directory or per-surgeon listings (the provider directory is
   offline and dark; route to `/providers/` only).
-- No PCOS ovarian-drilling deep dive beyond a caution mention (PCOS has its own
-  pillar; cross-link instead).
+- PCOS appears only through its surgical dimension: ovarian wedge resection (a
+  tier-1 restorative procedure), with drilling/electrocoagulation as the tier-3
+  destructive contrast. Non-surgical PCOS management (diagnosis, ovulation
+  induction, metabolic care) stays out of scope and cross-links to the PCOS
+  pillar. Drilling is not featured as a recommended option, only as the
+  destructive foil to wedge resection.
 - No interactive tools or calculators in v1.
 - No commentary or FAQ singletons in this build; those are downstream follow-ons
   that link back to the pillar.
@@ -209,8 +263,22 @@ reviewer signal. JSON-LD `reviewedBy = #naomi-whittaker`.
 - **Evidence symmetry:** apply the same rigor to RRM/NaPro surgical claims as to
   conventional-surgery claims. If the evidence on a specific contrast is weaker
   than the framing implies, soften the framing, not the citation.
-- **Breadth vs depth:** five conditions risks thinning the evidence per section.
-  Mitigation: endometriosis and endometrioma sections carry the densest
-  evidence; tubal/fibroid/adhesion sections stay tight and link out.
-- **Title:** plain declarative is proposed; confirm at draft time whether a
-  pathology-lead variant is wanted.
+- **Breadth vs depth:** six conditions risks thinning the evidence per section.
+  Mitigation: endometriosis, endometrioma, and PCOS wedge resection carry the
+  densest evidence (all three well-sourced in the library); tubal, fibroid, and
+  adhesion sections stay tight and link out.
+- **PCOS stance (settled by Brian, 2026-06-13):** RRM ovarian wedge resection
+  is the restorative best approach, full stop. The case rests on root-cause
+  correction and durable ovulation restoration documented in the library's
+  wedge records plus NaPro surgical technique. Do NOT import an ART/RCT-supremacy
+  lens, and do NOT cite non-RRM-technique adhesion data (e.g. 1981 bilateral
+  wedge or drilling-comparison series) against the RRM procedure: the historical
+  adhesion problem is an artifact of wedge resection done WITHOUT restorative
+  technique, which is the opposite of the point. Drilling is a destructive,
+  lesser approach and is not platformed.
+- **Agent-selection rule:** the `art-evidence-analyst` agent is for critiquing
+  IVF/ART papers and must NOT be used to assemble RRM's own clinical case; it
+  imports an RCT-supremacy lens that punches down on RRM. RRM evidence work uses
+  `rrm-cli` (library/canon) and the `gianna-copywriter` agent.
+- **Title:** confirmed plain declarative with the Restorative / Specialist /
+  Conventional triad. No pathology-lead variant.
