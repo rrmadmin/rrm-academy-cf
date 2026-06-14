@@ -370,6 +370,31 @@
         "id": "#naomi-whittaker"
       },
       "usesGuideLayout": true
+    },
+    {
+      "slug": "fertility-preserving-surgery",
+      "category": "compare",
+      "file": "fertility-preserving-surgery/index.astro",
+      "title": "Fertility-Preserving Surgery: Restorative, Specialist, and Conventional Approaches Compared",
+      "description": "How fertility-preserving surgery differs by approach: restorative (RRM), specialist, and conventional, across endometriosis, ovarian cysts, PCOS, fibroids, tubal disease, Asherman's syndrome, adenomyosis, cesarean scar, pelvic adhesions, and male-factor causes including varicocele and obstruction.",
+      "og_title": "Fertility-Preserving Surgery, Compared",
+      "og_description": "Not all surgery is equal. How restorative (RRM), specialist, and conventional approaches differ across the conditions that lead to reproductive surgery, in both partners.",
+      "author": "RRM Academy",
+      "read_time": "12 min read",
+      "accent": "var(--purple-700)",
+      "in_guides_catalogue": true,
+      "in_shell_guides_nav": true,
+      "_order": 14,
+      "pageTitle": "Fertility-Preserving Surgery: Restorative, Specialist, and Conventional Approaches Compared",
+      "pageDescription": "How fertility-preserving surgery differs by approach: restorative (RRM), specialist, and conventional, across endometriosis, ovarian cysts, PCOS, fibroids, tubal disease, Asherman's syndrome, adenomyosis, cesarean scar, pelvic adhesions, and male-factor causes including varicocele and obstruction.",
+      "pageH1": "Fertility-Preserving Surgery: Restorative, Specialist, and Conventional Approaches Compared",
+      "breadcrumbName": "Fertility-Preserving Surgery",
+      "authorId": "#organization",
+      "reviewer": {
+        "name": "Dr. Naomi Whittaker, MD",
+        "id": "#naomi-whittaker"
+      },
+      "usesGuideLayout": true
     }
   ]
 }
