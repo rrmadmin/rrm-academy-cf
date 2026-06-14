@@ -17,9 +17,8 @@ const SHELL_ENABLED = isShellEnabled('guides');
 // FEMM, NeoFertility) keep that entity's primary brand color sourced from
 // their canonical site. Hex values are scoped local accents, not new global
 // tokens -- do not lift these into the design token SSOT.
-// Catalogue rendering filters to in_guides_catalogue=true (common-questions-
-// about-rrm is intentionally hidden from the visual catalogue but kept in
-// every other surface). Order matches _order in guides.json.
+// Catalogue rendering filters to in_guides_catalogue=true. Order matches
+// _order in guides.json.
 const guides = guideRegistry.guides
   .filter((p) => p.in_guides_catalogue)
   .sort((a, b) => (a._order ?? 999) - (b._order ?? 999))
