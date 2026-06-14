@@ -23,7 +23,7 @@ Every article record carries:
 
 ## Topic domains
 
-Andrology · Body Literacy · Bone Health · Contraception/Comparison · Diagnostics · Endometriosis · Ethics/Philosophy · General OB/GYN · Infertility · Menstrual Cycle · PCOS · Perimenopause/Menopause · Pregnancy · RRM Methods · Reproductive Endocrinology · Surgery
+Andrology · Body Literacy · Bone Health · Contraception/Comparison · Diagnostics · Endometriosis · Fertility Awareness · Infertility · Menstrual Cycle · NaProTECHNOLOGY · PCOS · Perimenopause/Menopause · Postpartum · Pregnancy · RRM Methods · Surgery
 
 ## URL structure
 
