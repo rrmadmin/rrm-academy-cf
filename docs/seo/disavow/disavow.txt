@@ -1,11 +1,15 @@
 # Disavow file for rrmacademy.org
+# Last updated 2026-06-15: +108 net-new spam refdomains read from the Ahrefs
+# Site Explorer referring-domains report (API units exhausted; CSV export returned
+# empty), diffed against the live GSC file downloaded 2026-06-14 (byte-identical to
+# this SSOT at 221). Own-domain guard passed clean.
 # Generated 2026-05-14 — merge of (1) existing GSC disavow uploaded 2026-05-10
 # and (2) Ahrefs API v3 spam pull on 2026-05-14 (174 spam-flagged refdomains
 # across 7 API cuts: desc+asc+newest+oldest+links-desc + 2 spam-only filters).
 # Submit at: https://search.google.com/search-console/disavow-links
 #
 # Strategy: domain-level disavow for entire spam clusters.
-# Total: 221 unique domains (183 carried over + 38 net new on 2026-05-14)
+# Total: 329 unique domains (221 prior + 108 net-new on 2026-06-15)
 #
 # Cluster summary:
 #   itxoft-* SEO sales cluster        11 domains
@@ -267,3 +271,126 @@ domain:lixil-reformshop.shop
 domain:moviesrock.nl
 domain:myhon.ch
 domain:wallpapers.pro
+
+# ============================================================
+# === Net-new 2026-06-15 (Ahrefs referring-domains export) ===
+# === 108 domains, diffed vs live GSC (221), guard-clean    ===
+# ============================================================
+#
+# Fresh *seoexpress*.store PBN cluster (87) -- coordinated link-farm
+# injection, first-seen mostly after the 2026-05-14 disavow:
+domain:advanced-keyword-group-seoexpress.store
+domain:advanced-link-building-group-seoexpress.store
+domain:advanced-search-seoexpress-pros.store
+domain:advanced-seo-firm-seoexpress.store
+domain:authentic-seoexpress-keyword-firm.store
+domain:authentic-tier-1-partners-seoexpress.store
+domain:best-keyword-seoexpress-portal.store
+domain:certified-link-building-seoexpress.store
+domain:certified-seoexpress-organic-services.store
+domain:elite-authority-marketplace-seoexpress.store
+domain:elite-domain-seoexpress-consultants.store
+domain:elite-high-da-center-seoexpress.store
+domain:elite-outreach-seoexpress-pros.store
+domain:elite-seoexpress-link-building-team.store
+domain:exclusive-backlink-seoexpress-firm.store
+domain:exclusive-keyword-team-seoexpress.store
+domain:exclusive-traffic-experts-seoexpress.store
+domain:exclusive-webpage-center-seoexpress.store
+domain:expert-domain-seoexpress-specialists.store
+domain:expert-organic-seoexpress.store
+domain:expert-search-seoexpress-team.store
+domain:expert-seoexpress-authority-directory.store
+domain:first-class-seoexpress-keyword-exchange.store
+domain:global-authority-seoexpress-group.store
+domain:global-digital-seoexpress-portal.store
+domain:global-guest-post-seoexpress-group.store
+domain:global-keyword-seoexpress.store
+domain:global-seo-group-seoexpress.store
+domain:high-seoexpress-organic-team.store
+domain:instant-webpage-seoexpress-consultants.store
+domain:luxury-niche-edit-seoexpress-services.store
+domain:luxury-seoexpress-tier-1-house.store
+domain:master-digital-studio-seoexpress.store
+domain:master-off-page-seoexpress-directory.store
+domain:master-seoexpress-content-consultants.store
+domain:master-seoexpress-guest-post-partners.store
+domain:master-seoexpress-search-agency.store
+domain:modern-authority-seoexpress.store
+domain:modern-guest-post-consultants-seoexpress.store
+domain:modern-organic-group-seoexpress.store
+domain:official-anchor-text-seoexpress-system.store
+domain:official-domain-seoexpress.store
+domain:official-seoexpress-white-hat-team.store
+domain:powerful-link-building-hub-seoexpress.store
+domain:premium-seoexpress-digital-solutions.store
+domain:premium-seoexpress-outreach-provider.store
+domain:prime-high-da-seoexpress.store
+domain:prime-white-hat-seoexpress-network.store
+domain:professional-seoexpress-high-da-partners.store
+domain:professional-seoexpress-marketing-studio.store
+domain:seoexpress-anchor-text-experts.store
+domain:seoexpress-authority-portal.store
+domain:seoexpress-backlink-hub.store
+domain:seoexpress-best-outreach-experts.store
+domain:seoexpress-best-seo-firm.store
+domain:seoexpress-content-experts.store
+domain:seoexpress-digital-system.store
+domain:seoexpress-dr-90-group.store
+domain:seoexpress-keyword-network.store
+domain:seoexpress-leading-dofollow-pros.store
+domain:seoexpress-marketing-exchange.store
+domain:seoexpress-master-digital-portal.store
+domain:seoexpress-modern-backlink-platform.store
+domain:seoexpress-niche-edit-group.store
+domain:seoexpress-off-page-solutions.store
+domain:seoexpress-organic-partners.store
+domain:seoexpress-outreach-team.store
+domain:seoexpress-pbn-company.store
+domain:seoexpress-pbn-experts.store
+domain:seoexpress-professional-white-hat-team.store
+domain:seoexpress-ranking-hub.store
+domain:seoexpress-verified-high-da-consultants.store
+domain:seoexpress-verified-website-system.store
+domain:seoexpress-website-experts.store
+domain:seoexpress-white-hat-group.store
+domain:smart-indexer-seoexpress.store
+domain:smart-marketing-seoexpress.store
+domain:smart-seoexpress-webpage-experts.store
+domain:supreme-anchor-text-provider-seoexpress.store
+domain:supreme-dofollow-seoexpress-hub.store
+domain:trusted-dofollow-team-seoexpress.store
+domain:trusted-off-page-pros-seoexpress.store
+domain:trusted-organic-seoexpress-house.store
+domain:trusted-seoexpress-backlink-experts.store
+domain:ultimate-seoexpress-niche-edit-experts.store
+domain:verified-digital-firm-seoexpress.store
+domain:verified-seoexpress-search-directory.store
+#
+# New SEO .agency farms (5):
+domain:linkly.agency
+domain:linkspro.agency
+domain:rankgrowth.agency
+domain:rankio.agency
+domain:seonix.agency
+#
+# Misc Ahrefs SPAM-flagged (10):
+domain:agenstry.com
+domain:homefinance.co.in
+domain:indexaward.com
+domain:marathiladies.com
+domain:preparation.co.in
+domain:seorankinghigh.shop
+domain:sporstcenter.com
+domain:theaddictionrecoveryhouse.com
+domain:topbillion.net
+domain:toplikevideo.com
+#
+# Untagged link farms / off-topic injection, manual judgment (6):
+domain:backlinkshop.shop
+domain:backlinkvault.shop
+domain:drugdetoxhelpline.com
+domain:linkbarn.shop
+domain:rankbasket.shop
+domain:rankbazaar.shop
+
