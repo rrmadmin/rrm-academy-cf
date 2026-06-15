@@ -87,6 +87,11 @@ export function mapWorkerRecord(r) {
     // historical rows until backfill runs; the library template falls back to
     // the legacy abstract-length heuristic in that case.
     word_count: typeof r.word_count === 'number' ? r.word_count : null,
+    // AI-generated synopsis blob, rendered in the library detail "Synopsis"
+    // section. The worker only emits this for synopsis_approved = 1 rows
+    // (per-article quality-review gate), so unapproved articles map to null
+    // and the template skips the section.
+    insights: r.insights && typeof r.insights === 'object' && !Array.isArray(r.insights) ? r.insights : null,
   };
 }
 
