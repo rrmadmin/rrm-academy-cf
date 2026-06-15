@@ -81,6 +81,21 @@ export interface Article {
    * scripts/compute-word-counts.mjs for historical rows.
    */
   word_count?: number | null;
+  /**
+   * AI-generated synopsis blob (Gianna voice), stored as JSON in D1
+   * articles.insights and rendered in the library detail "Synopsis" section.
+   * Freeform: the known fields are typed below; the index signature tolerates
+   * extra keys some records carry (e.g. rrm_success_studies).
+   */
+  insights?: {
+    title?: string;
+    tldr?: string;
+    key_findings?: string[];
+    clinical_implications?: string;
+    methodology?: string;
+    rrm_context?: string;
+    [key: string]: unknown;
+  } | null;
 }
 
 export async function fetchAllArticles(): Promise<Article[]> {
