@@ -377,7 +377,7 @@ const citationMeta = {
       <!-- Synopsis (above abstract for SEO/AEO -- structured, citable content first) -->
       {article.insights && (
         <section class="article-insights" aria-label="Synopsis">
-          <h2 class="detail-heading">Synopsis</h2>
+          <h2 class="detail-heading">{article.insights.title || 'Synopsis'}</h2>
           <div class="insights-tldr">
             <p>{article.insights.tldr}</p>
           </div>
@@ -395,6 +395,12 @@ const citationMeta = {
             <div class="insights-relevance">
               <h3 class="insights-subheading">Clinical Implications</h3>
               <p>{article.insights.clinical_implications}</p>
+            </div>
+          )}
+          {article.insights.methodology && (
+            <div class="insights-methodology">
+              <h3 class="insights-subheading">Study Notes</h3>
+              <p>{article.insights.methodology}</p>
             </div>
           )}
           {article.insights.rrm_context && (
@@ -548,7 +554,7 @@ const citationMeta = {
       <!-- Synopsis (above abstract for SEO/AEO -- structured, citable content first) -->
       {article.insights && (
         <section class="article-insights" aria-label="Synopsis">
-          <h2 class="detail-heading">Synopsis</h2>
+          <h2 class="detail-heading">{article.insights.title || 'Synopsis'}</h2>
           <div class="insights-tldr">
             <p>{article.insights.tldr}</p>
           </div>
@@ -566,6 +572,12 @@ const citationMeta = {
             <div class="insights-relevance">
               <h3 class="insights-subheading">Clinical Implications</h3>
               <p>{article.insights.clinical_implications}</p>
+            </div>
+          )}
+          {article.insights.methodology && (
+            <div class="insights-methodology">
+              <h3 class="insights-subheading">Study Notes</h3>
+              <p>{article.insights.methodology}</p>
             </div>
           )}
           {article.insights.rrm_context && (
