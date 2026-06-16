@@ -1,0 +1,113 @@
+---
+// /endometriosis-excision-vs-ablation/ comparison guide (category: compare).
+// Conventions via GuideLayout. Content from the SSOT data file.
+// Excision-first; honest on superficial-disease pain equivalence. Naomi voice.
+import GuideLayout from '../../layouts/GuideLayout.astro';
+import data from '../../data/endometriosis-excision-vs-ablation.json';
+
+const SLUG = 'endometriosis-excision-vs-ablation';
+const PAGE_URL = `https://rrmacademy.org/${SLUG}/`;
+const { published: PUBLISHED, modified: MODIFIED } = data;
+
+const TOC_ITEMS = [
+  { href: '#key-takeaways', label: 'Key takeaways' },
+  { href: '#at-a-glance', label: 'At a glance' },
+  { href: '#difference', label: 'The difference' },
+  { href: '#recurrence', label: 'Recurrence' },
+  { href: '#pain', label: 'Pain outcomes' },
+  { href: '#deep-disease', label: 'Deep & recurrent disease' },
+  { href: '#fertility', label: 'Fertility' },
+  { href: '#find-surgeon', label: 'Choosing a surgeon' },
+  { href: '#faq', label: 'FAQ' },
+  { href: '#references', label: 'References' },
+];
+const KEY_TAKEAWAYS_HTML = `<ul>\n${data.keyTakeaways.map((k) => `  <li>${k}</li>`).join('\n')}\n</ul>`;
+const FAQS = data.faqs;
+const ARTICLE_SECTIONS = [
+  'Key Takeaways',
+  'Excision versus ablation at a glance',
+  'What is the difference between excision and ablation?',
+  'How do recurrence rates compare?',
+  'Pain outcomes: what the evidence shows',
+  'Deep and recurrent disease',
+  'Fertility after excision versus ablation',
+  'How to choose a surgeon',
+  'Frequently Asked Questions',
+  'Continue exploring',
+  'References',
+];
+const citationUrls = [...new Set(data.references.map((r) => (r.html.match(/\/library\/([a-z0-9-]+)\//) || [])[0]).filter(Boolean).map((p) => `https://rrmacademy.org${p}`))];
+const ABOUT_TYPE_MAP = { MedicalCondition: 'MedicalCondition', MedicalProcedure: 'MedicalProcedure', MedicalTherapy: 'MedicalTherapy' };
+const jsonLd = {
+  '@context': 'https://schema.org', '@type': ['MedicalWebPage', 'Article'],
+  headline: 'Endometriosis Excision vs Ablation: How Do They Compare?',
+  description: 'Excision removes endometriosis and yields tissue for pathology; ablation burns the surface and cannot confirm depth. A clinician-reviewed comparison of recurrence, pain, and fertility evidence.',
+  url: PAGE_URL, inLanguage: 'en',
+  author: { '@id': 'https://rrmacademy.org/#naomi-whittaker' },
+  publisher: { '@id': 'https://rrmacademy.org/#organization' },
+  datePublished: PUBLISHED, dateModified: MODIFIED,
+  image: `https://rrmacademy.org/og/${SLUG}.png`,
+  mainEntityOfPage: { '@type': 'WebPage', '@id': PAGE_URL },
+  about: data.about.map((a) => ({ '@type': ABOUT_TYPE_MAP[a.type] || 'Thing', name: a.name })),
+  articleSection: ARTICLE_SECTIONS,
+  citation: citationUrls.map((u) => ({ '@type': 'MedicalScholarlyArticle', '@id': u })),
+};
+const faqSchema = { '@context': 'https://schema.org', '@type': 'FAQPage', mainEntity: FAQS.map((f) => ({ '@type': 'Question', name: f.question, acceptedAnswer: { '@type': 'Answer', text: f.answerHtml.replace(/<[^>]+>/g, '') } })) };
+---
+
+<GuideLayout slug={SLUG} jsonLd={jsonLd} extraSchema={[faqSchema]} tocItems={TOC_ITEMS} faqs={FAQS} keyTakeawaysHtml={KEY_TAKEAWAYS_HTML}>
+  <Fragment set:html={data.prose.overview} />
+
+  <section id="at-a-glance">
+    <h2>Excision versus ablation at a glance</h2>
+    <p>The two surgical approaches compared across the dimensions that matter for symptoms and fertility. Each cited figure links to the source.</p>
+    <div class="table-wrap">
+      <table class="vs-table">
+        <thead><tr><th scope="col"></th><th scope="col">Excision</th><th scope="col">Ablation</th></tr></thead>
+        <tbody>
+          {data.comparisonRows.map((row) => (
+            <tr><th scope="row">{row.dimension}</th><td set:html={row.excision} /><td set:html={row.ablation} /></tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <section id="difference"><h2>What is the difference between excision and ablation?</h2><Fragment set:html={data.prose.difference} /></section>
+  <section id="recurrence"><h2>How do recurrence rates compare?</h2><Fragment set:html={data.prose.recurrence} /></section>
+  <section id="pain"><h2>Pain outcomes: what the evidence shows</h2><Fragment set:html={data.prose.pain} /></section>
+  <section id="deep-disease"><h2>Deep and recurrent disease</h2><Fragment set:html={data.prose.deepDisease} /></section>
+  <section id="fertility"><h2>Fertility after excision versus ablation</h2><Fragment set:html={data.prose.fertility} /></section>
+  <section id="find-surgeon"><h2>How to choose a surgeon</h2><Fragment set:html={data.prose.findSurgeon} /></section>
+
+  <section id="continue-exploring">
+    <h2>Continue exploring</h2>
+    <ul>
+      <li><a href="/best-treatment-for-endometriosis/">Best treatment for endometriosis</a></li>
+      <li><a href="/endometriosis/">Endometriosis: a restorative reproductive approach</a></li>
+      <li><a href="/fertility-preserving-surgery/">Fertility-preserving surgery</a></li>
+      <li><a href="/naprotechnology-vs-ivf/">NaProTechnology vs IVF</a></li>
+      <li><a href="/endo-survey/">Endometriosis symptom self-survey</a></li>
+      <li><a href="/providers/">Find an RRM provider</a></li>
+    </ul>
+  </section>
+
+  <section id="references">
+    <h2>References</h2>
+    <ol class="references-list">{data.references.map((r) => (<li id={`ref-${r.n}`} set:html={r.html} />))}</ol>
+  </section>
+</GuideLayout>
+
+<style>
+  .table-wrap { overflow-x: auto; -webkit-overflow-scrolling: touch; margin: var(--space-5) 0; }
+  .vs-table { width: 100%; border-collapse: collapse; font-size: 0.9375rem; min-width: 34rem; }
+  .vs-table thead th { background: var(--bg-surface); text-align: left; font-weight: 600; color: var(--text-primary); padding: var(--space-3); border-bottom: 2px solid var(--border-color); vertical-align: bottom; }
+  .vs-table thead th:nth-child(2) { border-left: 3px solid var(--purple-700); }
+  .vs-table tbody th { text-align: left; font-weight: 600; color: var(--text-primary); padding: var(--space-3); border-bottom: 1px solid var(--border-color); vertical-align: top; width: 20%; }
+  .vs-table tbody td { padding: var(--space-3); color: var(--text-secondary); border-bottom: 1px solid var(--border-color); vertical-align: top; line-height: 1.5; }
+  .vs-table tbody td:nth-child(2) { border-left: 3px solid var(--purple-700); }
+  .vs-table tbody tr:last-child th, .vs-table tbody tr:last-child td { border-bottom: none; }
+  .references-list { font-size: 0.875rem; color: var(--text-secondary); line-height: 1.6; padding-left: var(--space-4); }
+  .references-list li { margin-bottom: var(--space-2); }
+  .references-list a { color: var(--accent); }
+</style>
