@@ -1,0 +1,218 @@
+---
+// /best-treatment-for-endometriosis/ comparison guide (category: compare).
+// Conventions via GuideLayout. Content from the SSOT data file.
+// Excision-first framing; hormonal suppression masks, ablation burns surface,
+// IVF bypasses. Naomi clinical voice. Patient pathway = /providers/.
+import GuideLayout from '../../layouts/GuideLayout.astro';
+import data from '../../data/best-treatment-for-endometriosis.json';
+
+const SLUG = 'best-treatment-for-endometriosis';
+const PAGE_URL = `https://rrmacademy.org/${SLUG}/`;
+const { published: PUBLISHED, modified: MODIFIED } = data;
+
+const TOC_ITEMS = [
+  { href: '#key-takeaways', label: 'Key takeaways' },
+  { href: '#at-a-glance', label: 'At a glance' },
+  { href: '#excision', label: 'Excision surgery' },
+  { href: '#ablation-vs-excision', label: 'Ablation vs excision' },
+  { href: '#suppression', label: 'Hormonal suppression' },
+  { href: '#ivf', label: 'IVF' },
+  { href: '#fertility', label: 'When fertility is the goal' },
+  { href: '#how-to-choose', label: 'How to choose' },
+  { href: '#faq', label: 'FAQ' },
+  { href: '#references', label: 'References' },
+];
+
+const KEY_TAKEAWAYS_HTML = `<ul>\n${data.keyTakeaways.map((k) => `  <li>${k}</li>`).join('\n')}\n</ul>`;
+const FAQS = data.faqs;
+
+const ARTICLE_SECTIONS = [
+  'Key Takeaways',
+  'Endometriosis treatment options at a glance',
+  'Excision surgery: removing the disease',
+  'Ablation versus excision',
+  'Hormonal suppression: managing symptoms, not curing',
+  'Does IVF treat endometriosis?',
+  'When fertility is the goal',
+  'How to choose your treatment',
+  'Frequently Asked Questions',
+  'Continue exploring',
+  'References',
+];
+
+const citationUrls = [...new Set(
+  data.references
+    .map((r) => (r.html.match(/\/library\/([a-z0-9-]+)\//) || [])[0])
+    .filter(Boolean)
+    .map((pth) => `https://rrmacademy.org${pth}`)
+)];
+const ABOUT_TYPE_MAP = { MedicalCondition: 'MedicalCondition', MedicalProcedure: 'MedicalProcedure', MedicalTherapy: 'MedicalTherapy' };
+
+const jsonLd = {
+  '@context': 'https://schema.org',
+  '@type': ['MedicalWebPage', 'Article'],
+  headline: 'What Is the Best Treatment for Endometriosis?',
+  description: 'Excision surgery removes endometriosis; hormonal suppression masks it; IVF bypasses it. A clinician-reviewed comparison of the six treatment approaches with evidence.',
+  url: PAGE_URL,
+  inLanguage: 'en',
+  author: { '@id': 'https://rrmacademy.org/#naomi-whittaker' },
+  publisher: { '@id': 'https://rrmacademy.org/#organization' },
+  datePublished: PUBLISHED,
+  dateModified: MODIFIED,
+  image: `https://rrmacademy.org/og/${SLUG}.png`,
+  mainEntityOfPage: { '@type': 'WebPage', '@id': PAGE_URL },
+  about: data.about.map((a) => ({ '@type': ABOUT_TYPE_MAP[a.type] || 'Thing', name: a.name })),
+  articleSection: ARTICLE_SECTIONS,
+  citation: citationUrls.map((u) => ({ '@type': 'MedicalScholarlyArticle', '@id': u })),
+};
+
+const faqSchema = {
+  '@context': 'https://schema.org',
+  '@type': 'FAQPage',
+  mainEntity: FAQS.map((f) => ({
+    '@type': 'Question',
+    name: f.question,
+    acceptedAnswer: { '@type': 'Answer', text: f.answerHtml.replace(/<[^>]+>/g, '') },
+  })),
+};
+---
+
+<GuideLayout
+  slug={SLUG}
+  jsonLd={jsonLd}
+  extraSchema={[faqSchema]}
+  tocItems={TOC_ITEMS}
+  faqs={FAQS}
+  keyTakeawaysHtml={KEY_TAKEAWAYS_HTML}
+>
+  <Fragment set:html={data.prose.overview} />
+
+  <section id="at-a-glance">
+    <h2>Endometriosis treatment options at a glance</h2>
+    <p>Six approaches, summarized. Only excision removes the disease itself; the others manage symptoms, bypass the disease, or remove an organ. Each evidence cell links to the source.</p>
+    <div class="table-wrap">
+      <table class="alt-table">
+        <thead>
+          <tr>
+            <th scope="col">Approach</th>
+            <th scope="col">What it does</th>
+            <th scope="col">Fertility impact</th>
+            <th scope="col">Evidence</th>
+          </tr>
+        </thead>
+        <tbody>
+          {data.comparisonRows.map((row) => (
+            <tr>
+              <th scope="row">{row.option}</th>
+              <td>{row.whatItDoes}</td>
+              <td>{row.fertilityImpact}</td>
+              <td set:html={row.evidence} />
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <section id="excision">
+    <h2>Excision surgery: removing the disease</h2>
+    <Fragment set:html={data.prose.excision} />
+  </section>
+
+  <section id="ablation-vs-excision">
+    <h2>Ablation versus excision</h2>
+    <Fragment set:html={data.prose.ablationVsExcision} />
+  </section>
+
+  <section id="suppression">
+    <h2>Hormonal suppression: managing symptoms, not curing</h2>
+    <Fragment set:html={data.prose.hormonalSuppression} />
+  </section>
+
+  <section id="ivf">
+    <h2>Does IVF treat endometriosis?</h2>
+    <Fragment set:html={data.prose.ivfForEndo} />
+  </section>
+
+  <section id="fertility">
+    <h2>When fertility is the goal</h2>
+    <Fragment set:html={data.prose.fertilityGoal} />
+  </section>
+
+  <section id="how-to-choose">
+    <h2>How to choose your treatment</h2>
+    <Fragment set:html={data.prose.howToChoose} />
+  </section>
+
+  <section id="continue-exploring">
+    <h2>Continue exploring</h2>
+    <ul>
+      <li><a href="/endometriosis/">Endometriosis: a restorative reproductive approach</a></li>
+      <li><a href="/fertility-preserving-surgery/">Fertility-preserving surgery</a></li>
+      <li><a href="/naprotechnology-vs-ivf/">NaProTechnology vs IVF</a></li>
+      <li><a href="/ivf-alternatives/">Alternatives to IVF</a></li>
+      <li><a href="/endo-survey/">Endometriosis symptom self-survey</a></li>
+      <li><a href="/providers/">Find an RRM provider</a></li>
+    </ul>
+  </section>
+
+  <section id="references">
+    <h2>References</h2>
+    <ol class="references-list">
+      {data.references.map((r) => (
+        <li id={`ref-${r.n}`} set:html={r.html} />
+      ))}
+    </ol>
+  </section>
+</GuideLayout>
+
+<style>
+  .table-wrap {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    margin: var(--space-5) 0;
+  }
+  .alt-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.875rem;
+    min-width: 46rem;
+  }
+  .alt-table thead th {
+    background: var(--bg-surface);
+    text-align: left;
+    font-weight: 600;
+    color: var(--text-primary);
+    padding: var(--space-3);
+    border-bottom: 2px solid var(--border-color);
+    vertical-align: bottom;
+  }
+  .alt-table thead th:first-child { width: 18%; }
+  .alt-table tbody th {
+    text-align: left;
+    font-weight: 600;
+    color: var(--text-primary);
+    padding: var(--space-3);
+    border-bottom: 1px solid var(--border-color);
+    vertical-align: top;
+  }
+  .alt-table tbody th:first-child { border-left: 3px solid var(--purple-700); }
+  .alt-table tbody td {
+    padding: var(--space-3);
+    color: var(--text-secondary);
+    border-bottom: 1px solid var(--border-color);
+    vertical-align: top;
+    line-height: 1.5;
+  }
+  .alt-table tbody tr:last-child th,
+  .alt-table tbody tr:last-child td { border-bottom: none; }
+
+  .references-list {
+    font-size: 0.875rem;
+    color: var(--text-secondary);
+    line-height: 1.6;
+    padding-left: var(--space-4);
+  }
+  .references-list li { margin-bottom: var(--space-2); }
+  .references-list a { color: var(--accent); }
+</style>

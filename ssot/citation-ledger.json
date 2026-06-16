@@ -1,0 +1,644 @@
+{
+  "_comment": "SSOT for cited-evidence integrity on comparison/method guides. Each source is classified ONCE by reading the actual abstract (author + finding + polarity), then scripts/lint-citations.mjs enforces it deterministically on every build. polarity is relative to the page's RRM-favorable thesis: 'supportive' (helps the RRM case), 'neutral' (methods/background or a fair counterweight), 'critical' (skeptical of or unfavorable to RRM). A 'critical' source may be cited honestly but must NOT carry supportive framing words (flagship/landmark/proves/etc.). Adding a new citation REQUIRES adding it here with a verified polarity. Verified against NCBI/DOI 2026-06-15.",
+  "governedPages": [
+    "naprotechnology-vs-ivf",
+    "rrm-vs-ivf",
+    "ivf-alternatives",
+    "rrm-success-rates",
+    "fertility-preserving-surgery",
+    "best-treatment-for-endometriosis",
+    "endometriosis-excision-vs-ablation",
+    "progesterone-for-recurrent-miscarriage",
+    "best-pcos-treatment-for-pregnancy",
+    "billings-ovulation-method",
+    "marquette-model",
+    "sensiplan",
+    "twoday-method",
+    "boston-cross-check"
+  ],
+  "supportiveFramingWords": [
+    "flagship",
+    "landmark",
+    "gold-standard",
+    "gold standard",
+    "definitive",
+    "proves",
+    "confirms that rrm",
+    "demonstrates that rrm",
+    "strongest evidence",
+    "the field's first",
+    "first flagship"
+  ],
+  "genericAnchors": [
+    "view in rrm library",
+    "pmid",
+    "hfea",
+    "rrmacademy",
+    "read more",
+    "learn more",
+    "see ",
+    "view "
+  ],
+  "sources": {
+    "restorative-reproductive-medicine-rrm-outcomes-compared-to-in-vitro-fertilization-rec4qqhafqb8stlnd": {
+      "authors": "Boyle",
+      "year": 2025,
+      "journal": "J Restor Reprod Med",
+      "finding": "First head-to-head RRM vs IVF registry comparison; 41% crude live birth (n=187).",
+      "polarity": "supportive"
+    },
+    "natural-procreative-technology-naprotechnology-for-infertility-take-home-baby-ra-recv02qu0r8ycnzoa": {
+      "authors": "Sanchez-Mendez",
+      "year": 2025,
+      "journal": "Front Reprod Health",
+      "finding": "NaPro cohort n=1310; 62.1% adjusted cumulative take-home baby rate.",
+      "polarity": "supportive"
+    },
+    "healthy-singleton-pregnancies-from-restorative-reproductive-medicine-rrm-after-f-recior3akxtg2a6ya": {
+      "authors": "Boyle",
+      "year": 2018,
+      "journal": "Front Med",
+      "finding": "RRM after failed IVF, n=403; 32.1% adjusted live birth.",
+      "polarity": "supportive"
+    },
+    "international-natural-procreative-technology-evaluation-and-surveillance-of-trea-recudgdct40otosdm": {
+      "authors": "Stanford",
+      "year": 2022,
+      "journal": "Hum Reprod Open",
+      "finding": "iNEST enrollment/methods paper; prospective cohort, 834 couples, 10 clinics/4 countries; reviews 29-66% adjusted cumulative LBR range.",
+      "polarity": "neutral"
+    },
+    "the-effectiveness-and-safety-of-restorative-reproductive-medicine-rrm-compared-t-vrqg1wuo": {
+      "authors": "Ganci",
+      "year": 2026,
+      "journal": "Fertil Steril",
+      "finding": "SKEPTICAL systematic review by IVF clinicians; found ZERO controlled comparative studies; concluded no reliable evidence RRM matches/beats IVF and that RRM may delay effective treatment.",
+      "polarity": "critical"
+    },
+    "assisted-reproductive-technology-and-the-risk-of-preeclampsia-an-updated-systema-reccpdeshwwxvgzwt": {
+      "authors": "Almasi-Hashiani",
+      "year": 2019,
+      "journal": "BMC Pregnancy Childbirth",
+      "finding": "ART raises preeclampsia risk (RR 1.71).",
+      "polarity": "supportive"
+    },
+    "complications-related-to-in-vitro-reproductive-techniques-support-the-implementa-reclfeffnu2v67szk": {
+      "authors": "Kiani",
+      "year": 2020,
+      "journal": "Acta Biomed",
+      "finding": "Narrative review; IVF complications support implementing natural/restorative approaches. NOT a gestational-surrogate study.",
+      "polarity": "supportive"
+    },
+    "comprehensive-diagnostic-and-therapeutic-approach-to-male-factor-infertility-8decfdf8": {
+      "authors": "Grande",
+      "year": 2025,
+      "journal": "Andrology",
+      "pmid": "39930939",
+      "finding": "Andrological workup achieved spontaneous pregnancy in 40.9% of couples; cut 'unexplained' to 8%. NOT authored by Bozhedomov.",
+      "polarity": "supportive"
+    },
+    "ovarian-hyperstimulation-syndrome-a-narrative-review-of-its-pathophysiology-risk-6voywtd5": {
+      "authors": "Namavar Jahromi",
+      "year": 2018,
+      "journal": "Iran J Med Sci",
+      "finding": "OHSS narrative review; severity classes, hospitalization for severe cases. No single clean incidence rate.",
+      "polarity": "supportive"
+    },
+    "cancer-in-children-born-after-frozenthawed-embryo-transfer-a-cohort-study-h9iyqiyp": {
+      "authors": "Sargisian",
+      "year": 2022,
+      "journal": "PLoS Med",
+      "finding": "Nordic cohort; FET vs spontaneous childhood-cancer aHR 1.65 (overall ART-vs-spontaneous not significant).",
+      "polarity": "supportive"
+    },
+    "livebirth-rate-associated-with-repeat-in-vitro-fertilization-treatment-cycles-rpeh9knj": {
+      "authors": "Smith",
+      "year": 2015,
+      "journal": "JAMA",
+      "finding": "Cumulative IVF live birth rises across repeat cycles (a fair counterweight to per-cycle figures).",
+      "polarity": "neutral"
+    },
+    "22611174": {
+      "authors": "Pandey",
+      "year": 2012,
+      "journal": "Hum Reprod Update",
+      "finding": "IVF/ICSI singletons: elevated preterm (RR 1.54), GDM, hypertensive disorders.",
+      "polarity": "supportive"
+    },
+    "29202976": {
+      "authors": "Woo",
+      "year": 2017,
+      "journal": "Fertil Steril",
+      "finding": "Gestational-surrogate within-woman model; IVF singletons worse outcomes than carriers' own natural pregnancies.",
+      "polarity": "supportive"
+    },
+    "23449641": {
+      "authors": "Hansen",
+      "year": 2013,
+      "journal": "Hum Reprod Update",
+      "finding": "ART singletons: birth-defect RR 1.36.",
+      "polarity": "supportive"
+    },
+    "23562045": {
+      "authors": "Hargreave",
+      "year": 2013,
+      "journal": "Fertil Steril",
+      "finding": "Fertility treatment: childhood-cancer RR 1.33 (may reflect underlying subfertility).",
+      "polarity": "supportive"
+    },
+    "35176012": {
+      "authors": "Sunderam",
+      "year": 2022,
+      "journal": "MMWR Surveill Summ",
+      "finding": "US ART multiple-birth rate 21.4% vs 3.3% general population (2018).",
+      "polarity": "supportive"
+    },
+    "complete-laparoscopic-excision-of-endometriosis-in-teenagers-is-postoperative-ho-recxfcsmpuo5jwlej": {
+      "authors": "Yeung",
+      "year": 2011,
+      "journal": "Fertility and Sterility",
+      "finding": "Complete laparoscopic excision of typical and atypical endometriosis in 17 teenagers achieved zero recurrence at repeat surgery (avg 23.1 mo) without postoperative hormonal suppression, supporting fertility-preserving excisional surgery over hormonal bypass.",
+      "polarity": "supportive"
+    },
+    "reproductive-capacity-and-recurrence-of-disease-after-surgery-for-moderate-and-s-recf1vqv2ggxv7b0v": {
+      "authors": "Schippert",
+      "year": 2020,
+      "journal": "BMC Women's Health",
+      "finding": "Retrospective series of 206 stage III/IV endometriosis patients showed 65.8% postoperative pregnancy, 93.2% symptom relief, and only 21.8% recurrence after fertility-preserving surgical resection, with laparoscopy yielding higher pregnancy rates.",
+      "polarity": "supportive"
+    },
+    "the-optimal-time-for-laparoscopic-excision-of-ovarian-endometrioma-a-prospective-rec4vsb4efgco6mfz": {
+      "authors": "Wu",
+      "year": 2023,
+      "journal": "Reproductive Biology and Endocrinology",
+      "finding": "RCT (n=88) found laparoscopic endometrioma cystectomy timed to the late luteal phase significantly reduced AMH decline and ovarian tissue loss versus early follicular phase, optimizing ovarian-reserve preservation during restorative surgery.",
+      "polarity": "supportive"
+    },
+    "endometriosis-and-infertility-a-long-life-approach-to-preserve-reproductive-inte-rec1j6zrndjomx72h": {
+      "authors": "Coccia",
+      "year": 2022,
+      "journal": "International Journal of Environmental Research and Public Health",
+      "finding": "Narrative review of endometriosis-associated infertility weighing surgery versus ART; balanced, noting surgery's iatrogenic ovarian-reserve risks while increasingly favoring ART, with no directional endorsement of restorative surgery.",
+      "polarity": "neutral"
+    },
+    "changes-in-circulating-hormone-levels-after-ovarian-wedge-resection-in-patients--recptuctsdp4xkvri": {
+      "authors": "Szilagyi",
+      "year": 1990,
+      "journal": "Archives of Gynecology and Obstetrics",
+      "finding": "Small mechanistic study (n=9) of hormone changes after ovarian wedge resection in PCOS: androstenedione/DHEA-S dropped at 5 days but rebounded by 6 weeks; mostly ovulatory cycles restored at 6-12 mo but pregnancy in only 2 cases.",
+      "polarity": "neutral"
+    },
+    "women-with-polycystic-ovary-syndrome-wedge-resected-in-1956-to-1965-a-long-term--rechefhwrego8w9tt": {
+      "authors": "Dahlgren",
+      "year": 1992,
+      "journal": "Fertility and Sterility",
+      "finding": "Long-term cohort of 33 PCOS women wedge-resected decades earlier; documents spontaneous restitution of cyclic regularity over time but focuses on persistent metabolic morbidity (hypertension, diabetes), a natural-history study with no surgical-efficacy verdict.",
+      "polarity": "neutral"
+    },
+    "fertility-following-bilateral-ovarian-wedge-resection-a-critical-analysis-of-90--recf4rzpjdymgulkf": {
+      "authors": "Adashi",
+      "year": 1981,
+      "journal": "Fertility and Sterility",
+      "finding": "Critical analysis of 90 PCOS wedge-resection cases: 91% ovulation restored but only 47.8% crude conception, attributing the gap to oligo-ovulation and BOWR-induced tuboperitoneal adhesions (>=7.8% pelvic disease, 8% ectopic), cautioning that this restorative surgery can induce mechanical sterility.",
+      "polarity": "neutral"
+    },
+    "myomectomy-as-a-reproductive-procedure-recqxq9rewjphran7": {
+      "authors": "Smith",
+      "year": 1990,
+      "journal": "American Journal of Obstetrics and Gynecology",
+      "finding": "Series of 64 fertility-preserving myomectomies; 40% live birth among those attempting pregnancy; concludes hysterectomy is not an alternative when childbearing is desired.",
+      "polarity": "supportive"
+    },
+    "myomectomy-for-fertility-enhancement-and-preservation-recoch84wsdle6ucr": {
+      "authors": "Verkauf",
+      "year": 1992,
+      "journal": "Fertility and Sterility",
+      "finding": "Review concluding abdominal myomectomy is an appropriate fertility-preserving alternative to hysterectomy; >50% of previously non-pregnant women conceive, with acceptable risk.",
+      "polarity": "supportive"
+    },
+    "tuboplasty-b1yfsfsh": {
+      "authors": "Nolan",
+      "year": null,
+      "journal": "",
+      "finding": "Slug did not resolve: get returned null twice, search returned no results, and SQL queries errored. Record appears absent or the slug is malformed (non-rec suffix differs from the batch pattern).",
+      "polarity": "neutral"
+    },
+    "reconstructive-tubal-surgery-uxepd2vs": {
+      "authors": "McEwen",
+      "year": 1966,
+      "journal": "Fertility and sterility",
+      "finding": "Early article on reconstructive (fertility-restoring) fallopian tube surgery; metadata-only record (no abstract/body), but topic is restorative tubal repair.",
+      "polarity": "supportive"
+    },
+    "reconstructive-tubal-microsurgery-and-assisted-reproductive-technology-recy0syhapupg3mrj": {
+      "authors": "Gomel",
+      "year": 2016,
+      "journal": "Fertility and Sterility",
+      "finding": "Editorial positioning reconstructive tubal microsurgery as a viable fertility-restoring alternative to ART for tubal-factor infertility (rrm_relevance 4.0).",
+      "polarity": "supportive"
+    },
+    "salpingoscopic-findings-in-women-with-occlusive-and-nonocclusive-salpingitis-ist-recrgl4yyuxbqviyo": {
+      "authors": "Urman",
+      "year": 1994,
+      "journal": "Fertility and Sterility",
+      "finding": "Diagnostic salpingoscopy study triaging proximal tubal disease; ~80% had normal endosalpinx suitable for microsurgical tubal reconstruction, ~19% bipolar disease referred to IVF.",
+      "polarity": "neutral"
+    },
+    "a-narrative-review-of-platelet-rich-plasma-prp-in-reproductive-medicine-recqzxtfd6o2nayxb": {
+      "authors": "Sharara",
+      "year": 2021,
+      "journal": "Journal of Assisted Reproduction and Genetics",
+      "finding": "Narrative review of autologous PRP for thin endometrium, poor ovarian reserve, and recurrent implantation failure; reports promising trends but calls for more research.",
+      "polarity": "neutral"
+    },
+    "clinical-efficacy-of-a-novel-method-of-fertilitypreserving-adenomyomectomy-in-in-ubtvtshp": {
+      "authors": "Yoon",
+      "year": 2023,
+      "journal": "Medicine (Baltimore)",
+      "finding": "Prospective trial of a novel fertility-preserving (uterus-sparing) adenomyomectomy in 45 women with severe diffuse adenomyosis: 54.5% conceived postoperatively with relief of dysmenorrhea/menorrhagia and no uterine rupture, supporting conservative surgery over hysterectomy.",
+      "polarity": "supportive"
+    },
+    "uterine-closure-after-cesarean-delivery-surgical-technique-biological-rationale--rec6gsyv5fuvlpt24": {
+      "authors": "Bujold",
+      "year": 2026,
+      "journal": "American Journal of Obstetrics and Gynecology",
+      "finding": "Argues a refined 3-layer cesarean closure that restores uterine anatomy and excludes endometrium produces stronger scars and prevents isthmoceles, adenomyosis, infertility and accreta; meticulous anatomy-respecting repair should take precedence over fast single-layer closure.",
+      "polarity": "supportive"
+    },
+    "isthmocele-and-infertility-recwpl3h1tdyzcxia": {
+      "authors": "Baldini",
+      "year": 2024,
+      "journal": "Journal of Clinical Medicine",
+      "finding": "Review linking cesarean-scar isthmocele (incidence 20-70%) to impaired fertility; documents the post-cesarean defect as a fertility problem and outlines RMT-guided surgical correction (hysteroscopy vs laparoscopic/vaginal repair) while cautioning against operating on all asymptomatic patients.",
+      "polarity": "supportive"
+    },
+    "isthmocele-from-risk-factors-to-management-reca7lowkovmdh8tr": {
+      "authors": "Iannone",
+      "year": 2019,
+      "journal": "Rev Bras Ginecol Obstet",
+      "finding": "Comprehensive review of isthmocele as a consequence of cesarean section covering pathophysiology, symptoms, classification, diagnosis and medical/surgical management; documents the conventional-surgery harm and calls for unified classification to guide repair.",
+      "polarity": "supportive"
+    },
+    "an-overview-of-postoperative-intraabdominal-adhesions-and-their-role-on-female-i-dlffz7cn": {
+      "authors": "Ghobrial",
+      "year": 2023,
+      "journal": "Journal of Clinical Medicine",
+      "finding": "Narrative review: postoperative adhesions occur after >90% of gynecologic surgeries and cause up to 40% of female infertility; emphasizes microsurgical/gentle technique, avoiding unnecessary surgery, and gel barriers to prevent the iatrogenic harm of conventional surgery.",
+      "polarity": "supportive"
+    },
+    "contemporary-adhesion-prevention-recoz8w7aaxsp162t": {
+      "authors": "diZerega",
+      "year": 1994,
+      "journal": "Fertility and Sterility",
+      "finding": "Review of peritoneal adhesion formation and prevention; key finding that peritoneal suturing increases adhesions while denuded peritoneum heals well, and physical barriers (Interceed, Gore-Tex) reduce adhesions, supporting fertility-preserving microsurgical practice.",
+      "polarity": "supportive"
+    },
+    "varicocele-management-for-infertility-and-pain-a-systematic-review-hothgmie": {
+      "authors": "Lundy",
+      "year": 2018,
+      "journal": "Arab journal of urology",
+      "finding": "PRISMA systematic review: varicocelectomy yields 26-40% spontaneous pregnancy and ~90% pain improvement, with microsurgical subinguinal repair giving the best fertility outcomes and lowest complications; supports restorative fertility-preserving surgery over bypass.",
+      "polarity": "supportive"
+    },
+    "recurrent-varicocele-3adlmoxn": {
+      "authors": "Rotker",
+      "year": 2016,
+      "journal": "Asian journal of andrology",
+      "finding": "Systematic review of varicocele recurrence rates (0-35% by technique), anatomic causes, and management; methods-oriented review with no directional fertility thesis, though microsurgical subinguinal noted as lowest-recurrence approach.",
+      "polarity": "neutral"
+    },
+    "male-reproductive-surgery-uaxq6stm": {
+      "authors": "",
+      "year": null,
+      "journal": "",
+      "finding": "Slug did not resolve in the knowledge base via get (all suffix-case variants) or search; record not found.",
+      "polarity": "neutral"
+    },
+    "surgical-treatment-for-male-infertility-vapnlvfo": {
+      "authors": "",
+      "year": null,
+      "journal": "",
+      "finding": "Slug did not resolve in the knowledge base via get (all suffix-case variants) or search; record not found.",
+      "polarity": "neutral"
+    },
+    "surgical-techniques-for-the-management-of-male-infertility-r8tbf6dd": {
+      "authors": "Lopushnyan",
+      "year": 2012,
+      "journal": "Asian Journal of Andrology",
+      "finding": "Balanced overview of male-infertility surgery (diagnostic biopsy/FNA, varicocelectomy, vasectomy reversal, sperm retrieval); documents restorative surgical benefits but frames care as couple-based and ART-inclusive (IVF-ICSI), no single directional thesis.",
+      "polarity": "neutral"
+    },
+    "infertility-surgery-for-men-vlrcydag": {
+      "authors": "",
+      "year": null,
+      "journal": "",
+      "finding": "Slug did not resolve in the knowledge base via get (all suffix-case variants) or search; record not found.",
+      "polarity": "neutral"
+    },
+    "surgery-for-male-infertility-s5kogar6": {
+      "authors": "",
+      "year": null,
+      "journal": "",
+      "finding": "Slug did not resolve in the knowledge base via get (all suffix-case variants) or search; record not found.",
+      "polarity": "neutral"
+    },
+    "outcomes-from-treatment-of-infertility-with-natural-procreative-technology-in-an-recj7cwubt4vlyfjl": {
+      "authors": "Stanford",
+      "year": 2008,
+      "journal": "Journal of the American Board of Family Medicine",
+      "finding": "Crude 25.5% vs adjusted (life-table) cumulative 52.8% @24mo (label both explicitly). adjCumConception 0.648 = adjusted-cumulative ANY conception 64.8% @24mo (Ta",
+      "polarity": "supportive",
+      "pmid": "18772291"
+    },
+    "natural-procreative-technology-for-infertility-and-recurrent-miscarriage-outcome-recmv6gf3xlcbt6ny": {
+      "authors": "Tham",
+      "year": 2012,
+      "journal": "Canadian Family Physician",
+      "finding": "Recurrent-miscarriage subgroup: 19/108 (18%) had 2+ prior unexplained miscarriages. All births singleton. CORRECTION: crudeLbr filled to 0.38 from abstract (was",
+      "polarity": "supportive",
+      "pmid": "22734170"
+    },
+    "restorative-reproductive-medicine-for-infertility-in-two-family-medicine-clinics-recyiv7uvglmix9ex": {
+      "authors": "Stanford",
+      "year": 2021,
+      "journal": "BMC Pregnancy and Childbirth",
+      "finding": "Kaplan-Meier cumulative LBR @2yr 29% overall; 34% for women under 35; 40% for BMI<25. CORRECTION: author Tingey B added (was omitted in seed). Country is Massac",
+      "polarity": "supportive",
+      "pmid": "34233646"
+    },
+    "fertility-awareness-methods-and-waiting-conduct-in-idiopathic-infertility-a-pros-toeisff6": {
+      "authors": "Barbato",
+      "year": 2026,
+      "journal": "Frontiers in Reproductive Health",
+      "finding": "n CORRECTED: seed n=97 was the TOTAL (41 FAM + 56 ART); the RRM/FAM arm is n=41. adjCumConception 0.5122 = crude FAM-arm pregnancy rate 51.22% (21/41 spontaneou",
+      "polarity": "supportive",
+      "pmid": "41883420"
+    },
+    "participation-of-general-practitioners-and-therapeutic-patient-education-in-the--uqsg20aj": {
+      "authors": "Bernot",
+      "year": 2025,
+      "journal": "European Journal of Obstetrics & Gynecology and Reproductive Biology",
+      "finding": "MATCH CONFIRMED (not a wrong record): this GP/therapeutic-patient-education paper IS the source of n=551. CORRECTIONS: (1) adjCumConception 0.37 is the CRUDE co",
+      "polarity": "supportive",
+      "pmid": "40209491"
+    },
+    "pregnancy-outcomes-from-a-restorative-infertility-treatment-model-a-single-centr-916a9dda": {
+      "authors": "James",
+      "year": 2021,
+      "journal": "medRxiv",
+      "finding": "PREPRINT -- not peer reviewed. Badge prominently. crudeLbr 0.354 = crude live-birth rate 35.4% (58/162) over 24mo; adjCumLbr 0.574 = Kaplan-Meier adjusted cumul",
+      "polarity": "supportive",
+      "pmid": null
+    },
+    "stratification-of-fertility-potential-according-to-cervical-mucus-symptoms-achie-recy9fpzmcvrv1x8z": {
+      "authors": "Marshell",
+      "year": 2019,
+      "journal": "Human Fertility",
+      "finding": "Cervical-mucus (Billings) stratification cohort. adjCumConception 0.625 = crude PREGNANCY achievement 62.5% (240/384), not live birth. High vs low mucus-potenti",
+      "polarity": "supportive",
+      "pmid": "31661330"
+    },
+    "natural-conception-rates-in-subfertile-couples-following-fertility-awareness-tra-recrnmwsmvcznztul": {
+      "authors": "Frank-Herrmann",
+      "year": 2017,
+      "journal": "Archives of Gynecology and Obstetrics",
+      "finding": "adjCumConception 0.38 = cumulative pregnancy rate 38% (95% CI 27-49%; 58 pregnancies) after 8 observation months -- life-table cumulative, all-comers. Subgroup ",
+      "polarity": "supportive",
+      "pmid": "28185073"
+    },
+    "restorative-reproductive-medicine-for-infertility-and-recurrent-miscarriage-in-t-0016c5f1": {
+      "authors": "Horodenchuk",
+      "year": 2020,
+      "journal": "Kwartalnik Naukowy Fides et Ratio",
+      "finding": "Lower-tier journal (tier note rendered on row). crudeLbr 0.415 = crude live-birth proportion 41.5% (117 births); adjCumLbr 0.736 = life-table adjusted cumulativ",
+      "polarity": "supportive",
+      "pmid": null
+    },
+    "revitalizing-reproductive-health-innovations-and-future-frontiers-in-restorative-reccddj5kun7yn1ir": {
+      "authors": "Bulletti",
+      "year": 2025,
+      "journal": "Therapeutic Advances in Reproductive Health",
+      "finding": "RRM success 40-60%, ART 30-40% (Table 7 stated ranges); cost RRM $2000-5000 vs ART (IVF/cycle) $10,000-15,000 (Tables 7-8). Review, not a cohort. CORRECTION: le",
+      "polarity": "supportive",
+      "pmid": "40546415"
+    },
+    "fertility-treatments-and-adverse-perinatal-outcomes-in-a-population-based-sampli-rec9u2zrqqgyuipxq": {
+      "authors": "Stanford",
+      "year": 2016,
+      "journal": "BJOG",
+      "finding": "ART singletons: preterm OR 3.28 (95% CI 1.74-6.20), low birthweight OR 2.91 (1.99-4.26) vs never-treated referent; n=21,803 surveyed, weighted to 1,022,597. Yea",
+      "polarity": "supportive",
+      "pmid": "26148540"
+    },
+    "fertility-treatments-and-the-risk-of-preterm-birth-among-women-with-subfertility-recpxh63cqyktiu3x": {
+      "authors": "Sanders",
+      "year": 2022,
+      "journal": "Reproductive Health",
+      "finding": "Adjusted preterm-birth odds vs untreated subfertile women: IVF OR 4.24 (95% CI 2.05-8.77); IUI OR 3.17 (1.40-7.19); ovulation drugs OR 2.17 (0.99-4.75). Linked-",
+      "polarity": "supportive",
+      "pmid": "35351163"
+    },
+    "gnrh-agonists-in-the-treatment-of-symptomatic-endometriosis-a-review-rec6s3sc5zw9uyhek": {
+      "authors": "Surrey",
+      "year": 2023,
+      "journal": "F&S Reports",
+      "pmid": "37223763",
+      "finding": "Conventional pro-GnRH-agonist review; suppression manages symptoms, disease recurs after stopping (53.4% at 5yr, orig. Waller & Shaw). Cited for the recurrence fact, not as anti-suppression evidence.",
+      "polarity": "neutral"
+    },
+    "the-long-term-rate-of-repeat-surgery-after-optimal-excision-surgery-of-endometriosis-at-a-single-tertiary-referral-center-recqlibe83zkcp2is": {
+      "authors": "Yeung",
+      "year": 2025,
+      "journal": "Acta Scientific Women's Health",
+      "finding": "Single-surgeon optimal-excision series n=620; 2.5% long-term reoperation rate.",
+      "polarity": "supportive"
+    },
+    "endometriosis-quality-of-life-cohort-study-long-term-impact-of-radical-laparoscopic-excision-of-endometriosis-recliqau6fpydw73h": {
+      "authors": "McDonnell",
+      "year": 2025,
+      "journal": "Gynecol Minim Invasive Ther",
+      "pmid": "40143984",
+      "finding": "Radical excision cohort; durable pain/QoL improvement up to 10y; 77.1% of those desiring pregnancy conceived (70% naturally).",
+      "polarity": "supportive"
+    },
+    "20356588": {
+      "authors": "Healey",
+      "year": 2010,
+      "journal": "Fertil Steril",
+      "finding": "RCT excision vs ablation: no significant 12-mo pain difference for superficial disease; trend favoring excision for dyschezia.",
+      "polarity": "neutral"
+    },
+    "a-randomized-trial-of-progesterone-in-women-with-recurrent-miscarriages-recfz9day9yhn0yps": {
+      "authors": "Coomarasamy",
+      "year": 2015,
+      "journal": "NEJM",
+      "pmid": "26605928",
+      "finding": "PROMISE RCT n=836; empiric first-trimester progesterone did NOT improve live birth in unselected recurrent miscarriage (65.8% vs 63.3%, ns).",
+      "polarity": "neutral"
+    },
+    "a-randomized-trial-of-progesterone-in-women-with-bleeding-in-early-pregnancy-rec7mjvhhkr2ttyqe": {
+      "authors": "Coomarasamy",
+      "year": 2019,
+      "journal": "NEJM",
+      "pmid": "31067371",
+      "finding": "PRISM RCT; overall null, but benefit in the prior-miscarriage + current-bleeding subgroup, scaling with number of prior losses.",
+      "polarity": "neutral"
+    },
+    "micronized-vaginal-progesterone-to-prevent-miscarriage-a-critical-evaluation-of--recgcsx91hhg7nvqy": {
+      "authors": "Coomarasamy",
+      "year": 2020,
+      "journal": "AJOG",
+      "pmid": "32008730",
+      "finding": "Critical re-evaluation: no benefit unselected; benefit in bleeding + prior-loss subgroup. Supports SELECTING who gets progesterone.",
+      "polarity": "neutral"
+    },
+    "progesterone-profiles-in-luteal-phase-defect-cycles-and-outcome-of-progesterone--recnuxeiyam2juau5": {
+      "authors": "Daya",
+      "year": 1988,
+      "journal": "AJOG",
+      "pmid": "3341399",
+      "finding": "Subset of RPL women have deficient luteal-phase progesterone profiles; identifying them is relevant to treatment response.",
+      "polarity": "supportive"
+    },
+    "progesterone-in-women-with-recurrent-miscarriages-recqtd829bgkrlihw": {
+      "authors": "Carpentier",
+      "year": 2016,
+      "journal": "NEJM (letter)",
+      "pmid": "26962922",
+      "finding": "RRM critique of PROMISE: empiric untargeted progesterone started after conception in unselected women is the wrong design; diagnose + time treatment.",
+      "polarity": "supportive"
+    },
+    "31056315": {
+      "authors": "McQueen",
+      "year": 2019,
+      "journal": "Fertil Steril",
+      "finding": "Meta-analysis (1,013 men): sperm DNA fragmentation higher in RPL partners; male factor relevant to RPL.",
+      "polarity": "supportive"
+    },
+    "42062119": {
+      "authors": "Practice Committee",
+      "year": 2026,
+      "journal": "Fertil Steril",
+      "finding": "ASRM committee opinion on recurrent pregnancy loss; notes LPD lacks a standardized validated diagnostic test.",
+      "polarity": "neutral"
+    },
+    "myoinositol-as-a-safe-and-alternative-approach-in-the-treatment-of-infertile-pco-recuw91aijvm8rcge": {
+      "authors": "Regidor",
+      "year": 2016,
+      "journal": "Int J Endocrinol",
+      "pmid": "27642297",
+      "finding": "Myo-inositol improves ovarian function + metabolic parameters in anovulatory PCOS.",
+      "polarity": "supportive"
+    },
+    "metformin-increases-the-ovulatory-rate-and-pregnancy-rate-from-clomiphene-citrat-rec9e3prvyqzjaepo": {
+      "authors": "Vandermolen",
+      "year": 2001,
+      "journal": "Fertil Steril",
+      "pmid": "11172832",
+      "finding": "Metformin raises ovulatory + pregnancy rate from clomiphene in clomiphene-resistant PCOS.",
+      "polarity": "supportive"
+    },
+    "metformin-therapy-throughout-pregnancy-reduces-the-development-of-gestational-di-recyg9ibvfe3chjje": {
+      "authors": "Glueck",
+      "year": 2002,
+      "journal": "Fertil Steril",
+      "pmid": "11872206",
+      "finding": "Metformin through pregnancy reduces gestational diabetes in PCOS.",
+      "polarity": "supportive"
+    },
+    "25006718": {
+      "authors": "Legro",
+      "year": 2014,
+      "journal": "NEJM",
+      "finding": "RCT n=750: letrozole > clomiphene on ovulation + live birth in PCOS; twin rate numerically lower (not significant).",
+      "polarity": "supportive"
+    },
+    "letrozole-or-clomiphene-for-infertility-in-the-polycystic-ovary-syndrome-recgrvvtlvs9dogjt": {
+      "authors": "Legro",
+      "year": 2014,
+      "journal": "NEJM (letter)",
+      "finding": "Correspondence related to the Legro letrozole-vs-clomiphene RCT.",
+      "polarity": "supportive"
+    },
+    "polycystic-ovary-syndrome-pathophysiology-and-outcome-with-in-vitro-fertilizatio-recuth86c8xqxkttj": {
+      "authors": "Buyalos",
+      "year": 1996,
+      "journal": "Fertil Steril",
+      "pmid": "8557121",
+      "finding": "PCOS pathophysiology + IVF outcomes incl. elevated OHSS risk.",
+      "polarity": "supportive"
+    },
+    "laparoscopic-ovarian-drilling-for-ovulation-induction-in-women-with-anovulatory--b20z9yzu": {
+      "authors": "Bordewijk",
+      "year": 2020,
+      "journal": "Cochrane Database Syst Rev",
+      "pmid": "32048270",
+      "finding": "Cochrane review: LOD may slightly LOWER live birth vs medical ovulation induction (OR 0.71), but fewer multiples + no OHSS.",
+      "polarity": "neutral"
+    },
+    "sperm-dna-fragmentation-and-recurrent-pregnancy-loss-a-systematic-review-and-met-recyq3m4kcw20pwot": {
+      "authors": "McQueen",
+      "year": 2019,
+      "journal": "Fertil Steril",
+      "pmid": "31056315",
+      "finding": "Meta-analysis (1,013 men): sperm DNA fragmentation higher in RPL partners; male factor relevant to RPL.",
+      "polarity": "supportive"
+    },
+    "7308503": {
+      "authors": "WHO",
+      "year": 1981,
+      "journal": "Fertil Steril",
+      "finding": "WHO multicentre trial of the ovulation (Billings) method; perfect-use ~2.8/100.",
+      "polarity": "supportive"
+    },
+    "30095777": {
+      "authors": "Peragallo",
+      "year": 2018,
+      "journal": "Obstet Gynecol",
+      "finding": "Systematic review of FABM effectiveness (perfect + typical use across methods).",
+      "polarity": "supportive"
+    },
+    "17371516": {
+      "authors": "Fehring",
+      "year": 2007,
+      "journal": "JOGNN",
+      "finding": "Marquette monitor + mucus method efficacy; perfect-use ~2/100.",
+      "polarity": "supportive"
+    },
+    "35321484": {
+      "authors": "Mu",
+      "year": 2022,
+      "journal": "Linacre Q",
+      "finding": "Marquette Method multisite effectiveness study (typical-use range).",
+      "polarity": "supportive"
+    },
+    "29376054": {
+      "authors": "Bouchard",
+      "year": 2017,
+      "journal": "Front Med",
+      "finding": "Achieving pregnancy with primary-care FABM interventions; Marquette TTC ~83% by 12 cycles.",
+      "polarity": "supportive"
+    },
+    "17314078": {
+      "authors": "Frank-Herrmann",
+      "year": 2007,
+      "journal": "Hum Reprod",
+      "finding": "Sensiplan sympto-thermal method effectiveness; typical-use 1.8/100.",
+      "polarity": "supportive"
+    },
+    "12923157": {
+      "authors": "Gnoth",
+      "year": 2003,
+      "journal": "Hum Reprod",
+      "finding": "German time-to-pregnancy study; ~81% conceive by 6 cycles, 92% by 12 with fertile-window timing.",
+      "polarity": "supportive"
+    },
+    "15482764": {
+      "authors": "Arevalo",
+      "year": 2004,
+      "journal": "Fertil Steril",
+      "finding": "TwoDay Method efficacy; perfect-use 3.5/100, typical-use 13.7/100.",
+      "polarity": "supportive"
+    }
+  }
+}

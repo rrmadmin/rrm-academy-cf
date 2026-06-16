@@ -388,6 +388,9 @@ jobs:
       - name: CSS drift gate (criticals 0 + category ratchet)
         run: node scripts/css-audit/audit.mjs --gate
 
+      - name: Citation integrity gate (catalogued + author + polarity)
+        run: node scripts/gates/validate-citations.mjs --gate
+
       - name: Verify mobile hamburger (present + right-aligned)
         run: npm run verify-hamburger
 

@@ -1,0 +1,91 @@
+{
+  "_comment": "SSOT for /sensiplan/ FABM method guide (category:methods). Built 2026-06-16. Effectiveness figures curl-verified vs NCBI; references rebuilt from verified citation metadata (Gianna ref-strings were fabricated). Inline PubMed cites correct.",
+  "published": "2026-06-16",
+  "modified": "2026-06-16",
+  "keyTakeaways": [
+    "Sensiplan uses cervical mucus and basal body temperature together. Two independent biomarkers confirm ovulation. That double-check rule is what separates a sympto-thermal method from a single-biomarker one.",
+    "Perfect-use effectiveness is about 0.4 pregnancies per 100 woman-years, one of the lowest rates published for any fertility awareness-based method, based on the largest prospective cohort of sympto-thermal users studied to date.",
+    "Typical-use effectiveness is 1.8 pregnancies per 100 woman-years, placing Sensiplan among the most effective FABMs studied when real-world user behavior is included.",
+    "For couples trying to conceive, about 81% of normally fertile couples achieved pregnancy by six cycles of cycle-targeted intercourse, confirming that the chart accurately identifies the fertile window.",
+    "An RRM clinician reading a Sensiplan chart gains a dual-biomarker record of the ovulatory event and the luteal phase. That record is richer than a mucus-only chart and supports cause-based evaluation of cycle dysfunction.",
+    "Sensiplan is learned from a certified instructor. The Couple to Couple League (CCL) and FACTS About Fertility both offer sympto-thermal training in the United States."
+  ],
+  "factsBox": {
+    "biomarker": "Sympto-thermal combination: cervical mucus observation plus basal body temperature, confirmed with a double-check rule",
+    "taughtBy": "Certified sympto-thermal (Sensiplan) instructor; training available through the Couple to Couple League (CCL) and FACTS About Fertility",
+    "toolsNeeded": "A basal body thermometer (reads to at least two decimal places)",
+    "perfectUse": "About 0.4 pregnancies per 100 woman-years (Peragallo Urrutia et al. 2018, PMID 30095777)",
+    "typicalUse": "1.8 pregnancies per 100 woman-years, among the most effective FABMs studied (Frank-Herrmann et al. 2007, PMID 17314078)"
+  },
+  "prose": {
+    "whatItIs": "<p>Sensiplan is a sympto-thermal fertility awareness-based method that reads two independent biological signals: cervical mucus and basal body temperature. A woman observes and records both each day. A double-check rule requires that the post-ovulatory infertile phase be confirmed by both signals before it is declared. That redundancy is the method's defining feature. One signal alone is not sufficient to establish the post-Peak phase under the Sensiplan protocol.</p><p>Sensiplan was developed in Germany by the natural family planning research group Arbeitsgruppe NFP (now part of the Institut für Natürliche Familienplanung). The method has been studied prospectively in large populations, and its published effectiveness data are among the most rigorously collected in the FABM evidence base.</p><p>For an overview of how Sensiplan compares with other fertility awareness-based methods, see <a href=\"/fertility-awareness-methods-compared/\">rrmacademy.org/fertility-awareness-methods-compared/</a>. For the restorative medicine context in which FABM charts serve as clinical records, see <a href=\"/naprotechnology/\">rrmacademy.org/naprotechnology/</a>.</p>",
+    "howItWorks": "<p>Each morning before rising, the woman takes her temperature with a basal body thermometer and records it on the chart. Temperature values are plotted as a graph. A sustained thermal shift above the previous low-temperature phase confirms that ovulation has occurred and that progesterone production from the corpus luteum has begun.</p><p>Throughout the day she observes cervical mucus at the vulva: sensation, appearance, and stretchiness. These observations follow the same underlying biology as other mucus-based methods. Rising estrogen produces increasing, more fertile-type mucus in the days approaching ovulation. The peak of fertile-type mucus coincides with the LH surge and the ovulatory event. The transition to dry, non-fertile mucus in the post-Peak phase reflects progesterone production.</p><p>The double-check rule ties the two signals together. The post-ovulatory infertile phase is established only when both the temperature shift and the mucus shift have been confirmed. Neither alone is sufficient. That requirement is what distinguishes Sensiplan from single-biomarker methods and what produces the low perfect-use pregnancy rate the prospective cohort literature reports.</p>",
+    "taughtBy": "<p>Sensiplan is an instructor-taught method. Learning it from a book or app alone is not the recognized protocol. A certified sympto-thermal instructor teaches the observation rules, the charting conventions, and the double-check rule through structured follow-up visits, reviewing the chart as the learner applies the method in real cycles.</p><p>In the United States, the Couple to Couple League (CCL) offers sympto-thermal instruction rooted in the Sensiplan approach. FACTS About Fertility also provides sympto-thermal training for individuals and clinicians. A directory of certified instructors is available through both organizations.</p><p>Instruction quality matters. The published effectiveness studies followed couples who received certified instruction. Effectiveness figures from those cohorts do not transfer automatically to self-taught users.</p>",
+    "effectiveness": "<p>The prospective cohort evidence for Sensiplan is among the strongest published for any fertility awareness-based method.</p><p>A large German prospective cohort reported a perfect-use rate of about 0.4 pregnancies per 100 woman-years, meaning that when the method rules were followed correctly, pregnancy was rare (<a class=\"cite\" href=\"https://pubmed.ncbi.nlm.nih.gov/30095777/\" rel=\"noopener\">Peragallo Urrutia et al. 2018</a>). That figure answers one specific question: how reliable is the biology when couples follow the rules?</p><p>Typical-use effectiveness, which includes couples who made rule deviations, was 1.8 pregnancies per 100 woman-years (<a class=\"cite\" href=\"https://pubmed.ncbi.nlm.nih.gov/17314078/\" rel=\"noopener\">Frank-Herrmann et al. 2007</a>). A 2018 systematic review of fertility awareness-based methods placed that figure among the most effective typical-use rates published across the entire FABM field (<a class=\"cite\" href=\"https://pubmed.ncbi.nlm.nih.gov/30095777/\" rel=\"noopener\">Peragallo Urrutia et al. 2018</a>).</p><p>Honest context belongs here. All FABM effectiveness data, including these figures, come from observational cohort studies, not randomized controlled trials. That is a real evidence limitation. It is also the same evidentiary foundation on which effectiveness rates for most contraceptive methods rest. The limitation applies symmetrically.</p>",
+    "usedFor": "<p>Sensiplan serves two primary purposes: identifying the fertile window to avoid pregnancy, and identifying the fertile window to time intercourse for couples trying to conceive.</p><p>For couples avoiding pregnancy, the method requires abstinence from genital contact during the identified fertile window. The double-check rule ensures that both partners have independent biological confirmation before the post-ovulatory infertile phase is declared.</p><p>For couples trying to conceive, the chart points directly to the days of peak fertility. A prospective study of normally fertile couples found a cumulative pregnancy rate of about 81% by six cycles when intercourse was timed to the chart-identified fertile window (<a class=\"cite\" href=\"https://pubmed.ncbi.nlm.nih.gov/12923157/\" rel=\"noopener\">Gnoth et al. 2003</a>). That figure reflects the method's ability to identify the fertile window accurately, not any medical intervention. Both partners are part of this picture. Male factor contributes to difficulty conceiving in a substantial portion of couples, and evaluation of both partners belongs in any restorative workup. An RRM clinician evaluates both from the first appointment.</p>",
+    "rrmValue": "<p>A Sensiplan chart gives an RRM clinician two biomarker streams where a mucus-only chart gives one. The temperature record adds a direct window into the post-ovulatory luteal phase: when the thermal shift occurred, how sustained it was, and what the temperature pattern looked like across the days following ovulation. That information sits alongside the mucus record, and the two together produce a richer picture of whether the ovulatory event and the subsequent luteal phase are functioning as expected.</p><p>The double-check rule also has clinical value. When both signals confirm the post-ovulatory shift, the clinician can read that confirmation as corroborating evidence of an ovulatory event. When the signals diverge, that divergence is itself a clinical observation worth investigating.</p><p>RRM clinicians work from cycle data rather than calendar assumptions. A sympto-thermal chart is a dual-biomarker longitudinal record of the cycle. That is a more complete clinical input than a single signal alone. For the framework in which clinicians use FABM data to evaluate and treat underlying reproductive conditions, see <a href=\"/naprotechnology/\">rrmacademy.org/naprotechnology/</a>. To find a clinician who works with sympto-thermal charts in an RRM context, visit <a href=\"/providers/\">rrmacademy.org/providers/</a>.</p>",
+    "howToLearn": "<p>The recognized pathway is certified instructor-led training. Two organizations offer sympto-thermal instruction in the United States aligned with the Sensiplan approach:</p><ul><li><strong>Couple to Couple League (CCL):</strong> <a href=\"https://ccli.org\" rel=\"noopener\">ccli.org</a></li><li><strong>FACTS About Fertility:</strong> <a href=\"https://factsaboutfertility.org\" rel=\"noopener\">factsaboutfertility.org</a></li></ul><p>CCL provides instructor-led classes, both in-person and online, with certified teacher follow-up. FACTS About Fertility offers sympto-thermal training for individuals as well as education programs for healthcare providers.</p><p>If you are entering a restorative reproductive medicine evaluation, learning Sensiplan before that first appointment gives the clinician a chart to read from the start. The data the chart provides, particularly the temperature and mucus records across at least two or three cycles, can meaningfully inform that initial evaluation. For clinical care, visit <a href=\"/providers/\">rrmacademy.org/providers/</a>.</p>"
+  },
+  "faqs": [
+    {
+      "question": "How effective is Sensiplan at preventing pregnancy?",
+      "answerHtml": "<p>When the method rules are followed correctly, Sensiplan has a perfect-use rate of about 0.4 pregnancies per 100 woman-years, one of the lowest published for any fertility awareness-based method (<a class=\"cite\" href=\"https://pubmed.ncbi.nlm.nih.gov/30095777/\" rel=\"noopener\">Peragallo Urrutia et al. 2018</a>). Typical-use effectiveness, which includes couples who made rule deviations, is 1.8 pregnancies per 100 woman-years (<a class=\"cite\" href=\"https://pubmed.ncbi.nlm.nih.gov/17314078/\" rel=\"noopener\">Frank-Herrmann et al. 2007</a>). Both figures come from a large prospective German cohort with certified instructor teaching. Real-world results depend heavily on consistent daily charting and faithful adherence to the double-check rule. Consult an RRM clinician for guidance specific to your situation.</p>"
+    },
+    {
+      "question": "What is the double-check rule in Sensiplan?",
+      "answerHtml": "<p>The double-check rule requires that the post-ovulatory infertile phase be confirmed by both biomarkers before it is declared. Temperature alone is not enough. Mucus alone is not enough. Both the sustained thermal shift and the transition to non-fertile mucus must be present. That requirement is the method's core safety mechanism. It means a rule deviation affecting one signal cannot silently move the fertile window. It also means that when the two signals confirm together, the clinician reading the chart has corroborating evidence of an ovulatory event, not just a single data point. Consult an RRM clinician for guidance specific to your situation.</p>"
+    },
+    {
+      "question": "Can Sensiplan help us conceive, not just avoid pregnancy?",
+      "answerHtml": "<p>In many cases, yes. The same chart that identifies the infertile window for avoiding pregnancy identifies the fertile window for achieving it. A prospective study of normally fertile couples found a cumulative pregnancy rate of about 81% by six cycles when intercourse was timed to the chart-identified fertile window (<a class=\"cite\" href=\"https://pubmed.ncbi.nlm.nih.gov/12923157/\" rel=\"noopener\">Gnoth et al. 2003</a>). That figure reflects accurate fertile-window identification, not medical intervention. For couples who have been trying without success, a Sensiplan chart also gives an RRM clinician dual-biomarker data to evaluate. The chart is a starting point for a cause-based workup of both partners. Consult an RRM clinician for guidance specific to your situation.</p>"
+    },
+    {
+      "question": "Do I need an instructor, or can I learn from an app?",
+      "answerHtml": "<p>Certified instructor-led training is the recognized protocol for Sensiplan. The published effectiveness figures come from cohorts taught by certified instructors with structured follow-up. App-based or self-taught approaches have not been validated against the same standard and do not replicate the case-management structure that produces those outcomes. An instructor reviews your chart across multiple cycles, identifies observation errors, and adjusts guidance as your individual cycle pattern becomes clear. The Couple to Couple League (CCL) and FACTS About Fertility both provide certified sympto-thermal instruction in the United States. Consult an RRM clinician for guidance specific to your situation.</p>"
+    },
+    {
+      "question": "How does Sensiplan compare with mucus-only methods like the Creighton Model?",
+      "answerHtml": "<p>The most meaningful difference is the addition of basal body temperature as a second biomarker. Mucus-only methods read one signal. Sensiplan reads two and requires both to confirm the post-ovulatory phase. For avoiding pregnancy, that double-check rule provides an additional layer of biological confirmation. For clinical use in a restorative medicine context, the temperature record adds luteal-phase data that a mucus-only chart does not capture. The Creighton Model is purpose-built as the diagnostic record for NaProTechnology and uses a standardized charting vocabulary designed for that clinical integration. Sensiplan's dual-biomarker record serves a similar informational function for clinicians working with sympto-thermal charts. See <a href=\"/fertility-awareness-methods-compared/\">rrmacademy.org/fertility-awareness-methods-compared/</a> for a full comparison. Consult an RRM clinician for guidance specific to your situation.</p>"
+    },
+    {
+      "question": "Is Sensiplan useful if my cycles are irregular?",
+      "answerHtml": "<p>In many cases, yes. Sensiplan reads actual biological signals rather than making calendar assumptions about when ovulation occurs. Long cycles, irregular cycles, and cycles during transitions such as postpartum or after stopping suppressive medications all produce the same underlying mucus and temperature signals. The chart follows the biology wherever it goes. Irregular cycles do require more careful chart interpretation and make instructor-guided follow-up more important, not less. A certified instructor familiar with irregular-cycle patterns can help identify what the chart is showing across successive cycles and flag patterns that warrant evaluation by an RRM clinician. Consult an RRM clinician for guidance specific to your situation.</p>"
+    }
+  ],
+  "references": [
+    {
+      "n": 1,
+      "html": "Peragallo Urrutia R, et al. Effectiveness of fertility awareness-based methods for pregnancy prevention: a systematic review. <em>Obstetrics and Gynecology</em>. 2018;132(3):591-604. <a href=\"https://pubmed.ncbi.nlm.nih.gov/30095777/\" rel=\"noopener\">PMID 30095777</a>."
+    },
+    {
+      "n": 2,
+      "html": "Frank-Herrmann P, et al. The effectiveness of a fertility awareness based method to avoid pregnancy in relation to sexual behaviour during the fertile time. <em>Human Reproduction</em>. 2007;22(5):1310-1319. <a href=\"https://pubmed.ncbi.nlm.nih.gov/17314078/\" rel=\"noopener\">PMID 17314078</a>."
+    },
+    {
+      "n": 3,
+      "html": "Gnoth C, et al. Time to pregnancy: results of the German prospective study. <em>Human Reproduction</em>. 2003;18(9):1959-1966. <a href=\"https://pubmed.ncbi.nlm.nih.gov/12923157/\" rel=\"noopener\">PMID 12923157</a>."
+    }
+  ],
+  "about": [
+    {
+      "type": "MedicalProcedure",
+      "name": "Sensiplan"
+    },
+    {
+      "type": "MedicalProcedure",
+      "name": "Sympto-thermal method"
+    },
+    {
+      "type": "Thing",
+      "name": "Fertility awareness-based methods (FABM)"
+    },
+    {
+      "type": "Thing",
+      "name": "Basal body temperature charting"
+    },
+    {
+      "type": "Thing",
+      "name": "Cervical mucus observation"
+    }
+  ]
+}

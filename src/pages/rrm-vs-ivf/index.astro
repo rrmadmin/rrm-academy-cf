@@ -1,0 +1,207 @@
+---
+// /rrm-vs-ivf/ comparison guide (category: compare).
+// Discipline-level page: RRM as a field vs IVF. Routes depth to
+// /naprotechnology-vs-ivf/ and /rrm-success-rates/. Conventions via GuideLayout.
+// Content from the SSOT data file (gianna-copywriter, Dr. Whittaker voice);
+// 5 ledger-verified citations only. Patient pathway = /providers/.
+// NOTE: /rrm-vs-ivf currently 301s to /courses/rrm-vs-ivf in rrm-router;
+// router decision flagged for go-live. Page built + HELD.
+import GuideLayout from '../../layouts/GuideLayout.astro';
+import data from '../../data/rrm-vs-ivf.json';
+
+const SLUG = 'rrm-vs-ivf';
+const PAGE_URL = `https://rrmacademy.org/${SLUG}/`;
+const { published: PUBLISHED, modified: MODIFIED } = data;
+
+const TOC_ITEMS = data.tocItems;
+
+const KEY_TAKEAWAYS_HTML = `<ul>\n${data.keyTakeaways.map((k) => `  <li>${k}</li>`).join('\n')}\n</ul>`;
+
+const FAQS = data.faqs;
+
+// articleSection MUST match the in-page H2 text exactly.
+const ARTICLE_SECTIONS = [
+  'Key Takeaways',
+  'How RRM and IVF compare at a glance',
+  'What is the difference between RRM and IVF?',
+  'How do outcomes compare?',
+  'Risks and cost: RRM versus IVF',
+  'Who is RRM for?',
+  'How to start with RRM',
+  'Frequently Asked Questions',
+  'Continue exploring',
+  'References',
+];
+
+// Internal citation URLs (for schema citation[]) parsed from the references' /library/ links.
+const citationUrls = [...new Set(
+  data.references
+    .map((r) => (r.html.match(/\/library\/([a-z0-9-]+)\//) || [])[0])
+    .filter(Boolean)
+    .map((p) => `https://rrmacademy.org${p}`)
+)];
+
+const ABOUT_TYPE_MAP = { MedicalCondition: 'MedicalCondition', MedicalProcedure: 'MedicalProcedure', MedicalTherapy: 'MedicalTherapy' };
+
+const jsonLd = {
+  '@context': 'https://schema.org',
+  '@type': ['MedicalWebPage', 'Article'],
+  headline: 'RRM vs IVF: What Is the Difference?',
+  description: 'A clinician-reviewed, evidence-based comparison of Restorative Reproductive Medicine and IVF across clinical philosophy, outcomes, risks, and cost.',
+  url: PAGE_URL,
+  inLanguage: 'en',
+  author: { '@id': 'https://rrmacademy.org/#naomi-whittaker' },
+  publisher: { '@id': 'https://rrmacademy.org/#organization' },
+  datePublished: PUBLISHED,
+  dateModified: MODIFIED,
+  image: `https://rrmacademy.org/og/${SLUG}.png`,
+  mainEntityOfPage: { '@type': 'WebPage', '@id': PAGE_URL },
+  about: data.about.map((a) => ({ '@type': ABOUT_TYPE_MAP[a.type] || 'Thing', name: a.name })),
+  articleSection: ARTICLE_SECTIONS,
+  citation: citationUrls.map((u) => ({ '@type': 'MedicalScholarlyArticle', '@id': u })),
+};
+
+const faqSchema = {
+  '@context': 'https://schema.org',
+  '@type': 'FAQPage',
+  mainEntity: FAQS.map((f) => ({
+    '@type': 'Question',
+    name: f.question,
+    acceptedAnswer: { '@type': 'Answer', text: f.answerHtml.replace(/<[^>]+>/g, '') },
+  })),
+};
+---
+
+<GuideLayout
+  slug={SLUG}
+  jsonLd={jsonLd}
+  extraSchema={[faqSchema]}
+  tocItems={TOC_ITEMS}
+  faqs={FAQS}
+  keyTakeawaysHtml={KEY_TAKEAWAYS_HTML}
+>
+  <Fragment set:html={data.prose.overview} />
+
+  <section id="at-a-glance">
+    <h2>How RRM and IVF compare at a glance</h2>
+    <p>The two approaches answer different clinical questions, so several rows below are not like-for-like comparisons. Each cited figure links to the source study.</p>
+    <div class="table-wrap">
+      <table class="vs-table">
+        <thead>
+          <tr>
+            <th scope="col"></th>
+            <th scope="col">RRM</th>
+            <th scope="col">IVF</th>
+          </tr>
+        </thead>
+        <tbody>
+          {data.comparisonRows.map((row) => (
+            <tr>
+              <th scope="row">{row.dimension}</th>
+              <td set:html={row.rrm} />
+              <td set:html={row.ivf} />
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <section id="difference">
+    <h2>What is the difference between RRM and IVF?</h2>
+    <Fragment set:html={data.prose.difference} />
+  </section>
+
+  <section id="outcomes">
+    <h2>How do outcomes compare?</h2>
+    <Fragment set:html={data.prose.outcomes} />
+  </section>
+
+  <section id="risk-cost">
+    <h2>Risks and cost: RRM versus IVF</h2>
+    <Fragment set:html={data.prose.riskCost} />
+  </section>
+
+  <section id="who-for">
+    <h2>Who is RRM for?</h2>
+    <Fragment set:html={data.prose.whoFor} />
+  </section>
+
+  <section id="how-to-start">
+    <h2>How to start with RRM</h2>
+    <Fragment set:html={data.prose.howToStart} />
+  </section>
+
+  <section id="continue-exploring">
+    <h2>Continue exploring</h2>
+    <ul>
+      <li><a href="/what-is-rrm/">What is Restorative Reproductive Medicine?</a></li>
+      <li><a href="/naprotechnology-vs-ivf/">NaProTechnology vs IVF</a></li>
+      <li><a href="/rrm-success-rates/">RRM success rates: what the published evidence shows</a></li>
+      <li><a href="/ivf-alternatives/">Alternatives to IVF</a></li>
+      <li><a href="/naprotechnology/">NaProTechnology: a clinician's guide</a></li>
+      <li><a href="/providers/">Find an RRM provider</a></li>
+    </ul>
+  </section>
+
+  <section id="references">
+    <h2>References</h2>
+    <ol class="references-list">
+      {data.references.map((r) => (
+        <li id={`ref-${r.n}`} set:html={r.html} />
+      ))}
+    </ol>
+  </section>
+</GuideLayout>
+
+<style>
+  .table-wrap {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    margin: var(--space-5) 0;
+  }
+  .vs-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.9375rem;
+    min-width: 34rem;
+  }
+  .vs-table thead th {
+    background: var(--bg-surface);
+    text-align: left;
+    font-weight: 600;
+    color: var(--text-primary);
+    padding: var(--space-3);
+    border-bottom: 2px solid var(--border-color);
+    vertical-align: bottom;
+  }
+  .vs-table thead th:nth-child(2) { border-left: 3px solid var(--purple-700); }
+  .vs-table tbody th {
+    text-align: left;
+    font-weight: 600;
+    color: var(--text-primary);
+    padding: var(--space-3);
+    border-bottom: 1px solid var(--border-color);
+    vertical-align: top;
+    width: 22%;
+  }
+  .vs-table tbody td {
+    padding: var(--space-3);
+    color: var(--text-secondary);
+    border-bottom: 1px solid var(--border-color);
+    vertical-align: top;
+    line-height: 1.5;
+  }
+  .vs-table tbody td:nth-child(2) { border-left: 3px solid var(--purple-700); }
+  .vs-table tbody tr:last-child th,
+  .vs-table tbody tr:last-child td { border-bottom: none; }
+
+  .references-list {
+    font-size: 0.875rem;
+    color: var(--text-secondary);
+    line-height: 1.6;
+    padding-left: var(--space-4);
+  }
+  .references-list li { margin-bottom: var(--space-2); }
+  .references-list a { color: var(--accent); }
+</style>

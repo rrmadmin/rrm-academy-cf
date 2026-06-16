@@ -82,6 +82,20 @@ if echo "$STAGED" | grep -qE '^src/components/GlossaryTerm\.astro$|^src/pages/gl
   fi
 fi
 
+# --- Citation integrity gate: staged guide data file or the citation ledger ---
+# The gate reads governedPages from ssot/citation-ledger.json and self-scopes,
+# so triggering on any src/data/*.json (or the ledger/gate) is safe and cheap.
+if echo "$STAGED" | grep -qE '^src/data/.*\.json$|^ssot/citation-ledger\.json$|^scripts/gates/validate-citations\.mjs$'; then
+  node scripts/gates/validate-citations.mjs --gate
+  if [ $? -ne 0 ]; then
+    echo ""
+    echo "Commit blocked by citation integrity gate."
+    echo "A cited source is uncatalogued, has a mismatched author, or a critical source carries supportive framing."
+    echo "Classify the source in ssot/citation-ledger.json (verify the abstract first), or bypass with --no-verify."
+    exit 1
+  fi
+fi
+
 # --- Pillar registry gate: any staged ssot/guides.json or consumer file ---
 if echo "$STAGED" | grep -qE '^ssot/guides\.json$|^src/pages/guides/index\.astro$|^src/integrations/library-sitemaps\.mjs$|^src/components/AppShellChrome\.astro$|^src/layouts/BaseLayout\.astro$|^scripts/build-guides-data\.mjs$|^scripts/build-og-index\.mjs$|^scripts/gates/validate-guides-registry\.mjs$'; then
   node scripts/gates/validate-guides-registry.mjs
