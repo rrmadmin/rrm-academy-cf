@@ -1,5 +1,5 @@
 {
-  "_comment": "SSOT for the /fertility-preserving-surgery/ pillar guide. tiers[] seeds the hero comparison + ItemList JSON-LD. conditions[] seeds the per-condition rows; citationsHtml carries inline /library/ links rendered with set:html. Slugs verified in docs/research/2026-06-13-fertility-preserving-surgery-evidence.md. PCOS leads with RRM wedge resection as the restorative best approach; drilling is the destructive lesser approach and is not platformed. v2 2026-06-13: tubal expanded, Asherman's + adenomyosis + cesarean scar added, adhesions deepened. v3 2026-06-14: male reproductive surgery added (varicocele; obstruction/vasectomy reversal) per Dr. Whittaker, restore-the-cause vs bypass-with-ICSI framing.",
+  "_comment": "SSOT for the /fertility-preserving-surgery/ pillar guide. tiers[] seeds the hero comparison + ItemList JSON-LD. conditions[] seeds the per-condition rows; citationsHtml carries inline /library/ links rendered with set:html. Slugs verified in docs/research/2026-06-13-fertility-preserving-surgery-evidence.md. PCOS leads with RRM wedge resection as the restorative best approach; drilling is the ablative, non-restorative approach, described by technique and not platformed. v2 2026-06-13: tubal expanded, Asherman's + adenomyosis + cesarean scar added, adhesions deepened. v3 2026-06-14: male reproductive surgery added (varicocele; obstruction/vasectomy reversal) per Dr. Whittaker, restore-the-cause vs bypass-with-ICSI framing.",
   "tiers": [
     {
       "id": "restorative",
@@ -73,7 +73,7 @@
       "route": "/pcos/",
       "tier1": "RRM ovarian wedge resection: meticulous microsurgical reduction of androgen-producing stroma that restores spontaneous ovulation and durable hormonal normalization.",
       "tier2": "Wedge resection performed without the full restorative microsurgical technique.",
-      "tier3": "Destructive ovarian surgery, such as drilling or diathermy, that ablates ovarian tissue rather than restoring it.",
+      "tier3": "Ablative ovarian surgery, such as drilling or diathermy, that uses electrocoagulation on the ovary rather than removing the androgen-producing stroma the way wedge resection does.",
       "citationsHtml": "<a href=\"/library/changes-in-circulating-hormone-levels-after-ovarian-wedge-resection-in-patients--recptuctsdp4xkvri/\">hormonal normalization after wedge resection</a>; <a href=\"/library/women-with-polycystic-ovary-syndrome-wedge-resected-in-1956-to-1965-a-long-term--rechefhwrego8w9tt/\">durable long-term outcomes</a>; <a href=\"/library/fertility-following-bilateral-ovarian-wedge-resection-a-critical-analysis-of-90--recf4rzpjdymgulkf/\">restored ovulation and conception</a>."
     },
     {
