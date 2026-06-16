@@ -418,9 +418,9 @@
       "usesGuideLayout": true
     },
     {
-      "slug": "rrm-vs-ivf",
+      "slug": "rrm-vs-ivf-comparison",
       "category": "compare",
-      "file": "rrm-vs-ivf/index.astro",
+      "file": "rrm-vs-ivf-comparison/index.astro",
       "title": "RRM vs IVF",
       "description": "A clinician-reviewed comparison of Restorative Reproductive Medicine and IVF across clinical philosophy, outcomes, risks, and cost.",
       "og_title": "RRM vs IVF: What Is the Difference?",

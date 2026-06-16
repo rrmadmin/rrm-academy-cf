@@ -2,7 +2,7 @@
   "_comment": "SSOT for cited-evidence integrity on comparison/method guides. Each source is classified ONCE by reading the actual abstract (author + finding + polarity), then scripts/lint-citations.mjs enforces it deterministically on every build. polarity is relative to the page's RRM-favorable thesis: 'supportive' (helps the RRM case), 'neutral' (methods/background or a fair counterweight), 'critical' (skeptical of or unfavorable to RRM). A 'critical' source may be cited honestly but must NOT carry supportive framing words (flagship/landmark/proves/etc.). Adding a new citation REQUIRES adding it here with a verified polarity. Verified against NCBI/DOI 2026-06-15.",
   "governedPages": [
     "naprotechnology-vs-ivf",
-    "rrm-vs-ivf",
+    "rrm-vs-ivf-comparison",
     "ivf-alternatives",
     "rrm-success-rates",
     "fertility-preserving-surgery",
