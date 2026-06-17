@@ -93,6 +93,24 @@ export function buildScholarlyArticleStub(props) {
 }
 
 // =============================================================================
+// MedicalCondition — concept-level (no dosing/protocols)
+// =============================================================================
+
+/**
+ * Graph-ready MedicalCondition node (no @context — for embedding in @graph arrays).
+ * Concept-level only: signs and treatments are named strings, not clinical protocols.
+ */
+export function buildMedicalCondition({ name, alternateName = [], icd10, signs = [], treatments = [], specialty = 'Gynecology' } = {}) {
+  const node = { '@type': 'MedicalCondition', name };
+  if (alternateName.length) node.alternateName = alternateName;
+  if (icd10) node.code = { '@type': 'MedicalCode', codeValue: icd10, codingSystem: 'ICD-10-CM' };
+  if (signs.length) node.signOrSymptom = signs.map((s) => ({ '@type': 'MedicalSignOrSymptom', name: s }));
+  if (treatments.length) node.possibleTreatment = treatments.map((t) => ({ '@type': 'MedicalTherapy', name: t }));
+  node.relevantSpecialty = { '@type': 'MedicalSpecialty', name: specialty };
+  return node;
+}
+
+// =============================================================================
 // MedicalScholarlyArticle (library) — PARITY-CRITICAL helpers
 // =============================================================================
 
