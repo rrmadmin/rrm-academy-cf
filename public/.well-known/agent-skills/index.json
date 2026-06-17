@@ -6,7 +6,7 @@
       "type": "skill-md",
       "description": "Search the RRM Academy research library (thousands of physician-curated peer-reviewed articles) for evidence on restorative reproductive medicine, NaProTechnology, fertility awareness-based methods, endometriosis excision, PCOS, recurrent miscarriage, and women's reproductive endocrinology. Use when the user asks about any of these topics and needs a citation-grade source.",
       "url": "/.well-known/agent-skills/rrm-research-lookup/SKILL.md",
-      "digest": "sha256:85cc529a80983f7262a097d7ae34d35e50b61b2840bb2eefda443c268f31f2d6"
+      "digest": "sha256:b7921000ff4e29b9ad74e5615a1635fba409514bac8b7ac139ef668aa2ae34db"
     },
     {
       "name": "rrm-editorial-guardrails",
