@@ -3,6 +3,7 @@ import GuideLayout from '../../layouts/GuideLayout.astro';
 import pageDates from '../../data/page-dates.json';
 import isthmoceleData from '../../data/isthmocele.json';
 import { buildScholarlyArticleStub } from '../../lib/identity';
+import { buildMedicalCondition } from '../../lib/schema-builders.mjs';
 
 const TOC_ITEMS = [
   { href: '#what-is', label: "What Is a Uterine Isthmocele?" },
@@ -47,16 +48,7 @@ const pageSchema = {
     '@type': 'WebPage',
     '@id': PAGE_URL,
   },
-  about: {
-    '@type': 'MedicalCondition',
-    name: 'Uterine Isthmocele',
-    alternateName: ['Cesarean Scar Defect', 'Uterine Niche', 'Uterine Diverticulum'],
-    code: {
-      '@type': 'MedicalCode',
-      codingSystem: 'ICD-10-CM',
-      codeValue: 'N85.8',
-    },
-  },
+  about: buildMedicalCondition({ name: 'Uterine Isthmocele', alternateName: ['Cesarean Scar Defect', 'Uterine Niche', 'Uterine Diverticulum'], icd10: 'N85.8', signs: ['postmenstrual spotting', 'pelvic pain', 'secondary infertility'], treatments: ['hysteroscopic repair', 'laparoscopic repair'], specialty: 'Gynecology' }),
   articleSection: [
     "What Is a Uterine Isthmocele?",
     "Isthmocele Symptoms and Warning Signs",
@@ -268,6 +260,7 @@ const FAQ_ITEMS = [
 ];
 
 const DISCLAIMER_HTML = `This content is for educational and reference purposes only and does not constitute medical advice, diagnosis, or treatment. Decisions about evaluation or care for a uterine isthmocele should be made in consultation with a qualified clinician who knows your specific clinical context. Citations to specific studies do not imply individual-patient applicability.`;
+
 ---
 
 <GuideLayout

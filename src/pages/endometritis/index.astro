@@ -4,6 +4,7 @@ import CiteThisPage from '../../components/CiteThisPage.astro';
 import pageDates from '../../data/page-dates.json';
 import endometritisData from '../../data/endometritis.json';
 import { buildScholarlyArticleStub } from '../../lib/identity';
+import { buildMedicalCondition } from '../../lib/schema-builders.mjs';
 
 const TOC_ITEMS = [
   { href: '#what-is-ce', label: 'What Is Chronic Endometritis?' },
@@ -46,16 +47,7 @@ const pageSchema = {
     '@type': 'WebPage',
     '@id': PAGE_URL,
   },
-  about: {
-    '@type': 'MedicalCondition',
-    name: 'Chronic Endometritis',
-    alternateName: ['CE'],
-    code: {
-      '@type': 'MedicalCode',
-      codingSystem: 'ICD-10',
-      codeValue: 'N71.1',
-    },
-  },
+  about: buildMedicalCondition({ name: 'Chronic Endometritis', alternateName: ['CE'], icd10: 'N71.1', signs: ['abnormal uterine bleeding', 'pelvic pain', 'recurrent implantation failure', 'recurrent pregnancy loss'], treatments: ['targeted antibiotic therapy', 'post-treatment re-biopsy'], specialty: 'Gynecology' }),
   articleSection: [
     'What Is Chronic Endometritis?',
     'Why It Gets Missed',
@@ -265,6 +257,7 @@ const FAQ_ITEMS = [
 const DISAMBIG_HTML = `<p>Looking for information about endometriosis, tissue similar to the uterine lining that grows outside the uterus and drives chronic pain and infertility? See our <a href="/endometriosis/">endometriosis guide</a>. This page covers chronic endometritis: persistent inflammation of the uterine lining itself. The two conditions share a root word, affect different anatomy, and require different workups. They can coexist, but they are not the same condition.</p>`;
 const EDITING_NOTICE_HTML = `<strong>Editor's note:</strong> This guide is being actively edited. Content and citations may change over the next few days.`;
 const DISCLAIMER_HTML = `This content is for educational and reference purposes only and does not constitute medical advice, diagnosis, or treatment. Decisions about evaluation or care for chronic endometritis should be made in consultation with a qualified clinician who knows your specific clinical context. Citations to specific studies and consensus documents do not imply individual-patient applicability.`;
+
 ---
 
 <GuideLayout
