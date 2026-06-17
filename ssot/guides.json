@@ -553,7 +553,7 @@
       "og_description": "The Billings Ovulation Method uses only cervical mucus to identify the fertile window. Learn how it works, what the evidence shows, and its value in restorative reproductive medicine.",
       "author": "Dr. Naomi Whittaker",
       "read_time": "12 min read",
-      "accent": "var(--purple-700)",
+      "accent": "#2B919B",
       "in_guides_catalogue": true,
       "in_shell_guides_nav": true,
       "_order": 2.6,
