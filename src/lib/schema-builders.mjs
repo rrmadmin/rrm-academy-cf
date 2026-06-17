@@ -99,6 +99,7 @@ export function buildScholarlyArticleStub(props) {
 /**
  * Graph-ready MedicalCondition node (no @context — for embedding in @graph arrays).
  * Concept-level only: signs and treatments are named strings, not clinical protocols.
+ * @param {{name: string, alternateName?: string[], icd10?: string, signs?: string[], treatments?: string[], specialty?: string}} [opts]
  */
 export function buildMedicalCondition({ name, alternateName = [], icd10, signs = [], treatments = [], specialty = 'Gynecology' } = {}) {
   const node = { '@type': 'MedicalCondition', name };
