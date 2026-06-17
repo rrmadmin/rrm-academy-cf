@@ -607,6 +607,27 @@
       "usesGuideLayout": true
     },
     {
+      "slug": "sympto-thermal-method",
+      "category": "methods",
+      "file": "sympto-thermal-method/index.astro",
+      "title": "Sympto-Thermal Method",
+      "description": "The sympto-thermal method combines cervical mucus and basal body temperature to identify the fertile window. Learn how it works, what the evidence shows, and its clinical value in restorative reproductive medicine.",
+      "og_title": "The Sympto-Thermal Method: A Clinician-Reviewed Guide",
+      "og_description": "The sympto-thermal method combines cervical mucus and basal body temperature to identify the fertile window. Learn how it works, what the evidence shows, and its clinical value in restorative reproductive medicine.",
+      "author": "Dr. Naomi Whittaker",
+      "read_time": "11 min read",
+      "accent": "var(--purple-700)",
+      "in_guides_catalogue": true,
+      "in_shell_guides_nav": true,
+      "_order": 2.85,
+      "pageTitle": "Sympto-Thermal Method: Mucus + BBT FABM Guide | RRM Academy",
+      "pageDescription": "The sympto-thermal method combines cervical mucus and basal body temperature to identify the fertile window. Learn how it works, what the evidence shows, and its clinical value in restorative reproductive medicine.",
+      "pageH1": "The Sympto-Thermal Method: A Clinician-Reviewed Guide",
+      "breadcrumbName": "Sympto-Thermal Method",
+      "authorId": "#naomi-whittaker",
+      "usesGuideLayout": true
+    },
+    {
       "slug": "twoday-method",
       "category": "methods",
       "file": "twoday-method/index.astro",
