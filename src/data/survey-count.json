@@ -1,10 +1,10 @@
 {
-  "total": 6262,
-  "liveDistinct": 1403,
-  "liveSubmissions": 1491,
+  "total": 6479,
+  "liveDistinct": 1620,
+  "liveSubmissions": 1733,
   "sqspLegacyExact": 1512,
   "wixLegacyEstimate": 3347,
-  "lastUpdated": "2026-05-06T22:00:00Z",
+  "lastUpdated": "2026-06-01 23:32:02",
   "source": "endo-survey-v1+ + sqsp-pdf-exact + wix-pdf-legacy-estimate",
-  "fetchedAt": "2026-05-06T23:30:00Z"
+  "fetchedAt": "2026-06-17T17:00:58.306Z"
 }
