@@ -18,6 +18,7 @@ import {
   buildBreadcrumbList,
   buildScholarlyArticleStub,
   buildMedicalScholarlyArticle,
+  buildMedicalCondition,
   orcidUrlLib,
   nameKeyLib,
   cleanAffiliationNameLib,
@@ -273,5 +274,25 @@ describe('buildMedicalScholarlyArticle (smoke)', () => {
   it('isAccessibleForFree always present (defaults false)', () => {
     const out = buildMedicalScholarlyArticle({ title: 't', slug: 's' });
     assert.equal(out.isAccessibleForFree, false);
+  });
+});
+
+describe('buildMedicalCondition', () => {
+  it('emits MedicalCondition with synonyms + ICD-10 + concept-level treatments', () => {
+    const node = buildMedicalCondition({
+      name: 'Uterine Isthmocele',
+      alternateName: ['Cesarean Scar Defect', 'Niche'],
+      icd10: 'N85.8',
+      signs: ['postmenstrual spotting', 'pelvic pain', 'secondary infertility'],
+      treatments: ['hysteroscopic repair', 'laparoscopic repair'],
+    });
+    assert.equal(node['@type'], 'MedicalCondition');
+    assert.equal(node.name, 'Uterine Isthmocele');
+    assert.deepEqual(node.alternateName, ['Cesarean Scar Defect', 'Niche']);
+    assert.equal(node.code.codeValue, 'N85.8');
+    assert.equal(node.code.codingSystem, 'ICD-10-CM');
+    assert.equal(node.signOrSymptom.length, 3);
+    assert.equal(node.possibleTreatment[0]['@type'], 'MedicalTherapy');
+    assert.ok(!('@context' in node)); // graph-ready (no @context)
   });
 });
