@@ -47,8 +47,8 @@ const FAQS: { question: string; answer: string; answerHtml: string }[] = [
   },
   {
     "question": "Do I need a teacher, or can I learn a fertility awareness-based method on my own?",
-    "answer": "In restorative reproductive medicine, the low pregnancy rates that make these methods credible come from instructor-taught populations. The major methods, Creighton, Billings, Marquette, and Sensiplan, are built around a structured teaching relationship with certified follow-up. A large 2018 review (Peragallo Urrutia, PMID 30095777) found that instruction quality was a key reason the outcomes varied so much across studies. Self-taught use consistently shows higher pregnancy rates in the data. Your chart is also a daily clinical record. That record is only as useful as the charting is accurate, and good instruction is what makes it accurate.",
-    "answerHtml": "<p>In restorative reproductive medicine, the low pregnancy rates that make these methods credible come from instructor-taught populations. The major methods, Creighton, Billings, Marquette, and Sensiplan, are built around a structured teaching relationship with certified follow-up. A large 2018 review (Peragallo Urrutia, PMID 30095777) found that instruction quality was a key reason the outcomes varied so much across studies. Self-taught use consistently shows higher pregnancy rates in the data. Your chart is also a daily clinical record. That record is only as useful as the charting is accurate, and good instruction is what makes it accurate.</p>"
+    "answer": "In restorative reproductive medicine, the low pregnancy rates that make these methods credible come from instructor-taught populations. The major methods, Creighton, Billings, Marquette, and the sympto-thermal method, are built around a structured teaching relationship with certified follow-up. A large 2018 review (Peragallo Urrutia, PMID 30095777) found that instruction quality was a key reason the outcomes varied so much across studies. Self-taught use consistently shows higher pregnancy rates in the data. Your chart is also a daily clinical record. That record is only as useful as the charting is accurate, and good instruction is what makes it accurate.",
+    "answerHtml": "<p>In restorative reproductive medicine, the low pregnancy rates that make these methods credible come from instructor-taught populations. The major methods, Creighton, Billings, Marquette, and the sympto-thermal method, are built around a structured teaching relationship with certified follow-up. A large 2018 review (Peragallo Urrutia, PMID 30095777) found that instruction quality was a key reason the outcomes varied so much across studies. Self-taught use consistently shows higher pregnancy rates in the data. Your chart is also a daily clinical record. That record is only as useful as the charting is accurate, and good instruction is what makes it accurate.</p>"
   },
   {
     "question": "Are fertility awareness-based methods a form of contraception, or are they something different?",
@@ -81,7 +81,7 @@ const graph: Record<string, unknown>[] = [
     url: PAGE_URL,
     name: 'Fertility Awareness-Based Methods Compared: A Clinician-Reviewed Guide to Effectiveness, Biomarkers, and How to Choose',
     headline: 'Fertility Awareness-Based Methods Compared: A Clinician-Reviewed Guide to Effectiveness, Biomarkers, and How to Choose',
-    description: 'A criteria-led, clinician-reviewed comparison of the major fertility awareness-based methods (Standard Days, TwoDay, Billings, Creighton, Sensiplan, Marquette, and app-based methods) by effectiveness metric, biomarker tracked, instruction model, and diagnostic value in restorative reproductive medicine. Every effectiveness figure is cited and labeled by metric type.',
+    description: 'A criteria-led, clinician-reviewed comparison of the major fertility awareness-based methods (Standard Days, TwoDay, Billings, Creighton, Sympto-Thermal Method, Marquette, and app-based methods) by effectiveness metric, biomarker tracked, instruction model, and diagnostic value in restorative reproductive medicine. Every effectiveness figure is cited and labeled by metric type.',
     inLanguage: 'en-US',
     datePublished: '2026-06-12T00:00:00-04:00',
     dateModified: '2026-06-12T00:00:00-04:00',
@@ -191,7 +191,7 @@ const jsonLd = {
   <span data-pagefind-meta="type:Guide" style="display:none"></span>
   <span data-pagefind-meta="title:Fertility Awareness-Based Methods Compared" style="display:none"></span>
 
-  <p class="pillar-lead"><strong>Fertility awareness-based methods (FABMs) are ways to track your body's daily signals to know when you are and are not fertile. This guide compares seven: Standard Days, TwoDay, Billings, Creighton, Sensiplan, Marquette, and FEMM. Used carefully with a trained teacher, the best methods mean fewer than 2 in 100 women get pregnant in a year. Everyday-use numbers are higher, and no single method is best for everyone.</strong></p>
+  <p class="pillar-lead"><strong>Fertility awareness-based methods (FABMs) are ways to track your body's daily signals to know when you are and are not fertile. This guide compares seven: Standard Days, TwoDay, Billings, Creighton, the Sympto-Thermal Method, Marquette, and FEMM. Used carefully with a trained teacher, the best methods mean fewer than 2 in 100 women get pregnant in a year. Everyday-use numbers are higher, and no single method is best for everyone.</strong></p>
 
 <section id="comparison-table">
 <h2>How the Methods Compare at a Glance</h2>
@@ -206,7 +206,7 @@ const jsonLd = {
       <th scope="col">TwoDay</th>
       <th scope="col">Billings</th>
       <th scope="col">Creighton</th>
-      <th scope="col">Sensiplan</th>
+      <th scope="col">Sympto-Thermal Method</th>
       <th scope="col">Marquette</th>
       <th scope="col">FEMM</th>
     </tr>
@@ -251,7 +251,7 @@ const jsonLd = {
       <td>3.5/100 (PI)<br>(<a class="cite" href="https://pubmed.ncbi.nlm.nih.gov/15482764/" rel="noopener">Arevalo 2004</a>)</td>
       <td>2.8/100 (PI)<br>(<a class="cite" href="https://pubmed.ncbi.nlm.nih.gov/7308503/" rel="noopener">WHO 1981</a>)</td>
       <td>0.5/100 (PI)<br>(<a class="cite" href="https://pubmed.ncbi.nlm.nih.gov/9653695/" rel="noopener">Hilgers 1998</a>)</td>
-      <td>0.4/100 (PI)<br>(<a class="cite" href="https://pubmed.ncbi.nlm.nih.gov/30095777/" rel="noopener">Peragallo 2018</a>)</td>
+      <td>0.4/100 (PI)<br>(Sensiplan; <a class="cite" href="https://pubmed.ncbi.nlm.nih.gov/30095777/" rel="noopener">Peragallo 2018</a>)</td>
       <td>~2/100 (KM12)<br>(<a class="cite" href="https://pubmed.ncbi.nlm.nih.gov/17371516/" rel="noopener">Fehring 2007</a>)</td>
       <td>No published study&#8224;</td>
     </tr>
@@ -261,7 +261,7 @@ const jsonLd = {
       <td>13.7/100 (PI)<br>(<a class="cite" href="https://pubmed.ncbi.nlm.nih.gov/15482764/" rel="noopener">Arevalo 2004</a>)</td>
       <td>10.5-33.6/100 (PI)<br>(<a class="cite" href="https://pubmed.ncbi.nlm.nih.gov/30095777/" rel="noopener">Peragallo 2018</a>)</td>
       <td>Not defined*</td>
-      <td>1.8/100<br>(<a class="cite" href="https://pubmed.ncbi.nlm.nih.gov/17314078/" rel="noopener">Frank-Herrmann 2007</a>)</td>
+      <td>1.8/100<br>(Sensiplan; <a class="cite" href="https://pubmed.ncbi.nlm.nih.gov/17314078/" rel="noopener">Frank-Herrmann 2007</a>)</td>
       <td>6.7-14/100 (KM12)<br>(<a class="cite" href="https://pubmed.ncbi.nlm.nih.gov/35321484/" rel="noopener">Mu 2022</a>; <a class="cite" href="https://pubmed.ncbi.nlm.nih.gov/17371516/" rel="noopener">Fehring 2007</a>)</td>
       <td>No published study&#8224;</td>
     </tr>
@@ -284,7 +284,7 @@ const jsonLd = {
       <td>Latin America, Philippines</td>
       <td>Multinational (WHO)</td>
       <td>US / Canada</td>
-      <td>Europe (Germany)</td>
+      <td>Germany (Sensiplan)</td>
       <td>US</td>
       <td>No effectiveness cohort</td>
     </tr>
@@ -304,7 +304,7 @@ const jsonLd = {
       <td>Georgetown IRH</td>
       <td>WOOMB Intl</td>
       <td>FertilityCare; Saint Paul VI</td>
-      <td>CCL; FACTS</td>
+      <td>CCL; SymptoPro</td>
       <td>Marquette Univ</td>
       <td>FEMM Health</td>
     </tr>
@@ -386,19 +386,19 @@ const jsonLd = {
 
     <p><em>Learn it:</em> <a href="https://www.fertilitycare.org/" rel="noopener">FertilityCare Centers of America</a>, <a href="https://www.saintpaulvi.com/" rel="noopener">Saint Paul VI Institute</a>.</p>
 
-<h3>Sympto-Thermal Method (Sensiplan)</h3>
+<h3>Sympto-Thermal Method</h3>
 
-<p>Sensiplan adds a second signal to the mucus observation: your basal body temperature. That means your resting temperature, taken first thing in the morning before you get up.</p>
+<p>The sympto-thermal method adds a second signal to the mucus observation: your basal body temperature. That means your resting temperature, taken first thing in the morning before you get up.</p>
 
 <p>After ovulation, your temperature rises and stays higher. This rise is caused by progesterone, a hormone made after the egg is released.</p>
 
-<p>Mucus tells you in real time that the fertile window is open or closing. Temperature confirms it is over. Two independent signals checking each other. This double-check is why Sensiplan's perfect-use numbers are so low.</p>
+<p>Mucus tells you in real time that the fertile window is open or closing. Temperature confirms it is over. Two independent signals checking each other. The most rigorously studied sympto-thermal protocol is Sensiplan, a German method with a strict double-check rule, and that double-check is why its perfect-use numbers are so low. The effectiveness figures in the table above come from Sensiplan studies; other sympto-thermal programs have not all been measured to the same standard.</p>
 
 <p>Learning takes three to six cycles with a trained instructor. The temperature record also has value for a doctor. The length and shape of the temperature rise after ovulation can show whether your progesterone response is working well. If something looks off, a trained clinician has a visible record to work from.</p>
 
 <p>Used to conceive, normal-fertility couples reach about 81% pregnancy by six cycles and 92% by twelve (Gnoth 2003, PMID 12923157).</p>
 
-    <p><em>Learn it:</em> <a href="https://ccli.org/" rel="noopener">Couple to Couple League</a>, <a href="https://www.factsaboutfertility.org/" rel="noopener">FACTS</a>.</p>
+    <p><em>Learn it:</em> <a href="https://ccli.org/" rel="noopener">Couple to Couple League</a>, <a href="https://symptopro.org/" rel="noopener">SymptoPro</a>, <a href="https://serena.ca/" rel="noopener">Serena Canada</a>.</p>
 
 <h3>Marquette Model</h3>
 
@@ -436,8 +436,8 @@ const jsonLd = {
 <p>There is no single right answer. The best method is the one you can learn well, use consistently, and, if a doctor needs to read your chart, one that creates a record they can actually use.</p>
 
 <ul>
-  <li><strong>Regular cycles (26 to 32 days):</strong> all seven methods are available to you. The Standard Days Method has the lightest learning burden. Sensiplan and Marquette give the most precise read of your fertile window.</li>
-  <li><strong>Irregular, long, postpartum, or post-pill cycles:</strong> choose a method that reads real body signals, not a fixed calendar. Billings, Creighton, FEMM, Sensiplan, and Marquette all adapt to cycle changes. The Standard Days Method does not. Irregular cycles are also worth discussing with a doctor, since they can point to an underlying problem.</li>
+  <li><strong>Regular cycles (26 to 32 days):</strong> all seven methods are available to you. The Standard Days Method has the lightest learning burden. The sympto-thermal method and Marquette give the most precise read of your fertile window.</li>
+  <li><strong>Irregular, long, postpartum, or post-pill cycles:</strong> choose a method that reads real body signals, not a fixed calendar. Billings, Creighton, FEMM, the sympto-thermal method, and Marquette all adapt to cycle changes. The Standard Days Method does not. Irregular cycles are also worth discussing with a doctor, since they can point to an underlying problem.</li>
   <li><strong>You want your charting tied closely to medical care:</strong> FEMM pairs cervical-mucus observation, with optional hormone testing, with a medical-management model in which FEMM-trained physicians evaluate and treat cycle problems. It does not yet have its own published effectiveness study, so weigh that against its clinical focus.</li>
   <li><strong>No devices preferred:</strong> Billings or Creighton, both mucus-only with instructor follow-up.</li>
   <li><strong>Prefer a digital daily readout:</strong> Marquette measures your hormones with an electronic monitor each morning, with instructor guidance.</li>
@@ -456,7 +456,7 @@ const jsonLd = {
   <li><strong>Creighton Model FertilityCare System:</strong> <a href="https://www.fertilitycare.org/" rel="noopener">FertilityCare Centers of America</a> and the <a href="https://www.saintpaulvi.com/" rel="noopener">Saint Paul VI Institute</a>; instructor search via the <a href="https://www.aafcp.org/" rel="noopener">American Academy of FertilityCare Professionals</a></li>
   <li><strong>Billings Ovulation Method:</strong> <a href="https://www.woomb.org/" rel="noopener">WOOMB International</a>; <a href="https://www.boma-usa.org/" rel="noopener">BOMA-USA</a></li>
   <li><strong>Marquette Model:</strong> <a href="https://www.marquette.edu/natural-family-planning/" rel="noopener">Marquette University Institute for Natural Family Planning</a></li>
-  <li><strong>Sympto-Thermal Method / Sensiplan:</strong> <a href="https://ccli.org/" rel="noopener">Couple to Couple League</a>; <a href="https://www.factsaboutfertility.org/" rel="noopener">FACTS</a></li>
+  <li><strong>Sympto-Thermal Method:</strong> <a href="https://ccli.org/" rel="noopener">Couple to Couple League</a>; <a href="https://symptopro.org/" rel="noopener">SymptoPro</a>; <a href="https://serena.ca/" rel="noopener">Serena Canada</a> (Sensiplan is the most-studied branded version)</li>
   <li><strong>Standard Days and TwoDay Methods:</strong> <a href="https://irh.org/" rel="noopener">Georgetown Institute for Reproductive Health</a>; <a href="https://cyclebeads.com/" rel="noopener">CycleBeads</a></li>
   <li><strong>FEMM:</strong> <a href="https://femmhealth.org/" rel="noopener">FEMM Health</a> (Reproductive Health Research Institute)</li>
 </ul>
