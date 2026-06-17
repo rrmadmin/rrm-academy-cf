@@ -115,15 +115,20 @@ const GUIDES_PATHS = new Set([
     .filter((p) => p.in_shell_guides_nav)
     .flatMap((p) => [`/${p.slug}`, `/${p.slug}/`]),
 ]);
-// Pillar guides surfaced as their own "Learn the basics" sidebar links get their
-// own aria-current and are excluded from the Guides highlight below (same pattern
-// as glossary's permanent link).
-const inWhatIsRrm = currentPath === '/what-is-rrm' || currentPath === '/what-is-rrm/';
-const inNapro = currentPath === '/naprotechnology' || currentPath === '/naprotechnology/' || currentPath.startsWith('/naprotechnology/');
-const inFemm = currentPath === '/femm' || currentPath === '/femm/' || currentPath.startsWith('/femm/');
-const inNeo = currentPath === '/neofertility' || currentPath === '/neofertility/' || currentPath.startsWith('/neofertility/');
-const inPillarLink = inWhatIsRrm || inNapro || inFemm || inNeo;
-const inGuides = GUIDES_PATHS.has(currentPath) && !inPillarLink;
+// Methods + Comparisons are surfaced as their own categorized sidebar links,
+// derived from ssot/guides.json (so new guides appear automatically). Each gets
+// its own aria-current and is excluded from the Guides index-link highlight
+// below. Conditions + Reference guides stay reachable via the Guides index link.
+const methodNav = guideRegistry.guides
+  .filter((g) => g.category === 'methods')
+  .sort((a, b) => (a._order || 0) - (b._order || 0));
+const compareNav = guideRegistry.guides
+  .filter((g) => g.category === 'compare')
+  .sort((a, b) => (a._order || 0) - (b._order || 0));
+const isCurrentGuide = (slug) => currentPath === `/${slug}` || currentPath === `/${slug}/` || currentPath.startsWith(`/${slug}/`);
+const inNavGuide = [...methodNav, ...compareNav].some((g) => isCurrentGuide(g.slug));
+const inGuides = GUIDES_PATHS.has(currentPath) && !inNavGuide;
+const GUIDE_ITEM_ICON = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>';
 const inGlossary = currentPath === '/glossary' || currentPath === '/glossary/' || currentPath.startsWith('/glossary/');
 
 // Pages can render arbitrary HTML in the right rail by setting `hasRail`
@@ -204,23 +209,23 @@ const NAV_ICONS: Record<string, string> = {
     </form>
 
     <div class="app-shell-nav__section">
-      <div class="app-shell-nav__heading">Learn the basics</div>
-      <a href="/what-is-rrm/" class="app-shell-nav__link" aria-current={inWhatIsRrm ? 'page' : undefined}>
-        <span class="app-shell-nav__icon" aria-hidden="true" set:html={NAV_ICONS['/what-is-rrm/']} />
-        <span class="app-shell-nav__label">What is RRM?</span>
-      </a>
-      <a href="/naprotechnology/" class="app-shell-nav__link" aria-current={inNapro ? 'page' : undefined}>
-        <span class="app-shell-nav__icon" aria-hidden="true" set:html={NAV_ICONS['/naprotechnology/']} />
-        <span class="app-shell-nav__label">NaProTECHNOLOGY</span>
-      </a>
-      <a href="/femm/" class="app-shell-nav__link" aria-current={inFemm ? 'page' : undefined}>
-        <span class="app-shell-nav__icon" aria-hidden="true" set:html={NAV_ICONS['/femm/']} />
-        <span class="app-shell-nav__label">FEMM</span>
-      </a>
-      <a href="/neofertility/" class="app-shell-nav__link" aria-current={inNeo ? 'page' : undefined}>
-        <span class="app-shell-nav__icon" aria-hidden="true" set:html={NAV_ICONS['/neofertility/']} />
-        <span class="app-shell-nav__label">NeoFertility</span>
-      </a>
+      <div class="app-shell-nav__heading">Methods</div>
+      {methodNav.map((g) => (
+        <a href={`/${g.slug}/`} class="app-shell-nav__link" aria-current={isCurrentGuide(g.slug) ? 'page' : undefined}>
+          <span class="app-shell-nav__icon" aria-hidden="true" set:html={NAV_ICONS[`/${g.slug}/`] || GUIDE_ITEM_ICON} />
+          <span class="app-shell-nav__label">{g.breadcrumbName}</span>
+        </a>
+      ))}
+    </div>
+
+    <div class="app-shell-nav__section">
+      <div class="app-shell-nav__heading">Comparisons</div>
+      {compareNav.map((g) => (
+        <a href={`/${g.slug}/`} class="app-shell-nav__link" aria-current={isCurrentGuide(g.slug) ? 'page' : undefined}>
+          <span class="app-shell-nav__icon" aria-hidden="true" set:html={NAV_ICONS[`/${g.slug}/`] || GUIDE_ITEM_ICON} />
+          <span class="app-shell-nav__label">{g.breadcrumbName}</span>
+        </a>
+      ))}
     </div>
 
     <div class="app-shell-nav__section">
