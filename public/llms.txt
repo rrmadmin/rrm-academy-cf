@@ -101,15 +101,12 @@ Each article page includes: title, authors, journal, year, abstract, DOI, topic 
 - Contraception/Comparison (efficacy, side effects, informed consent)
 - Diagnostics (ultrasound, hormone testing, biomarkers)
 - Endometriosis (excision surgery, diagnosis, pain management, fertility)
-- Ethics/Philosophy (reproductive autonomy, informed consent)
-- General OB/GYN (menstrual health, clinical practice)
 - Infertility (diagnosis, treatment outcomes, causes)
 - Menstrual Cycle (physiology, cycle tracking, hormonal patterns)
 - PCOS (diagnosis, treatment, metabolic aspects)
 - Perimenopause/Menopause (hormone changes, management)
 - Pregnancy (outcomes, complications, preconception health)
 - RRM Methods (NaProTechnology, fertility awareness-based methods, clinical protocols)
-- Reproductive Endocrinology (hormones, ovulation, thyroid)
 - Surgery (excision techniques, outcomes, minimally invasive approaches)
 
 ### Browsing

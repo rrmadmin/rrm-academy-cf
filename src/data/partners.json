@@ -1,1 +1,15 @@
-[]
+[
+  {
+    "id": "rec03xfg6jaqnoqb0",
+    "name": "NeoFertility",
+    "slug": "neofertility",
+    "site_url": "https://neofertility.ie",
+    "country": "Ireland",
+    "city": "Dublin",
+    "provider_name": "Dr. Phil Boyle",
+    "provider_credential": "Medical Council of Ireland 13849",
+    "provider_directory_id": null,
+    "blurb": "Ireland's leading restorative reproductive medicine clinic. Dr. Phil Boyle has practiced NaProTechnology since 1998 and is a founding voice in the RRM movement.",
+    "approved_at": "2026-04-16 23:22:44"
+  }
+]
