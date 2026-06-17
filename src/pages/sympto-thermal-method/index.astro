@@ -9,7 +9,7 @@ const TOC_ITEMS = data.tocItems;
 const KEY_TAKEAWAYS_HTML = `<ul>\n${data.keyTakeaways.map((k) => `  <li>${k}</li>`).join('\n')}\n</ul>`;
 const FAQS = data.faqs;
 const FB = data.factsBox;
-const ARTICLE_SECTIONS = ['Key Takeaways','What it is','How it works','How it is taught','How effective is it?','The Sensiplan protocol','What it is used for','How it supports restorative reproductive medicine','How to learn it','Frequently Asked Questions','Continue exploring','References'];
+const ARTICLE_SECTIONS = ['Key Takeaways','What is the Sympto-Thermal Method?','How does the Sympto-Thermal Method work?','How is the Sympto-Thermal Method taught?','How effective is the Sympto-Thermal Method?','What is the Sensiplan protocol?','What is the Sympto-Thermal Method used for?','How the Sympto-Thermal Method supports restorative reproductive medicine','How to learn the Sympto-Thermal Method','Frequently Asked Questions','Continue exploring','References'];
 const citationUrls = [...new Set(JSON.stringify(data).match(/https:\/\/pubmed\.ncbi\.nlm\.nih\.gov\/\d+/g) || [])];
 const ABOUT_TYPE_MAP = { MedicalCondition: 'MedicalCondition', MedicalProcedure: 'MedicalProcedure', MedicalTherapy: 'MedicalTherapy' };
 const jsonLd = {
@@ -29,7 +29,7 @@ const jsonLd = {
 const faqSchema = { '@context': 'https://schema.org', '@type': 'FAQPage', mainEntity: FAQS.map((f) => ({ '@type': 'Question', name: f.question, acceptedAnswer: { '@type': 'Answer', text: f.answerHtml.replace(/<[^>]+>/g, '') } })) };
 ---
 
-<GuideLayout slug={SLUG} jsonLd={jsonLd} extraSchema={[faqSchema]} tocItems={TOC_ITEMS} faqs={FAQS} keyTakeawaysHtml={KEY_TAKEAWAYS_HTML} editingNoticeHtml="<strong>Heads up:</strong> this guide is brand new and still getting a final review from our clinical team, so a detail or two may still change. We wanted to get it to you now rather than make you wait.">
+<GuideLayout slug={SLUG} jsonLd={jsonLd} extraSchema={[faqSchema]} tocItems={TOC_ITEMS} faqs={FAQS} keyTakeawaysHtml={KEY_TAKEAWAYS_HTML} editingNoticeHtml="<strong>A quick note:</strong> this guide is newly published and still being reviewed by our clinical team, so some details may change as we finalize it. We wanted to share it now rather than make you wait.">
   <aside class="facts-box">
     <dl>
       <div><dt>Biomarker</dt><dd>{FB.biomarker}</dd></div>
@@ -39,14 +39,14 @@ const faqSchema = { '@context': 'https://schema.org', '@type': 'FAQPage', mainEn
       <div><dt>Typical use</dt><dd set:html={FB.typicalUse} /></div>
     </dl>
   </aside>
-  <section id="what-it-is"><h2>What it is</h2><Fragment set:html={data.prose.whatItIs} /></section>
-  <section id="how-it-works"><h2>How it works</h2><Fragment set:html={data.prose.howItWorks} /></section>
-  <section id="taught"><h2>How it is taught</h2><Fragment set:html={data.prose.taughtBy} /></section>
-  <section id="effectiveness"><h2>How effective is it?</h2><Fragment set:html={data.prose.effectiveness} /></section>
-  <section id="sensiplan"><h2>The Sensiplan protocol</h2><Fragment set:html={data.prose.sensiplan} /></section>
-  <section id="used-for"><h2>What it is used for</h2><Fragment set:html={data.prose.usedFor} /></section>
-  <section id="rrm-value"><h2>How it supports restorative reproductive medicine</h2><Fragment set:html={data.prose.rrmValue} /></section>
-  <section id="how-to-learn"><h2>How to learn it</h2><Fragment set:html={data.prose.howToLearn} /></section>
+  <section id="what-it-is"><h2>What is the Sympto-Thermal Method?</h2><Fragment set:html={data.prose.whatItIs} /></section>
+  <section id="how-it-works"><h2>How does the Sympto-Thermal Method work?</h2><Fragment set:html={data.prose.howItWorks} /></section>
+  <section id="taught"><h2>How is the Sympto-Thermal Method taught?</h2><Fragment set:html={data.prose.taughtBy} /></section>
+  <section id="effectiveness"><h2>How effective is the Sympto-Thermal Method?</h2><Fragment set:html={data.prose.effectiveness} /></section>
+  <section id="sensiplan"><h2>What is the Sensiplan protocol?</h2><Fragment set:html={data.prose.sensiplan} /></section>
+  <section id="used-for"><h2>What is the Sympto-Thermal Method used for?</h2><Fragment set:html={data.prose.usedFor} /></section>
+  <section id="rrm-value"><h2>How the Sympto-Thermal Method supports restorative reproductive medicine</h2><Fragment set:html={data.prose.rrmValue} /></section>
+  <section id="how-to-learn"><h2>How to learn the Sympto-Thermal Method</h2><Fragment set:html={data.prose.howToLearn} /></section>
   <section id="continue-exploring"><h2>Continue exploring</h2><ul>
     <li><a href="/fertility-awareness-methods-compared/">Fertility awareness methods compared</a></li>
     <li><a href="/naprotechnology/">NaProTechnology</a></li>
