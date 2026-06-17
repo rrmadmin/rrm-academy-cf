@@ -9,12 +9,12 @@ const TOC_ITEMS = data.tocItems;
 const KEY_TAKEAWAYS_HTML = `<ul>\n${data.keyTakeaways.map((k) => `  <li>${k}</li>`).join('\n')}\n</ul>`;
 const FAQS = data.faqs;
 const FB = data.factsBox;
-const ARTICLE_SECTIONS = ['Key Takeaways','What it is','How it works','How it is taught','How effective is it?','What it is used for','How it supports restorative reproductive medicine','How to learn it','Frequently Asked Questions','Continue exploring','References'];
+const ARTICLE_SECTIONS = ['Key Takeaways','What it is','How it works','How it is taught','How effective is it?','The Sensiplan protocol','What it is used for','How it supports restorative reproductive medicine','How to learn it','Frequently Asked Questions','Continue exploring','References'];
 const citationUrls = [...new Set(JSON.stringify(data).match(/https:\/\/pubmed\.ncbi\.nlm\.nih\.gov\/\d+/g) || [])];
 const ABOUT_TYPE_MAP = { MedicalCondition: 'MedicalCondition', MedicalProcedure: 'MedicalProcedure', MedicalTherapy: 'MedicalTherapy' };
 const jsonLd = {
   '@context': 'https://schema.org', '@type': ['MedicalWebPage', 'Article'],
-  headline: "The Sympto-Thermal Method: A Clinician-Reviewed Guide",
+  headline: "The Sympto-Thermal Method",
   description: "The sympto-thermal method combines cervical mucus and basal body temperature to identify the fertile window. Learn how it works, what the evidence shows, and its clinical value in restorative reproductive medicine.",
   url: PAGE_URL, inLanguage: 'en',
   author: { '@id': 'https://rrmacademy.org/#naomi-whittaker' },
@@ -43,11 +43,11 @@ const faqSchema = { '@context': 'https://schema.org', '@type': 'FAQPage', mainEn
   <section id="how-it-works"><h2>How it works</h2><Fragment set:html={data.prose.howItWorks} /></section>
   <section id="taught"><h2>How it is taught</h2><Fragment set:html={data.prose.taughtBy} /></section>
   <section id="effectiveness"><h2>How effective is it?</h2><Fragment set:html={data.prose.effectiveness} /></section>
+  <section id="sensiplan"><h2>The Sensiplan protocol</h2><Fragment set:html={data.prose.sensiplan} /></section>
   <section id="used-for"><h2>What it is used for</h2><Fragment set:html={data.prose.usedFor} /></section>
   <section id="rrm-value"><h2>How it supports restorative reproductive medicine</h2><Fragment set:html={data.prose.rrmValue} /></section>
   <section id="how-to-learn"><h2>How to learn it</h2><Fragment set:html={data.prose.howToLearn} /></section>
   <section id="continue-exploring"><h2>Continue exploring</h2><ul>
-    <li><a href="/sensiplan/">Sensiplan (the most-studied sympto-thermal protocol)</a></li>
     <li><a href="/fertility-awareness-methods-compared/">Fertility awareness methods compared</a></li>
     <li><a href="/naprotechnology/">NaProTechnology</a></li>
     <li><a href="/providers/">Find an RRM provider</a></li>
