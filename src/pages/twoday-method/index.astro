@@ -14,7 +14,7 @@ const citationUrls = [...new Set(JSON.stringify(data).match(/https:\/\/pubmed\.n
 const ABOUT_TYPE_MAP = { MedicalCondition: 'MedicalCondition', MedicalProcedure: 'MedicalProcedure', MedicalTherapy: 'MedicalTherapy' };
 const jsonLd = {
   '@context': 'https://schema.org', '@type': ['MedicalWebPage', 'Article'],
-  headline: "The TwoDay Method: A Clinician-Reviewed Guide",
+  headline: "The TwoDay Method",
   description: "The TwoDay Method uses a yes/no secretion check to identify fertile days. Learn how it works, what the evidence shows, and how it fits within restorative reproductive medicine.",
   url: PAGE_URL, inLanguage: 'en',
   author: { '@id': 'https://rrmacademy.org/#naomi-whittaker' },
