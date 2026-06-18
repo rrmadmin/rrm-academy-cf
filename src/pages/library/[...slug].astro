@@ -14,6 +14,24 @@ import { buildMedicalScholarlyArticle, buildBreadcrumbList } from '../../lib/ide
 
 const SHELL_ENABLED = isShellEnabled('library');
 
+// Render trusted insight prose: escape all HTML, then linkify internal-only
+// [label](/path) markdown so the synopsis can cross-link studies in our own
+// library. No raw HTML passes through and hrefs are restricted to internal
+// paths, so set:html is safe for these fields.
+function renderInsight(value) {
+  if (!value) return '';
+  const escaped = String(value)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+  return escaped.replace(
+    /\[([^\]\n]+)\]\((\/[^)\s]+)\)/g,
+    (_match, label, href) => `<a class="insights-link" href="${href}">${label}</a>`
+  );
+}
+
 export async function getStaticPaths() {
   const articles = await fetchAllArticles();
 
@@ -377,16 +395,17 @@ const citationMeta = {
       <!-- Synopsis (above abstract for SEO/AEO -- structured, citable content first) -->
       {article.insights && (
         <section class="article-insights" aria-label="Synopsis">
+          <p class="insights-attribution">RRM Academy Synopsis</p>
           <h2 class="detail-heading">{article.insights.title || 'Synopsis'}</h2>
           <div class="insights-tldr">
-            <p>{article.insights.tldr}</p>
+            <p set:html={renderInsight(article.insights.tldr)}></p>
           </div>
           {article.insights.key_findings && article.insights.key_findings.length > 0 && (
             <div class="insights-findings">
               <h3 class="insights-subheading">Key Findings</h3>
               <ul>
                 {article.insights.key_findings.map(finding => (
-                  <li>{finding}</li>
+                  <li set:html={renderInsight(finding)}></li>
                 ))}
               </ul>
             </div>
@@ -394,21 +413,22 @@ const citationMeta = {
           {article.insights.clinical_implications && (
             <div class="insights-relevance">
               <h3 class="insights-subheading">Clinical Implications</h3>
-              <p>{article.insights.clinical_implications}</p>
+              <p set:html={renderInsight(article.insights.clinical_implications)}></p>
             </div>
           )}
           {article.insights.methodology && (
             <div class="insights-methodology">
               <h3 class="insights-subheading">Study Notes</h3>
-              <p>{article.insights.methodology}</p>
+              <p set:html={renderInsight(article.insights.methodology)}></p>
             </div>
           )}
           {article.insights.rrm_context && (
             <div class="insights-context">
               <h3 class="insights-subheading">RRM Context</h3>
-              <p>{article.insights.rrm_context}</p>
+              <p set:html={renderInsight(article.insights.rrm_context)}></p>
             </div>
           )}
+          <p class="insights-byline">Our editorial summary of this paper, not the article's abstract.</p>
         </section>
       )}
 
@@ -554,16 +574,17 @@ const citationMeta = {
       <!-- Synopsis (above abstract for SEO/AEO -- structured, citable content first) -->
       {article.insights && (
         <section class="article-insights" aria-label="Synopsis">
+          <p class="insights-attribution">RRM Academy Synopsis</p>
           <h2 class="detail-heading">{article.insights.title || 'Synopsis'}</h2>
           <div class="insights-tldr">
-            <p>{article.insights.tldr}</p>
+            <p set:html={renderInsight(article.insights.tldr)}></p>
           </div>
           {article.insights.key_findings && article.insights.key_findings.length > 0 && (
             <div class="insights-findings">
               <h3 class="insights-subheading">Key Findings</h3>
               <ul>
                 {article.insights.key_findings.map(finding => (
-                  <li>{finding}</li>
+                  <li set:html={renderInsight(finding)}></li>
                 ))}
               </ul>
             </div>
@@ -571,21 +592,22 @@ const citationMeta = {
           {article.insights.clinical_implications && (
             <div class="insights-relevance">
               <h3 class="insights-subheading">Clinical Implications</h3>
-              <p>{article.insights.clinical_implications}</p>
+              <p set:html={renderInsight(article.insights.clinical_implications)}></p>
             </div>
           )}
           {article.insights.methodology && (
             <div class="insights-methodology">
               <h3 class="insights-subheading">Study Notes</h3>
-              <p>{article.insights.methodology}</p>
+              <p set:html={renderInsight(article.insights.methodology)}></p>
             </div>
           )}
           {article.insights.rrm_context && (
             <div class="insights-context">
               <h3 class="insights-subheading">RRM Context</h3>
-              <p>{article.insights.rrm_context}</p>
+              <p set:html={renderInsight(article.insights.rrm_context)}></p>
             </div>
           )}
+          <p class="insights-byline">Our editorial summary of this paper, not the article's abstract.</p>
         </section>
       )}
 
@@ -1047,11 +1069,40 @@ const citationMeta = {
     margin-bottom: var(--space-8);
   }
   /* Synopsis title: the headline of the card, clearly above the section labels. */
+  /* Authorship eyebrow: makes clear this is an RRM Academy editorial synopsis. */
+  .insights-attribution {
+    font-family: 'Inter', system-ui, sans-serif;
+    font-size: 0.6875rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: var(--accent);
+    margin: 0 0 var(--space-2);
+  }
   .article-insights .detail-heading {
     font-size: 1.5rem;
     line-height: 1.15;
     margin-top: 0;
     margin-bottom: var(--space-3);
+  }
+  /* Cross-links to studies cited in the synopsis (internal library pages). */
+  .insights-link {
+    color: var(--accent);
+    text-decoration: underline;
+    text-underline-offset: 2px;
+  }
+  .insights-link:hover {
+    text-decoration: none;
+  }
+  /* Footer note: reinforces that this is our analysis, not the article's abstract. */
+  .insights-byline {
+    margin-top: var(--space-6);
+    padding-top: var(--space-4);
+    border-top: 1px solid var(--border-color);
+    font-size: 0.8125rem;
+    line-height: 1.5;
+    font-style: italic;
+    color: var(--text-secondary);
   }
   /* TL;DR reads as a lead paragraph under the headline. */
   .insights-tldr {
