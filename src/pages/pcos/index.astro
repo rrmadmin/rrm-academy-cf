@@ -14,15 +14,15 @@ import { safeJsonLd } from '../../lib/jsonld';
 const SHELL_ENABLED = isShellEnabled('guides');
 
 const TOC_ITEMS = [
-  { href: '#what-is-pcos', label: 'What is PCOS?' },
-  { href: '#how-pcos-is-diagnosed', label: 'How PCOS is Diagnosed' },
-  { href: '#phenotypes', label: 'The Four PCOS Phenotypes' },
+  { href: '#what-is-pcos', label: 'What is PCOS/PMOS?' },
+  { href: '#how-pcos-is-diagnosed', label: 'How PCOS/PMOS is Diagnosed' },
+  { href: '#phenotypes', label: 'The Four PCOS/PMOS Phenotypes' },
   { href: '#standard-care-gap', label: 'Why Standard Care Often Misses the Mark' },
-  { href: '#rrm-approach', label: 'The RRM Approach to PCOS' },
-  { href: '#pcos-and-fertility', label: 'PCOS and Fertility' },
-  { href: '#long-term-health', label: 'PCOS and Long-Term Health' },
-  { href: '#adolescent-pcos', label: 'Adolescent PCOS' },
-  { href: '#co-occurring', label: 'PCOS and Co-occurring Conditions' },
+  { href: '#rrm-approach', label: 'The RRM Approach to PCOS/PMOS' },
+  { href: '#pcos-and-fertility', label: 'PCOS/PMOS and Fertility' },
+  { href: '#long-term-health', label: 'PCOS/PMOS and Long-Term Health' },
+  { href: '#adolescent-pcos', label: 'Adolescent PCOS/PMOS' },
+  { href: '#co-occurring', label: 'PCOS/PMOS and Co-occurring Conditions' },
   { href: '#faq', label: 'Frequently Asked Questions' },
 ];
 
@@ -39,8 +39,8 @@ function citeStub(props: { name: string; author: string; datePublished: string; 
 const pageSchema = {
   '@context': 'https://schema.org',
   '@type': ['Article', 'MedicalWebPage'],
-  headline: 'PCOS Explained: Diagnosis, Phenotypes, and the RRM Approach',
-  description: 'Polycystic ovary syndrome (PCOS) is a heterogeneous condition with four diagnostic phenotypes and distinct metabolic, reproductive, and mental health implications. Learn how RRM approaches diagnosis and treatment differently.',
+  headline: 'PCOS, Now PMOS: Causes, Diagnosis, and Treatment',
+  description: 'Polycystic ovary syndrome (PCOS), now renamed PMOS, has four phenotypes and broad metabolic and reproductive effects. How restorative medicine treats the root cause.',
   author: { '@id': 'https://rrmacademy.org/#naomi-whittaker' },
   publisher: {
     '@type': 'EducationalOrganization',
@@ -57,7 +57,7 @@ const pageSchema = {
   about: {
     '@type': 'MedicalCondition',
     name: 'Polycystic Ovary Syndrome',
-    alternateName: ['PCOS', 'Stein-Leventhal Syndrome'],
+    alternateName: ['PCOS', 'PMOS', 'Polyendocrine Metabolic Ovarian Syndrome', 'Stein-Leventhal Syndrome'],
     code: {
       '@type': 'MedicalCode',
       codingSystem: 'ICD-10',
@@ -65,27 +65,27 @@ const pageSchema = {
     },
   },
   articleSection: [
-    'What is PCOS?',
-    'How PCOS is Diagnosed',
-    'The Four PCOS Phenotypes',
+    'What is PCOS/PMOS?',
+    'How PCOS/PMOS is Diagnosed',
+    'The Four PCOS/PMOS Phenotypes',
     'Why Standard Care Often Misses the Mark',
-    'The RRM Approach to PCOS',
-    'PCOS and Fertility',
-    'PCOS and Long-Term Health',
-    'Adolescent PCOS',
-    'PCOS and Co-occurring Conditions',
+    'The RRM Approach to PCOS/PMOS',
+    'PCOS/PMOS and Fertility',
+    'PCOS/PMOS and Long-Term Health',
+    'Adolescent PCOS/PMOS',
+    'PCOS/PMOS and Co-occurring Conditions',
     'Frequently Asked Questions',
   ],
   hasPart: [
-    { '@type': 'WebPageElement', name: 'What is PCOS?', url: `${PAGE_URL}#what-is-pcos` },
-    { '@type': 'WebPageElement', name: 'How PCOS is Diagnosed', url: `${PAGE_URL}#how-pcos-is-diagnosed` },
-    { '@type': 'WebPageElement', name: 'The Four PCOS Phenotypes', url: `${PAGE_URL}#phenotypes` },
+    { '@type': 'WebPageElement', name: 'What is PCOS/PMOS?', url: `${PAGE_URL}#what-is-pcos` },
+    { '@type': 'WebPageElement', name: 'How PCOS/PMOS is Diagnosed', url: `${PAGE_URL}#how-pcos-is-diagnosed` },
+    { '@type': 'WebPageElement', name: 'The Four PCOS/PMOS Phenotypes', url: `${PAGE_URL}#phenotypes` },
     { '@type': 'WebPageElement', name: 'Why Standard Care Often Misses the Mark', url: `${PAGE_URL}#standard-care-gap` },
-    { '@type': 'WebPageElement', name: 'The RRM Approach to PCOS', url: `${PAGE_URL}#rrm-approach` },
-    { '@type': 'WebPageElement', name: 'PCOS and Fertility', url: `${PAGE_URL}#pcos-and-fertility` },
-    { '@type': 'WebPageElement', name: 'PCOS and Long-Term Health', url: `${PAGE_URL}#long-term-health` },
-    { '@type': 'WebPageElement', name: 'Adolescent PCOS', url: `${PAGE_URL}#adolescent-pcos` },
-    { '@type': 'WebPageElement', name: 'PCOS and Co-occurring Conditions', url: `${PAGE_URL}#co-occurring` },
+    { '@type': 'WebPageElement', name: 'The RRM Approach to PCOS/PMOS', url: `${PAGE_URL}#rrm-approach` },
+    { '@type': 'WebPageElement', name: 'PCOS/PMOS and Fertility', url: `${PAGE_URL}#pcos-and-fertility` },
+    { '@type': 'WebPageElement', name: 'PCOS/PMOS and Long-Term Health', url: `${PAGE_URL}#long-term-health` },
+    { '@type': 'WebPageElement', name: 'Adolescent PCOS/PMOS', url: `${PAGE_URL}#adolescent-pcos` },
+    { '@type': 'WebPageElement', name: 'PCOS/PMOS and Co-occurring Conditions', url: `${PAGE_URL}#co-occurring` },
     { '@type': 'WebPageElement', name: 'Frequently Asked Questions', url: `${PAGE_URL}#faq` },
   ],
   citation: [
@@ -122,7 +122,7 @@ const breadcrumbSchema = {
   itemListElement: [
     { '@type': 'ListItem', position: 1, name: 'Home', item: 'https://rrmacademy.org/' },
     { '@type': 'ListItem', position: 2, name: 'Guides', item: 'https://rrmacademy.org/guides/' },
-    { '@type': 'ListItem', position: 3, name: 'PCOS', item: PAGE_URL },
+    { '@type': 'ListItem', position: 3, name: 'PCOS/PMOS', item: PAGE_URL },
   ],
 };
 
@@ -132,39 +132,39 @@ const faqSchema = {
   mainEntity: [
     {
       '@type': 'Question',
-      name: 'Is PCOS a single disease or a spectrum?',
+      name: 'Is PCOS/PMOS a single disease or a spectrum?',
       acceptedAnswer: {
         '@type': 'Answer',
-        text: 'PCOS is a clinical syndrome with at least four distinguishable phenotypes that differ in hormonal pattern, metabolic risk, and likely underlying biology. Two women with the same diagnostic label can have meaningfully different conditions, which is why a single one-size-fits-all treatment rarely matches every patient.',
+        text: 'PCOS/PMOS is a clinical syndrome with at least four distinguishable phenotypes that differ in hormonal pattern, metabolic risk, and likely underlying biology. Two women with the same diagnostic label can have meaningfully different conditions, which is why a single one-size-fits-all treatment rarely matches every patient.',
       },
     },
     {
       '@type': 'Question',
-      name: 'Can I have PCOS if my cycles are regular?',
+      name: 'Can I have PCOS/PMOS if my cycles are regular?',
       acceptedAnswer: {
         '@type': 'Answer',
-        text: 'Under Rotterdam 2003 and the 2023 International Guideline, ovulatory hyperandrogenic PCOS (Phenotype C) is a recognised presentation. Regular cycles do not rule out PCOS when clinical or biochemical hyperandrogenism is present alongside polycystic ovarian morphology on ultrasound.',
+        text: 'Under Rotterdam 2003 and the 2023 International Guideline, ovulatory hyperandrogenic PCOS/PMOS (Phenotype C) is a recognised presentation. Regular cycles do not rule out PCOS/PMOS when clinical or biochemical hyperandrogenism is present alongside polycystic ovarian morphology on ultrasound.',
       },
     },
     {
       '@type': 'Question',
-      name: 'Does the birth control pill treat PCOS?',
+      name: 'Does the birth control pill treat PCOS/PMOS?',
       acceptedAnswer: {
         '@type': 'Answer',
-        text: 'Combined hormonal contraception masks the cycle and reduces visible androgenic symptoms but does not address insulin resistance, inflammation, or the underlying ovulatory dysfunction. Randomised data in PCOS show that both oral and vaginal combined contraceptives produce similar unfavourable metabolic effects, and former long-term contraceptive use is associated with disordered glucose metabolism in midlife. Suppression is not restoration.',
+        text: 'Combined hormonal contraception masks the cycle and reduces visible androgenic symptoms but does not address insulin resistance, inflammation, or the underlying ovulatory dysfunction. Randomised data in PCOS/PMOS show that both oral and vaginal combined contraceptives produce similar unfavourable metabolic effects, and former long-term contraceptive use is associated with disordered glucose metabolism in midlife. Suppression is not restoration.',
       },
     },
     {
       '@type': 'Question',
-      name: 'Can women with PCOS conceive without IVF?',
+      name: 'Can women with PCOS/PMOS conceive without IVF?',
       acceptedAnswer: {
         '@type': 'Answer',
-        text: 'In many cases, yes. Anovulatory PCOS is one of the most treatable causes of infertility. Lifestyle modification, insulin-sensitising agents where appropriate, and ovulation-induction medications such as letrozole produce live births in a substantial proportion of women, often without the need for in-vitro fertilisation. The international evidence-based guideline lists letrozole as the recommended first-line pharmacological agent for anovulatory infertility in PCOS.',
+        text: 'In many cases, yes. Anovulatory PCOS/PMOS is one of the most treatable causes of infertility. Lifestyle modification, insulin-sensitising agents where appropriate, and ovulation-induction medications such as letrozole produce live births in a substantial proportion of women, often without the need for in-vitro fertilisation. The international evidence-based guideline lists letrozole as the recommended first-line pharmacological agent for anovulatory infertility in PCOS/PMOS.',
       },
     },
     {
       '@type': 'Question',
-      name: 'Why does PCOS care often feel dismissive?',
+      name: 'Why does PCOS/PMOS care often feel dismissive?',
       acceptedAnswer: {
         '@type': 'Answer',
         text: 'A common pattern is for a primary-care or general gynaecology visit to end with a prescription for combined hormonal contraception, sometimes plus metformin, without a phenotype assessment, a cardiometabolic workup, a mental-health screen, or a longer-term plan. The condition is heterogeneous and chronic, and a 15-minute symptom-suppression script rarely matches the underlying biology.',
@@ -172,10 +172,10 @@ const faqSchema = {
     },
     {
       '@type': 'Question',
-      name: 'What long-term health risks does PCOS carry?',
+      name: 'What long-term health risks does PCOS/PMOS carry?',
       acceptedAnswer: {
         '@type': 'Answer',
-        text: 'PCOS is associated with elevated risk of type 2 diabetes, metabolic syndrome, cardiovascular disease, endometrial hyperplasia and cancer (driven by chronic unopposed estrogen exposure when ovulation is absent), depression and anxiety, eating disorders, obstructive sleep apnoea, and adverse pregnancy outcomes. Long-term health is a core reason PCOS deserves a serious, condition-level care plan rather than cycle suppression alone.',
+        text: 'PCOS/PMOS is associated with elevated risk of type 2 diabetes, metabolic syndrome, cardiovascular disease, endometrial hyperplasia and cancer (driven by chronic unopposed estrogen exposure when ovulation is absent), depression and anxiety, eating disorders, obstructive sleep apnoea, and adverse pregnancy outcomes. Long-term health is a core reason PCOS/PMOS deserves a serious, condition-level care plan rather than cycle suppression alone.',
       },
     },
     {
@@ -183,7 +183,7 @@ const faqSchema = {
       name: 'Is myo-inositol an alternative to metformin?',
       acceptedAnswer: {
         '@type': 'Answer',
-        text: 'Myo-inositol, often combined with D-chiro-inositol, has accumulated randomised-trial evidence in PCOS, including a 2023 meta-analysis of randomised controlled trials supporting effects on ovulation, menstrual regularity, and metabolic parameters. Comparisons with metformin show comparable effects on several endpoints with a milder side-effect profile. Choice between agents should be made by a clinician familiar with the patient phenotype.',
+        text: 'Myo-inositol, often combined with D-chiro-inositol, has accumulated randomised-trial evidence in PCOS/PMOS, including a 2023 meta-analysis of randomised controlled trials supporting effects on ovulation, menstrual regularity, and metabolic parameters. Comparisons with metformin show comparable effects on several endpoints with a milder side-effect profile. Choice between agents should be made by a clinician familiar with the patient phenotype.',
       },
     },
   ],
@@ -191,8 +191,8 @@ const faqSchema = {
 ---
 
 <BaseLayout
-  title="PCOS Explained: Phenotypes and RRM Treatment"
-  description="Polycystic ovary syndrome has four phenotypes with distinct metabolic and reproductive effects. Learn how RRM diagnoses and treats the root causes."
+  title="PCOS, Now PMOS: Causes, Diagnosis & Treatment"
+  description="Polycystic ovary syndrome (PCOS), now renamed PMOS, has four phenotypes and broad metabolic and reproductive effects. How restorative medicine treats the root cause."
   canonicalUrl={PAGE_URL}
   markdownUrl="/pcos.md"
   ogType="article"
@@ -204,10 +204,10 @@ const faqSchema = {
   <script type="application/ld+json" set:html={safeJsonLd(breadcrumbSchema)} />
   <script type="application/ld+json" set:html={safeJsonLd(faqSchema)} />
 
-  <MaybeShell enabled={SHELL_ENABLED} context="page" currentPath={Astro.url.pathname} saveTitle="PCOS Explained">
+  <MaybeShell enabled={SHELL_ENABLED} context="page" currentPath={Astro.url.pathname} saveTitle="PCOS (Now PMOS)">
   <div class="page-wrapper" data-pagefind-body>
     <span data-pagefind-meta="type:Guide" style="display:none"></span>
-    <span data-pagefind-meta="title:PCOS: A Clinician-Reviewed Guide" style="display:none"></span>
+    <span data-pagefind-meta="title:PCOS (Now PMOS): A Clinician-Reviewed Guide" style="display:none"></span>
     <div class="container">
 
       <nav class="breadcrumb" aria-label="Breadcrumb">
@@ -215,10 +215,10 @@ const faqSchema = {
         <span aria-hidden="true"> &rsaquo; </span>
         <a href="/guides/">Guides</a>
         <span aria-hidden="true"> &rsaquo; </span>
-        <span>PCOS</span>
+        <span>PCOS/PMOS</span>
       </nav>
 
-      <h1>PCOS Explained: Diagnosis, Phenotypes, and the RRM Approach</h1>
+      <h1>PCOS, Now PMOS: Causes, Diagnosis, and Treatment</h1>
 
       <div class="author-byline">
         <div class="author-avatar-stack">
@@ -229,6 +229,10 @@ const faqSchema = {
           <LastUpdated path={PAGE_PATH} class="byline-date" />
         </div>
       </div>
+
+      <aside class="editorial-notice" aria-label="Terminology update">
+        <span><strong>Terminology update.</strong> In May 2026, the international guideline network that governs this diagnosis renamed the condition Polyendocrine Metabolic Ovarian Syndrome (PMOS), reflecting that it is a multisystem endocrine and metabolic disorder rather than an ovarian-cyst disease. Both names will coexist through a multi-year transition, with full adoption expected in the 2028 international guideline update. This guide continues to use PCOS, the term most patients and clinicians still recognize, and notes PMOS where it adds clarity. <a href="/commentary/pcos-is-now-pmos-most-women-never-had-ovarian-cysts/">Read why the rename matters for restorative care</a>.</span>
+      </aside>
 
       <details class="toc-mobile">
         <summary>On this page</summary>
@@ -254,31 +258,31 @@ const faqSchema = {
           <aside class="tldr">
             <h2 id="key-takeaways">Key Takeaways</h2>
             <ul>
-              <li><strong>PCOS is the most common endocrine disorder in reproductive-age women</strong>, affecting roughly 10 to 15 percent depending on the diagnostic framework used, per <a href="/library/the-prevalence-of-polycystic-ovary-syndrome-a-brief-systematic-review-recxim7wm1lcfwnyp/">Deswal et al. 2021</a>.</li>
-              <li><strong>PCOS is not one disease.</strong> Rotterdam 2003 defines four distinct phenotypes with different hormonal patterns and different metabolic loads, per the <a href="/library/revised-2003-consensus-on-diagnostic-criteria-and-long-term-health-risks-related-recs4cmqbtnghw5py/">ESHRE/ASRM consensus</a>. Treatment that ignores the phenotype rarely matches the patient.</li>
-              <li><strong>It is not just a fertility condition.</strong> PCOS carries elevated lifetime risk of type 2 diabetes, cardiovascular disease, endometrial cancer, depression, anxiety, and eating disorders, per <a href="/library/beyond-fertility-polycystic-ovary-syndrome-and-long-term-health-recwggpyc9z7gnduq/">Cooney & Dokras 2018</a> and <a href="/library/cardiometabolic-risk-in-pcos-more-than-a-reproductive-disorder-gpwzb4w0/">Torchen 2017</a>.</li>
-              <li><strong>Combined hormonal contraception suppresses cycles but does not treat PCOS.</strong> Randomised data show both oral and vaginal combined contraceptives produce unfavourable metabolic effects in PCOS, per <a href="/library/oral-and-vaginal-hormonal-contraceptives-induce-similar-unfavorable-metabolic-ef-rec3orhwe8w3czyvm/">Mosorin et al. 2023</a>.</li>
-              <li><strong>Anovulatory infertility in PCOS is one of the most treatable causes of infertility.</strong> Letrozole is the international guideline first-line pharmacological agent, per <a href="/library/a-brief-update-on-the-evidence-supporting-the-treatment-of-infertility-in-polycy-recoqqyewdbiiaquy/">Costello et al. 2019</a>.</li>
+              <li><strong>Polycystic Ovary Syndrome (PCOS), renamed Polyendocrine Metabolic Ovarian Syndrome (PMOS) in 2026, is the most common endocrine disorder in reproductive-age women</strong>, affecting roughly 10 to 15 percent depending on the diagnostic framework used, per <a href="/library/the-prevalence-of-polycystic-ovary-syndrome-a-brief-systematic-review-recxim7wm1lcfwnyp/">Deswal et al. 2021</a>.</li>
+              <li><strong>PCOS/PMOS is not one disease.</strong> Rotterdam 2003 defines four distinct phenotypes with different hormonal patterns and different metabolic loads, per the <a href="/library/revised-2003-consensus-on-diagnostic-criteria-and-long-term-health-risks-related-recs4cmqbtnghw5py/">ESHRE/ASRM consensus</a>. Treatment that ignores the phenotype rarely matches the patient.</li>
+              <li><strong>It is not just a fertility condition.</strong> PCOS/PMOS carries elevated lifetime risk of type 2 diabetes, cardiovascular disease, endometrial cancer, depression, anxiety, and eating disorders, per <a href="/library/beyond-fertility-polycystic-ovary-syndrome-and-long-term-health-recwggpyc9z7gnduq/">Cooney & Dokras 2018</a> and <a href="/library/cardiometabolic-risk-in-pcos-more-than-a-reproductive-disorder-gpwzb4w0/">Torchen 2017</a>.</li>
+              <li><strong>Combined hormonal contraception suppresses cycles but does not treat PCOS/PMOS.</strong> Randomised data show both oral and vaginal combined contraceptives produce unfavourable metabolic effects in PCOS/PMOS, per <a href="/library/oral-and-vaginal-hormonal-contraceptives-induce-similar-unfavorable-metabolic-ef-rec3orhwe8w3czyvm/">Mosorin et al. 2023</a>.</li>
+              <li><strong>Anovulatory infertility in PCOS/PMOS is one of the most treatable causes of infertility.</strong> Letrozole is the international guideline first-line pharmacological agent, per <a href="/library/a-brief-update-on-the-evidence-supporting-the-treatment-of-infertility-in-polycy-recoqqyewdbiiaquy/">Costello et al. 2019</a>.</li>
               <li><strong>Insulin-sensitising therapy has a strong evidence base.</strong> A 2023 systematic review and meta-analysis of randomised controlled trials found inositol effective and safe across menstrual, ovulatory, and metabolic endpoints, per <a href="/library/inositol-is-an-effective-and-safe-treatment-in-polycystic-ovary-syndrome-a-syste-recj9w9jilrurhd05/">Greff et al. 2023</a>.</li>
             </ul>
           </aside>
 
           <section id="what-is-pcos">
-            <h2>What is PCOS?</h2>
+            <h2>What is PCOS/PMOS?</h2>
 
-            <p class="pillar-lead"><strong>Polycystic ovary syndrome is a heterogeneous endocrine and metabolic condition characterised by some combination of irregular ovulation, androgen excess, and polycystic ovarian morphology on ultrasound, with consequences that extend well beyond the menstrual cycle.</strong></p>
+            <p class="pillar-lead"><strong>Polycystic ovary syndrome (PCOS), now officially renamed Polyendocrine Metabolic Ovarian Syndrome (PMOS), is a heterogeneous endocrine and metabolic condition characterised by some combination of irregular ovulation, androgen excess, and polycystic ovarian morphology on ultrasound, with consequences that extend well beyond the menstrual cycle.</strong></p>
 
-            <p>PCOS affects between roughly 6 and 15 percent of reproductive-age women, depending on which diagnostic criteria are applied and which population is studied, per the <a href="/library/the-prevalence-of-polycystic-ovary-syndrome-a-brief-systematic-review-recxim7wm1lcfwnyp/">Deswal 2021 systematic review</a>. It is the most common endocrine disorder in women of reproductive age and a leading cause of anovulatory infertility, hirsutism, acne, and irregular menses, per <a href="/library/the-epidemiology-of-polycystic-ovary-syndrome-prevalence-and-associated-disease--rec9qrasllgpsuxcd/">Solomon's foundational epidemiology review</a>. Prevalence is rising in several populations, with a <a href="/library/changes-in-the-prevalence-of-polycystic-ovary-syndrome-in-china-over-the-past-de-recseorciymzhcfde/">large Chinese study</a> documenting a substantial increase over the past decade.</p>
+            <p>PCOS/PMOS affects between roughly 6 and 15 percent of reproductive-age women, depending on which diagnostic criteria are applied and which population is studied, per the <a href="/library/the-prevalence-of-polycystic-ovary-syndrome-a-brief-systematic-review-recxim7wm1lcfwnyp/">Deswal 2021 systematic review</a>. It is the most common endocrine disorder in women of reproductive age and a leading cause of anovulatory infertility, hirsutism, acne, and irregular menses, per <a href="/library/the-epidemiology-of-polycystic-ovary-syndrome-prevalence-and-associated-disease--rec9qrasllgpsuxcd/">Solomon's foundational epidemiology review</a>. Prevalence is rising in several populations, with a <a href="/library/changes-in-the-prevalence-of-polycystic-ovary-syndrome-in-china-over-the-past-de-recseorciymzhcfde/">large Chinese study</a> documenting a substantial increase over the past decade.</p>
 
-            <p>The condition is best understood as a syndrome, not a disease. A diagnosis of PCOS captures a recognisable clinical pattern produced by what may be several distinct underlying biologies. <a href="/library/molecular-progress-in-infertility-polycystic-ovary-syndrome-rec1kll4aesgzqxn4/">Legro and Strauss 2002</a> mapped the molecular heterogeneity, and <a href="/library/polycystic-ovary-syndrome-etiology-current-management-and-future-therapeutics-tmoawmnj/">Singh et al. 2023</a> review the developmental, genetic, and epigenetic contributions now recognised in the etiology literature. <a href="/library/pcos-stratification-for-precision-diagnostics-and-treatment-recciwc3y1xjzs3q6/">Joshi 2024</a> argues that without stratification, future precision treatment is impossible.</p>
+            <p>The condition is best understood as a syndrome, not a disease. A diagnosis of PCOS/PMOS captures a recognisable clinical pattern produced by what may be several distinct underlying biologies. <a href="/library/molecular-progress-in-infertility-polycystic-ovary-syndrome-rec1kll4aesgzqxn4/">Legro and Strauss 2002</a> mapped the molecular heterogeneity, and <a href="/library/polycystic-ovary-syndrome-etiology-current-management-and-future-therapeutics-tmoawmnj/">Singh et al. 2023</a> review the developmental, genetic, and epigenetic contributions now recognised in the etiology literature. <a href="/library/pcos-stratification-for-precision-diagnostics-and-treatment-recciwc3y1xjzs3q6/">Joshi 2024</a> argues that without stratification, future precision treatment is impossible.</p>
 
-            <p>The framing matters because it determines what gets investigated, what gets treated, and what gets followed across decades. <a href="/library/polycystic-ovary-syndrome-its-not-just-infertility-rec76qdeij4p0tbvp/">Hunter and Sterrett</a> made the point in 2000, in the American Family Physician journal, that PCOS is "not just infertility." A quarter-century later that observation remains the single most useful reframe a clinician can offer a patient newly given the label.</p>
+            <p>The framing matters because it determines what gets investigated, what gets treated, and what gets followed across decades. <a href="/library/polycystic-ovary-syndrome-its-not-just-infertility-rec76qdeij4p0tbvp/">Hunter and Sterrett</a> made the point in 2000, in the American Family Physician journal, that PCOS/PMOS is "not just infertility." A quarter-century later that observation remains the single most useful reframe a clinician can offer a patient newly given the label.</p>
           </section>
 
           <section id="how-pcos-is-diagnosed">
-            <h2>How PCOS is Diagnosed</h2>
+            <h2>How PCOS/PMOS is Diagnosed</h2>
 
-            <p>Four diagnostic frameworks have shaped clinical practice over the past three decades. They differ in which features are required, how ultrasound morphology is weighted, and how prevalence is consequently measured.</p>
+            <p>Four diagnostic frameworks have shaped PCOS/PMOS clinical practice over the past three decades. They differ in which features are required, how ultrasound morphology is weighted, and how prevalence is consequently measured.</p>
 
             <div class="criteria-grid">
               {pcosData.diagnostic_criteria.map((c) => (
@@ -309,9 +313,9 @@ const faqSchema = {
           </section>
 
           <section id="phenotypes">
-            <h2>The Four PCOS Phenotypes</h2>
+            <h2>The Four PCOS/PMOS Phenotypes</h2>
 
-            <p>Rotterdam 2003 produced four phenotypes based on which combination of features a given patient meets. Each phenotype carries its own hormonal pattern and its own metabolic load, and the same diagnostic label can capture meaningfully different conditions, per <a href="/library/metabolic-syndrome-and-metabolic-risk-profile-according-to-polycystic-ovary-synd-recptfzvlritvbwck/">Bil et al. 2016</a>.</p>
+            <p>Rotterdam 2003 produced four PCOS/PMOS phenotypes based on which combination of features a given patient meets. Each phenotype carries its own hormonal pattern and its own metabolic load, and the same diagnostic label can capture meaningfully different conditions, per <a href="/library/metabolic-syndrome-and-metabolic-risk-profile-according-to-polycystic-ovary-synd-recptfzvlritvbwck/">Bil et al. 2016</a>.</p>
 
             <div class="phenotype-grid">
               {pcosData.phenotypes_rotterdam.map((p) => (
@@ -357,27 +361,27 @@ const faqSchema = {
           <section id="standard-care-gap">
             <h2>Why Standard Care Often Misses the Mark</h2>
 
-            <p>The typical primary-care or general-gynaecology workflow for a newly suspected PCOS patient runs something like this: irregular cycles trigger a single transvaginal ultrasound, perhaps a fasting glucose and lipid panel, and a prescription for combined hormonal contraception. Acne and hirsutism are managed cosmetically. Anovulatory infertility, when it arrives, is referred onward to an IVF clinic.</p>
+            <p>The typical primary-care or general-gynaecology workflow for a newly suspected PCOS/PMOS patient runs something like this: irregular cycles trigger a single transvaginal ultrasound, perhaps a fasting glucose and lipid panel, and a prescription for combined hormonal contraception. Acne and hirsutism are managed cosmetically. Anovulatory infertility, when it arrives, is referred onward to an IVF clinic.</p>
 
             <p>Each step has a clinical logic in isolation. The cumulative pattern does not.</p>
 
-            <p>Combined hormonal contraception does not treat PCOS. It induces a withdrawal bleed that resembles a menstrual period, suppresses ovarian androgen production, and reduces visible symptoms. The cycle, the ovulation, and the underlying metabolic phenotype remain unaddressed underneath the suppression. Randomised data in PCOS show that both oral and vaginal combined formulations produce similar unfavourable metabolic effects, including changes in insulin sensitivity and lipid panels, per <a href="/library/oral-and-vaginal-hormonal-contraceptives-induce-similar-unfavorable-metabolic-ef-rec3orhwe8w3czyvm/">Mosorin and colleagues 2023</a>. A separate cohort from the same Finnish group documented an association between former long-term combined contraceptive use and disordered glucose metabolism in perimenopause, per <a href="/library/former-long-term-use-of-combined-hormonal-contraception-and-glucose-metabolism-d-rec6o5dg27gks7akc/">Mosorin et al. 2023</a>.</p>
+            <p>Combined hormonal contraception does not treat PCOS/PMOS. It induces a withdrawal bleed that resembles a menstrual period, suppresses ovarian androgen production, and reduces visible symptoms. The cycle, the ovulation, and the underlying metabolic phenotype remain unaddressed underneath the suppression. Randomised data in PCOS/PMOS show that both oral and vaginal combined formulations produce similar unfavourable metabolic effects, including changes in insulin sensitivity and lipid panels, per <a href="/library/oral-and-vaginal-hormonal-contraceptives-induce-similar-unfavorable-metabolic-ef-rec3orhwe8w3czyvm/">Mosorin and colleagues 2023</a>. A separate cohort from the same Finnish group documented an association between former long-term combined contraceptive use and disordered glucose metabolism in perimenopause, per <a href="/library/former-long-term-use-of-combined-hormonal-contraception-and-glucose-metabolism-d-rec6o5dg27gks7akc/">Mosorin et al. 2023</a>.</p>
 
-            <p>Metformin, when added, is often dosed by guesswork rather than by phenotype assessment. <a href="/library/24-month-metformin-improves-pcos-menses-hormones-and-metabolism-recrv4rjajlxmfps0/">Carpentier's 24-month study</a> shows what sustained metformin can do in a PCOS cohort, including improvements in menses, hormones, and metabolic markers, but the literature also documents a growing role for myo-inositol as an alternative or adjunct with a milder side-effect profile, per <a href="/library/comparison-of-myo-inositol-and-metformin-on-clinical-metabolic-and-genetic-param-reculeu8imzt0ikm1/">Jamilian et al. 2017</a> and <a href="/library/comparison-of-two-insulin-sensitizers-metformin-and-myo-inositol-in-women-with-p-recujcmop97hc6epj/">Fruzzetti et al. 2016</a>.</p>
+            <p>Metformin, when added, is often dosed by guesswork rather than by phenotype assessment. <a href="/library/24-month-metformin-improves-pcos-menses-hormones-and-metabolism-recrv4rjajlxmfps0/">Carpentier's 24-month study</a> shows what sustained metformin can do in a PCOS/PMOS cohort, including improvements in menses, hormones, and metabolic markers, but the literature also documents a growing role for myo-inositol as an alternative or adjunct with a milder side-effect profile, per <a href="/library/comparison-of-myo-inositol-and-metformin-on-clinical-metabolic-and-genetic-param-reculeu8imzt0ikm1/">Jamilian et al. 2017</a> and <a href="/library/comparison-of-two-insulin-sensitizers-metformin-and-myo-inositol-in-women-with-p-recujcmop97hc6epj/">Fruzzetti et al. 2016</a>.</p>
 
-            <p>The longer-term gap is more serious. Most women diagnosed with PCOS in their twenties are not actively followed for cardiometabolic risk, endometrial protection, or mental health into their forties and fifties, despite the documented elevation of risk in each domain, per <a href="/library/beyond-fertility-polycystic-ovary-syndrome-and-long-term-health-recwggpyc9z7gnduq/">Cooney and Dokras 2018</a> and <a href="/library/metabolic-syndrome-in-women-with-polycystic-ovary-syndrome-rec2qhczobjszzd82/">Chandrasekaran and Sagili 2018</a>. The condition is chronic, but the care pattern is acute.</p>
+            <p>The longer-term gap is more serious. Most women diagnosed with PCOS/PMOS in their twenties are not actively followed for cardiometabolic risk, endometrial protection, or mental health into their forties and fifties, despite the documented elevation of risk in each domain, per <a href="/library/beyond-fertility-polycystic-ovary-syndrome-and-long-term-health-recwggpyc9z7gnduq/">Cooney and Dokras 2018</a> and <a href="/library/metabolic-syndrome-in-women-with-polycystic-ovary-syndrome-rec2qhczobjszzd82/">Chandrasekaran and Sagili 2018</a>. The condition is chronic, but the care pattern is acute.</p>
           </section>
 
           <section id="rrm-approach">
-            <h2>The RRM Approach to PCOS</h2>
+            <h2>The RRM Approach to PCOS/PMOS</h2>
 
-            <p><strong>Restorative Reproductive Medicine treats PCOS as a chronic condition with distinct phenotypes that warrant phenotype-matched workup, lifestyle and metabolic intervention before suppression, and longitudinal follow-up across decades rather than across visits.</strong></p>
+            <p><strong>Restorative Reproductive Medicine treats PCOS/PMOS as a chronic condition with distinct phenotypes that warrant phenotype-matched workup, lifestyle and metabolic intervention before suppression, and longitudinal follow-up across decades rather than across visits.</strong></p>
 
-            <p>RRM-trained clinicians, including those working within the <a href="/naprotechnology/">NaProTechnology</a> and <a href="/femm/">FEMM</a> traditions, typically structure PCOS care around several core principles.</p>
+            <p>RRM-trained clinicians, including those working within the <a href="/naprotechnology/">NaProTechnology</a> and <a href="/femm/">FEMM</a> traditions, typically structure PCOS/PMOS care around several core principles.</p>
 
             <h3>1. Charting cycles to establish a real baseline</h3>
 
-            <p>Before any treatment, the patient's actual cycle is mapped using a standardised charting method, often the <a href="/faqs/what-is-the-difference-between-creighton-model-marquette-method-femm-and-symptot/">Creighton Model</a> FertilityCare System or the FEMM biomarker app paired with urinary LH testing. The chart documents what is actually happening across cycles, including unobserved ovulatory dysfunction patterns that a simple "irregular periods" history misses entirely. A documented PCOS case from <a href="/library/successful-implementation-of-menstrual-cycle-biomarkers-in-the-treatment-of-infe-recgrmsnfyc5dmeuu/">Kicinska and colleagues 2023</a> illustrates how charting-anchored care identifies hormonal patterns that calendar-based protocols overlook.</p>
+            <p>Before any treatment, the patient's actual cycle is mapped using a standardised charting method, often the <a href="/faqs/what-is-the-difference-between-creighton-model-marquette-method-femm-and-symptot/">Creighton Model</a> FertilityCare System or the FEMM biomarker app paired with urinary LH testing. The chart documents what is actually happening across cycles, including unobserved ovulatory dysfunction patterns that a simple "irregular periods" history misses entirely. A documented PCOS/PMOS case from <a href="/library/successful-implementation-of-menstrual-cycle-biomarkers-in-the-treatment-of-infe-recgrmsnfyc5dmeuu/">Kicinska and colleagues 2023</a> illustrates how charting-anchored care identifies hormonal patterns that calendar-based protocols overlook.</p>
 
             <h3>2. Phenotype-matched workup</h3>
 
@@ -385,7 +389,7 @@ const faqSchema = {
 
             <h3>3. Lifestyle and metabolic intervention before suppression</h3>
 
-            <p>Dietary pattern, resistance training, sleep, and stress regulation are not soft adjuncts but the foundation of PCOS care, particularly for the insulin-resistant phenotype that dominates most clinic populations. The international guideline, summarised by <a href="/library/evidencebased-lifestyle-guidelines-and-selfmanagement-strategies-utilized-by-wom-s4uyeuv1/">Cowan and colleagues 2023</a>, places lifestyle modification as first-line. Insulin-sensitising agents have a strong evidence base where appropriate, with myo-inositol and metformin both supported by randomised data. <a href="/library/inositol-is-an-effective-and-safe-treatment-in-polycystic-ovary-syndrome-a-syste-recj9w9jilrurhd05/">Greff et al. 2023</a> is the current meta-analysis of choice for inositol; <a href="/library/myoinositol-for-insulin-resistance-metabolic-syndrome-polycystic-ovary-syndrome--oojxywg2/">DiNicolantonio and O'Keefe 2022</a> review the mechanism and the wider metabolic indications.</p>
+            <p>Dietary pattern, resistance training, sleep, and stress regulation are not soft adjuncts but the foundation of PCOS/PMOS care, particularly for the insulin-resistant phenotype that dominates most clinic populations. The international guideline, summarised by <a href="/library/evidencebased-lifestyle-guidelines-and-selfmanagement-strategies-utilized-by-wom-s4uyeuv1/">Cowan and colleagues 2023</a>, places lifestyle modification as first-line. Insulin-sensitising agents have a strong evidence base where appropriate, with myo-inositol and metformin both supported by randomised data. <a href="/library/inositol-is-an-effective-and-safe-treatment-in-polycystic-ovary-syndrome-a-syste-recj9w9jilrurhd05/">Greff et al. 2023</a> is the current meta-analysis of choice for inositol; <a href="/library/myoinositol-for-insulin-resistance-metabolic-syndrome-polycystic-ovary-syndrome--oojxywg2/">DiNicolantonio and O'Keefe 2022</a> review the mechanism and the wider metabolic indications.</p>
 
             <h3>4. Ovulation restoration, not bleed simulation</h3>
 
@@ -393,29 +397,29 @@ const faqSchema = {
 
             <h3>5. Longitudinal follow-up</h3>
 
-            <p>PCOS care does not end when symptoms settle or a pregnancy succeeds. The same cardiometabolic, endometrial, and mental-health risks persist into perimenopause and beyond, per <a href="/library/cardiometabolic-risk-in-pcos-more-than-a-reproductive-disorder-gpwzb4w0/">Torchen 2017</a>. A serious PCOS care plan budgets for screening across decades, not visits.</p>
+            <p>PCOS/PMOS care does not end when symptoms settle or a pregnancy succeeds. The same cardiometabolic, endometrial, and mental-health risks persist into perimenopause and beyond, per <a href="/library/cardiometabolic-risk-in-pcos-more-than-a-reproductive-disorder-gpwzb4w0/">Torchen 2017</a>. A serious PCOS/PMOS care plan budgets for screening across decades, not visits.</p>
           </section>
 
           <section id="pcos-and-fertility">
-            <h2>PCOS and Fertility</h2>
+            <h2>PCOS/PMOS and Fertility</h2>
 
-            <p>PCOS is the most common cause of anovulatory infertility, and it is also one of the most treatable. Live-birth rates with first-line medical management compare favourably to many other infertility diagnoses.</p>
+            <p>PCOS/PMOS is the most common cause of anovulatory infertility, and it is also one of the most treatable. Live-birth rates with first-line medical management compare favourably to many other infertility diagnoses.</p>
 
-            <p>The international evidence-based guideline, extracted in the <a href="/library/a-brief-update-on-the-evidence-supporting-the-treatment-of-infertility-in-polycy-recoqqyewdbiiaquy/">2019 Costello ANZJOG paper</a>, recommends letrozole as the first-line pharmacological agent for anovulatory infertility in PCOS. Letrozole, an aromatase inhibitor, was first applied to ovulation induction in this population by <a href="/library/use-of-an-aromatase-inhibitor-for-induction-of-ovulation-in-patients-with-an-ina-recrm4nuslexvrgvn/">Mitwally and Casper in 2001</a>. <a href="/library/fertility-treatment-options-for-women-with-polycystic-ovary-syndrome-7fsur6rw/">Sawant and Bhide 2019</a> survey the wider treatment landscape, including clomiphene citrate, gonadotropins, ovarian drilling, and IVF for resistant cases. A <a href="/library/ovulation-induction-using-sequential-letrozolegonadotrophin-in-infertile-women-with-pcos-a-randomized-controlled-trial-recfcth3rlbelgo4p/">2022 randomised controlled trial by Dai and colleagues</a> documents outcomes for sequential letrozole-gonadotrophin combinations in PCOS.</p>
+            <p>The international evidence-based guideline, extracted in the <a href="/library/a-brief-update-on-the-evidence-supporting-the-treatment-of-infertility-in-polycy-recoqqyewdbiiaquy/">2019 Costello ANZJOG paper</a>, recommends letrozole as the first-line pharmacological agent for anovulatory infertility in PCOS/PMOS. Letrozole, an aromatase inhibitor, was first applied to ovulation induction in this population by <a href="/library/use-of-an-aromatase-inhibitor-for-induction-of-ovulation-in-patients-with-an-ina-recrm4nuslexvrgvn/">Mitwally and Casper in 2001</a>. <a href="/library/fertility-treatment-options-for-women-with-polycystic-ovary-syndrome-7fsur6rw/">Sawant and Bhide 2019</a> survey the wider treatment landscape, including clomiphene citrate, gonadotropins, ovarian drilling, and IVF for resistant cases. A <a href="/library/ovulation-induction-using-sequential-letrozolegonadotrophin-in-infertile-women-with-pcos-a-randomized-controlled-trial-recfcth3rlbelgo4p/">2022 randomised controlled trial by Dai and colleagues</a> documents outcomes for sequential letrozole-gonadotrophin combinations in PCOS/PMOS.</p>
 
-            <p>For the insulin-resistant phenotype, weight optimisation and insulin sensitisation are not optional. <a href="/library/polycystic-ovary-syndrome-etiology-current-management-and-future-therapeutics-tmoawmnj/">Singh and colleagues 2023</a> review the management landscape including future therapeutics; <a href="/library/myoinositol-as-a-safe-and-alternative-approach-in-the-treatment-of-infertile-pco-recuw91aijvm8rcge/">Regidor and Schindler 2016</a> documents the German observational experience with myo-inositol in infertile PCOS women.</p>
+            <p>For the insulin-resistant phenotype, weight optimisation and insulin sensitisation are not optional. <a href="/library/polycystic-ovary-syndrome-etiology-current-management-and-future-therapeutics-tmoawmnj/">Singh and colleagues 2023</a> review the management landscape including future therapeutics; <a href="/library/myoinositol-as-a-safe-and-alternative-approach-in-the-treatment-of-infertile-pco-recuw91aijvm8rcge/">Regidor and Schindler 2016</a> documents the German observational experience with myo-inositol in infertile PCOS/PMOS women.</p>
 
-            <p>RRM-trained clinicians typically combine these pharmacological tools with charting-based timing, which improves the precision of intercourse timing during induction cycles and provides objective confirmation that ovulation actually occurred. The result, in clinical experience, is that many women with PCOS achieve pregnancy without ever needing IVF, even after prior failed cycles elsewhere. When IVF is required, the underlying metabolic and ovulatory dysfunction still warrants treatment, because pregnancy and long-term health both improve when the condition is addressed rather than bypassed.</p>
+            <p>RRM-trained clinicians typically combine these pharmacological tools with charting-based timing, which improves the precision of intercourse timing during induction cycles and provides objective confirmation that ovulation actually occurred. The result, in clinical experience, is that many women with PCOS/PMOS achieve pregnancy without ever needing IVF, even after prior failed cycles elsewhere. When IVF is required, the underlying metabolic and ovulatory dysfunction still warrants treatment, because pregnancy and long-term health both improve when the condition is addressed rather than bypassed.</p>
           </section>
 
           <section id="long-term-health">
-            <h2>PCOS and Long-Term Health</h2>
+            <h2>PCOS/PMOS and Long-Term Health</h2>
 
-            <p>PCOS is not a fertility-window condition. The hormonal and metabolic features that define the syndrome persist throughout adult life and translate into elevated risk across several domains.</p>
+            <p>PCOS/PMOS is not a fertility-window condition. The hormonal and metabolic features that define the syndrome persist throughout adult life and translate into elevated risk across several domains.</p>
 
             <h3>Cardiometabolic risk</h3>
 
-            <p>Women with PCOS have higher rates of metabolic syndrome, insulin resistance, type 2 diabetes, and cardiovascular disease, particularly in the hyperandrogenic phenotypes A and B, per <a href="/library/cardiometabolic-risk-in-pcos-more-than-a-reproductive-disorder-gpwzb4w0/">Torchen 2017</a>, <a href="/library/metabolic-syndrome-and-metabolic-risk-profile-according-to-polycystic-ovary-synd-recptfzvlritvbwck/">Bil et al. 2016</a>, and <a href="/library/metabolic-syndrome-in-women-with-polycystic-ovary-syndrome-rec2qhczobjszzd82/">Chandrasekaran and Sagili 2018</a>. A descriptive cross-sectional study by <a href="/library/metabolic-syndrome-among-patients-with-polycystic-ovarian-syndrome-presenting-to-naeswibg/">Giri and colleagues 2022</a> in Nepal documents a high prevalence of metabolic syndrome in tertiary-care PCOS populations. Routine screening for glycemia and lipids, repeated at intervals that match individual risk, is standard in serious PCOS care.</p>
+            <p>Women with PCOS/PMOS have higher rates of metabolic syndrome, insulin resistance, type 2 diabetes, and cardiovascular disease, particularly in the hyperandrogenic phenotypes A and B, per <a href="/library/cardiometabolic-risk-in-pcos-more-than-a-reproductive-disorder-gpwzb4w0/">Torchen 2017</a>, <a href="/library/metabolic-syndrome-and-metabolic-risk-profile-according-to-polycystic-ovary-synd-recptfzvlritvbwck/">Bil et al. 2016</a>, and <a href="/library/metabolic-syndrome-in-women-with-polycystic-ovary-syndrome-rec2qhczobjszzd82/">Chandrasekaran and Sagili 2018</a>. A descriptive cross-sectional study by <a href="/library/metabolic-syndrome-among-patients-with-polycystic-ovarian-syndrome-presenting-to-naeswibg/">Giri and colleagues 2022</a> in Nepal documents a high prevalence of metabolic syndrome in tertiary-care PCOS/PMOS populations. Routine screening for glycemia and lipids, repeated at intervals that match individual risk, is standard in serious PCOS/PMOS care.</p>
 
             <h3>Endometrial protection</h3>
 
@@ -423,41 +427,41 @@ const faqSchema = {
 
             <h3>Mental health</h3>
 
-            <p>Women with PCOS are more likely to experience anxiety, depression, and disordered eating, per <a href="/library/anxiety-depression-and-quality-of-life-in-women-with-polycystic-ovarian-syndrome-z7ku1qfy/">Chaudhari et al. 2018</a> and <a href="/library/binge-eating-in-patients-with-polycystic-ovary-syndrome-prevalence-causes-and-ma-fexsqxmf/">Krug et al. 2019</a>. <a href="/library/insulin-resistance-obesity-inflammation-and-depression-in-polycystic-ovary-syndr-recdibwewgg90tcam/">Farrell and Antoni 2010</a> map the biobehavioural mechanisms linking insulin resistance, inflammation, and depression. A population-based study of postpartum depression in PCOS by <a href="/library/polycystic-ovary-syndrome-and-postpartum-depression-symptoms-a-population-based--recxjpxcfzknl9rnw/">Koric and colleagues 2021</a>, with a follow-up Hispanic/non-Hispanic comparison by <a href="/library/polycystic-ovary-syndrome-and-postpartum-depression-among-hispanics-and-non-hisp-recg5cbbe18itblza/">Fugal and colleagues 2022</a>, documents elevated postpartum depressive symptoms specifically in this group. Mental health screening belongs in the routine PCOS visit, not as an afterthought.</p>
+            <p>Women with PCOS/PMOS are more likely to experience anxiety, depression, and disordered eating, per <a href="/library/anxiety-depression-and-quality-of-life-in-women-with-polycystic-ovarian-syndrome-z7ku1qfy/">Chaudhari et al. 2018</a> and <a href="/library/binge-eating-in-patients-with-polycystic-ovary-syndrome-prevalence-causes-and-ma-fexsqxmf/">Krug et al. 2019</a>. <a href="/library/insulin-resistance-obesity-inflammation-and-depression-in-polycystic-ovary-syndr-recdibwewgg90tcam/">Farrell and Antoni 2010</a> map the biobehavioural mechanisms linking insulin resistance, inflammation, and depression. A population-based study of postpartum depression in PCOS/PMOS by <a href="/library/polycystic-ovary-syndrome-and-postpartum-depression-symptoms-a-population-based--recxjpxcfzknl9rnw/">Koric and colleagues 2021</a>, with a follow-up Hispanic/non-Hispanic comparison by <a href="/library/polycystic-ovary-syndrome-and-postpartum-depression-among-hispanics-and-non-hisp-recg5cbbe18itblza/">Fugal and colleagues 2022</a>, documents elevated postpartum depressive symptoms specifically in this group. Mental health screening belongs in the routine PCOS/PMOS visit, not as an afterthought.</p>
 
             <h3>Bone health</h3>
 
-            <p>Bone health is also affected. A meta-analysis and endocrine-context review of bone density and fracture prevalence in PCOS documents an underappreciated risk signal that warrants attention as women with PCOS age into the perimenopausal transition.</p>
+            <p>Bone health is also affected. A meta-analysis and endocrine-context review of bone density and fracture prevalence in PCOS/PMOS documents an underappreciated risk signal that warrants attention as women with PCOS/PMOS age into the perimenopausal transition.</p>
 
-            <p>The cumulative picture is that PCOS is a multi-system condition with implications that compound across decades, and that long-term follow-up is a feature of good care, not a luxury, per <a href="/library/beyond-fertility-polycystic-ovary-syndrome-and-long-term-health-recwggpyc9z7gnduq/">Cooney and Dokras 2018</a>.</p>
+            <p>The cumulative picture is that PCOS/PMOS is a multi-system condition with implications that compound across decades, and that long-term follow-up is a feature of good care, not a luxury, per <a href="/library/beyond-fertility-polycystic-ovary-syndrome-and-long-term-health-recwggpyc9z7gnduq/">Cooney and Dokras 2018</a>.</p>
           </section>
 
           <section id="adolescent-pcos">
-            <h2>Adolescent PCOS</h2>
+            <h2>Adolescent PCOS/PMOS</h2>
 
-            <p>Diagnosing PCOS in adolescence is more complex than in adulthood, because the normal physiology of the first few years after menarche includes cycle irregularity, anovulatory cycles, and physiological hyperandrogenism that resolve as the hypothalamic-pituitary-ovarian axis matures. Applying adult Rotterdam criteria too early risks over-diagnosis and the start of long-term suppressive therapy for a pattern that would have resolved on its own.</p>
+            <p>Diagnosing PCOS/PMOS in adolescence is more complex than in adulthood, because the normal physiology of the first few years after menarche includes cycle irregularity, anovulatory cycles, and physiological hyperandrogenism that resolve as the hypothalamic-pituitary-ovarian axis matures. Applying adult Rotterdam criteria too early risks over-diagnosis and the start of long-term suppressive therapy for a pattern that would have resolved on its own.</p>
 
             <p>The international evidence-based guideline explicitly cautions against this. <a href="/library/polycystic-ovary-syndrome-in-the-pediatric-population-rec6befaia2nyfyze/">Bremer 2010</a> reviewed the pediatric considerations in detail. <a href="/library/diagnosis-and-treatment-of-polycystic-ovary-syndrome-recdcpirq2fhl09iu/">Williams, Mortada, and Porter 2016</a> in the American Family Physician journal summarises the diagnostic threshold in a way suited to primary-care practice. A key reframe for adolescents and their families is <a href="/library/menstruation-in-girls-and-adolescents-using-the-menstrual-cycle-as-a-vital-sign-recwjmvxby2m7mjtc/">the American Academy of Pediatrics committee opinion</a> by Diaz, Laufer, and Breech (2006), which establishes the menstrual cycle itself as a vital sign worth tracking with the same seriousness as growth and blood pressure.</p>
 
-            <p>In practice, this means an adolescent with irregular cycles, hirsutism, or acne benefits from charting, careful workup, and time, before a definitive PCOS label and a long-acting hormonal prescription. Where features clearly persist beyond two to three years post-menarche and meet adult criteria, formal diagnosis follows. Where they do not, watchful charting plus targeted lifestyle and metabolic support is often the appropriate path.</p>
+            <p>In practice, this means an adolescent with irregular cycles, hirsutism, or acne benefits from charting, careful workup, and time, before a definitive PCOS/PMOS label and a long-acting hormonal prescription. Where features clearly persist beyond two to three years post-menarche and meet adult criteria, formal diagnosis follows. Where they do not, watchful charting plus targeted lifestyle and metabolic support is often the appropriate path.</p>
           </section>
 
           <section id="co-occurring">
-            <h2>PCOS and Co-occurring Conditions</h2>
+            <h2>PCOS/PMOS and Co-occurring Conditions</h2>
 
-            <p>PCOS rarely arrives alone. The conditions that cluster with it carry implications for both workup and treatment plan.</p>
+            <p>PCOS/PMOS rarely arrives alone. The conditions that cluster with it carry implications for both workup and treatment plan.</p>
 
-            <p><strong>Endometriosis.</strong> Co-occurrence of PCOS and endometriosis is real and meaningful, per <a href="/library/examining-the-co-occurrence-of-endometriosis-and-polycystic-ovarian-syndrome-recrv8d02ugl8jqtg/">Schliep and colleagues 2023</a>. Women presenting with infertility, pelvic pain, or dyspareunia in addition to PCOS features warrant evaluation for endometriosis as well, and the surgical and medical paths differ enough that getting both diagnoses right changes the plan substantially.</p>
+            <p><strong>Endometriosis.</strong> Co-occurrence of PCOS/PMOS and endometriosis is real and meaningful, per <a href="/library/examining-the-co-occurrence-of-endometriosis-and-polycystic-ovarian-syndrome-recrv8d02ugl8jqtg/">Schliep and colleagues 2023</a>. Women presenting with infertility, pelvic pain, or dyspareunia in addition to PCOS/PMOS features warrant evaluation for endometriosis as well, and the surgical and medical paths differ enough that getting both diagnoses right changes the plan substantially.</p>
 
-            <p><strong>Thyroid disorders.</strong> Hypothyroidism and Hashimoto's autoimmune thyroiditis are over-represented in women with PCOS. Thyroid function should be checked at diagnosis and rechecked if symptoms shift.</p>
+            <p><strong>Thyroid disorders.</strong> Hypothyroidism and Hashimoto's autoimmune thyroiditis are over-represented in women with PCOS/PMOS. Thyroid function should be checked at diagnosis and rechecked if symptoms shift.</p>
 
             <p><strong>Eating disorders and disordered eating.</strong> Binge-eating disorder is particularly over-represented, per <a href="/library/binge-eating-in-patients-with-polycystic-ovary-syndrome-prevalence-causes-and-ma-fexsqxmf/">Krug et al. 2019</a>. Restrictive eating and orthorexia also appear, sometimes triggered or sustained by well-intentioned weight-loss advice. A trauma-informed approach to lifestyle counselling, with a referral to a clinician trained in eating disorders when indicated, is part of safe care.</p>
 
-            <p><strong>Non-classical congenital adrenal hyperplasia (NCCAH).</strong> A 17-hydroxyprogesterone draw early in the follicular phase is part of any complete PCOS workup, because NCCAH can present with an identical clinical picture and is managed differently.</p>
+            <p><strong>Non-classical congenital adrenal hyperplasia (NCCAH).</strong> A 17-hydroxyprogesterone draw early in the follicular phase is part of any complete PCOS/PMOS workup, because NCCAH can present with an identical clinical picture and is managed differently.</p>
 
-            <p><strong>Obstructive sleep apnoea.</strong> Sleep apnoea is more common in PCOS than in age- and BMI-matched controls and contributes independently to insulin resistance and cardiovascular risk. Sleep history belongs in the initial visit.</p>
+            <p><strong>Obstructive sleep apnoea.</strong> Sleep apnoea is more common in PCOS/PMOS than in age- and BMI-matched controls and contributes independently to insulin resistance and cardiovascular risk. Sleep history belongs in the initial visit.</p>
 
-            <p><strong>Postpartum depression.</strong> The postpartum window is a particularly vulnerable one for women with PCOS, per <a href="/library/polycystic-ovary-syndrome-and-postpartum-depression-symptoms-a-population-based--recxjpxcfzknl9rnw/">Koric 2021</a>. Proactive screening and warm handoffs to postpartum mental health resources are protective.</p>
+            <p><strong>Postpartum depression.</strong> The postpartum window is a particularly vulnerable one for women with PCOS/PMOS, per <a href="/library/polycystic-ovary-syndrome-and-postpartum-depression-symptoms-a-population-based--recxjpxcfzknl9rnw/">Koric 2021</a>. Proactive screening and warm handoffs to postpartum mental health resources are protective.</p>
           </section>
 
           <section id="faq">
@@ -465,60 +469,60 @@ const faqSchema = {
 
             <div class="faq-accordion" data-pagefind-ignore>
               <details>
-                <summary>Is PCOS a single disease or a spectrum?</summary>
+                <summary>Is PCOS/PMOS a single disease or a spectrum?</summary>
                 <div class="faq-answer">
-                  <p>PCOS is a clinical syndrome with at least four distinguishable phenotypes that differ in hormonal pattern, metabolic risk, and likely underlying biology. Two women with the same diagnostic label can have meaningfully different conditions, which is why a single one-size-fits-all treatment rarely matches every patient, per <a href="/library/pcos-stratification-for-precision-diagnostics-and-treatment-recciwc3y1xjzs3q6/">Joshi 2024</a>.</p>
+                  <p>PCOS/PMOS is a clinical syndrome with at least four distinguishable phenotypes that differ in hormonal pattern, metabolic risk, and likely underlying biology. Two women with the same diagnostic label can have meaningfully different conditions, which is why a single one-size-fits-all treatment rarely matches every patient, per <a href="/library/pcos-stratification-for-precision-diagnostics-and-treatment-recciwc3y1xjzs3q6/">Joshi 2024</a>.</p>
                 </div>
               </details>
 
               <details>
-                <summary>Can I have PCOS if my cycles are regular?</summary>
+                <summary>Can I have PCOS/PMOS if my cycles are regular?</summary>
                 <div class="faq-answer">
-                  <p>Under Rotterdam 2003 and the 2023 international guideline, ovulatory hyperandrogenic PCOS (Phenotype C) is a recognised presentation. Regular cycles do not rule out PCOS when clinical or biochemical hyperandrogenism is present alongside polycystic ovarian morphology on ultrasound, per the <a href="/library/revised-2003-consensus-on-diagnostic-criteria-and-long-term-health-risks-related-recs4cmqbtnghw5py/">ESHRE/ASRM consensus</a>. A subset of eumenorrheic women also carries a milder PCOS-like hormonal profile, with phenotype-level metabolic differences documented in <a href="/library/metabolic-syndrome-and-metabolic-risk-profile-according-to-polycystic-ovary-synd-recptfzvlritvbwck/">Bil et al. 2016</a>.</p>
+                  <p>Under Rotterdam 2003 and the 2023 international guideline, ovulatory hyperandrogenic PCOS/PMOS (Phenotype C) is a recognised presentation. Regular cycles do not rule out PCOS/PMOS when clinical or biochemical hyperandrogenism is present alongside polycystic ovarian morphology on ultrasound, per the <a href="/library/revised-2003-consensus-on-diagnostic-criteria-and-long-term-health-risks-related-recs4cmqbtnghw5py/">ESHRE/ASRM consensus</a>. A subset of eumenorrheic women also carries a milder PCOS/PMOS-like hormonal profile, with phenotype-level metabolic differences documented in <a href="/library/metabolic-syndrome-and-metabolic-risk-profile-according-to-polycystic-ovary-synd-recptfzvlritvbwck/">Bil et al. 2016</a>.</p>
                 </div>
               </details>
 
               <details>
-                <summary>Does the birth control pill treat PCOS?</summary>
+                <summary>Does the birth control pill treat PCOS/PMOS?</summary>
                 <div class="faq-answer">
-                  <p>Combined hormonal contraception masks the cycle and reduces visible androgenic symptoms but does not address insulin resistance, inflammation, or the underlying ovulatory dysfunction. Randomised data in PCOS show that both oral and vaginal combined contraceptives produce similar unfavourable metabolic effects, per <a href="/library/oral-and-vaginal-hormonal-contraceptives-induce-similar-unfavorable-metabolic-ef-rec3orhwe8w3czyvm/">Mosorin et al. 2023</a>, and a separate cohort documents an association between former long-term combined contraceptive use and disordered glucose metabolism in midlife, per <a href="/library/former-long-term-use-of-combined-hormonal-contraception-and-glucose-metabolism-d-rec6o5dg27gks7akc/">Mosorin et al. 2023</a>. Suppression is not restoration.</p>
+                  <p>Combined hormonal contraception masks the cycle and reduces visible androgenic symptoms but does not address insulin resistance, inflammation, or the underlying ovulatory dysfunction. Randomised data in PCOS/PMOS show that both oral and vaginal combined contraceptives produce similar unfavourable metabolic effects, per <a href="/library/oral-and-vaginal-hormonal-contraceptives-induce-similar-unfavorable-metabolic-ef-rec3orhwe8w3czyvm/">Mosorin et al. 2023</a>, and a separate cohort documents an association between former long-term combined contraceptive use and disordered glucose metabolism in midlife, per <a href="/library/former-long-term-use-of-combined-hormonal-contraception-and-glucose-metabolism-d-rec6o5dg27gks7akc/">Mosorin et al. 2023</a>. Suppression is not restoration.</p>
                 </div>
               </details>
 
               <details>
-                <summary>Can women with PCOS conceive without IVF?</summary>
+                <summary>Can women with PCOS/PMOS conceive without IVF?</summary>
                 <div class="faq-answer">
-                  <p>In many cases, yes. Anovulatory PCOS is one of the most treatable causes of infertility. Lifestyle modification, insulin-sensitising agents where appropriate, and ovulation-induction medications such as letrozole produce live births in a substantial proportion of women, often without the need for in-vitro fertilisation. Letrozole is the international evidence-based guideline first-line pharmacological agent for anovulatory infertility in PCOS, per <a href="/library/a-brief-update-on-the-evidence-supporting-the-treatment-of-infertility-in-polycy-recoqqyewdbiiaquy/">Costello et al. 2019</a>.</p>
+                  <p>In many cases, yes. Anovulatory PCOS/PMOS is one of the most treatable causes of infertility. Lifestyle modification, insulin-sensitising agents where appropriate, and ovulation-induction medications such as letrozole produce live births in a substantial proportion of women, often without the need for in-vitro fertilisation. Letrozole is the international evidence-based guideline first-line pharmacological agent for anovulatory infertility in PCOS/PMOS, per <a href="/library/a-brief-update-on-the-evidence-supporting-the-treatment-of-infertility-in-polycy-recoqqyewdbiiaquy/">Costello et al. 2019</a>.</p>
                 </div>
               </details>
 
               <details>
-                <summary>Why does PCOS care often feel dismissive?</summary>
+                <summary>Why does PCOS/PMOS care often feel dismissive?</summary>
                 <div class="faq-answer">
-                  <p>A common pattern is for a primary-care or general gynaecology visit to end with a prescription for combined hormonal contraception, sometimes plus metformin, without a phenotype assessment, a cardiometabolic workup, a mental-health screen, or a longer-term plan. The condition is heterogeneous and chronic, and a fifteen-minute symptom-suppression script rarely matches the underlying biology. Patients describing this experience are not imagining the gap. Where to look for a different model: the <a href="/naprotechnology/">NaProTechnology</a> and <a href="/femm/">FEMM</a> approaches both structure PCOS care around phenotype-matched workup and longitudinal follow-up.</p>
+                  <p>A common pattern is for a primary-care or general gynaecology visit to end with a prescription for combined hormonal contraception, sometimes plus metformin, without a phenotype assessment, a cardiometabolic workup, a mental-health screen, or a longer-term plan. The condition is heterogeneous and chronic, and a fifteen-minute symptom-suppression script rarely matches the underlying biology. Patients describing this experience are not imagining the gap. Where to look for a different model: the <a href="/naprotechnology/">NaProTechnology</a> and <a href="/femm/">FEMM</a> approaches both structure PCOS/PMOS care around phenotype-matched workup and longitudinal follow-up.</p>
                 </div>
               </details>
 
               <details>
-                <summary>What long-term health risks does PCOS carry?</summary>
+                <summary>What long-term health risks does PCOS/PMOS carry?</summary>
                 <div class="faq-answer">
-                  <p>PCOS is associated with elevated risk of type 2 diabetes, metabolic syndrome, cardiovascular disease, endometrial hyperplasia and cancer (driven by chronic unopposed estrogen exposure when ovulation is absent), depression and anxiety, eating disorders, obstructive sleep apnoea, and adverse pregnancy outcomes, per <a href="/library/beyond-fertility-polycystic-ovary-syndrome-and-long-term-health-recwggpyc9z7gnduq/">Cooney and Dokras 2018</a> and <a href="/library/cardiometabolic-risk-in-pcos-more-than-a-reproductive-disorder-gpwzb4w0/">Torchen 2017</a>. Long-term health is a core reason PCOS deserves a serious, condition-level care plan rather than cycle suppression alone.</p>
+                  <p>PCOS/PMOS is associated with elevated risk of type 2 diabetes, metabolic syndrome, cardiovascular disease, endometrial hyperplasia and cancer (driven by chronic unopposed estrogen exposure when ovulation is absent), depression and anxiety, eating disorders, obstructive sleep apnoea, and adverse pregnancy outcomes, per <a href="/library/beyond-fertility-polycystic-ovary-syndrome-and-long-term-health-recwggpyc9z7gnduq/">Cooney and Dokras 2018</a> and <a href="/library/cardiometabolic-risk-in-pcos-more-than-a-reproductive-disorder-gpwzb4w0/">Torchen 2017</a>. Long-term health is a core reason PCOS/PMOS deserves a serious, condition-level care plan rather than cycle suppression alone.</p>
                 </div>
               </details>
 
               <details>
                 <summary>Is myo-inositol an alternative to metformin?</summary>
                 <div class="faq-answer">
-                  <p>Myo-inositol, often combined with D-chiro-inositol, has accumulated randomised-trial evidence in PCOS. A 2023 systematic review and meta-analysis of randomised controlled trials supports effects on ovulation, menstrual regularity, and metabolic parameters, per <a href="/library/inositol-is-an-effective-and-safe-treatment-in-polycystic-ovary-syndrome-a-syste-recj9w9jilrurhd05/">Greff et al. 2023</a>. Head-to-head comparisons with metformin show comparable effects on several endpoints with a milder side-effect profile, per <a href="/library/comparison-of-myo-inositol-and-metformin-on-clinical-metabolic-and-genetic-param-reculeu8imzt0ikm1/">Jamilian et al. 2017</a>. <a href="/library/inositol-treatment-for-pcos-should-be-sciencebased-and-not-arbitrary-yhhbihyf/">Roseff and Montenegro 2020</a> caution against ad-hoc dosing and argue for science-based use. Choice between agents is best made by a clinician familiar with the patient phenotype.</p>
+                  <p>Myo-inositol, often combined with D-chiro-inositol, has accumulated randomised-trial evidence in PCOS/PMOS. A 2023 systematic review and meta-analysis of randomised controlled trials supports effects on ovulation, menstrual regularity, and metabolic parameters, per <a href="/library/inositol-is-an-effective-and-safe-treatment-in-polycystic-ovary-syndrome-a-syste-recj9w9jilrurhd05/">Greff et al. 2023</a>. Head-to-head comparisons with metformin show comparable effects on several endpoints with a milder side-effect profile, per <a href="/library/comparison-of-myo-inositol-and-metformin-on-clinical-metabolic-and-genetic-param-reculeu8imzt0ikm1/">Jamilian et al. 2017</a>. <a href="/library/inositol-treatment-for-pcos-should-be-sciencebased-and-not-arbitrary-yhhbihyf/">Roseff and Montenegro 2020</a> caution against ad-hoc dosing and argue for science-based use. Choice between agents is best made by a clinician familiar with the patient phenotype.</p>
                 </div>
               </details>
             </div>
-            <p>See the <a href="/glossary/#pcos">PCOS glossary definition</a> for clinical terminology, and <a href="/faqs/is-letrozole-first-line-for-anovulatory-pcos-in-rrm/">read the FAQ on letrozole as first-line treatment</a> for a detailed evidence summary.</p>
+            <p>See the <a href="/glossary/#pcos">PCOS/PMOS glossary definition</a> for clinical terminology, and <a href="/faqs/is-letrozole-first-line-for-anovulatory-pcos-in-rrm/">read the FAQ on letrozole as first-line treatment</a> for a detailed evidence summary.</p>
           </section>
 
           <div class="cta-box">
             <h3>Continue exploring</h3>
-            <p>Two RRM medical approaches that structure PCOS care around phenotype and ovulation rather than suppression:</p>
+            <p>Two RRM medical approaches that structure PCOS/PMOS care around phenotype and ovulation rather than suppression:</p>
             <p><a href="/naprotechnology/" class="btn btn--primary">NaProTechnology</a> <a href="/femm/" class="btn btn--primary">FEMM</a></p>
             <p>And the foundational primer on restorative reproductive medicine:</p>
             <p><a href="/what-is-rrm/" class="btn btn--secondary">What is Restorative Reproductive Medicine?</a> <a href="/library/" class="btn btn--secondary">Browse the Research Library</a></p>
@@ -526,14 +530,14 @@ const faqSchema = {
 
           <CiteThisPage
             heading="Cite this guide"
-            title="PCOS Explained: Diagnosis, Phenotypes, and the RRM Approach"
+            title="PCOS, Now PMOS: Causes, Diagnosis, and Treatment"
             authorGiven="Naomi"
             authorFamily="Whittaker"
             date="2026-05-12"
             url="https://rrmacademy.org/pcos/"
           />
 
-          <p class="disclaimer"><em>This content is for educational and reference purposes only and does not constitute medical advice, diagnosis, or treatment. Decisions about evaluation or care for PCOS should be made in consultation with a qualified clinician who knows your specific clinical context. Citations to specific studies and consensus documents do not imply individual-patient applicability.</em></p>
+          <p class="disclaimer"><em>This content is for educational and reference purposes only and does not constitute medical advice, diagnosis, or treatment. Decisions about evaluation or care for PCOS/PMOS should be made in consultation with a qualified clinician who knows your specific clinical context. Citations to specific studies and consensus documents do not imply individual-patient applicability.</em></p>
 
         </article>
       </div>
@@ -647,5 +651,36 @@ const faqSchema = {
     font-size: 0.9375rem;
     color: var(--text-primary);
     line-height: 1.55;
+  }
+
+  /* Closing CTA + disclaimer (matches naprotechnology / rrm-success-rates / glossary) */
+  .cta-box {
+    background: var(--bg-surface);
+    border: none;
+    border-radius: var(--radius-md);
+    padding: var(--space-8);
+    text-align: center;
+    margin-top: var(--space-10);
+    box-shadow: var(--shadow-sm);
+  }
+
+  .cta-box h3 {
+    font-family: 'Cormorant Garamond', 'Georgia', serif;
+    margin-bottom: var(--space-3);
+  }
+
+  .cta-box p {
+    margin-bottom: var(--space-4);
+  }
+
+  .cta-box p:last-child {
+    margin-bottom: 0;
+  }
+
+  .disclaimer {
+    font-size: 0.8125rem;
+    color: var(--text-tertiary);
+    margin-top: var(--space-8);
+    line-height: 1.6;
   }
 </style>

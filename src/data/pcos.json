@@ -38,7 +38,7 @@
       "required_features_html": "Hyperandrogenism (clinical or biochemical) is <strong>required</strong>, <em>plus</em> either anovulation or polycystic ovaries.",
       "polycystic_ovaries_required": "Not on its own",
       "prevalence_yield_html": "Yields a tighter androgen-centred cohort than Rotterdam and excludes the normo-androgenic Phenotype D.",
-      "stance_html": "Frames PCOS as fundamentally a hyperandrogenic disorder. Useful when characterising metabolic and cardiovascular risk, which tracks more closely with androgen excess than with ultrasound morphology."
+      "stance_html": "Frames PCOS/PMOS as fundamentally a hyperandrogenic disorder. Useful when characterising metabolic and cardiovascular risk, which tracks more closely with androgen excess than with ultrasound morphology."
     },
     {
       "key": "international-2023",
@@ -72,7 +72,7 @@
       "name": "Phenotype C",
       "subtitle": "Ovulatory hyperandrogenic",
       "features_html": "Hyperandrogenism <strong>+</strong> polycystic ovarian morphology, but ovulation is preserved.",
-      "metabolic_load_html": "Intermediate metabolic risk. Women in this group often present with cosmetic complaints (acne, hirsutism) and may be told they \"don't really have PCOS\" because cycles are regular."
+      "metabolic_load_html": "Intermediate metabolic risk. Women in this group often present with cosmetic complaints (acne, hirsutism) and may be told they \"don't really have PCOS/PMOS\" because cycles are regular."
     },
     {
       "key": "D",
@@ -108,8 +108,8 @@
       "key": "post-pill",
       "name": "Post-pill",
       "subtitle": "Hormonal-contraceptive unmasking",
-      "features_html": "Symptoms emerge or worsen after discontinuing combined hormonal contraception. May represent unmasking of pre-existing PCOS or transient post-pill hormonal disruption.",
-      "intervention_html": "Charting cycles to establish a real baseline; targeted workup before assuming \"PCOS.\" Hormonal contraception does not treat PCOS, and combined contraceptives have documented unfavourable metabolic effects in this population per <a href=\"/library/oral-and-vaginal-hormonal-contraceptives-induce-similar-unfavorable-metabolic-ef-rec3orhwe8w3czyvm/\">Mosorin et al. 2023</a>."
+      "features_html": "Symptoms emerge or worsen after discontinuing combined hormonal contraception. May represent unmasking of pre-existing PCOS/PMOS or transient post-pill hormonal disruption.",
+      "intervention_html": "Charting cycles to establish a real baseline; targeted workup before assuming \"PCOS/PMOS.\" Hormonal contraception does not treat PCOS/PMOS, and combined contraceptives have documented unfavourable metabolic effects in this population per <a href=\"/library/oral-and-vaginal-hormonal-contraceptives-induce-similar-unfavorable-metabolic-ef-rec3orhwe8w3czyvm/\">Mosorin et al. 2023</a>."
     }
   ]
 }
