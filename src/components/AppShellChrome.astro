@@ -119,8 +119,11 @@ const GUIDES_PATHS = new Set([
 // derived from ssot/guides.json (so new guides appear automatically). Each gets
 // its own aria-current and is excluded from the Guides index-link highlight
 // below. Conditions + Reference guides stay reachable via the Guides index link.
+// A methods guide can opt out of this sidebar list (and the mobile-drawer Methods
+// group) with `in_methods_nav: false` in guides.json -- the page stays live and
+// in the /guides/ catalogue, it just isn't surfaced here.
 const methodNav = guideRegistry.guides
-  .filter((g) => g.category === 'methods')
+  .filter((g) => g.category === 'methods' && g.in_methods_nav !== false)
   .sort((a, b) => (a._order || 0) - (b._order || 0));
 const compareNav = guideRegistry.guides
   .filter((g) => g.category === 'compare')
