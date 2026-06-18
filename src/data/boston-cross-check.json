@@ -29,7 +29,7 @@
   "faqs": [
     {
       "question": "Does Boston Cross-Check have its own published effectiveness rate?",
-      "answerHtml": "<p>No published method-specific effectiveness study exists for Boston Cross-Check. The method has not been evaluated as its own protocol in a peer-reviewed cohort, so it has no effectiveness rate of its own. Any rate cited for it is borrowed from the separate methods whose biomarkers it combines: the sympto-thermal approach and the monitor-based approach. Those borrowed figures should be understood as component-method evidence, not as Boston Cross-Check's own outcomes. The honest answer is that the method-specific data do not yet exist. Consult an RRM clinician for guidance specific to your situation.</p>"
+      "answerHtml": "<p>No published method-specific effectiveness study exists for Boston Cross-Check. The method has not been evaluated as its own protocol in a peer-reviewed cohort, so it has no effectiveness rate of its own. Any rate cited for it is borrowed from the separate methods whose biomarkers it combines: the sympto-thermal approach and the monitor-based approach. Consult an RRM clinician for guidance specific to your situation.</p>"
     },
     {
       "question": "Why does Boston Cross-Check use three biomarkers instead of one?",
@@ -37,7 +37,7 @@
     },
     {
       "question": "What effectiveness data exist for the methods Boston Cross-Check combines?",
-      "answerHtml": "<p>For the sympto-thermal component, a large prospective European cohort studying Sensiplan (900 women, 17,638 cycles) reported a perfect-use failure rate of 0.4 per 100 woman-years and a typical-use failure rate of 1.8 per 100 woman-years (<a class=\"cite\" href=\"https://pubmed.ncbi.nlm.nih.gov/17314078/\" rel=\"noopener\">Frank-Herrmann P et al. 2007</a>). For the monitor-based component, a Marquette Method study found a method-use failure rate of 2.1 per 100 women over 12 months and a use-related failure rate of 14.2 per 100 women over 12 months (<a class=\"cite\" href=\"https://pubmed.ncbi.nlm.nih.gov/17371516/\" rel=\"noopener\">Fehring RJ et al. 2007</a>). These figures belong to Sensiplan and Marquette respectively, not to Boston Cross-Check. Consult an RRM clinician for guidance specific to your situation.</p>"
+      "answerHtml": "<p>For the sympto-thermal component, a large prospective European cohort studying Sensiplan (900 women, 17,638 cycles) reported a perfect-use failure rate of 0.4 per 100 woman-years and a typical-use failure rate of 1.8 per 100 woman-years (<a class=\"cite\" href=\"https://pubmed.ncbi.nlm.nih.gov/17314078/\" rel=\"noopener\">Frank-Herrmann P et al. 2007</a>). For the monitor-based component, a Marquette Method study found a method-use failure rate of 2.1 per 100 women over 12 months and a use-related failure rate of 14.2 per 100 women over 12 months (<a class=\"cite\" href=\"https://pubmed.ncbi.nlm.nih.gov/17371516/\" rel=\"noopener\">Fehring RJ et al. 2007</a>). Consult an RRM clinician for guidance specific to your situation.</p>"
     },
     {
       "question": "Can the Boston Cross-Check chart be used for an RRM clinical evaluation?",
