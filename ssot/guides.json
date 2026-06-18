@@ -399,6 +399,7 @@
     {
       "slug": "billings-ovulation-method",
       "category": "methods",
+      "in_methods_nav": false,
       "file": "billings-ovulation-method/index.astro",
       "title": "Billings Ovulation Method",
       "description": "The Billings Ovulation Method uses only cervical mucus to identify the fertile window. Learn how it works, what the evidence shows, and its value in restorative reproductive medicine.",
@@ -420,6 +421,7 @@
     {
       "slug": "marquette-model",
       "category": "methods",
+      "in_methods_nav": false,
       "file": "marquette-model/index.astro",
       "title": "Marquette Method",
       "description": "The Marquette Method uses urinary estrogen and LH monitoring to identify the fertile window. Learn how it works, what the evidence shows, and how it fits RRM.",
@@ -441,6 +443,7 @@
     {
       "slug": "twoday-method",
       "category": "methods",
+      "in_methods_nav": false,
       "file": "twoday-method/index.astro",
       "title": "TwoDay Method",
       "description": "The TwoDay Method uses a yes/no secretion check to identify fertile days. Learn how it works, what the evidence shows, and how it fits within restorative reproductive medicine.",
@@ -462,6 +465,7 @@
     {
       "slug": "boston-cross-check",
       "category": "methods",
+      "in_methods_nav": false,
       "file": "boston-cross-check/index.astro",
       "title": "Boston Cross-Check",
       "description": "Boston Cross-Check combines cervical mucus, basal body temperature, and a hormone monitor. Learn how the multi-biomarker chart works and what the evidence shows.",
@@ -483,6 +487,7 @@
     {
       "slug": "sympto-thermal-method",
       "category": "methods",
+      "in_methods_nav": false,
       "file": "sympto-thermal-method/index.astro",
       "title": "Sympto-Thermal Method",
       "description": "The sympto-thermal method combines cervical mucus and basal body temperature to identify the fertile window. Learn how it works, what the evidence shows, and its clinical value in restorative reproductive medicine.",
