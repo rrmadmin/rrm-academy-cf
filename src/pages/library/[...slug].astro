@@ -1046,49 +1046,61 @@ const citationMeta = {
     padding: var(--space-8);
     margin-bottom: var(--space-8);
   }
+  /* Synopsis title: the headline of the card, clearly above the section labels. */
   .article-insights .detail-heading {
-    font-size: 1.125rem;
+    font-size: clamp(1.375rem, 1.1rem + 1vw, 1.625rem);
+    line-height: 1.15;
     margin-top: 0;
-    margin-bottom: var(--space-4);
+    margin-bottom: var(--space-3);
   }
+  /* TL;DR reads as a lead paragraph under the headline. */
   .insights-tldr {
-    font-size: 1rem;
+    font-size: 1.0625rem;
     font-weight: 500;
-    line-height: 1.6;
+    line-height: 1.55;
     color: var(--text-primary);
     margin-bottom: var(--space-6);
   }
+  /* Section labels are small uppercase eyebrows (Inter), subordinate to the serif title. */
   .insights-subheading {
-    font-family: 'Cormorant Garamond', 'Georgia', serif;
-    font-size: 1.125rem;
+    font-family: 'Inter', system-ui, sans-serif;
+    font-size: 0.6875rem;
     font-weight: 600;
-    text-transform: none;
-    letter-spacing: normal;
-    color: var(--text-primary);
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: var(--accent);
     margin-bottom: var(--space-3);
   }
-  .insights-findings {
-    margin-bottom: var(--space-5);
+  /* Each section is divided by a hairline for rhythm. */
+  .insights-findings,
+  .insights-relevance,
+  .insights-methodology,
+  .insights-context {
+    margin-top: var(--space-6);
+    padding-top: var(--space-6);
+    border-top: 1px solid var(--border-color);
   }
   .insights-findings ul {
     list-style: disc;
     padding-left: var(--space-5);
+    margin: 0;
     font-size: 0.9375rem;
     line-height: 1.7;
     color: var(--text-secondary);
   }
   .insights-findings li {
-    margin-bottom: var(--space-2);
+    margin-bottom: var(--space-3);
   }
-  .insights-relevance,
-  .insights-context {
-    margin-bottom: var(--space-4);
+  .insights-findings li:last-child {
+    margin-bottom: 0;
   }
   .insights-relevance p,
+  .insights-methodology p,
   .insights-context p {
     font-size: 0.9375rem;
     line-height: 1.7;
     color: var(--text-secondary);
+    margin: 0;
   }
   .article-topics {
     margin-bottom: var(--space-8);
