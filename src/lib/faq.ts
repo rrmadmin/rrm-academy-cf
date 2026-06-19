@@ -116,11 +116,11 @@ export const PILLAR_CTA_MAP: Record<string, PillarCTA | null> = {
   F15: { href: '/neofertility/', label: 'Read the NeoFertility guide' },
 
   // /common-questions-about-rrm — critic-response / skeptic-framed
-  F06: { href: '/common-questions-about-rrm', label: 'Read answers to common RRM questions' },
-  F16: { href: '/common-questions-about-rrm', label: 'Read answers to common RRM questions' },
-  F21: { href: '/common-questions-about-rrm', label: 'Read answers to common RRM questions' },
-  F23: { href: '/common-questions-about-rrm', label: 'Read answers to common RRM questions' },
-  F24: { href: '/common-questions-about-rrm', label: 'Read answers to common RRM questions' },
+  F06: { href: '/faqs/', label: 'Read answers to common RRM questions' },
+  F16: { href: '/faqs/', label: 'Read answers to common RRM questions' },
+  F21: { href: '/faqs/', label: 'Read answers to common RRM questions' },
+  F23: { href: '/faqs/', label: 'Read answers to common RRM questions' },
+  F24: { href: '/faqs/', label: 'Read answers to common RRM questions' },
 
   // F14 (Do I need to be Catholic?) — deliberately null, uses fallback block
   F14: null,

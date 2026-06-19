@@ -205,7 +205,7 @@
       "mandate_architecture_label": "Statutory licensing register",
       "governance": "Statutory regulator under the <a href=\"/library/human-fertilisation-and-embryology-act-1990-lmwayq0r/\">Human Fertilisation and Embryology Act 1990</a> and the <a href=\"/library/human-fertilisation-and-embryology-act-2008-v99nms5r/\">2008 amendment</a>. HFEA both licenses clinics under the <a href=\"/library/hfea-code-of-practice-9th-edition-version-94-0n2bg9oa/\">Code of Practice</a> and operates the register.",
       "submission": "Mandatory for every licensed UK clinic that creates, stores, or transfers embryos, under <a href=\"/library/human-fertilisation-and-embryology-act-1990-lmwayq0r/\">the 1990 Act</a>.",
-      "collects": "Cycle-level outcomes per clinic plus stored patient identifiers. Research-linked analyses (such as the <a href=\"/library/cumulative-live-birth-rates-after-one-or-more-complete-cycles-of-ivf-a-populatio-rczy5kojo/\">JAMA HFEA cumulative analysis</a>) can derive patient-level cumulative outcomes.",
+      "collects": "Cycle-level outcomes per clinic plus stored patient identifiers. Research-linked analyses (such as the JAMA HFEA cumulative analysis) can derive patient-level cumulative outcomes.",
       "publishes": "Clinic-by-clinic searchable success rates with comparison tools, multi-year national trends, multiple-birth rates.",
       "omits": "Patient-level cumulative outcomes from public tools, drop-out, journey length from first consultation to live birth, out-of-pocket cost.",
       "funding_capture": "Both NHS-funded and private self-pay cycles.",
