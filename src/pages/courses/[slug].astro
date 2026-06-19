@@ -133,7 +133,7 @@ function buildHasPart(sections: any[], slug: string): any[] {
   for (const section of sections) {
     for (const step of section.steps || []) {
       const entry: any = {
-        '@type': 'Lesson',
+        '@type': 'LearningResource',
         name: step.title,
         position,
         url: `https://rrmacademy.org/courses/${slug}/${step.id}/`,
@@ -171,11 +171,9 @@ const courseSchema = {
   provider: isAffiliate
     ? { '@type': 'Organization', name: 'NeoFertility', url: 'https://www.neofertilitytraining.com/' }
     : { '@type': 'Organization', '@id': 'https://rrmacademy.org/#organization', name: 'RRM Academy', url: 'https://rrmacademy.org/' },
-  instructor: courseInstructorNode,
   educationalLevel: 'Beginner to Advanced',
   ...(course.topics?.length ? { about: course.topics } : {}),
   ...(course.teaches?.length ? { teaches: course.teaches } : {}),
-  ...(!isAffiliate ? { numberOfLessons: totalSteps } : {}),
   ...(!isAffiliate ? { timeRequired: hours > 0 ? `PT${hours}H${minutes}M` : `PT${minutes}M` } : {}),
   ...(!isAffiliate && hasPart.length > 0 ? { hasPart } : {}),
   isAccessibleForFree: !isMembers && course.isFree,
@@ -195,14 +193,15 @@ const courseSchema = {
         availability: onWaitlist ? 'https://schema.org/PreOrder' : 'https://schema.org/InStock',
         ...(onWaitlist ? { url: `https://rrmacademy.org/courses/${course.slug}/` } : (isAffiliate && course.affiliateUrl ? { url: course.affiliateUrl } : {})),
       },
-  ...(!isAffiliate ? {
-    hasCourseInstance: {
-      '@type': 'CourseInstance',
-      courseMode: 'online',
-      courseWorkload: hours > 0 ? `PT${hours}H${minutes}M` : `PT${minutes}M`,
-      instructor: courseInstructorNode,
-    },
-  } : {}),
+  // instructor is invalid directly on Course (schema.org puts it on CourseInstance);
+  // emit it inside hasCourseInstance for ALL courses incl. the affiliate path so
+  // affiliate instructor data is preserved (no top-level instructor any more).
+  hasCourseInstance: {
+    '@type': 'CourseInstance',
+    courseMode: 'online',
+    ...(!isAffiliate ? { courseWorkload: hours > 0 ? `PT${hours}H${minutes}M` : `PT${minutes}M` } : {}),
+    instructor: courseInstructorNode,
+  },
 };
 
 const whittakerPersonNode = {
