@@ -333,11 +333,115 @@ const jsonLd = {
     },
   ],
 };
+
+// HowTo (separate block) -- machine-readable twin of the visible "How Do I Get
+// Started with RRM? -> For Patients and Individuals" <ol>. Step text mirrors the
+// rendered list items; no new claims. Emitted as its own JSON-LD block to avoid
+// merge-validation issues with the page Article/FAQPage @graph.
+const howToSchema = {
+  '@context': 'https://schema.org',
+  '@type': 'HowTo',
+  name: 'How to get started with Restorative Reproductive Medicine',
+  description: 'For patients and individuals, getting started with RRM follows four steps: learn a validated cycle-charting method, find an RRM-trained clinician, prepare for your first appointment, and educate yourself.',
+  step: [
+    {
+      '@type': 'HowToStep',
+      position: 1,
+      name: 'Learn a validated cycle-charting method',
+      text: 'Charting provides the diagnostic data that RRM clinicians rely on. Options include the Creighton Model FertilityCare System, Marquette Method, FEMM, Billings Ovulation Method, and SymptoThermal methods. Find a certified instructor through the training organization for your method. No charted cycles are needed before contacting an instructor. That is where you start.',
+      url: 'https://rrmacademy.org/what-is-rrm/#get-started',
+    },
+    {
+      '@type': 'HowToStep',
+      position: 2,
+      name: 'Find an RRM-trained clinician',
+      text: 'The IIRRM referral network connects you with credentialed providers. Natural Womanhood\'s provider directory is another resource. If you use a specific charting method, ask your instructor for provider recommendations within that method\'s network. You can identify and contact a clinician while still in early charting. Most patients need 1 to 3 charted cycles before their first visit, not before first contact.',
+      url: 'https://rrmacademy.org/what-is-rrm/#get-started',
+    },
+    {
+      '@type': 'HowToStep',
+      position: 3,
+      name: 'Prepare for your first appointment',
+      text: 'Bring your charted cycles, complete medical history, prior lab and imaging results, and a list of questions. If you have a partner and your condition may involve shared factors, it may be helpful for your partner to attend as well.',
+      url: 'https://rrmacademy.org/what-is-rrm/#get-started',
+    },
+    {
+      '@type': 'HowToStep',
+      position: 4,
+      name: 'Educate yourself',
+      text: 'Browse free courses at RRM Academy to understand the approach, the conditions it treats, and what to expect from treatment. Read clinician commentaries for clinical perspective. Definitions of clinical terms are in the RRM glossary. Knowledge helps you advocate for your own care.',
+      url: 'https://rrmacademy.org/what-is-rrm/#get-started',
+    },
+  ],
+};
+
+// ItemList (separate block) -- machine-readable twin of the visible "RRM vs.
+// IVF: A Detailed Comparison" table. Each item names a comparison factor and
+// pairs the RRM value with the IVF value, so comparison-query extraction does
+// not depend on HTML table parsing. Values mirror the rendered table verbatim.
+const rrmVsIvfItemList = {
+  '@context': 'https://schema.org',
+  '@type': 'ItemList',
+  name: 'RRM vs. IVF: A Detailed Comparison',
+  description: 'Side-by-side comparison of Restorative Reproductive Medicine and in vitro fertilization across key factors.',
+  url: 'https://rrmacademy.org/what-is-rrm/#rrm-vs-ivf',
+  itemListOrder: 'https://schema.org/ItemListOrderAscending',
+  numberOfItems: 10,
+  itemListElement: [
+    { factor: 'Core question', rrm: "Why can't this couple conceive? What can be treated?", ivf: 'How do we achieve embryo implantation?' },
+    { factor: 'Approach', rrm: 'Diagnose and treat the underlying condition', ivf: 'Bypass natural reproductive function' },
+    { factor: 'Diagnostic workup', rrm: 'Cycle-timed hormonal panels, imaging, laparoscopy, male evaluation', ivf: 'Basic hormone screen (AMH, FSH, AFC); male factor often untreated' },
+    { factor: 'Conception route', rrm: 'Natural conception after treatment', ivf: 'Embryo transfer in laboratory setting' },
+    { factor: 'Live birth rate', rrm: '41% crude LBR (Boyle 2025, n=187); 50% adjusted at 24 months, 62.1% at 36+ months (Sanchez-Mendez 2025, n=1,310)', ivf: 'Approximately 33% per embryo transferred, under 35 (HFEA, mandatory reporting)' },
+    { factor: 'Preterm delivery (singletons)', rrm: '4.0% (Boyle 2025)', ivf: 'Higher rates documented across registries' },
+    { factor: 'Multiple pregnancy', rrm: 'Rare; natural conception produces singletons', ivf: 'Higher rate, especially with multiple embryo transfer' },
+    { factor: 'Estimated cost (U.S.)', rrm: 'Lower; some components billable to insurance as treatment for diagnosed conditions', ivf: '$40,000 to $60,000 average (2 to 3 cycles); rarely covered by insurance' },
+    { factor: 'Male partner', rrm: 'Full evaluation and treatment standard', ivf: 'ICSI bypasses male factor without treating it' },
+    { factor: 'After treatment', rrm: 'Diagnosis, treated disease, body literacy', ivf: 'Pregnancy attempt; underlying condition typically unaddressed' },
+  ].map((row, i) => ({
+    '@type': 'ListItem',
+    position: i + 1,
+    item: {
+      '@type': 'Thing',
+      name: row.factor,
+      description: `Restorative Reproductive Medicine: ${row.rrm}. In vitro fertilization (IVF): ${row.ivf}.`,
+    },
+  })),
+};
+
+// ItemList (separate block) -- machine-readable twin of the visible "Major FABMs
+// Used in RRM" table. Each item is a charting method with its tracked biomarkers,
+// diagnostic utility, and training required. Values mirror the rendered table.
+const fabmMethodsItemList = {
+  '@context': 'https://schema.org',
+  '@type': 'ItemList',
+  name: 'Major fertility awareness-based methods used in RRM',
+  description: 'Major fertility awareness-based methods used in restorative reproductive medicine, comparing the biomarkers tracked, diagnostic utility, and training required for each method.',
+  url: 'https://rrmacademy.org/what-is-rrm/#fabms',
+  itemListOrder: 'https://schema.org/ItemListOrderAscending',
+  numberOfItems: 5,
+  itemListElement: [
+    { method: 'Creighton Model (CrMS)', biomarkers: 'Cervical mucus (standardized scoring)', utility: 'Foundation for NaProTechnology diagnosis; most extensively studied for medical applications', training: 'FertilityCare Practitioner' },
+    { method: 'Marquette Method', biomarkers: 'Urinary hormones (ClearBlue monitor), optional mucus and temperature', utility: 'Objective hormonal identification; strong for women with ambiguous mucus signs', training: 'Marquette-trained instructor' },
+    { method: 'FEMM', biomarkers: 'Hormonal biomarkers and cervical mucus', utility: 'Integrated medical management referral pathway', training: 'FEMM-trained provider' },
+    { method: 'Billings Ovulation Method', biomarkers: 'Cervical mucus observations', utility: 'Ovulation confirmation; strong for continuous mucus and irregular cycles', training: 'Billings-trained instructor' },
+    { method: 'SymptoThermal Methods', biomarkers: 'Basal body temperature, cervical mucus, optional cervical position', utility: 'Multi-biomarker cross-checking; temperature provides objective ovulation confirmation', training: 'Varies by organization' },
+  ].map((row, i) => ({
+    '@type': 'ListItem',
+    position: i + 1,
+    item: {
+      '@type': 'Thing',
+      name: row.method,
+      description: `Biomarkers tracked: ${row.biomarkers}. Diagnostic utility: ${row.utility}. Training required: ${row.training}.`,
+    },
+  })),
+};
 ---
 
 <GuideLayout
   slug="what-is-rrm"
   jsonLd={jsonLd}
+  extraSchema={[howToSchema, rrmVsIvfItemList, fabmMethodsItemList]}
   tocItems={TOC_ITEMS}
   bylineLegacy={true}
   bylinePdfSlug="what-is-rrm"
@@ -460,7 +564,7 @@ const jsonLd = {
           <!-- Section 5: FABMs -->
           <h2 id="fabms">What Role Do Fertility Awareness Methods Play in RRM?</h2>
 
-          <p><strong>In RRM, fertility awareness-based methods are clinical diagnostic instruments.</strong> A well-charted cycle gives the clinician daily biomarker data that reveals hormonal patterns invisible to a single blood draw or office visit. The American College of Obstetricians and Gynecologists recognized the menstrual cycle as a vital sign in adolescents in 2015 (Committee Opinion No. 651).<sup><a href="#ref-14" id="cite-14">14</a></sup> FABMs are how RRM captures that vital sign in detail.<sup><a href="#ref-6" id="cite-6d">6</a></sup></p>
+          <p class="pillar-lead"><strong>In RRM, fertility awareness-based methods are clinical diagnostic instruments.</strong> A well-charted cycle gives the clinician daily biomarker data that reveals hormonal patterns invisible to a single blood draw or office visit. The American College of Obstetricians and Gynecologists recognized the menstrual cycle as a vital sign in adolescents in 2015 (Committee Opinion No. 651).<sup><a href="#ref-14" id="cite-14">14</a></sup> FABMs are how RRM captures that vital sign in detail.<sup><a href="#ref-6" id="cite-6d">6</a></sup></p>
 
           <h3>What Does a Cycle Chart Reveal?</h3>
 
@@ -538,7 +642,7 @@ const jsonLd = {
           <!-- Section 6: Conditions Treated -->
           <h2 id="conditions">Conditions Treated with Restorative Reproductive Medicine</h2>
 
-          <p><strong>RRM addresses a wide range of reproductive health conditions by diagnosing and treating the underlying cause.</strong> The table below describes typical approaches used in RRM care. Every treatment plan is individualized. This information is educational, not prescriptive.</p>
+          <p class="pillar-lead"><strong>RRM addresses a wide range of reproductive health conditions by diagnosing and treating the underlying cause.</strong> The table below describes typical approaches used in RRM care. Every treatment plan is individualized. This information is educational, not prescriptive.</p>
 
           <div class="table-wrap">
             <table>

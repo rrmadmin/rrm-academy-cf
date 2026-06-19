@@ -166,12 +166,78 @@ const faqSchema = {
     },
   ],
 };
+
+// HowTo (separate block) -- machine-readable twin of the visible "Three-Step
+// Flow" <ol> in the "What is NaProTechnology?" section. Step text mirrors the
+// rendered list items verbatim; no new claims. Emitted as its own JSON-LD block
+// to avoid merge-validation issues with the page Article/FAQPage schemas.
+const howToSchema = {
+  '@context': 'https://schema.org',
+  '@type': 'HowTo',
+  name: 'How to get started with NaProTechnology',
+  description: 'NaProTechnology follows a clear, sequential model: chart your cycle, get a diagnosis, then receive treatment matched to that diagnosis.',
+  step: [
+    {
+      '@type': 'HowToStep',
+      position: 1,
+      name: 'Chart your cycle',
+      text: 'A woman learns the Creighton Model from a certified FertilityCare Practitioner. Daily observations take a few minutes. Over 1 to 3 cycles, the chart builds a continuous record of hormonal activity.',
+      url: 'https://rrmacademy.org/naprotechnology/#what-is-naprotechnology',
+    },
+    {
+      '@type': 'HowToStep',
+      position: 2,
+      name: 'Get a diagnosis',
+      text: 'The NaPro physician reads the chart alongside targeted bloodwork timed to the cycle, imaging studies, and a thorough history of both partners. The goal is a specific diagnosis, not a label of "unexplained infertility."',
+      url: 'https://rrmacademy.org/naprotechnology/#what-is-naprotechnology',
+    },
+    {
+      '@type': 'HowToStep',
+      position: 3,
+      name: 'Receive treatment',
+      text: 'Treatment is matched to the diagnosis: hormonal support, medication, nutritional optimization, and surgery when indicated. All timed to the woman\'s cycle, not to a calendar.',
+      url: 'https://rrmacademy.org/naprotechnology/#what-is-naprotechnology',
+    },
+  ],
+};
+
+// ItemList (separate block) -- machine-readable twin of the visible "NaPro vs
+// IVF" comparison table. Each item names a comparison factor and pairs the
+// NaProTechnology value with the IVF value, so comparison-query extraction does
+// not depend on HTML table parsing. Values mirror the rendered table verbatim.
+const naproVsIvfItemList = {
+  '@context': 'https://schema.org',
+  '@type': 'ItemList',
+  name: 'NaProTechnology vs. IVF comparison',
+  description: 'Comparison of NaProTechnology and in vitro fertilization across key factors.',
+  url: 'https://rrmacademy.org/naprotechnology/#napro-vs-ivf',
+  itemListOrder: 'https://schema.org/ItemListOrderAscending',
+  numberOfItems: 8,
+  itemListElement: [
+    { factor: 'Approach', napro: 'Diagnose and treat underlying condition', ivf: 'Bypass reproductive system' },
+    { factor: 'Goal', napro: 'Restore natural function and fertility', ivf: 'Achieve pregnancy' },
+    { factor: 'Treats underlying condition?', napro: 'Yes', ivf: 'No' },
+    { factor: 'Conception method', napro: 'Natural, within the couple', ivf: 'Laboratory fertilization' },
+    { factor: 'Multiple pregnancy risk', napro: 'Minimal (natural conception, almost exclusively singletons)', ivf: 'Elevated, especially with multiple embryo transfer' },
+    { factor: 'Typical cost', napro: 'A fraction of IVF; treats diagnosed conditions using standard insurance codes', ivf: '$15,000 to $30,000 per cycle; most couples spend $40,000 to $60,000 total' },
+    { factor: 'Health benefit beyond pregnancy', napro: 'Yes: underlying conditions are treated, improving long-term health', ivf: 'No: underlying conditions remain untreated' },
+    { factor: 'Best suited for', napro: 'Endometriosis, PCOS, ovulatory dysfunction, hormonal imbalance, recurrent miscarriage, male factor', ivf: 'Bilateral tubal occlusion, severe azoospermia when no treatable cause found' },
+  ].map((row, i) => ({
+    '@type': 'ListItem',
+    position: i + 1,
+    item: {
+      '@type': 'Thing',
+      name: row.factor,
+      description: `NaProTechnology: ${row.napro}. In vitro fertilization (IVF): ${row.ivf}.`,
+    },
+  })),
+};
 ---
 
 <GuideLayout
   slug="naprotechnology"
   jsonLd={pageSchema}
-  extraSchema={[faqSchema]}
+  extraSchema={[faqSchema, howToSchema, naproVsIvfItemList]}
   tocItems={TOC_ITEMS}
   mobileTocItems={MOBILE_TOC_ITEMS}
   bylineLegacy={true}
@@ -244,7 +310,7 @@ const faqSchema = {
           <section id="how-napro-works">
             <h2>How NaProTechnology Works</h2>
 
-            <p><strong>A NaPro physician reads a cycle chart as a continuous record of physiological function that reveals patterns invisible to a single snapshot.</strong></p>
+            <p class="pillar-lead"><strong>A NaPro physician reads a cycle chart as a continuous record of physiological function that reveals patterns invisible to a single snapshot.</strong></p>
 
             <h3>Daily Charting</h3>
 
@@ -271,7 +337,7 @@ const faqSchema = {
           <section id="conditions">
             <h2>What Conditions Does NaProTechnology Treat?</h2>
 
-            <p><strong>NaProTechnology addresses a wide range of reproductive and gynecologic conditions by diagnosing and treating the underlying condition rather than masking symptoms.</strong> The table below describes typical approaches used in NaPro care. Every treatment plan is individualized based on a patient's charting data, diagnostic results, and clinical history. This information is educational, not prescriptive.</p>
+            <p class="pillar-lead"><strong>NaProTechnology addresses a wide range of reproductive and gynecologic conditions by diagnosing and treating the underlying condition rather than masking symptoms.</strong> The table below describes typical approaches used in NaPro care. Every treatment plan is individualized based on a patient's charting data, diagnostic results, and clinical history. This information is educational, not prescriptive.</p>
 
             <div class="table-wrap">
               <table>
@@ -327,7 +393,7 @@ const faqSchema = {
           <section id="napro-surgery">
             <h2>What Does NaProTechnology Surgery Involve?</h2>
 
-            <p><strong>NaProTechnology surgery addresses reproductive disorders with a clear priority: restore anatomy and function so that natural conception is possible.</strong><sup><a href="#ref-27">27</a></sup> Every surgical decision is made with fertility preservation in mind.</p>
+            <p class="pillar-lead"><strong>NaProTechnology surgery addresses reproductive disorders with a clear priority: restore anatomy and function so that natural conception is possible.</strong><sup><a href="#ref-27">27</a></sup> Every surgical decision is made with fertility preservation in mind.</p>
 
             <h3>What NaPro Surgery Addresses</h3>
 
@@ -350,7 +416,7 @@ const faqSchema = {
           <section id="who-is-napro-for">
             <h2>Who is NaPro For?</h2>
 
-            <p><strong>NaProTechnology is appropriate for any couple or individual who wants reproductive health conditions diagnosed and treated rather than suppressed or bypassed.</strong></p>
+            <p class="pillar-lead"><strong>NaProTechnology is appropriate for any couple or individual who wants reproductive health conditions diagnosed and treated rather than suppressed or bypassed.</strong></p>
 
             <ul>
               <li>Couples with infertility who have been told their only option is IVF</li>
@@ -387,7 +453,7 @@ const faqSchema = {
           <section id="napro-vs-ivf">
             <h2>NaPro vs IVF</h2>
 
-            <p><strong>NaProTechnology and <a href="/glossary/#ivf-vs-rrm">IVF</a> represent different medical paradigms, not different points on the same spectrum.</strong></p>
+            <p class="pillar-lead"><strong>NaProTechnology and <a href="/glossary/#ivf-vs-rrm">IVF</a> represent different medical paradigms, not different points on the same spectrum.</strong></p>
 
             <p>IVF asks: <em>How can we achieve a pregnancy?</em></p>
 
@@ -453,7 +519,7 @@ const faqSchema = {
           <section id="find-provider">
             <h2>How to Find a NaPro Provider</h2>
 
-            <p><strong>The first step to NaProTechnology care is learning the Creighton Model FertilityCare System.</strong> NaPro physicians rely on a completed Creighton chart to guide diagnosis and treatment. Without that chart data, a NaPro consultation cannot begin. Start by finding a certified FertilityCare Practitioner (instructor) to learn the charting system.</p>
+            <p class="pillar-lead"><strong>The first step to NaProTechnology care is learning the Creighton Model FertilityCare System.</strong> NaPro physicians rely on a completed Creighton chart to guide diagnosis and treatment. Without that chart data, a NaPro consultation cannot begin. Start by finding a certified FertilityCare Practitioner (instructor) to learn the charting system.</p>
 
             <h3>Step 1: Learn the Creighton Model</h3>
 
@@ -509,7 +575,7 @@ const faqSchema = {
           <section id="cost-insurance">
             <h2>How Much Does NaProTechnology Cost?</h2>
 
-            <p><strong>IVF costs $15,000 to $30,000 per cycle in the United States. Most couples need two to three cycles to achieve a live birth, bringing average total out-of-pocket spending to $40,000 to $60,000 or more.</strong> That is the anchor for understanding NaPro's cost position.</p>
+            <p class="pillar-lead"><strong>IVF costs $15,000 to $30,000 per cycle in the United States. Most couples need two to three cycles to achieve a live birth, bringing average total out-of-pocket spending to $40,000 to $60,000 or more.</strong> That is the anchor for understanding NaPro's cost position.</p>
 
             <p>NaProTechnology costs a fraction of that total, and the reason is built into how it works.</p>
 
