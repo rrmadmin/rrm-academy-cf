@@ -45,7 +45,7 @@ for (let i = 1; i <= totalPages; i++) {
   bodyClass="page-library"
   title={`Browse Articles - Page ${currentPage}`}
   description={`Page ${currentPage} of ${totalPages} - Browse all articles in the RRM Research Library.`}
-  canonicalUrl={`https://rrmacademy.org/library/page/${currentPage}`}
+  canonicalUrl={`https://rrmacademy.org/library/page/${currentPage}/`}
   chrome={SHELL_ENABLED ? 'shell' : 'default'}
 >
   {SHELL_ENABLED ? (
@@ -104,6 +104,18 @@ for (let i = 1; i <= totalPages; i++) {
           <button class="pagination__jump-btn" type="submit">Go</button>
         </form>
       </nav>
+      <details class="pagination__all">
+        <summary>All {totalPages} pages</summary>
+        <div class="pagination__all-links">
+          {Array.from({ length: totalPages }, (_, i) => i + 1).map(n => (
+            n === currentPage ? (
+              <span aria-current="page">{n}</span>
+            ) : (
+              <a href={`/library/page/${n}/`}>{n}</a>
+            )
+          ))}
+        </div>
+      </details>
     </div>
   </section>
     </AppShellChrome>
@@ -163,6 +175,18 @@ for (let i = 1; i <= totalPages; i++) {
           <button class="pagination__jump-btn" type="submit">Go</button>
         </form>
       </nav>
+      <details class="pagination__all">
+        <summary>All {totalPages} pages</summary>
+        <div class="pagination__all-links">
+          {Array.from({ length: totalPages }, (_, i) => i + 1).map(n => (
+            n === currentPage ? (
+              <span aria-current="page">{n}</span>
+            ) : (
+              <a href={`/library/page/${n}/`}>{n}</a>
+            )
+          ))}
+        </div>
+      </details>
     </div>
   </section>
     </Fragment>
@@ -259,6 +283,29 @@ for (let i = 1; i <= totalPages; i++) {
   .pagination__jump-btn:focus {
     outline: 2px solid var(--purple-300);
     outline-offset: 1px;
+  }
+
+  /* Crawlable full-page index: makes every paginated page reachable in one hop
+     (kills orphan / single-inlink deep articles) without a 84-link visible bar. */
+  .pagination__all {
+    margin-top: var(--space-4);
+    font-size: 0.8125rem;
+  }
+  .pagination__all > summary {
+    cursor: pointer;
+    color: var(--text-primary);
+    padding: var(--space-2) 0;
+  }
+  .pagination__all-links {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-2) var(--space-3);
+    margin-top: var(--space-2);
+  }
+  .pagination__all-links a { color: var(--purple-700); }
+  .pagination__all-links [aria-current="page"] {
+    font-weight: 700;
+    color: var(--text-primary);
   }
 
   @media (max-width: 480px) {

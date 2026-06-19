@@ -53,7 +53,7 @@ const jsonLd = {
   name: `${topicLabel} — RRM Research Library`,
   description: pageDescription,
   url: canonicalUrl,
-  numberOfItems: topicArticles.length,
+  mainEntity: { '@type': 'ItemList', numberOfItems: topicArticles.length },
   inLanguage: 'en',
   isPartOf: { '@id': 'https://rrmacademy.org/#website' },
   about: { '@type': 'Thing', name: topicLabel },

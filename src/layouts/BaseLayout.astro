@@ -87,7 +87,10 @@ const {
   trackScroll = false,
 } = Astro.props;
 
-const fullTitle = (title.includes('RRM Academy') || title.startsWith('RRM ')) ? title : `${title} | RRM Academy`;
+// Skip the " | RRM Academy" suffix when the base title is already long (>60 chars):
+// appending the brand on a long academic title only pushes it past the SERP
+// truncation point. Short titles still get the brand suffix.
+const fullTitle = (title.includes('RRM Academy') || title.startsWith('RRM ') || title.length > 60) ? title : `${title} | RRM Academy`;
 
 // Auto-resolve lastModified from page-dates.json unless explicitly provided.
 // Page-dates is git-derived for static pages + D1 updated_at for content.

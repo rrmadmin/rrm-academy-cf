@@ -101,7 +101,7 @@ const jsonLd = {
       name: 'RRM Research Library',
       description: 'The largest free collection of academic references related to restorative reproductive medicine.',
       url: 'https://rrmacademy.org/library/',
-      numberOfItems: articles.length,
+      mainEntity: { '@type': 'ItemList', numberOfItems: articles.length },
       inLanguage: 'en',
       isPartOf: { '@id': 'https://rrmacademy.org/#website' },
       about: { '@id': 'https://rrmacademy.org/#organization' },
