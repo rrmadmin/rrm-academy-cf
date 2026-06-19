@@ -668,6 +668,13 @@ const jsonLd = {
     background-size: 220px 220px;
     opacity: var(--gradient-hero-grain-opacity);
     mix-blend-mode: screen;
+    /* Confine grain to the purple wash. Screen-blended white grain pops hardest
+       over dark pixels, so without this it piles up on the dark floor below the
+       gradient (most visible in dark mode). This radial mask mirrors
+       --gradient-hero's 50% 0% fade so the grain disappears exactly where the
+       purple does. */
+    -webkit-mask-image: radial-gradient(circle at 50% 0%, #fff 0%, #fff 33.6%, transparent 60.16%);
+    mask-image: radial-gradient(circle at 50% 0%, #fff 0%, #fff 33.6%, transparent 60.16%);
   }
 
   .hp-hero > * {
