@@ -673,8 +673,8 @@ const jsonLd = {
        gradient (most visible in dark mode). This radial mask mirrors
        --gradient-hero's 50% 0% fade so the grain disappears exactly where the
        purple does. */
-    -webkit-mask-image: radial-gradient(circle at 50% 0%, #fff 0%, #fff 33.6%, transparent 60.16%);
-    mask-image: radial-gradient(circle at 50% 0%, #fff 0%, #fff 33.6%, transparent 60.16%);
+    -webkit-mask-image: radial-gradient(circle at 50% 0%, var(--white) 0%, var(--white) 33.6%, transparent 60.16%);
+    mask-image: radial-gradient(circle at 50% 0%, var(--white) 0%, var(--white) 33.6%, transparent 60.16%);
   }
 
   .hp-hero > * {
