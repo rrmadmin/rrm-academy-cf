@@ -40,6 +40,10 @@ const COURSES_PATH = join(DATA_DIR, 'courses.json');
 
 const MAX_BACKLINKS_PER_TYPE = 5;
 const MAX_RELATED_TERMS = 6;
+// Every published term must be linked FROM at least this many other term pages,
+// so niche spokes are not orphaned in the internal link graph (orphans get
+// deprioritized for crawling -> "Discovered - currently not indexed").
+const MIN_INBOUND_LINKS = 3;
 const MAX_AUTOLINKS_PER_BODY = 12;
 
 function escapeRegex(s) {
@@ -634,6 +638,68 @@ async function main() {
       if (merged.length >= MAX_RELATED_TERMS) break;
     }
     t.relatedTerms = merged;
+  }
+
+  // 3b. Inbound link-coverage pass. The mention-graph + Part fallback fully fills
+  //     each term's OUTBOUND relatedTerms (6 each), but niche/thin terms can still
+  //     land in almost nobody else's list -- orphaned in the INBOUND graph. An
+  //     orphaned spoke gets little internal-link signal, so Google deprioritizes
+  //     crawling it and it falls into "Discovered - currently not indexed". This
+  //     pass guarantees every published term is linked FROM >= MIN_INBOUND_LINKS
+  //     other term pages by injecting it into topically-adjacent same-Part
+  //     siblings. It is pure REDISTRIBUTION: every list stays at MAX_RELATED_TERMS,
+  //     a link is only moved from a comfortably-linked term to a starved one, and
+  //     editorial "See also" picks are never evicted. Total link count is constant.
+  {
+    const editorialSlugs = new Map(
+      terms.map(t => [t.slug, new Set((t.editorialRelated || []).map(e => e.slug))])
+    );
+    const inbound = new Map(terms.map(t => [t.slug, 0]));
+    for (const t of terms) {
+      for (const r of t.relatedTerms) inbound.set(r.slug, (inbound.get(r.slug) || 0) + 1);
+    }
+    let injected = 0;
+    // Fix the least-linked terms first.
+    const order = terms.slice().sort((a, b) => inbound.get(a.slug) - inbound.get(b.slug));
+    for (const d of order) {
+      if (inbound.get(d.slug) >= MIN_INBOUND_LINKS) continue;
+      // Candidate hosts: same-Part siblings that do not already link d. Prefer
+      // well-linked hosts (more likely already crawled, so they pass crawl signal
+      // through), then nearest by sortOrder (topically adjacent within the Part).
+      const hosts = terms
+        .filter(o => o.slug !== d.slug && o.part === d.part && !o.relatedTerms.some(r => r.slug === d.slug))
+        .sort((a, b) =>
+          (inbound.get(b.slug) - inbound.get(a.slug)) ||
+          (Math.abs((a.sortOrder ?? 0) - (d.sortOrder ?? 0)) - Math.abs((b.sortOrder ?? 0) - (d.sortOrder ?? 0)))
+        );
+      for (const host of hosts) {
+        if (inbound.get(d.slug) >= MIN_INBOUND_LINKS) break;
+        const entry = { slug: d.slug, name: d.name, part: d.part };
+        if (host.relatedTerms.length < MAX_RELATED_TERMS) {
+          host.relatedTerms.push(entry);
+          inbound.set(d.slug, inbound.get(d.slug) + 1);
+          injected++;
+          continue;
+        }
+        // Host at cap: evict its lowest-priority entry that is NOT editorial and
+        // whose own inbound stays >= MIN after removal, so we never orphan another
+        // term to fix d. If no safe slot, leave this host and try the next.
+        const ed = editorialSlugs.get(host.slug);
+        let idx = -1;
+        for (let i = host.relatedTerms.length - 1; i >= 0; i--) {
+          const s = host.relatedTerms[i].slug;
+          if (!ed.has(s) && inbound.get(s) > MIN_INBOUND_LINKS) { idx = i; break; }
+        }
+        if (idx === -1) continue;
+        const evicted = host.relatedTerms[idx].slug;
+        host.relatedTerms[idx] = entry;
+        inbound.set(evicted, inbound.get(evicted) - 1);
+        inbound.set(d.slug, inbound.get(d.slug) + 1);
+        injected++;
+      }
+    }
+    const stillLow = terms.filter(t => inbound.get(t.slug) < MIN_INBOUND_LINKS).length;
+    console.log(`enrich-glossary: inbound-coverage redistributed ${injected} related-term links; ${stillLow} terms still < ${MIN_INBOUND_LINKS} inbound`);
   }
 
   // 4. Per-term citations: scan bodyHtml for #ref-N anchors, hydrate from
