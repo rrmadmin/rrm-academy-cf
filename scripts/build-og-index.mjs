@@ -339,12 +339,19 @@ function main() {
       };
       counts.providers += 1;
     }
-    // Hub card. Static, single entry.
-    index['providers'] = {
-      kind: 'provider-hub',
-      title: 'Find a Restorative Reproductive Medicine Provider',
-      subtitle: `${providers.length.toLocaleString()} fertility-awareness and RRM practitioners`,
-    };
+    // NOTE (2026-06-19): the /providers/ hub URL currently serves the "Support
+    // Access to Care" FUNDRAISER, not the directory hub (see memory
+    // provider-directory-keep-offline). Its OG card is derived from the live
+    // page by scripts/augment-og-index.mjs (postbuild), so we no longer seed a
+    // hub card here -- doing so rendered the stale "N practitioners" directory
+    // card on every fundraiser unfurl. On directory RELAUNCH, the hub page's own
+    // <title> drives the card automatically; restore the dedicated provider-hub
+    // card below only if the "N practitioners" subtitle layout is wanted again.
+    // index['providers'] = {
+    //   kind: 'provider-hub',
+    //   title: 'Find a Restorative Reproductive Medicine Provider',
+    //   subtitle: `${providers.length.toLocaleString()} fertility-awareness and RRM practitioners`,
+    // };
   }
 
   // Minimum-count assertions. Match deploy.yml CI floors so a corrupt input
