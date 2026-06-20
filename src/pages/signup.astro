@@ -65,16 +65,9 @@ import { TURNSTILE_SITE_KEY } from '../lib/turnstile';
         <!-- Verification prompt (shown after signup) -->
         <div id="verify-prompt" class="auth-verify" hidden>
           <h2>Check your email</h2>
-          <p>We sent a verification code to <strong id="verify-email"></strong>.</p>
-          <form id="verify-form" class="auth-form" novalidate>
-            <div class="form-group">
-              <label class="form-label" for="verify-code">Verification code</label>
-              <input class="form-input" type="text" id="verify-code" name="code" required autocomplete="one-time-code" maxlength="12" />
-            </div>
-            <button type="submit" class="btn btn--primary auth-submit" id="verify-submit">Verify</button>
-          </form>
+          <p>We sent a verification link to <strong id="verify-email"></strong>. Open that email and click the link to confirm your address and finish setting up your account.</p>
           <p class="auth-resend">
-            Didn't get the code? <button type="button" id="resend-btn" class="btn btn--text btn--sm">Resend</button>
+            Didn't get it? <button type="button" id="resend-btn" class="btn btn--text btn--sm">Resend email</button>
           </p>
         </div>
 
@@ -97,13 +90,11 @@ import { TURNSTILE_SITE_KEY } from '../lib/turnstile';
   <script is:inline>
     (function () {
       var signupForm = document.getElementById('signup-form');
-      var verifyForm = document.getElementById('verify-form');
       var verifyPrompt = document.getElementById('verify-prompt');
       var signupLinks = document.getElementById('signup-links');
       var googleBtn = document.getElementById('google-btn');
       var googleDivider = document.getElementById('google-divider');
       var submitBtn = document.getElementById('signup-submit');
-      var verifyBtn = document.getElementById('verify-submit');
       var resendBtn = document.getElementById('resend-btn');
       var errorEl = document.getElementById('auth-error');
       var errorText = document.getElementById('auth-error-text');
@@ -209,34 +200,12 @@ import { TURNSTILE_SITE_KEY } from '../lib/turnstile';
           });
       }
 
-      verifyForm.addEventListener('submit', function (e) {
-        e.preventDefault(); errorEl.hidden = true;
-        var code = verifyForm.code.value.trim();
-        if (!code) return showError('Please enter the verification code.');
-        verifyBtn.disabled = true; verifyBtn.textContent = 'Verifying...';
-        fetch('/api/auth/verify-email', {
-          method: 'POST', credentials: 'same-origin',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ code: code }),
-        })
-          .then(function (r) { return r.json(); })
-          .then(function (data) {
-            if (data.ok) {
-              var dest = nextParam || '/account/';
-              if (dest === '/ask') dest = '/ask/';
-              window.location.href = dest;
-            }
-            else { showError(data.error || 'Verification failed.'); verifyBtn.disabled = false; verifyBtn.textContent = 'Verify'; }
-          })
-          .catch(function () { showError('Network error.'); verifyBtn.disabled = false; verifyBtn.textContent = 'Verify'; });
-      });
-
       resendBtn.addEventListener('click', function () {
         resendBtn.disabled = true; resendBtn.textContent = 'Sending...';
         fetch('/api/auth/resend-verification', { method: 'POST', credentials: 'same-origin' })
           .then(function (r) { return r.json(); })
-          .then(function () { resendBtn.textContent = 'Sent!'; setTimeout(function () { resendBtn.disabled = false; resendBtn.textContent = 'Resend'; }, 30000); })
-          .catch(function () { resendBtn.disabled = false; resendBtn.textContent = 'Resend'; });
+          .then(function () { resendBtn.textContent = 'Sent!'; setTimeout(function () { resendBtn.disabled = false; resendBtn.textContent = 'Resend email'; }, 30000); })
+          .catch(function () { resendBtn.disabled = false; resendBtn.textContent = 'Resend email'; });
       });
 
       // Password reveal toggle

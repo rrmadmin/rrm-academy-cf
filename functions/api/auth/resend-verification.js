@@ -1,6 +1,6 @@
 /**
  * POST /api/auth/resend-verification
- * Sends a new email verification code to the logged-in user.
+ * Sends a new email verification link to the logged-in user.
  *
  * SES failure design: returns 502 (unlike forgot-password.js which returns ok:true on SES failure).
  * The divergence is intentional — this endpoint requires an active session, so the user already
@@ -46,8 +46,9 @@ export async function onRequestPost({ request, env, waitUntil }) {
       return json({ ok: true }, 200, headers);
     }
 
-    // Generate new code and expiry.
+    // Generate new code (dormant fallback) + a strong single-use magic-link token.
     const code = generateToken().slice(0, 12);
+    const token = generateToken(); // 64-hex (256-bit) single-use magic-link token
     const expiresAt = Math.floor(Date.now() / 1000) + EMAIL_VERIFY_TTL_S;
 
     // Re-check email_verified immediately before writing — guards against a
@@ -66,8 +67,8 @@ export async function onRequestPost({ request, env, waitUntil }) {
     await db.batch([
       db.prepare('DELETE FROM email_verification WHERE user_id = ?')
         .bind(session.userId),
-      db.prepare('INSERT INTO email_verification (id, user_id, code, expires_at) VALUES (?, ?, ?, ?)')
-        .bind(generateId(), session.userId, code, expiresAt),
+      db.prepare('INSERT INTO email_verification (id, user_id, code, expires_at, token) VALUES (?, ?, ?, ?, ?)')
+        .bind(generateId(), session.userId, code, expiresAt, token),
     ]);
 
     // Now send email; on failure the code is already in D1 so the user can retry.
@@ -75,15 +76,15 @@ export async function onRequestPost({ request, env, waitUntil }) {
       await sendEmail(env, {
         from: 'RRM Academy <accounts@mail.rrmacademy.org>',
         to: user.email,
-        subject: 'Your verification code — RRM Academy',
+        subject: 'Confirm your email — RRM Academy',
         text: [
           `Hi ${user.name || 'there'},`,
           '',
-          'Here is your new verification code:',
+          'Click the link below to confirm your email address:',
           '',
-          `    ${code}`,
+          `https://rrmacademy.org/api/auth/verify-email?token=${token}`,
           '',
-          'This code expires in 1 hour.',
+          'This link expires in 1 hour and can be used once.',
           '',
           'Best regards,',
           'RRM Academy',
@@ -93,7 +94,7 @@ export async function onRequestPost({ request, env, waitUntil }) {
       });
     } catch (emailErr) {
       log(env, waitUntil, 'auth', 'resend_verification_send_error', 'error', emailErr.message, 0, 502);
-      await logEmailFailure(env.DB, { email: user.email, category: 'transactional', source: 'auth/resend-verification', subject: 'Your verification code — RRM Academy', detail: emailErr.message });
+      await logEmailFailure(env.DB, { email: user.email, category: 'transactional', source: 'auth/resend-verification', subject: 'Confirm your email — RRM Academy', detail: emailErr.message });
       return json({ ok: false, error: 'Failed to send verification email. Please try again.' }, 502);
     }
 

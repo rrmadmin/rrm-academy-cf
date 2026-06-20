@@ -11,7 +11,7 @@
       "note": "Authentication"
     },
     "functions/api/auth/signup.js": {
-      "hash": "39298cccccd988129d3c8d11dd0683c117cc70500d58a9b910017f505642e532",
+      "hash": "90bf3bacc1089acd4912d7f7f389c9a5285d4f490f2c1a4366136fb96f26cfb0",
       "note": "Account creation"
     },
     "functions/api/auth/forgot-password.js": {
@@ -143,7 +143,7 @@
       "note": "Guard script (self-guarding)"
     },
     "functions/api/auth/verify-email.js": {
-      "hash": "cfd6bf07df87646d3490052d97bdb970f5c65b314288e82d660992551a070daa",
+      "hash": "02f47c6cdf5945e18b0a3c52db0166b1fc023d1eca0d87c54669e20325e56661",
       "note": "Email verification token consumption"
     },
     "functions/api/auth/logout.js": {
