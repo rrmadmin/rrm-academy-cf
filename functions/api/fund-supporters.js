@@ -1,4 +1,6 @@
 import { json, optionsResponse, checkRateLimit } from './auth/_shared.js';
+import { getStripeClient } from './billing/_shared.js';
+import { countCampaignGifts } from './billing/_campaign-count.js';
 
 const CAMPAIGN = 'provider-directory';
 const FOUNDING_CAP = 100;
@@ -21,12 +23,27 @@ export async function onRequestGet({ request, env, waitUntil }) {
     try { const c = await env.COMMUNITY_KV.get(KV_KEY); if (c) return json(JSON.parse(c)); } catch {}
   }
   try {
-    // total_gifts: read the SAME count the thermometer uses (fund-progress KV), so they cannot diverge.
+    // total_gifts: prefer the fund-progress KV (written by /api/fund-progress every 60s).
+    // When the KV is cold or expired, recompute from Stripe so founding_left is never
+    // falsely pinned at FOUNDING_CAP. stripeRecomputed tracks whether Stripe was used
+    // so we do NOT cache a cold-recomputed result when Stripe is unavailable (total=0).
     let total = 0;
+    let kvHit = false;
+    let stripeRecomputed = false;
     if (env.COMMUNITY_KV) {
       try {
         const fp = await env.COMMUNITY_KV.get(`fund-progress:${CAMPAIGN}`);
-        if (fp) { const p = JSON.parse(fp); if (typeof p.count === 'number') total = Math.max(0, p.count); }
+        if (fp) {
+          const p = JSON.parse(fp);
+          if (typeof p.count === 'number') { total = Math.max(0, p.count); kvHit = true; }
+        }
+      } catch {}
+    }
+    if (!kvHit && env.STRIPE_SECRET_KEY) {
+      try {
+        const stripe = getStripeClient(env);
+        total = await countCampaignGifts(stripe, CAMPAIGN);
+        stripeRecomputed = true;
       } catch {}
     }
     let recent = [], founding = [], consented = 0;
@@ -52,7 +69,9 @@ export async function onRequestGet({ request, env, waitUntil }) {
       founding_cap: FOUNDING_CAP, founding_left, founding_closed: founding_left === 0,
       anonymous_founders: Math.max(0, Math.min(total, FOUNDING_CAP) - founding.length),
     };
-    if (env.COMMUNITY_KV) {
+    // Only cache when total came from a reliable source (KV hit OR successful Stripe recompute).
+    // A cold read with STRIPE_SECRET_KEY absent yields total=0 -- do not pin that for 60s.
+    if (env.COMMUNITY_KV && (kvHit || stripeRecomputed)) {
       waitUntil(env.COMMUNITY_KV.put(KV_KEY, JSON.stringify(result), { expirationTtl: KV_TTL }).catch(() => {}));
     }
     return json(result);

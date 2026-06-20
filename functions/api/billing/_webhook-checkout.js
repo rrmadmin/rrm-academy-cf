@@ -21,6 +21,7 @@ import { verifyAndTagEmail } from '../_elv.js';
 import { notifyAdminEnrollment } from '../courses/_notify-admin.js';
 import { recordDonorGift, giftFromCheckoutSession } from './_donor-gift.js';
 import { readSupporterConsent, deriveDisplayName, recordSupporterGift } from './_supporter-gift.js';
+import { countCampaignGifts } from './_campaign-count.js';
 
 /**
  * @param {D1Database} db
@@ -604,31 +605,7 @@ Manually set migration_status='stripe_active' and stripe_subscription_id to the 
     if (displayName && db) {
       try {
         const stripe = getStripeClient(env);
-        let seqCount = 0;
-        let hasMore = true;
-        let nextPage = undefined;
-        while (hasMore) {
-          const params = {
-            query: `status:'succeeded' AND metadata['campaign']:'provider-directory'`,
-            limit: 100,
-            expand: ['data.latest_charge'],
-          };
-          if (nextPage) params.page = nextPage;
-          const page = await stripe.paymentIntents.search(params);
-          for (const pi of page.data) {
-            const ch = pi.latest_charge;
-            const refunded = (ch && typeof ch === 'object') ? (ch.amount_refunded || 0) : 0;
-            const net = Math.max(0, (pi.amount_received ?? pi.amount) - refunded);
-            if (net > 0) seqCount++;
-          }
-          hasMore = page.has_more;
-          if (hasMore && page.data.length > 0) {
-            nextPage = page.next_page;
-          } else {
-            hasMore = false;
-          }
-        }
-        const giftSeq = seqCount;
+        const giftSeq = await countCampaignGifts(stripe, 'provider-directory');
         await recordSupporterGift(db, {
           campaign: 'provider-directory',
           displayName,
