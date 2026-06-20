@@ -162,6 +162,21 @@ if echo "$STAGED" | grep -qE '^src/(components|layouts)/.*\.astro$'; then
   fi
 fi
 
+# --- Verify-code length coupling gate: any staged change to a verification-code
+#     generator or the signup input that renders it. The emailed code length and
+#     the <input maxlength> must stay coupled, or the box truncates the code and
+#     email verification silently fails (the 8-vs-12 char bug, 2026-06-20).
+if echo "$STAGED" | grep -qE '^functions/api/auth/(signup|resend-verification)\.js$|^src/pages/signup\.astro$|^scripts/gates/validate-verify-code-length\.mjs$'; then
+  node scripts/gates/validate-verify-code-length.mjs
+  if [ $? -ne 0 ]; then
+    echo ""
+    echo "Commit blocked by verify-code length coupling gate."
+    echo "The signup verify-code input maxlength must hold the full emailed code."
+    echo "Fix the maxlength (or both generators), or bypass with --no-verify."
+    exit 1
+  fi
+fi
+
 # --- Security guard: only on critical file changes ---
 TRIGGER=0
 for file in $CRITICAL_FILES; do

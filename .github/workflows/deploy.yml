@@ -477,6 +477,14 @@ jobs:
         # only with no .catch() and permanently hidden feedback text.
         run: npm run gates:share
 
+      - name: Validate verify-code length coupling (always)
+        # VC1/VC2: the signup verify-code <input maxlength> must hold the full
+        # backend-generated code. Born 2026-06-20 after an entropy bump
+        # (593ccd6e) lengthened the emailed code 8->12 chars while the input
+        # stayed maxlength="8", silently truncating every code and breaking
+        # email verification for ~18 days.
+        run: npm run gates:verify-code
+
       - name: Validate glossary spoke pages (full rebuild only)
         # Spoke directory only refreshes on full rebuild (getStaticPaths re-runs
         # against in-memory glossary.json, but dispatched single-record updates
