@@ -52,6 +52,7 @@ const PAYMENT_FILES = [
   'functions/api/billing/portal.js',
   'functions/api/billing/status.js',
   'functions/api/fund-progress.js',
+  'functions/api/fund-supporters.js',
 ];
 
 // Webhook entrypoint (must implement signature verify + dedup envelope)
