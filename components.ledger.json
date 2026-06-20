@@ -21,6 +21,23 @@
         "subscribe.js race-loser early-return skips user opt_in UPDATE (winner sets it; false-positive)",
         "subscribe.js bounced-address re-activation on resubscribe (intentional per ELV-passed comment)"
       ]
+    },
+    {
+      "component": "post-signup-emails",
+      "done_at_head": "31d2f9fed7e9bca75485dbaad8410a9abcc194c6",
+      "terminal_state": "HELD",
+      "held_reason": "review-clean; awaiting human merge to deploy. CI-gated + peer-synced deferred to post-merge (deploy-on-merge repo).",
+      "read_contracts": ["newsletter_subscriber new-insert path (changes>0)", "env.NEWSLETTER_SECRET (bound secret)", "_ses.js sendEmail/sendRawEmail", "_tracking.js unsubscribeUrl/unsubscribeHeaders"],
+      "write_contracts": ["SES egress: admin notification to administrator@rrmacademy.org", "SES egress: subscriber welcome (RFC-8058 unsubscribe)", "functions/api/newsletter/_signup-emails.js:sendSignupEmails export"],
+      "stub_debt": [],
+      "ci_mechanism": "github-actions",
+      "ci_binding": ".github/workflows/deploy.yml:Build & Deploy (post-merge)",
+      "peer_sync_mechanism": "gh-pr-merge",
+      "peer_sync_binding": null,
+      "notes": "First of Brian's converge-trial features. Welcome copy approved verbatim by Brian. New-signups-only (not reactivation/honeypot). Best-effort waitUntil sends, never block the subscribe response. Admin From='RRM Academy', welcome From='Naomi Whittaker', welcome replyTo=community@. Sibling features tracked: #2 commentary->list notification, #3 STAGED provider-directory announcement.",
+      "arise_adjudicated_preexisting": [
+        "subscribe.js returns 'You are subscribed!' for complained/bounced re-subscribers (gemini LOW; pre-existing, likely intentional anti-enumeration; not this component's regression)"
+      ]
     }
   ]
 }
