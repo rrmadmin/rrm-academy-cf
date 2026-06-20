@@ -143,7 +143,7 @@
       "note": "Admin endpoint: manually link wix_subscription to CF user (Layer 4 reconciliation)"
     },
     "scripts/guard.mjs": {
-      "hash": "bc15122aefeb9175201af7b7b5a14f59c7569b776eaefd24087bd5dfaf4c02b8",
+      "hash": "052e285f207df503fc73a977680606ea817f779f887eba57b6fe50a461aa15a0",
       "note": "Guard script (self-guarding)"
     },
     "functions/api/auth/verify-email.js": {
@@ -177,6 +177,10 @@
     "functions/api/billing/_donor-gift.js": {
       "hash": "2fee5567be2c94635f9de7684a9390e6cfc976f3a51025dd6183680c5c9f3ee2",
       "note": "Donor gift recording + contact rollups/stage derivation"
+    },
+    "functions/api/billing/_supporter-gift.js": {
+      "hash": "e8382da001e707226c9032c3088a99527b84e6251e3f3264ec352a9a68ead90e",
+      "note": "Supporter recognition helpers (derive/consent/record/remove)"
     },
     "functions/api/community/upload.js": {
       "hash": "01326e09ae56984a61e8253352204d4a6cdfcf57d34ce0fcd2919bfcd49c2850",
