@@ -19,7 +19,7 @@
       "note": "Password reset tokens + email"
     },
     "functions/api/auth/reset-password.js": {
-      "hash": "69523d4a8d50e8ef357e929a49f3d3058018c16114d94f9d85099e4749bb4ab4",
+      "hash": "32a212c33a7232ac1e870d72a0ab75f1f0e4b00d9d78a9bf26035a9379f8768e",
       "note": "Reset token consumption + password change"
     },
     "functions/api/auth/change-password.js": {
@@ -31,11 +31,11 @@
       "note": "OAuth redirect initiation"
     },
     "functions/api/auth/google-callback.js": {
-      "hash": "922ca1405dc9f8af16d86336fd6b1b16be5b370fb22a80c1024825d0d026e441",
+      "hash": "c9f2f66c28d8c545720f81a9e9fb03c3133e23205d0fc3448bcbb829c15902fc",
       "note": "Google OAuth callback"
     },
     "functions/api/auth/_email-validate.js": {
-      "hash": "610082b1fc8b6bc44fdd943101bf0081349461d683d4abd57eb70bbdb271ec8f",
+      "hash": "c593fd32597840d237217f4ee63dc56f87a62ca329cba4a4b534ae92e684b34c",
       "note": "Email validation + disposable/typo detection"
     },
     "functions/api/stripe-webhook.js": {
@@ -71,7 +71,7 @@
       "note": "HMAC-SHA256 magic-link token for Wix-to-Stripe donor migration"
     },
     "functions/_middleware.js": {
-      "hash": "2c951727ce29f8e43c4c5ee55508ae0b6cb9205595e772d164fd94f34fdc33c9",
+      "hash": "53a88219798f285d2b95731ac51c0cbf018b2fa908a0bbd5d4dc645f805f6f06",
       "note": "Auth gating"
     },
     "wrangler.toml": {
@@ -143,7 +143,7 @@
       "note": "Guard script (self-guarding)"
     },
     "functions/api/auth/verify-email.js": {
-      "hash": "02f47c6cdf5945e18b0a3c52db0166b1fc023d1eca0d87c54669e20325e56661",
+      "hash": "8c75de3c01008c4982c69b80f822dfbe2761ea62bd09c99800f32248b8cb5a86",
       "note": "Email verification token consumption"
     },
     "functions/api/auth/logout.js": {
