@@ -448,7 +448,7 @@ export async function onRequest(context) {
       let healedSession = null;
       try {
         healedSession = await validateSession(env.DB, sid);
-      } catch (e) {
+      } catch (_e) {
         // fail-open: fall through to normal handling below
       }
       if (healedSession) {
