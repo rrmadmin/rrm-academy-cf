@@ -227,6 +227,13 @@ export async function validateEmail(email, env) {
   // Layer 0: Structural cleanup
   email = cleanupEmail(email.trim().toLowerCase());
 
+  // Layer 0b: Reject control/format/zero-width/BIDI codepoints that survive cleanup
+  // and could produce byte-variant addresses that defeat the COLLATE NOCASE unique index.
+  // eslint-disable-next-line no-control-regex
+  if (/[\x00-\x1f\x7f-\x9f\u200b-\u200f\u2028-\u202f\u2060-\u2064\ufeff]/.test(email)) {
+    return { valid: false, error: 'Please enter a valid email address.' };
+  }
+
   // Layer 1: Syntax
   if (email.length > 254 || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
     return { valid: false, error: 'Please enter a valid email address.' };
