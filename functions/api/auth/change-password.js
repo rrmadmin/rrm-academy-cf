@@ -48,7 +48,7 @@ export async function onRequestPost({ request, env, waitUntil }) {
     // Get user's current hashed password (email + name included for notification)
     const user = await db.prepare('SELECT id, email, name, hashed_password, google_id FROM user WHERE id = ?')
       .bind(session.userId).first();
-    if (!user) return json({ ok: false, error: 'User not found.' }, 404);
+    if (!user) return json({ ok: false, error: 'Not authenticated.' }, 401);
 
     if (!user.hashed_password) {
       if (user.google_id) {
@@ -77,7 +77,7 @@ export async function onRequestPost({ request, env, waitUntil }) {
       // Atomic batch — inline DELETE retained for batch atomicity (mirror of invalidateAllUserSessions)
       db.prepare('DELETE FROM session WHERE user_id = ?')
         .bind(user.id),
-      db.prepare("DELETE FROM password_reset WHERE user_id = ? AND purpose = 'reset'")
+      db.prepare('DELETE FROM password_reset WHERE user_id = ?')
         .bind(user.id),
       sessionInsertStatement(db, hashedNewSessionId, user.id, newExpiresAt),
     ]);

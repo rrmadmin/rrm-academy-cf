@@ -29,7 +29,7 @@ export async function onRequestGet({ env, request }) {
 
   // Mint a single-use nonce to bind the state parameter to this browser session.
   const nonce = crypto.randomUUID();
-  const redirectB64 = btoa(redirect);
+  const redirectB64 = btoa(String.fromCharCode(...new TextEncoder().encode(redirect)));
   const state = `${nonce}:${redirectB64}`;
 
   const target = `${authUrl}&state=${encodeURIComponent(state)}`;
@@ -47,7 +47,7 @@ export async function onRequestGet({ env, request }) {
     headers: {
       Location: target,
       'Content-Type': 'text/html;charset=UTF-8',
-      'Set-Cookie': `oauth_state=${nonce}; Path=/api/auth/google-callback; HttpOnly; Secure; SameSite=Lax; Max-Age=600`,
+      'Set-Cookie': `oauth_state=${nonce}:${redirectB64}; Path=/api/auth/google-callback; HttpOnly; Secure; SameSite=Lax; Max-Age=600`,
     },
   });
 }

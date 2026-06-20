@@ -39,7 +39,7 @@ export async function onRequestPost({ request, env, waitUntil }) {
     // Get user
     const user = await db.prepare('SELECT email, name, email_verified FROM user WHERE id = ?')
       .bind(session.userId).first();
-    if (!user) return json({ ok: false, error: 'User not found.' }, 404);
+    if (!user) return json({ ok: false, error: 'Not authenticated.' }, 401);
     if (user.email_verified) {
       const headers = {};
       if (session.renewed) headers['Set-Cookie'] = [sessionCookie(session.cookieId, session.expiresAt), authHintCookie(session.expiresAt)];
@@ -49,6 +49,17 @@ export async function onRequestPost({ request, env, waitUntil }) {
     // Generate new code and expiry.
     const code = generateToken().slice(0, 12);
     const expiresAt = Math.floor(Date.now() / 1000) + EMAIL_VERIFY_TTL_S;
+
+    // Re-check email_verified immediately before writing — guards against a
+    // parallel verify-email call that verified the account between the SELECT
+    // above and this batch. If already verified, return success without sending.
+    const freshUser = await db.prepare('SELECT email_verified FROM user WHERE id = ?')
+      .bind(session.userId).first();
+    if (!freshUser || freshUser.email_verified) {
+      const headers = {};
+      if (session.renewed) headers['Set-Cookie'] = [sessionCookie(session.cookieId, session.expiresAt), authHintCookie(session.expiresAt)];
+      return json({ ok: true }, 200, headers);
+    }
 
     // Write D1 first — if SES fails, the new code is already in D1 and the user
     // can request another resend. The old code is invalidated regardless.
