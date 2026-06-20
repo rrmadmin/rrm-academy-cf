@@ -13,6 +13,7 @@ export async function onRequestOptions() {
 }
 
 export async function onRequestPost({ request, env, waitUntil }) {
+  let responseHeaders = {};
   try {
     const db = env.DB;
     if (!db) return json({ ok: false, error: 'Server misconfigured' }, 500);
@@ -23,7 +24,7 @@ export async function onRequestPost({ request, env, waitUntil }) {
     if (!session) return json({ ok: false, error: 'Not authenticated.' }, 401);
 
     // Build renewed-cookie headers once so every return path can emit them.
-    const responseHeaders = {};
+    // Declared before the try so the outer catch can also include renewed cookies.
     if (session.renewed) {
       responseHeaders['Set-Cookie'] = [
         sessionCookie(session.cookieId, session.expiresAt),
@@ -79,6 +80,6 @@ export async function onRequestPost({ request, env, waitUntil }) {
     return json({ ok: true }, 200, responseHeaders);
   } catch (err) {
     log(env, waitUntil, 'auth', 'verify_email_error', 'error', err.message);
-    return json({ ok: false, error: 'An unexpected error occurred. Please try again.' }, 500);
+    return json({ ok: false, error: 'An unexpected error occurred. Please try again.' }, 500, responseHeaders);
   }
 }
