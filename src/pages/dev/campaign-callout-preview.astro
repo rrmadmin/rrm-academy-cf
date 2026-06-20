@@ -1,0 +1,47 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import CampaignCallout from '../../components/CampaignCallout.astro';
+import campaigns from '../../data/campaigns.json';
+
+const pd = campaigns.find((c) => c.id === 'provider-directory')!;
+
+const overGoal = {
+  id: 'preview-met',
+  eyebrow: 'Preview',
+  headline: 'Goal met preview',
+  one_liner: 'Snapshot shows the campaign over goal.',
+  cta_label: 'Give',
+  cta_href: '/providers/#give',
+  goal_cents: 1000000,
+  campaign_key: 'provider-directory',
+  status: 'active',
+};
+
+const zeroGoal = {
+  ...overGoal,
+  id: 'preview-zerogoal',
+  headline: 'Zero goal preview',
+  one_liner: 'No goal set: renders goal-only, no thermometer.',
+  goal_cents: 0,
+};
+
+// ?only=band renders only the band variants (no card, no live-fetch).
+// The e2e no-fetch assertion points at this URL to keep the route intercept clean.
+const onlyBand = Astro.url.searchParams.get('only') === 'band';
+---
+<BaseLayout title="Campaign Callout Preview" description="dev preview" noindex={true}>
+  <div class="container container--narrow">
+    <h1>Band (snapshot)</h1>
+    <CampaignCallout campaign={pd} variant="band" snapshot={{ raised_cents: 250000, supporters: 12 }} />
+    <h1>Band (goal met snapshot)</h1>
+    <CampaignCallout campaign={overGoal} variant="band" snapshot={{ raised_cents: 1200000, supporters: 80 }} />
+    <h1>Band (zero goal: goal-only, no thermo)</h1>
+    <CampaignCallout campaign={zeroGoal} variant="band" snapshot={{ raised_cents: 5000, supporters: 1 }} />
+    {!onlyBand && (
+      <>
+        <h1>Card (live)</h1>
+        <CampaignCallout campaign={pd} variant="card" />
+      </>
+    )}
+  </div>
+</BaseLayout>
