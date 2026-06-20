@@ -183,7 +183,7 @@
       "note": "Supporter recognition helpers (derive/consent/record/remove)"
     },
     "functions/api/billing/_campaign-count.js": {
-      "hash": "a869a07cd6e3560b3e244b79c5469183d9508329c9af28ac9ee556294f457d87",
+      "hash": "aa37d2abc9d8b3fa6353a98f249bb8af09cd19182d7882af8018bdfb39218099",
       "note": "Shared Stripe campaign gift count (net-of-refunds, used by fund-supporters + webhook)"
     },
     "functions/api/community/upload.js": {
