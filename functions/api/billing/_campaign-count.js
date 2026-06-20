@@ -1,13 +1,16 @@
 /**
- * Shared helper: count net-of-refunds succeeded PaymentIntents for a campaign.
+ * Shared helper: count succeeded PaymentIntents for a campaign.
  * Used by fund-progress.js (KV cache writer) and fund-supporters.js (cold-KV fallback).
  *
  * Runs Stripe paymentIntents.search with pagination and refund-netting.
  * Falls back to paymentIntents.list + client-side filter when search fails.
  *
+ * Count of succeeded campaign gifts; mirrors fund-progress.count (refunds are netted out
+ * of dollars, not count).
+ *
  * @param {Stripe} stripe  Configured Stripe client (already verified non-null by caller)
  * @param {string} campaign  Metadata campaign value, e.g. 'provider-directory'
- * @returns {Promise<number>}  Count of net-positive gifts (never rejects; returns 0 on full failure)
+ * @returns {Promise<number>}  Count of succeeded campaign gifts (never rejects; returns 0 on full failure)
  */
 export async function countCampaignGifts(stripe, campaign) {
   let count = 0;
@@ -25,10 +28,7 @@ export async function countCampaignGifts(stripe, campaign) {
       if (nextPage) params.page = nextPage;
       const page = await stripe.paymentIntents.search(params);
       for (const pi of page.data) {
-        const ch = pi.latest_charge;
-        const refunded = (ch && typeof ch === 'object') ? (ch.amount_refunded || 0) : 0;
-        const net = Math.max(0, (pi.amount_received ?? pi.amount) - refunded);
-        if (net > 0) count++;
+        count++;
       }
       hasMore = page.has_more;
       if (hasMore && page.data.length > 0) {
@@ -52,10 +52,7 @@ export async function countCampaignGifts(stripe, campaign) {
         const page = await stripe.paymentIntents.list(listParams);
         for (const pi of page.data) {
           if (pi.status === 'succeeded' && pi.metadata?.campaign === campaign) {
-            const ch = pi.latest_charge;
-            const refunded = (ch && typeof ch === 'object') ? (ch.amount_refunded || 0) : 0;
-            const net = Math.max(0, (pi.amount_received ?? pi.amount) - refunded);
-            if (net > 0) count++;
+            count++;
           }
         }
         listHasMore = page.has_more;
