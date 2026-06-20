@@ -103,7 +103,7 @@
       "note": "CAN-SPAM unsubscribe (status update)"
     },
     "functions/api/newsletter/subscribe.js": {
-      "hash": "e15f26afc5768bf22fbb8d989256415f8584ff95237dcd91c83da673bbc76f0d",
+      "hash": "829966b88c2bfe5b0bb91f69e016a076da0dc4302e56d74f73f49d02bc036353",
       "note": "Public newsletter intake (rate-limited)"
     },
     "functions/api/search/semantic.js": {
