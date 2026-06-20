@@ -12,6 +12,7 @@ import {
   generateId, createSession, sessionCookie, authHintCookie,
   exchangeGoogleCode, getGoogleProfile, isSafeRedirect, SITE_URL,
   waitlistBackfillStatement, deriveSignupSource, checkRateLimit,
+  generateSessionId, hashToken, sessionInsertStatement, SESSION_DURATION_MS,
 } from './_shared.js';
 import { sendEmail, logEmailFailure } from '../_ses.js';
 import { sendGA4Event } from '../_ga4.js';
@@ -92,7 +93,7 @@ async function linkGoogleToVerifiedUser(db, googleId, email, avatarUrl) {
   return { user };
 }
 
-async function upgradeUnverifiedUser(db, googleId, email, avatarUrl, env, waitUntil) {
+async function upgradeUnverifiedUser(db, googleId, email, avatarUrl, env, waitUntil, hashedSessionId, sessionExpiresAt) {
   const unverified = await db.prepare('SELECT id, email, blocked FROM user WHERE email = ? COLLATE NOCASE AND email_verified = 0')
     .bind(email).first();
   if (!unverified) return null;
@@ -114,9 +115,14 @@ async function upgradeUnverifiedUser(db, googleId, email, avatarUrl, env, waitUn
     return { redirect: LOGIN_ERROR_URL };
   }
 
+  // Atomic batch: revoke all prior sessions, backfill waitlist, and INSERT the new session
+  // so the session commit is not separable from the session-delete step. If the new
+  // session INSERT fails after sessions are deleted and password is wiped, the user
+  // would be stranded with no login path. Folding it here prevents that data-loss window.
   await db.batch([
     db.prepare('DELETE FROM session WHERE user_id = ?').bind(unverified.id),
     waitlistBackfillStatement(db, unverified.id, email),
+    sessionInsertStatement(db, hashedSessionId, unverified.id, sessionExpiresAt),
   ]);
 
   // Notify the user that their password was wiped by the Google account upgrade.
@@ -150,7 +156,7 @@ async function upgradeUnverifiedUser(db, googleId, email, avatarUrl, env, waitUn
     );
   }
 
-  return { user: unverified };
+  return { user: unverified, sessionAlreadyCreated: true };
 }
 
 async function createNewGoogleUser(db, email, name, firstName, lastName, googleId, avatarUrl, signupSource) {
@@ -248,7 +254,15 @@ export async function onRequestGet({ request, env, waitUntil }) {
     const lastName = profile.family_name || '';
     const avatarUrl = isValidGoogleAvatarUrl(profile.picture) ? profile.picture : null;
 
+    // Pre-generate session credentials for use by upgradeUnverifiedUser (branch r3),
+    // where the session INSERT must be atomic with the session DELETE + password wipe.
+    // Other branches (r1, r2, r4) use createSession() post-branch as before.
+    const preSessionId = generateSessionId();
+    const preSessionExpiresAt = Math.floor((Date.now() + SESSION_DURATION_MS) / 1000);
+    const preHashedSessionId = await hashToken(preSessionId);
+
     let user;
+    let sessionAlreadyCreated = false;
 
     // 1. Check if google_id already linked to an account
     const r1 = await handleReturningGoogleUser(db, googleId, email);
@@ -293,11 +307,17 @@ export async function onRequestGet({ request, env, waitUntil }) {
       if (r2) ({ user } = r2);
     }
 
-    // 2b. Unverified account with this email — Google proves ownership, upgrade it
+    // 2b. Unverified account with this email — Google proves ownership, upgrade it.
+    // Session is folded into upgradeUnverifiedUser's batch: after wiping the password
+    // and deleting all sessions, the new session INSERT is atomic in the same batch,
+    // so a D1 failure cannot strand the user passwordless with no valid session.
     if (!user) {
-      const r3 = await upgradeUnverifiedUser(db, googleId, email, avatarUrl, env, waitUntil);
+      const r3 = await upgradeUnverifiedUser(db, googleId, email, avatarUrl, env, waitUntil, preHashedSessionId, preSessionExpiresAt);
       if (r3?.redirect) return htmlRedirect(r3.redirect);
-      if (r3) ({ user } = r3);
+      if (r3) {
+        ({ user } = r3);
+        sessionAlreadyCreated = r3.sessionAlreadyCreated;
+      }
     }
 
     // 3. Brand new user — create account
@@ -319,9 +339,12 @@ export async function onRequestGet({ request, env, waitUntil }) {
           if (r4retry?.redirect) return htmlRedirect(r4retry.redirect);
           if (r4retry) ({ user } = r4retry);
           if (!user) {
-            const r4retryUnverified = await upgradeUnverifiedUser(db, googleId, email, avatarUrl, env, waitUntil);
+            const r4retryUnverified = await upgradeUnverifiedUser(db, googleId, email, avatarUrl, env, waitUntil, preHashedSessionId, preSessionExpiresAt);
             if (r4retryUnverified?.redirect) return htmlRedirect(r4retryUnverified.redirect);
-            if (r4retryUnverified) ({ user } = r4retryUnverified);
+            if (r4retryUnverified) {
+              ({ user } = r4retryUnverified);
+              sessionAlreadyCreated = r4retryUnverified.sessionAlreadyCreated;
+            }
           }
         } else if (isGoogleIdCollision) {
           const r4retry = await handleReturningGoogleUser(db, googleId, email);
@@ -341,13 +364,22 @@ export async function onRequestGet({ request, env, waitUntil }) {
       return htmlRedirect('/login/?error=account_blocked');
     }
 
-    // Create session (same pattern as login.js)
-    const session = await createSession(db, user.id);
+    // Create session — use the pre-generated session (already committed to D1) if
+    // upgradeUnverifiedUser folded it into its batch; otherwise create a new session now.
+    let finalSessionId, finalSessionExpiresAt;
+    if (sessionAlreadyCreated) {
+      finalSessionId = preSessionId;
+      finalSessionExpiresAt = preSessionExpiresAt;
+    } else {
+      const session = await createSession(db, user.id);
+      finalSessionId = session.id;
+      finalSessionExpiresAt = session.expiresAt;
+    }
 
     // Clear the CSRF nonce cookie and set the session cookie + JS-readable hint.
     return htmlRedirectWithCookies(returnTo, [
-      sessionCookie(session.id, session.expiresAt),
-      authHintCookie(session.expiresAt),
+      sessionCookie(finalSessionId, finalSessionExpiresAt),
+      authHintCookie(finalSessionExpiresAt),
       'oauth_state=; Path=/api/auth/google-callback; HttpOnly; Secure; SameSite=Lax; Max-Age=0',
     ]);
   } catch (err) {

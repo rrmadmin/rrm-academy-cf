@@ -38,6 +38,10 @@ export async function onRequestPost({ request, env, waitUntil }) {
 
     const ip = request.headers.get('CF-Connecting-IP');
     if (!ip) return json({ ok: false, error: 'Service temporarily unavailable.' }, 503);
+    // No Turnstile by design: users arrive via a deep-link from email; the token itself
+    // is a stronger credential than Turnstile (possession proves email access). A Turnstile
+    // challenge here breaks mobile clients tapping the link from their mail app.
+    // Bot protection is applied upstream at /api/auth/forgot-password (Turnstile + rate limit).
     if (!await checkRateLimit(env, `reset-pw:${ip}`, 5, 900)) {
       return json({ ok: false, error: 'Too many attempts. Please try again later.' }, 429);
     }
