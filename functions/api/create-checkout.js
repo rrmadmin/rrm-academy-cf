@@ -173,6 +173,20 @@ async function handleCheckout(request, env, waitUntil) {
       ...(campaign && { campaign }),
     };
 
+    if (campaign === 'provider-directory') {
+      sessionParams.billing_address_collection = 'required';
+      sessionParams.custom_fields = [{
+        key: 'show_supporter',
+        label: { type: 'custom', custom: 'Show my first name as a public supporter?' },
+        type: 'dropdown',
+        optional: true,
+        dropdown: { options: [
+          { label: 'Yes, show my first name', value: 'yes' },
+          { label: 'Keep me anonymous', value: 'no' },
+        ] },
+      }];
+    }
+
     let checkoutSession;
     try {
       checkoutSession = await stripe.checkout.sessions.create(sessionParams);
