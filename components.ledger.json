@@ -1,0 +1,26 @@
+{
+  "_note": "converge cross-run integrity ledger. A DONE/HELD stamp is only trusted at its done_at_head.",
+  "components": [
+    {
+      "component": "T1-newsletter",
+      "done_at_head": "48c10c747a4e367b3c9058a0b6892c8e95194542",
+      "terminal_state": "HELD",
+      "held_reason": "review-clean; awaiting human merge to deploy. CI-gated + peer-synced (PR merged) legs deferred to post-merge (deploy-on-merge repo).",
+      "read_contracts": ["newsletter_subscriber.email (canonical lookup)", "user.email"],
+      "write_contracts": ["newsletter_subscriber.email (canonical)", "user.newsletter_opt_in", "_email-validate.js:canonicalizeEmail export"],
+      "stub_debt": [
+        "pdf/request.js newsletter_subscriber write -> T1-crm (entangled with contact table)",
+        "courses/waitlist.js newsletter_subscriber write -> T1-community (entangled with course_waitlist)"
+      ],
+      "ci_mechanism": "github-actions",
+      "ci_binding": ".github/workflows/deploy.yml:Build & Deploy (post-merge)",
+      "peer_sync_mechanism": "gh-pr-merge",
+      "peer_sync_binding": null,
+      "durable_followup": "(2) separate email_canonical (dedup key) vs email (raw deliverable) column across user/newsletter/contact, resolving the canonical-key-vs-deliverability tension; same latent tension exists in the shipped auth H2 fix.",
+      "arise_adjudicated_preexisting": [
+        "subscribe.js race-loser early-return skips user opt_in UPDATE (winner sets it; false-positive)",
+        "subscribe.js bounced-address re-activation on resubscribe (intentional per ELV-passed comment)"
+      ]
+    }
+  ]
+}
