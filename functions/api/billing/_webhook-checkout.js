@@ -602,7 +602,6 @@ Manually set migration_status='stripe_active' and stripe_subscription_id to the 
   ) {
     const displayName = deriveDisplayName(session.customer_details?.name);
     if (displayName && db) {
-      let giftSeq = 0;
       try {
         const stripe = getStripeClient(env);
         let seqCount = 0;
@@ -629,21 +628,20 @@ Manually set migration_status='stripe_active' and stripe_subscription_id to the 
             hasMore = false;
           }
         }
-        giftSeq = seqCount;
+        const giftSeq = seqCount;
+        await recordSupporterGift(db, {
+          campaign: 'provider-directory',
+          displayName,
+          giftSeq,
+          email: session.customer_details?.email,
+          sourceId: session.payment_intent || session.id,
+          occurredAt: new Date((event.created || Math.floor(Date.now() / 1000)) * 1000).toISOString(),
+        });
+        log(env, waitUntil, 'billing', 'supporter_recognition_recorded', 'ok',
+          `${displayName} seq=${giftSeq} src=${session.payment_intent || session.id}`);
       } catch (seqErr) {
         log(env, waitUntil, 'billing', 'supporter_seq_count_fail', 'warn', seqErr.message);
-        giftSeq = 0;
       }
-      await recordSupporterGift(db, {
-        campaign: 'provider-directory',
-        displayName,
-        giftSeq,
-        email: session.customer_details?.email,
-        sourceId: session.payment_intent || session.id,
-        occurredAt: new Date((event.created || Math.floor(Date.now() / 1000)) * 1000).toISOString(),
-      });
-      log(env, waitUntil, 'billing', 'supporter_recognition_recorded', 'ok',
-        `${displayName} seq=${giftSeq} src=${session.payment_intent || session.id}`);
     }
   }
 
