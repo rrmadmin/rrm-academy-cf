@@ -162,17 +162,17 @@ if echo "$STAGED" | grep -qE '^src/(components|layouts)/.*\.astro$'; then
   fi
 fi
 
-# --- Verify-code length coupling gate: any staged change to a verification-code
-#     generator or the signup input that renders it. The emailed code length and
-#     the <input maxlength> must stay coupled, or the box truncates the code and
-#     email verification silently fails (the 8-vs-12 char bug, 2026-06-20).
-if echo "$STAGED" | grep -qE '^functions/api/auth/(signup|resend-verification)\.js$|^src/pages/signup\.astro$|^scripts/gates/validate-verify-code-length\.mjs$'; then
-  node scripts/gates/validate-verify-code-length.mjs
+# --- Magic-link email verification gate: any staged change to a verification
+#     email sender or the verify-email handler. The link token must be the full
+#     64-hex generateToken() (validated by token alone, no session), the GET
+#     confirm entry point must exist, and the token must be consumed single-use.
+if echo "$STAGED" | grep -qE '^functions/api/auth/(signup|resend-verification|verify-email)\.js$|^scripts/gates/validate-email-verification\.mjs$'; then
+  node scripts/gates/validate-email-verification.mjs
   if [ $? -ne 0 ]; then
     echo ""
-    echo "Commit blocked by verify-code length coupling gate."
-    echo "The signup verify-code input maxlength must hold the full emailed code."
-    echo "Fix the maxlength (or both generators), or bypass with --no-verify."
+    echo "Commit blocked by magic-link email verification gate."
+    echo "The link token must be the full generateToken(), GET must exist, token consumed once."
+    echo "Fix the invariant above, or bypass with --no-verify."
     exit 1
   fi
 fi
