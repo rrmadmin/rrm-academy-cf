@@ -42,3 +42,29 @@ test.describe('fund-thermo on /providers/', () => {
     expect(errors, errors.join('\n')).toHaveLength(0);
   });
 });
+
+test.describe('CampaignCallout preview', () => {
+  test('band renders snapshot total with no live fetch', async ({ page }) => {
+    let fetched = false;
+    await page.route('**/api/fund-progress', (route) => {
+      fetched = true;
+      route.fulfill({ status: 200, body: '{}' });
+    });
+    // Navigate to ?only=band so the card variant (which live-fetches) is not rendered.
+    await page.goto('/dev/campaign-callout-preview/?only=band');
+    await expect(
+      page.locator('#cc-thermo-provider-directory .fund-thermo__raised').first(),
+    ).toHaveText('$2,500');
+    expect(fetched, 'band must NOT call /api/fund-progress').toBe(false);
+  });
+
+  test('goal-met band carries data-state="met"', async ({ page }) => {
+    await page.goto('/dev/campaign-callout-preview/');
+    await expect(page.locator('#cc-thermo-preview-met')).toHaveAttribute('data-state', 'met');
+  });
+
+  test('zero-goal band renders no thermometer (goal-only)', async ({ page }) => {
+    await page.goto('/dev/campaign-callout-preview/');
+    await expect(page.locator('#cc-thermo-preview-zerogoal')).toHaveCount(0);
+  });
+});
