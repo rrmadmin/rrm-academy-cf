@@ -31,7 +31,7 @@ export function readSupporterConsent(session) {
 export async function recordSupporterGift(db, gift) {
   const displayName = gift && typeof gift.displayName === 'string' ? gift.displayName : '';
   if (!displayName) return { recorded: false };
-  if (!gift.sourceId || typeof gift.giftSeq !== 'number') return { recorded: false };
+  if (!gift.sourceId || typeof gift.giftSeq !== 'number' || gift.giftSeq < 1) return { recorded: false };
   const id = 'sr_' + crypto.randomUUID();
   await db.prepare(
     `INSERT INTO supporter_recognition

@@ -55,7 +55,7 @@
       "note": "Stripe portal"
     },
     "functions/api/billing/_webhook-checkout.js": {
-      "hash": "f68d78fd5704398a50e4330c0ee110076ca0c95758087eef73b9c4757693402a",
+      "hash": "dd33067f4601926509b8336ac822daf6e7adae252ac1ea0f6ddf36ca2e3d4c65",
       "note": "Stripe checkout completion handler"
     },
     "functions/api/billing/_webhook-subscription.js": {
@@ -143,7 +143,7 @@
       "note": "Admin endpoint: manually link wix_subscription to CF user (Layer 4 reconciliation)"
     },
     "scripts/guard.mjs": {
-      "hash": "052e285f207df503fc73a977680606ea817f779f887eba57b6fe50a461aa15a0",
+      "hash": "1d03398d1bed107a47e1e55b395b92f60c4ff97eee27c8b0de745333ae14d07b",
       "note": "Guard script (self-guarding)"
     },
     "functions/api/auth/verify-email.js": {
@@ -179,8 +179,12 @@
       "note": "Donor gift recording + contact rollups/stage derivation"
     },
     "functions/api/billing/_supporter-gift.js": {
-      "hash": "e8382da001e707226c9032c3088a99527b84e6251e3f3264ec352a9a68ead90e",
+      "hash": "5b9573bfc844325fe11d955e2d6ba49f9bd9ca65bb27acc2e7234778ddff5765",
       "note": "Supporter recognition helpers (derive/consent/record/remove)"
+    },
+    "functions/api/billing/_campaign-count.js": {
+      "hash": "a869a07cd6e3560b3e244b79c5469183d9508329c9af28ac9ee556294f457d87",
+      "note": "Shared Stripe campaign gift count (net-of-refunds, used by fund-supporters + webhook)"
     },
     "functions/api/community/upload.js": {
       "hash": "01326e09ae56984a61e8253352204d4a6cdfcf57d34ce0fcd2919bfcd49c2850",
