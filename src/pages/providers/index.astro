@@ -52,6 +52,7 @@ const jsonLd = {
           aria-valuemin="0"
           aria-valuemax={GOAL_CENTS}
           aria-valuenow="0"
+          data-goal-cents={GOAL_CENTS}
           aria-label="Raised toward our $10,000 goal"
         >
           <div class="fund-thermo__head">
@@ -173,40 +174,17 @@ const jsonLd = {
     </div>
   </div>
 
+  <script>
+    import { initFundThermo } from '../../scripts/fund-thermo';
+    const root = document.getElementById('fund-thermo');
+    if (root) {
+      const goal = Number(root.dataset.goalCents) || 0;
+      initFundThermo(root, goal);
+    }
+  </script>
+
   <script is:inline define:vars={{ GOAL_CENTS }}>
     (function () {
-      // ---- Live thermometer ----
-      var fillEl = document.getElementById('fund-fill');
-      var raisedEl = document.getElementById('fund-raised');
-      var supportersEl = document.getElementById('fund-supporters');
-      var thermoEl = document.getElementById('fund-thermo');
-
-      function fmtDollars(cents) {
-        var dollars = Math.round(cents / 100);
-        return '$' + dollars.toLocaleString();
-      }
-
-      fetch('/api/fund-progress', { credentials: 'omit' })
-        .then(function (r) { return r.json(); })
-        .then(function (data) {
-          if (!data || typeof data.raised_cents !== 'number') return;
-          var goal = typeof data.goal_cents === 'number' && data.goal_cents > 0 ? data.goal_cents : GOAL_CENTS;
-          var raised = Math.max(0, data.raised_cents);
-          var pct = Math.min(100, Math.round((raised / goal) * 100));
-
-          raisedEl.textContent = fmtDollars(raised);
-          fillEl.style.width = pct + '%';
-          thermoEl.setAttribute('aria-valuenow', String(raised));
-
-          if (typeof data.supporters === 'number' && data.supporters > 0) {
-            supportersEl.textContent = data.supporters === 1
-              ? '1 supporter so far'
-              : data.supporters.toLocaleString() + ' supporters so far';
-            supportersEl.hidden = false;
-          }
-        })
-        .catch(function () { /* fail-soft: leave $0 / 0% rendered */ });
-
       // ---- Give widget ----
       var amountBtns = document.querySelectorAll('.fund-amount-btn');
       var customInput = document.getElementById('fund-custom-amount');
