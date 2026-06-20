@@ -8,6 +8,7 @@ import { json, optionsResponse, verifyTurnstile, checkRateLimit } from '../auth/
 import { verifyAndTagEmail } from '../_elv.js';
 import { withIdempotency } from '../_idempotency.js';
 import { validateBody } from '../_validate.js';
+import { canonicalizeEmail } from '../auth/_email-validate.js';
 
 export async function onRequestOptions() {
   return optionsResponse();
@@ -51,7 +52,8 @@ async function _handlePost(context) {
   if (!emailValidation.valid) {
     return json({ ok: false, error: 'Valid email is required.' }, 400);
   }
-  const email = emailValidation.data.email;
+  // Canonicalize on new-write paths only; unsubscribe/bounce key on stored value to avoid missing non-canonical existing rows.
+  const email = canonicalizeEmail(emailValidation.data.email);
 
   // Verify Turnstile token
   const turnstileResult = await verifyTurnstile(env.CF_TURNSTILE_SECRET, body.turnstileToken, ip, env);

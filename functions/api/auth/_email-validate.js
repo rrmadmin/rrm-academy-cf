@@ -159,6 +159,8 @@ function suggestDomain(domain) {
   return changed ? correctedParts.join('.') : null;
 }
 
+export { cleanupEmail as canonicalizeEmail };
+
 // ── Structural email cleanup (from correct_email_typos, ISC) ──────────
 export function cleanupEmail(email) {
   let e = email;

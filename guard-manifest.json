@@ -35,7 +35,7 @@
       "note": "Google OAuth callback"
     },
     "functions/api/auth/_email-validate.js": {
-      "hash": "c593fd32597840d237217f4ee63dc56f87a62ca329cba4a4b534ae92e684b34c",
+      "hash": "dd4b34affcaf2dcfbb33cab6078bf867e91670b9aa820cd956b99367859f7ba9",
       "note": "Email validation + disposable/typo detection"
     },
     "functions/api/stripe-webhook.js": {
@@ -103,7 +103,7 @@
       "note": "CAN-SPAM unsubscribe (status update)"
     },
     "functions/api/newsletter/subscribe.js": {
-      "hash": "a6865db3b03dc4595b6951ff94d6f77e691886059a47a2dfffc5dff8c3d1a865",
+      "hash": "e15f26afc5768bf22fbb8d989256415f8584ff95237dcd91c83da673bbc76f0d",
       "note": "Public newsletter intake (rate-limited)"
     },
     "functions/api/search/semantic.js": {
