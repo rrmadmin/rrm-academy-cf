@@ -45,7 +45,7 @@ export async function onRequestPatch({ request, env, waitUntil }) {
     const user = await db.prepare(
       'SELECT first_name, last_name FROM user WHERE id = ?'
     ).bind(session.userId).first();
-    if (!user) return json({ ok: false, error: 'User not found.' }, 404);
+    if (!user) return json({ ok: false, error: 'Not authenticated.' }, 401);
 
     const firstName = validation.data.firstName !== undefined ? validation.data.firstName : (user.first_name || '');
     const lastName = validation.data.lastName !== undefined ? validation.data.lastName : (user.last_name || '');

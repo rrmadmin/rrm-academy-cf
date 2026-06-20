@@ -160,7 +160,7 @@ function suggestDomain(domain) {
 }
 
 // ── Structural email cleanup (from correct_email_typos, ISC) ──────────
-function cleanupEmail(email) {
+export function cleanupEmail(email) {
   let e = email;
   // Strip mailto: prefix
   e = e.replace(/^mailto:/g, '');
@@ -176,6 +176,8 @@ function cleanupEmail(email) {
   e = e.replace(/n\.et$/g, '.net');
   // Add a period if they forgot it: gmailcom -> gmail.com
   e = e.replace(/([^.])(com|org|net|edu)$/g, '$1.$2');
+  // Strip trailing dot(s) from FQDN absolute form (me@gmail.com.)
+  e = e.replace(/\.+$/, '');
   return e;
 }
 
@@ -230,9 +232,20 @@ export async function validateEmail(email, env) {
     return { valid: false, error: 'Please enter a valid email address.' };
   }
 
-  const [local, domain] = email.split('@');
+  let [local, domain] = email.split('@');
   if (!local || !domain) {
     return { valid: false, error: 'Please enter a valid email address.' };
+  }
+
+  // Strip trailing dot(s) from domain (FQDN absolute form: x@mailinator.com.)
+  // A trailing dot bypasses disposable-domain walk and isDisposable Set lookups.
+  if (domain.endsWith('.')) {
+    domain = domain.replace(/\.+$/, '');
+    // After stripping, the domain must still have a valid TLD (non-empty last label).
+    if (!domain || !domain.includes('.') || domain.endsWith('.')) {
+      return { valid: false, error: 'Please enter a valid email address.' };
+    }
+    email = `${local}@${domain}`;
   }
 
   // Layer 2: Exact-match typo map (fast, before disposable check so

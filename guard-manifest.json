@@ -7,7 +7,7 @@
       "note": "CORS, sessions, crypto, rate limiting"
     },
     "functions/api/auth/login.js": {
-      "hash": "476ee0e0f7d08dea6078aa537b1fc13f20fa59c691af5d2772a5e2b34a5c7dc1",
+      "hash": "afefc4cb0d7c4aa9231b1bd7298064adf4485a5ec3365b6d39baae3d001f6eef",
       "note": "Authentication"
     },
     "functions/api/auth/signup.js": {
@@ -15,7 +15,7 @@
       "note": "Account creation"
     },
     "functions/api/auth/forgot-password.js": {
-      "hash": "698a759b4630ce5dbf9c66026fddbe2706d117c4a3b4b73d7582f82455f4fe69",
+      "hash": "5012f1a82be1cde1e4002e784ca7f607588817e2e1f50f250f0382e03ba44d62",
       "note": "Password reset tokens + email"
     },
     "functions/api/auth/reset-password.js": {
@@ -23,19 +23,19 @@
       "note": "Reset token consumption + password change"
     },
     "functions/api/auth/change-password.js": {
-      "hash": "7c77c88e60422872fb391c4a4444c2632b2c67b7068786b6f1e0bc862e3d0849",
+      "hash": "d4a29ddf65f8e6e7be17f97844fdb62f258200f321bc351d85cc6069da410132",
       "note": "Authenticated password change"
     },
     "functions/api/auth/google.js": {
-      "hash": "b1bb1455efd59ae323f6492aced2fe04e6517b6d797ea51b28f9d6b877b66957",
+      "hash": "65c8f36fceb1ee85824bb3fda34225616dff0c06a925dc6464f1422d8c9c0ab6",
       "note": "OAuth redirect initiation"
     },
     "functions/api/auth/google-callback.js": {
-      "hash": "80e490dc38c6813b4924a6a20ccd43de22c9295d683e84446f556716c25893de",
+      "hash": "922ca1405dc9f8af16d86336fd6b1b16be5b370fb22a80c1024825d0d026e441",
       "note": "Google OAuth callback"
     },
     "functions/api/auth/_email-validate.js": {
-      "hash": "590a814e642ed97c356738a17f256fe41e6c78394aca635590ceae64aa743743",
+      "hash": "610082b1fc8b6bc44fdd943101bf0081349461d683d4abd57eb70bbdb271ec8f",
       "note": "Email validation + disposable/typo detection"
     },
     "functions/api/stripe-webhook.js": {
@@ -71,7 +71,7 @@
       "note": "HMAC-SHA256 magic-link token for Wix-to-Stripe donor migration"
     },
     "functions/_middleware.js": {
-      "hash": "136f83b37567a01d59f294e5c2c94b464201301c07c8e67bcefcd5c29e4c01de",
+      "hash": "2c951727ce29f8e43c4c5ee55508ae0b6cb9205595e772d164fd94f34fdc33c9",
       "note": "Auth gating"
     },
     "wrangler.toml": {
