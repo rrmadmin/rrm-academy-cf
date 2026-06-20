@@ -190,7 +190,8 @@ export async function onRequestPost({ request, env, waitUntil }) {
     const userId = generateId();
     const name = firstName + ' ' + lastName;
 
-    const code = generateToken().slice(0, 12); // 12-char verification code (48-bit entropy)
+    const code = generateToken().slice(0, 12); // dormant typed-code fallback (12 chars)
+    const token = generateToken(); // 64-hex (256-bit) single-use magic-link token
     const verifyExpiresAt = Math.floor(Date.now() / 1000) + EMAIL_VERIFY_TTL_S;
 
     const sessionId = generateSessionId();
@@ -204,8 +205,8 @@ export async function onRequestPost({ request, env, waitUntil }) {
           'INSERT INTO user (id, email, name, first_name, last_name, hashed_password, signup_source) VALUES (?, ?, ?, ?, ?, ?, ?)'
         ).bind(userId, cleanEmail, name, firstName, lastName, hashedPassword, signupSource),
         db.prepare(
-          'INSERT INTO email_verification (id, user_id, code, expires_at) VALUES (?, ?, ?, ?)'
-        ).bind(generateId(), userId, code, verifyExpiresAt),
+          'INSERT INTO email_verification (id, user_id, code, expires_at, token) VALUES (?, ?, ?, ?, ?)'
+        ).bind(generateId(), userId, code, verifyExpiresAt, token),
         // No prior sessions to clean: new user, fresh DB row.
         sessionInsertStatement(db, hashedSessionId, userId, sessionExpiresAt),
         waitlistBackfillStatement(db, userId, cleanEmail),
@@ -234,15 +235,15 @@ export async function onRequestPost({ request, env, waitUntil }) {
       sendEmail(env, {
         from: 'RRM Academy <accounts@mail.rrmacademy.org>',
         to: cleanEmail,
-        subject: 'Verify your email — RRM Academy',
+        subject: 'Confirm your email — RRM Academy',
         text: [
           `Hi ${firstName},`,
           '',
-          'Welcome to RRM Academy! Please verify your email by entering this code:',
+          'Welcome to RRM Academy! Please confirm your email address by clicking the link below:',
           '',
-          `    ${code}`,
+          `https://rrmacademy.org/api/auth/verify-email?token=${token}`,
           '',
-          'This code expires in 1 hour.',
+          'This link expires in 1 hour and can be used once.',
           '',
           'If you did not create an account, you can safely ignore this email.',
           '',
@@ -251,7 +252,7 @@ export async function onRequestPost({ request, env, waitUntil }) {
           'https://rrmacademy.org',
         ].join('\n'),
         log: { db: env.DB, source: 'auth/signup', category: 'transactional' },
-      }).catch(err => logEmailFailure(env.DB, { email: cleanEmail, category: 'transactional', source: 'auth/signup', subject: 'Verify your email — RRM Academy', detail: err.message }))
+      }).catch(err => logEmailFailure(env.DB, { email: cleanEmail, category: 'transactional', source: 'auth/signup', subject: 'Confirm your email — RRM Academy', detail: err.message }))
     );
 
     waitUntil(sendGA4Event(env, request, 'sign_up', { method: 'email', source: signupSource }).catch(() => {}));
