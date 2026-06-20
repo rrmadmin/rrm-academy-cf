@@ -187,15 +187,19 @@ export async function onRequestGet({ request, env, waitUntil }) {
     }
 
     // Verify CSRF state nonce — RFC 6749 §10.12.
-    // google.js set a cookie with the nonce and embedded it in state as "<nonce>:<base64-redirect>".
+    // google.js set a cookie with "nonce:base64(redirect)" and embedded the same in state.
     const cookieHeader = request.headers.get('Cookie') || '';
     const cookieMatch = cookieHeader.match(/(?:^|;\s*)oauth_state=([^;]+)/);
-    const cookieNonce = cookieMatch ? cookieMatch[1] : null;
+    const cookieRaw = cookieMatch ? cookieMatch[1] : null;
     const colonIdx = stateRaw.indexOf(':');
     const stateNonce = colonIdx >= 0 ? stateRaw.slice(0, colonIdx) : '';
     const stateRedirectB64 = colonIdx >= 0 ? stateRaw.slice(colonIdx + 1) : '';
 
-    if (!cookieNonce || cookieNonce !== stateNonce) {
+    const cookieColonIdx = cookieRaw ? cookieRaw.indexOf(':') : -1;
+    const cookieNonce = cookieRaw && cookieColonIdx >= 0 ? cookieRaw.slice(0, cookieColonIdx) : null;
+    const cookieRedirectB64 = cookieRaw && cookieColonIdx >= 0 ? cookieRaw.slice(cookieColonIdx + 1) : null;
+
+    if (!cookieNonce || cookieNonce !== stateNonce || cookieRedirectB64 !== stateRedirectB64) {
       log(env, waitUntil, 'auth', 'oauth_state_mismatch', 'error', 'oauth state cookie mismatch');
       return htmlRedirect(LOGIN_ERROR_URL);
     }
@@ -203,7 +207,7 @@ export async function onRequestGet({ request, env, waitUntil }) {
     // Decode the return-to URL from the state parameter.
     let returnTo = '/account/';
     try {
-      const decoded = atob(stateRedirectB64);
+      const decoded = new TextDecoder().decode(Uint8Array.from(atob(stateRedirectB64), c => c.charCodeAt(0)));
       if (isSafeRedirect(decoded)) returnTo = decoded;
     } catch { // arise-ignore silent-catch -- malformed base64 falls back to /account/
     }

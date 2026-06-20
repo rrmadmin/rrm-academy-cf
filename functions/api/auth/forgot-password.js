@@ -15,6 +15,7 @@ import {
   json, optionsResponse, generateId, generateToken, hashToken,
   verifyTurnstile, checkRateLimit, isValidEmail, RESET_TOKEN_TTL_S,
 } from './_shared.js';
+import { cleanupEmail } from './_email-validate.js';
 import { sendEmail, logEmailFailure } from '../_ses.js';
 import { log } from '../_log.js';
 
@@ -32,7 +33,7 @@ export async function onRequestPost({ request, env, waitUntil }) {
     if (typeof body !== 'object' || body === null || Array.isArray(body)) return json({ ok: false, error: 'Invalid payload' }, 400);
 
     const rawEmail = typeof body.email === 'string' ? body.email : '';
-    const email = rawEmail.normalize('NFC').trim().toLowerCase();
+    const email = cleanupEmail(rawEmail.normalize('NFC').trim().toLowerCase());
     if (!isValidEmail(email)) return json({ ok: false, error: 'Valid email is required.' }, 400);
 
     // Rate limit by IP (before expensive DNS lookups): 5 attempts per 15 minutes
@@ -87,6 +88,17 @@ export async function onRequestPost({ request, env, waitUntil }) {
           await db.prepare(
             "INSERT INTO password_reset (id, user_id, token_hash, expires_at, purpose) VALUES (?, ?, ?, ?, 'reset') ON CONFLICT(user_id, purpose) DO UPDATE SET id = excluded.id, token_hash = excluded.token_hash, expires_at = excluded.expires_at"
           ).bind(generateId(), userId, tokenHash, expiresAt).run();
+
+          // Read back the committed token_hash to verify we won the upsert race.
+          // If a concurrent request's upsert landed after ours, the stored hash will
+          // differ from tokenHash and we skip the send — the other request's waitUntil
+          // will send its own email with the token that actually matches the stored hash.
+          const committed = await db.prepare(
+            "SELECT token_hash FROM password_reset WHERE user_id = ? AND purpose = 'reset'"
+          ).bind(userId).first();
+          if (!committed || committed.token_hash !== tokenHash) {
+            return;
+          }
 
           await sendEmail(env, {
             from: 'RRM Academy <accounts@mail.rrmacademy.org>',
