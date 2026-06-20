@@ -445,23 +445,24 @@ export async function onRequest(context) {
     const sid = getSessionIdFromCookie(request);
     const hasHint = /(?:^|;\s*)rrm_auth=1/.test(request.headers.get('Cookie') || '');
     if (sid && !hasHint) {
+      let healedSession = null;
       try {
-        const session = await validateSession(env.DB, sid);
-        if (session) {
-          const response = await context.next();
-          const headers = new Headers(response.headers);
-          headers.append('Set-Cookie', authHintCookie(session.expiresAt));
-          if (session.renewed) {
-            headers.append('Set-Cookie', sessionCookie(session.cookieId, session.expiresAt));
-          }
-          return withSecurityHeaders(new Response(response.body, {
-            status: response.status,
-            statusText: response.statusText,
-            headers,
-          }));
-        }
+        healedSession = await validateSession(env.DB, sid);
       } catch (e) {
         // fail-open: fall through to normal handling below
+      }
+      if (healedSession) {
+        const response = await context.next();
+        const headers = new Headers(response.headers);
+        headers.append('Set-Cookie', authHintCookie(healedSession.expiresAt));
+        if (healedSession.renewed) {
+          headers.append('Set-Cookie', sessionCookie(healedSession.cookieId, healedSession.expiresAt));
+        }
+        return withSecurityHeaders(new Response(response.body, {
+          status: response.status,
+          statusText: response.statusText,
+          headers,
+        }));
       }
     }
   }

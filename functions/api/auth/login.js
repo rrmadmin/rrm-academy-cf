@@ -8,6 +8,7 @@ import {
   generateSessionId, waitlistBackfillStatement, sessionInsertStatement,
   DUMMY_PASSWORD_HASH, SESSION_DURATION_MS, hashToken, hashPassword, PBKDF2_ITERATIONS,
 } from './_shared.js';
+import { cleanupEmail } from './_email-validate.js';
 import { sendEmail, logEmailFailure } from '../_ses.js';
 import { log } from '../_log.js';
 
@@ -25,7 +26,7 @@ export async function onRequestPost({ request, env, waitUntil }) {
     if (typeof body !== 'object' || body === null || Array.isArray(body)) return json({ ok: false, error: 'Invalid payload' }, 400);
 
     const rawEmail = typeof body.email === 'string' ? body.email : '';
-    const email = rawEmail.normalize('NFC').trim().toLowerCase();
+    const email = cleanupEmail(rawEmail.normalize('NFC').trim().toLowerCase());
     const password = body.password || '';
 
     if (!isValidEmail(email) || !password || password.length > 128) {
@@ -125,9 +126,10 @@ export async function onRequestPost({ request, env, waitUntil }) {
     // Best-effort and non-blocking: a rehash failure never blocks or fails a login.
     const storedIterations = parseInt((user.hashed_password || '').split('$')[0], 10);
     if (storedIterations < PBKDF2_ITERATIONS) {
+      const oldHash = user.hashed_password;
       waitUntil(
         hashPassword(password)
-          .then(newHash => db.prepare("UPDATE user SET hashed_password = ? WHERE id = ?").bind(newHash, user.id).run())
+          .then(newHash => db.prepare("UPDATE user SET hashed_password = ? WHERE id = ? AND hashed_password = ?").bind(newHash, user.id, oldHash).run())
           .catch(() => {})
       );
     }
