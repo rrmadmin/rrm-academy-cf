@@ -38,10 +38,15 @@ describe('branded frame export', () => {
     assert.ok(svg.includes('@RRM_academy') && !svg.includes('@rrmacademy'));
   });
 
-  it('on-page inline render is never framed (bare)', () => {
-    const svg = renderInfographic(SAMPLES[2], { mode: 'inline', aspect: '1.91:1', frame: 'branded' });
-    assert.ok(!svg.includes('rrmacademy.org'), 'inline must stay bare even if frame requested');
-    assert.ok(svg.includes('var(--'), 'inline uses css vars');
+  it('on-page inline render carries the footer (theme-aware) but no wordmark', () => {
+    const svg = renderInfographic(SAMPLES[2], { mode: 'inline', aspect: '1.91:1' });
+    assert.ok(svg.includes('rrmacademy.org') && svg.includes('@rrmacademy'), 'inline carries the footer branding');
+    assert.ok(!/<path/.test(svg), 'inline has no wordmark paths');
+    assert.ok(svg.includes('var(--'), 'inline footer uses css vars (theme-aware)');
+  });
+
+  it('inline + branded throws (the wordmark needs standalone hex)', () => {
+    assert.throws(() => renderInfographic(SAMPLES[0], { mode: 'inline', aspect: '1:1', frame: 'branded' }));
   });
 
   it('supports the new 9:16 story aspect', () => {
