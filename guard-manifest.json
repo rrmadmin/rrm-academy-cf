@@ -7,11 +7,11 @@
       "note": "CORS, sessions, crypto, rate limiting"
     },
     "functions/api/auth/login.js": {
-      "hash": "afefc4cb0d7c4aa9231b1bd7298064adf4485a5ec3365b6d39baae3d001f6eef",
+      "hash": "2a3fc330aeff5ef90289f5b5428c12241555d270deaf28b1b53d4b6b11fd32e4",
       "note": "Authentication"
     },
     "functions/api/auth/signup.js": {
-      "hash": "90bf3bacc1089acd4912d7f7f389c9a5285d4f490f2c1a4366136fb96f26cfb0",
+      "hash": "4d330abde476e0d9f43bffd5cf67d77ad623c4763ece7738f56d28cb0f3970cc",
       "note": "Account creation"
     },
     "functions/api/auth/forgot-password.js": {
@@ -31,7 +31,7 @@
       "note": "OAuth redirect initiation"
     },
     "functions/api/auth/google-callback.js": {
-      "hash": "c9f2f66c28d8c545720f81a9e9fb03c3133e23205d0fc3448bcbb829c15902fc",
+      "hash": "cd9e3425a74411c1f8a97b053ee213befc2a6e3d2a6a5a8daa73d9dbb0fb4e57",
       "note": "Google OAuth callback"
     },
     "functions/api/auth/_email-validate.js": {
