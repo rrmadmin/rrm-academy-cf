@@ -5,6 +5,7 @@
  */
 import { json, optionsResponse, verifyTurnstile } from '../auth/_shared.js';
 import { log } from '../_log.js';
+import { sendPartnerApplicationNotification } from './_emails.js';
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
@@ -194,6 +195,22 @@ export async function onRequestPost(context) {
       ).run();
 
       log(env, waitUntil, 'partners', 'apply_success', 'ok', id, 0, 200);
+
+      waitUntil(sendPartnerApplicationNotification(env, {
+        name: trimmedName,
+        slug,
+        site_url: trimmedSiteUrl,
+        country: trimmedCountry,
+        city: trimmedCity,
+        provider_name: trimmedProviderName,
+        provider_credential: trimmedProviderCredential,
+        blurb: trimmedBlurb,
+        contact_email: trimmedEmail,
+        tier: 'friend',
+        status: 'pending',
+        created_at: new Date().toISOString(),
+      }).catch(() => {}));
+
       return json({ ok: true, id });
     } catch (err) {
       if (err.message && err.message.includes('UNIQUE constraint')) {

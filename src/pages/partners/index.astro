@@ -149,16 +149,19 @@ function locationText(p: PublicPartner): string {
       <h2>Three tiers. One starts today.</h2>
       <div class="tier-grid">
         <div class="tier-card tier-card--active">
+          <img class="tier-seal" src="/images/seals/rrm-partner-bronze.svg" alt="RRM Academy Educational Partner seal, Friends tier" width="128" height="128" loading="lazy" />
           <span class="tier-badge tier-badge--active">Open for applications</span>
           <h3>Friends</h3>
           <p>Self-attested alignment with the three RRM principles and the clinical scope of RRM. Open to any clinic or organization that publicly affirms the standard.</p>
         </div>
         <div class="tier-card">
+          <img class="tier-seal" src="/images/seals/rrm-partner-silver.svg" alt="RRM Academy Educational Partner seal, Partner tier" width="128" height="128" loading="lazy" />
           <span class="tier-badge">Coming soon</span>
           <h3>Partner</h3>
           <p>Directory-gated. Requires a listing in a recognized RRM or NaPro provider directory plus Friends-tier affirmations.</p>
         </div>
         <div class="tier-card">
+          <img class="tier-seal" src="/images/seals/rrm-partner-gold.svg" alt="RRM Academy Educational Partner seal, Accredited tier" width="128" height="128" loading="lazy" />
           <span class="tier-badge">Coming soon</span>
           <h3>Accredited</h3>
           <p>Editorial review. Requires Partner tier qualification plus clinical review by RRM Academy. Not yet open.</p>
@@ -346,6 +349,12 @@ function locationText(p: PublicPartner): string {
     border-radius: var(--radius-md);
     padding: var(--space-6);
     opacity: 0.7;
+  }
+  .tier-seal {
+    display: block;
+    width: 104px;
+    height: auto;
+    margin-bottom: var(--space-4);
   }
   .tier-card--active {
     opacity: 1;
