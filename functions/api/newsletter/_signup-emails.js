@@ -53,7 +53,7 @@ export async function sendSignupEmails(env, waitUntil, email, _sendTracked, _tra
           postLine = `<p>To start, here's a recent piece worth a read: <a href="https://rrmacademy.org/commentary/${latestPost.slug}/">${safeTitle}</a></p>`;
           postLineText = `To start, here's a recent piece worth a read:\nhttps://rrmacademy.org/commentary/${latestPost.slug}/\n${latestPost.title}\n\n`;
         }
-      } catch (_e) {}
+      } catch (_e) { /* best-effort latest-post fetch */ }
 
       const footer = `<p style="font-size:11px;color:#999;margin-top:32px;border-top:1px solid #eee;padding-top:12px;">RRM Academy, a program of Restorative Reproductive Medicine Foundation Inc. | 3401 Hartzdale Dr, Ste 103B PMB 3518, Camp Hill, PA 17011<br><a href="${unsubLink}" style="color:#999;">Unsubscribe</a></p>`;
       const footerText = `---\nRRM Academy, a program of Restorative Reproductive Medicine Foundation Inc. | 3401 Hartzdale Dr, Ste 103B PMB 3518, Camp Hill, PA 17011\nUnsubscribe: ${unsubLink}`;

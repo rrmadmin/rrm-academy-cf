@@ -177,8 +177,7 @@ export async function onRequestPost({ request, env, waitUntil }) {
 
   const sendId = crypto.randomUUID();
 
-  let sentCount = 0;
-  let errors = 0;
+  let sentCount, errors;
 
   try {
     await db.prepare(
