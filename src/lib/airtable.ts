@@ -96,6 +96,11 @@ export interface Article {
     rrm_context?: string;
     [key: string]: unknown;
   } | null;
+  /**
+   * Synopsis infographic spec (validated InfographicSpec blob). Only populated
+   * when infographic_approved = 1 in D1; the worker emits null otherwise.
+   */
+  infographic?: Record<string, unknown> | null;
 }
 
 export async function fetchAllArticles(): Promise<Article[]> {
