@@ -16,6 +16,7 @@ import {
 import { sendEmail, logEmailFailure } from '../_ses.js';
 import { sendGA4Event } from '../_ga4.js';
 import { log } from '../_log.js';
+import { fireFpLink } from '../_fp-link.js';
 
 const LOGIN_ERROR_URL = '/login/?error=oauth_failed';
 
@@ -339,6 +340,10 @@ export async function onRequestGet({ request, env, waitUntil }) {
 
     // Create session (same pattern as login.js)
     const session = await createSession(db, user.id);
+
+    // Best-effort cross-device link: bind the rrm_vid visitor cookie to this
+    // user. Never blocks or fails the login (waitUntil + internal swallow).
+    waitUntil(fireFpLink({ request, env, userId: user.id }));
 
     // Clear the CSRF nonce cookie and set the session cookie + JS-readable hint.
     return htmlRedirectWithCookies(returnTo, [
