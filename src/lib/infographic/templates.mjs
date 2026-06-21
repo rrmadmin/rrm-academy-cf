@@ -65,9 +65,48 @@ export function sourceLine(spec) {
   return [s.label, id].filter(Boolean).join(', ');
 }
 
+// Task 4 helpers: eyebrow label + provenance line.
+function eyebrow(spec, mode, x, y) {
+  return `<text x="${x}" y="${y}" font-size="34" font-weight="600" letter-spacing="3" fill="${color('text-secondary', mode)}">${escapeXml(spec.eyebrow.toUpperCase())}</text>`;
+}
+function provenance(spec, mode, x, y, w) {
+  return `<line x1="${x}" y1="${y - 30}" x2="${x + w}" y2="${y - 30}" stroke="${color('purple-100', mode)}" stroke-width="2"/>`
+    + `<text x="${x}" y="${y}" font-size="26" fill="${color('text-secondary', mode)}">${escapeXml('Source: ' + sourceLine(spec))}</text>`;
+}
+
+// Task 4 renderers.
+function renderSingle(spec, { mode, aspect }) {
+  const { w, h } = ASPECTS[aspect];
+  const pad = Math.round(w * 0.07);
+  const alt = `${spec.value} ${spec.label}. Source: ${sourceLine(spec)}`;
+  const body = eyebrow(spec, mode, pad, pad + 36)
+    + `<text x="${pad}" y="${h * 0.55}" class="num" font-size="${Math.round(h * 0.3)}" font-weight="600" fill="${color('purple-700', mode)}">${escapeXml(spec.value)}</text>`
+    + `<text x="${pad}" y="${h * 0.7}" font-size="40" fill="${color('text-primary', mode)}">${escapeXml(spec.label)}</text>`
+    + provenance(spec, mode, pad, h - pad, w - pad * 2);
+  return svgShell({ spec, mode, aspect, alt, body });
+}
+
+function renderDelta(spec, { mode, aspect }) {
+  const { w, h } = ASPECTS[aspect];
+  const pad = Math.round(w * 0.07);
+  const accent = color(spec.polarity === 'favorable' ? 'ig-favorable' : spec.polarity === 'unfavorable' ? 'ig-unfavorable' : 'ig-neutral', mode);
+  const chevron = spec.direction === 'up' ? '▲' : '▼';
+  const tag = spec.polarity === 'favorable' ? 'Favorable' : spec.polarity === 'unfavorable' ? 'Unfavorable' : 'Neutral';
+  const alt = `${chevron} ${spec.value} ${spec.label} (${tag}). Source: ${sourceLine(spec)}`;
+  const body = eyebrow(spec, mode, pad, pad + 36)
+    + `<text x="${pad}" y="${h * 0.5}" class="num" font-size="${Math.round(h * 0.24)}" font-weight="600" fill="${accent}">${escapeXml(chevron + ' ' + spec.value)}</text>`
+    + `<text x="${pad}" y="${h * 0.63}" font-size="40" fill="${color('text-primary', mode)}">${escapeXml(spec.label)}</text>`
+    + `<text x="${pad}" y="${h * 0.73}" font-size="28" font-weight="600" letter-spacing="2" fill="${accent}">${escapeXml(tag.toUpperCase())}</text>`
+    + provenance(spec, mode, pad, h - pad, w - pad * 2);
+  return svgShell({ spec, mode, aspect, alt, body });
+}
+
 // Dispatcher. Per-template renderers registered by Tasks 4-5.
 const RENDERERS = {};
 export function registerRenderer(name, fn) { RENDERERS[name] = fn; }
+
+registerRenderer('single', renderSingle);
+registerRenderer('delta', renderDelta);
 
 export function renderInfographic(spec, opts = {}) {
   const mode = opts.mode || 'inline';
