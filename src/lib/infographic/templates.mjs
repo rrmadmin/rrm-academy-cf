@@ -120,15 +120,47 @@ function frameCard(canvas, box, platform, pad, topBand) {
 
 // ---- Renderers: (spec, { mode, box }) -> { body, alt }. Box-local coords. ----
 
+// Parse a "62%" style value into a 0-100 number, else null.
+function asPercent(value) {
+  const m = /^(\d{1,3}(?:\.\d+)?)\s*%$/.exec(String(value).trim());
+  if (!m) return null;
+  const n = parseFloat(m[1]);
+  return n >= 0 && n <= 100 ? n : null;
+}
+
 function renderSingle(spec, { mode, box }) {
   const w = box.w, h = box.h, pad = Math.round(w * 0.07);
+  const plotW = w - pad * 2;
+  const provY = h - Math.round(pad * 0.5);
+  const pct = asPercent(spec.value);
   const alt = `${spec.value} ${spec.label}. Source: ${sourceLine(spec)}`;
-  const lbl = wrapLabel(spec.label, mode, pad, h * 0.6, w - pad * 2, 40, color('text-primary', mode));
-  const srcY = Math.min(Math.round(h * 0.6 + lbl.lines * lbl.lineH + 36), h - Math.round(pad * 0.5));
-  const body = eyebrow(spec, mode, pad, pad + 36)
-    + `<text x="${pad}" y="${h * 0.5}" class="num" font-size="${bigFont(box, 0.28, 0.34)}" font-weight="600" fill="${color('purple-700', mode)}">${escapeXml(spec.value)}</text>`
-    + lbl.svg
-    + provenance(spec, mode, pad, srcY, w - pad * 2);
+  // Vertically center the (number + visual) group in the band below the eyebrow.
+  const bandTop = pad + 110, bandBottom = provY - 150;
+  const midY = Math.round((bandTop + bandBottom) / 2);
+  const numFs = Math.round(Math.min(plotW * 0.34, (bandBottom - bandTop) * 0.6));
+  const numY = midY - 24;
+  let visual = '';
+  if (pct != null) {
+    // Progress bar filled to the percentage: the data visual.
+    const barH = Math.max(28, Math.round(numFs * 0.16));
+    const barY = numY + Math.round(numFs * 0.28);
+    const fillW = Math.max(Math.round(plotW * (pct / 100)), barH);
+    visual = `<rect x="${pad}" y="${barY}" width="${plotW}" height="${barH}" rx="${Math.round(barH / 2)}" fill="${color('purple-100', mode)}"/>`
+      + `<rect x="${pad}" y="${barY}" width="${fillW}" height="${barH}" rx="${Math.round(barH / 2)}" fill="${color('purple-700', mode)}"/>`;
+  } else {
+    // Non-percentage: a filled accent panel behind the value gives it weight.
+    const panelH = numFs + 56;
+    const panelY = numY - numFs + 8;
+    visual = `<rect x="${pad}" y="${panelY}" width="${plotW}" height="${panelH}" rx="22" fill="${color('purple-700', mode)}"/>`;
+  }
+  const numFill = pct != null ? color('purple-700', mode) : color('bg-body', mode);
+  const numEl = pct != null
+    ? `<text x="${pad}" y="${numY}" class="num" font-size="${numFs}" font-weight="600" fill="${numFill}">${escapeXml(spec.value)}</text>`
+    : `<text x="${w / 2}" y="${numY + 8}" text-anchor="middle" class="num" font-size="${numFs}" font-weight="600" fill="${numFill}">${escapeXml(spec.value)}</text>`;
+  const labelY = (pct != null ? numY + Math.round(numFs * 0.28) + Math.max(28, Math.round(numFs * 0.16)) : numY) + 86;
+  const lbl = wrapLabel(spec.label, mode, pad, labelY, plotW, 40, color('text-primary', mode));
+  const srcY = Math.min(labelY + lbl.lines * lbl.lineH + 36, provY);
+  const body = eyebrow(spec, mode, pad, pad + 36) + visual + numEl + lbl.svg + provenance(spec, mode, pad, srcY, plotW);
   return { body, alt };
 }
 
@@ -151,31 +183,46 @@ function renderDelta(spec, { mode, box }) {
 
 function renderBars(spec, { mode, box }) {
   const w = box.w, h = box.h, pad = Math.round(w * 0.07);
-  // Bottom-anchored bands so the x-axis labels and the provenance footer never collide.
   const provY = h - Math.round(pad * 0.5);
-  const labelsY = provY - 64;
-  const plotBottom = labelsY - 34;
-  const plotTop = pad + 130, plotH = plotBottom - plotTop;
+  const plotW = w - pad * 2;
   const axisMax = spec.unit === '%' ? 100 : Math.max(...spec.bars.map((b) => b.value));
-  const n = spec.bars.length;
-  const gap = Math.round(w * 0.04);
-  const barW = Math.round((w - pad * 2 - gap * (n - 1)) / n);
   const alt = spec.bars.map((b) => `${b.name} ${b.value}${spec.unit}`).join('; ') + `. Source: ${sourceLine(spec)}`;
-  let cols = '';
+  const n = spec.bars.length;
+  // Horizontal bars: length encodes the value at every aspect; the number sits inside.
+  // Inline name labels (left of each bar) keep rows compact; the bar group is centered
+  // with fixed spacing so it never spreads (tall) or crams (short card).
+  const nameColW = Math.round(plotW * 0.28);
+  const trackX = pad + nameColW;
+  const trackW = plotW - nameColW;
+  const plotTop = pad + 134;          // below eyebrow + caption
+  const plotBottom = provY - 54;      // room for the source line
+  const plotAvail = plotBottom - plotTop;
+  const gap = 40;
+  const barH = Math.min(112, Math.max(34, Math.round((plotAvail - gap * (n - 1)) / n)));
+  const groupH = n * barH + gap * (n - 1);
+  const startY = plotTop + Math.max(0, Math.round((plotAvail - groupH) / 2));
+  let rows = '';
   spec.bars.forEach((b, i) => {
-    const x = pad + i * (barW + gap);
+    const barY = startY + i * (barH + gap);
+    const midY = Math.round(barY + barH / 2);
     const ratio = axisMax > 0 ? Math.min(b.value / axisMax, 1) : 0;
-    const colH = Math.round(plotH * ratio);
-    const y = Math.round(plotBottom - colH);
+    const fillW = Math.max(Math.round(trackW * ratio), barH);
     const fill = b.hero ? color('purple-700', mode) : color('purple-300', mode);
-    const valFill = b.hero ? color('purple-700', mode) : color('text-secondary', mode);
-    cols += `<rect x="${x}" y="${y}" width="${barW}" height="${colH}" rx="10" fill="${fill}"/>`
-      + `<text x="${x + barW / 2}" y="${y - 18}" text-anchor="middle" class="num" font-size="64" font-weight="600" fill="${valFill}">${escapeXml(String(b.value) + spec.unit)}</text>`
-      + `<text x="${x + barW / 2}" y="${labelsY}" text-anchor="middle" font-size="30" fill="${color('text-primary', mode)}">${escapeXml(b.name)}</text>`;
+    const valStr = String(b.value) + spec.unit;
+    const vFs = Math.min(Math.round(barH * 0.58), 60);
+    const nameFs = Math.min(Math.round(barH * 0.34), 30);
+    const inside = fillW > vFs * 3;
+    const vX = inside ? trackX + fillW - Math.round(vFs * 0.45) : trackX + fillW + 22;
+    const vAnchor = inside ? 'end' : 'start';
+    const vFill = inside ? (b.hero ? color('bg-body', mode) : color('purple-900', mode)) : color('text-primary', mode);
+    rows += `<text x="${trackX - 22}" y="${midY + Math.round(nameFs * 0.34)}" text-anchor="end" font-size="${nameFs}" font-weight="600" fill="${color('text-secondary', mode)}">${escapeXml(b.name)}</text>`
+      + `<rect x="${trackX}" y="${barY}" width="${trackW}" height="${barH}" rx="${Math.round(barH * 0.18)}" fill="${color('purple-50', mode)}"/>`
+      + `<rect x="${trackX}" y="${barY}" width="${fillW}" height="${barH}" rx="${Math.round(barH * 0.18)}" fill="${fill}"/>`
+      + `<text x="${vX}" y="${midY + Math.round(vFs * 0.34)}" text-anchor="${vAnchor}" class="num" font-size="${vFs}" font-weight="600" fill="${vFill}">${escapeXml(valStr)}</text>`;
   });
   const body = eyebrow(spec, mode, pad, pad + 36)
     + `<text x="${pad}" y="${pad + 84}" font-size="34" fill="${color('text-primary', mode)}">${escapeXml(spec.caption)}</text>`
-    + cols
+    + rows
     + provenance(spec, mode, pad, provY, w - pad * 2);
   return { body, alt };
 }
