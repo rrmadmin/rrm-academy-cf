@@ -28,7 +28,7 @@ export const ASPECTS = {
 };
 
 // Social handles by platform (footer of the branded frame).
-const HANDLES = { ig: '@rrmacademy', x: '@RRM_academy' };
+const HANDLES = { ig: '@rrmacademy', x: '@rrm_academy' };
 
 const XML = { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&apos;' };
 export function escapeXml(str) {

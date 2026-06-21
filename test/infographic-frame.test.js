@@ -35,7 +35,7 @@ describe('branded frame export', () => {
 
   it('selects the X handle when platform is x', () => {
     const svg = renderInfographic(SAMPLES[1], { mode: 'standalone', aspect: '1:1', frame: 'branded', platform: 'x' });
-    assert.ok(svg.includes('@RRM_academy') && !svg.includes('@rrmacademy'));
+    assert.ok(svg.includes('@rrm_academy') && !svg.includes('@rrmacademy'));
   });
 
   it('on-page inline render carries the footer (theme-aware) but no wordmark', () => {
