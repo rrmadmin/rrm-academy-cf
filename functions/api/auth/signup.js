@@ -15,6 +15,7 @@ import { sendEmail, logEmailFailure } from '../_ses.js';
 import { sendGA4Event } from '../_ga4.js';
 import { log } from '../_log.js';
 import { validateBody } from '../_validate.js';
+import { fireFpLink } from '../_fp-link.js';
 
 function escapeHtml(s) {
   return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#39;');
@@ -265,6 +266,10 @@ export async function onRequestPost({ request, env, waitUntil }) {
         })
       );
     }
+
+    // Best-effort cross-device link: bind the rrm_vid visitor cookie to the new
+    // user. Never blocks or fails the signup (waitUntil + internal swallow).
+    waitUntil(fireFpLink({ request, env, userId }));
 
     return json(
       { ok: true, emailVerificationRequired: true, resendPath: '/api/auth/resend-verification' },
