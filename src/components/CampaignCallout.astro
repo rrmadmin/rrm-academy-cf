@@ -1,0 +1,130 @@
+---
+import { computeThermo } from '../scripts/fund-thermo';
+
+interface Campaign {
+  id: string;
+  eyebrow: string;
+  headline: string;
+  one_liner: string;
+  cta_label: string;
+  cta_href: string;
+  goal_cents: number;
+  campaign_key: string;
+  status: string;
+}
+
+interface Props {
+  campaign: Campaign;
+  variant: 'band' | 'card';
+  snapshot?: { raised_cents: number; supporters: number } | null;
+}
+
+const { campaign, variant, snapshot = null } = Astro.props;
+
+// goal_cents <= 0 => render goal-only (no thermometer), never NaN% (spec 3.1).
+const hasGoal = typeof campaign.goal_cents === 'number' && campaign.goal_cents > 0;
+
+// Band uses a build snapshot (NEVER a per-visitor fetch on the apex). Card live-fetches.
+// Reuse the tested pure function so thermometer math has ONE source of truth.
+const snapRaised = variant === 'band' && snapshot && typeof snapshot.raised_cents === 'number'
+  ? Math.max(0, snapshot.raised_cents) : 0;
+
+const view = hasGoal
+  ? computeThermo(
+      { raised_cents: snapRaised, goal_cents: campaign.goal_cents, supporters: snapshot?.supporters ?? 0 },
+      campaign.goal_cents,
+    )
+  : null;
+---
+<aside class={`campaign-callout campaign-callout--${variant}`} data-pagefind-ignore>
+  <div class="cc-inner">
+    <p class="cc-eyebrow">{campaign.eyebrow}</p>
+    <h2 class="cc-headline">{campaign.headline}</h2>
+    <p class="cc-oneliner">{campaign.one_liner}</p>
+    {view && (
+      <div
+        class="fund-thermo cc-thermo"
+        id={`cc-thermo-${campaign.id}`}
+        role="progressbar"
+        aria-valuemin="0"
+        aria-valuemax={campaign.goal_cents}
+        aria-valuenow={snapRaised}
+        data-goal-cents={campaign.goal_cents}
+        data-state={view.met ? 'met' : 'active'}
+        data-live={variant === 'card' ? 'true' : 'false'}
+        data-pct={view.pct}
+        aria-label={`Raised toward our goal`}
+      >
+        <div class="fund-thermo__head">
+          <span class="fund-thermo__raised">{view.raisedText}</span>
+          <span class="fund-thermo__goal">raised of goal</span>
+        </div>
+        <div class="fund-thermo__track">
+          <div class="fund-thermo__fill"></div>
+        </div>
+        <p class="fund-thermo__meta" hidden></p>
+      </div>
+    )}
+    <a href={campaign.cta_href} class="cc-btn btn btn--primary">{campaign.cta_label}</a>
+    <p class="cc-legal">RRM Foundation is a 501(c)(3) nonprofit. Gifts are tax-deductible.</p>
+  </div>
+</aside>
+
+{variant === 'card' && (
+  <script>
+    import { initFundThermo } from '../scripts/fund-thermo';
+    for (const root of document.querySelectorAll<HTMLElement>('.cc-thermo[data-live="true"]')) {
+      const goal = Number(root.dataset.goalCents) || 0;
+      initFundThermo(root, goal);
+    }
+  </script>
+)}
+
+{variant === 'band' && (
+  <script>
+    // Band paints the snapshot percentage via JS (house pattern: CSS width:0 + JS set), never an inline style attr.
+    for (const root of document.querySelectorAll<HTMLElement>('.cc-thermo[data-live="false"]')) {
+      const fill = root.querySelector<HTMLElement>('.fund-thermo__fill');
+      const pct = Number(root.dataset.pct) || 0;
+      if (fill) fill.style.width = pct + '%';
+    }
+  </script>
+)}
+
+<style>
+  .campaign-callout { display: block; }
+  .cc-inner {
+    background: var(--bg-surface);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-md);
+    padding: var(--space-5) var(--space-6);
+  }
+  .cc-eyebrow {
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    font-size: 0.8125rem;
+    font-weight: 600;
+    color: var(--accent);
+    margin: 0 0 var(--space-2);
+  }
+  .cc-headline { margin: 0 0 var(--space-3); }
+  .cc-oneliner { color: var(--text-secondary); margin: 0 0 var(--space-5); }
+  .cc-thermo { margin-bottom: var(--space-5); }
+  .fund-thermo__head { display: flex; align-items: baseline; gap: var(--space-2); margin-bottom: var(--space-3); }
+  .fund-thermo__raised {
+    font-family: 'Cormorant Garamond', 'Georgia', serif;
+    font-size: 1.75rem;
+    font-weight: 600;
+    line-height: 1;
+    color: var(--accent);
+    font-variant-numeric: tabular-nums;
+  }
+  .fund-thermo__goal { font-size: 0.9375rem; color: var(--text-tertiary); }
+  .fund-thermo__track { height: 14px; background: var(--border-light); border-radius: var(--radius-pill); overflow: hidden; }
+  .fund-thermo__fill { height: 100%; width: 0; background: var(--accent); border-radius: var(--radius-pill); transition: width 0.6s ease-out; }
+  .cc-btn { display: inline-block; }
+  .cc-legal { font-size: 0.75rem; color: var(--text-tertiary); margin: var(--space-3) 0 0; }
+  .campaign-callout--band .cc-inner { display: flex; flex-direction: column; }
+  @media (prefers-reduced-motion: reduce) { .fund-thermo__fill { transition: none; } }
+  @media (max-width: 640px) { .cc-inner { padding: var(--space-4) var(--space-5); } }
+</style>
