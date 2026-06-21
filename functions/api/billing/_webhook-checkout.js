@@ -603,21 +603,24 @@ Manually set migration_status='stripe_active' and stripe_subscription_id to the 
   ) {
     const displayName = deriveDisplayName(session.customer_details?.name);
     if (displayName && db) {
+      let giftSeq = null;
       try {
         const stripe = getStripeClient(env);
-        const giftSeq = await countCampaignGifts(stripe, 'provider-directory');
-        await recordSupporterGift(db, {
-          campaign: 'provider-directory',
-          displayName,
-          giftSeq,
-          email: session.customer_details?.email,
-          sourceId: session.payment_intent || session.id,
-          occurredAt: new Date((event.created || Math.floor(Date.now() / 1000)) * 1000).toISOString(),
-        });
-        log(env, waitUntil, 'billing', 'supporter_recognition_recorded', 'ok',
-          `${displayName} seq=${giftSeq} src=${session.payment_intent || session.id}`);
+        giftSeq = await countCampaignGifts(stripe, 'provider-directory');
       } catch (seqErr) {
         log(env, waitUntil, 'billing', 'supporter_seq_count_fail', 'warn', seqErr.message);
+      }
+      const res = await recordSupporterGift(db, {
+        campaign: 'provider-directory',
+        displayName,
+        giftSeq,
+        email: session.customer_details?.email,
+        sourceId: session.payment_intent || session.id,
+        occurredAt: new Date((event.created || Math.floor(Date.now() / 1000)) * 1000).toISOString(),
+      });
+      if (res.recorded) {
+        log(env, waitUntil, 'billing', 'supporter_recognition_recorded', 'ok',
+          `${displayName} seq=${giftSeq} src=${session.payment_intent || session.id}`);
       }
     }
   }
