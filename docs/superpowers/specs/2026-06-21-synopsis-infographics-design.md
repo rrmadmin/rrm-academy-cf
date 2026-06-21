@@ -285,3 +285,59 @@ promotion stay behind an explicit go-live from Brian.
 - M16 (stale apex preview): preview the local artifact; verify the immutable hash URL or purge. (8)
 - L17 (em-dash via grep only): em/en dash rejected at the input boundary in validate. (3.3)
 - L18 (title already dropped): moot under the dedicated-column model; no insights-blob allowlist dependency.
+
+## Phase 3: Social-share export (2026-06-21, approved extension)
+
+The export surface is extended so the same infographics are sharable on Instagram and
+X. The on-page render and the worker/D1 schema are UNTOUCHED; this is purely the
+standalone-export path.
+
+### 3-a. Branded frame (export only)
+
+A new render option `frame` (`none` | `branded`) wraps the standalone infographic in a
+card chrome:
+- RRM wordmark at the top (inlined as SVG `<path>` data lifted from
+  `public/press/rrm-academy-wordmark-purple.svg`, so the export stays self-contained and
+  needs no external asset).
+- A thin purple accent rule under the wordmark.
+- The infographic in the middle content area.
+- The source provenance line.
+- A footer band: `rrmacademy.org` (left) and the social handle (right).
+
+`inline` mode (on-page) always renders bare (`frame: none`) since it sits in synopsis
+context. `standalone` export defaults to `frame: branded`. A `--platform` flag selects
+the footer handle: `ig` -> `@rrmacademy` (default), `x` -> `@RRM_academy`.
+
+The card text is eyebrow + stat + source only. No study title, no claim line.
+
+### 3-b. Content-box layout (resolves the deferred M14)
+
+The four renderers are refactored to draw into a CONTENT BOX `{ x, y, w, h }` provided by
+the caller, instead of the full canvas. The frame reserves a top band (wordmark) and a
+bottom band (footer) and hands the middle to the template. A bare render passes a
+full-canvas box (minus standard padding), so the on-page inline output stays visually
+identical (regression-checked against the live 62%/34% page). Because the content box
+proportions differ per aspect, each format re-flows cleanly rather than one layout being
+stretched.
+
+### 3-c. Export presets (four)
+
+- `square` 1:1 1080x1080 (IG feed + X in-stream + Facebook)
+- `portrait` 4:5 1080x1350 (IG feed)
+- `story` 9:16 1080x1920 (IG / Facebook stories) [new]
+- `card` 1.91:1 1200x630 (X summary-large-image + on-page OG meta) [renamed from `og`; alias kept]
+
+Default export emits all four; each yields PNG + WebP + SVG.
+
+### 3-d. Files (held branch)
+
+- `src/lib/infographic/wordmark.mjs` (new): the wordmark path data + viewBox as a constant.
+- `src/lib/infographic/templates.mjs` (edit): content-box refactor of the four renderers + a `frameCard()` helper that draws the chrome and computes the inner content box per aspect; `renderInfographic` gains `opts.frame` and `opts.platform`.
+- `scripts/infographic-export.mjs` (edit): add the `story` preset, default `frame: branded`, pass `--platform`.
+- Tests: branded-frame assertions (wordmark + footer present), all four templates x four aspects well-formed + dash-free + no overflow, and a regression test that `inline`/bare output is unchanged.
+
+### 3-e. Verification
+
+All four templates rendered at all four aspects in branded frame: well-formed XML, zero
+em/en dashes, no element off-canvas, wordmark + footer present. On-page inline render
+byte-stable for the existing samples (bare, unframed). Screenshot each aspect for sign-off.
