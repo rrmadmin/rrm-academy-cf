@@ -44,7 +44,7 @@ const FONT_UI = "'Inter', system-ui, sans-serif";
 
 // Shared SVG shell: paper background, role/title/desc, font defs. Body is the
 // template-specific markup. alt = composed accessible description.
-export function svgShell({ spec, mode, aspect, alt, body }) {
+export function svgShell({ mode, aspect, alt, body }) {
   const { w, h } = ASPECTS[aspect];
   const bg = color('bg-body', mode);
   const fontFace = mode === 'standalone'
