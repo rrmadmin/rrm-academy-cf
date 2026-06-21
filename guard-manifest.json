@@ -179,7 +179,7 @@
       "note": "Donor gift recording + contact rollups/stage derivation"
     },
     "functions/api/billing/_supporter-gift.js": {
-      "hash": "5b9573bfc844325fe11d955e2d6ba49f9bd9ca65bb27acc2e7234778ddff5765",
+      "hash": "071bf76c80acf2f300c660a3520415d2b6476b587f371d86b3b3eacd9f4aaaec",
       "note": "Supporter recognition helpers (derive/consent/record/remove)"
     },
     "functions/api/billing/_campaign-count.js": {

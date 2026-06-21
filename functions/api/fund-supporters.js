@@ -20,7 +20,7 @@ export async function onRequestGet({ request, env, waitUntil }) {
     return json({ error: 'rate_limited' }, 429);
   }
   if (env.COMMUNITY_KV) {
-    try { const c = await env.COMMUNITY_KV.get(KV_KEY); if (c) return json(JSON.parse(c)); } catch {}
+    try { const c = await env.COMMUNITY_KV.get(KV_KEY); if (c) return json(JSON.parse(c)); } catch { /* fail-soft: KV cache read is best-effort */ }
   }
   try {
     // total_gifts: prefer the fund-progress KV (written by /api/fund-progress every 60s).
@@ -37,14 +37,14 @@ export async function onRequestGet({ request, env, waitUntil }) {
           const p = JSON.parse(fp);
           if (typeof p.count === 'number') { total = Math.max(0, p.count); kvHit = true; }
         }
-      } catch {}
+      } catch { /* fail-soft: fund-progress KV read is best-effort */ }
     }
     if (!kvHit && env.STRIPE_SECRET_KEY) {
       try {
         const stripe = getStripeClient(env);
         total = await countCampaignGifts(stripe, CAMPAIGN);
         stripeRecomputed = true;
-      } catch {}
+      } catch { /* fail-soft: Stripe recompute is best-effort; total stays 0 */ }
     }
     let recent = [], founding = [], consented = 0;
     if (env.DB) {
