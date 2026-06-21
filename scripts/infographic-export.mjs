@@ -6,15 +6,18 @@ import { fileURLToPath } from 'node:url';
 const REPO = join(dirname(fileURLToPath(import.meta.url)), '..');
 
 export const PRESETS = {
-  square: { aspect: '1:1', w: 1080, h: 1080 },
-  portrait: { aspect: '4:5', w: 1080, h: 1350 },
-  og: { aspect: '1.91:1', w: 1200, h: 630 },
+  square: { aspect: '1:1', w: 1080, h: 1080 },      // IG feed + X in-stream + FB
+  portrait: { aspect: '4:5', w: 1080, h: 1350 },    // IG feed
+  story: { aspect: '9:16', w: 1080, h: 1920 },      // IG / FB stories
+  card: { aspect: '1.91:1', w: 1200, h: 630 },      // X summary card + on-page OG
+  og: { aspect: '1.91:1', w: 1200, h: 630 },        // alias of card
 };
+export const DEFAULT_PRESETS = ['square', 'portrait', 'story', 'card'];
 
-function renderStandaloneSvg(specPath, aspect) {
+function renderStandaloneSvg(specPath, aspect, platform) {
   const cli = join(REPO, 'scripts/infographic-render.mjs');
   // execFileSync throws on non-zero exit, surfacing the CLI error (exit-code gate).
-  return execFileSync('node', [cli, '--file', specPath, '--mode', 'standalone', '--aspect', aspect], { encoding: 'utf8' });
+  return execFileSync('node', [cli, '--file', specPath, '--mode', 'standalone', '--aspect', aspect, '--frame', 'branded', '--platform', platform], { encoding: 'utf8' });
 }
 
 async function rasterizePng(svg, w, h, pngPath) {
@@ -40,13 +43,13 @@ async function encodeWebp(pngPath, webpPath) {
   await sharp(pngPath).webp({ quality: 90 }).toFile(webpPath);
 }
 
-export async function exportPresets({ specPath, presets, outDir }) {
+export async function exportPresets({ specPath, presets, outDir, platform = 'ig' }) {
   mkdirSync(outDir, { recursive: true });
   const files = [];
   for (const name of presets) {
     const p = PRESETS[name];
     if (!p) throw new Error(`unknown preset: ${name}`);
-    const svg = renderStandaloneSvg(specPath, p.aspect);
+    const svg = renderStandaloneSvg(specPath, p.aspect, platform);
     const svgPath = join(outDir, `${name}.svg`);
     const pngPath = join(outDir, `${name}.png`);
     const webpPath = join(outDir, `${name}.webp`);
@@ -58,13 +61,14 @@ export async function exportPresets({ specPath, presets, outDir }) {
   return { files };
 }
 
-// CLI: node scripts/infographic-export.mjs --file spec.json --out ./dir --presets square,og
+// CLI: node scripts/infographic-export.mjs --file spec.json --out ./dir [--presets square,portrait,story,card] [--platform ig|x]
 if (import.meta.url === `file://${process.argv[1]}`) {
   const arg = (n, d) => { const i = process.argv.indexOf(n); return i >= 0 ? process.argv[i + 1] : d; };
   const specPath = arg('--file', null);
   const outDir = arg('--out', './infographic-out');
-  const presets = arg('--presets', 'square,og').split(',');
-  exportPresets({ specPath, presets, outDir })
+  const presets = arg('--presets', DEFAULT_PRESETS.join(',')).split(',');
+  const platform = arg('--platform', 'ig');
+  exportPresets({ specPath, presets, outDir, platform })
     .then((r) => { process.stdout.write(r.files.join('\n') + '\n'); })
     .catch((e) => { process.stderr.write(`error: ${e.message}\n`); process.exit(1); });
 }
