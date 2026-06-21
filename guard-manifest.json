@@ -95,7 +95,7 @@
       "note": "Magic-link token generation"
     },
     "functions/api/newsletter/_mail.js": {
-      "hash": "76590417b63b7f965567d9ea83cdcf48939f4580a80c3047bac8846ee804664a",
+      "hash": "01b7eef11af256754c41c799ea9ac5732ac1f7ff8932e78ed4de6dc5a88ba47d",
       "note": "sendTracked: best-effort mail dispatch + email_log failure row + Telegram alert"
     },
     "functions/api/newsletter/send.js": {
@@ -104,7 +104,7 @@
     },
     "functions/api/newsletter/send-first-email.js": {
       "note": "First-email send to explicit recipient list (admin-only, dry-run supported)",
-      "hash": "9ddd005c7e4b1399bd069fa7d28455d364468359fa5bd551ca5b88ca86b7e9d7"
+      "hash": "9c335a859e213f9e290df0c39532ea0873cc886e67fef24f7a44b218ee2ee256"
     },
     "functions/api/newsletter/unsubscribe.js": {
       "hash": "e568d424e2d1c0b0f656883539f7fb9df6c9bcd910f4efd3500eacc719b26fdf",

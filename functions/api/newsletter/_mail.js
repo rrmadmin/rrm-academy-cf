@@ -44,7 +44,7 @@ export async function sendTracked(env, waitUntil, mail, meta, deps = {}) {
           subject: mail.subject,
           detail: err.message,
         });
-      } catch (_e) {}
+      } catch (_e) { /* best-effort AE write */ }
       log(env, waitUntil, 'mail', meta.component + '_failed', 'error', err.message, 0, 0);
       await alertFailure(env, meta.component, mail.to, err.message, fetchFn).catch(() => {});
       return { ok: false, error: err.message };
