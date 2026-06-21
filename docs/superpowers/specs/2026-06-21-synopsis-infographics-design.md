@@ -306,7 +306,7 @@ card chrome:
 
 `inline` mode (on-page) always renders bare (`frame: none`) since it sits in synopsis
 context. `standalone` export defaults to `frame: branded`. A `--platform` flag selects
-the footer handle: `ig` -> `@rrmacademy` (default), `x` -> `@RRM_academy`.
+the footer handle: `ig` -> `@rrmacademy` (default), `x` -> `@rrm_academy`.
 
 The card text is eyebrow + stat + source only. No study title, no claim line.
 
