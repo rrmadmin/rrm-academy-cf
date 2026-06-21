@@ -5,7 +5,7 @@
  */
 
 const IMPERSONATION = /\b(rrm|academy|official|foundation|whittaker|naomi|boyle|hilgers|admin|staff|moderator)\b/i;
-const STRIP_RE = /[‪-‮⁦-⁩​-‍﻿<>&"'/]/g; // bidi, zero-width, html-significant
+const STRIP_RE = /[\u202A-\u202E\u2066-\u2069\u200B-\u200D\uFEFF<>&"'/]/g; // bidi, zero-width, html-significant
 
 /** Pure. Returns the public "First L." form or null (caller writes no row). */
 export function deriveDisplayName(rawName) {
