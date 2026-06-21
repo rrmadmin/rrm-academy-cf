@@ -141,21 +141,26 @@ function renderBars(spec, { mode, aspect }) {
 function renderRatio(spec, { mode, aspect }) {
   const { w, h } = ASPECTS[aspect];
   const pad = Math.round(w * 0.07);
+  // Bottom-anchored bands (same discipline as renderBars) so the label and the
+  // provenance footer never collide at short aspects like 1.91:1.
+  const provY = h - Math.round(pad * 0.5);
+  const labelY = provY - 64;
   const alt = `${spec.numerator} in ${spec.denominator} ${spec.label}. Source: ${sourceLine(spec)}`;
   const perRow = Math.min(spec.denominator, 10);
-  const dotR = 26, dotGap = 22;
+  const dotR = 24, dotGap = 20;
+  const dotsTop = pad + 210;
   let dots = '';
   for (let i = 0; i < spec.denominator; i++) {
     const cx = pad + dotR + (i % perRow) * (dotR * 2 + dotGap);
-    const cy = h * 0.52 + Math.floor(i / perRow) * (dotR * 2 + dotGap);
+    const cy = dotsTop + Math.floor(i / perRow) * (dotR * 2 + dotGap);
     const fill = i < spec.numerator ? color('purple-700', mode) : color('purple-100', mode);
     dots += `<circle cx="${cx}" cy="${cy}" r="${dotR}" fill="${fill}"/>`;
   }
   const body = eyebrow(spec, mode, pad, pad + 36)
-    + `<text x="${pad}" y="${h * 0.4}" class="num" font-size="${Math.round(h * 0.16)}" font-weight="600" fill="${color('purple-700', mode)}">${escapeXml(spec.numerator + ' in ' + spec.denominator)}</text>`
+    + `<text x="${pad}" y="${pad + 150}" class="num" font-size="${Math.round(h * 0.16)}" font-weight="600" fill="${color('purple-700', mode)}">${escapeXml(spec.numerator + ' in ' + spec.denominator)}</text>`
     + dots
-    + `<text x="${pad}" y="${h * 0.86}" font-size="40" fill="${color('text-primary', mode)}">${escapeXml(spec.label)}</text>`
-    + provenance(spec, mode, pad, h - pad, w - pad * 2);
+    + `<text x="${pad}" y="${labelY}" font-size="40" fill="${color('text-primary', mode)}">${escapeXml(spec.label)}</text>`
+    + provenance(spec, mode, pad, provY, w - pad * 2);
   return svgShell({ spec, mode, aspect, alt, body });
 }
 
