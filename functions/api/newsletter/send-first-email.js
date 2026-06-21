@@ -82,7 +82,6 @@ export async function sendBatch({
         html,
         text,
         headers,
-        configurationSet: 'rrm-newsletter',
         log: { db, source: 'newsletter/send-first-email', category: 'newsletter' },
       });
 
