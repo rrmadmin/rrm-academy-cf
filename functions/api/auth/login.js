@@ -10,6 +10,7 @@ import {
 } from './_shared.js';
 import { sendEmail, logEmailFailure } from '../_ses.js';
 import { log } from '../_log.js';
+import { fireFpLink } from '../_fp-link.js';
 
 export async function onRequestOptions() {
   return optionsResponse();
@@ -146,6 +147,10 @@ export async function onRequestPost({ request, env, waitUntil }) {
       waitlistBackfillStatement(db, user.id, user.email),
     ]);
     const session = { id: sessionId, expiresAt };
+
+    // Best-effort cross-device link: bind the rrm_vid visitor cookie to this
+    // user. Never blocks or fails the login (waitUntil + internal swallow).
+    waitUntil(fireFpLink({ request, env, userId: user.id }));
 
     return json(
       {
