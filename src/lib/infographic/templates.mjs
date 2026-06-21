@@ -108,7 +108,12 @@ export function registerRenderer(name, fn) { RENDERERS[name] = fn; }
 function renderBars(spec, { mode, aspect }) {
   const { w, h } = ASPECTS[aspect];
   const pad = Math.round(w * 0.07);
-  const plotTop = h * 0.28, plotBottom = h * 0.82, plotH = plotBottom - plotTop;
+  // Bottom-anchored bands so the x-axis labels and the provenance footer never
+  // collide (the provenance helper draws its rule at provY - 30).
+  const provY = h - Math.round(pad * 0.5);
+  const labelsY = provY - 64;
+  const plotBottom = labelsY - 34;
+  const plotTop = pad + 130, plotH = plotBottom - plotTop;
   const axisMax = spec.unit === '%' ? 100 : Math.max(...spec.bars.map((b) => b.value));
   const n = spec.bars.length;
   const gap = Math.round(w * 0.04);
@@ -124,12 +129,12 @@ function renderBars(spec, { mode, aspect }) {
     const valFill = b.hero ? color('purple-700', mode) : color('text-secondary', mode);
     cols += `<rect x="${x}" y="${y}" width="${barW}" height="${colH}" rx="10" fill="${fill}"/>`
       + `<text x="${x + barW / 2}" y="${y - 18}" text-anchor="middle" class="num" font-size="64" font-weight="600" fill="${valFill}">${escapeXml(String(b.value) + spec.unit)}</text>`
-      + `<text x="${x + barW / 2}" y="${plotBottom + 44}" text-anchor="middle" font-size="30" fill="${color('text-primary', mode)}">${escapeXml(b.name)}</text>`;
+      + `<text x="${x + barW / 2}" y="${labelsY}" text-anchor="middle" font-size="30" fill="${color('text-primary', mode)}">${escapeXml(b.name)}</text>`;
   });
   const body = eyebrow(spec, mode, pad, pad + 36)
     + `<text x="${pad}" y="${pad + 84}" font-size="34" fill="${color('text-primary', mode)}">${escapeXml(spec.caption)}</text>`
     + cols
-    + provenance(spec, mode, pad, h - pad, w - pad * 2);
+    + provenance(spec, mode, pad, provY, w - pad * 2);
   return svgShell({ spec, mode, aspect, alt, body });
 }
 
