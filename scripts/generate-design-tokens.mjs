@@ -180,6 +180,7 @@ function typeOf(group) {
     case 'tier': return 'color';
     case 'semantic': return 'color';
     case 'footer': return 'color';
+    case 'infographic': return 'color';
     case 'focusRing': return 'color';
     case 'shadow': return 'shadow';
     case 'grain': return 'other';

@@ -686,17 +686,17 @@
       "infographic": {
         "favorable": {
           "value": "#5f6a52",
-          "type": "other",
+          "type": "color",
           "cssVariable": "--ig-favorable"
         },
         "unfavorable": {
           "value": "#a0697c",
-          "type": "other",
+          "type": "color",
           "cssVariable": "--ig-unfavorable"
         },
         "neutral": {
           "value": "#725e7e",
-          "type": "other",
+          "type": "color",
           "cssVariable": "--ig-neutral"
         }
       },
@@ -1186,17 +1186,17 @@
       "infographic": {
         "favorable": {
           "value": "#9caf88",
-          "type": "other",
+          "type": "color",
           "cssVariable": "--ig-favorable"
         },
         "unfavorable": {
           "value": "#cd9aa9",
-          "type": "other",
+          "type": "color",
           "cssVariable": "--ig-unfavorable"
         },
         "neutral": {
           "value": "#c2a9d4",
-          "type": "other",
+          "type": "color",
           "cssVariable": "--ig-neutral"
         }
       },
