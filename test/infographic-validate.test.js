@@ -53,4 +53,19 @@ describe('validateSpec', () => {
   it('rejects an em dash in any string field', () => {
     assert.equal(validateSpec({ ...okBars, caption: 'a — b' }).valid, false);
   });
+  it('rejects ratio denominator > 20', () => {
+    assert.equal(validateSpec({ template: 'ratio', eyebrow: 'x', numerator: 1, denominator: 21, label: 'x', source: goodSource }).valid, false);
+  });
+  it('rejects ratio non-integer numerator', () => {
+    assert.equal(validateSpec({ template: 'ratio', eyebrow: 'x', numerator: 1.5, denominator: 8, label: 'x', source: goodSource }).valid, false);
+  });
+  it('rejects bars with 4 entries', () => {
+    assert.equal(validateSpec({ ...okBars, bars: [{ name: 'a', value: 1, hero: true }, { name: 'b', value: 2 }, { name: 'c', value: 3 }, { name: 'd', value: 4 }] }).valid, false);
+  });
+  it('rejects delta missing polarity', () => {
+    assert.equal(validateSpec({ template: 'delta', eyebrow: 'x', value: '38%', direction: 'up', label: 'x', source: goodSource }).valid, false);
+  });
+  it('rejects en dash in a string field', () => {
+    assert.equal(validateSpec({ ...okBars, caption: 'a – b' }).valid, false);
+  });
 });
