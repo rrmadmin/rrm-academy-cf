@@ -9,6 +9,7 @@ import { verifyAndTagEmail } from '../_elv.js';
 import { withIdempotency } from '../_idempotency.js';
 import { validateBody } from '../_validate.js';
 import { canonicalizeEmail } from '../auth/_email-validate.js';
+import { sendSignupEmails } from './_signup-emails.js';
 
 export async function onRequestOptions() {
   return optionsResponse();
@@ -128,6 +129,7 @@ async function _handlePost(context) {
   }
 
   waitUntil(sendGA4Event(env, request, 'generate_lead', { lead_source: 'newsletter' }).catch(() => {}));
+  sendSignupEmails(env, waitUntil, email);
 
   return json({ ok: true, message: 'You are subscribed!' });
 }
