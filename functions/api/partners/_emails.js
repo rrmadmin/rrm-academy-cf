@@ -145,6 +145,57 @@ RRM Academy</p>`;
   });
 }
 
+export async function sendPartnerApplicationNotification(env, partner) {
+  const subject = `New Educational Partner application: ${partner.name}`;
+
+  const text = `New Educational Partner application received.
+
+Clinic: ${partner.name}
+Site: ${partner.site_url}
+Country: ${partner.country}
+City: ${partner.city || '(not provided)'}
+Provider: ${partner.provider_name}
+Credential: ${partner.provider_credential}
+Contact: ${partner.contact_email}
+Tier: ${partner.tier}
+Status: ${partner.status}
+Submitted: ${partner.created_at}
+
+Blurb:
+${partner.blurb || '(none)'}
+
+Review at: https://rrmacademy.org/admin/partners/`;
+
+  const html = `<p><strong>New Educational Partner application received.</strong></p>
+
+<table style="border-collapse:collapse;width:100%;max-width:600px;">
+  <tr><td style="padding:4px 8px;font-weight:bold;width:140px;">Clinic</td><td style="padding:4px 8px;">${escapeHtml(partner.name)}</td></tr>
+  <tr><td style="padding:4px 8px;font-weight:bold;">Site</td><td style="padding:4px 8px;"><a href="${escapeHtml(partner.site_url)}">${escapeHtml(partner.site_url)}</a></td></tr>
+  <tr><td style="padding:4px 8px;font-weight:bold;">Country</td><td style="padding:4px 8px;">${escapeHtml(partner.country)}</td></tr>
+  <tr><td style="padding:4px 8px;font-weight:bold;">City</td><td style="padding:4px 8px;">${escapeHtml(partner.city || '(not provided)')}</td></tr>
+  <tr><td style="padding:4px 8px;font-weight:bold;">Provider</td><td style="padding:4px 8px;">${escapeHtml(partner.provider_name)}</td></tr>
+  <tr><td style="padding:4px 8px;font-weight:bold;">Credential</td><td style="padding:4px 8px;">${escapeHtml(partner.provider_credential)}</td></tr>
+  <tr><td style="padding:4px 8px;font-weight:bold;">Contact</td><td style="padding:4px 8px;"><a href="mailto:${escapeHtml(partner.contact_email)}">${escapeHtml(partner.contact_email)}</a></td></tr>
+  <tr><td style="padding:4px 8px;font-weight:bold;">Tier</td><td style="padding:4px 8px;">${escapeHtml(partner.tier)}</td></tr>
+  <tr><td style="padding:4px 8px;font-weight:bold;">Status</td><td style="padding:4px 8px;">${escapeHtml(partner.status)}</td></tr>
+  <tr><td style="padding:4px 8px;font-weight:bold;">Submitted</td><td style="padding:4px 8px;">${escapeHtml(partner.created_at)}</td></tr>
+</table>
+
+${partner.blurb ? `<p><strong>Blurb:</strong><br>${escapeHtml(partner.blurb)}</p>` : '<p><em>No blurb provided.</em></p>'}
+
+<p><a href="https://rrmacademy.org/admin/partners/">Review application in admin</a></p>`;
+
+  return sendEmail(env, {
+    from: FROM,
+    to: REPLY_TO,
+    subject,
+    html,
+    text,
+    replyTo: partner.contact_email,
+    log: env.DB ? { db: env.DB, category: 'transactional', source: 'partners/application-notification' } : undefined,
+  });
+}
+
 export async function sendPartnerRevocationEmail(env, partner, reason) {
   const clinicName = partner.name || 'your clinic';
 
