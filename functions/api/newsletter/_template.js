@@ -2,7 +2,7 @@
  * Newsletter email template renderer.
  * Produces Gmail-plain HTML: system fonts, no header/footer graphics.
  */
-import { trackClick, trackOpen, unsubscribeUrl } from './_tracking.js';
+import { trackClick, unsubscribeUrl } from './_tracking.js';
 
 function escapeHtml(str) {
   if (!str) return '';
@@ -37,16 +37,16 @@ export function wrapLinks(html, sendId, subscriberId) {
  */
 export async function renderEmail({ body, sendId, subscriberId, email, secret }) {
   const unsubLink = await unsubscribeUrl(email, secret);
-  const pixel = trackOpen(sendId, subscriberId);
-  const wrappedBody = wrapLinks(body, sendId, subscriberId);
 
+  // Open-pixel + click-link rewrapping intentionally removed: those tracking
+  // signals flip Gmail into the Promotions tab. Send/fail intel lives in email_log;
+  // engagement (open/click) tracking is traded away for Primary-inbox placement.
   const html = `<div style="font-family:Arial,Helvetica,sans-serif;font-size:14px;color:#333;max-width:600px;line-height:1.6;">
-${wrappedBody}
+${body}
 <p style="font-size:11px;color:#999;margin-top:32px;border-top:1px solid #eee;padding-top:12px;">
 RRM Academy, a program of Restorative Reproductive Medicine Foundation Inc. | 3401 Hartzdale Dr, Ste 103B PMB 3518, Camp Hill, PA 17011<br>
 <a href="${unsubLink}" style="color:#999;">Unsubscribe</a>
 </p>
-<img src="${pixel}" width="1" height="1" style="display:none" alt="" />
 </div>`;
 
   // Plain text fallback: use original body (not wrapped) so readers don't see tracking URLs
