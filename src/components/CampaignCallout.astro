@@ -52,6 +52,7 @@ const view = hasGoal
         data-goal-cents={campaign.goal_cents}
         data-state={view.met ? 'met' : 'active'}
         data-live={variant === 'card' ? 'true' : 'false'}
+        data-pct={view.pct}
         aria-label={`Raised toward our goal`}
       >
         <div class="fund-thermo__head">
@@ -59,7 +60,7 @@ const view = hasGoal
           <span class="fund-thermo__goal">raised of goal</span>
         </div>
         <div class="fund-thermo__track">
-          <div class="fund-thermo__fill" style={`width:${view.pct}%`}></div>
+          <div class="fund-thermo__fill"></div>
         </div>
         <p class="fund-thermo__meta" hidden></p>
       </div>
@@ -75,6 +76,17 @@ const view = hasGoal
     for (const root of document.querySelectorAll<HTMLElement>('.cc-thermo[data-live="true"]')) {
       const goal = Number(root.dataset.goalCents) || 0;
       initFundThermo(root, goal);
+    }
+  </script>
+)}
+
+{variant === 'band' && (
+  <script>
+    // Band paints the snapshot percentage via JS (house pattern: CSS width:0 + JS set), never an inline style attr.
+    for (const root of document.querySelectorAll<HTMLElement>('.cc-thermo[data-live="false"]')) {
+      const fill = root.querySelector<HTMLElement>('.fund-thermo__fill');
+      const pct = Number(root.dataset.pct) || 0;
+      if (fill) fill.style.width = pct + '%';
     }
   </script>
 )}
@@ -101,7 +113,7 @@ const view = hasGoal
   .fund-thermo__head { display: flex; align-items: baseline; gap: var(--space-2); margin-bottom: var(--space-3); }
   .fund-thermo__raised {
     font-family: 'Cormorant Garamond', 'Georgia', serif;
-    font-size: 2.25rem;
+    font-size: 1.75rem;
     font-weight: 600;
     line-height: 1;
     color: var(--accent);
@@ -114,5 +126,5 @@ const view = hasGoal
   .cc-legal { font-size: 0.75rem; color: var(--text-tertiary); margin: var(--space-3) 0 0; }
   .campaign-callout--band .cc-inner { display: flex; flex-direction: column; }
   @media (prefers-reduced-motion: reduce) { .fund-thermo__fill { transition: none; } }
-  @media (max-width: 600px) { .cc-inner { padding: var(--space-4) var(--space-5); } }
+  @media (max-width: 640px) { .cc-inner { padding: var(--space-4) var(--space-5); } }
 </style>
