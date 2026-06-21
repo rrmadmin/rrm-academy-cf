@@ -45,6 +45,11 @@
   --sage-100: oklch(95.25% 0.0057 128.5); /* #eef0ec */
   --sage-50: oklch(97.48% 0.0028 128.5); /* #f6f7f5 */
 
+  /* Infographic polarity (favorable / unfavorable / neutral). Bold register. */
+  --ig-favorable: #5f6a52;
+  --ig-unfavorable: #a0697c;
+  --ig-neutral: #725e7e;
+
   /* Tier colors (endo survey) */
   --tier1-accent: oklch(52.62% 0.1106 354.9); /* #9b4d6e */
   --tier1-bg: var(--rose-100);
@@ -170,6 +175,11 @@
   --sage-300: oklch(45.01% 0.0264 124.2); /* #525848 */
   --sage-100: oklch(33.31% 0.0154 133.6); /* #333830 */
   --sage-50: oklch(29.44% 0.0152 129.1); /* #2a2e26 */
+
+  /* Infographic polarity (favorable / unfavorable / neutral). Bold register. */
+  --ig-favorable: #9caf88;
+  --ig-unfavorable: #cd9aa9;
+  --ig-neutral: #c2a9d4;
 
   --tier1-accent: oklch(67.18% 0.1038 357.5); /* #c97a96 */
   --tier1-bg: oklch(32.04% 0.024 352.6); /* #3d2e34 */
