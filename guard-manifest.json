@@ -100,7 +100,7 @@
     },
     "functions/api/newsletter/send-first-email.js": {
       "note": "First-email send to explicit recipient list (admin-only, dry-run supported)",
-      "hash": "a23adb770447cbc724069a67c2cbc8023788d674a0a257d9f1070d726d6c5777"
+      "hash": "8582d9c16a2bcfe23b3a6433711229ad6713387b6fb850a69c0d7eee6d37aa35"
     },
     "functions/api/newsletter/unsubscribe.js": {
       "hash": "e568d424e2d1c0b0f656883539f7fb9df6c9bcd910f4efd3500eacc719b26fdf",

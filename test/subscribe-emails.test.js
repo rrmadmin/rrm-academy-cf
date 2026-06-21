@@ -5,27 +5,19 @@ import { sendSignupEmails } from '../functions/api/newsletter/_signup-emails.js'
 
 function makeSpies() {
   const sendEmailCalls = [];
-  const sendRawEmailCalls = [];
 
   const ses = {
     sendEmail: async (env, opts) => {
       sendEmailCalls.push(opts);
-    },
-    sendRawEmail: async (env, opts) => {
-      sendRawEmailCalls.push(opts);
     },
   };
 
   const tracking = {
     unsubscribeUrl: async (email, secret) =>
       `https://rrmacademy.org/api/newsletter/unsubscribe?e=${encodeURIComponent(email)}&t=testtoken&b=2026Q2`,
-    unsubscribeHeaders: async (email, secret) => ({
-      'List-Unsubscribe': `<https://rrmacademy.org/api/newsletter/unsubscribe?e=${encodeURIComponent(email)}&t=testtoken&b=2026Q2>`,
-      'List-Unsubscribe-Post': 'List-Unsubscribe=One-Click',
-    }),
   };
 
-  return { ses, tracking, sendEmailCalls, sendRawEmailCalls };
+  return { ses, tracking, sendEmailCalls };
 }
 
 async function drainWaitUntil(waitUntil) {
@@ -41,7 +33,7 @@ describe('sendSignupEmails', () => {
     sendSignupEmails(env, waitUntil, 'jane@example.com', ses, tracking);
     await drainWaitUntil(waitUntil);
 
-    assert.equal(sendEmailCalls.length, 1);
+    assert.equal(sendEmailCalls.length, 2, 'expect admin notify + welcome (both sendEmail)');
     assert.equal(sendEmailCalls[0].to, 'administrator@rrmacademy.org');
     assert.equal(sendEmailCalls[0].subject, 'New newsletter subscriber');
     assert.ok(sendEmailCalls[0].text.includes('jane@example.com'));
@@ -49,57 +41,40 @@ describe('sendSignupEmails', () => {
   });
 
   it('welcome-unsub-url: the welcome text contains the unsubscribe URL', async () => {
-    const { ses, tracking, sendRawEmailCalls } = makeSpies();
+    const { ses, tracking, sendEmailCalls } = makeSpies();
     const env = mockEnv({ NEWSLETTER_SECRET: 'test-secret' });
     const waitUntil = mockWaitUntil();
 
     sendSignupEmails(env, waitUntil, 'jane@example.com', ses, tracking);
     await drainWaitUntil(waitUntil);
 
-    assert.equal(sendRawEmailCalls.length, 1);
-    const text = sendRawEmailCalls[0].text;
+    // sendEmailCalls[0] = admin notify, sendEmailCalls[1] = welcome
+    assert.equal(sendEmailCalls.length, 2);
+    const text = sendEmailCalls[1].text;
     assert.ok(
       text.includes('/api/newsletter/unsubscribe'),
       `Expected text to contain unsubscribe URL but got: ${text.slice(-200)}`
     );
   });
 
-  it('welcome-unsub-headers: sendRawEmail receives List-Unsubscribe AND List-Unsubscribe-Post headers', async () => {
-    const { ses, tracking, sendRawEmailCalls } = makeSpies();
-    const env = mockEnv({ NEWSLETTER_SECRET: 'test-secret' });
-    const waitUntil = mockWaitUntil();
-
-    sendSignupEmails(env, waitUntil, 'jane@example.com', ses, tracking);
-    await drainWaitUntil(waitUntil);
-
-    assert.equal(sendRawEmailCalls.length, 1);
-    const headers = sendRawEmailCalls[0].headers;
-    assert.ok(headers['List-Unsubscribe'], 'Missing List-Unsubscribe header');
-    assert.ok(headers['List-Unsubscribe-Post'], 'Missing List-Unsubscribe-Post header');
-    assert.equal(headers['List-Unsubscribe-Post'], 'List-Unsubscribe=One-Click');
-    assert.ok(headers['List-Unsubscribe'].includes('/api/newsletter/unsubscribe'));
-  });
-
-  it('no-secret-skips-welcome: with NEWSLETTER_SECRET unset, sendRawEmail is NOT called but admin notify still attempted', async () => {
-    const { ses, tracking, sendEmailCalls, sendRawEmailCalls } = makeSpies();
+  it('no-secret-skips-welcome: with NEWSLETTER_SECRET unset, welcome sendEmail is NOT called but admin notify still attempted', async () => {
+    const { ses, tracking, sendEmailCalls } = makeSpies();
     const env = mockEnv({ NEWSLETTER_SECRET: undefined });
     const waitUntil = mockWaitUntil();
 
     sendSignupEmails(env, waitUntil, 'jane@example.com', ses, tracking);
     await drainWaitUntil(waitUntil);
 
-    assert.equal(sendRawEmailCalls.length, 0, 'sendRawEmail should NOT be called when NEWSLETTER_SECRET is missing');
-    assert.equal(sendEmailCalls.length, 1, 'admin sendEmail should still be attempted');
+    assert.equal(sendEmailCalls.length, 1, 'only admin sendEmail should be called when NEWSLETTER_SECRET is missing');
+    assert.equal(sendEmailCalls[0].to, 'administrator@rrmacademy.org', 'the sole call must be the admin notify');
   });
 
   it('failure-swallowed: an SES function that throws does not propagate out of sendSignupEmails', async () => {
     const throwingSes = {
       sendEmail: async () => { throw new Error('SES exploded'); },
-      sendRawEmail: async () => { throw new Error('SES raw exploded'); },
     };
     const throwingTracking = {
       unsubscribeUrl: async () => { throw new Error('tracking exploded'); },
-      unsubscribeHeaders: async () => { throw new Error('tracking exploded'); },
     };
     const env = mockEnv({ NEWSLETTER_SECRET: 'test-secret' });
     const waitUntil = mockWaitUntil();

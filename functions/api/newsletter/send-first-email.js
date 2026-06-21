@@ -7,9 +7,8 @@
  * Body: { recipientIds: string[], dryRun?: boolean }
  */
 import { log } from '../_log.js';
-import { sendRawEmail } from '../_ses.js';
+import { sendEmail } from '../_ses.js';
 import { renderEmail } from './_template.js';
-import { unsubscribeHeaders } from './_tracking.js';
 import { constantTimeEqual } from '../auth/_shared.js';
 
 const SUBJECT = 'Welcome to RRM Academy';
@@ -46,7 +45,6 @@ export async function sendBatch({
   db,
   ses,
   template,
-  tracking,
   env,
   waitUntil,
   subscribers,
@@ -67,21 +65,18 @@ export async function sendBatch({
         secret: env.NEWSLETTER_SECRET,
       });
 
-      const headers = await tracking.unsubscribeHeaders(sub.email, env.NEWSLETTER_SECRET);
-
       await db.batch([
         db.prepare("INSERT INTO newsletter_event (send_id, subscriber_id, event) VALUES (?, ?, 'sent')").bind(sendId, sub.id),
         db.prepare("UPDATE newsletter_subscriber SET last_sent_at = datetime('now') WHERE id = ?").bind(sub.id),
       ]);
 
-      await ses.sendRawEmail(env, {
+      await ses.sendEmail(env, {
         from: '"Naomi Whittaker" <newsletter@mail.rrmacademy.org>',
         to: sub.email,
         subject,
         replyTo: 'community@rrmacademy.org',
         html,
         text,
-        headers,
         log: { db, source: 'newsletter/send-first-email', category: 'newsletter' },
       });
 
@@ -178,9 +173,8 @@ export async function onRequestPost({ request, env, waitUntil }) {
 
   const { sentCount } = await sendBatch({
     db,
-    ses: { sendRawEmail },
+    ses: { sendEmail },
     template: { renderEmail },
-    tracking: { unsubscribeHeaders },
     env,
     waitUntil,
     subscribers,
