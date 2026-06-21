@@ -92,6 +92,10 @@ export function mapWorkerRecord(r) {
     // (per-article quality-review gate), so unapproved articles map to null
     // and the template skips the section.
     insights: r.insights && typeof r.insights === 'object' && !Array.isArray(r.insights) ? r.insights : null,
+    // Synopsis infographic spec, rendered above the synopsis title. The worker
+    // only emits this for infographic_approved = 1 rows (per-article go-live
+    // gate), so unapproved/absent map to null and the component renders nothing.
+    infographic: r.infographic && typeof r.infographic === 'object' && !Array.isArray(r.infographic) ? r.infographic : null,
   };
 }
 
