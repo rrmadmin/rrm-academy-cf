@@ -1,0 +1,189 @@
+{
+  "cycle-literacy-foundational-health-welcome-two-pillars-1": {
+    "clipUid": "703ec622a2b4d4041499ec9a23c65805",
+    "sourceUid": "765742d0c4e6092d850aa4ad95712cd0",
+    "startTimeSeconds": 1550,
+    "endTimeSeconds": 1903,
+    "durationSeconds": 353,
+    "title": "Welcome & the Two Pillars: Cycle Literacy and Foundational Health",
+    "sectionId": "cycle-literacy-foundational-health-welcome-two-pillars",
+    "order": 1,
+    "name": "cycle-literacy-foundational-health-cycle-literacy-foundational-health-welcome-two-pillars-1.mp4"
+  },
+  "cycle-literacy-foundational-health-vital-sign-anatomy-1": {
+    "clipUid": "dff61eacc95792ed1c331ce7dfaa7c7d",
+    "sourceUid": "765742d0c4e6092d850aa4ad95712cd0",
+    "startTimeSeconds": 1903,
+    "endTimeSeconds": 2192,
+    "durationSeconds": 289,
+    "title": "Your Cycle Is a Vital Sign + Reproductive Anatomy",
+    "sectionId": "cycle-literacy-foundational-health-vital-sign-anatomy",
+    "order": 2,
+    "name": "cycle-literacy-foundational-health-cycle-literacy-foundational-health-vital-sign-anatomy-1.mp4"
+  },
+  "cycle-literacy-foundational-health-hormones-1": {
+    "clipUid": "9385bba871452e36ecbee7de03a1d592",
+    "sourceUid": "765742d0c4e6092d850aa4ad95712cd0",
+    "startTimeSeconds": 2192,
+    "endTimeSeconds": 2406,
+    "durationSeconds": 214,
+    "title": "The Hormones That Run Your Cycle",
+    "sectionId": "cycle-literacy-foundational-health-hormones",
+    "order": 3,
+    "name": "cycle-literacy-foundational-health-cycle-literacy-foundational-health-hormones-1.mp4"
+  },
+  "cycle-literacy-foundational-health-charting-purpose-methods-1": {
+    "clipUid": "6fe1c3bbdc16353976063aa5d11fe293",
+    "sourceUid": "765742d0c4e6092d850aa4ad95712cd0",
+    "startTimeSeconds": 2406,
+    "endTimeSeconds": 2641,
+    "durationSeconds": 235,
+    "title": "What Cycle Charting Is For: Biomarkers & Method Families",
+    "sectionId": "cycle-literacy-foundational-health-charting-purpose-methods",
+    "order": 4,
+    "name": "cycle-literacy-foundational-health-cycle-literacy-foundational-health-charting-purpose-methods-1.mp4"
+  },
+  "cycle-literacy-foundational-health-reading-your-chart-1": {
+    "clipUid": "02e07ccbde01d696a6487bc75276784d",
+    "sourceUid": "765742d0c4e6092d850aa4ad95712cd0",
+    "startTimeSeconds": 2641,
+    "endTimeSeconds": 2961,
+    "durationSeconds": 320,
+    "title": "Reading Your Chart: Readings, the Temperature \"Mountain\" & Curveballs",
+    "sectionId": "cycle-literacy-foundational-health-reading-your-chart",
+    "order": 5,
+    "name": "cycle-literacy-foundational-health-cycle-literacy-foundational-health-reading-your-chart-1.mp4"
+  },
+  "cycle-literacy-foundational-health-red-flags-1": {
+    "clipUid": "2959a60695dfe85cda9a57da2c8731a1",
+    "sourceUid": "765742d0c4e6092d850aa4ad95712cd0",
+    "startTimeSeconds": 2961,
+    "endTimeSeconds": 3181,
+    "durationSeconds": 220,
+    "title": "Red Flags: On Your Chart & In Your Body",
+    "sectionId": "cycle-literacy-foundational-health-red-flags",
+    "order": 6,
+    "name": "cycle-literacy-foundational-health-cycle-literacy-foundational-health-red-flags-1.mp4"
+  },
+  "cycle-literacy-foundational-health-charting-to-conceive-1": {
+    "clipUid": "b1870e4a36abc9cf99c5417eb38ef41d",
+    "sourceUid": "765742d0c4e6092d850aa4ad95712cd0",
+    "startTimeSeconds": 3181,
+    "endTimeSeconds": 3413,
+    "durationSeconds": 232,
+    "title": "Charting to Conceive: Timing & Success Rates",
+    "sectionId": "cycle-literacy-foundational-health-charting-to-conceive",
+    "order": 7,
+    "name": "cycle-literacy-foundational-health-cycle-literacy-foundational-health-charting-to-conceive-1.mp4"
+  },
+  "cycle-literacy-foundational-health-daily-habits-1": {
+    "clipUid": "3afb3dd6b2b4a50b5ddc4f1849b8e0a9",
+    "sourceUid": "765742d0c4e6092d850aa4ad95712cd0",
+    "startTimeSeconds": 3413,
+    "endTimeSeconds": 3640,
+    "durationSeconds": 227,
+    "title": "Why Your Daily Habits Shape Your Cycle",
+    "sectionId": "cycle-literacy-foundational-health-daily-habits",
+    "order": 8,
+    "name": "cycle-literacy-foundational-health-cycle-literacy-foundational-health-daily-habits-1.mp4"
+  },
+  "cycle-literacy-foundational-health-nutrition-1": {
+    "clipUid": "49b9bbd5a92a74fecf54126091f31ae1",
+    "sourceUid": "765742d0c4e6092d850aa4ad95712cd0",
+    "startTimeSeconds": 3640,
+    "endTimeSeconds": 3866,
+    "durationSeconds": 226,
+    "title": "Nutrition for Healthy Hormones",
+    "sectionId": "cycle-literacy-foundational-health-nutrition",
+    "order": 9,
+    "name": "cycle-literacy-foundational-health-cycle-literacy-foundational-health-nutrition-1.mp4"
+  },
+  "cycle-literacy-foundational-health-sleep-circadian-1": {
+    "clipUid": "5b8c9a99208f5d6185b6f434d0ccb4bf",
+    "sourceUid": "765742d0c4e6092d850aa4ad95712cd0",
+    "startTimeSeconds": 3866,
+    "endTimeSeconds": 4078,
+    "durationSeconds": 212,
+    "title": "Sleep & Circadian Rhythm",
+    "sectionId": "cycle-literacy-foundational-health-sleep-circadian",
+    "order": 10,
+    "name": "cycle-literacy-foundational-health-cycle-literacy-foundational-health-sleep-circadian-1.mp4"
+  },
+  "cycle-literacy-foundational-health-movement-1": {
+    "clipUid": "c17869f41006ec0c71969311ab76e31a",
+    "sourceUid": "765742d0c4e6092d850aa4ad95712cd0",
+    "startTimeSeconds": 4078,
+    "endTimeSeconds": 4307,
+    "durationSeconds": 229,
+    "title": "Movement That Supports Your Hormones",
+    "sectionId": "cycle-literacy-foundational-health-movement",
+    "order": 11,
+    "name": "cycle-literacy-foundational-health-cycle-literacy-foundational-health-movement-1.mp4"
+  },
+  "cycle-literacy-foundational-health-toxins-1": {
+    "clipUid": "a831eeb527167418cf72b45767209142",
+    "sourceUid": "765742d0c4e6092d850aa4ad95712cd0",
+    "startTimeSeconds": 4307,
+    "endTimeSeconds": 4610,
+    "durationSeconds": 303,
+    "title": "Reducing Toxin Exposure",
+    "sectionId": "cycle-literacy-foundational-health-toxins",
+    "order": 12,
+    "name": "cycle-literacy-foundational-health-cycle-literacy-foundational-health-toxins-1.mp4"
+  },
+  "cycle-literacy-foundational-health-stress-nervous-system-1": {
+    "clipUid": "f56b88b67a3724b01d581657ddf68774",
+    "sourceUid": "765742d0c4e6092d850aa4ad95712cd0",
+    "startTimeSeconds": 4610,
+    "endTimeSeconds": 4981,
+    "durationSeconds": 371,
+    "title": "Stress & the Nervous System",
+    "sectionId": "cycle-literacy-foundational-health-stress-nervous-system",
+    "order": 13,
+    "name": "cycle-literacy-foundational-health-cycle-literacy-foundational-health-stress-nervous-system-1.mp4"
+  },
+  "cycle-literacy-foundational-health-calm-faith-closing-1": {
+    "clipUid": "9527a7510e0490d0fc380e7e68f89175",
+    "sourceUid": "765742d0c4e6092d850aa4ad95712cd0",
+    "startTimeSeconds": 4981,
+    "endTimeSeconds": 5213,
+    "durationSeconds": 232,
+    "title": "Calm, Faith & a Closing Encouragement",
+    "sectionId": "cycle-literacy-foundational-health-calm-faith-closing",
+    "order": 14,
+    "name": "cycle-literacy-foundational-health-cycle-literacy-foundational-health-calm-faith-closing-1.mp4"
+  },
+  "cycle-literacy-foundational-health-resources-1": {
+    "clipUid": "a095524c3ee0dcbbf4d522c48e017f1a",
+    "sourceUid": "765742d0c4e6092d850aa4ad95712cd0",
+    "startTimeSeconds": 5213,
+    "endTimeSeconds": 5360,
+    "durationSeconds": 147,
+    "title": "Resources & Where to Begin",
+    "sectionId": "cycle-literacy-foundational-health-resources",
+    "order": 15,
+    "name": "cycle-literacy-foundational-health-cycle-literacy-foundational-health-resources-1.mp4"
+  },
+  "cycle-literacy-foundational-health-qa-devices-1": {
+    "clipUid": "ed058cb9459c3d63f03ce6c6bac9edb9",
+    "sourceUid": "765742d0c4e6092d850aa4ad95712cd0",
+    "startTimeSeconds": 5360,
+    "endTimeSeconds": 5843,
+    "durationSeconds": 483,
+    "title": "Q&A: Devices & the Value of Simple, Free Tools",
+    "sectionId": "cycle-literacy-foundational-health-qa-devices",
+    "order": 16,
+    "name": "cycle-literacy-foundational-health-cycle-literacy-foundational-health-qa-devices-1.mp4"
+  },
+  "cycle-literacy-foundational-health-closing-conversation-1": {
+    "clipUid": "0fd4a736d88bfadddbcd5606c936e8e5",
+    "sourceUid": "765742d0c4e6092d850aa4ad95712cd0",
+    "startTimeSeconds": 5843,
+    "endTimeSeconds": 6346,
+    "durationSeconds": 503,
+    "title": "Closing Conversation: Whole Foods, Integrative Medicine & Faith",
+    "sectionId": "cycle-literacy-foundational-health-closing-conversation",
+    "order": 17,
+    "name": "cycle-literacy-foundational-health-cycle-literacy-foundational-health-closing-conversation-1.mp4"
+  }
+}
