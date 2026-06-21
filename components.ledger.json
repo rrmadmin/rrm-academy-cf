@@ -38,6 +38,24 @@
       "arise_adjudicated_preexisting": [
         "subscribe.js returns 'You are subscribed!' for complained/bounced re-subscribers (gemini LOW; pre-existing, likely intentional anti-enumeration; not this component's regression)"
       ]
+    },
+    {
+      "component": "first-email-sender",
+      "done_at_head": "e14291bbbb20b723f6962ca926a7f389e6b09db3",
+      "terminal_state": "DEPLOYED-INERT",
+      "deployed_note": "endpoint POST /api/newsletter/send-first-email deploys live but is ADMIN_API_SECRET-gated and no-ops until called; the SEND is gated on a dry-run + Brian approval + a one-time 8am ET launchd trigger that fires the curl exactly once (no auto-retry).",
+      "read_contracts": ["posts (latest published, auto-queried)", "newsletter_subscriber (by explicit id, status='active')", "env.ADMIN_API_SECRET", "env.NEWSLETTER_SECRET", "_template.renderEmail", "_tracking.unsubscribeHeaders", "_ses.sendRawEmail"],
+      "write_contracts": ["SES egress: combined first email to explicit recipient ids", "newsletter_send (campaign row)", "newsletter_event (sent, per recipient)"],
+      "stub_debt": ["no cross-call dedup -- one-shot only; mitigated operationally (fire once, no retry, dry-run first)"],
+      "ci_mechanism": "github-actions",
+      "ci_binding": ".github/workflows/deploy.yml:Build & Deploy",
+      "peer_sync_mechanism": "gh-pr-merge",
+      "peer_sync_binding": null,
+      "notes": "8am ET catch-up to live-collected subscribers (5 website + optionally 3 med-training-waitlist, snapshotted ids, Brian's 5-vs-8 choice). Auto-queries latest commentary. Reuses renderEmail (Gmail-plain). replyTo=community@ honors the 'hit reply' line. Modeled on send.js.",
+      "arise_adjudicated": [
+        "double-send on retry (gemini+Opus MEDIUM) -> operational: one-shot, fire once, no auto-retry, dry-run first",
+        "auth returns 500 not 401 on missing Authorization header (gemini MEDIUM) -> cosmetic; identical to the proven send.js pattern; access still denied"
+      ]
     }
   ]
 }
