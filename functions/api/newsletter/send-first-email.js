@@ -7,7 +7,7 @@
  * Body: { recipientIds: string[], dryRun?: boolean }
  */
 import { log } from '../_log.js';
-import { sendEmail } from '../_ses.js';
+import { sendTracked } from './_mail.js';
 import { renderEmail } from './_template.js';
 import { constantTimeEqual } from '../auth/_shared.js';
 
@@ -43,7 +43,7 @@ export function buildBodyFragment(title, slug) {
  */
 export async function sendBatch({
   db,
-  ses,
+  tracked,
   template,
   env,
   waitUntil,
@@ -70,17 +70,27 @@ export async function sendBatch({
         db.prepare("UPDATE newsletter_subscriber SET last_sent_at = datetime('now') WHERE id = ?").bind(sub.id),
       ]);
 
-      await ses.sendEmail(env, {
-        from: '"Naomi Whittaker" <newsletter@mail.rrmacademy.org>',
-        to: sub.email,
-        subject,
-        replyTo: 'community@rrmacademy.org',
-        html,
-        text,
-        log: { db, source: 'newsletter/send-first-email', category: 'newsletter' },
-      });
+      const _tracked = tracked || { sendTracked };
+      const r = await _tracked.sendTracked(
+        env,
+        waitUntil,
+        {
+          from: '"Naomi Whittaker" <newsletter@mail.rrmacademy.org>',
+          to: sub.email,
+          subject,
+          replyTo: 'community@rrmacademy.org',
+          html,
+          text,
+        },
+        { component: 'first-email', category: 'newsletter', source: 'newsletter/send-first-email' }
+      );
 
-      sentCount++;
+      if (r?.ok) {
+        sentCount++;
+      } else {
+        log(env, waitUntil, 'newsletter', 'first_email_send_error', 'error', r?.error || 'unknown', 0, 0);
+        errors++;
+      }
     } catch (err) {
       log(env, waitUntil, 'newsletter', 'first_email_send_error', 'error', err?.message || 'unknown', 0, 0);
       errors++;
@@ -167,27 +177,51 @@ export async function onRequestPost({ request, env, waitUntil }) {
 
   const sendId = crypto.randomUUID();
 
-  await db.prepare(
-    "INSERT INTO newsletter_send (id, subject, html, segment_filter, status, total_recipients, commentary_slug) VALUES (?, ?, ?, ?, 'sending', ?, ?)"
-  ).bind(sendId, SUBJECT, bodyFragment, null, subscribers.length, slug).run();
+  let sentCount = 0;
+  let errors = 0;
 
-  const { sentCount } = await sendBatch({
-    db,
-    ses: { sendEmail },
-    template: { renderEmail },
-    env,
-    waitUntil,
-    subscribers,
-    body: bodyFragment,
-    subject: SUBJECT,
-    sendId,
-  });
+  try {
+    await db.prepare(
+      "INSERT INTO newsletter_send (id, subject, html, segment_filter, status, total_recipients, commentary_slug) VALUES (?, ?, ?, ?, 'sending', ?, ?)"
+    ).bind(sendId, SUBJECT, bodyFragment, null, subscribers.length, slug).run();
 
-  await db.prepare(
-    "UPDATE newsletter_send SET status = 'sent', sent_count = ?, sent_at = datetime('now') WHERE id = ?"
-  ).bind(sentCount, sendId).run();
+    ({ sentCount, errors } = await sendBatch({
+      db,
+      tracked: { sendTracked },
+      template: { renderEmail },
+      env,
+      waitUntil,
+      subscribers,
+      body: bodyFragment,
+      subject: SUBJECT,
+      sendId,
+    }));
 
-  log(env, waitUntil, 'newsletter', 'first_email_complete', 'ok', `send ${sendId} complete`, 0, 200);
+    let finalStatus;
+    if (errors === 0) {
+      finalStatus = 'sent';
+    } else if (sentCount > 0) {
+      finalStatus = 'partial';
+    } else {
+      finalStatus = 'failed';
+    }
+
+    await db.prepare(
+      "UPDATE newsletter_send SET status = ?, sent_count = ?, sent_at = datetime('now') WHERE id = ?"
+    ).bind(finalStatus, sentCount, sendId).run();
+
+    log(env, waitUntil, 'newsletter', 'first_email_complete', 'ok', `send ${sendId} complete status=${finalStatus}`, 0, 200);
+  } catch (err) {
+    log(env, waitUntil, 'newsletter', 'first_email_batch_error', 'error', err?.message || 'unknown', 0, 500);
+    try {
+      await db.prepare(
+        "UPDATE newsletter_send SET status = 'failed' WHERE id = ?"
+      ).bind(sendId).run();
+    } catch {
+      // best-effort; swallow
+    }
+    return Response.json({ ok: false, error: 'send_failed' }, { status: 500 });
+  }
 
   return Response.json({
     ok: true,

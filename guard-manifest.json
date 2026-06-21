@@ -94,13 +94,17 @@
       "hash": "626aa1326910aec061ba406d3346ad9cb28fe4d6ab053419a551d6682d244865",
       "note": "Magic-link token generation"
     },
+    "functions/api/newsletter/_mail.js": {
+      "hash": "76590417b63b7f965567d9ea83cdcf48939f4580a80c3047bac8846ee804664a",
+      "note": "sendTracked: best-effort mail dispatch + email_log failure row + Telegram alert"
+    },
     "functions/api/newsletter/send.js": {
       "hash": "b34384360755e062e8220de3b86cf103df4fb501358fe74fcc9ebf307928341c",
       "note": "Mass email send (admin-only)"
     },
     "functions/api/newsletter/send-first-email.js": {
       "note": "First-email send to explicit recipient list (admin-only, dry-run supported)",
-      "hash": "8582d9c16a2bcfe23b3a6433711229ad6713387b6fb850a69c0d7eee6d37aa35"
+      "hash": "9ddd005c7e4b1399bd069fa7d28455d364468359fa5bd551ca5b88ca86b7e9d7"
     },
     "functions/api/newsletter/unsubscribe.js": {
       "hash": "e568d424e2d1c0b0f656883539f7fb9df6c9bcd910f4efd3500eacc719b26fdf",
