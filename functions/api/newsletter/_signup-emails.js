@@ -1,10 +1,10 @@
-import { sendEmail, sendRawEmail } from '../_ses.js';
-import { unsubscribeUrl, unsubscribeHeaders } from './_tracking.js';
+import { sendEmail } from '../_ses.js';
+import { unsubscribeUrl } from './_tracking.js';
 import { log } from '../_log.js';
 
 export async function sendSignupEmails(env, waitUntil, email, _ses, _tracking) {
-  const ses = _ses || { sendEmail, sendRawEmail };
-  const tracking = _tracking || { unsubscribeUrl, unsubscribeHeaders };
+  const ses = _ses || { sendEmail };
+  const tracking = _tracking || { unsubscribeUrl };
 
   waitUntil(
     ses.sendEmail(env, {
@@ -24,13 +24,11 @@ export async function sendSignupEmails(env, waitUntil, email, _ses, _tracking) {
         return;
       }
       const url = await tracking.unsubscribeUrl(email, env.NEWSLETTER_SECRET);
-      const headers = await tracking.unsubscribeHeaders(email, env.NEWSLETTER_SECRET);
-      await ses.sendRawEmail(env, {
+      await ses.sendEmail(env, {
         from: '"Naomi Whittaker" <newsletter@mail.rrmacademy.org>',
         to: email,
         subject: 'Welcome to RRM Academy',
         replyTo: 'community@rrmacademy.org',
-        headers,
         text: `Hi there,
 
 Thanks for subscribing. I'm really glad you're here.

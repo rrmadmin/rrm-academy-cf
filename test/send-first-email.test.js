@@ -10,7 +10,7 @@ import { buildBodyFragment, sendBatch, onRequestPost } from '../functions/api/ne
 function makeSesSpy() {
   const calls = [];
   return {
-    sendRawEmail: async (_env, opts) => { calls.push(opts); },
+    sendEmail: async (_env, opts) => { calls.push(opts); },
     calls,
   };
 }
@@ -20,15 +20,6 @@ function makeTemplateSpy(html = '<p>rendered</p>', text = 'rendered') {
   return {
     renderEmail: async (opts) => { calls.push(opts); return { html, text }; },
     calls,
-  };
-}
-
-function makeTrackingSpy() {
-  return {
-    unsubscribeHeaders: async (_email, _secret) => ({
-      'List-Unsubscribe': '<https://rrmacademy.org/api/newsletter/unsubscribe?e=test&t=tok&b=2026Q2>',
-      'List-Unsubscribe-Post': 'List-Unsubscribe=One-Click',
-    }),
   };
 }
 
@@ -67,7 +58,6 @@ describe('sendBatch', () => {
   it('dry-run-no-send: sends to two subscribers and returns correct sentCount', async () => {
     const ses = makeSesSpy();
     const template = makeTemplateSpy();
-    const tracking = makeTrackingSpy();
 
     const db = mockDB({});
     const env = mockEnv({ NEWSLETTER_SECRET: 'secret' });
@@ -81,7 +71,6 @@ describe('sendBatch', () => {
       db,
       ses,
       template,
-      tracking,
       env,
       waitUntil: nullWaitUntil,
       subscribers,
@@ -99,11 +88,10 @@ describe('sendBatch', () => {
 
   it('skips-inactive: a per-recipient SES throw is logged and counted as error, not propagated', async () => {
     const throwingSes = {
-      sendRawEmail: async () => { throw new Error('SES down'); },
+      sendEmail: async () => { throw new Error('SES down'); },
       calls: [],
     };
     const template = makeTemplateSpy();
-    const tracking = makeTrackingSpy();
 
     const logs = [];
     const env = mockEnv({
@@ -117,7 +105,6 @@ describe('sendBatch', () => {
       db,
       ses: throwingSes,
       template,
-      tracking,
       env,
       waitUntil: nullWaitUntil,
       subscribers: [{ id: 'sub-1', email: 'x@example.com' }],
