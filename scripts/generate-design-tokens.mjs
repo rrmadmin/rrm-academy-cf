@@ -159,6 +159,11 @@ function classify(name) {
   const fontMatch = name.match(/^font-(\w+)$/);
   if (fontMatch) return { group: 'fontFamily', prop: fontMatch[1] };
 
+
+  // Infographic polarity tokens: ig-favorable, ig-unfavorable, ig-neutral
+  const igMatch = name.match(/^ig-(favorable|unfavorable|neutral)$/);
+  if (igMatch) return { group: 'infographic', polarity: igMatch[1] };
+
   return { group: 'unclassified', name };
 }
 
@@ -197,6 +202,7 @@ function buildTheme(tokens) {
     shadow: {},
     grain: {},
     gradient: {},
+    infographic: {},
     focusRing: null,
   };
   for (const [name, value] of Object.entries(tokens)) {
@@ -227,6 +233,9 @@ function buildTheme(tokens) {
         break;
       case 'gradient':
         out.gradient[c.prop] = leaf;
+        break;
+      case 'infographic':
+        out.infographic[c.polarity] = leaf;
         break;
       case 'focusRing':
         out.focusRing = leaf;

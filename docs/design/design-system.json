@@ -683,6 +683,23 @@
           "cssVariable": "--gradient-hero-subtle"
         }
       },
+      "infographic": {
+        "favorable": {
+          "value": "#5f6a52",
+          "type": "other",
+          "cssVariable": "--ig-favorable"
+        },
+        "unfavorable": {
+          "value": "#a0697c",
+          "type": "other",
+          "cssVariable": "--ig-unfavorable"
+        },
+        "neutral": {
+          "value": "#725e7e",
+          "type": "other",
+          "cssVariable": "--ig-neutral"
+        }
+      },
       "focusRing": {
         "value": "oklch(36% 0.067 312 / 0.6)",
         "type": "color",
@@ -1164,6 +1181,23 @@
           "value": "radial-gradient(circle at 15% 84%, rgba(114, 94, 126, 0) 0%, rgba(100, 82, 110, 0) 39.84%, rgba(61, 51, 69, 0.3) 66.40%, rgba(46, 38, 54, 0.6) 90.19%)",
           "type": "gradient",
           "cssVariable": "--gradient-hero-subtle"
+        }
+      },
+      "infographic": {
+        "favorable": {
+          "value": "#9caf88",
+          "type": "other",
+          "cssVariable": "--ig-favorable"
+        },
+        "unfavorable": {
+          "value": "#cd9aa9",
+          "type": "other",
+          "cssVariable": "--ig-unfavorable"
+        },
+        "neutral": {
+          "value": "#c2a9d4",
+          "type": "other",
+          "cssVariable": "--ig-neutral"
         }
       },
       "focusRing": {
@@ -1649,6 +1683,7 @@
           "cssVariable": "--gradient-hero-subtle"
         }
       },
+      "infographic": {},
       "focusRing": {
         "value": "oklch(28% 0.03 70 / 0.75)",
         "type": "color",
@@ -1866,10 +1901,10 @@
     }
   },
   "counts": {
-    "light": 87,
-    "dark": 87,
+    "light": 90,
+    "dark": 90,
     "eink": 87,
     "shared": 39,
-    "total": 300
+    "total": 306
   }
 }
