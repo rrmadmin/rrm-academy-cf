@@ -98,6 +98,10 @@
       "hash": "b34384360755e062e8220de3b86cf103df4fb501358fe74fcc9ebf307928341c",
       "note": "Mass email send (admin-only)"
     },
+    "functions/api/newsletter/send-first-email.js": {
+      "note": "First-email send to explicit recipient list (admin-only, dry-run supported)",
+      "hash": "a5f03fb2a34db8e198877e093431275e177a1b7c43e0da465fd4bcb574f810c0"
+    },
     "functions/api/newsletter/unsubscribe.js": {
       "hash": "e568d424e2d1c0b0f656883539f7fb9df6c9bcd910f4efd3500eacc719b26fdf",
       "note": "CAN-SPAM unsubscribe (status update)"
