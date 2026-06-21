@@ -100,22 +100,24 @@ function wrapLabel(text, mode, x, y, w, fontSize, fill) {
   return { svg: `<text x="${x}" y="${y}" font-size="${fontSize}" fill="${fill}">${tspans}</text>`, lines: lines.length, lineH };
 }
 
-// The branded card chrome: top accent bar + wordmark, and a footer band with
-// rrmacademy.org + the platform handle. Standalone-only (uses resolved hex).
-function frameCard(canvas, box, platform, pad, topBand) {
-  const accent = color('purple-700', 'standalone');
-  const muted = color('text-secondary', 'standalone');
+// Footer band: rrmacademy.org + the platform handle. Theme-aware (var() inline,
+// hex standalone) so it appears on-page AND on exports.
+function footerBand(canvas, footTop, mode, platform, pad) {
+  const band = canvas.h - footTop;
+  const ruleY = footTop + Math.round(band * 0.30);
+  const textY = footTop + Math.round(band * 0.64);
+  const handle = HANDLES[platform] || HANDLES.ig;
+  return `<line x1="${pad}" y1="${ruleY}" x2="${canvas.w - pad}" y2="${ruleY}" stroke="${color('purple-100', mode)}" stroke-width="2"/>`
+    + `<text x="${pad}" y="${textY}" font-size="26" fill="${color('text-secondary', mode)}">rrmacademy.org</text>`
+    + `<text x="${canvas.w - pad}" y="${textY}" text-anchor="end" font-size="26" font-weight="600" fill="${color('purple-700', mode)}">${escapeXml(handle)}</text>`;
+}
+
+// Top wordmark band (export only): accent bar + RRM wordmark.
+function wordmarkBand(canvas, pad, topBand, mode) {
   const wmH = Math.round(topBand * 0.34);
   const wmY = Math.round((topBand - wmH) / 2) + 8;
-  const footTop = box.y + box.h;
-  const ruleY = footTop + Math.round((canvas.h - footTop) * 0.30);
-  const textY = footTop + Math.round((canvas.h - footTop) * 0.66);
-  const handle = HANDLES[platform] || HANDLES.ig;
-  return `<rect x="0" y="0" width="${canvas.w}" height="8" fill="${accent}"/>`
-    + wordmarkSvg(pad, wmY, wmH)
-    + `<line x1="${pad}" y1="${ruleY}" x2="${canvas.w - pad}" y2="${ruleY}" stroke="${color('purple-100', 'standalone')}" stroke-width="2"/>`
-    + `<text x="${pad}" y="${textY}" font-size="26" fill="${muted}">rrmacademy.org</text>`
-    + `<text x="${canvas.w - pad}" y="${textY}" text-anchor="end" font-size="26" font-weight="600" fill="${accent}">${escapeXml(handle)}</text>`;
+  return `<rect x="0" y="0" width="${canvas.w}" height="8" fill="${color('purple-700', mode)}"/>`
+    + wordmarkSvg(pad, wmY, wmH);
 }
 
 // ---- Renderers: (spec, { mode, box }) -> { body, alt }. Box-local coords. ----
@@ -269,8 +271,11 @@ export function renderInfographic(spec, opts = {}) {
   const aspect = opts.aspect || '1:1';
   const canvas = ASPECTS[aspect];
   if (!canvas) throw new Error(`unknown aspect: ${aspect}`);
-  // inline (on-page) is always bare; branded frame is a standalone-export option.
-  const frame = mode === 'inline' ? 'none' : (opts.frame || 'none');
+  // The rrmacademy.org + handle footer appears on EVERY render (on-page included, so a
+  // screenshot carries attribution). The top wordmark band is export-only (branded).
+  const frame = opts.frame || 'none';
+  const wantWordmark = frame === 'branded';
+  if (wantWordmark && mode !== 'standalone') throw new Error('branded wordmark frame requires standalone mode (resolved hex)');
   const platform = opts.platform || 'ig';
   const v = validateSpec(spec);
   if (!v.valid) throw new Error(`invalid spec: ${v.errors.join('; ')}`);
@@ -278,18 +283,12 @@ export function renderInfographic(spec, opts = {}) {
   if (!fn) throw new Error(`no renderer for template: ${spec.template}`);
 
   const pad = Math.round(canvas.w * 0.07);
-  let box, chrome = '';
-  if (frame === 'branded') {
-    if (mode !== 'standalone') throw new Error('branded frame requires standalone mode (resolved hex)');
-    // Width-proportional bands, clamped by height so a short aspect (the 1.91:1 card)
-    // does not lose most of its content area to the frame.
-    const topBand = Math.round(Math.min(canvas.w * 0.115, canvas.h * 0.17));
-    const bottomBand = Math.round(Math.min(canvas.w * 0.085, canvas.h * 0.13));
-    box = { x: 0, y: topBand, w: canvas.w, h: canvas.h - topBand - bottomBand };
-    chrome = frameCard(canvas, box, platform, pad, topBand);
-  } else {
-    box = { x: 0, y: 0, w: canvas.w, h: canvas.h };
-  }
+  // Bands clamped by height so a short aspect (the 1.91:1 card) keeps its content area.
+  const footerBandH = Math.round(Math.min(canvas.w * 0.085, canvas.h * 0.13));
+  const topBand = wantWordmark ? Math.round(Math.min(canvas.w * 0.115, canvas.h * 0.17)) : 0;
+  const box = { x: 0, y: topBand, w: canvas.w, h: canvas.h - topBand - footerBandH };
+  let chrome = footerBand(canvas, box.y + box.h, mode, platform, pad);
+  if (wantWordmark) chrome = wordmarkBand(canvas, pad, topBand, mode) + chrome;
   const { body, alt } = fn(spec, { mode, box });
   const placed = box.y ? `<g transform="translate(0 ${box.y})">${body}</g>` : body;
   return svgShell({ mode, aspect, alt, body: placed + chrome });
