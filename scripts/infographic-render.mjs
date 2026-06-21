@@ -15,7 +15,12 @@ function readInput() {
 
 try {
   const spec = JSON.parse(readInput());
-  const svg = renderInfographic(spec, { mode: arg('--mode', 'inline'), aspect: arg('--aspect', '1:1') });
+  const svg = renderInfographic(spec, {
+    mode: arg('--mode', 'inline'),
+    aspect: arg('--aspect', '1:1'),
+    frame: arg('--frame', 'none'),
+    platform: arg('--platform', 'ig'),
+  });
   process.stdout.write(svg);
   process.exit(0);
 } catch (e) {
