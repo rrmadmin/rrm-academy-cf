@@ -191,6 +191,13 @@
       "handle": "@rrmacademy",
       "aria_label": "RRM Academy on YouTube",
       "order": 2
+    },
+    {
+      "platform": "x",
+      "url": "https://x.com/rrm_academy",
+      "handle": "@RRM_academy",
+      "aria_label": "RRM Academy on X",
+      "order": 3
     }
   ]
 }
