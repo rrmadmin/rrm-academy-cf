@@ -320,3 +320,5 @@ Not started. See `rrm-router/RRM Router PRD/Phase-9-Decommission.md`.
 - Endo survey validate endpoint, auto-create accounts on checkout, thank-you page 3-state logic (2026-02-26)
 - Login passwordless differentiation, donation history, profile card, Google OAuth fix (2026-02-26)
 - Community inline images, inline feed, saved articles sync, quiz responses, dead code cleanup (2026-02-25)
+
+<!-- merge.yml pipeline canary: 2026-06-22 -- validates the hardened auto-merge path (PR #42). Safe to remove. -->
