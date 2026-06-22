@@ -177,6 +177,11 @@ if echo "$STAGED" | grep -qE '^functions/api/auth/(signup|resend-verification|ve
   fi
 fi
 
+# --- Infographic SVG well-formedness gate: any staged infographic file ---
+if git diff --cached --name-only | grep -qE 'src/lib/infographic/|scripts/infographic-render\.mjs|scripts/gates/validate-infographic-svg\.mjs'; then
+  node scripts/gates/validate-infographic-svg.mjs || { echo "infographic SVG gate failed"; exit 1; }
+fi
+
 # --- Security guard: only on critical file changes ---
 TRIGGER=0
 for file in $CRITICAL_FILES; do

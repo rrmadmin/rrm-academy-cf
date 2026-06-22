@@ -6,7 +6,10 @@ import ArticleCard from '../../components/ArticleCard.astro';
 import ArticleHero from '../../components/ArticleHero.astro';
 import LibraryFundingCallout from '../../components/LibraryFundingCallout.astro';
 import AppShellChrome from '../../components/AppShellChrome.astro';
+import SynopsisInfographic from '../../components/SynopsisInfographic.astro';
+import ShareKit from '../../components/ShareKit.astro';
 import { isShellEnabled } from '../../lib/shell-routes';
+import { OG_VERSION } from '../../lib/og-config';
 import { fetchAllArticles, getRelatedArticles, getArticlesByAuthor, type Article } from '../../lib/airtable';
 import { parseStructuredAbstract } from '../../lib/abstract-parser';
 import { parseMarkdown, looksLikeMarkdown } from '../../lib/markdown-sanitize';
@@ -309,6 +312,9 @@ const showFreeFullText = article.oaUrl
   && article.oaUrl !== (article.doi ? `https://doi.org/${article.doi}` : '');
 
 const canonicalUrl = `https://rrmacademy.org/library/${article.slug}/`;
+const igShareCaption = article.infographic
+  ? ((article.infographic as Record<string, unknown>).share_caption as string | undefined || `${article.title}. New research from RRM Academy.`).replace(/[—–]/g, '-').slice(0, 240)
+  : '';
 
 // Highwire Press citation meta for Zotero Connector
 const citationAuthors = article.authors?.split(';').map(a => a.trim()).filter(Boolean) || [];
@@ -342,6 +348,9 @@ const citationMeta = {
   speakable={['.article-title', '.article-meta-row', '.abstract']}
   chrome={SHELL_ENABLED ? 'shell' : 'default'}
   noindex={typeof article.word_count === 'number' ? article.word_count < 30 : (!article.abstract || article.abstract.trim().length < 30)}
+  ogImage={article.infographic ? `/infographic/${article.id}/card.png?v=${OG_VERSION}` : undefined}
+  ogImageWidth={article.infographic ? 1200 : undefined}
+  ogImageHeight={article.infographic ? 630 : undefined}
   trackScroll
 >
   {SHELL_ENABLED ? (
@@ -397,6 +406,8 @@ const citationMeta = {
         <section class="article-insights" aria-label="Synopsis">
           <p class="insights-attribution">RRM Academy Synopsis</p>
           <h2 class="detail-heading">{article.insights.title || 'Synopsis'}</h2>
+        {article.infographic && <SynopsisInfographic spec={article.infographic} />}
+        {article.infographic && <ShareKit articleId={article.id} canonicalUrl={canonicalUrl} caption={igShareCaption} />}
           <div class="insights-tldr">
             <p set:html={renderInsight(article.insights.tldr)}></p>
           </div>
@@ -576,6 +587,8 @@ const citationMeta = {
         <section class="article-insights" aria-label="Synopsis">
           <p class="insights-attribution">RRM Academy Synopsis</p>
           <h2 class="detail-heading">{article.insights.title || 'Synopsis'}</h2>
+        {article.infographic && <SynopsisInfographic spec={article.infographic} />}
+        {article.infographic && <ShareKit articleId={article.id} canonicalUrl={canonicalUrl} caption={igShareCaption} />}
           <div class="insights-tldr">
             <p set:html={renderInsight(article.insights.tldr)}></p>
           </div>
