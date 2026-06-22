@@ -9,38 +9,53 @@ permissions:
   contents: write
   actions: write
 
+# C1 / observed failure mode #3: serialize the checkout -> merge -> push critical
+# section across ALL claude/** branches. Without this, concurrent merges race the
+# single-shot `git push origin main` and collide on guard-manifest.json.
+# cancel-in-progress MUST stay false -- true would silently drop the older branch's
+# merge (a different data-loss bug).
+concurrency:
+  group: merge-to-main
+  cancel-in-progress: false
+
 jobs:
   merge-to-main:
     runs-on: ubuntu-latest
+    timeout-minutes: 20  # a hung step must not head-of-line-block the serialized queue
     steps:
-      # Mint a per-job installation access token from the "RRM Admin Automation"
-      # GitHub App (App ID + private key in repo secrets, key SSOT is 1P
-      # op://Automation/RRM Admin Automation App/Private Key). The token has
-      # `workflow` write access via the App's installed permissions, which the
-      # default GITHUB_TOKEN cannot provide. Tokens auto-expire in 1h — no
-      # rotation needed. Replaces the WORKFLOWS_PAT classic PAT (migrated
-      # 2026-05-21, see memory: github-app-rrm-admin-automation.md).
-      - name: Mint GitHub App token
-        id: app-token
-        uses: actions/create-github-app-token@d72941d797fd3113feb6b93fd0dec494b13a2547 # v1
-        with:
-          app-id: ${{ secrets.RRM_ADMIN_APP_ID }}
-          private-key: ${{ secrets.RRM_ADMIN_APP_PRIVATE_KEY }}
-
+      # M1: clone with the default GITHUB_TOKEN. The privileged App installation
+      # token (contents+workflows write) is minted only AFTER npm ci + gates, so
+      # dependency lifecycle scripts never run with it in scope.
       - name: Checkout
         uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
         with:
           fetch-depth: 0
-          token: ${{ steps.app-token.outputs.token }}
+
+      # C3: a claude/** auto-merge must never silently rewrite CI. If the branch
+      # touches any workflow file, refuse and require a reviewed PR. merge.yml's
+      # own gates do not lint/guard workflow YAML and the merge is a full-tree
+      # merge, so without this a branch could poison deploy.yml/merge.yml and ride
+      # to main with the App token. (Reviewed PRs are unaffected: this only gates
+      # the claude/** auto-merge path.)
+      - name: Block workflow-file changes on auto-merge
+        run: |
+          git fetch origin +refs/heads/main:refs/remotes/origin/main
+          if git diff --name-only origin/main...HEAD | grep -qE '^\.github/workflows/'; then
+            echo "::error::This claude/** branch modifies .github/workflows -- auto-merge refused. Open a reviewed PR."
+            exit 1
+          fi
 
       - name: Setup Node
         uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
         with:
           node-version: 20
 
+      # M1 (defense in depth): --ignore-scripts blocks transitive-dependency install
+      # hooks. The primary control is minting the App token after this step.
       - name: Install dependencies
-        run: npm ci
+        run: npm ci --ignore-scripts
 
+      # --- Gate the branch tip (fast-fail before doing any merge work) ---
       - name: Security guard
         run: node scripts/guard.mjs
 
@@ -56,32 +71,99 @@ jobs:
       - name: Test
         run: npm test
 
-      # Build check removed: data files (articles/posts/faqs/etc.) are gitignored
-      # and fetched via worker/Airtable secrets in deploy.yml. The merge workflow
-      # doesn't have those secrets, and Astro loaders explicitly throw on empty
-      # data. deploy.yml on main catches build errors; this workflow gates on
-      # lint + test + guard, which are the real pre-merge safety net.
+      # Mint the privileged App token only now: nothing untrusted has run with it in
+      # scope. `workflow` write (which the default GITHUB_TOKEN lacks) is retained so
+      # the bot identity owns the merge commit. Key SSOT: 1P op://Automation/RRM
+      # Admin Automation App/Private Key. Token auto-expires in 1h.
+      - name: Mint GitHub App token
+        id: app-token
+        uses: actions/create-github-app-token@d72941d797fd3113feb6b93fd0dec494b13a2547 # v1
+        with:
+          app-id: ${{ secrets.RRM_ADMIN_APP_ID }}
+          private-key: ${{ secrets.RRM_ADMIN_APP_PRIVATE_KEY }}
 
-      - name: Merge into main and push
+      - name: Authenticate git with the App token
+        run: |
+          git config --unset-all http.https://github.com/.extraheader 2>/dev/null || true
+          git remote set-url origin "https://x-access-token:${{ steps.app-token.outputs.token }}@github.com/${{ github.repository }}.git"
+
+      # C2 + H1 + M2 + observed modes #1/#3: merge against the FRESHEST origin/main,
+      # reconcile guard-manifest.json on the merged tree (so per-branch manifests can
+      # never conflict), RE-GATE the actual merge commit (the tip gates above never
+      # saw it), then push -- all inside a fetch-merge-retry loop so a concurrent or
+      # manual advance of main is retried instead of silently dropped.
+      #
+      # Build/type/data-bound gates (astro check, verify-templates, gates:courses,
+      # gates:analytics) are intentionally NOT re-run here: the fetched data files
+      # (articles/posts/faqs/courses/glossary.json) are absent in this job, so they
+      # would throw. deploy.yml re-runs the full superset on main with the data.
+      - name: Merge, re-gate, and push
         id: merge
         run: |
           git config user.name "rrm-admin-automation[bot]"
           git config user.email "286686868+rrm-admin-automation[bot]@users.noreply.github.com"
-          git checkout main
-          BEFORE=$(git rev-parse HEAD)
-          git merge --no-ff ${{ github.sha }} --no-edit
-          AFTER=$(git rev-parse HEAD)
-          git push origin main
-          echo "before=$BEFORE" >> "$GITHUB_OUTPUT"
-          echo "after=$AFTER" >> "$GITHUB_OUTPUT"
+          for attempt in 1 2 3 4 5; do
+            git fetch origin +refs/heads/main:refs/remotes/origin/main
+            git checkout -B main origin/main
+            BEFORE=$(git rev-parse HEAD)
+
+            MERGE_FAILED=
+            git merge --no-ff ${{ github.sha }} --no-edit || MERGE_FAILED=1
+
+            # No-op: branch already in main (nothing to push).
+            if [ -z "$MERGE_FAILED" ] && [ "$(git rev-parse HEAD)" = "$BEFORE" ]; then
+              echo "Branch already merged into main; nothing to do."
+              echo "before=$BEFORE" >> "$GITHUB_OUTPUT"
+              echo "after=$BEFORE" >> "$GITHUB_OUTPUT"
+              exit 0
+            fi
+
+            if [ -n "$MERGE_FAILED" ]; then
+              UNMERGED="$(git diff --name-only --diff-filter=U)"
+              if [ "$UNMERGED" != "guard-manifest.json" ]; then
+                git merge --abort
+                echo "::error::Merge conflict in: ${UNMERGED:-<unknown>} -- rebase this branch onto main first."
+                exit 1
+              fi
+              # Only the derived manifest conflicts: take the incoming branch's entry
+              # set, then recompute every hash against the merged working tree.
+              git checkout --theirs -- guard-manifest.json
+            fi
+
+            npm run guard:update
+            git add guard-manifest.json
+            if [ -n "$MERGE_FAILED" ]; then
+              git commit --no-edit          # completes the conflicted merge
+            else
+              git commit --amend --no-edit  # folds the manifest into the clean merge commit
+            fi
+            AFTER=$(git rev-parse HEAD)
+
+            # Re-gate the MERGE COMMIT (data-free gates only).
+            node scripts/guard.mjs
+            node scripts/guard-ios-zoom.mjs
+            node scripts/check-no-moved-paths.mjs
+            npm run lint
+            npm test
+            npm run gates:payment
+            npm run gates:share
+
+            if git push origin main; then
+              echo "before=$BEFORE" >> "$GITHUB_OUTPUT"
+              echo "after=$AFTER" >> "$GITHUB_OUTPUT"
+              exit 0
+            fi
+            echo "push rejected (main advanced) -- retry $attempt/5"
+            sleep $((attempt * 3))
+          done
+          echo "::error::could not fast-forward main after 5 attempts"
+          exit 1
 
       # GITHUB_TOKEN pushes do NOT trigger other workflows (GitHub anti-recursion).
-      # Explicitly dispatch Build & Deploy on main so merges from claude/**
-      # actually ship. Without this, merges land silently and production drifts.
+      # Explicitly dispatch Build & Deploy on main so merges from claude/** ship.
       #
-      # Path filter mirrors deploy.yml's push trigger so doc-only merges (CLAUDE.md,
-      # docs/**, memory notes) don't burn ~10 billable Actions minutes per merge.
-      # Keep this list in sync with deploy.yml `on.push.paths`.
+      # Path filter mirrors deploy.yml's push trigger so doc-only merges don't burn
+      # billable Actions minutes. Keep this list in sync with deploy.yml on.push.paths.
       - name: Trigger Build & Deploy
         if: steps.merge.outputs.before != steps.merge.outputs.after
         env:
@@ -96,3 +178,26 @@ jobs:
             echo "Changed files (first 10):"
             echo "$CHANGED" | head -10
           fi
+
+      # H6 / observed modes #1,#2,#3: every failure above is otherwise SILENT (the
+      # branch just never merges, with no alert). Mirror deploy.yml's Observatory
+      # ping (same endpoint + payload shape, status=failure). Non-blocking. There are
+      # no TELEGRAM_* repo secrets; OBSERVATORY_API_TOKEN is the channel deploy.yml
+      # already uses. The branch is identifiable from the run URL.
+      - name: Notify Observatory on failure
+        if: failure()
+        run: |
+          curl -sf -X POST \
+            "https://rrm-observatory.administrator-cloudflare.workers.dev/api/deploy" \
+            -H "Authorization: Bearer ${{ secrets.OBSERVATORY_API_TOKEN }}" \
+            -H "Content-Type: application/json" \
+            -d "{
+              \"repo\": \"rrm-academy-cf\",
+              \"status\": \"failure\",
+              \"commit\": \"${{ github.sha }}\",
+              \"duration_ms\": 0,
+              \"url\": \"${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}\",
+              \"citations\": {},
+              \"qa_pre\": {},
+              \"qa_post\": {}
+            }" || echo "Observatory notification failed (non-blocking)"
