@@ -171,25 +171,57 @@ function renderDelta(spec, { mode, box }) {
   const accent = color(spec.polarity === 'favorable' ? 'ig-favorable' : spec.polarity === 'unfavorable' ? 'ig-unfavorable' : 'ig-neutral', mode);
   const tag = spec.polarity === 'favorable' ? 'Favorable' : spec.polarity === 'unfavorable' ? 'Unfavorable' : 'Neutral';
   const alt = `${spec.direction === 'up' ? 'up' : 'down'} ${spec.value} ${spec.label} (${tag}). Source: ${sourceLine(spec)}`;
-  const lbl = wrapLabel(spec.label, mode, pad, h * 0.52, w - pad * 2, 40, color('text-primary', mode));
-  const tagY = Math.round(h * 0.52 + (lbl.lines - 1) * lbl.lineH + 56);
-  const srcY = Math.min(tagY + 60, h - Math.round(pad * 0.5));
-  const body = eyebrow(spec, mode, pad, pad + 36)
+
+  // --- Anchor the vertical stack from the eyebrow down so elements never overlap
+  // at any aspect, with the short 1.91:1 card as the binding case.
+  const eyebrowY = pad + 36;                           // eyebrow baseline (box-local)
+  const valueGap = 24;                                 // cap clearance below eyebrow
+  const srcY = h - Math.round(pad * 0.5);             // provenance baseline (fixed at bottom)
+
+  // Pre-compute label metrics at fixed 40px so we know how tall the label band is.
+  const plotW = w - pad * 2;
+  const labelFs = 40;
+  const labelLineH = Math.round(labelFs * 1.2);        // 48
+  // Measure line count with a placeholder y (will re-place below).
+  const lblMeasure = wrapLabel(spec.label, mode, pad, 0, plotW, labelFs, color('text-primary', mode));
+  const labelBand = (lblMeasure.lines - 1) * labelLineH; // extra height beyond first line
+
+  // Fixed vertical budget below the value text's descender:
+  //   gap-to-label(20) + labelBand + gap-to-tag(48) + tag-height(28) + gap-to-src(60)
+  const belowValueBudget = 20 + labelBand + 48 + 28 + 60;
+
+  // Natural unclamped font size.
+  const naturalFs = bigFont(box, 0.22, 0.30);
+  // Available height from eyebrow-bottom to srcY for the entire value-to-src stack:
+  //   valueGap + cap(vFs*0.72) + desc(vFs*0.28) + belowValueBudget
+  //   = valueGap + vFs + belowValueBudget <= srcY - eyebrowY
+  const available = srcY - eyebrowY - valueGap - belowValueBudget;
+  const vFs = Math.max(48, Math.min(naturalFs, available));  // never below 48px
+
+  // Place the value row below the eyebrow.
+  const valueBaseline = Math.round(eyebrowY + valueGap + vFs * 0.72);
+
+  // Place the label strictly below the value descender.
+  const labelY = Math.round(valueBaseline + vFs * 0.28 + 20);
+  const lbl = wrapLabel(spec.label, mode, pad, labelY, plotW, labelFs, color('text-primary', mode));
+
+  // Tag and source fall below the label.
+  const tagY = Math.round(labelY + (lbl.lines - 1) * lbl.lineH + 48);
+
+  const body = eyebrow(spec, mode, pad, eyebrowY)
     + (() => {
-        const vFs = bigFont(box, 0.22, 0.30);
-        const baseY = h * 0.4;
-        const t = Math.round(vFs * 0.6);                 // triangle box
-        const topY = Math.round(baseY - vFs * 0.72);     // align near the numeral cap height
+        const t = Math.round(vFs * 0.6);                 // triangle box size
+        const topY = Math.round(valueBaseline - vFs * 0.72);
         const up = spec.direction === 'up';
         const tri = up
           ? `<polygon points="${pad},${topY + t} ${pad + t},${topY + t} ${pad + t / 2},${topY}" fill="${accent}"/>`
           : `<polygon points="${pad},${topY} ${pad + t},${topY} ${pad + t / 2},${topY + t}" fill="${accent}"/>`;
         const vx = pad + t + Math.round(vFs * 0.3);
-        return tri + `<text x="${vx}" y="${baseY}" class="num" font-size="${vFs}" font-weight="600" fill="${accent}">${escapeXml(spec.value)}</text>`;
+        return tri + `<text x="${vx}" y="${valueBaseline}" class="num" font-size="${vFs}" font-weight="600" fill="${accent}">${escapeXml(spec.value)}</text>`;
       })()
     + lbl.svg
     + `<text x="${pad}" y="${tagY}" font-size="28" font-weight="600" letter-spacing="2" fill="${accent}">${escapeXml(tag.toUpperCase())}</text>`
-    + provenance(spec, mode, pad, srcY, w - pad * 2);
+    + provenance(spec, mode, pad, srcY, plotW);
   return { body, alt };
 }
 
