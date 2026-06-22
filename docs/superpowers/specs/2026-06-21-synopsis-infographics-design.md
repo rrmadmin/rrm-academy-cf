@@ -480,3 +480,61 @@ ACCEPTED (documented, not fixed): when an article is fully unpublished, in-fligh
 - `validate.mjs` rejects a caption with a leading "Yes" / an absolutist token, and caps the fallback caption under the X limit.
 - The go-live preview renders via the edge path (preview == public).
 - `Content-Type: image/png` and `Access-Control-Allow-Origin` pinned on success + fallback; a cold render makes zero outbound subrequests.
+
+### 4-i. RE-ARCHITECTURE: build-time static (2026-06-22) -- supersedes the edge endpoint
+
+Exploration confirmed the edge has NO SVG-to-PNG path: `workers-og` accepts only a satori
+JSX tree (not an SVG string), `@resvg/resvg-wasm` is not installed and its edge font support
+is the unreliable thing the adversarial review flagged. Rather than duplicate the renderer as
+satori trees or add a risky edge wasm capability, Phase 4 renders the social PNGs at BUILD
+time and serves them as STATIC files. This is the binding architecture; it REPLACES the
+on-demand edge endpoint (4-a) and the runtime index lookup (4-b).
+
+Build step: `scripts/build-infographic-assets.mjs`, added as the LAST step of the `npm run
+build` chain (after `astro build && npx pagefind`, so it writes into the final `dist/`). For
+every article with a non-null mapped `infographic` (the Phase-2 build mapper already carries
+it only for `infographic_approved = 1` rows), and for each of the four presets, it calls the
+shared `renderInfographic(spec, { mode: 'standalone', aspect, frame: 'branded', platform })`,
+then rasterizes the SVG with `@resvg/resvg-js` (already a devDependency, node, with the
+Cormorant 400/600 + Inter 400/500/600 font buffers loaded via `font.fontBuffers` and
+`loadSystemFonts:false`), and writes `dist/infographic/<articleId>/<preset>.png`. CF Pages
+serves these as static files at `/infographic/<articleId>/<preset>.png`.
+
+What this VOIDS from 4-a/4-g (no per-request compute exists anymore): the edge function, the
+`checkRateLimit` gate, cache-key normalization, the weaponizable fallback, the
+prototype-pollution route guard, the per-function `Content-Type`/ACAO/subrequest clauses, the
+function cost-alarm, and the `@resvg/resvg-wasm` dependency. Static files are inherently
+cheap, cacheable, and un-DoS-able.
+
+What STILL APPLIES:
+- Routing: add `/infographic` to rrm-router `ASTRO_ROUTES` (else the apex proxies it to Wix).
+- `public/_headers`: `/infographic/*` gets `Cache-Control: public, max-age=86400,
+  s-maxage=86400, stale-while-revalidate=604800` (NOT immutable; the filename is not
+  content-hashed, so a corrected PNG needs a `cf-cache-purge` of `/infographic/<id>/*` on the
+  next deploy, per the retraction runbook).
+- The chevron `▲`/`▼` -> `<polygon>` fix (resvg-js latin fonts also lack U+25B2/U+25BC).
+- All caption governance (lint, go-live preview surface, reconfirm on reset, 280-cap incl.
+  the fallback string), denominator-in-label, the popover a11y downgrade, the clipboard
+  fallback, `canonicalUrl` prop, Share-on-X also copies caption, action-honest labels +
+  `navigator.share({files})` on mobile.
+- The OG enhancement (REVIVED): `BaseLayout` sets `ogImage="/infographic/<slug>/card.png"`
+  (with the deploy version query) when the article has an approved infographic, so link
+  shares unfurl the static card. Falls back to the generic OG card otherwise.
+
+Render parity is SOLVED: the served PNG and the go-live preview are the SAME `@resvg/resvg-js`
+output (one rasterizer). Note: the Phase-3 skill export (`scripts/infographic-export.mjs`)
+uses chromium-primary; to keep the operator's local export pixel-consistent with the served
+asset, switch that script's default to the resvg-js path too (or accept a trivial difference;
+the served file is the source of truth).
+
+Download UX: the ShareKit download items are plain `<a href="/infographic/<id>/<preset>.png"
+download>` (the `download` attribute forces save; no server `Content-Disposition` needed).
+
+Blocker resolved: `@resvg/resvg-js` (node, the installed devDep) renders `<text>` via
+`font.fontBuffers`; combined with the chevron polygon, the PNG has visible numerals + cue.
+
+Verification (replaces 4-h's edge items): each approved article emits four valid PNGs at the
+correct dimensions with visible numeral AND (for delta) chevron pixels; a non-approved /
+absent article emits no files (and the page shows no ShareKit); the `/infographic/*` cache
+header is set; the static download links resolve; the OG meta points at the card PNG when
+present.
