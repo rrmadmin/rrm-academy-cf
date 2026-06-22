@@ -1,5 +1,9 @@
 ---
 import BaseLayout from '../../layouts/BaseLayout.astro';
+import StatCards from '../../components/StatCards.astro';
+import SupporterTicker from '../../components/SupporterTicker.astro';
+import SupporterWall from '../../components/SupporterWall.astro';
+import FoundingSupporters from '../../components/FoundingSupporters.astro';
 
 const pageTitle = 'Help the Next Generation Find Restorative Care';
 const pageDescription = 'Women lose years searching for real care. Your one-time gift to the RRM Foundation builds the verified RRM Care Directory, so the next generation of women and girls finds an RRM-trained clinician on the first try.';
@@ -85,6 +89,11 @@ const jsonLd = {
         </div>
       </section>
 
+      <!-- Recent supporters (hides until there are gifts) -->
+      <section class="fund-section fund-recognition" aria-label="Recent supporters">
+        <SupporterTicker />
+      </section>
+
       <!-- The ask -->
       <section class="fund-section">
         <p class="fund-ask">You remember the years it took: appointments that went nowhere, answers that were not answers, time you cannot get back. The next generation of women and girls does not have to inherit that. We are raising $10,000 in one-time gifts to build and launch the RRM Care Directory, so that when a daughter, a niece, or a young woman you will never meet starts looking for real care, she finds a verified, RRM-trained clinician on the first try. Your gift to the RRM Foundation funds verification, expansion, and the infrastructure that keeps every listing current.</p>
@@ -135,6 +144,13 @@ const jsonLd = {
         <p>Most women lose those years the same way: pain called normal, symptoms waved off, birth control offered as the only answer, and the slow, grinding sense that no one is ever going to look deeper. And the years are not empty. The disease progresses. Pain worsens. For many, fertility quietly narrows. By the time a woman finally finds a clinician trained to treat root causes, some of what the waiting cost her cannot be given back.</p>
         <p>The RRM Care Directory will be one searchable, trustworthy home for clinicians trained in NaProTechnology, FEMM, and related restorative methods. Every listing is verified against training credentials, contact information, and practice status before it goes live, and kept current after it does, so it works the first time someone needs it.</p>
         <p>Verification, data infrastructure, and upkeep cost real money. Most of us would never spend this on ourselves. But this is not for you. It is for the teenage girl whose pain is being dismissed today, for your daughters and nieces, and for women you will never meet who are still being told nothing more can be done. Build it so they never search the way you did.</p>
+      </section>
+
+      <!-- Recognition: by the numbers + who is building this (hides until gifts arrive) -->
+      <section class="fund-section fund-recognition" aria-label="People building the directory">
+        <StatCards />
+        <SupporterWall />
+        <FoundingSupporters />
       </section>
 
       <!-- Closing CTA -->
@@ -303,6 +319,12 @@ const jsonLd = {
 </BaseLayout>
 
 <style>
+  /* SP2 recognition: stack the social-proof components with breathing room */
+  .fund-recognition {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-8);
+  }
   /* Hero */
   .fund-hero {
     text-align: center;
