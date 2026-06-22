@@ -1,0 +1,84 @@
+---
+import { Share2 } from '@lucide/astro';
+const { articleId, canonicalUrl, caption } = Astro.props;
+const presets = [
+  { key: 'square', label: 'Download square 1:1 (sized for Instagram)' },
+  { key: 'portrait', label: 'Download portrait 4:5 (Instagram feed)' },
+  { key: 'story', label: 'Download story 9:16 (Instagram / Facebook)' },
+  { key: 'card', label: 'Download card 1.91:1 (X / link)' },
+];
+const xIntent = `https://x.com/intent/tweet?text=${encodeURIComponent(caption || '')}&url=${encodeURIComponent(canonicalUrl)}`;
+---
+{articleId && (
+  <div class="sharekit" data-caption={caption || ''} data-url={canonicalUrl}>
+    <button type="button" class="sharekit__btn" aria-expanded="false" aria-controls="sharekit-menu">
+      <Share2 size={14} aria-hidden="true" /> Share these findings
+    </button>
+    <div id="sharekit-menu" class="sharekit__menu" role="group" aria-label="Share these findings" hidden>
+      <p class="sharekit__heading">Download a ready-made post</p>
+      {presets.map((p) => (
+        <a class="sharekit__item" href={`/infographic/${articleId}/${p.key}.png`} download data-net={`download-${p.key}`}>{p.label}</a>
+      ))}
+      <hr class="sharekit__rule" />
+      <a class="sharekit__item sharekit__item--x" href={xIntent} target="_blank" rel="noopener" data-net="x-intent">Share on X</a>
+      <button type="button" class="sharekit__item sharekit__copy" data-net="copy-caption">Copy caption</button>
+    </div>
+  </div>
+)}
+<style>
+  .sharekit { position: relative; margin-top: var(--space-4); }
+  .sharekit__btn { display: inline-flex; align-items: center; gap: 7px; border: 1px solid var(--purple-300); border-radius: var(--radius-pill); padding: 8px 16px; font: 600 0.8125rem var(--font-body); color: var(--purple-900); background: var(--bg-surface, #fff); cursor: pointer; }
+  .sharekit__menu { position: absolute; top: 46px; left: 0; z-index: 20; width: 290px; background: var(--bg-surface, #fff); border: 1px solid var(--border-color); border-radius: var(--radius-lg); box-shadow: var(--shadow-md); padding: 8px; }
+  .sharekit__menu[hidden] { display: none; }
+  .sharekit__heading { font-size: 0.625rem; font-weight: 600; letter-spacing: 0.12em; text-transform: uppercase; color: var(--text-secondary); padding: 8px 12px 4px; margin: 0; }
+  .sharekit__item { display: block; width: 100%; text-align: left; border: none; background: transparent; color: var(--text-primary); border-radius: var(--radius-sm); padding: 9px 12px; font: 500 0.8125rem var(--font-body); cursor: pointer; text-decoration: none; }
+  .sharekit__item:hover, .sharekit__item:focus-visible { background: var(--purple-50); }
+  .sharekit__item--x { background: var(--purple-700); color: #fff; font-weight: 600; }
+  .sharekit__rule { border: 0; border-top: 1px solid var(--border-color); margin: 6px 8px; }
+</style>
+<script>
+  document.querySelectorAll<HTMLElement>('.sharekit').forEach((kit) => {
+    const btn = kit.querySelector<HTMLButtonElement>('.sharekit__btn')!;
+    const menu = kit.querySelector<HTMLElement>('.sharekit__menu')!;
+    const caption = kit.getAttribute('data-caption') || '';
+    const track = (net: string | null) => { if ((window as any).__rrmTrack__) (window as any).__rrmTrack__('share_click', { surface: 'infographic', network: net }); };
+    const open = () => { menu.hidden = false; btn.setAttribute('aria-expanded', 'true'); };
+    const close = () => { menu.hidden = true; btn.setAttribute('aria-expanded', 'false'); };
+    btn.addEventListener('click', () => (menu.hidden ? open() : close()));
+    document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && !menu.hidden) { close(); btn.focus(); } });
+    document.addEventListener('click', (e) => { if (!kit.contains(e.target as Node | null) && !menu.hidden) close(); });
+    function copyCaption() {
+      const done = () => track('copy-caption');
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(caption).then(done).catch(execCopy);
+      } else { execCopy(); }
+    }
+    function execCopy() {
+      const t = document.createElement('textarea'); t.value = caption; document.body.appendChild(t); t.select();
+      try { document.execCommand('copy'); } catch (e) {}
+      document.body.removeChild(t); track('copy-caption');
+    }
+    kit.querySelector<HTMLButtonElement>('.sharekit__copy')!.addEventListener('click', copyCaption);
+    kit.querySelectorAll<HTMLAnchorElement>('.sharekit__item[data-net]').forEach((a) => a.addEventListener('click', async (e) => {
+      const net = a.getAttribute('data-net');
+      track(net);
+      // On the X item, also copy the caption (mobile / logged-out intent flows drop prefilled text).
+      if (net === 'x-intent' && caption) { try { navigator.clipboard && navigator.clipboard.writeText(caption).catch(() => {}); } catch (err) {} return; }
+      // Download items: on mobile, prefer the Web Share API. The `<a download>` / ?dl save is
+      // inconsistent on iOS and Instagram has no web post path, so share the file directly when
+      // supported; otherwise fall through to the default link navigation.
+      if (net && net.indexOf('download-') === 0 && navigator.canShare) {
+        const href = a.getAttribute('href');
+        try {
+          const res = await fetch(href!);
+          const blob = await res.blob();
+          const file = new File([blob], href!.split('/').pop()!, { type: 'image/png' });
+          if (navigator.canShare({ files: [file] })) {
+            e.preventDefault();
+            await navigator.share({ files: [file], text: caption || '' });
+          }
+        } catch (err) { /* fall back to the default <a download> navigation */ }
+      }
+    }));
+  });
+</script>
