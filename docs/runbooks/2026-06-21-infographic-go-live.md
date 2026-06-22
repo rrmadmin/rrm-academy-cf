@@ -35,3 +35,32 @@ The infographic slot is rendered INSIDE the `{article.insights && (...)}` synops
 ## Rollback
 
 Revert the merges; set `infographic_approved = 0` for any promoted article (the component then renders nothing). The `infographic` column and route are inert when no row is approved.
+
+## Phase 4: Static PNG delivery, retraction, rrm-router merge-back (HELD)
+
+### Static asset delivery
+
+At go-live the build emits static PNGs into `dist/infographic/<id>/<preset>.png` (square, portrait, story, card). These are served as CF Pages static files with no per-request compute. The four presets cover all share targets: 1:1 square, 4:5 portrait, 9:16 story, and 1.91:1 card (OG).
+
+### Retraction and cache purge
+
+On any `infographic_approved` reset or retraction (setting `infographic_approved = 0` in D1 via the worker admin route), a full static rebuild is required to drop the PNG files from `dist/`. After the rebuild redeploys, a `cf-cache-purge` of `/infographic/<id>/*` is also required. CF Pages serves these files with `s-maxage=86400` (24h) and `stale-while-revalidate=604800` (7d); without the purge, a retracted graphic can continue serving from the edge for up to a week.
+
+### rrm-router go-live (separate repo, required before `/infographic/*` resolves at apex)
+
+The `/infographic` route lives on the held branch `claude/infographic-build` in `/Users/brian/iCode/projects/rrm-router`. Until this branch is merged and deployed, the apex router proxies `/infographic/*` to Wix (returning a 404 or a Wix page), so the static PNGs are unreachable from the canonical domain even after rrm-academy-cf deploys.
+
+Go-live steps for the router:
+
+1. Merge `claude/infographic-build` into `main` in the rrm-router repo. The predeploy guard (`scripts/predeploy-guard.sh`) refuses any deploy from a non-`main` tree or a tree not matching `origin/main`, so the merge must land on `main` first.
+2. From the router repo root, export the CF deploy token and run the sanctioned deploy path:
+   ```
+   export CLOUDFLARE_API_TOKEN=$(op read 'op://Automation/rrm-router CF Workers Deploy Token/credential')
+   npm run deploy
+   ```
+   Do NOT run bare `npx wrangler deploy`; it bypasses the predeploy guard.
+3. Confirm the `/infographic/<id>/card.png` URL resolves at the apex after deploy.
+
+### rrm-academy-cf deploy and per-article promotion
+
+The rrm-academy-cf deploy (static PNGs + the synopsis page share kit) and per-article `infographic_approved` promotion stay behind explicit go-live per the go-live order above. Do not promote any article spec until both rrm-academy-cf and the rrm-router route are live.
