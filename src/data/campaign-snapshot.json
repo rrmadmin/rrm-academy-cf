@@ -1,3 +1,10 @@
 {
-  "provider-directory": { "raised_cents": 0, "supporters": 0 }
+  "provider-directory": {
+    "raised_cents": 0,
+    "supporters": 0,
+    "recent": [],
+    "total_gifts": 0,
+    "founding_left": 100,
+    "founding_closed": false
+  }
 }
