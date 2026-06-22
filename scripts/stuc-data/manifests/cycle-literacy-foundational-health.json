@@ -1,0 +1,187 @@
+{
+  "courseId": "cycle-literacy-foundational-health",
+  "sourceUid": "765742d0c4e6092d850aa4ad95712cd0",
+  "sourceDuration": 6416,
+  "approved": true,
+  "speaker": "Rebecca Vavilov, Founder of OVA Wellness (Certified Fertility Awareness Educator, Boston Cross Check Method)",
+  "host": "Save the Uterus Club; Dr. Naomi Whittaker hosting/reviewing (NOT co-presenter)",
+  "contentStart": 1550,
+  "contentEnd": 6346,
+  "trimmedChitChat": {
+    "startTrimmed": "00:00:00-00:25:50 — platform/AI-bias discussion, period-app reliability chat, guest introduction, screen-share setup glitches",
+    "endTrimmed": "01:45:46-01:46:55 — goodbyes only ('thank you, Anna; bye'). Per Brian, everything before the goodbyes stays in (resources, device Q&A, member question, integrative closing conversation)."
+  },
+  "lessons": [
+    {
+      "order": 1,
+      "sectionId": "cycle-literacy-foundational-health-welcome-two-pillars",
+      "stepId": "cycle-literacy-foundational-health-welcome-two-pillars-1",
+      "title": "Welcome & the Two Pillars: Cycle Literacy and Foundational Health",
+      "startTimeSeconds": 1550,
+      "endTimeSeconds": 1903,
+      "durationSeconds": 353,
+      "topicSummary": "Opens the talk and frames its two questions: cycle literacy (understanding what your cycle and hormones are telling you) and foundational health (the daily inputs that shape hormonal health). A gardening/stewardship analogy: preparing the environment well is what lets a garden — or a body — thrive."
+    },
+    {
+      "order": 2,
+      "sectionId": "cycle-literacy-foundational-health-vital-sign-anatomy",
+      "stepId": "cycle-literacy-foundational-health-vital-sign-anatomy-1",
+      "title": "Your Cycle Is a Vital Sign + Reproductive Anatomy",
+      "startTimeSeconds": 1903,
+      "endTimeSeconds": 2192,
+      "durationSeconds": 289,
+      "topicSummary": "The menstrual cycle as a vital sign of overall health (recognized by ACOG and AAP since 2006), framed as stewardship of the body. A tour of reproductive anatomy: uterus, ovaries, fallopian tubes, and the cervical crypts."
+    },
+    {
+      "order": 3,
+      "sectionId": "cycle-literacy-foundational-health-hormones",
+      "stepId": "cycle-literacy-foundational-health-hormones-1",
+      "title": "The Hormones That Run Your Cycle",
+      "startTimeSeconds": 2192,
+      "endTimeSeconds": 2406,
+      "durationSeconds": 214,
+      "topicSummary": "Cycle day one and the phases of the cycle. How FSH, LH, estrogen, and progesterone coordinate the cycle, with ovulation as the central event and progesterone preparing the uterine lining for possible implantation."
+    },
+    {
+      "order": 4,
+      "sectionId": "cycle-literacy-foundational-health-charting-purpose-methods",
+      "stepId": "cycle-literacy-foundational-health-charting-purpose-methods-1",
+      "title": "What Cycle Charting Is For: Biomarkers & Method Families",
+      "startTimeSeconds": 2406,
+      "endTimeSeconds": 2641,
+      "durationSeconds": 235,
+      "topicSummary": "Why people chart (postpone pregnancy, achieve pregnancy, monitor health) and the biomarkers charting uses — basal body temperature, cervical fluid, urinary hormones. The families of methods: mucus-based (Billings, Creighton, two-day), symptothermal, and symptom-hormonal (Boston Cross Check)."
+    },
+    {
+      "order": 5,
+      "sectionId": "cycle-literacy-foundational-health-reading-your-chart",
+      "stepId": "cycle-literacy-foundational-health-reading-your-chart-1",
+      "title": "Reading Your Chart: Readings, the Temperature \"Mountain\" & Curveballs",
+      "startTimeSeconds": 2641,
+      "endTimeSeconds": 2961,
+      "durationSeconds": 320,
+      "topicSummary": "Walking through a real chart: date and cycle day, monitor readings (low/high/peak), and identifying the sustained temperature rise after ovulation (the 'mountain'). The atypical 'curveball' charts that don't read like the textbook and need careful observation to confirm ovulation."
+    },
+    {
+      "order": 6,
+      "sectionId": "cycle-literacy-foundational-health-red-flags",
+      "stepId": "cycle-literacy-foundational-health-red-flags-1",
+      "title": "Red Flags: On Your Chart & In Your Body",
+      "startTimeSeconds": 2961,
+      "endTimeSeconds": 3181,
+      "durationSeconds": 220,
+      "topicSummary": "Red flags visible on a chart when they repeat cycle to cycle (midcycle spotting, post-coital bleeding, clots, irregular or long bleeding, short luteal phase) and systemic symptoms worth tracking off the chart — all of which an RRM provider can investigate."
+    },
+    {
+      "order": 7,
+      "sectionId": "cycle-literacy-foundational-health-charting-to-conceive",
+      "stepId": "cycle-literacy-foundational-health-charting-to-conceive-1",
+      "title": "Charting to Conceive: Timing & Success Rates",
+      "startTimeSeconds": 3181,
+      "endTimeSeconds": 3413,
+      "durationSeconds": 232,
+      "topicSummary": "Charts as valuable data when conception is taking time, and timing intercourse to the fertile window: the pregnancy-rate figures she cites (about 42% in a single cycle, 88% within six months). Closes with a brief encouragement and bridges into foundational health."
+    },
+    {
+      "order": 8,
+      "sectionId": "cycle-literacy-foundational-health-daily-habits",
+      "stepId": "cycle-literacy-foundational-health-daily-habits-1",
+      "title": "Why Your Daily Habits Shape Your Cycle",
+      "startTimeSeconds": 3413,
+      "endTimeSeconds": 3640,
+      "durationSeconds": 227,
+      "topicSummary": "The body prioritizes survival over reproduction, so cycles respond to inputs like stress, illness, and nourishment. Foundational health is about daily rhythms, not isolated events; the roughly 90-day window before pregnancy and an overview of the pillars to come."
+    },
+    {
+      "order": 9,
+      "sectionId": "cycle-literacy-foundational-health-nutrition",
+      "stepId": "cycle-literacy-foundational-health-nutrition-1",
+      "title": "Nutrition for Healthy Hormones",
+      "startTimeSeconds": 3640,
+      "endTimeSeconds": 3866,
+      "durationSeconds": 226,
+      "topicSummary": "Eating for ovulatory function: adequate fat for hormone production, plus protein and fiber as foundations. The roughly 2:1 vegetable-to-fruit ratio, prioritizing whole foods, and why under-eating can signal scarcity and suppress ovulation."
+    },
+    {
+      "order": 10,
+      "sectionId": "cycle-literacy-foundational-health-sleep-circadian",
+      "stepId": "cycle-literacy-foundational-health-sleep-circadian-1",
+      "title": "Sleep & Circadian Rhythm",
+      "startTimeSeconds": 3866,
+      "endTimeSeconds": 4078,
+      "durationSeconds": 212,
+      "topicSummary": "Melatonin's role in sleep and as a follicular-fluid antioxidant, and how the circadian rhythm regulates reproductive hormones. Practical habits: morning light, a consistent wake time, dimming light before bed — with a note that the right amount varies woman to woman."
+    },
+    {
+      "order": 11,
+      "sectionId": "cycle-literacy-foundational-health-movement",
+      "stepId": "cycle-literacy-foundational-health-movement-1",
+      "title": "Movement That Supports Your Hormones",
+      "startTimeSeconds": 4078,
+      "endTimeSeconds": 4307,
+      "durationSeconds": 229,
+      "topicSummary": "How sedentary modern life affects hormonal health, and the movement that helps most: strength training and walking, plus a 10-15 minute walk after the biggest meal of the day for blood-sugar regulation."
+    },
+    {
+      "order": 12,
+      "sectionId": "cycle-literacy-foundational-health-toxins",
+      "stepId": "cycle-literacy-foundational-health-toxins-1",
+      "title": "Reducing Toxin Exposure",
+      "startTimeSeconds": 4307,
+      "endTimeSeconds": 4610,
+      "durationSeconds": 303,
+      "topicSummary": "How endocrine-disrupting chemicals can impair ovarian function, the liver's role in clearing them, and practical low-pressure ways to reduce exposure — including the two 'personalities' for making changes (all at once vs. one swap at a time)."
+    },
+    {
+      "order": 13,
+      "sectionId": "cycle-literacy-foundational-health-stress-nervous-system",
+      "stepId": "cycle-literacy-foundational-health-stress-nervous-system-1",
+      "title": "Stress & the Nervous System",
+      "startTimeSeconds": 4610,
+      "endTimeSeconds": 4981,
+      "durationSeconds": 371,
+      "topicSummary": "Why the nervous system matters for hormonal health, and practical regulation tools: a pre-bed brain dump instead of scrolling, the 4-7-8 breath, and grounding through the five senses to come out of a stress spiral."
+    },
+    {
+      "order": 14,
+      "sectionId": "cycle-literacy-foundational-health-calm-faith-closing",
+      "stepId": "cycle-literacy-foundational-health-calm-faith-closing-1",
+      "title": "Calm, Faith & a Closing Encouragement",
+      "startTimeSeconds": 4981,
+      "endTimeSeconds": 5213,
+      "durationSeconds": 232,
+      "topicSummary": "Time with plants and the research on calming the sympathetic nervous system, the role of faith in buffering stress, and tips from a licensed-psychologist colleague. Closes with encouragement that two things can be true at once and that no season is wasted."
+    },
+    {
+      "order": 15,
+      "sectionId": "cycle-literacy-foundational-health-resources",
+      "stepId": "cycle-literacy-foundational-health-resources-1",
+      "title": "Resources & Where to Begin",
+      "startTimeSeconds": 5213,
+      "endTimeSeconds": 5360,
+      "durationSeconds": 147,
+      "topicSummary": "Rebecca's suggested next steps for going deeper: her own learning resources and a free cycle guide, and a pointer to the RRM Academy research library, where many of the references she cited live."
+    },
+    {
+      "order": 16,
+      "sectionId": "cycle-literacy-foundational-health-qa-devices",
+      "stepId": "cycle-literacy-foundational-health-qa-devices-1",
+      "title": "Q&A: Devices & the Value of Simple, Free Tools",
+      "startTimeSeconds": 5360,
+      "endTimeSeconds": 5843,
+      "durationSeconds": 483,
+      "topicSummary": "Rebecca and Dr. Whittaker talk through gadgets like vagus-nerve stimulators and red-light devices: where a device can genuinely help versus where an expensive impulse buy gets forgotten, and why simple daily habits and 'free' interventions are often the better starting point (and harder to study, since no one profits from them)."
+    },
+    {
+      "order": 17,
+      "sectionId": "cycle-literacy-foundational-health-closing-conversation",
+      "stepId": "cycle-literacy-foundational-health-closing-conversation-1",
+      "title": "Closing Conversation: Whole Foods, Integrative Medicine & Faith",
+      "startTimeSeconds": 5843,
+      "endTimeSeconds": 6346,
+      "durationSeconds": 503,
+      "topicSummary": "A member question on whole foods and botanical definitions (vegetables vs fruit) opens a wider conversation between Rebecca and Dr. Whittaker on integrative care: how isolating a single active ingredient can drop the synergistic co-actors found in whole plants, the long traditional use behind many natural approaches, doing research without an agenda, and faith. Ends on mutual appreciation for the talk."
+    }
+  ],
+  "notes": "DRAFT — approved:false. 17 lessons (finer, course-oriented breakdown per Brian 2026-06-21; tail kept per Brian — everything stays except the goodbyes), contiguous chain 1550->1903->2192->2406->2641->2961->3181->3413->3640->3866->4078->4307->4610->4981->5213->5360->5843->6346 (no gaps). Boundaries set from the VERBATIM transcript, not the Gemini summary. contentStart 1550 (00:25:50) = Rebecca opens her presentation, after ~26 min of platform/AI chat + guest intro + screen-share glitches. contentEnd 6346 (01:45:46) = just before the goodbyes; the resources segment, device Q&A, member question, and the integrative closing conversation are all kept in (lessons 15-17). Only the goodbyes (01:45:46-01:46:55) are trimmed. sourceUid/sourceDuration from stream-uids.json (upload complete)."
+}

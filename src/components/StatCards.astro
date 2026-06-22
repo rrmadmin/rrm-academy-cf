@@ -1,0 +1,202 @@
+---
+// SP2 stat cards: a 3-up count-up row for the provider-directory fundraiser.
+// Promoted from the stats-2 house primitive (resting accent bar + pill + big
+// metric + sublabel + scroll-into-view count-up), rethemed to RRM tokens and
+// the documented type-scale. Shows ONLY numbers (no untrusted display names),
+// so there is no HTML-escaping surface here.
+//
+// variant 'card'  -> live on /providers/: server-render 0, client fetches
+//                    /api/fund-progress + /api/fund-supporters and counts up.
+// variant 'band'  -> homepage/donate: render from the build snapshot, count up
+//                    on scroll-into-view. NEVER per-visitor-fetches.
+
+interface Snapshot {
+  raised_cents?: number;
+  supporters?: number;
+  total_gifts?: number;
+  founding_left?: number;
+  founding_closed?: boolean;
+}
+
+interface Props {
+  variant?: 'band' | 'card';
+  snapshot?: Snapshot | null;
+  goalCents?: number;
+}
+
+const { variant = 'card', snapshot = null, goalCents = 1000000 } = Astro.props;
+
+const goalDollars = Math.max(0, Math.round(goalCents / 100));
+const goalText = '$' + goalDollars.toLocaleString('en-US');
+
+// Server-render values: band reads the snapshot; card starts at 0 and the
+// client script fetches + counts up to the live values.
+const s = variant === 'band' && snapshot ? snapshot : null;
+const supportersInit = s ? Math.max(0, Math.round(Number(s.total_gifts) || 0)) : 0;
+const raisedInit = s ? Math.max(0, Math.round((Number(s.raised_cents) || 0) / 100)) : 0;
+const foundingClosedInit = s ? s.founding_closed === true : false;
+const foundingLeftInit = s ? Math.max(0, Math.round(Number(s.founding_left) || 0)) : 100;
+---
+<section class={`stat-cards stat-cards--${variant}`} aria-label="Campaign at a glance" data-pagefind-ignore>
+  <div class="stat-cards__grid">
+    <div class="stat-card" data-stat="supporters">
+      <span class="stat-card__bar" aria-hidden="true"></span>
+      <span class="stat-card__pill">Supporters</span>
+      <div class="stat-card__metric" data-count-to={supportersInit} data-fmt="int">{supportersInit.toLocaleString('en-US')}</div>
+      <span class="stat-card__sub">building this together</span>
+    </div>
+
+    <div class="stat-card" data-stat="raised">
+      <span class="stat-card__bar" aria-hidden="true"></span>
+      <span class="stat-card__pill">Raised</span>
+      <div class="stat-card__metric" data-count-to={raisedInit} data-fmt="usd">{'$' + raisedInit.toLocaleString('en-US')}</div>
+      <span class="stat-card__sub">toward {goalText}</span>
+    </div>
+
+    <div class="stat-card" data-stat="founding" data-closed={foundingClosedInit ? 'true' : 'false'}>
+      <span class="stat-card__bar" aria-hidden="true"></span>
+      <span class="stat-card__pill">Founding spots</span>
+      <div class="stat-card__metric" data-count-to={foundingLeftInit} data-fmt="int">{foundingClosedInit ? 'Complete' : foundingLeftInit.toLocaleString('en-US')}</div>
+      <span class="stat-card__sub">{foundingClosedInit ? 'all 100 claimed' : 'of 100 remaining'}</span>
+    </div>
+  </div>
+</section>
+
+<script>
+  import { getSupporters } from '../scripts/fund-supporters';
+
+  const reduced = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  function fmt(n: number, kind: string): string {
+    const v = Math.round(n);
+    return kind === 'usd' ? '$' + v.toLocaleString('en-US') : v.toLocaleString('en-US');
+  }
+
+  function countUp(el: HTMLElement, to: number) {
+    const kind = el.dataset.fmt || 'int';
+    if (reduced) { el.textContent = fmt(to, kind); return; }
+    const dur = 1100;
+    let start: number | null = null;
+    function step(ts: number) {
+      if (start === null) start = ts;
+      const t = Math.min(1, (ts - start) / dur);
+      const eased = 1 - Math.pow(1 - t, 3);
+      el.textContent = fmt(to * eased, kind);
+      if (t < 1) requestAnimationFrame(step);
+      else el.textContent = fmt(to, kind);
+    }
+    requestAnimationFrame(step);
+  }
+
+  function fireOnView(el: HTMLElement, run: () => void) {
+    if (!('IntersectionObserver' in window) || reduced) { run(); return; }
+    const io = new IntersectionObserver((entries) => {
+      entries.forEach((e) => {
+        if (e.isIntersecting) { run(); io.unobserve(e.target); }
+      });
+    }, { threshold: 0.4 });
+    io.observe(el);
+  }
+
+  for (const root of document.querySelectorAll<HTMLElement>('.stat-cards')) {
+    const isCard = root.classList.contains('stat-cards--card');
+    const cards = Array.from(root.querySelectorAll<HTMLElement>('.stat-card'));
+    const metricOf = (stat: string) =>
+      root.querySelector<HTMLElement>(`.stat-card[data-stat="${stat}"] .stat-card__metric`);
+
+    if (isCard) {
+      // Live: fetch both sources, set targets, then count up from 0.
+      Promise.all([
+        fetch('/api/fund-progress', { headers: { accept: 'application/json' } })
+          .then((r) => (r.ok ? r.json() : null)).catch(() => null),
+        getSupporters(),
+      ]).then(([progress, sup]) => {
+        const raised = Math.max(0, Math.round((Number(progress && progress.raised_cents) || 0) / 100));
+        const supporters = sup.total_gifts;
+        const foundingEl = metricOf('founding');
+        const foundingCard = root.querySelector<HTMLElement>('.stat-card[data-stat="founding"]');
+        const subOf = (stat: string) =>
+          root.querySelector<HTMLElement>(`.stat-card[data-stat="${stat}"] .stat-card__sub`);
+
+        const sEl = metricOf('supporters');
+        const rEl = metricOf('raised');
+        if (sEl) { sEl.dataset.countTo = String(supporters); fireOnView(sEl, () => countUp(sEl, supporters)); }
+        if (rEl) { rEl.dataset.countTo = String(raised); fireOnView(rEl, () => countUp(rEl, raised)); }
+
+        if (foundingEl && foundingCard) {
+          if (sup.founding_closed) {
+            foundingCard.dataset.closed = 'true';
+            foundingEl.textContent = 'Complete';
+            const fs = subOf('founding'); if (fs) fs.textContent = `all ${sup.founding_cap} claimed`;
+          } else {
+            foundingEl.dataset.countTo = String(sup.founding_left);
+            const fs = subOf('founding'); if (fs) fs.textContent = `of ${sup.founding_cap} remaining`;
+            fireOnView(foundingEl, () => countUp(foundingEl, sup.founding_left));
+          }
+        }
+      });
+    } else {
+      // Band/donate: count up from the server-rendered snapshot targets.
+      for (const card of cards) {
+        const el = card.querySelector<HTMLElement>('.stat-card__metric');
+        if (!el) continue;
+        if (card.dataset.stat === 'founding' && card.dataset.closed === 'true') continue; // "Complete", no count
+        const to = Number(el.dataset.countTo) || 0;
+        fireOnView(el, () => countUp(el, to));
+      }
+    }
+  }
+</script>
+
+<style>
+  .stat-cards { width: 100%; }
+  .stat-cards__grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: var(--space-4);
+  }
+  @media (min-width: 768px) {
+    .stat-cards__grid { grid-template-columns: repeat(3, 1fr); }
+  }
+  .stat-card {
+    position: relative;
+    overflow: hidden;
+    min-width: 0;
+    background: var(--bg-surface);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-md);
+    padding: var(--space-6) var(--space-6) var(--space-5);
+  }
+  .stat-card__bar {
+    position: absolute;
+    left: 0;
+    top: 22%;
+    width: 3px;
+    height: 56%;
+    background: var(--accent);
+    border-radius: var(--radius-pill);
+  }
+  .stat-card__pill {
+    display: inline-block;
+    font-size: 0.6875rem;
+    font-weight: 600;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--accent);
+  }
+  .stat-card__metric {
+    margin-top: var(--space-5);
+    font-family: 'Cormorant Garamond', 'Georgia', serif;
+    font-size: clamp(2rem, 1.25rem + 2.5vw, 3.25rem);
+    font-weight: 600;
+    line-height: 1;
+    color: var(--accent);
+    font-variant-numeric: tabular-nums;
+  }
+  .stat-card__sub {
+    display: block;
+    margin-top: var(--space-2);
+    font-size: 0.8125rem;
+    color: var(--text-tertiary);
+  }
+</style>

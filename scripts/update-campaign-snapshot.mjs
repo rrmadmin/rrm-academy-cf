@@ -14,25 +14,56 @@ const __dirname = dirname(fileURLToPath(import.meta.url));
 const SNAPSHOT_PATH = join(__dirname, '..', 'src', 'data', 'campaign-snapshot.json');
 const ORIGIN = process.env.SNAPSHOT_ORIGIN || 'https://rrmacademy.org';
 
-export function toSnapshot(progress) {
-  const raised = Number(progress && progress.raised_cents);
-  const supporters = Number(progress && progress.supporters);
+const RECENT_IN_SNAPSHOT = 8;
+
+function n(v) {
+  const x = Number(v);
+  return Number.isFinite(x) ? Math.max(0, Math.round(x)) : 0;
+}
+
+export function toSnapshot(progress, supporters) {
+  const s = supporters && typeof supporters === 'object' ? supporters : {};
+  const recent = Array.isArray(s.recent)
+    ? s.recent
+        .filter((r) => r && typeof r.displayName === 'string' && r.displayName.trim())
+        .slice(0, RECENT_IN_SNAPSHOT)
+        .map((r) => ({ displayName: r.displayName, seq: n(r.seq) }))
+    : [];
+  const cap = Math.max(1, n(s.founding_cap) || 100);
   return {
-    raised_cents: Number.isFinite(raised) ? Math.max(0, Math.round(raised)) : 0,
-    supporters: Number.isFinite(supporters) ? Math.max(0, Math.round(supporters)) : 0,
+    raised_cents: n(progress && progress.raised_cents),
+    supporters: n(progress && progress.supporters),
+    recent,
+    total_gifts: n(s.total_gifts),
+    founding_left: Number.isFinite(Number(s.founding_left)) ? n(s.founding_left) : cap,
+    founding_closed: s.founding_closed === true,
   };
+}
+
+async function getJson(path) {
+  const res = await fetch(`${ORIGIN}${path}`, { headers: { accept: 'application/json' } });
+  if (!res.ok) throw new Error(`${path} returned ${res.status}`);
+  return res.json();
 }
 
 async function main() {
   const key = process.argv[2] || 'provider-directory';
-  const res = await fetch(`${ORIGIN}/api/fund-progress`, { headers: { accept: 'application/json' } });
-  if (!res.ok) {
-    console.error(`[update-campaign-snapshot] /api/fund-progress returned ${res.status}; snapshot left unchanged.`);
+  let progress;
+  try {
+    progress = await getJson('/api/fund-progress');
+  } catch (err) {
+    console.error(`[update-campaign-snapshot] ${err.message}; snapshot left unchanged.`);
     process.exit(1);
   }
-  const progress = await res.json();
+  // Supporters is best-effort: a failure here must not block the raised total.
+  let supporters = null;
+  try {
+    supporters = await getJson('/api/fund-supporters');
+  } catch (err) {
+    console.error(`[update-campaign-snapshot] fund-supporters unavailable (${err.message}); founding/recent left empty.`);
+  }
   const snap = JSON.parse(readFileSync(SNAPSHOT_PATH, 'utf8'));
-  snap[key] = toSnapshot(progress);
+  snap[key] = toSnapshot(progress, supporters);
   writeFileSync(SNAPSHOT_PATH, JSON.stringify(snap, null, 2) + '\n', 'utf8');
   console.log(`[update-campaign-snapshot] ${key}: ${JSON.stringify(snap[key])}`);
 }

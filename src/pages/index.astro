@@ -5,6 +5,12 @@ import { fetchAllArticles } from '../lib/airtable';
 import coursesData from '../data/courses.json';
 import surveyCountData from '../data/survey-count.json';
 import { buildIdentityGraph, getFoundationJsonLd, NAOMI_SAME_AS } from '../lib/identity';
+import CampaignCallout from '../components/CampaignCallout.astro';
+import campaigns from '../data/campaigns.json';
+import campaignSnapshot from '../data/campaign-snapshot.json';
+
+const providerDirectory = campaigns.find((c) => c.id === 'provider-directory');
+const providerSnapshot = campaignSnapshot['provider-directory'] || null;
 
 const articles = await fetchAllArticles();
 const articleCount = articles.length;
@@ -255,6 +261,14 @@ const jsonLd = {
     </section>
 
     <div class="page-body">
+    <!-- Fundraiser band: surface the RRM Care Directory campaign high on the page -->
+    {providerDirectory && (
+      <section class="hp-section">
+        <div class="container container--narrow">
+          <CampaignCallout campaign={providerDirectory} variant="band" snapshot={providerSnapshot} />
+        </div>
+      </section>
+    )}
     <!-- Intro -->
     <section class="hp-section">
       <div class="container container--narrow">
