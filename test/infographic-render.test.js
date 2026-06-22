@@ -43,4 +43,10 @@ describe('delta template', () => {
     const unf = renderInfographic({ template: 'delta', eyebrow: 'x', value: '3.2x', direction: 'up', polarity: 'unfavorable', label: 'risk', source: src }, { mode: 'standalone', aspect: '1:1' });
     assert.ok(unf.includes('#a0697c'), 'unfavorable uses ig-unfavorable hex');
   });
+  it('draws the chevron as a polygon, not a font glyph', () => {
+    const up = renderInfographic({ template: 'delta', eyebrow: 'x', value: '38%', direction: 'up', polarity: 'favorable', label: 'higher', source: { label: 'c', pmid: '1' } }, { mode: 'standalone', aspect: '1:1' });
+    assert.ok(up.includes('<polygon'), 'up delta has a polygon triangle');
+    assert.ok(!up.includes('▲') && !up.includes('▼'), 'no chevron glyph chars in output');
+    assert.ok(up.includes('38%'), 'value still present');
+  });
 });

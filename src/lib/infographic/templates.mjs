@@ -169,14 +169,24 @@ function renderSingle(spec, { mode, box }) {
 function renderDelta(spec, { mode, box }) {
   const w = box.w, h = box.h, pad = Math.round(w * 0.07);
   const accent = color(spec.polarity === 'favorable' ? 'ig-favorable' : spec.polarity === 'unfavorable' ? 'ig-unfavorable' : 'ig-neutral', mode);
-  const chevron = spec.direction === 'up' ? '▲' : '▼';
   const tag = spec.polarity === 'favorable' ? 'Favorable' : spec.polarity === 'unfavorable' ? 'Unfavorable' : 'Neutral';
-  const alt = `${chevron} ${spec.value} ${spec.label} (${tag}). Source: ${sourceLine(spec)}`;
+  const alt = `${spec.direction === 'up' ? 'up' : 'down'} ${spec.value} ${spec.label} (${tag}). Source: ${sourceLine(spec)}`;
   const lbl = wrapLabel(spec.label, mode, pad, h * 0.52, w - pad * 2, 40, color('text-primary', mode));
   const tagY = Math.round(h * 0.52 + (lbl.lines - 1) * lbl.lineH + 56);
   const srcY = Math.min(tagY + 60, h - Math.round(pad * 0.5));
   const body = eyebrow(spec, mode, pad, pad + 36)
-    + `<text x="${pad}" y="${h * 0.4}" class="num" font-size="${bigFont(box, 0.22, 0.30)}" font-weight="600" fill="${accent}">${escapeXml(chevron + ' ' + spec.value)}</text>`
+    + (() => {
+        const vFs = bigFont(box, 0.22, 0.30);
+        const baseY = h * 0.4;
+        const t = Math.round(vFs * 0.6);                 // triangle box
+        const topY = Math.round(baseY - vFs * 0.72);     // align near the numeral cap height
+        const up = spec.direction === 'up';
+        const tri = up
+          ? `<polygon points="${pad},${topY + t} ${pad + t},${topY + t} ${pad + t / 2},${topY}" fill="${accent}"/>`
+          : `<polygon points="${pad},${topY} ${pad + t},${topY} ${pad + t / 2},${topY + t}" fill="${accent}"/>`;
+        const vx = pad + t + Math.round(vFs * 0.3);
+        return tri + `<text x="${vx}" y="${baseY}" class="num" font-size="${vFs}" font-weight="600" fill="${accent}">${escapeXml(spec.value)}</text>`;
+      })()
     + lbl.svg
     + `<text x="${pad}" y="${tagY}" font-size="28" font-weight="600" letter-spacing="2" fill="${accent}">${escapeXml(tag.toUpperCase())}</text>`
     + provenance(spec, mode, pad, srcY, w - pad * 2);
