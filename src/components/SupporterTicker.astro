@@ -1,0 +1,117 @@
+---
+// SP2 social-proof: a tasteful "Recent supporters" strip of first-names ONLY.
+// NO amounts, NO dollar figures ever (recent[] carries displayName + seq only).
+//
+// Data (mirrors CampaignCallout band/card split):
+//   variant 'card' -> minimal server skeleton, then a per-variant <script> calls
+//     getSupporters() (memoized, fail-soft) and paints names client-side.
+//   variant 'band' -> server-rendered from the `snapshot` prop ONLY (no fetch on
+//     the apex). Renders nothing if the snapshot has no recent names.
+//
+// ESCAPING: display_name is UNTRUSTED. Server render uses {s.displayName} (Astro
+// auto-escapes). Client render escapes every name via escapeHtml() before it ever
+// reaches innerHTML. There is ZERO interpolation of a raw name into raw markup.
+import type { Supporter } from '../scripts/fund-supporters';
+
+interface Snapshot {
+  recent?: Supporter[];
+  total_gifts?: number;
+  founding_left?: number;
+  founding_closed?: boolean;
+}
+
+interface Props {
+  variant?: 'band' | 'card';
+  snapshot?: Snapshot | null;
+}
+
+const { variant = 'card', snapshot = null } = Astro.props;
+
+// Band paints from the snapshot at build time; card paints live in the browser.
+const bandRecent: Supporter[] =
+  variant === 'band' && snapshot && Array.isArray(snapshot.recent) ? snapshot.recent : [];
+
+// Renders nothing when there are no recent supporters (band decides at build;
+// card always emits the skeleton and decides at runtime).
+const render = variant === 'card' || bandRecent.length > 0;
+---
+{render && (
+  <aside
+    class={`supporter-ticker supporter-ticker--${variant}`}
+    data-variant={variant}
+    data-pagefind-ignore
+    aria-labelledby="supporter-ticker-heading"
+    hidden={variant === 'card'}
+  >
+    <h2 id="supporter-ticker-heading" class="sr-only">Recent supporters</h2>
+    <span class="st-label" aria-hidden="true">Recent supporters</span>
+    <ul class="st-names" data-st-names>
+      {bandRecent.map((s) => (
+        <li class="st-name">{s.displayName}</li>
+      ))}
+    </ul>
+  </aside>
+)}
+
+{variant === 'card' && (
+  <script>
+    import { getSupporters, escapeHtml } from '../scripts/fund-supporters';
+    const root = document.querySelector<HTMLElement>('.supporter-ticker--card[data-variant="card"]');
+    if (root) {
+      const list = root.querySelector<HTMLElement>('[data-st-names]');
+      getSupporters().then((data) => {
+        const recent = data.recent;
+        // No recent supporters -> render nothing (keep the skeleton hidden).
+        if (!list || !recent.length) return;
+        // escapeHtml() runs on every untrusted displayName before it touches innerHTML.
+        list.innerHTML = recent
+          .map((s) => `<li class="st-name">${escapeHtml(s.displayName)}</li>`)
+          .join('');
+        root.hidden = false;
+      });
+    }
+  </script>
+)}
+
+<style>
+  .supporter-ticker {
+    display: flex;
+    align-items: baseline;
+    flex-wrap: wrap;
+    gap: var(--space-2) var(--space-3);
+    min-width: 0;
+  }
+  .st-label {
+    flex-shrink: 0;
+    font-size: 0.6875rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--text-tertiary);
+    line-height: 1.5;
+  }
+  .st-names {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: var(--space-2) var(--space-3);
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    min-width: 0;
+  }
+  .st-name {
+    font-size: 0.875rem;
+    font-weight: 500;
+    line-height: 1.5;
+    color: var(--text-secondary);
+    white-space: nowrap;
+  }
+  /* Quiet dot separator between names; never before the first. Decorative only,
+     so a missing leading dot carries no meaning. */
+  .st-name + .st-name::before {
+    content: '·';
+    margin-right: var(--space-3);
+    color: var(--text-tertiary);
+  }
+</style>
