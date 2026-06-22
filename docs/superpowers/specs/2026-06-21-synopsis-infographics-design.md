@@ -341,3 +341,96 @@ Default export emits all four; each yields PNG + WebP + SVG.
 All four templates rendered at all four aspects in branded frame: well-formed XML, zero
 em/en dashes, no element off-canvas, wordmark + footer present. On-page inline render
 byte-stable for the existing samples (bare, unframed). Screenshot each aspect for sign-off.
+
+## Phase 4: Share kit (2026-06-22, approved extension)
+
+Surface the social posts to site visitors so they share them. A "Share these findings"
+panel below the synopsis infographic offers ready-made downloads + a one-click X share +
+a copy-paste caption. PNGs render on-demand at the edge (no R2 storage). On-page render,
+worker, and D1 schema (except the optional `share_caption` field) are otherwise unchanged.
+The "OG image is the infographic" enhancement is explicitly OUT of scope (deferred).
+
+### 4-a. On-demand PNG endpoint (edge, no storage)
+
+A CF Pages function `functions/infographic/[[path]].js` serves
+`GET /infographic/<articleId>/<preset>.png` (alias query `?dl=1` adds
+`Content-Disposition: attachment` so it downloads rather than displays). It renders the
+article's `infographic` spec through the SHARED renderer (`src/lib/infographic/templates.mjs`,
+`renderInfographic(spec, { mode: 'standalone', aspect, frame: 'branded', platform })`) to an
+SVG, then rasterizes to PNG with `@resvg/resvg-wasm` (the same WASM family the OG pipeline
+uses), with the Cormorant Garamond (400/600) and Inter (400/500/600) font buffers loaded so
+the text renders. `preset` is one of `square|portrait|story|card` (allowlisted; maps to the
+aspect + canvas size). `Cache-Control: public, max-age=86400, s-maxage=86400,
+stale-while-revalidate=604800` (mirrors OG; never `immutable`). Add `/infographic` to the
+rrm-router `ASTRO_ROUTES` array (same as `/og`) so the apex reaches the function.
+
+Gating + validation: the function reads a static `src/data/infographic-index.json`
+(articleId -> spec), built at deploy from `articles.json` for rows with a non-null
+`infographic` AND `infographic_approved` semantics already applied upstream (the build
+mapper only carries `infographic` for approved rows, per Phase 2). An unknown id, a
+non-allowlisted preset, or a missing/invalid spec returns the branded fallback card (a 200
+PNG, never a 404 that poisons caches, mirroring OG's fallback). `articleId` and `preset` are
+length- and pattern-validated before use. The spec is re-validated with `validate.mjs`; an
+invalid stored spec yields the fallback, not a throw.
+
+### 4-b. Deploy-time index
+
+`scripts/build-infographic-index.mjs` (runs inside `npm run build`, after fetch, like
+`build-og-index.mjs`) writes `src/data/infographic-index.json` = `{ "<articleId>": <spec> }`
+for every article whose mapped `infographic` is non-null. Gitignored build artifact.
+
+### 4-c. Share-kit UI (Share button + popover)
+
+A `src/components/ShareKit.astro` rendered directly below `SynopsisInfographic` (only when
+`article.infographic` is present + valid). It is NOT an always-visible panel: it is a single
+"Share" pill that opens a popover menu, matching the existing "Add to AI" popover on the
+guides/glossary (`GlossaryTerm.astro`, button with `aria-haspopup="menu"` +
+`aria-expanded`, outside-click + Escape to close, focus management). The implementer copies
+that popover's open/close/aria/keyboard mechanics rather than inventing new ones.
+
+The trigger is a "Share" pill (Share2 icon, matching the page's existing share control). The
+popover menu contains, as selectable items:
+- "Instagram square", "Instagram portrait", "Instagram story", "X / link card" -- each a
+  menu item linking to `/infographic/<id>/<preset>.png?dl=1` (download the chosen version).
+- "Share on X" -- opens `https://x.com/intent/tweet?text=<encoded caption>&url=<encoded page
+  URL>` in a new tab (the link unfurls the existing OG card; caption pre-filled).
+- "Copy caption" -- writes the share caption to the clipboard with a toast, in place.
+
+Behavior + safety:
+- The popover is positioned relative to the Share trigger (anchored, not full-width), the
+  same way the "Add to AI" menu is.
+- Reuses the existing `share_click` analytics event (`network: 'download-<preset>' |
+  'x-intent' | 'copy-caption'`), matching the page's current share button.
+- All operator-supplied text (the caption) is HTML-escaped before render; the X-intent URL
+  uses `encodeURIComponent`.
+- Reduced-motion safe; the menu is keyboard-navigable (arrow keys / Enter / Escape) per the
+  existing popover.
+
+### 4-d. The share caption (operator-written)
+
+The infographic spec gains an optional `share_caption` string. The operator writes it; the
+`/rrm-infographic` skill's assist PROPOSES one from the synopsis for confirmation (same
+propose-and-confirm posture as the stat value, never auto-published). `validate.mjs` checks
+it when present: max length (240 chars, room for the URL within X's limit), the em/en dash
+ban, and no control characters. If absent, the UI falls back to a minimal caption: the
+article title plus "New research from RRM Academy" plus the URL. The caption is editorial
+copy and is governed by the existing rules (no patient claims, no leading "Yes", no
+absolutist copy); the operator override is the governance point.
+
+### 4-e. Files (held branch)
+
+- `functions/infographic/[[path]].js` (new): the on-demand PNG endpoint + fallback.
+- `scripts/build-infographic-index.mjs` (new) + a `package.json` build-step hook.
+- `src/components/ShareKit.astro` (new) + its client script (copy, X-intent, analytics).
+- `src/pages/library/[...slug].astro` (edit): render `<ShareKit>` after `<SynopsisInfographic>` in BOTH synopsis blocks.
+- `src/lib/infographic/{types,validate}.mjs` (edit): optional `share_caption` + its checks.
+- `~/iCode/projects/rrm-router/src/index.js` (edit): add `/infographic` to `ASTRO_ROUTES`.
+- `@resvg/resvg-wasm` added as a dependency (runtime, edge).
+
+### 4-f. Verification
+
+- The endpoint returns a valid PNG (magic bytes) at each preset for an approved article; correct `Cache-Control`; an unknown id / bad preset returns the fallback PNG (200), not a 404.
+- `validate.mjs` rejects a `share_caption` over 240 chars or containing an em/en dash.
+- The ShareKit renders the four download links with correct hrefs, the X-intent URL is correctly encoded, copy-caption writes to the clipboard, and the caption is HTML-escaped.
+- ShareKit appears only when a valid `infographic` is present; absent otherwise.
+- Held: the router change, the endpoint, and the UI deploy only at go-live.
