@@ -434,3 +434,49 @@ absolutist copy); the operator override is the governance point.
 - The ShareKit renders the four download links with correct hrefs, the X-intent URL is correctly encoded, copy-caption writes to the clipboard, and the caption is HTML-escaped.
 - ShareKit appears only when a valid `infographic` is present; absent otherwise.
 - Held: the router change, the endpoint, and the UI deploy only at go-live.
+
+### 4-g. Hardening (adversarial review 2026-06-22)
+
+A 6-lens adversarial workflow attacked Phase 4. These corrections are binding and override
+the matching clauses above. (The copyright/likeness lens finding is dismissed: the graphic
+is an original house-style rendering of non-copyrightable facts/numbers, not a lifted figure.)
+
+BLOCKER (corrects 4-a):
+- `@resvg/resvg-wasm` has NO font API; it cannot draw `<text>`. 4-a's "load font buffers so the text renders" is wrong. The OG pipeline only works because satori outlines text to vector paths before resvg sees it. Therefore the edge render MUST hand resvg an SVG with ZERO `<text>`: either (a) route generation through satori/workers-og (the OG mechanism), or (b) pre-outline every `<text>` to `<path>` with opentype.js using the committed Cormorant/Inter font files before resvg. State the exact mechanism and the pinned resvg-wasm version in the build. 4-f MUST assert a known numeral's glyph pixels are present in the output PNG (not just magic bytes + dimensions; the original 4-f passes a fully blank render).
+- The delta chevron `▲`/`▼` is a font glyph (U+25B2/U+25BC) absent from the latin subset; it vanishes at the edge and defeats the "color is not the only signal" invariant. Change `renderDelta` in `templates.mjs` to draw the chevron as a `<polygon>` triangle (font-independent), on-page and at the edge. 4-f asserts chevron pixels present.
+
+COST / ABUSE (corrects 4-a; this endpoint is public, unauthenticated, heavier than OG, and advertised as clickable links):
+- Do NOT inherit OG's "rate limiting omitted." Gate the cache-MISS branch with the existing `checkRateLimit(env, \`infographic:<ip>\`, ...)` (COMMUNITY_KV, `CF-Connecting-IP`), concrete budget e.g. 60 renders/IP/10min; fail-OPEN to the fallback card on KV outage (an image endpoint degrades, it does not 503).
+- Normalize the cache key to path + the single allowlisted `dl` flag; ignore all other query params (the `No-Vary-Search: params, except=("dl")` pattern already in `public/_headers`, or an explicit `caches.default` get/put on a normalized key). Render once; set `Content-Disposition` by flag without forking the raster. So `?x=1`/`?x=2` cannot bust the cache.
+- The branded fallback is a single PRE-RENDERED static PNG served with zero resvg invocation under one stable cache key, so cache-misses cannot be weaponized.
+- Add a CF Analytics/billing alarm on `/infographic/*` invocation count + CPU-time (new public compute endpoint on a nonprofit budget).
+- Pin `Content-Type: image/png`; bound the output bytes; bundle the font files as committed deploy assets loaded once per isolate (assert zero outbound subrequests on a cold render). Pin `Access-Control-Allow-Origin: https://rrmacademy.org` on success and fallback; the fallback echoes no request-derived text.
+
+GATING / FIDELITY:
+- Retraction/de-approval staleness: build `infographic-index.json` off a FULL `fetchAll` of `articles.json` (never the single-record-merged cache), so a reset/retracted row drops from the index on any rebuild. Any `infographic_approved` reset or retraction MUST dispatch a rebuild AND a `cf-cache-purge` of `/infographic/<id>/*` (the 24h s-maxage + 7d stale-while-revalidate otherwise serve a pulled graphic for up to a week). Add the purge to the go-live + retraction runbook.
+- `share_caption` governance: it is the one string visitors broadcast and it is NOT in the rendered image, so the go-live image preview never surfaces it. Add the caption to the go-live preview surface. `validate.mjs` adds a deterministic lint: reject a leading "Yes", the absolutist tokens on the memory ban list, and apply the `rrma-not-patient-funnel-to-naomi` rule (no caption routes patients to a provider or Dr. Whittaker). Force caption re-confirmation on any `infographic_approved` reset. Cap so `caption + 1 + 23 (t.co) <= 280`, and apply the SAME cap to the absent-caption fallback string (the title can overflow it).
+- Decontextualized single numbers: `single` and `delta` labels MUST carry the denominator/population (the share surface inherits the on-page stat-link-fidelity discipline). The `/rrm-infographic` assist prompts for it; absent context is an operator-resolved gate, not a silent pass.
+- Render parity: the operator approves a Chromium artifact while the visitor downloads the resvg render. Resolve by rendering the go-live PREVIEW through the SAME edge path (preview == public), so what is approved is what ships. (With the satori-outline blocker fix, there is one rasterizer.)
+
+UI (corrects 4-c):
+- The reference "Add to AI" popover (`GlossaryTerm.astro`) handles ONLY Escape + outside-click, not arrow keys. Drop the false "arrow-key per the existing popover" claim: ShareKit is a plain disclosure / `role="group"` of buttons (Tab is the expected nav) reusing only the open/close/Escape/outside-click mechanics. No `role="menu"` without roving tabindex.
+- "Copy caption" uses the robust fallback chain from the page's own `#share-btn` (`execCommand('copy')` + selectable-field fallback) for in-app webviews (IG/FB/X) where `navigator.clipboard` is absent.
+- Pass the server-rendered `canonicalUrl` as a prop for the X-intent `url`; do not derive from `window.location`.
+- On "Share on X", also copy the caption to the clipboard (x.com/intent drops prefilled text in the logged-out / native-app mobile flow).
+- Relabel download items action-honestly, e.g. "Download square 1:1 (sized for Instagram)"; on mobile, route image items through `navigator.share({ files })` when available, since Instagram has no web post path and `?dl=1` saves inconsistently on iOS.
+
+ENDPOINT SAFETY (corrects 4-a):
+- Validate `articleId` against an exact pattern (e.g. `^rec[A-Za-z0-9]{14}$`) and use `Object.hasOwn(index, id)` for the lookup (block `__proto__`/`constructor` prototype pollution).
+
+OG ENHANCEMENT (REVIVED, reverses the Phase-4 cut): make the page's OG/Twitter image BE the infographic `card` (1.91:1) when an article has an approved infographic, so a Share-on-X link unfurls the actual stat (matching the downloadable asset) instead of the generic card. Reuses the same edge render. Ensure `twitter:card=summary_large_image`. Falls back to the generic OG card when no infographic.
+
+ACCEPTED (documented, not fixed): when an article is fully unpublished, in-flight shares on X keep the image but the `/library/<slug>/` destination 404s/301s. This is the same lifecycle as any unpublished page; no special handling.
+
+### 4-h. Verification additions
+
+- Output PNG contains the expected numeral glyph pixels AND (for delta) the chevron triangle pixels, not merely valid magic bytes + dimensions.
+- `?foo=bar` and `?foo=baz` resolve to the SAME cached object (cache-key normalized); the fallback path performs zero rasterization.
+- The cache-miss rate limiter trips at the stated budget and degrades to the fallback (not 503) on KV outage.
+- `validate.mjs` rejects a caption with a leading "Yes" / an absolutist token, and caps the fallback caption under the X limit.
+- The go-live preview renders via the edge path (preview == public).
+- `Content-Type: image/png` and `Access-Control-Allow-Origin` pinned on success + fallback; a cold render makes zero outbound subrequests.
