@@ -18,14 +18,19 @@ export async function buildAssets({ articles, outDir }) {
     const spec = a && a.infographic;
     if (!spec || typeof spec !== 'object') continue;
     if (!validateSpec(spec).valid) continue; // a stored-invalid spec is skipped, not a build failure
-    const dir = join(outDir, 'infographic', a.id);
-    mkdirSync(dir, { recursive: true });
-    for (const p of PRESETS) {
-      const svg = renderInfographic(spec, { mode: 'standalone', aspect: p.aspect, frame: 'branded' });
-      const png = await rasterize(svg);
-      const out = join(dir, `${p.name}.png`);
-      writeFileSync(out, png);
-      written.push(out);
+    try {
+      const dir = join(outDir, 'infographic', a.id);
+      mkdirSync(dir, { recursive: true });
+      for (const p of PRESETS) {
+        const svg = renderInfographic(spec, { mode: 'standalone', aspect: p.aspect, frame: 'branded' });
+        const png = await rasterize(svg);
+        const out = join(dir, `${p.name}.png`);
+        writeFileSync(out, png);
+        written.push(out);
+      }
+    } catch (e) {
+      console.warn(`infographic assets: SKIPPED ${a.id} (${e.message})`);
+      continue;
     }
   }
   return { written };
