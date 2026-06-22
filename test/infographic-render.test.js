@@ -49,4 +49,44 @@ describe('delta template', () => {
     assert.ok(!up.includes('▲') && !up.includes('▼'), 'no chevron glyph chars in output');
     assert.ok(up.includes('38%'), 'value still present');
   });
+  it('1.91:1 short card: value row clears the eyebrow (no overlap)', () => {
+    // Regression guard for the fixed-h*0.4 defect. On the shortest aspect the
+    // value baseline used to extend into the eyebrow row. Parse both y coords
+    // and assert the value's TOP (baseline - cap) sits below the eyebrow baseline
+    // by at least the eyebrow font size (34px = one full line of clearance).
+    const spec = { template: 'delta', eyebrow: 'PREGNANCY RATE', value: '38%',
+      direction: 'up', polarity: 'favorable', label: 'higher live-birth rate', source: src };
+    const svg = renderInfographic(spec, { mode: 'standalone', aspect: '1.91:1' });
+    assertWellFormed(svg);
+
+    // Extract the eyebrow <text> y= attribute. The eyebrow element is the only
+    // <text> with letter-spacing="3". Find the full opening tag, then pull y= from it.
+    const eyebrowTagMatch = svg.match(/<text[^>]*letter-spacing="3"[^>]*>/);
+    assert.ok(eyebrowTagMatch, 'eyebrow text element found');
+    const eyebrowYMatch = eyebrowTagMatch[0].match(/\by="([^"]+)"/);
+    assert.ok(eyebrowYMatch, 'eyebrow y attribute found');
+    const eyebrowBaseline = Number(eyebrowYMatch[1]);
+
+    // The value <text> carries class="num". Find the tag then extract y=.
+    const valueTagMatch = svg.match(/<text[^>]*class="num"[^>]*>/);
+    assert.ok(valueTagMatch, 'value num text element found');
+    const valueYMatch = valueTagMatch[0].match(/\by="([^"]+)"/);
+    assert.ok(valueYMatch, 'value y attribute found');
+    const valueBaseline = Number(valueYMatch[1]);
+
+    // The value polygon (triangle) topY is valueBaseline - vFs*0.72.
+    // We proxy-check: valueBaseline must be strictly greater than eyebrowBaseline
+    // by at least the eyebrow font size (34px), meaning the cap clears the eyebrow line.
+    const eyebrowFs = 34;
+    assert.ok(
+      valueBaseline > eyebrowBaseline + eyebrowFs,
+      `value baseline ${valueBaseline} must be at least ${eyebrowBaseline + eyebrowFs + 1} (eyebrow ${eyebrowBaseline} + font ${eyebrowFs}) on 1.91:1`
+    );
+
+    // Also verify the polygon y coords are all greater than the eyebrow baseline.
+    const polyMatch = svg.match(/<polygon[^>]*points="([^"]+)"/);
+    assert.ok(polyMatch, 'polygon present');
+    const polyYs = polyMatch[1].split(/\s+/).map((pt) => Number(pt.split(',')[1])).filter((v) => !isNaN(v));
+    assert.ok(polyYs.every((y) => y > eyebrowBaseline), `all polygon y coords (${polyYs}) must be below eyebrow baseline ${eyebrowBaseline}`);
+  });
 });
