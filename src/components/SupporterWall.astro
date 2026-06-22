@@ -1,0 +1,154 @@
+---
+// SP2 social-proof: a wall of initials circles for the consented recent
+// supporters, capped with "and N who gave anonymously"
+// (N = max(0, total_gifts - consented_count)).
+//
+// Data (mirrors CampaignCallout band/card split):
+//   variant 'card' -> minimal server skeleton, then a per-variant <script> calls
+//     getSupporters() (memoized, fail-soft) and paints the circles client-side.
+//   variant 'band' -> server-rendered from the `snapshot` prop ONLY (no apex fetch).
+//
+// Renders nothing when total_gifts is 0.
+//
+// ESCAPING: display_name is UNTRUSTED. Initials are derived via initials() (letters
+// only, already safe) but the per-circle title/aria uses the full name, so the
+// server path relies on Astro auto-escaping ({...}) and the client path builds the
+// circle with textContent (initials) + setAttribute (title) — NEVER innerHTML with a
+// raw name. ZERO interpolation of a raw name into raw markup.
+import { initials } from '../scripts/fund-supporters';
+import type { Supporter } from '../scripts/fund-supporters';
+
+interface Snapshot {
+  recent?: Supporter[];
+  total_gifts?: number;
+  consented_count?: number;
+  founding_left?: number;
+  founding_closed?: boolean;
+}
+
+interface Props {
+  variant?: 'band' | 'card';
+  snapshot?: Snapshot | null;
+}
+
+const { variant = 'card', snapshot = null } = Astro.props;
+
+const isBand = variant === 'band';
+const bandRecent: Supporter[] =
+  isBand && snapshot && Array.isArray(snapshot.recent) ? snapshot.recent : [];
+const bandTotal = isBand && snapshot && typeof snapshot.total_gifts === 'number'
+  ? Math.max(0, Math.round(snapshot.total_gifts)) : 0;
+const bandConsented = isBand && snapshot && typeof snapshot.consented_count === 'number'
+  ? Math.max(0, Math.round(snapshot.consented_count)) : 0;
+const bandAnon = Math.max(0, bandTotal - bandConsented);
+
+// Band renders nothing when total_gifts is 0; card always emits the skeleton and
+// decides at runtime.
+const render = variant === 'card' || bandTotal > 0;
+---
+{render && (
+  <section
+    class={`supporter-wall supporter-wall--${variant}`}
+    data-variant={variant}
+    data-pagefind-ignore
+    aria-labelledby="supporter-wall-heading"
+    hidden={variant === 'card'}
+  >
+    <h2 id="supporter-wall-heading" class="sr-only">People who gave</h2>
+    <ul class="sw-grid" data-sw-grid>
+      {bandRecent.map((s) => (
+        <li class="sw-cell">
+          <span class="sw-circle" title={s.displayName}>{initials(s.displayName)}</span>
+        </li>
+      ))}
+    </ul>
+    <p class="sw-anon" data-sw-anon hidden={bandAnon <= 0}>
+      and <span data-sw-anon-count>{bandAnon}</span> who gave anonymously
+    </p>
+  </section>
+)}
+
+{variant === 'card' && (
+  <script>
+    import { getSupporters, initials } from '../scripts/fund-supporters';
+    const root = document.querySelector<HTMLElement>('.supporter-wall--card[data-variant="card"]');
+    if (root) {
+      const grid = root.querySelector<HTMLElement>('[data-sw-grid]');
+      const anonP = root.querySelector<HTMLElement>('[data-sw-anon]');
+      const anonCount = root.querySelector<HTMLElement>('[data-sw-anon-count]');
+      getSupporters().then((data) => {
+        // Renders nothing when total_gifts is 0.
+        if (data.total_gifts <= 0) return;
+        if (grid) {
+          grid.replaceChildren();
+          for (const s of data.recent) {
+            const li = document.createElement('li');
+            li.className = 'sw-cell';
+            const circle = document.createElement('span');
+            circle.className = 'sw-circle';
+            // textContent + setAttribute keep the UNTRUSTED name out of any markup string.
+            circle.textContent = initials(s.displayName);
+            circle.setAttribute('title', s.displayName);
+            li.appendChild(circle);
+            grid.appendChild(li);
+          }
+        }
+        const anon = Math.max(0, data.total_gifts - data.consented_count);
+        if (anonP && anonCount) {
+          anonCount.textContent = String(anon);
+          anonP.hidden = anon <= 0;
+        }
+        root.hidden = false;
+      });
+    }
+  </script>
+)}
+
+<style>
+  .supporter-wall {
+    min-width: 0;
+  }
+  .sw-grid {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-2);
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    min-width: 0;
+  }
+  .sw-cell {
+    display: block;
+  }
+  .sw-circle {
+    flex-shrink: 0;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 40px;
+    height: 40px;
+    border-radius: var(--radius-pill);
+    background: var(--bg-surface);
+    border: 1px solid var(--border-color);
+    color: var(--accent);
+    font-family: 'Cormorant Garamond', 'Georgia', serif;
+    font-weight: 600;
+    font-size: 0.875rem;
+    line-height: 1;
+    letter-spacing: 0.01em;
+    font-variant-numeric: tabular-nums;
+    user-select: none;
+  }
+  .sw-anon {
+    margin: var(--space-3) 0 0;
+    font-size: 0.875rem;
+    line-height: 1.5;
+    color: var(--text-tertiary);
+  }
+  .sw-anon [data-sw-anon-count] {
+    font-family: 'Cormorant Garamond', 'Georgia', serif;
+    font-weight: 600;
+    color: var(--text-secondary);
+    font-variant-numeric: tabular-nums;
+  }
+</style>

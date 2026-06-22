@@ -162,6 +162,10 @@
       "hash": "dee0cc343a95736625a99ec8fa12565d589caeffade1aec614519a3047d7f81b",
       "note": "Pre-checkout account lookup"
     },
+    "functions/api/billing/supporter-badge.js": {
+      "hash": "54daebbe8e21fdb7157ede3263465bc4c44656c2fec8351548969dd8d0a32744",
+      "note": "Supporter badge lookup (session_id -> consented name + seq, always-200 fail-soft)"
+    },
     "functions/api/billing/_webhook-invoice.js": {
       "hash": "2c36c046ff94905f9d55a5a4ec84e1d5623f7bce9a0c002657440ce93583777c",
       "note": "Invoice event handler"
