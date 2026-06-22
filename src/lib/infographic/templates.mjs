@@ -190,38 +190,65 @@ function renderBars(spec, { mode, box }) {
   const axisMax = spec.unit === '%' ? 100 : Math.max(...spec.bars.map((b) => b.value));
   const alt = spec.bars.map((b) => `${b.name} ${b.value}${spec.unit}`).join('; ') + `. Source: ${sourceLine(spec)}`;
   const n = spec.bars.length;
-  // Horizontal bars: length encodes the value at every aspect; the number sits inside.
-  // Inline name labels (left of each bar) keep rows compact; the bar group is centered
-  // with fixed spacing so it never spreads (tall) or crams (short card).
-  const nameColW = Math.round(plotW * 0.28);
-  const trackX = pad + nameColW;
-  const trackW = plotW - nameColW;
-  const plotTop = pad + 134;          // below eyebrow + caption
-  const plotBottom = provY - 54;      // room for the source line
-  const plotAvail = plotBottom - plotTop;
-  const gap = 40;
-  const barH = Math.min(112, Math.max(34, Math.round((plotAvail - gap * (n - 1)) / n)));
-  const groupH = n * barH + gap * (n - 1);
-  const startY = plotTop + Math.max(0, Math.round((plotAvail - groupH) / 2));
+  // Orientation follows the box: tall boxes (story 9:16) get VERTICAL columns that use
+  // the height; wide/short boxes (card, on-page, square) get HORIZONTAL bars.
+  const vertical = h / w >= 1.3;
   let rows = '';
-  spec.bars.forEach((b, i) => {
-    const barY = startY + i * (barH + gap);
-    const midY = Math.round(barY + barH / 2);
-    const ratio = axisMax > 0 ? Math.min(b.value / axisMax, 1) : 0;
-    const fillW = Math.max(Math.round(trackW * ratio), barH);
-    const fill = b.hero ? color('purple-700', mode) : color('purple-300', mode);
-    const valStr = String(b.value) + spec.unit;
-    const vFs = Math.min(Math.round(barH * 0.58), 60);
-    const nameFs = Math.min(Math.round(barH * 0.34), 30);
-    const inside = fillW > vFs * 3;
-    const vX = inside ? trackX + fillW - Math.round(vFs * 0.45) : trackX + fillW + 22;
-    const vAnchor = inside ? 'end' : 'start';
-    const vFill = inside ? (b.hero ? color('bg-body', mode) : color('purple-900', mode)) : color('text-primary', mode);
-    rows += `<text x="${trackX - 22}" y="${midY + Math.round(nameFs * 0.34)}" text-anchor="end" font-size="${nameFs}" font-weight="600" fill="${color('text-secondary', mode)}">${escapeXml(b.name)}</text>`
-      + `<rect x="${trackX}" y="${barY}" width="${trackW}" height="${barH}" rx="${Math.round(barH * 0.18)}" fill="${color('purple-50', mode)}"/>`
-      + `<rect x="${trackX}" y="${barY}" width="${fillW}" height="${barH}" rx="${Math.round(barH * 0.18)}" fill="${fill}"/>`
-      + `<text x="${vX}" y="${midY + Math.round(vFs * 0.34)}" text-anchor="${vAnchor}" class="num" font-size="${vFs}" font-weight="600" fill="${vFill}">${escapeXml(valStr)}</text>`;
-  });
+  if (vertical) {
+    const plotTop = pad + 142;
+    const plotBottom = provY - 132;         // room for the name labels (below cols) AND the source
+    const plotH = plotBottom - plotTop;
+    const gap = Math.round(w * 0.06);
+    const colW = Math.round((plotW - gap * (n - 1)) / n);
+    spec.bars.forEach((b, i) => {
+      const x = pad + i * (colW + gap);
+      const ratio = axisMax > 0 ? Math.min(b.value / axisMax, 1) : 0;
+      const colH = Math.max(Math.round(plotH * ratio), 12);
+      const y = plotBottom - colH;
+      const fill = b.hero ? color('purple-700', mode) : color('purple-300', mode);
+      const valStr = String(b.value) + spec.unit;
+      const vFs = Math.min(Math.round(colW * 0.32), 92);
+      const fitsInside = colH > vFs * 1.7;
+      const vY = fitsInside ? y + vFs + 22 : y - 26;
+      const vFill = fitsInside ? (b.hero ? color('bg-body', mode) : color('purple-900', mode)) : color('text-primary', mode);
+      const cxc = x + colW / 2;
+      rows += `<rect x="${x}" y="${plotTop}" width="${colW}" height="${plotH}" rx="14" fill="${color('purple-50', mode)}"/>`
+        + `<rect x="${x}" y="${y}" width="${colW}" height="${colH}" rx="14" fill="${fill}"/>`
+        + `<text x="${cxc}" y="${vY}" text-anchor="middle" class="num" font-size="${vFs}" font-weight="600" fill="${vFill}">${escapeXml(valStr)}</text>`
+        + `<text x="${cxc}" y="${plotBottom + 50}" text-anchor="middle" font-size="32" font-weight="600" fill="${color('text-secondary', mode)}">${escapeXml(b.name)}</text>`;
+    });
+  } else {
+    // Horizontal bars: inline name labels keep rows compact; the group is centered with
+    // fixed spacing so it never spreads (tall) or crams (short card).
+    const nameColW = Math.round(plotW * 0.28);
+    const trackX = pad + nameColW;
+    const trackW = plotW - nameColW;
+    const plotTop = pad + 110;
+    const plotBottom = provY - 46;
+    const plotAvail = plotBottom - plotTop;
+    const gap = Math.round(Math.min(40, plotAvail * 0.16));
+    const barH = Math.min(140, Math.max(34, Math.round((plotAvail - gap * (n - 1)) / n)));
+    const groupH = n * barH + gap * (n - 1);
+    const startY = plotTop + Math.max(0, Math.round((plotAvail - groupH) / 2));
+    spec.bars.forEach((b, i) => {
+      const barY = startY + i * (barH + gap);
+      const midY = Math.round(barY + barH / 2);
+      const ratio = axisMax > 0 ? Math.min(b.value / axisMax, 1) : 0;
+      const fillW = Math.max(Math.round(trackW * ratio), barH);
+      const fill = b.hero ? color('purple-700', mode) : color('purple-300', mode);
+      const valStr = String(b.value) + spec.unit;
+      const vFs = Math.min(Math.round(barH * 0.58), 60);
+      const nameFs = Math.min(Math.round(barH * 0.34), 30);
+      const inside = fillW > vFs * 3;
+      const vX = inside ? trackX + fillW - Math.round(vFs * 0.45) : trackX + fillW + 22;
+      const vAnchor = inside ? 'end' : 'start';
+      const vFill = inside ? (b.hero ? color('bg-body', mode) : color('purple-900', mode)) : color('text-primary', mode);
+      rows += `<text x="${trackX - 22}" y="${midY + Math.round(nameFs * 0.34)}" text-anchor="end" font-size="${nameFs}" font-weight="600" fill="${color('text-secondary', mode)}">${escapeXml(b.name)}</text>`
+        + `<rect x="${trackX}" y="${barY}" width="${trackW}" height="${barH}" rx="${Math.round(barH * 0.18)}" fill="${color('purple-50', mode)}"/>`
+        + `<rect x="${trackX}" y="${barY}" width="${fillW}" height="${barH}" rx="${Math.round(barH * 0.18)}" fill="${fill}"/>`
+        + `<text x="${vX}" y="${midY + Math.round(vFs * 0.34)}" text-anchor="${vAnchor}" class="num" font-size="${vFs}" font-weight="600" fill="${vFill}">${escapeXml(valStr)}</text>`;
+    });
+  }
   const body = eyebrow(spec, mode, pad, pad + 36)
     + `<text x="${pad}" y="${pad + 84}" font-size="34" fill="${color('text-primary', mode)}">${escapeXml(spec.caption)}</text>`
     + rows
@@ -284,8 +311,8 @@ export function renderInfographic(spec, opts = {}) {
 
   const pad = Math.round(canvas.w * 0.07);
   // Bands clamped by height so a short aspect (the 1.91:1 card) keeps its content area.
-  const footerBandH = Math.round(Math.min(canvas.w * 0.085, canvas.h * 0.13));
-  const topBand = wantWordmark ? Math.round(Math.min(canvas.w * 0.115, canvas.h * 0.17)) : 0;
+  const footerBandH = Math.round(Math.min(canvas.w * 0.085, canvas.h * 0.115));
+  const topBand = wantWordmark ? Math.round(Math.min(canvas.w * 0.115, canvas.h * 0.15)) : 0;
   const box = { x: 0, y: topBand, w: canvas.w, h: canvas.h - topBand - footerBandH };
   let chrome = footerBand(canvas, box.y + box.h, mode, platform, pad);
   if (wantWordmark) chrome = wordmarkBand(canvas, pad, topBand, mode) + chrome;
