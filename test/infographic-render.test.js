@@ -49,6 +49,12 @@ describe('delta template', () => {
     assert.ok(!up.includes('▲') && !up.includes('▼'), 'no chevron glyph chars in output');
     assert.ok(up.includes('38%'), 'value still present');
   });
+  it('down direction: polygon present, no glyph chars, value renders', () => {
+    const down = renderInfographic({ template: 'delta', eyebrow: 'x', value: '12%', direction: 'down', polarity: 'unfavorable', label: 'lower', source: { label: 'c', pmid: '1' } }, { mode: 'standalone', aspect: '1:1' });
+    assert.ok(down.includes('&lt;polygon') || down.includes('<polygon'), 'down delta has a polygon triangle');
+    assert.ok(!down.includes('▲') && !down.includes('▼'), 'no chevron glyph chars in output');
+    assert.ok(down.includes('12%'), 'value still present');
+  });
   it('1.91:1 short card: value row clears the eyebrow (no overlap)', () => {
     // Regression guard for the fixed-h*0.4 defect. On the shortest aspect the
     // value baseline used to extend into the eyebrow row. Parse both y coords

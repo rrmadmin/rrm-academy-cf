@@ -63,7 +63,7 @@ const xIntent = `https://x.com/intent/tweet?text=${encodeURIComponent(caption ||
       const net = a.getAttribute('data-net');
       track(net);
       // On the X item, also copy the caption (mobile / logged-out intent flows drop prefilled text).
-      if (net === 'x-intent' && caption) { try { navigator.clipboard && navigator.clipboard.writeText(caption); } catch (err) {} return; }
+      if (net === 'x-intent' && caption) { try { navigator.clipboard && navigator.clipboard.writeText(caption).catch(() => {}); } catch (err) {} return; }
       // Download items: on mobile, prefer the Web Share API. The `<a download>` / ?dl save is
       // inconsistent on iOS and Instagram has no web post path, so share the file directly when
       // supported; otherwise fall through to the default link navigation.
