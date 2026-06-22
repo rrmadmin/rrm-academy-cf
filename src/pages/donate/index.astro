@@ -1,6 +1,10 @@
 ---
 import BaseLayout from '../../layouts/BaseLayout.astro';
 import fundingProjects from '../../data/funding-projects.json';
+import CampaignCallout from '../../components/CampaignCallout.astro';
+import campaigns from '../../data/campaigns.json';
+
+const providerDirectory = campaigns.find((c) => c.id === 'provider-directory');
 import articlesData from '../../data/articles.json';
 import coursesData from '../../data/courses.json';
 
@@ -153,6 +157,13 @@ const jsonLd = {
         <p>RRM Academy is an educational project of the Restorative Reproductive Medicine Foundation (RRM Foundation), a 501(c)(3) nonprofit dedicated to transforming reproductive health through education, research, and a restorative approach to care.</p>
         <p>When you donate to RRM Academy, you're supporting the Foundation's mission. We exist for every person who has been told their pain is normal or has been left to navigate years of uncertainty.</p>
       </section>
+
+      <!-- Featured one-time campaign: the RRM Care Directory -->
+      {providerDirectory && (
+        <section class="donate-section">
+          <CampaignCallout campaign={providerDirectory} variant="card" />
+        </section>
+      )}
 
       <!-- Projects seeking funding -->
       <section class="donate-section projects-section">
