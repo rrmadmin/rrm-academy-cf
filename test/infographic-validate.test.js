@@ -69,3 +69,12 @@ describe('validateSpec', () => {
     assert.equal(validateSpec({ ...okBars, caption: 'a – b' }).valid, false);
   });
 });
+
+const withCaption = (c) => ({ ...okBars, share_caption: c });
+describe('share_caption governance', () => {
+  it('accepts a clean caption', () => assert.equal(validateSpec(withCaption('Restorative reached 62% live birth vs 34% IVF in a matched cohort.')).valid, true));
+  it('rejects over 240 chars', () => assert.equal(validateSpec(withCaption('x'.repeat(241))).valid, false));
+  it('rejects a leading Yes', () => assert.equal(validateSpec(withCaption('Yes, RRM works.')).valid, false));
+  it('rejects an absolutist token', () => assert.equal(validateSpec(withCaption('This is non-negotiable for patients.')).valid, false));
+  it('rejects an em dash in the caption', () => assert.equal(validateSpec(withCaption('a — b')).valid, false));
+});

@@ -26,6 +26,7 @@
  * @property {'favorable'|'unfavorable'|'neutral'} [polarity]
  * @property {string} [unit]
  * @property {string} [caption]
+ * @property {string} [share_caption]
  * @property {BarEntry[]} [bars]
  * @property {number} [numerator]
  * @property {number} [denominator]
@@ -35,3 +36,8 @@ export const TEMPLATES = ['single', 'delta', 'bars', 'ratio'];
 export const DIRECTIONS = ['up', 'down'];
 export const POLARITIES = ['favorable', 'unfavorable', 'neutral'];
 export const EYEBROW_MAX = 28;
+
+// Editorial guardrails for the share caption (memory: feedback-no-absolutist-patient-copy,
+// feedback-no-hard-yes-fertility-faqs).
+export const ABSOLUTIST_TOKENS = ['non-negotiable', 'guaranteed', 'guarantee', 'always works', 'never fails', 'cure', 'miracle', 'most never'];
+export const CAPTION_MAX = 240;

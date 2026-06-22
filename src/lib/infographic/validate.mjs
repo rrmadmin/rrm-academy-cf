@@ -1,4 +1,4 @@
-import { TEMPLATES, DIRECTIONS, POLARITIES, EYEBROW_MAX } from './types.mjs';
+import { TEMPLATES, DIRECTIONS, POLARITIES, EYEBROW_MAX, ABSOLUTIST_TOKENS, CAPTION_MAX } from './types.mjs';
 
 const PMID_RE = /^\d+$/;
 const DOI_RE = /^10\.\d{4,}\/\S+$/;
@@ -18,7 +18,7 @@ function validUrl(v) {
 
 function collectStrings(spec) {
   const out = [];
-  for (const k of ['eyebrow', 'value', 'label', 'unit', 'caption']) {
+  for (const k of ['eyebrow', 'value', 'label', 'unit', 'caption', 'share_caption']) {
     if (typeof spec[k] === 'string') out.push(spec[k]);
   }
   if (spec.source) for (const k of ['label']) if (typeof spec.source[k] === 'string') out.push(spec.source[k]);
@@ -48,6 +48,15 @@ export function validateSpec(spec) {
 
   // dash ban on every string field
   for (const s of collectStrings(spec)) if (hasDashBan(s)) push('em or en dash not allowed');
+
+  // share_caption governance
+  if (nonEmpty(spec.share_caption)) {
+    const c = spec.share_caption.trim();
+    if (c.length > CAPTION_MAX) push(`share_caption over ${CAPTION_MAX} chars`);
+    if (/^yes\b/i.test(c)) push('share_caption must not lead with "Yes"');
+    const low = c.toLowerCase();
+    if (ABSOLUTIST_TOKENS.some((t) => low.includes(t))) push('share_caption contains a banned absolutist token');
+  }
 
   // per-template invariants
   if (spec.template === 'single') {
