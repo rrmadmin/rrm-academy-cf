@@ -69,6 +69,7 @@ function lookup(slug) {
 // `ask-<32hex>` slugs and look up the question in D1 directly. Returns
 // null on any failure so the caller falls back to the branded card.
 const ASK_SLUG_RE = /^ask-([0-9a-f]{32})$/;
+const SUPPORTER_SLUG_RE = /^supporter-(\d{1,9})$/;
 async function lookupAsk(slug, env) {
   const m = ASK_SLUG_RE.exec(slug);
   if (!m || !env.DB) return null;
@@ -197,6 +198,47 @@ function brandBand() {
             children: 'rrmacademy.org',
           },
         },
+      ],
+    },
+  };
+}
+
+// Supporter recognition badge (runtime slug `supporter-<seq>` + ?name=). The
+// donor's display name is passed as a satori TEXT node only (satori renders
+// strings as text, never markup); seq and name are clamped before this call.
+function buildSupporterTree({ seq, name }) {
+  const sub = name
+    ? `${name} is building the verified directory of RRM-trained clinicians.`
+    : 'Building the verified directory of RRM-trained clinicians.';
+  return {
+    type: 'div',
+    props: {
+      style: {
+        width: '1200px', height: '630px', backgroundColor: BG,
+        display: 'flex', flexDirection: 'column', fontFamily: 'Cormorant Garamond',
+      },
+      children: [
+        {
+          type: 'div',
+          props: {
+            style: {
+              display: 'flex', flexDirection: 'column', flexGrow: 1,
+              justifyContent: 'center', padding: '60px', overflow: 'hidden',
+            },
+            children: [
+              { type: 'span', props: {
+                style: { fontSize: '28px', fontWeight: 500, color: BRAND_C, letterSpacing: '0.08em', fontFamily: 'Inter' },
+                children: 'RRM CARE DIRECTORY' } },
+              { type: 'span', props: {
+                style: { fontSize: '128px', fontWeight: 600, color: TITLE_C, lineHeight: 1.1, marginTop: '8px', fontFamily: 'Cormorant Garamond' },
+                children: `Supporter #${seq}` } },
+              { type: 'span', props: {
+                style: { fontSize: '38px', fontWeight: 400, color: DESC_C, lineHeight: 1.4, marginTop: '20px', fontFamily: 'Inter' },
+                children: sub } },
+            ],
+          },
+        },
+        brandBand(),
       ],
     },
   };
@@ -358,6 +400,16 @@ export async function onRequest(context) {
   // Guard: empty or dangerous slug -> fallback (B1, B6)
   if (!slug || slug.length > 300) {
     return renderFallback(env, start);
+  }
+
+  // Supporter recognition badge: runtime slug `supporter-<seq>` with ?name=.
+  // Not in og-index; intercept before the index lookup. The name is UNTRUSTED
+  // -> clamped and passed as a satori text node only (never markup).
+  const supMatch = SUPPORTER_SLUG_RE.exec(slug);
+  if (supMatch) {
+    const seq = clamp(supMatch[1], 9);
+    const name = clamp(new URL(request.url).searchParams.get('name') || '', 40);
+    return renderCard(env, buildSupporterTree({ seq, name }), `supporter-${seq}`, 'supporter_hit', start);
   }
 
   // --- Lookup ---
