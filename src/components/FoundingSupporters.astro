@@ -1,0 +1,224 @@
+---
+// SP2 social-proof: the founding-supporter recognition list. Each name carries a
+// small "Founding Supporter" badge, capped with "and N anonymous founders"
+// (anonymous_founders). A scarcity line "X of {founding_cap} founding spots left"
+// shows ONLY while founding_closed is false. When founding_closed is true: the
+// header still reads "Founding Supporters", there is NO acquisition CTA, and NO
+// scarcity line (recognition only). This component never renders an acquisition CTA
+// in either state.
+//
+// Data (mirrors CampaignCallout band/card split):
+//   variant 'card' -> minimal server skeleton, then a per-variant <script> calls
+//     getSupporters() (memoized, fail-soft) and paints the list client-side.
+//   variant 'band' -> server-rendered from the `snapshot` prop ONLY (no apex fetch).
+//
+// Renders nothing when there are no founders AND total_gifts is 0.
+//
+// ESCAPING: display_name is UNTRUSTED. Server render uses {f.displayName} (Astro
+// auto-escapes). Client render writes each name with textContent — NEVER innerHTML
+// with a raw name. ZERO interpolation of a raw name into raw markup.
+import type { Supporter } from '../scripts/fund-supporters';
+
+interface Snapshot {
+  founding?: Supporter[];
+  recent?: Supporter[];
+  total_gifts?: number;
+  founding_cap?: number;
+  founding_left?: number;
+  founding_closed?: boolean;
+  anonymous_founders?: number;
+}
+
+interface Props {
+  variant?: 'band' | 'card';
+  snapshot?: Snapshot | null;
+}
+
+const { variant = 'card', snapshot = null } = Astro.props;
+
+const isBand = variant === 'band';
+const n = (v: unknown) => (typeof v === 'number' && Number.isFinite(v) ? Math.max(0, Math.round(v)) : 0);
+
+const bandFounding: Supporter[] =
+  isBand && snapshot && Array.isArray(snapshot.founding) ? snapshot.founding : [];
+const bandTotal = isBand ? n(snapshot?.total_gifts) : 0;
+const bandCap = isBand ? Math.max(1, n(snapshot?.founding_cap) || 100) : 100;
+const bandLeft = isBand ? n(snapshot?.founding_left) : 0;
+const bandAnon = isBand ? n(snapshot?.anonymous_founders) : 0;
+const bandClosed = isBand ? snapshot?.founding_closed === true : false;
+
+// Band renders nothing when there are no founders AND total_gifts is 0; card always
+// emits the skeleton and decides at runtime.
+const render = variant === 'card' || bandFounding.length > 0 || bandTotal > 0;
+// Scarcity line is shown only when NOT closed (and, for the band, when we know a count).
+const bandShowScarcity = !bandClosed && (isBand ? bandLeft > 0 : false);
+---
+{render && (
+  <section
+    class={`founding-supporters founding-supporters--${variant}`}
+    data-variant={variant}
+    data-founding-cap={bandCap}
+    data-pagefind-ignore
+    aria-labelledby="founding-supporters-heading"
+    hidden={variant === 'card'}
+  >
+    <header class="fs-head">
+      <h2 id="founding-supporters-heading" class="fs-title">Founding Supporters</h2>
+      <p class="fs-scarcity" data-fs-scarcity hidden={!bandShowScarcity}>
+        <span data-fs-left>{bandLeft}</span> of <span data-fs-cap>{bandCap}</span> founding spots left
+      </p>
+    </header>
+
+    <ul class="fs-list" data-fs-list>
+      {bandFounding.map((f) => (
+        <li class="fs-item">
+          <span class="fs-name">{f.displayName}</span>
+          <span class="fs-badge">Founding Supporter</span>
+        </li>
+      ))}
+    </ul>
+
+    <p class="fs-anon" data-fs-anon hidden={bandAnon <= 0}>
+      and <span data-fs-anon-count>{bandAnon}</span> anonymous founders
+    </p>
+  </section>
+)}
+
+{variant === 'card' && (
+  <script>
+    import { getSupporters } from '../scripts/fund-supporters';
+    const root = document.querySelector<HTMLElement>('.founding-supporters--card[data-variant="card"]');
+    if (root) {
+      const list = root.querySelector<HTMLElement>('[data-fs-list]');
+      const scarcity = root.querySelector<HTMLElement>('[data-fs-scarcity]');
+      const leftEl = root.querySelector<HTMLElement>('[data-fs-left]');
+      const capEl = root.querySelector<HTMLElement>('[data-fs-cap]');
+      const anonP = root.querySelector<HTMLElement>('[data-fs-anon]');
+      const anonCount = root.querySelector<HTMLElement>('[data-fs-anon-count]');
+      getSupporters().then((data) => {
+        // Renders nothing when there are no founders AND total_gifts is 0.
+        if (!data.founding.length && data.total_gifts <= 0) return;
+
+        if (list) {
+          list.replaceChildren();
+          for (const f of data.founding) {
+            const li = document.createElement('li');
+            li.className = 'fs-item';
+            const name = document.createElement('span');
+            name.className = 'fs-name';
+            // textContent keeps the UNTRUSTED name out of any markup string.
+            name.textContent = f.displayName;
+            const badge = document.createElement('span');
+            badge.className = 'fs-badge';
+            badge.textContent = 'Founding Supporter';
+            li.append(name, badge);
+            list.appendChild(li);
+          }
+        }
+
+        // Scarcity line shows ONLY while founding is open. When closed: no line, and
+        // there is no acquisition CTA anywhere in this component.
+        if (scarcity && leftEl && capEl) {
+          if (!data.founding_closed && data.founding_left > 0) {
+            leftEl.textContent = String(data.founding_left);
+            capEl.textContent = String(data.founding_cap);
+            scarcity.hidden = false;
+          } else {
+            scarcity.hidden = true;
+          }
+        }
+
+        if (anonP && anonCount) {
+          anonCount.textContent = String(data.anonymous_founders);
+          anonP.hidden = data.anonymous_founders <= 0;
+        }
+
+        root.hidden = false;
+      });
+    }
+  </script>
+)}
+
+<style>
+  .founding-supporters {
+    min-width: 0;
+  }
+  .fs-head {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: var(--space-2) var(--space-4);
+    margin-bottom: var(--space-4);
+  }
+  .fs-title {
+    font-family: 'Cormorant Garamond', 'Georgia', serif;
+    font-size: 1.5rem;
+    font-weight: 600;
+    line-height: 1.15;
+    color: var(--text-primary);
+    margin: 0;
+  }
+  .fs-scarcity {
+    margin: 0;
+    font-size: 0.8125rem;
+    font-weight: 500;
+    line-height: 1.5;
+    color: var(--accent);
+  }
+  .fs-scarcity [data-fs-left],
+  .fs-scarcity [data-fs-cap] {
+    font-variant-numeric: tabular-nums;
+  }
+  .fs-list {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-2);
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    min-width: 0;
+  }
+  .fs-item {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--space-2) var(--space-3);
+    min-width: 0;
+  }
+  .fs-name {
+    font-size: 1rem;
+    font-weight: 500;
+    line-height: 1.5;
+    color: var(--text-primary);
+    min-width: 0;
+    overflow-wrap: anywhere;
+  }
+  .fs-badge {
+    flex-shrink: 0;
+    display: inline-flex;
+    align-items: center;
+    padding: var(--space-1) var(--space-2);
+    border-radius: var(--radius-pill);
+    background: var(--purple-50);
+    color: var(--accent);
+    border: 1px solid var(--purple-100);
+    font-size: 0.6875rem;
+    font-weight: 600;
+    line-height: 1.5;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    white-space: nowrap;
+  }
+  .fs-anon {
+    margin: var(--space-4) 0 0;
+    font-size: 0.875rem;
+    line-height: 1.5;
+    color: var(--text-tertiary);
+  }
+  .fs-anon [data-fs-anon-count] {
+    font-family: 'Cormorant Garamond', 'Georgia', serif;
+    font-weight: 600;
+    color: var(--text-secondary);
+    font-variant-numeric: tabular-nums;
+  }
+</style>
