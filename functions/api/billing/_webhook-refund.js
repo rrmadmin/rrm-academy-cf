@@ -4,6 +4,7 @@
  */
 import { sendEmailSafe } from './_webhook-shared.js';
 import { log } from '../_log.js';
+import { removeSupporterGift } from './_supporter-gift.js';
 
 /**
  * @param {D1Database} db
@@ -53,6 +54,15 @@ export async function handleChargeRefunded(db, event, env, waitUntil) {
         status: 500,
         headers: { 'Content-Type': 'application/json' },
       });
+    }
+
+    try {
+      await removeSupporterGift(db, { source: 'stripe', sourceId: charge.payment_intent });
+      log(env, waitUntil, 'billing', 'supporter_recognition_removed', 'ok',
+        `payment_intent=${charge.payment_intent}`);
+    } catch (removeErr) {
+      log(env, waitUntil, 'billing', 'supporter_recognition_remove_fail', 'warn',
+        `payment_intent=${charge.payment_intent}`);
     }
   }
 
