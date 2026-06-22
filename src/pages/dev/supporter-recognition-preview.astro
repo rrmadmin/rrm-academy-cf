@@ -1,0 +1,105 @@
+---
+// DEV preview (noindex) for the SP2 provider-directory recognition surface.
+// Renders every component in BAND variant against rich SAMPLE snapshots so the
+// populated states are visible (live data is currently all-zero, which renders
+// these components empty by design). Not a production surface; not linked.
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import StatCards from '../../components/StatCards.astro';
+import SupporterTicker from '../../components/SupporterTicker.astro';
+import SupporterWall from '../../components/SupporterWall.astro';
+import FoundingSupporters from '../../components/FoundingSupporters.astro';
+
+const recent = [
+  { displayName: 'Sarah M.', seq: 14 },
+  { displayName: 'James P.', seq: 13 },
+  { displayName: 'Maria G.', seq: 12 },
+  { displayName: 'David L.', seq: 11 },
+  { displayName: 'Anne K.', seq: 10 },
+  { displayName: 'Cher', seq: 9 },
+  { displayName: 'Tom R.', seq: 8 },
+  { displayName: 'Lucy W.', seq: 7 },
+];
+
+// Open campaign: 14 gifts, 9 consented (named), 5 anonymous.
+const open = {
+  raised_cents: 740000,
+  supporters: 14,
+  total_gifts: 14,
+  consented_count: 9,
+  recent,
+  founding: recent.slice(0, 9),
+  founding_cap: 100,
+  founding_left: 86,
+  founding_closed: false,
+  anonymous_founders: 5,
+};
+
+// Closed founding tier (cap reached): recognition only, no scarcity, no CTA.
+const closed = {
+  ...open,
+  total_gifts: 112,
+  founding_left: 0,
+  founding_closed: true,
+  anonymous_founders: 91,
+};
+---
+<BaseLayout
+  title="Supporter Recognition Preview"
+  description="Internal preview of the provider-directory social-proof components."
+  canonicalUrl="https://rrmacademy.org/dev/supporter-recognition-preview"
+  noindex
+>
+  <div class="page-wrapper">
+    <div class="container container--narrow">
+      <h1>SP2 recognition preview</h1>
+      <p class="dev-note">Internal, noindex. Band variant + sample data so the populated states show. On the live page these read the real (currently empty) endpoint and render nothing until gifts arrive.</p>
+
+      <section class="dev-block">
+        <h2 class="dev-h">Stat cards</h2>
+        <StatCards variant="band" snapshot={open} />
+      </section>
+
+      <section class="dev-block">
+        <h2 class="dev-h">Recent-supporter ticker</h2>
+        <SupporterTicker variant="band" snapshot={open} />
+      </section>
+
+      <section class="dev-block">
+        <h2 class="dev-h">Supporter wall</h2>
+        <SupporterWall variant="band" snapshot={open} />
+      </section>
+
+      <section class="dev-block">
+        <h2 class="dev-h">Founding supporters (open)</h2>
+        <FoundingSupporters variant="band" snapshot={open} />
+      </section>
+
+      <section class="dev-block">
+        <h2 class="dev-h">Founding supporters (cap reached, closed)</h2>
+        <FoundingSupporters variant="band" snapshot={closed} />
+      </section>
+    </div>
+  </div>
+</BaseLayout>
+
+<style>
+  .dev-note {
+    font-size: 0.875rem;
+    color: var(--text-tertiary);
+    margin-bottom: var(--space-8);
+  }
+  .dev-block {
+    margin: var(--space-8) 0;
+    padding: var(--space-6);
+    background: var(--bg-body);
+    border: 1px solid var(--border-light);
+    border-radius: var(--radius-md);
+  }
+  .dev-h {
+    font-size: 0.8125rem;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--text-tertiary);
+    margin: 0 0 var(--space-5);
+  }
+</style>
