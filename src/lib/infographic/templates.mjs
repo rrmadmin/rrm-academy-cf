@@ -133,6 +133,26 @@ function asPercent(value) {
 // people pictograph. Single evenodd path; filled via the <use> that references it.
 const HW_WOMAN = 'M28.5 8.5C28.5 10.9853 26.4853 13 24 13C21.5148 13 19.5 10.9853 19.5 8.5C19.5 6.01472 21.5148 4 24 4C26.4853 4 28.5 6.01472 28.5 8.5ZM18.5 21C18.5 23.5306 16.1642 32.0452 15.309 35.0778C15.146 35.6558 15.5244 36.2471 16.1183 36.3364C22.1054 37.2369 25.899 37.2073 31.8856 36.3305C32.4782 36.2438 32.8601 35.6592 32.7021 35.0815C31.8565 31.9898 29.5025 23.1876 29.5 21.0034L29.5 21L29.5 19.4948C29.8976 19.9955 30.2688 20.7401 30.4968 21.5452L30.5188 21.6225C30.6579 22.1136 30.7102 22.2982 30.7594 22.4837C30.789 22.5955 30.8175 22.7075 30.8632 22.887C30.9918 23.3925 31.2565 24.4331 32.0659 27.509C32.347 28.5772 33.4408 29.2153 34.509 28.9341C35.5772 28.653 36.2153 27.5592 35.9342 26.491C35.1642 23.5651 34.8904 22.4916 34.7497 21.94L34.7497 21.9399L34.7497 21.9399C34.6054 21.3744 34.6011 21.3576 34.3454 20.4548C34.0007 19.2383 33.4136 17.986 32.6211 16.993C31.8733 16.0559 30.648 15 29 15H24C24 15 24 15 24 15C24 15 24 15 24 15H19C17.352 15 16.1268 16.0559 15.3789 16.993C14.5864 17.986 13.9993 19.2383 13.6547 20.4548C13.3989 21.3576 13.3946 21.3744 13.2504 21.9399C13.1097 22.4915 12.8359 23.5649 12.0659 26.491C11.7847 27.5592 12.4228 28.653 13.491 28.9341C14.5592 29.2153 15.653 28.5772 15.9342 27.509C16.7436 24.4331 17.0083 23.3925 17.1369 22.887C17.1825 22.7075 17.211 22.5954 17.2407 22.4837C17.2898 22.2983 17.3422 22.1136 17.4813 21.6226L17.4813 21.6224L17.4814 21.6222L17.5032 21.5452C17.7313 20.7401 18.1024 19.9954 18.5 19.4948L18.5 21ZM18.5 42.3877V38.5704C19.9095 38.7792 21.2135 38.9111 22.4875 38.9679L21.4472 42.7824C21.2495 43.5074 20.5458 43.9742 19.8009 43.8745C19.0561 43.7747 18.5 43.1392 18.5 42.3877ZM26.5529 42.7824L25.5108 38.9616C26.7854 38.8998 28.09 38.7642 29.5 38.5566V42.3877C29.5 43.1392 28.944 43.7747 28.1991 43.8745C27.4543 43.9742 26.7506 43.5074 26.5529 42.7824Z';
 
+// Health Icons "man" (filled, 48x48 viewBox, public domain): head + body paths.
+const HM_HEAD = 'M28 8C28 10.2091 26.2091 12 24 12C21.7909 12 20 10.2091 20 8C20 5.79086 21.7909 4 24 4C26.2091 4 28 5.79086 28 8Z';
+const HM_BODY = 'M18 18.8206C17.7833 19.3328 17.5909 20.0103 17.4363 20.815C17.0295 22.9313 17 25.273 17 26C17 27.1046 16.1046 28 15 28C13.8954 28 13 27.1046 13 26C13 25.227 13.026 22.5687 13.5082 20.06C13.7458 18.8236 14.1243 17.4534 14.773 16.3428C15.4241 15.2281 16.595 14 18.4444 14H29.5556C31.405 14 32.5759 15.2281 33.227 16.3428C33.8757 17.4534 34.2542 18.8236 34.4918 20.06C34.974 22.5687 35 25.227 35 26C35 27.1046 34.1046 28 33 28C31.8954 28 31 27.1046 31 26C31 25.273 30.9705 22.9313 30.5637 20.815C30.4091 20.0103 30.2167 19.3328 30 18.8206V42C30 43.0747 29.1507 43.9573 28.0768 43.9985C27.0028 44.0398 26.0883 43.2249 26.0059 42.1534L25.0059 29.1534C25.002 29.1022 25 29.051 25 29H23C23 29.051 22.998 29.1022 22.9941 29.1534L21.9941 42.1534C21.9117 43.2249 20.9972 44.0398 19.9232 43.9985C18.8493 43.9573 18 43.0747 18 42V18.8206Z';
+
+// People-pictograph glyph for a 48x48 slot; the <use fill> colours it. icon matches the
+// population the stat describes (memory: male-factor stats use male figures, not female).
+function glyphInner(icon) {
+  if (icon === 'man') return `<path d="${HM_HEAD}"/><path d="${HM_BODY}"/>`;
+  if (icon === 'couple') {
+    return `<g transform="translate(-2 9) scale(0.6)"><path fill-rule="evenodd" d="${HW_WOMAN}"/></g>`
+      + `<g transform="translate(22 9) scale(0.6)"><path d="${HM_HEAD}"/><path d="${HM_BODY}"/></g>`;
+  }
+  return `<path fill-rule="evenodd" d="${HW_WOMAN}"/>`;
+}
+function glyphDef(id, icon) { return `<g id="${id}">${glyphInner(icon)}</g>`; }
+
+// Below this percentage a single renders a progress bar; a 10-figure pictograph filled
+// to a low rate reads as failure rather than a proportion.
+const PICTOGRAPH_MIN_PCT = 50;
+
 function renderSingle(spec, { mode, box }) {
   const w = box.w, h = box.h, pad = Math.round(w * 0.07);
   const plotW = w - pad * 2;
@@ -143,9 +163,10 @@ function renderSingle(spec, { mode, box }) {
   // (No eyebrow above the number: the stat is read first, then explained.)
   const numFs = Math.round(Math.min(plotW * 0.4, h * 0.32));
   const numY = pad + Math.round(numFs * 0.8);
+  const icon = spec.icon || 'woman';
   let visual = '';
   let descY;
-  if (pct != null) {
+  if (pct != null && pct >= PICTOGRAPH_MIN_PCT) {
     // People pictograph: 10 figures, filled to the percentage (88% -> 8.8 figures).
     const N = 10;
     const filledFigs = (pct / 100) * N;
@@ -155,23 +176,32 @@ function renderSingle(spec, { mode, box }) {
     const figTop = numY + Math.round(numFs * 0.26);
     const sc = figW / 48;
     const on = color('purple-700', mode), off = color('purple-100', mode);
-    const woman = (x, fill) =>
+    const fig = (x, fill) =>
       `<use href="#hw" transform="translate(${x} ${figTop}) scale(${sc})" fill="${fill}"/>`;
-    let defs = `<g id="hw"><path fill-rule="evenodd" d="${HW_WOMAN}"/></g>`, figs = '';
+    let defs = glyphDef('hw', icon), figs = '';
     for (let i = 0; i < N; i++) {
       const x = pad + i * (figW + gap);
       const fr = Math.max(0, Math.min(1, filledFigs - i));
-      figs += woman(x, off);
-      if (fr >= 0.999) figs += woman(x, on);
+      figs += fig(x, off);
+      if (fr >= 0.999) figs += fig(x, on);
       else if (fr > 0) {
         const cid = `pf${i}`;
         const fh = Math.round(figH * fr);
         defs += `<clipPath id="${cid}"><rect x="${x}" y="${figTop + figH - fh}" width="${figW}" height="${fh + 2}"/></clipPath>`;
-        figs += `<g clip-path="url(#${cid})">${woman(x, on)}</g>`;
+        figs += `<g clip-path="url(#${cid})">${fig(x, on)}</g>`;
       }
     }
-    visual = (defs ? `<defs>${defs}</defs>` : '') + figs;
+    visual = `<defs>${defs}</defs>` + figs;
     descY = figTop + figH + 66;
+  } else if (pct != null) {
+    // Low rate: a sparse pictograph reads as failure, so show a progress bar instead.
+    const barY = numY + Math.round(numFs * 0.34);
+    const barH = Math.round(numFs * 0.42);
+    const fillW = Math.max(Math.round(plotW * (pct / 100)), barH);
+    const r = Math.round(barH / 2);
+    visual = `<rect x="${pad}" y="${barY}" width="${plotW}" height="${barH}" rx="${r}" fill="none" stroke="${color('purple-300', mode)}" stroke-width="3"/>`
+      + `<rect x="${pad}" y="${barY}" width="${fillW}" height="${barH}" rx="${r}" fill="${color('purple-700', mode)}"/>`;
+    descY = barY + barH + 70;
   } else {
     // Non-percentage: a filled accent panel behind the value gives it weight.
     const panelH = numFs + 52;
@@ -329,29 +359,77 @@ function renderBars(spec, { mode, box }) {
 function renderRatio(spec, { mode, box }) {
   const w = box.w, h = box.h, pad = Math.round(w * 0.07);
   const provY = h - Math.round(pad * 0.5);
+  const plotW = w - pad * 2;
+  const icon = spec.icon || 'woman';
   const alt = `${spec.numerator} in ${spec.denominator} ${spec.label}. Source: ${sourceLine(spec)}`;
   const perRow = Math.min(spec.denominator, 10);
-  const rows = Math.ceil(spec.denominator / perRow);
-  const dotR = 24, dotGap = 20;
-  // Coherent stack: numeral -> dots -> wrapped label, anchored in the upper area.
-  const headY = Math.round(h * 0.32);
-  const dotsTop = headY + 40;
-  let dots = '';
+  const nrows = Math.ceil(spec.denominator / perRow);
+  // People pictograph: numerator figures filled, the remainder light. Sized to a row.
+  const figGap = Math.round(plotW * 0.03);
+  const figW = Math.min(Math.round((plotW - figGap * (perRow - 1)) / perRow), 120);
+  const figH = figW;
+  const rowGap = Math.round(figH * 0.2);
+  const sc = figW / 48;
+  const on = color('purple-700', mode), off = color('purple-100', mode);
+  // Coherent stack: numeral -> figures -> wrapped label, anchored in the upper area.
+  const headY = Math.round(h * 0.30);
+  const figsTop = headY + 36;
+  let figs = '';
   for (let i = 0; i < spec.denominator; i++) {
-    const cx = pad + dotR + (i % perRow) * (dotR * 2 + dotGap);
-    const cy = dotsTop + Math.floor(i / perRow) * (dotR * 2 + dotGap);
-    const fill = i < spec.numerator ? color('purple-700', mode) : color('purple-100', mode);
-    dots += `<circle cx="${cx}" cy="${cy}" r="${dotR}" fill="${fill}"/>`;
+    const x = pad + (i % perRow) * (figW + figGap);
+    const y = figsTop + Math.floor(i / perRow) * (figH + rowGap);
+    figs += `<use href="#rf" transform="translate(${x} ${y}) scale(${sc})" fill="${i < spec.numerator ? on : off}"/>`;
   }
-  const dotsBottom = dotsTop + (rows - 1) * (dotR * 2 + dotGap) + dotR;
-  const labelY = Math.min(dotsBottom + 66, provY - 120);
-  const rlbl = wrapLabel(spec.label, mode, pad, labelY, w - pad * 2, 40, color('text-primary', mode));
+  const figsBottom = figsTop + (nrows - 1) * (figH + rowGap) + figH;
+  const labelY = Math.min(figsBottom + 66, provY - 120);
+  const rlbl = wrapLabel(spec.label, mode, pad, labelY, plotW, 40, color('text-primary', mode));
   const srcY = Math.min(labelY + rlbl.lines * rlbl.lineH + 40, provY);
   const body = eyebrow(spec, mode, pad, pad + 36)
+    + `<defs>${glyphDef('rf', icon)}</defs>`
     + `<text x="${pad}" y="${headY}" class="num" font-size="${bigFont(box, 0.15, 0.20)}" font-weight="600" fill="${color('purple-700', mode)}">${escapeXml(spec.numerator + ' in ' + spec.denominator)}</text>`
-    + dots
+    + figs
     + rlbl.svg
-    + provenance(spec, mode, pad, srcY, w - pad * 2);
+    + provenance(spec, mode, pad, srcY, plotW);
+  return { body, alt };
+}
+
+// Correction: the assumed/typical prior value struck out and greyed, the real value as the
+// hero. Use when the point is "they tell you X; the truth after a proper look is Y".
+function renderCorrection(spec, { mode, box }) {
+  const w = box.w, h = box.h, pad = Math.round(w * 0.07);
+  const plotW = w - pad * 2;
+  const srcY = h - Math.round(pad * 0.5);              // provenance baseline (fixed at bottom)
+  const alt = `Was ${spec.was}, now ${spec.value}. ${spec.label}. Source: ${sourceLine(spec)}`;
+  const grey = color('text-secondary', mode);
+  const eyebrowY = pad + 36;
+
+  // Height budget so the eyebrow -> struck-value -> hero -> label -> source stack never
+  // overlaps, with the short 1.91:1 card as the binding case (mirrors renderDelta).
+  const labelFs = 40, labelLineH = Math.round(labelFs * 1.2);
+  const lblMeasure = wrapLabel(spec.label, mode, pad, 0, plotW, labelFs, color('text-primary', mode));
+  const labelBand = (lblMeasure.lines - 1) * labelLineH;
+  const belowHero = 24 + labelBand + labelLineH + 52;  // gap + label height + gap-to-source
+  const blockTop = eyebrowY + 40;                      // top of the struck value's cap
+  const available = srcY - belowHero - blockTop;       // room for the was + hero value block
+  // value block height = wasFs*1.02 + numFs + 24 with wasFs = numFs*0.5  =>  ~1.51*numFs + 24
+  let numFs = Math.floor((available - 24) / 1.51);
+  numFs = Math.max(44, Math.min(numFs, Math.round(Math.min(plotW * 0.34, h * 0.30))));
+  const wasFs = Math.round(numFs * 0.5);
+
+  const wasY = blockTop + Math.round(wasFs * 0.72);    // struck-value baseline (cap at blockTop)
+  const numY = wasY + Math.round(wasFs * 0.3) + 24 + Math.round(numFs * 0.72);  // hero baseline
+  const strikeY = wasY - Math.round(wasFs * 0.32);
+  const wasW = Math.round(String(spec.was).length * wasFs * 0.56);
+  const strokeW = Math.max(6, Math.round(wasFs * 0.08));
+  const descY = numY + Math.round(numFs * 0.28) + 24;
+  const lbl = wrapLabel(spec.label, mode, pad, descY, plotW, labelFs, color('text-primary', mode));
+  const srcYFinal = Math.min(descY + (lbl.lines - 1) * lbl.lineH + 52, srcY);
+  const body = eyebrow(spec, mode, pad, eyebrowY)
+    + `<text x="${pad}" y="${wasY}" class="num" font-size="${wasFs}" font-weight="600" fill="${grey}">${escapeXml(spec.was)}</text>`
+    + `<line x1="${pad - 4}" y1="${strikeY}" x2="${pad + wasW}" y2="${strikeY}" stroke="${grey}" stroke-width="${strokeW}"/>`
+    + `<text x="${pad}" y="${numY}" class="num" font-size="${numFs}" font-weight="600" fill="${color('purple-700', mode)}">${escapeXml(spec.value)}</text>`
+    + lbl.svg
+    + provenance(spec, mode, pad, srcYFinal, plotW);
   return { body, alt };
 }
 
@@ -362,6 +440,7 @@ registerRenderer('single', renderSingle);
 registerRenderer('delta', renderDelta);
 registerRenderer('bars', renderBars);
 registerRenderer('ratio', renderRatio);
+registerRenderer('correction', renderCorrection);
 
 export function renderInfographic(spec, opts = {}) {
   const mode = opts.mode || 'inline';
