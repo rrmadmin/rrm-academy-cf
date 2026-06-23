@@ -10,15 +10,15 @@ if (spec) {
     // A populated-but-invalid stored spec is a build error, never a silent skip.
     throw new Error(`SynopsisInfographic: invalid spec: ${v.errors.join('; ')}`);
   }
-  svg = renderInfographic(spec, { mode: 'inline', aspect: '1.91:1' });
+  svg = renderInfographic(spec, { mode: 'inline', aspect: '1:1' });
 }
 ---
 {svg && <figure class="synopsis-infographic" set:html={svg} />}
 
 <style>
   .synopsis-infographic {
-    margin: var(--space-6) 0;
-    max-width: 640px;
+    margin: 0 auto;
+    max-width: 440px;
   }
   .synopsis-infographic :global(svg) {
     width: 100%;
