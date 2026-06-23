@@ -12,7 +12,7 @@ const xIntent = `https://x.com/intent/tweet?text=${encodeURIComponent(caption ||
 {articleId && (
   <div class="sharekit" data-caption={caption || ''} data-url={canonicalUrl}>
     <button type="button" class="sharekit__btn" aria-expanded="false" aria-controls="sharekit-menu">
-      <Share2 size={14} aria-hidden="true" /> Share these findings
+      <Share2 size={14} aria-hidden="true" /> Share this image on socials
     </button>
     <div id="sharekit-menu" class="sharekit__menu" role="group" aria-label="Share these findings" hidden>
       <p class="sharekit__heading">Download a ready-made post</p>
@@ -27,7 +27,8 @@ const xIntent = `https://x.com/intent/tweet?text=${encodeURIComponent(caption ||
 )}
 <style>
   .sharekit { position: relative; margin-top: var(--space-4); }
-  .sharekit__btn { display: inline-flex; align-items: center; gap: var(--space-2); border: 1px solid var(--purple-300); border-radius: var(--radius-pill); padding: var(--space-2) var(--space-4); font: 600 0.8125rem var(--font-body); color: var(--purple-900); background: var(--bg-surface); cursor: pointer; }
+  .sharekit__btn { display: inline-flex; align-items: center; gap: var(--space-1); border: none; background: none; padding: 0; font: 500 0.8125rem var(--font-body); color: var(--purple-700); text-decoration: underline; text-underline-offset: 3px; cursor: pointer; }
+  .sharekit__btn:hover, .sharekit__btn:focus-visible { color: var(--purple-900); }
   .sharekit__menu { position: absolute; top: 46px; left: 0; z-index: 20; width: 290px; background: var(--bg-surface); border: 1px solid var(--border-color); border-radius: var(--radius-lg); box-shadow: var(--shadow-md); padding: var(--space-2); }
   .sharekit__menu[hidden] { display: none; }
   .sharekit__heading { font-size: 0.625rem; font-weight: 600; letter-spacing: 0.12em; text-transform: uppercase; color: var(--text-secondary); padding: var(--space-2) var(--space-3) var(--space-1); margin: 0; }
