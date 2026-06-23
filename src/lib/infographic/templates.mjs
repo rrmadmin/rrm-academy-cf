@@ -27,8 +27,6 @@ export const ASPECTS = {
   '1.91:1': { w: 1200, h: 630 },
 };
 
-// Social handles by platform (footer of the branded frame).
-const HANDLES = { ig: '@rrmacademy', x: '@rrm_academy' };
 
 const XML = { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&apos;' };
 export function escapeXml(str) {
@@ -76,7 +74,8 @@ function bigFont(box, kw, kh) {
 
 // Eyebrow label + provenance line. Coords are box-local; the caller translates.
 function eyebrow(spec, mode, x, y) {
-  return `<text x="${x}" y="${y}" font-size="34" font-weight="600" letter-spacing="3" fill="${color('text-secondary', mode)}">${escapeXml(spec.eyebrow.toUpperCase())}</text>`;
+  // Top of the text hierarchy: largest + darkest. Caption/label below it step lighter.
+  return `<text x="${x}" y="${y}" font-size="42" font-weight="600" letter-spacing="2.5" fill="${color('text-primary', mode)}">${escapeXml(spec.eyebrow.toUpperCase())}</text>`;
 }
 function provenance(spec, mode, x, y, w) {
   return `<line x1="${x}" y1="${y - 30}" x2="${x + w}" y2="${y - 30}" stroke="${color('purple-100', mode)}" stroke-width="2"/>`
@@ -106,10 +105,10 @@ function footerBand(canvas, footTop, mode, platform, pad) {
   const band = canvas.h - footTop;
   const ruleY = footTop + Math.round(band * 0.30);
   const textY = footTop + Math.round(band * 0.64);
-  const handle = HANDLES[platform] || HANDLES.ig;
+  // One footer attribution (rrmacademy.org). The wordmark carries the brand on branded
+  // exports; the social-post caption carries the @handle, so it is not repeated here.
   return `<line x1="${pad}" y1="${ruleY}" x2="${canvas.w - pad}" y2="${ruleY}" stroke="${color('purple-100', mode)}" stroke-width="2"/>`
-    + `<text x="${pad}" y="${textY}" font-size="26" fill="${color('text-secondary', mode)}">rrmacademy.org</text>`
-    + `<text x="${canvas.w - pad}" y="${textY}" text-anchor="end" font-size="26" font-weight="600" fill="${color('purple-700', mode)}">${escapeXml(handle)}</text>`;
+    + `<text x="${pad}" y="${textY}" font-size="26" fill="${color('text-secondary', mode)}">rrmacademy.org</text>`;
 }
 
 // Top wordmark band (export only): accent bar + RRM wordmark.
@@ -281,18 +280,23 @@ function renderBars(spec, { mode, box }) {
       const valStr = String(b.value) + spec.unit;
       const vFs = Math.min(Math.round(barH * 0.58), 60);
       const nameFs = Math.min(Math.round(barH * 0.34), 30);
-      const inside = fillW > vFs * 3;
-      const vX = inside ? trackX + fillW - Math.round(vFs * 0.45) : trackX + fillW + 22;
+      // Names + values are one color, matching the headline (visual simplicity). The bar
+      // FILL carries the polarity (hero vs comparator), not the text.
+      const txt = color('text-primary', mode);
+      // Prefer the value OUTSIDE the bar; fall inside only when a long bar leaves no room.
+      const wOut = valStr.length * Math.round(vFs * 0.6);
+      const inside = fillW + 28 + wOut > trackW;
+      const vX = inside ? trackX + fillW - Math.round(vFs * 0.45) : trackX + fillW + 24;
       const vAnchor = inside ? 'end' : 'start';
-      const vFill = inside ? (b.hero ? color('bg-body', mode) : color('purple-900', mode)) : color('text-primary', mode);
-      rows += `<text x="${trackX - 22}" y="${midY + Math.round(nameFs * 0.34)}" text-anchor="end" font-size="${nameFs}" font-weight="600" fill="${color('text-secondary', mode)}">${escapeXml(b.name)}</text>`
-        + `<rect x="${trackX}" y="${barY}" width="${trackW}" height="${barH}" rx="${Math.round(barH * 0.18)}" fill="${color('purple-50', mode)}"/>`
+      const vFill = inside ? (b.hero ? color('bg-body', mode) : txt) : txt;
+      rows += `<text x="${trackX - 22}" y="${midY + Math.round(nameFs * 0.34)}" text-anchor="end" font-size="${nameFs}" font-weight="600" fill="${txt}">${escapeXml(b.name)}</text>`
+        + `<rect x="${trackX}" y="${barY}" width="${trackW}" height="${barH}" rx="${Math.round(barH * 0.18)}" fill="none" stroke="${color('purple-300', mode)}" stroke-width="2"/>`
         + `<rect x="${trackX}" y="${barY}" width="${fillW}" height="${barH}" rx="${Math.round(barH * 0.18)}" fill="${fill}"/>`
         + `<text x="${vX}" y="${midY + Math.round(vFs * 0.34)}" text-anchor="${vAnchor}" class="num" font-size="${vFs}" font-weight="600" fill="${vFill}">${escapeXml(valStr)}</text>`;
     });
   }
   const body = eyebrow(spec, mode, pad, pad + 36)
-    + `<text x="${pad}" y="${pad + 84}" font-size="34" fill="${color('text-primary', mode)}">${escapeXml(spec.caption)}</text>`
+    + `<text x="${pad}" y="${pad + 84}" font-size="34" fill="${color('text-secondary', mode)}">${escapeXml(spec.caption)}</text>`
     + rows
     + provenance(spec, mode, pad, provY, w - pad * 2);
   return { body, alt };

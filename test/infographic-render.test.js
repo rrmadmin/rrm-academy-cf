@@ -66,8 +66,8 @@ describe('delta template', () => {
     assertWellFormed(svg);
 
     // Extract the eyebrow <text> y= attribute. The eyebrow element is the only
-    // <text> with letter-spacing="3". Find the full opening tag, then pull y= from it.
-    const eyebrowTagMatch = svg.match(/<text[^>]*letter-spacing="3"[^>]*>/);
+    // <text> with letter-spacing="2.5". Find the full opening tag, then pull y= from it.
+    const eyebrowTagMatch = svg.match(/<text[^>]*letter-spacing="2.5"[^>]*>/);
     assert.ok(eyebrowTagMatch, 'eyebrow text element found');
     const eyebrowYMatch = eyebrowTagMatch[0].match(/\by="([^"]+)"/);
     assert.ok(eyebrowYMatch, 'eyebrow y attribute found');
