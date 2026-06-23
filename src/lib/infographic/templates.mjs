@@ -129,39 +129,63 @@ function asPercent(value) {
   return n >= 0 && n <= 100 ? n : null;
 }
 
+// Health Icons "woman" (filled, 48x48 viewBox, public domain, healthicons.org) for the
+// people pictograph. Single evenodd path; filled via the <use> that references it.
+const HW_WOMAN = 'M28.5 8.5C28.5 10.9853 26.4853 13 24 13C21.5148 13 19.5 10.9853 19.5 8.5C19.5 6.01472 21.5148 4 24 4C26.4853 4 28.5 6.01472 28.5 8.5ZM18.5 21C18.5 23.5306 16.1642 32.0452 15.309 35.0778C15.146 35.6558 15.5244 36.2471 16.1183 36.3364C22.1054 37.2369 25.899 37.2073 31.8856 36.3305C32.4782 36.2438 32.8601 35.6592 32.7021 35.0815C31.8565 31.9898 29.5025 23.1876 29.5 21.0034L29.5 21L29.5 19.4948C29.8976 19.9955 30.2688 20.7401 30.4968 21.5452L30.5188 21.6225C30.6579 22.1136 30.7102 22.2982 30.7594 22.4837C30.789 22.5955 30.8175 22.7075 30.8632 22.887C30.9918 23.3925 31.2565 24.4331 32.0659 27.509C32.347 28.5772 33.4408 29.2153 34.509 28.9341C35.5772 28.653 36.2153 27.5592 35.9342 26.491C35.1642 23.5651 34.8904 22.4916 34.7497 21.94L34.7497 21.9399L34.7497 21.9399C34.6054 21.3744 34.6011 21.3576 34.3454 20.4548C34.0007 19.2383 33.4136 17.986 32.6211 16.993C31.8733 16.0559 30.648 15 29 15H24C24 15 24 15 24 15C24 15 24 15 24 15H19C17.352 15 16.1268 16.0559 15.3789 16.993C14.5864 17.986 13.9993 19.2383 13.6547 20.4548C13.3989 21.3576 13.3946 21.3744 13.2504 21.9399C13.1097 22.4915 12.8359 23.5649 12.0659 26.491C11.7847 27.5592 12.4228 28.653 13.491 28.9341C14.5592 29.2153 15.653 28.5772 15.9342 27.509C16.7436 24.4331 17.0083 23.3925 17.1369 22.887C17.1825 22.7075 17.211 22.5954 17.2407 22.4837C17.2898 22.2983 17.3422 22.1136 17.4813 21.6226L17.4813 21.6224L17.4814 21.6222L17.5032 21.5452C17.7313 20.7401 18.1024 19.9954 18.5 19.4948L18.5 21ZM18.5 42.3877V38.5704C19.9095 38.7792 21.2135 38.9111 22.4875 38.9679L21.4472 42.7824C21.2495 43.5074 20.5458 43.9742 19.8009 43.8745C19.0561 43.7747 18.5 43.1392 18.5 42.3877ZM26.5529 42.7824L25.5108 38.9616C26.7854 38.8998 28.09 38.7642 29.5 38.5566V42.3877C29.5 43.1392 28.944 43.7747 28.1991 43.8745C27.4543 43.9742 26.7506 43.5074 26.5529 42.7824Z';
+
 function renderSingle(spec, { mode, box }) {
   const w = box.w, h = box.h, pad = Math.round(w * 0.07);
   const plotW = w - pad * 2;
   const provY = h - Math.round(pad * 0.5);
   const pct = asPercent(spec.value);
   const alt = `${spec.value} ${spec.label}. Source: ${sourceLine(spec)}`;
-  // Vertically center the (number + visual) group in the band below the eyebrow.
-  const bandTop = pad + 110, bandBottom = provY - 150;
-  const midY = Math.round((bandTop + bandBottom) / 2);
-  const numFs = Math.round(Math.min(plotW * 0.34, (bandBottom - bandTop) * 0.6));
-  const numY = midY - 24;
+  // The NUMBER leads at the top of the card; the visual and a one-line descriptor follow.
+  // (No eyebrow above the number: the stat is read first, then explained.)
+  const numFs = Math.round(Math.min(plotW * 0.4, h * 0.32));
+  const numY = pad + Math.round(numFs * 0.8);
   let visual = '';
+  let descY;
   if (pct != null) {
-    // Progress bar filled to the percentage: the data visual.
-    const barH = Math.max(28, Math.round(numFs * 0.16));
-    const barY = numY + Math.round(numFs * 0.28);
-    const fillW = Math.max(Math.round(plotW * (pct / 100)), barH);
-    visual = `<rect x="${pad}" y="${barY}" width="${plotW}" height="${barH}" rx="${Math.round(barH / 2)}" fill="${color('purple-100', mode)}"/>`
-      + `<rect x="${pad}" y="${barY}" width="${fillW}" height="${barH}" rx="${Math.round(barH / 2)}" fill="${color('purple-700', mode)}"/>`;
+    // People pictograph: 10 figures, filled to the percentage (88% -> 8.8 figures).
+    const N = 10;
+    const filledFigs = (pct / 100) * N;
+    const figW = Math.round((plotW / N) * 0.8);
+    const gap = Math.round((plotW - figW * N) / (N - 1));
+    const figH = figW;
+    const figTop = numY + Math.round(numFs * 0.26);
+    const sc = figW / 48;
+    const on = color('purple-700', mode), off = color('purple-100', mode);
+    const woman = (x, fill) =>
+      `<use href="#hw" transform="translate(${x} ${figTop}) scale(${sc})" fill="${fill}"/>`;
+    let defs = `<g id="hw"><path fill-rule="evenodd" d="${HW_WOMAN}"/></g>`, figs = '';
+    for (let i = 0; i < N; i++) {
+      const x = pad + i * (figW + gap);
+      const fr = Math.max(0, Math.min(1, filledFigs - i));
+      figs += woman(x, off);
+      if (fr >= 0.999) figs += woman(x, on);
+      else if (fr > 0) {
+        const cid = `pf${i}`;
+        const fh = Math.round(figH * fr);
+        defs += `<clipPath id="${cid}"><rect x="${x}" y="${figTop + figH - fh}" width="${figW}" height="${fh + 2}"/></clipPath>`;
+        figs += `<g clip-path="url(#${cid})">${woman(x, on)}</g>`;
+      }
+    }
+    visual = (defs ? `<defs>${defs}</defs>` : '') + figs;
+    descY = figTop + figH + 66;
   } else {
     // Non-percentage: a filled accent panel behind the value gives it weight.
-    const panelH = numFs + 56;
-    const panelY = numY - numFs + 8;
+    const panelH = numFs + 52;
+    const panelY = numY - Math.round(numFs * 0.78);
     visual = `<rect x="${pad}" y="${panelY}" width="${plotW}" height="${panelH}" rx="22" fill="${color('purple-700', mode)}"/>`;
+    descY = panelY + panelH + 64;
   }
   const numFill = pct != null ? color('purple-700', mode) : color('bg-body', mode);
   const numEl = pct != null
     ? `<text x="${pad}" y="${numY}" class="num" font-size="${numFs}" font-weight="600" fill="${numFill}">${escapeXml(spec.value)}</text>`
-    : `<text x="${w / 2}" y="${numY + 8}" text-anchor="middle" class="num" font-size="${numFs}" font-weight="600" fill="${numFill}">${escapeXml(spec.value)}</text>`;
-  const labelY = (pct != null ? numY + Math.round(numFs * 0.28) + Math.max(28, Math.round(numFs * 0.16)) : numY) + 86;
-  const lbl = wrapLabel(spec.label, mode, pad, labelY, plotW, 40, color('text-primary', mode));
-  const srcY = Math.min(labelY + lbl.lines * lbl.lineH + 36, provY);
-  const body = eyebrow(spec, mode, pad, pad + 36) + visual + numEl + lbl.svg + provenance(spec, mode, pad, srcY, plotW);
+    : `<text x="${w / 2}" y="${numY}" text-anchor="middle" class="num" font-size="${numFs}" font-weight="600" fill="${numFill}">${escapeXml(spec.value)}</text>`;
+  const lbl = wrapLabel(spec.label, mode, pad, descY, plotW, 40, color('text-primary', mode));
+  const srcY = Math.min(descY + lbl.lines * lbl.lineH + 36, provY);
+  const body = visual + numEl + lbl.svg + provenance(spec, mode, pad, srcY, plotW);
   return { body, alt };
 }
 
