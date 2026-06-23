@@ -1,4 +1,4 @@
-import { TEMPLATES, DIRECTIONS, POLARITIES, EYEBROW_MAX, ABSOLUTIST_TOKENS, CAPTION_MAX } from './types.mjs';
+import { TEMPLATES, ICONS, DIRECTIONS, POLARITIES, EYEBROW_MAX, ABSOLUTIST_TOKENS, CAPTION_MAX } from './types.mjs';
 
 const PMID_RE = /^\d+$/;
 const DOI_RE = /^10\.\d{4,}\/\S+$/;
@@ -58,10 +58,17 @@ export function validateSpec(spec) {
     if (ABSOLUTIST_TOKENS.some((t) => low.includes(t))) push('share_caption contains a banned absolutist token');
   }
 
+  // icon (optional) applies to single + ratio pictographs
+  if (spec.icon !== undefined && !ICONS.includes(spec.icon)) push(`icon must be one of ${ICONS.join('/')}`);
+
   // per-template invariants
   if (spec.template === 'single') {
     if (!nonEmpty(spec.value)) push('single.value required');
     if (!nonEmpty(spec.label)) push('single.label required');
+  } else if (spec.template === 'correction') {
+    if (!nonEmpty(spec.was)) push('correction.was required (the prior/assumed value to strike out)');
+    if (!nonEmpty(spec.value)) push('correction.value required (the corrected value)');
+    if (!nonEmpty(spec.label)) push('correction.label required');
   } else if (spec.template === 'delta') {
     if (!nonEmpty(spec.value)) push('delta.value required');
     if (!nonEmpty(spec.label)) push('delta.label required');

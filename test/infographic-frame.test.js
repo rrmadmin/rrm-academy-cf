@@ -35,7 +35,9 @@ describe('branded frame export', () => {
   it('on-page inline render carries the footer (theme-aware) but no wordmark', () => {
     const svg = renderInfographic(SAMPLES[2], { mode: 'inline', aspect: '1.91:1' });
     assert.ok(svg.includes('rrmacademy.org'), 'inline carries the footer branding');
-    assert.ok(!/<path/.test(svg), 'inline has no wordmark paths');
+    // The wordmark is the brand logo (export-only); its exact viewBox is the signature.
+    // (A pictograph body legitimately uses <path>, so "<path>" is no longer a wordmark proxy.)
+    assert.ok(!svg.includes('-21 -785 6145 1126'), 'inline has no wordmark');
     assert.ok(svg.includes('var(--'), 'inline footer uses css vars (theme-aware)');
   });
 
