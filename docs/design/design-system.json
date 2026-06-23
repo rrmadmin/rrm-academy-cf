@@ -681,6 +681,11 @@
           "value": "radial-gradient(circle at 15% 84%, rgba(114, 94, 126, 0) 0%, rgba(152, 125, 168, 0) 39.84%, rgba(201, 184, 211, 0.3) 66.40%, rgba(218, 211, 231, 0.6) 90.19%)",
           "type": "gradient",
           "cssVariable": "--gradient-hero-subtle"
+        },
+        "fundraiser": {
+          "value": "linear-gradient(135deg, var(--purple-50) 0%, var(--cream) 100%)",
+          "type": "gradient",
+          "cssVariable": "--gradient-fundraiser"
         }
       },
       "infographic": {
@@ -1901,10 +1906,10 @@
     }
   },
   "counts": {
-    "light": 90,
+    "light": 91,
     "dark": 90,
     "eink": 87,
     "shared": 39,
-    "total": 306
+    "total": 307
   }
 }
