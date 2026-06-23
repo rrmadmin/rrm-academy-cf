@@ -16,10 +16,9 @@ describe('branded frame export', () => {
         const svg = renderInfographic(spec, { mode: 'standalone', aspect, frame: 'branded' });
         wf(svg);
         assert.ok(!DASH.test(svg), `${spec.template}/${aspect} has a dash`);
-        // wordmark present (inlined paths) + accent bar + footer
+        // wordmark present (inlined paths) + accent bar + footer url (single brand attribution)
         assert.ok(/<path/.test(svg), `${spec.template}/${aspect} missing wordmark paths`);
         assert.ok(svg.includes('rrmacademy.org'), `${spec.template}/${aspect} missing url footer`);
-        assert.ok(svg.includes('@rrmacademy'), `${spec.template}/${aspect} missing handle`);
         // no element placed at a negative coordinate (off the top/left of canvas).
         // require a whitespace-delimited attribute so the wordmark's viewBox="-21 ..." (the
         // "x" in viewBox) is not a false positive.
@@ -33,14 +32,9 @@ describe('branded frame export', () => {
     assert.ok(/#[0-9a-f]{6}/i.test(svg) && !svg.includes('var(--'));
   });
 
-  it('selects the X handle when platform is x', () => {
-    const svg = renderInfographic(SAMPLES[1], { mode: 'standalone', aspect: '1:1', frame: 'branded', platform: 'x' });
-    assert.ok(svg.includes('@rrm_academy') && !svg.includes('@rrmacademy'));
-  });
-
   it('on-page inline render carries the footer (theme-aware) but no wordmark', () => {
     const svg = renderInfographic(SAMPLES[2], { mode: 'inline', aspect: '1.91:1' });
-    assert.ok(svg.includes('rrmacademy.org') && svg.includes('@rrmacademy'), 'inline carries the footer branding');
+    assert.ok(svg.includes('rrmacademy.org'), 'inline carries the footer branding');
     assert.ok(!/<path/.test(svg), 'inline has no wordmark paths');
     assert.ok(svg.includes('var(--'), 'inline footer uses css vars (theme-aware)');
   });
