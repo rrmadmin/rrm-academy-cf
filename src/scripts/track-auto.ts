@@ -16,7 +16,7 @@
  * Bundle budget: ≤ 3.5 KiB minified+gzipped (gate AG11).
  */
 
-import { track, trackOutbound } from './track';
+import { track, trackOutbound, trackPageView, startEngagementTracking } from './track';
 
 // Expose track() on the global window so `is:inline` scripts (Footer + Header
 // theme toggles, etc.) can fire analytics events without importing the helper
@@ -31,6 +31,13 @@ if (typeof window !== 'undefined') {
 
 if (typeof window !== 'undefined' && typeof document !== 'undefined') {
   const start = (): void => {
+    // ── 0. Page view + session backbone ─────────────────────────────────
+    // Fires page_view with a real per-visit ga_session_id so GA4 forms a
+    // session (and derives session_start/first_visit); then tracks foreground
+    // engagement for accurate engaged-session metrics.
+    trackPageView();
+    startEngagementTracking();
+
     // ── 1. Outbound clicks ──────────────────────────────────────────────
     // Capture-phase so we record before navigation strips the listener context.
     document.addEventListener(
