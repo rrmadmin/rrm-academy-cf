@@ -3,16 +3,16 @@
  * Handles:
  * 1. Subdomain redirects (library.rrmacademy.org -> rrmacademy.org/library)
  * 2. Auth protection for /account/* and /community/* routes
- * 3. GA4 server-side page_view tracking (fire-and-forget via waitUntil)
- * 4. Arrivl AI bot analytics (fire-and-forget via waitUntil)
+ * 3. Arrivl AI bot analytics (fire-and-forget via waitUntil)
+ *
+ * NOTE: GA4 page_view is now fired client-side by ga-session.ts via /api/track.
+ * The server shadow (sendPageView) has been removed to prevent double-counting.
  *
  * NOTE: Old library slug redirects are handled by the rrm-router Worker,
  * not here (avoids loading the 500KB redirect map on every request).
  */
 import { getSessionIdFromCookie, validateSession, sessionCookie, authHintCookie, clearAuthHintCookie, roleAtLeast } from './api/auth/_shared.js';
-import { buildSourceParams, getClientId } from './api/_ga4-source.js';
 
-const GA4_ENDPOINT = 'https://www.google-analytics.com/mp/collect';
 const ARRIVL_ENDPOINT = 'https://arrivl.ai/api/v1/intake/pageview';
 
 const AI_BOTS = [
@@ -77,59 +77,6 @@ function withSecurityHeaders(response) {
     statusText: response.statusText,
     headers,
   });
-}
-
-/**
- * Fires a GA4 page_view hit via Measurement Protocol.
- * Called with ctx.waitUntil() so it never blocks the response.
- */
-async function sendPageView(request, env) {
-  if (!env.GA4_MEASUREMENT_ID || !env.GA4_API_SECRET) return;
-
-  const url = new URL(request.url);
-  if (url.hostname === 'library.rrmacademy.org') return;
-
-  // Only fire for HTML page requests -- skip API routes and assets
-  if (url.pathname.startsWith('/api/')) return;
-  const accept = request.headers.get('Accept') || '';
-  if (!accept.includes('text/html')) return;
-
-  // Skip known bots -- they inflate page_view counts and pollute source data
-  if (request.headers.get('cf-verified-bot') === 'true') return;
-
-  try {
-    const clientId = await getClientId(request);
-    const sourceParams = await buildSourceParams(request, clientId);
-    const sanitizedUrl = new URL(request.url);
-    sanitizedUrl.searchParams.delete('token');
-    sanitizedUrl.searchParams.delete('session_id');
-    const payload = {
-      client_id: clientId,
-      events: [{
-        name: 'page_view',
-        params: {
-          page_location: sanitizedUrl.href,
-          page_referrer: request.headers.get('Referer') || '',
-          engagement_time_msec: 1,
-          ...sourceParams,
-          ...(request.cf?.country && { geo_country: request.cf.country }),
-          ...(request.cf?.regionCode && { geo_region: request.cf.regionCode }),
-          ...(request.cf?.city && { geo_city: request.cf.city }),
-        },
-      }],
-    };
-
-    await fetch(
-      `${GA4_ENDPOINT}?measurement_id=${env.GA4_MEASUREMENT_ID}&api_secret=${env.GA4_API_SECRET}`,
-      {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload),
-      }
-    );
-  } catch {
-    // Silent -- never let analytics failures affect the user
-  }
 }
 
 /**
@@ -277,10 +224,10 @@ export async function onRequest(context) {
     }));
   }
 
-  // Fire GA4, Arrivl, and AI-bot analytics asynchronously -- does not block the response.
+  // Fire Arrivl and AI-bot analytics asynchronously -- does not block the response.
+  // GA4 page_view is now fired client-side by ga-session.ts via /api/track.
   context.waitUntil(
     Promise.all([
-      sendPageView(request, env).catch(() => {}),
       sendArrivlPageview(request, env).catch(() => {}),
       sendAiBotEvent(request, env).catch(() => {}),
     ])
