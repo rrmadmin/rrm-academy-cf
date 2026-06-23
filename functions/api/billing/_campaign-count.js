@@ -69,3 +69,25 @@ export async function countCampaignGifts(stripe, campaign) {
 
   return count;
 }
+
+/**
+ * Count recognized supporters for a campaign from D1.
+ * Used by handleInvoicePaid to assign gift_seq to the first recurring invoice
+ * that has supporter consent. Mirrors countCampaignGifts but reads the D1
+ * supporter_recognition table (subscriptions are not PaymentIntents so they
+ * are not visible to countCampaignGifts).
+ *
+ * @param {D1Database} db
+ * @param {string} campaign  e.g. 'provider-directory'
+ * @returns {Promise<number>}  Current supporter count (0 on error)
+ */
+export async function countCampaignSupporters(db, campaign) {
+  try {
+    const row = await db.prepare(
+      'SELECT COUNT(*) AS cnt FROM supporter_recognition WHERE campaign = ?'
+    ).bind(campaign).first();
+    return Number(row?.cnt) || 0;
+  } catch {
+    return 0;
+  }
+}

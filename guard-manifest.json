@@ -39,11 +39,11 @@
       "note": "Email validation + disposable/typo detection"
     },
     "functions/api/stripe-webhook.js": {
-      "hash": "e6e353532d384ef106106d33816d84233f71de1930c4e467832e9a4e65e53e76",
+      "hash": "04b58003e427e2222dbc36cb12fb6f5ff9dc436c61e60eec09d140a5b4cafdb3",
       "note": "Webhook + signature verification"
     },
     "functions/api/create-checkout.js": {
-      "hash": "8106dabdd8b919d84801a594680d218874759c44b2e7c8bc29b55fb0bae2d540",
+      "hash": "d50c18efd8409b5d7db8074bca6238c44e312627ffd2dfb3acd08dc1a82f1598",
       "note": "Stripe checkout"
     },
     "functions/api/billing/status.js": {
@@ -167,7 +167,7 @@
       "note": "Supporter badge lookup (session_id -> consented name + seq, always-200 fail-soft)"
     },
     "functions/api/billing/_webhook-invoice.js": {
-      "hash": "2c36c046ff94905f9d55a5a4ec84e1d5623f7bce9a0c002657440ce93583777c",
+      "hash": "37fb35debda3bcd3ccbb4af82ca688446d780b28e07d8137ddaa46c569244b37",
       "note": "Invoice event handler"
     },
     "functions/api/billing/_shared.js": {
@@ -191,7 +191,7 @@
       "note": "Supporter recognition helpers (derive/consent/record/remove)"
     },
     "functions/api/billing/_campaign-count.js": {
-      "hash": "aa37d2abc9d8b3fa6353a98f249bb8af09cd19182d7882af8018bdfb39218099",
+      "hash": "d3e24c97c1623de4c229674e8b88ec3396fdf71bd7a6bc7d441c37f078d0f852",
       "note": "Shared Stripe campaign gift count (net-of-refunds, used by fund-supporters + webhook)"
     },
     "functions/api/community/upload.js": {

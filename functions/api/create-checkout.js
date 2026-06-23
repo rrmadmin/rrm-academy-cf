@@ -203,6 +203,92 @@ async function handleCheckout(request, env, waitUntil) {
 
   // --- Recurring membership ---
   if (mode === 'subscription') {
+    // --- Provider-directory recurring donation branch (NOT STUC) ---
+    // Must be checked before the Wix-migration block so campaign==='provider-directory'
+    // never enters Wix logic, never uses STUC tier prices, and never sets a tier label.
+    if (campaign === 'provider-directory') {
+      const cents = Number(amount);
+      if (!Number.isInteger(cents) || cents < 500) {
+        return json({ ok: false, error: 'Minimum donation is $5' }, 400);
+      }
+      if (cents > 99999900) {
+        return json({ ok: false, error: 'Amount too large' }, 400);
+      }
+
+      const sessionParams = {
+        mode: 'subscription',
+        line_items: [{
+          price_data: {
+            currency: 'usd',
+            product_data: { name: 'Monthly Donation to RRM Foundation' },
+            unit_amount: cents,
+            recurring: { interval: 'month' },
+          },
+          quantity: 1,
+        }],
+        success_url: `${origin}/donate/thank-you/?session_id={CHECKOUT_SESSION_ID}`,
+        cancel_url: `${origin}/donate/`,
+        billing_address_collection: 'required',
+        custom_fields: [{
+          key: 'show_supporter',
+          label: { type: 'custom', custom: 'Show my first name as a public supporter?' },
+          type: 'dropdown',
+          optional: true,
+          dropdown: { options: [
+            { label: 'Yes, show my first name', value: 'yes' },
+            { label: 'Keep me anonymous', value: 'no' },
+          ] },
+        }],
+        custom_text: {
+          submit: { message: 'Your monthly donation supports evidence-based reproductive health education through the RRM Foundation, a 501(c)(3) nonprofit.' },
+        },
+        metadata: {
+          type: 'recurring_donation',
+          campaign: 'provider-directory',
+          ga_source: gaSource,
+          ga_medium: gaMedium,
+          ga_client_id: clientId,
+          ga_session_id: String(sessionId),
+          ...(gaCampaign && { ga_campaign: gaCampaign }),
+          ...(entry_category && { ga_entry_category: entry_category }),
+          ...(entry_platform && { ga_entry_platform: entry_platform }),
+        },
+      };
+
+      // subscription_data.metadata carries campaign so handleInvoicePaid can filter
+      // provider-directory invoices without fetching the checkout session first.
+      // Stripe does NOT auto-copy custom_fields into subscription.metadata, so
+      // the invoice handler retrieves the originating checkout session separately
+      // to read the show_supporter consent value.
+      sessionParams.subscription_data = {
+        metadata: {
+          campaign: 'provider-directory',
+          type: 'recurring_donation',
+        },
+      };
+
+      if (stripeCustomerId) {
+        sessionParams.customer = stripeCustomerId;
+      } else {
+        sessionParams.customer_creation = 'always';
+        if (userEmail) sessionParams.customer_email = userEmail;
+      }
+      if (userId) sessionParams.client_reference_id = userId;
+
+      let checkoutSession;
+      try {
+        checkoutSession = await stripe.checkout.sessions.create(sessionParams);
+      } catch (err) {
+        log(env, waitUntil, 'billing', 'create_recurring_donation_error', 'error', `stripe checkout: ${err.message}`, 0, 503);
+        return json({ ok: false, error: 'Payment service temporarily unavailable. Please try again.' }, 503);
+      }
+      waitUntil(sendGA4Event(env, request, 'begin_checkout', {
+        page_location: entry_url || request.headers.get('Referer') || SITE_URL,
+        currency: 'USD', value: cents / 100, items: [{ item_name: 'Recurring Donation' }],
+      }).catch(() => {}));
+      return json({ ok: true, url: checkoutSession.url });
+    }
+
     // --- Wix migration: validate optional wix_sub_id input ---
     const wixSubIdInput = body.wix_sub_id;
     if (wixSubIdInput !== undefined && wixSubIdInput !== null) {
