@@ -30,9 +30,13 @@
  * @property {BarEntry[]} [bars]
  * @property {number} [numerator]
  * @property {number} [denominator]
+ * @property {'woman'|'man'|'couple'} [icon]
+ * @property {string} [was]
  */
 
-export const TEMPLATES = ['single', 'delta', 'bars', 'ratio'];
+export const TEMPLATES = ['single', 'delta', 'bars', 'ratio', 'correction'];
+// People-pictograph figure for single + ratio. Matches the population the stat describes.
+export const ICONS = ['woman', 'man', 'couple'];
 export const DIRECTIONS = ['up', 'down'];
 export const POLARITIES = ['favorable', 'unfavorable', 'neutral'];
 export const EYEBROW_MAX = 28;
