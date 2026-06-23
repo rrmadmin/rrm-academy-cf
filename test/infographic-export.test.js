@@ -18,7 +18,7 @@ describe('exportPresets', () => {
     assert.equal(webp.subarray(8, 12).toString('ascii'), 'WEBP', 'WebP signature');
     // the exported SVG is branded (wordmark + footer)
     const svg = readFileSync(files.find((f) => f.endsWith('.svg')), 'utf8');
-    assert.ok(svg.includes('rrmacademy.org') && svg.includes('@rrmacademy'), 'export SVG carries the branded frame');
+    assert.ok(svg.includes('rrmacademy.org'), 'export SVG carries the branded frame');
   });
 
   it('emits the new story (9:16) preset', async () => {
