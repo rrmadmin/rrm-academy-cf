@@ -404,13 +404,29 @@ const citationMeta = {
       <!-- Synopsis (above abstract for SEO/AEO -- structured, citable content first) -->
       {article.insights && (
         <section class="article-insights" aria-label="Synopsis">
-          <p class="insights-attribution">RRM Academy Synopsis</p>
-          <h2 class="detail-heading">{article.insights.title || 'Synopsis'}</h2>
-        {article.infographic && <SynopsisInfographic spec={article.infographic} />}
-        {article.infographic && <ShareKit articleId={article.id} canonicalUrl={canonicalUrl} caption={igShareCaption} />}
-          <div class="insights-tldr">
-            <p set:html={renderInsight(article.insights.tldr)}></p>
-          </div>
+          {article.infographic ? (
+            <div class="synopsis-hero">
+              <div class="synopsis-hero__text">
+                <p class="insights-attribution">RRM Academy Synopsis</p>
+                <h2 class="detail-heading">{article.insights.title || 'Synopsis'}</h2>
+                <div class="insights-tldr">
+                  <p set:html={renderInsight(article.insights.tldr)}></p>
+                </div>
+              </div>
+              <div class="synopsis-hero__media">
+                <SynopsisInfographic spec={article.infographic} />
+                <ShareKit articleId={article.id} canonicalUrl={canonicalUrl} caption={igShareCaption} />
+              </div>
+            </div>
+          ) : (
+            <Fragment>
+              <p class="insights-attribution">RRM Academy Synopsis</p>
+              <h2 class="detail-heading">{article.insights.title || 'Synopsis'}</h2>
+              <div class="insights-tldr">
+                <p set:html={renderInsight(article.insights.tldr)}></p>
+              </div>
+            </Fragment>
+          )}
           {article.insights.key_findings && article.insights.key_findings.length > 0 && (
             <div class="insights-findings">
               <h3 class="insights-subheading">Key Findings</h3>
@@ -585,13 +601,29 @@ const citationMeta = {
       <!-- Synopsis (above abstract for SEO/AEO -- structured, citable content first) -->
       {article.insights && (
         <section class="article-insights" aria-label="Synopsis">
-          <p class="insights-attribution">RRM Academy Synopsis</p>
-          <h2 class="detail-heading">{article.insights.title || 'Synopsis'}</h2>
-        {article.infographic && <SynopsisInfographic spec={article.infographic} />}
-        {article.infographic && <ShareKit articleId={article.id} canonicalUrl={canonicalUrl} caption={igShareCaption} />}
-          <div class="insights-tldr">
-            <p set:html={renderInsight(article.insights.tldr)}></p>
-          </div>
+          {article.infographic ? (
+            <div class="synopsis-hero">
+              <div class="synopsis-hero__text">
+                <p class="insights-attribution">RRM Academy Synopsis</p>
+                <h2 class="detail-heading">{article.insights.title || 'Synopsis'}</h2>
+                <div class="insights-tldr">
+                  <p set:html={renderInsight(article.insights.tldr)}></p>
+                </div>
+              </div>
+              <div class="synopsis-hero__media">
+                <SynopsisInfographic spec={article.infographic} />
+                <ShareKit articleId={article.id} canonicalUrl={canonicalUrl} caption={igShareCaption} />
+              </div>
+            </div>
+          ) : (
+            <Fragment>
+              <p class="insights-attribution">RRM Academy Synopsis</p>
+              <h2 class="detail-heading">{article.insights.title || 'Synopsis'}</h2>
+              <div class="insights-tldr">
+                <p set:html={renderInsight(article.insights.tldr)}></p>
+              </div>
+            </Fragment>
+          )}
           {article.insights.key_findings && article.insights.key_findings.length > 0 && (
             <div class="insights-findings">
               <h3 class="insights-subheading">Key Findings</h3>
@@ -1080,6 +1112,19 @@ const citationMeta = {
     border-radius: var(--radius-md);
     padding: var(--space-8);
     margin-bottom: var(--space-8);
+  }
+  /* Two-column synopsis hero: summary text left, the square infographic right. */
+  .synopsis-hero {
+    display: flex;
+    gap: var(--space-6);
+    align-items: flex-start;
+    margin-bottom: var(--space-6);
+  }
+  .synopsis-hero__text { flex: 1 1 54%; min-width: 0; }
+  .synopsis-hero__media { flex: 0 0 44%; min-width: 0; }
+  @media (max-width: 640px) {
+    .synopsis-hero { flex-direction: column; gap: var(--space-5); }
+    .synopsis-hero__media { width: 100%; }
   }
   /* Synopsis title: the headline of the card, clearly above the section labels. */
   /* Authorship eyebrow: makes clear this is an RRM Academy editorial synopsis. */
