@@ -75,6 +75,14 @@ describe('single icon + adaptive visual', () => {
   it('rejects an unknown icon', () => {
     assert.ok(!validateSpec({ template: 'single', eyebrow: 'x', value: '88%', label: 'l', icon: 'robot', source: src }).valid);
   });
+  it('headline drives the hero figure while value drives the pictograph fill', () => {
+    const svg = renderInfographic({ template: 'single', eyebrow: 'x', value: '88%', headline: '9 in 10', label: '88% of women conceived within a year', source: src }, { mode: 'standalone', aspect: '1:1' });
+    assert.ok(svg.includes('>9 in 10<'), 'hero shows the humanized headline');
+    assert.ok(svg.includes('href="#hw"'), 'still a pictograph (value=88% drives the fill)');
+    // the exact figure lives in the descriptor, not as a duplicate hero numeral
+    const heroAsValue = svg.includes('class="num" font-size') && /class="num"[^>]*>88%</.test(svg);
+    assert.ok(!heroAsValue, 'the raw 88% is not the hero numeral');
+  });
 });
 
 describe('ratio template uses figures, not dots', () => {
