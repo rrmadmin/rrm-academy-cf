@@ -82,7 +82,8 @@
     "gates:courses:check": "node scripts/gates/validate-courses-schema.mjs --quick",
     "gates:removed-ids": "node scripts/gates/check-removed-ids.mjs",
     "gates:share": "node scripts/gates/validate-share-button.mjs",
-    "gates:email-verify": "node scripts/gates/validate-email-verification.mjs"
+    "gates:email-verify": "node scripts/gates/validate-email-verification.mjs",
+    "gates:infographic": "node scripts/gates/validate-infographic-svg.mjs"
   },
   "dependencies": {
     "@astrojs/sitemap": "^3.3.0",

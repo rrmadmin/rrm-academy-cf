@@ -28,11 +28,11 @@ describe('bars template', () => {
 });
 
 describe('ratio template', () => {
-  it('renders N in M with a dot grid', () => {
+  it('renders N in M with a figure pictograph (one figure per denominator)', () => {
     const svg = renderInfographic({ template: 'ratio', eyebrow: 'Burden', numerator: 1, denominator: 8, label: 'couples affected', source: src }, { mode: 'standalone', aspect: '1:1' });
     wf(svg);
     assert.ok(/1\s*in\s*8/i.test(svg.replace(/<[^>]+>/g, ' ')), 'headline reads 1 in 8');
-    const dots = [...svg.matchAll(/<circle /g)].length;
-    assert.equal(dots, 8, 'one dot per denominator');
+    const figs = [...svg.matchAll(/<use href="#rf"/g)].length;
+    assert.equal(figs, 8, 'one figure per denominator');
   });
 });

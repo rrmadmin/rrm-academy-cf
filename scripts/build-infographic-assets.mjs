@@ -3,6 +3,7 @@ import { fileURLToPath } from 'node:url';
 import { dirname, join } from 'node:path';
 import { renderInfographic } from '../src/lib/infographic/templates.mjs';
 import { validateSpec } from '../src/lib/infographic/validate.mjs';
+import { houseStyleErrors } from '../src/lib/infographic/house-style.mjs';
 import { rasterize } from './lib/infographic-raster.mjs';
 
 const PRESETS = [
@@ -14,6 +15,9 @@ const PRESETS = [
 
 export async function buildAssets({ articles, outDir }) {
   const written = [];
+  // House-style violations on a VALID spec mean the renderer produced off-brand output:
+  // a hard build failure, not a per-article skip (which is reserved for invalid specs / IO).
+  const hardErrors = [];
   for (const a of articles) {
     const spec = a && a.infographic;
     if (!spec || typeof spec !== 'object') continue;
@@ -23,6 +27,8 @@ export async function buildAssets({ articles, outDir }) {
       mkdirSync(dir, { recursive: true });
       for (const p of PRESETS) {
         const svg = renderInfographic(spec, { mode: 'standalone', aspect: p.aspect, frame: 'branded' });
+        const hs = houseStyleErrors(svg, { branded: true });
+        if (hs.length) { hardErrors.push(`${a.id}/${p.name}: ${hs.join('; ')}`); continue; }
         const png = await rasterize(svg);
         const out = join(dir, `${p.name}.png`);
         writeFileSync(out, png);
@@ -33,6 +39,7 @@ export async function buildAssets({ articles, outDir }) {
       continue;
     }
   }
+  if (hardErrors.length) throw new Error('infographic house-style violations:\n' + hardErrors.join('\n'));
   return { written };
 }
 
