@@ -32,6 +32,7 @@
  * @property {number} [denominator]
  * @property {'woman'|'man'|'couple'} [icon]
  * @property {string} [was]
+ * @property {string} [headline]
  */
 
 export const TEMPLATES = ['single', 'delta', 'bars', 'ratio', 'correction'];

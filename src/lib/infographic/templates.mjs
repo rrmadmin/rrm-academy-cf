@@ -158,10 +158,14 @@ function renderSingle(spec, { mode, box }) {
   const plotW = w - pad * 2;
   const provY = h - Math.round(pad * 0.5);
   const pct = asPercent(spec.value);
-  const alt = `${spec.value} ${spec.label}. Source: ${sourceLine(spec)}`;
+  // Hero = the humanized figure when provided (e.g. "9 in 10"), else the value. The exact
+  // figure (spec.value) still drives the pictograph fill and is explained in the label below.
+  const hero = spec.headline || spec.value;
+  const alt = (spec.headline ? `${spec.headline} (${spec.value})` : spec.value) + ` ${spec.label}. Source: ${sourceLine(spec)}`;
   // The NUMBER leads at the top of the card; the visual and a one-line descriptor follow.
-  // (No eyebrow above the number: the stat is read first, then explained.)
-  const numFs = Math.round(Math.min(plotW * 0.4, h * 0.32));
+  // (No eyebrow above the number: the stat is read first, then explained.) Clamp by hero width
+  // so a multi-word headline ("9 in 10") stays on one line.
+  const numFs = Math.min(Math.round(Math.min(plotW * 0.4, h * 0.32)), Math.floor(plotW / Math.max(3, hero.length * 0.5)));
   const numY = pad + Math.round(numFs * 0.8);
   const icon = spec.icon || 'woman';
   let visual = '';
@@ -211,8 +215,8 @@ function renderSingle(spec, { mode, box }) {
   }
   const numFill = pct != null ? color('purple-700', mode) : color('bg-body', mode);
   const numEl = pct != null
-    ? `<text x="${pad}" y="${numY}" class="num" font-size="${numFs}" font-weight="600" fill="${numFill}">${escapeXml(spec.value)}</text>`
-    : `<text x="${w / 2}" y="${numY}" text-anchor="middle" class="num" font-size="${numFs}" font-weight="600" fill="${numFill}">${escapeXml(spec.value)}</text>`;
+    ? `<text x="${pad}" y="${numY}" class="num" font-size="${numFs}" font-weight="600" fill="${numFill}">${escapeXml(hero)}</text>`
+    : `<text x="${w / 2}" y="${numY}" text-anchor="middle" class="num" font-size="${numFs}" font-weight="600" fill="${numFill}">${escapeXml(hero)}</text>`;
   const lbl = wrapLabel(spec.label, mode, pad, descY, plotW, 40, color('text-primary', mode));
   const srcY = Math.min(descY + lbl.lines * lbl.lineH + 36, provY);
   const body = visual + numEl + lbl.svg + provenance(spec, mode, pad, srcY, plotW);

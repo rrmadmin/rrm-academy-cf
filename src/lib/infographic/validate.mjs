@@ -18,7 +18,7 @@ function validUrl(v) {
 
 function collectStrings(spec) {
   const out = [];
-  for (const k of ['eyebrow', 'value', 'label', 'unit', 'caption', 'share_caption']) {
+  for (const k of ['eyebrow', 'value', 'label', 'unit', 'caption', 'share_caption', 'headline', 'was']) {
     if (typeof spec[k] === 'string') out.push(spec[k]);
   }
   if (spec.source) for (const k of ['label']) if (typeof spec.source[k] === 'string') out.push(spec.source[k]);
