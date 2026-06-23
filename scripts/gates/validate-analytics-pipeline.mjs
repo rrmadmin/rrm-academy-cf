@@ -47,9 +47,11 @@ const CLIENT_AUTO = 'src/scripts/track-auto.ts';
 const SRC_SCAN_GLOBS = ['src/**/*.astro', 'src/**/*.ts', 'src/**/*.js'];
 const FUNCTIONS_SCAN_GLOBS = ['functions/**/*.js'];
 
-// Server-side conversion events: MUST NOT be in ALLOWED_CLIENT_EVENTS (AG3)
+// Server-side conversion events: MUST NOT be in ALLOWED_CLIENT_EVENTS (AG3).
+// page_view is intentionally excluded: it is now client-fired by ga-session.ts
+// via /api/track. The server shadow (sendPageView in _middleware.js) has been
+// removed. AG3 separately asserts the middleware no longer emits page_view.
 const SERVER_ONLY_EVENTS = [
-  'page_view',
   'sign_up',
   'signup_from_ask',
   'generate_lead',
@@ -89,10 +91,10 @@ const FORBIDDEN_TP_ORIGINS = [
 ];
 const GA_SERVER_ENDPOINT_HOST = 'www.google-analytics.com';
 // Files allowed to reference the GA4 Measurement Protocol endpoint directly.
-// Both are server-side relays (Workers/middleware), neither exposes browser →
-// google-analytics.com traffic — keeping the rule first-party even when the
-// MP endpoint is named.
-const GA_SERVER_ENDPOINT_ALLOWED_FILES = [GA4, MIDDLEWARE];
+// Only _ga4.js: the middleware's sendPageView shadow was removed (client beacon
+// now owns page_view). _ga4.js is the sole server-side relay; it does not expose
+// browser → google-analytics.com traffic, keeping the architecture first-party.
+const GA_SERVER_ENDPOINT_ALLOWED_FILES = [GA4];
 
 // CSP must NOT contain these origins (AG8)
 const FORBIDDEN_CSP_ORIGINS = [
@@ -102,9 +104,12 @@ const FORBIDDEN_CSP_ORIGINS = [
   'connect.facebook.net',
 ];
 
-// Bundle size budgets (AG11), in bytes (minified+gzipped — Astro's hashed output)
-const BUNDLE_BUDGET_TRACK = 2048;       // src/scripts/track.ts
-const BUNDLE_BUDGET_TRACK_AUTO = 3584;  // src/scripts/track-auto.ts
+// Bundle size budgets (AG11), in bytes (minified, on-disk size of Astro's hashed chunk).
+// track.ts now also pulls in ga-session.ts plus the page_view + engagement beacon, and
+// Astro merges them into the single track.* chunk, so this budget covers the whole
+// first-party beacon (still ~20x smaller than gtag.js). Bumped from 2048 (transport-only).
+const BUNDLE_BUDGET_TRACK = 3072;       // src/scripts/track.ts (+ ga-session.ts, merged by Astro)
+const BUNDLE_BUDGET_TRACK_AUTO = 3584;  // src/scripts/track-auto.ts (may merge into track.*)
 
 // ---------- CLI -----------------------------------------------------------
 const argv = process.argv.slice(2);
@@ -309,8 +314,14 @@ function gateAG2() {
 }
 
 // ============================================================
-// Gate AG3: Server/client event separation
+// Gate AG3: Server/client event separation + no server page_view shadow
 // ============================================================
+// Architecture: page_view is now client-fired by ga-session.ts (first-party beacon).
+// The server shadow (sendPageView in _middleware.js) was deleted to prevent double-
+// counting. AG3 enforces both sides of this contract:
+//   (a) Billing/auth conversion events remain server-only (not in ALLOWED_CLIENT_EVENTS).
+//   (b) The middleware no longer contains a sendPageView emitter (no `name: 'page_view'`
+//       in a server-side fetch payload) -- preventing accidental re-introduction.
 function gateAG3() {
   const results = [];
   const eventsSrc = read(TRACK_EVENTS);
@@ -323,6 +334,7 @@ function gateAG3() {
     [...clientSetMatch[1].matchAll(/['"]([a-z][a-z0-9_]{0,39})['"]/g)].map((m) => m[1]),
   );
 
+  // (a) Conversion events must stay server-only.
   let leaks = 0;
   for (const evt of SERVER_ONLY_EVENTS) {
     if (allowedClient.has(evt)) {
@@ -331,8 +343,19 @@ function gateAG3() {
     }
   }
   if (leaks === 0) {
-    results.push(pass(`no server-only events in ALLOWED_CLIENT_EVENTS (${SERVER_ONLY_EVENTS.length} checked)`));
+    results.push(pass(`no server-only conversion events in ALLOWED_CLIENT_EVENTS (${SERVER_ONLY_EVENTS.length} checked)`));
   }
+
+  // (b) Middleware must not emit page_view server-side (client beacon owns it now).
+  const middlewareSrc = read(MIDDLEWARE);
+  if (!middlewareSrc) {
+    results.push(fail(`${MIDDLEWARE} not found -- cannot verify server page_view shadow is absent`));
+  } else if (/name\s*:\s*['"]page_view['"]/.test(middlewareSrc)) {
+    results.push(fail(`${MIDDLEWARE} still contains a server-side page_view emitter -- delete sendPageView to prevent double-counting with the client beacon`));
+  } else {
+    results.push(pass(`${MIDDLEWARE} does not emit server-side page_view (client beacon owns it)`));
+  }
+
   return results;
 }
 

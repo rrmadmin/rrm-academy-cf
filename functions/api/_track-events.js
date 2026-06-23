@@ -5,7 +5,6 @@
 // Server-only conversion events that fire from CF Workers middleware / auth / billing.
 // Clients MUST NOT send these -- they would double-count conversions in GA4.
 const SERVER_ONLY_EVENTS = new Set([
-  'page_view',
   'sign_up',
   'signup_from_ask',
   'generate_lead',
@@ -15,6 +14,8 @@ const SERVER_ONLY_EVENTS = new Set([
 
 // Client-facing behavior events that the /api/track endpoint accepts.
 export const ALLOWED_CLIENT_EVENTS = new Set([
+  // client-fired by the first-party page_view beacon (ga-session.ts)
+  'page_view',
   'cta_click',
   'outbound_click',
   'internal_click',
@@ -29,6 +30,8 @@ export const ALLOWED_CLIENT_EVENTS = new Set([
   'theme_toggle',
   'pdf_download',
   'copy_citation',
+  // client foreground-engagement flush (track.ts startEngagementTracking)
+  'user_engagement',
 ]);
 
 // Full allowlist: server-side conversions + client behavior events.
@@ -41,6 +44,7 @@ export const ALLOWED_EVENTS = new Set([
 // Required params per event. Client must supply ALL listed keys.
 // Optional params are not listed here -- they pass through after sanitization.
 export const REQUIRED_PARAMS = new Map([
+  ['page_view',          ['page_location']],
   ['cta_click',          ['id', 'page']],
   ['outbound_click',     ['href', 'host']],
   ['internal_click',     ['href', 'page']],
@@ -55,6 +59,7 @@ export const REQUIRED_PARAMS = new Map([
   ['theme_toggle',       ['to']],
   ['pdf_download',       ['slug', 'source']],
   ['copy_citation',      ['surface', 'format']],
+  ['user_engagement',    ['engagement_time_msec']],
 ]);
 
 // Regex for PII param key detection. Keys matching this pattern are stripped
@@ -68,10 +73,10 @@ export const PII_VALUE_REGEX = /[\w.+-]+@[\w-]+\.[\w.-]+|\b\d{3}-\d{2}-\d{4}\b|\
 
 // Param names the server adds automatically. Client-supplied values for these keys
 // are dropped silently (not rejected) to prevent accidental override.
+// Note: page_location, page_referrer, engagement_time_msec are NOT reserved -- the
+// client beacon (ga-session.ts) is the authoritative source for those on page_view.
+// session_id and client_id travel via top-level overrides (cid/sid), not params.
 export const RESERVED_PARAMS = new Set([
-  'page_location',
-  'page_referrer',
-  'engagement_time_msec',
   'session_id',
   'utm_source',
   'utm_medium',
