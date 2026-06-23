@@ -8,6 +8,7 @@
     "cta_href": "/providers/#give",
     "goal_cents": 1000000,
     "campaign_key": "provider-directory",
-    "status": "active"
+    "status": "active",
+    "foreground": false
   }
 ]

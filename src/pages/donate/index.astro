@@ -158,8 +158,8 @@ const jsonLd = {
         <p>When you donate to RRM Academy, you're supporting the Foundation's mission. We exist for every person who has been told their pain is normal or has been left to navigate years of uncertainty.</p>
       </section>
 
-      <!-- Featured one-time campaign: the RRM Care Directory -->
-      {providerDirectory && (
+      <!-- Featured campaign card: rendered only when campaign.foreground is true. Held false pre-launch; flip to true at launch. -->
+      {providerDirectory && providerDirectory.foreground && (
         <section class="donate-section">
           <CampaignCallout campaign={providerDirectory} variant="card" />
         </section>
