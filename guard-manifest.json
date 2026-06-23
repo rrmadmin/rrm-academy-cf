@@ -71,7 +71,7 @@
       "note": "HMAC-SHA256 magic-link token for Wix-to-Stripe donor migration"
     },
     "functions/_middleware.js": {
-      "hash": "53a88219798f285d2b95731ac51c0cbf018b2fa908a0bbd5d4dc645f805f6f06",
+      "hash": "0363b6a356d190e5ddc4c4312d8e35328e9baf5d585d713ec0918adb02f5277e",
       "note": "Auth gating"
     },
     "wrangler.toml": {
@@ -222,11 +222,11 @@
       "hash": "c8053c9818a055f56bdfe145bbab83ca1aa7566d2c512d96edcd6e6ca0f17eaa"
     },
     "functions/api/track.js": {
-      "hash": "dacfaecc1f4248dfb2e925129dfca1c7a14b10c134705defb8a7c86477cdcf61",
+      "hash": "91a271fbf0a734cd7bfdd6d371c5ca8a13c3963a51ce4b6888db5256821f62e9",
       "note": "Client analytics endpoint: rate limit + allowlist + PII strip + GA4 MP relay + AE mirror"
     },
     "functions/api/_track-events.js": {
-      "hash": "5837a134638de7697c42273ffd5a7f55a59055a0c3d1b98eb58f770a311ce8b4",
+      "hash": "e35ca6888d2c8975a1d24ddf3b001ca6ac6ff6f21e839c3e9948da0aa188e703",
       "note": "Allowed events, required params, PII_REGEX, reserved params (security invariants for /api/track)"
     }
   }
