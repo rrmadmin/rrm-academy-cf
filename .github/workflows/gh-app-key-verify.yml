@@ -10,7 +10,10 @@ name: gh-app-key-verify
 # Self-check semantics: signs a JWT with RRM_ADMIN_APP_PRIVATE_KEY,
 # exchanges it for an installation token via /app/installations/<id>/access_tokens,
 # then verifies the returned token has the permissions the merge workflow needs
-# (contents, pull_requests, workflows, actions = write).
+# (contents, pull_requests, actions = write). workflows=write is intentionally
+# NOT required: merge.yml refuses to auto-merge any branch that touches
+# .github/workflows, so its merge push never carries workflow files and
+# contents:write suffices.
 #
 # Memory: github-app-rrm-admin-automation.md
 
@@ -37,7 +40,7 @@ jobs:
       - name: Verify token permissions
         env:
           TOKEN: ${{ steps.app-token.outputs.token }}
-          REQUIRED: 'contents pull_requests workflows actions'
+          REQUIRED: 'contents pull_requests actions'
           REQUIRED_LEVEL: 'write'
         run: |
           set -uo pipefail
@@ -107,12 +110,13 @@ jobs:
             -H "X-GitHub-Api-Version: 2022-11-28" \
             https://api.github.com/app)
 
-          # Required permission levels — must match what merge.yml needs to
-          # push workflow YAML and merge claude/** branches into main.
+          # Required permission levels for merging claude/** branches into main.
+          # workflows=write is intentionally excluded: merge.yml blocks
+          # workflow-file changes in auto-merge (C3), so the merge push is always
+          # non-workflow and contents:write is enough.
           declare -A required=(
             [contents]=write
             [pull_requests]=write
-            [workflows]=write
             [actions]=write
             [metadata]=read
           )
@@ -130,6 +134,17 @@ jobs:
               echo "OK: ${perm}=${got}"
             fi
           done
+
+          # workflows=write is no longer needed (see above). Flag, but do not
+          # fail, if it is still granted, so the over-permission stays visible
+          # until it is dropped in the dashboard.
+          wf=$(echo "$app" | jq -r '.permissions.workflows // empty')
+          if [[ "$wf" == "write" ]]; then
+            echo "::warning::App still has workflows=write — not needed; drop it at https://github.com/settings/apps/rrm-admin-automation/permissions"
+          else
+            echo "OK: workflows permission is not write (${wf:-none})"
+          fi
+
           if [[ $fail -ne 0 ]]; then
             echo "::error::App permissions drifted. Update at https://github.com/settings/apps/rrm-admin-automation/permissions and accept the prompt to apply to the existing installation."
             exit 1
