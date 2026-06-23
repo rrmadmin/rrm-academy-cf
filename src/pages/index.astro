@@ -261,8 +261,8 @@ const jsonLd = {
     </section>
 
     <div class="page-body">
-    <!-- Fundraiser band: surface the RRM Care Directory campaign high on the page -->
-    {providerDirectory && (
+    <!-- Fundraiser band: rendered only when campaign.foreground is true. Held false pre-launch to avoid showing a $0 thermometer for days; flip to true at launch. -->
+    {providerDirectory && providerDirectory.foreground && (
       <section class="hp-section">
         <div class="container container--narrow">
           <CampaignCallout campaign={providerDirectory} variant="band" snapshot={providerSnapshot} />
