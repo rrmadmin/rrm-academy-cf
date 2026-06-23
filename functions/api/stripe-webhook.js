@@ -8,6 +8,7 @@
  *   - customer.subscription.created   -> billing/_webhook-subscription.js
  *   - customer.subscription.updated   -> billing/_webhook-subscription.js
  *   - customer.subscription.deleted   -> billing/_webhook-subscription.js
+ *   - invoice.paid                     -> billing/_webhook-invoice.js (provider-directory recurring only)
  *   - invoice.payment_failed          -> billing/_webhook-invoice.js
  *   - charge.refunded                 -> billing/_webhook-refund.js
  *
@@ -19,7 +20,7 @@
  */
 import { handleCheckoutCompleted, handleCheckoutExpired } from './billing/_webhook-checkout.js';
 import { handleSubscriptionCreated, handleSubscriptionUpdated, handleSubscriptionDeleted } from './billing/_webhook-subscription.js';
-import { handlePaymentFailed } from './billing/_webhook-invoice.js';
+import { handlePaymentFailed, handleInvoicePaid } from './billing/_webhook-invoice.js';
 import { handleChargeRefunded } from './billing/_webhook-refund.js';
 import { getStripeClient, requireWebhookConfig, dedupWebhookEvent, markWebhookEventCompleted, rollbackWebhookDedup } from './billing/_shared.js';
 import { log } from './_log.js';
@@ -97,6 +98,9 @@ async function handleWebhook(request, env, waitUntil) {
         break;
       case 'customer.subscription.deleted':
         result = await handleSubscriptionDeleted(db, event, env, request, waitUntil);
+        break;
+      case 'invoice.paid':
+        result = await handleInvoicePaid(db, event, env, request, waitUntil);
         break;
       case 'invoice.payment_failed':
         result = await handlePaymentFailed(db, event, env, request, waitUntil);
