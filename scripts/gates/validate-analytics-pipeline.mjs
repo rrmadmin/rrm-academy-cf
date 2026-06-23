@@ -104,9 +104,12 @@ const FORBIDDEN_CSP_ORIGINS = [
   'connect.facebook.net',
 ];
 
-// Bundle size budgets (AG11), in bytes (minified+gzipped — Astro's hashed output)
-const BUNDLE_BUDGET_TRACK = 2048;       // src/scripts/track.ts
-const BUNDLE_BUDGET_TRACK_AUTO = 3584;  // src/scripts/track-auto.ts
+// Bundle size budgets (AG11), in bytes (minified, on-disk size of Astro's hashed chunk).
+// track.ts now also pulls in ga-session.ts plus the page_view + engagement beacon, and
+// Astro merges them into the single track.* chunk, so this budget covers the whole
+// first-party beacon (still ~20x smaller than gtag.js). Bumped from 2048 (transport-only).
+const BUNDLE_BUDGET_TRACK = 3072;       // src/scripts/track.ts (+ ga-session.ts, merged by Astro)
+const BUNDLE_BUDGET_TRACK_AUTO = 3584;  // src/scripts/track-auto.ts (may merge into track.*)
 
 // ---------- CLI -----------------------------------------------------------
 const argv = process.argv.slice(2);
