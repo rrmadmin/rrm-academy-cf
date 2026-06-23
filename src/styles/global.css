@@ -130,6 +130,9 @@
   --gradient-hero-grain-opacity: 0.55;
   --gradient-hero-subtle: radial-gradient(circle at 15% 84%, rgba(114, 94, 126, 0) 0%, rgba(152, 125, 168, 0) 39.84%, rgba(201, 184, 211, 0.3) 66.40%, rgba(218, 211, 231, 0.6) 90.19%);
 
+  /* Fundraiser cards: signature soft purple-to-cream wash (callout band/card + /providers/ give panel). Composes theme-aware tokens, so it adapts per theme. */
+  --gradient-fundraiser: linear-gradient(135deg, var(--purple-50) 0%, var(--cream) 100%);
+
   /* Focus ring — oklch(36% 0.067 312 / 0.6) on white = ~3.3:1 contrast (WCAG 1.4.11) */
   --focus-ring: oklch(36% 0.067 312 / 0.6);
 }
