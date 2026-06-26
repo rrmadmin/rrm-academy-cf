@@ -538,13 +538,14 @@ Endo survey splits PII from health data across two systems:
 
 | System | Binding | Contains |
 |--------|---------|----------|
-| D1 `rrm-survey` | `SURVEY_DB` | email + Airtable record ID (identity) |
-| Airtable | via `AIRTABLE_PAT` | symptoms, scores, metadata (no email) |
+| D1 `rrm-survey` | `SURVEY_DB` | email + rec_id (identity). `survey_identities.airtable_record_id` column now holds the generic rec_id |
+| D1 `rrm-survey-symptoms` | `SURVEY_SYMPTOMS_DB` | symptoms, scores, metadata (no email). **Migrated off Airtable 2026-06-26** (`survey_symptoms`, rec_id PK, db id `61eecfc7-d65e-4711-a9f4-03dd0c52c67d`) |
 | KV `SURVEY_TOKENS` | `SURVEY_TOKENS` | token, used flag, UTM (email stripped after submit) |
 
-- **D1 table:** `survey_identities` (email, airtable_record_id, source, created_at). UNIQUE on airtable_record_id, INDEX on email
-- **Sources:** `endo-survey-v1` (live submissions), `endo-survey-v1-backfill` (migration)
-- **Airtable IDs:** base `appb7HeeJQsVe3Jpr`, table `tblMAw2tih2ie3ZCu`
+- **D1 tables:** `survey_identities` (email, airtable_record_id=rec_id, source, created_at) in `rrm-survey`; `survey_symptoms` (rec_id PK, scores, tier symptoms, device, no email) in `rrm-survey-symptoms`
+- **Sources:** `endo-survey-v1` (live submissions), `endo-survey-v1-backfill` (1733 migrated from Airtable)
+- **submit.js writes symptoms to D1** (`SURVEY_SYMPTOMS_DB`), hardened: `symptom_write_dropped` AE event + token rollback + 502 on a dropped write; symptoms written before the identity link. See the `collection-system` skill.
+- **Airtable (RETIRED 2026-06-26):** base `appb7HeeJQsVe3Jpr`, table `tblMAw2tih2ie3ZCu` -- write-idle (capped); reads still work for historical export
 - **Token TTL:** 24 hours (both request.js and submit.js)
 - **D1 failure handling:** logs to Analytics Engine + SES alert to administrator@rrmacademy.org
 - **Migration script:** `scripts/migrate-survey-identities.mjs` (one-time, already run)
@@ -584,7 +585,7 @@ Push to `claude/` branch -- GitHub Actions auto-builds + merges. No local creden
 
 ## Shared Config
 
-- **Blog posts**: D1 `rrm-auth.posts` is SSOT (migrated from Airtable 2026-03-27). Library, FAQs, glossary, courses also D1. **Airtable holdouts:** endo survey symptom data (`appb7HeeJQsVe3Jpr` — by-design HIPAA pseudonymization split), STUC publisher (manual CLI with `--i-understand-d1-divergence` guard). See `~/iCode/CLAUDE.md` "Airtable Deprecation" for the complete current map (verified 2026-04-27).
+- **Blog posts**: D1 `rrm-auth.posts` is SSOT (migrated from Airtable 2026-03-27). Library, FAQs, glossary, courses also D1. **Airtable holdouts:** STUC publisher (manual CLI with `--i-understand-d1-divergence` guard). Endo-survey symptoms migrated off Airtable to D1 `rrm-survey-symptoms` on 2026-06-26 -- no longer a holdout. See `~/iCode/CLAUDE.md` "Airtable Deprecation" for the complete current map.
 - **Stripe API version**: `STRIPE_API_VERSION` in `functions/api/auth/_shared.js` — imported by all 6 Stripe consumers
 - **Site URL for emails**: `SITE_URL` in `functions/api/auth/_shared.js` — used in transactional email body links only (CORS origin stays hardcoded for security; Astro pages use `Astro.site`)
 - **Navigation**: Desktop, mobile, and footer navs are intentionally different item sets — see comments in `Header.astro` and `Footer.astro`
