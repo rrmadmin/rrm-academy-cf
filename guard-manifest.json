@@ -75,7 +75,7 @@
       "note": "Auth gating"
     },
     "wrangler.toml": {
-      "hash": "e874d00e974b51980f6aedde6c2ce258cf6a88b3a6d5a15863e8461cbf3ab8f3",
+      "hash": "f373bb10197db50bdc52e657eff096cfcadcffd2a6832f81b9662846506a5a7a",
       "note": "D1, KV, R2 bindings"
     },
     "functions/api/_ses.js": {
@@ -87,7 +87,7 @@
       "note": "EmailListVerify SMTP validation"
     },
     "functions/api/survey/submit.js": {
-      "hash": "eea1519e4e70d4da80f0a7e1dc5f487a62ed092f76aa83f91b4038b8af6fc44a",
+      "hash": "8d24e2c05fd769b8349825460b3f18d74d5b9fa477755c5879ecea99239df586",
       "note": "Survey submission + PII pseudonymization"
     },
     "functions/api/survey/request.js": {
