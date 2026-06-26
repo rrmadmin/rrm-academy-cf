@@ -1,6 +1,6 @@
 /**
  * POST /api/survey/submit
- * Stores survey results in Airtable and consumes the token.
+ * Stores symptoms in D1 `rrm-survey-symptoms` (SURVEY_SYMPTOMS_DB) and identity in D1 `rrm-survey` (SURVEY_DB). Consumes the token.
  * Input: { token, symptoms: { tier1: [...], tier2: [...], tier3: [...] }, score: { tier1, tier2, tier3, total } }
  */
 import { sendEmail, logEmailFailure } from '../_ses.js';
@@ -21,10 +21,10 @@ export async function onRequestPost(context) {
     if (!env.SURVEY_TOKENS) {
       return json({ ok: false, error: 'Server misconfigured' }, 500);
     }
-    if (!env.AIRTABLE_PAT || !env.AIRTABLE_SURVEY_BASE || !env.AIRTABLE_SURVEY_TABLE) {
+    if (!env.SURVEY_DB) {
       return json({ ok: false, error: 'Server misconfigured' }, 500);
     }
-    if (!env.SURVEY_DB) {
+    if (!env.SURVEY_SYMPTOMS_DB) {
       return json({ ok: false, error: 'Server misconfigured' }, 500);
     }
 
@@ -77,7 +77,7 @@ export async function onRequestPost(context) {
     }
 
     // Atomically claim token via D1 to prevent double-submit races
-    try {
+    try { // arise-ignore unbatched-writes -- writes span SURVEY_DB (rrm-survey) and SURVEY_SYMPTOMS_DB (rrm-survey-symptoms); db.batch() only works within a single binding so cross-DB atomicity is impossible; identityLinked + SES alert is the intentional fallback for partial failures
       const claim = await env.SURVEY_DB.prepare(
         'INSERT INTO survey_token_claims (token, claimed_at) VALUES (?, ?)'
       ).bind(token, Date.now()).run();
@@ -97,79 +97,44 @@ export async function onRequestPost(context) {
       expirationTtl: TOKEN_TTL,
     });
 
-    // Store in Airtable
-    let airtableRecordId;
+    // Write symptoms (DB2) BEFORE the identity link (DB1). If the identity write later fails, the symptom row is an orphan we can re-link from the alert email, but clinical data is never lost. The inverse order would lose symptoms on a DB1-success/DB2-fail. Do not reorder.
+    const recId = crypto.randomUUID();
+    const referrer = request.headers.get('referer') || '';
+    const vw = (typeof device?.viewport_width === 'number' && Number.isFinite(device.viewport_width)
+      && device.viewport_width > 0 && device.viewport_width <= 10000) ? device.viewport_width : null;
     try {
-      const referrer = request.headers.get('referer') || '';
-      const vw = (typeof device?.viewport_width === 'number' && Number.isFinite(device.viewport_width)
-        && device.viewport_width > 0 && device.viewport_width <= 10000) ? device.viewport_width : null;
-      const fields = {
-        Score: score.total,
-        'Tier 1 Count': score.tier1,
-        'Tier 2 Count': score.tier2,
-        'Tier 3 Count': score.tier3,
-        'Tier 1 Symptoms': symptoms.tier1.join('\n'),
-        'Tier 2 Symptoms': symptoms.tier2.join('\n'),
-        'Tier 3 Symptoms': symptoms.tier3.join('\n'),
-        Submitted: new Date().toISOString(),
-        Source: referrer,
-        'User Origin': data.userorigin || '',
-        ...(vw && {
-          'Viewport Width': vw,
-          'Device Type': vw <= 768 ? 'Mobile' : vw <= 1024 ? 'Tablet' : 'Desktop',
-        }),
-      };
-
-      const airtableResp = await fetch(
-        `https://api.airtable.com/v0/${env.AIRTABLE_SURVEY_BASE}/${env.AIRTABLE_SURVEY_TABLE}`,
-        {
-          method: 'POST',
-          headers: {
-            Authorization: `Bearer ${env.AIRTABLE_PAT}`,
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({ records: [{ fields }], typecast: true }),
-        }
-      );
-
-      if (!airtableResp.ok) {
-        const errText = await airtableResp.text();
-        log(env, waitUntil, 'survey', 'airtable_write_error', 'error', `${airtableResp.status} ${errText}`, 0, 502);
-        await env.SURVEY_DB.prepare('DELETE FROM survey_token_claims WHERE token = ?').bind(token).run();
-        await env.SURVEY_TOKENS.put(`token:${token}`, JSON.stringify(data), {
-          expirationTtl: TOKEN_TTL,
-        });
-        return json({ ok: false, error: 'Failed to save results. Please try again.' }, 502);
-      }
-
-      const airtableData = await airtableResp.json();
-      airtableRecordId = airtableData.records?.[0]?.id;
-      if (!airtableRecordId) {
-        log(env, waitUntil, 'survey', 'airtable_no_record_id', 'error', 'Airtable returned no record ID', 0, 502);
-        await env.SURVEY_DB.prepare('DELETE FROM survey_token_claims WHERE token = ?').bind(token).run();
-        await env.SURVEY_TOKENS.put(`token:${token}`, JSON.stringify(data), {
-          expirationTtl: TOKEN_TTL,
-        });
-        return json({ ok: false, error: 'Failed to save results. Please try again.' }, 502);
-      }
+      await env.SURVEY_SYMPTOMS_DB.prepare(
+        "INSERT INTO survey_symptoms (rec_id, score_total, score_tier1, score_tier2, score_tier3, tier1_symptoms, tier2_symptoms, tier3_symptoms, source, user_origin, viewport_width, device_type, referrer, submitted_at) VALUES (?,?,?,?,?,?,?,?,'endo-survey-v1',?,?,?,?,datetime('now'))"
+      ).bind(
+        recId,
+        score.total,
+        score.tier1,
+        score.tier2,
+        score.tier3,
+        symptoms.tier1.join('\n'),
+        symptoms.tier2.join('\n'),
+        symptoms.tier3.join('\n'),
+        data.userorigin || null,
+        vw,
+        vw ? (vw <= 768 ? 'Mobile' : vw <= 1024 ? 'Tablet' : 'Desktop') : null,
+        referrer,
+      ).run();
     } catch (err) {
-      log(env, waitUntil, 'survey', 'airtable_write_error', 'error', err.message, 0, 502);
+      log(env, waitUntil, 'survey', 'symptom_write_dropped', 'error', err.message, 0, 502);
       await env.SURVEY_DB.prepare('DELETE FROM survey_token_claims WHERE token = ?').bind(token).run();
-      await env.SURVEY_TOKENS.put(`token:${token}`, JSON.stringify(data), {
-        expirationTtl: TOKEN_TTL,
-      });
+      await env.SURVEY_TOKENS.put(`token:${token}`, JSON.stringify(data), { expirationTtl: TOKEN_TTL });
       return json({ ok: false, error: 'Failed to save results. Please try again.' }, 502);
     }
 
-    // Link email to Airtable record in D1 (pseudonymized)
+    // Link email to the symptom record id in D1 (pseudonymized; rec_id joins rrm-survey-symptoms)
     let identityLinked = false;
     try {
       await env.SURVEY_DB.prepare(
         'INSERT INTO survey_identities (email, airtable_record_id, source) VALUES (?, ?, ?)'
-      ).bind(data.email, airtableRecordId, 'endo-survey-v1').run();
+      ).bind(data.email, recId, 'endo-survey-v1').run();
       identityLinked = true;
     } catch (d1Err) {
-      const detail = `D1 write failed: record=${airtableRecordId} err=${d1Err.message}`;
+      const detail = `D1 write failed: record=${recId} err=${d1Err.message}`;
       log(env, waitUntil, 'survey', 'd1_identity_write_error', 'error', detail, 0, 500);
 
       const alertSubject = 'ALERT: Survey identity link failed';
@@ -179,7 +144,7 @@ export async function onRequestPost(context) {
             from: 'RRM Academy <alerts@mail.rrmacademy.org>',
             to: 'administrator@rrmacademy.org',
             subject: alertSubject,
-            text: `D1 write failed during survey submission.\n\nAirtable Record ID: ${airtableRecordId}\nTimestamp: ${new Date().toISOString()}\n\nManual action required: look up the email for this Airtable record and INSERT into survey_identities manually.`,
+            text: `D1 write failed during survey submission.\n\nrec_id: ${recId}\nTimestamp: ${new Date().toISOString()}\n\nManual action required: look up the email for this rec_id and INSERT into survey_identities manually.`,
             log: { db: env.SURVEY_DB, source: 'survey/d1-alert', category: 'transactional' },
           });
         } catch (emailErr) {
