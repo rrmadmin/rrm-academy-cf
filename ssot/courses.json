@@ -82,58 +82,6 @@
       }
     },
     {
-      "@id": "https://rrmacademy.org/courses/medical-trauma-endometriosis/#course",
-      "@type": "Course",
-      "name": "Endometriosis and Medical Trauma: A Restorative Reproductive Approach",
-      "description": "Many women with endometriosis arrive at care having already been dismissed, misdiagnosed, or told their pain was normal. That experience is its own injury. In this Save the Uterus Club session, minimally invasive gynecologic surgeon Dr. Mallory Stuparich joins Dr. Naomi Whittaker to name medical trauma directly and show what trauma-informed, restorative care looks like in practice.\n\nAcross eight lessons you'll learn how gaslighting and diagnostic delay compound into real harm, the neurobiology that links chronic stress to inflammatory disease, and concrete ways clinicians can meet patients where they are. Dr. Stuparich also examines the case for subspecialty care, the future of women's health, provider burnout, and the emerging neuroimmune model of endometriosis with the adjunct therapies it opens up.\n\nFor patients, it is validation and a vocabulary for what you've been through. For clinicians, it is a practical model for care that treats the person, not just the pathology.",
-      "provider": {
-        "@id": "https://rrmacademy.org/#organization"
-      },
-      "instructor": [
-        {
-          "@id": "https://rrmacademy.org/courses/medical-trauma-endometriosis/#instructor-mallory-stuparich"
-        }
-      ],
-      "hasCourseInstance": [
-        {
-          "@type": "CourseInstance",
-          "courseMode": "online",
-          "courseWorkload": "selfPaced"
-        }
-      ],
-      "offers": {
-        "@type": "Offer",
-        "price": 0,
-        "priceCurrency": "USD"
-      }
-    },
-    {
-      "@id": "https://rrmacademy.org/courses/how-disconnecting-women-from-their-bodies-supports-big-ivf/#course",
-      "@type": "Course",
-      "name": "How Disconnecting Women From Their Bodies Supports Big IVF",
-      "description": "Recorded live lecture now available as a 7-lesson member course. In this Save the Uterus Club session, Functional Fertility Dietitian Olivia Mitchell, RDN, IFNCP, who shares fertility education with a large community on Instagram at [@yourfertility.yourfuture](https://www.instagram.com/yourfertility.yourfuture/), opens with a simple but often unspoken premise: you are not broken. The system that trained you to override your body's signals is.\n\nOlivia traces how disconnection begins early. Suppressive medications prescribed for symptoms rather than root causes. Hustle culture that leaves no room to listen. Social media that turns a deeply personal journey into a performance. Fear, she argues, is the most profitable emotion in the fertility industry. And one-size-fits-all medicine profits from it.\n\nAcross seven lessons, Olivia examines what whole-body, systems-based care actually looks like when it accounts for what standard workups miss: undereating disguised as clean eating, nutrient depletion, nervous-system dysregulation, inflammatory and autoimmune drivers that go untested, and male factor issues that go unnamed. The question she returns to throughout is not just biological. It is relational and somatic: does your body feel safe enough to conceive?\n\nThe final lesson is not a protocol. It is a reorientation. Pause. Build body literacy. Understand what your options actually are before a time pressure or a fear-driven recommendation takes the decision out of your hands. Olivia's case is not against any particular path. It is for informed choice, made from a place of clarity rather than crisis.\n\nRecorded for Save the Uterus Club members, the session unfolds as a candid conversation between Olivia and Dr. Naomi Whittaker, MD.\n\nThis course is educational. It is not a substitute for individualized medical evaluation.",
-      "provider": {
-        "@id": "https://rrmacademy.org/#organization"
-      },
-      "instructor": [
-        {
-          "@id": "https://rrmacademy.org/courses/how-disconnecting-women-from-their-bodies-supports-big-ivf/#instructor-olivia-mitchell-rdn"
-        }
-      ],
-      "hasCourseInstance": [
-        {
-          "@type": "CourseInstance",
-          "courseMode": "online",
-          "courseWorkload": "selfPaced"
-        }
-      ],
-      "offers": {
-        "@type": "Offer",
-        "price": 0,
-        "priceCurrency": "USD"
-      }
-    },
-    {
       "@id": "https://rrmacademy.org/courses/postpartum-depression-anxiety/#course",
       "@type": "Course",
       "name": "Postpartum Depression & Anxiety: A Restorative Approach to Recovery",

@@ -1,0 +1,79 @@
+{
+  "sdm": {
+    "name": "Standard Days Method",
+    "tagline": "a simple calendar method for predictable cycles",
+    "howItWorks": "The Standard Days Method identifies days 8 through 19 of your cycle as the fertile window. You track the length of each cycle to confirm it falls between 26 and 32 days. If your cycles are in that range, you mark days 8-19 as potentially fertile each month.",
+    "howToStart": "Connect with a trained educator through the Georgetown Institute for Reproductive Health. They will confirm the method is appropriate for your cycle length and walk you through correct use.",
+    "tools": "A cycle-tracking tool or the CycleBeads app; nothing else to buy.",
+    "goodFitIf": "Your cycles consistently run 26 to 32 days and you want a simple, low-maintenance approach with no devices or daily observations.",
+    "effectiveness": "With correct use, about 5 in 100 women become pregnant over a year; with everyday use, that number is higher.",
+    "learnUrl": "https://irh.org/",
+    "learnLabel": "Georgetown Institute for Reproductive Health"
+  },
+  "twoday": {
+    "name": "TwoDay Method",
+    "tagline": "a simple daily check of cervical secretions",
+    "howItWorks": "Each day you ask yourself two questions: Did I notice any secretions today? Did I notice any secretions yesterday? If the answer to either is yes, that day is considered fertile. If the answer to both is no, it is not.",
+    "howToStart": "Connect with a trained educator through the Georgetown Institute for Reproductive Health. The method is straightforward, but a brief teaching session helps you recognize what counts as a secretion.",
+    "tools": "Nothing to buy; a simple chart or app to record your daily yes or no.",
+    "goodFitIf": "You want a secretion-based method without learning detailed mucus categories, and you can reliably check each day.",
+    "effectiveness": "With correct use, about 3 to 4 in 100 women become pregnant over a year; with everyday use, that number is higher.",
+    "learnUrl": "https://irh.org/",
+    "learnLabel": "Georgetown Institute for Reproductive Health"
+  },
+  "billings": {
+    "name": "Billings Ovulation Method",
+    "tagline": "a device-free method that reads cervical mucus",
+    "howItWorks": "You observe the sensation and appearance of cervical mucus throughout your cycle and record what you notice each day. The mucus changes in predictable ways as ovulation approaches and passes. You learn to read those patterns to identify your fertile and infertile days.",
+    "howToStart": "Connect with a certified Billings teacher through WOOMB International. Mucus observation is a learned skill, and a trained teacher guides you through the first few cycles until you can read your own pattern confidently.",
+    "tools": "Nothing to buy; a chart to record daily observations.",
+    "goodFitIf": "You prefer a completely device-free approach and are willing to learn mucus observation with an instructor over a few months.",
+    "effectiveness": "With correct use, fewer than 3 in 100 women become pregnant over a year; everyday-use rates vary more widely depending on how carefully the rules are followed.",
+    "learnUrl": "https://www.woomb.org/",
+    "learnLabel": "WOOMB International"
+  },
+  "creighton": {
+    "name": "Creighton Model FertilityCare System",
+    "tagline": "a standardized mucus chart that doubles as a clinical record for NaProTechnology",
+    "howItWorks": "You and your partner observe and record cervical mucus using a precise, standardized coding system. The chart captures the quality and pattern of mucus across your cycle. Because the coding is standardized, a trained NaProTechnology physician can read your chart as a clinical record to identify hormonal patterns, identify underlying conditions, or support fertility.",
+    "howToStart": "Connect with a certified FertilityCare Practitioner through FertilityCare Centers of America. Instruction happens in a series of follow-up sessions over several months, not a single class.",
+    "tools": "A Creighton chart; no devices required.",
+    "goodFitIf": "You want a method that connects directly to restorative reproductive care, or you are working with a NaProTechnology physician to address a cycle-related health concern or fertility question.",
+    "effectiveness": "With correct use, about 0.5 in 100 women become pregnant over a year; for couples trying to conceive, most normal-fertility couples achieve pregnancy within about six cycles.",
+    "learnUrl": "https://www.fertilitycare.org/",
+    "learnLabel": "FertilityCare Centers of America"
+  },
+  "femm": {
+    "name": "FEMM",
+    "tagline": "a cervical-mucus method with optional hormone tracking and a medical-management focus",
+    "howItWorks": "You observe and record cervical mucus each day using the FEMM app. You can also add optional at-home LH and estrogen test strips to confirm your hormone pattern around ovulation. The app helps you track both signs and identify your fertile window.",
+    "howToStart": "Connect with a FEMM Health educator or physician through the FEMM Health website. An educator can guide you through mucus observation, and the FEMM network includes clinicians who use the charts for cycle health evaluation.",
+    "tools": "The FEMM app; optional LH and estrogen test strips if you choose to add hormone tracking.",
+    "goodFitIf": "You are comfortable using an app, you are interested in linking your cycle observations to a clinician for health evaluation, and you want the option to add hormone data without a full fertility monitor.",
+    "effectiveness": "FEMM is a newer method and does not yet have its own published effectiveness study.",
+    "learnUrl": "https://femmhealth.org/",
+    "learnLabel": "FEMM Health"
+  },
+  "sensiplan": {
+    "name": "Sympto-Thermal Method (Sensiplan)",
+    "tagline": "a double-check of cervical mucus and waking temperature",
+    "howItWorks": "Each morning before getting up you take your waking (basal body) temperature and record it. You also observe cervical mucus throughout the day. The method uses both signs together as a double-check: the temperature rise confirms ovulation has occurred, and the mucus pattern identifies the start of the fertile phase. The crosscheck between two independent signs makes the method more reliable than either sign alone.",
+    "howToStart": "Connect with a Sensiplan instructor through the Couple to Couple League. Learning to read your temperature chart and mucus together takes a few cycles, and a certified instructor helps you apply the rules correctly.",
+    "tools": "A basal body thermometer (reads to two decimal places); a chart or charting app.",
+    "goodFitIf": "You want one of the most thoroughly studied fertility awareness methods and are willing to take a daily temperature and observe mucus each cycle.",
+    "effectiveness": "Sensiplan is among the most rigorously studied methods: with correct use, about 0.4 in 100 women become pregnant over a year, and with everyday use, under 2 in 100.",
+    "learnUrl": "https://ccli.org/",
+    "learnLabel": "Couple to Couple League"
+  },
+  "marquette": {
+    "name": "Marquette Model",
+    "tagline": "an electronic monitor that reads your hormones",
+    "howItWorks": "You use the Clearblue fertility monitor to measure urinary estrogen and LH levels each morning. The monitor displays low, high, or peak fertility based on your hormone readings. Some users add cervical mucus observation as a cross-check. The hormone data gives you an objective daily reading of where you are in your cycle.",
+    "howToStart": "Connect with a certified Marquette educator through the Marquette University Institute for NFP. Monitor use and protocol rules are taught by a trained instructor, not self-started from the package insert.",
+    "tools": "The Clearblue fertility monitor and test sticks; optional mucus observation.",
+    "goodFitIf": "You prefer a device-driven, objective hormone reading over mucus or temperature observation, or you are in a situation where other signs are harder to read, such as postpartum or perimenopause.",
+    "effectiveness": "With careful use over twelve months, about 2 in 100 women become pregnant.",
+    "learnUrl": "https://www.marquette.edu/natural-family-planning/",
+    "learnLabel": "Marquette University Institute for NFP"
+  }
+}
