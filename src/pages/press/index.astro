@@ -1,0 +1,745 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import TeamCard from '../../components/TeamCard.astro';
+import SocialRow from '../../components/SocialRow.astro';
+import { getOrganizationJsonLd, getTeam } from '../../lib/identity';
+
+// Static, durable figures (NOT live build counts) so the press kit does not age.
+// Real values as of build: ~4,053 library works, 10 courses, 197 glossary terms.
+// Course count intentionally framed as "Growing" rather than the low literal (Brian, 2026-06-19).
+const STAT_WORKS = '4,000+';
+const STAT_COURSES = 'Growing';
+const STAT_GLOSSARY = '190+';
+
+const team = getTeam();
+
+const expertise = [
+  'Endometriosis & excision surgery',
+  'PCOS',
+  'Infertility & RRM vs IVF',
+  'Recurrent pregnancy loss',
+  'Cycle charting & fertility awareness (FABMs)',
+  'NaProTechnology',
+  'Postpartum mental health',
+];
+
+// Downloadable brand assets in /public/press/
+const wordmarks = [
+  { name: 'Primary wordmark', note: 'Brand purple, for light backgrounds', img: '/press/rrm-academy-wordmark-purple.svg', tile: 'light', svg: '/press/rrm-academy-wordmark-purple.svg', png: '/press/rrm-academy-wordmark-purple.png' },
+  { name: 'Reversed wordmark', note: 'White, for dark backgrounds and photos', img: '/press/rrm-academy-wordmark-white.svg', tile: 'dark', svg: '/press/rrm-academy-wordmark-white.svg', png: '/press/rrm-academy-wordmark-white.png' },
+  { name: 'Monochrome wordmark', note: 'One-color black', img: '/press/rrm-academy-wordmark-black.svg', tile: 'light', svg: '/press/rrm-academy-wordmark-black.svg', png: '/press/rrm-academy-wordmark-black.png' },
+];
+const marks = [
+  { name: 'Signature mark', note: 'Purple, for avatars and app icons', img: '/press/rrm-academy-signature-purple.svg', tile: 'plain', svg: '/press/rrm-academy-signature-purple.svg', png: '/press/rrm-academy-signature-purple.png' },
+  { name: 'Signature mark, light', note: 'On a soft paper tint', img: '/press/rrm-academy-signature-light.svg', tile: 'plain', svg: '/press/rrm-academy-signature-light.svg', png: '/press/rrm-academy-signature-light.png' },
+];
+const colors = [
+  { name: 'Brand purple', hex: '#725E7E', cls: 'press-swatch--purple' },
+  { name: 'Deep purple', hex: '#4C3E54', cls: 'press-swatch--deep' },
+  { name: 'Ink', hex: '#313131', cls: 'press-swatch--ink' },
+  { name: 'Paper', hex: '#F7F5F3', cls: 'press-swatch--paper' },
+];
+
+const orgFromSsot = getOrganizationJsonLd();
+const { '@context': _ctx, ...orgNode } = orgFromSsot as Record<string, unknown> & { '@context'?: unknown };
+
+const jsonLd = {
+  '@context': 'https://schema.org',
+  '@graph': [
+    {
+      '@type': 'WebPage',
+      '@id': 'https://rrmacademy.org/press/#webpage',
+      url: 'https://rrmacademy.org/press/',
+      name: 'RRM Academy Press & Media Kit',
+      description:
+        'Press and media kit for RRM Academy: boilerplate, organization facts, leadership, downloadable logos, brand colors, and media contact.',
+      about: { '@id': 'https://rrmacademy.org/#organization' },
+      primaryImageOfPage: 'https://rrmacademy.org/press/rrm-academy-wordmark-purple.png',
+      inLanguage: 'en-US',
+    },
+    {
+      ...orgNode,
+      parentOrganization: { '@id': 'https://rrm.foundation/#organization' },
+      founder: { '@id': 'https://rrmacademy.org/#naomi-whittaker' },
+      foundingDate: '2022',
+      address: {
+        '@type': 'PostalAddress',
+        streetAddress: '3401 Hartzdale Dr, Ste 103B PMB 3518',
+        addressLocality: 'Camp Hill',
+        addressRegion: 'PA',
+        postalCode: '17011',
+        addressCountry: 'US',
+      },
+      email: 'contact@rrmacademy.org',
+    },
+    {
+      '@type': 'BreadcrumbList',
+      itemListElement: [
+        { '@type': 'ListItem', position: 1, name: 'Home', item: 'https://rrmacademy.org/' },
+        { '@type': 'ListItem', position: 2, name: 'Press', item: 'https://rrmacademy.org/press/' },
+      ],
+    },
+  ],
+};
+---
+<BaseLayout
+  title="Press & Media Kit | RRM Academy"
+  description="RRM Academy press and media kit: boilerplate, organization facts, leadership, downloadable logos, brand colors, and media contact."
+  canonicalUrl="https://rrmacademy.org/press"
+  jsonLd={jsonLd}
+  speakable={['.press-hero__lead']}
+>
+  <!-- Hero -->
+  <section class="press-hero">
+    <div class="container container--narrow">
+      <p class="press-eyebrow">Press &amp; Media</p>
+      <h1 class="hero-title">Press &amp; Media Kit</h1>
+      <p class="press-hero__lead">
+        Everything journalists, editors, and partners need to cover RRM Academy: boilerplate,
+        organization facts, leadership, and downloadable brand assets.
+      </p>
+      <div class="press-hero__actions">
+        <a class="btn btn--primary btn--lg" href="/press/rrm-academy-brand-pack.zip" download>Download brand pack</a>
+        <a class="btn btn--secondary btn--lg" href="mailto:contact@rrmacademy.org?subject=Media%20inquiry">Media inquiries</a>
+      </div>
+    </div>
+  </section>
+
+  <div class="page-body">
+    <!-- Boilerplate -->
+    <section class="press-section">
+      <div class="container container--narrow">
+        <h2 class="press-h2">About RRM Academy</h2>
+        <p class="press-lead">
+          RRM Academy provides expert-led, evidence-based education in Restorative Reproductive
+          Medicine (RRM) for patients and healthcare professionals. Through a
+          <a href="/library/">research library</a> of thousands of scholarly works and clinician-led
+          courses, we equip individuals and clinicians with the knowledge to find and treat the root
+          causes of conditions like endometriosis, PCOS, infertility, and recurrent miscarriage,
+          rather than masking symptoms or bypassing the body's natural function.
+        </p>
+        <p class="press-mission">Empower patients. Equip professionals. Restore women's health.</p>
+        <p>
+          As the primary educational project of the Restorative Reproductive Medicine Foundation, a
+          501(c)(3) nonprofit, RRM Academy's focus is entirely on education for true healing.
+        </p>
+      </div>
+    </section>
+
+    <!-- At a glance -->
+    <section class="press-section press-section--alt">
+      <div class="container container--narrow">
+        <h2 class="press-h2">At a glance</h2>
+        <dl class="press-facts">
+          <div><dt>Organization</dt><dd>RRM Academy</dd></div>
+          <div><dt>Parent organization</dt><dd>Restorative Reproductive Medicine Foundation Inc.</dd></div>
+          <div><dt>Tax status</dt><dd>501(c)(3) nonprofit &middot; EIN 93-4594315</dd></div>
+          <div><dt>Founded</dt><dd>RRM Academy 2022; RRM Foundation incorporated 2023</dd></div>
+          <div><dt>Founder</dt><dd>Dr. Naomi Whittaker, MD</dd></div>
+          <div><dt>Headquarters</dt><dd>Camp Hill, Pennsylvania, USA</dd></div>
+          <div><dt>Website</dt><dd><a href="/">rrmacademy.org</a></dd></div>
+          <div><dt>Media contact</dt><dd><a href="mailto:contact@rrmacademy.org">contact@rrmacademy.org</a></dd></div>
+        </dl>
+      </div>
+    </section>
+
+    <!-- By the numbers -->
+    <section class="press-section">
+      <div class="container">
+        <h2 class="press-h2 press-h2--center">By the numbers</h2>
+        <div class="press-stats">
+          <div class="press-stat"><span class="press-stat__num">{STAT_WORKS}</span><span class="press-stat__label">scholarly works in the research library</span></div>
+          <div class="press-stat"><span class="press-stat__num">{STAT_COURSES}</span><span class="press-stat__label">clinician-led online courses</span></div>
+          <div class="press-stat"><span class="press-stat__num">{STAT_GLOSSARY}</span><span class="press-stat__label">terms in the clinical glossary</span></div>
+          <div class="press-stat"><span class="press-stat__num">Free</span><span class="press-stat__label">open-access research library</span></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- What is RRM -->
+    <section class="press-section press-section--alt">
+      <div class="container container--narrow">
+        <h2 class="press-h2">What is Restorative Reproductive Medicine?</h2>
+        <p>
+          Restorative Reproductive Medicine (RRM) is an approach within conventional medicine that
+          works cooperatively with the body to diagnose and treat the underlying causes of
+          reproductive health conditions. Using standard and advanced diagnostic tools, RRM
+          investigates the root cause, whether hormonal, anatomical, or inflammatory, and works to
+          restore natural function rather than masking symptoms or bypassing it.
+        </p>
+        <p>
+          Conditions commonly addressed through RRM include endometriosis, polycystic ovary syndrome
+          (PCOS), unexplained infertility, recurrent pregnancy loss, irregular or painful menstrual
+          cycles, hormonal imbalances, ovulatory dysfunction, and male factor infertility.
+        </p>
+      </div>
+    </section>
+
+    <!-- Programs -->
+    <section class="press-section">
+      <div class="container container--narrow">
+        <h2 class="press-h2">Programs and resources</h2>
+        <ul class="press-list">
+          <li><h3>Clinician-led online courses</h3><p>Courses developed and taught by medical experts, translating years of clinical experience into accessible online education.</p></li>
+          <li><h3>Patient education and empowerment</h3><p>Resources that equip individuals and couples to understand their bodies, ask informed questions, and advocate for better care.</p></li>
+          <li><h3>Professional training and resources</h3><p>Tools for healthcare providers who want to integrate restorative principles into their own practices.</p></li>
+          <li><h3>Evidence-based research library</h3><p>A free, searchable library of thousands of scholarly works, a clinical glossary, and patient FAQs, all grounded in scientific evidence.</p></li>
+        </ul>
+      </div>
+    </section>
+
+    <!-- Areas of expertise -->
+    <section class="press-section press-section--alt">
+      <div class="container container--narrow">
+        <h2 class="press-h2">Areas of expertise</h2>
+        <p class="press-muted">Topics our faculty can speak to for stories, interviews, and expert commentary.</p>
+        <ul class="press-chips">
+          {expertise.map((t) => <li class="press-chip">{t}</li>)}
+        </ul>
+      </div>
+    </section>
+
+    <!-- Leadership -->
+    <section class="press-section">
+      <div class="container container--narrow">
+        <h2 class="press-h2">Leadership</h2>
+        <p class="press-muted">
+          RRM Academy is governed by the board of the Restorative Reproductive Medicine Foundation,
+          the 501(c)(3) parent organization that funds and oversees its educational mission.
+        </p>
+        <div class="press-team-grid">
+          {team.map((member) => <TeamCard member={member} />)}
+        </div>
+        <p class="press-note">
+          For interview requests with Dr. Whittaker, contact
+          <a href="mailto:contact@rrmacademy.org?subject=Interview%20request">contact@rrmacademy.org</a>.
+          ORCID <a href="https://orcid.org/0000-0003-3706-3112" rel="noopener" target="_blank">0000-0003-3706-3112</a>.
+          A curated list of her podcast and media appearances is on
+          <a href="https://open.spotify.com/playlist/3rahSfBNEcmhnMPsZfGSYM" rel="noopener" target="_blank">Spotify</a>.
+        </p>
+      </div>
+    </section>
+
+    <!-- Brand assets -->
+    <section class="press-section press-section--alt" id="brand-assets">
+      <div class="container">
+        <h2 class="press-h2 press-h2--center">Brand assets</h2>
+        <p class="press-muted press-muted--center">
+          Download logos in vector (SVG) and high-resolution raster (PNG). Or grab the
+          <a href="/press/rrm-academy-brand-pack.zip" download>full brand pack (.zip)</a>.
+        </p>
+
+        <h3 class="press-asset-heading">Wordmark</h3>
+        <div class="press-assets">
+          {wordmarks.map((a) => (
+            <figure class="press-asset">
+              <div class={`press-asset__tile press-asset__tile--${a.tile}`}>
+                <img src={a.img} alt={`RRM Academy ${a.name.toLowerCase()}`} loading="lazy" />
+              </div>
+              <figcaption>
+                <span class="press-asset__name">{a.name}</span>
+                <span class="press-asset__note">{a.note}</span>
+                <span class="press-asset__dl">
+                  <a href={a.svg} download>SVG</a>
+                  <a href={a.png} download>PNG</a>
+                </span>
+              </figcaption>
+            </figure>
+          ))}
+        </div>
+
+        <h3 class="press-asset-heading">Signature mark</h3>
+        <div class="press-assets press-assets--marks">
+          {marks.map((a) => (
+            <figure class="press-asset">
+              <div class={`press-asset__tile press-asset__tile--${a.tile}`}>
+                <img src={a.img} alt={`RRM Academy ${a.name.toLowerCase()}`} loading="lazy" />
+              </div>
+              <figcaption>
+                <span class="press-asset__name">{a.name}</span>
+                <span class="press-asset__note">{a.note}</span>
+                <span class="press-asset__dl">
+                  <a href={a.svg} download>SVG</a>
+                  <a href={a.png} download>PNG</a>
+                </span>
+              </figcaption>
+            </figure>
+          ))}
+        </div>
+
+        <h3 class="press-asset-heading">Founder headshot</h3>
+        <div class="press-assets press-assets--marks">
+          <figure class="press-asset">
+            <div class="press-asset__tile press-asset__tile--photo">
+              <img src="/press/dr-naomi-whittaker-headshot.jpg" alt="Dr. Naomi Whittaker, MD" loading="lazy" />
+            </div>
+            <figcaption>
+              <span class="press-asset__name">Dr. Naomi Whittaker, MD</span>
+              <span class="press-asset__note">Founder and Lead Instructor</span>
+              <span class="press-asset__dl">
+                <a href="/press/dr-naomi-whittaker-headshot.jpg" download>JPG</a>
+              </span>
+            </figcaption>
+          </figure>
+        </div>
+
+        <div class="press-brand-grid">
+          <div class="press-brand-block">
+            <h3 class="press-asset-heading">Colors</h3>
+            <ul class="press-swatches">
+              {colors.map((c) => (
+                <li>
+                  <span class={`press-swatch ${c.cls}`}></span>
+                  <span class="press-swatch__name">{c.name}</span>
+                  <span class="press-swatch__hex">{c.hex}</span>
+                </li>
+              ))}
+            </ul>
+          </div>
+          <div class="press-brand-block">
+            <h3 class="press-asset-heading">Typography</h3>
+            <p class="press-type press-type--display">Cormorant Garamond</p>
+            <p class="press-type__role">Display, headings, and the wordmark</p>
+            <p class="press-type press-type--body">Inter</p>
+            <p class="press-type__role">Body text, labels, and interface</p>
+          </div>
+        </div>
+
+        <div class="press-usage">
+          <h3 class="press-asset-heading">Usage guidelines</h3>
+          <div class="press-usage__cols">
+            <div>
+              <p class="press-usage__label press-usage__label--do">Please do</p>
+              <ul>
+                <li>Keep clear space around the wordmark equal to the height of the letter "R".</li>
+                <li>Use the purple wordmark on light backgrounds and the white wordmark on dark backgrounds or photos.</li>
+                <li>Scale the logo proportionally.</li>
+              </ul>
+            </div>
+            <div>
+              <p class="press-usage__label press-usage__label--dont">Please don't</p>
+              <ul>
+                <li>Recolor, stretch, rotate, or add effects to the logo.</li>
+                <li>Recreate the wordmark in another typeface.</li>
+                <li>Place the purple wordmark on a busy or low-contrast background.</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Contact -->
+    <section class="press-section">
+      <div class="container container--narrow">
+        <h2 class="press-h2">Media contact</h2>
+        <p>
+          For media inquiries, interviews, and partnership requests, email
+          <a href="mailto:contact@rrmacademy.org">contact@rrmacademy.org</a> or use our
+          <a href="/contact/">contact form</a> and select "A speaking or media inquiry".
+        </p>
+        <div class="press-follow">
+          <p class="press-follow__label">Follow RRM Academy</p>
+          <SocialRow size="md" variant="page" />
+        </div>
+        <p class="press-boilerplate">
+          <strong>Boilerplate.</strong> RRM Academy is a 501(c)(3) nonprofit education platform for
+          restorative reproductive medicine and the primary educational project of the Restorative
+          Reproductive Medicine Foundation. It gives patients and clinicians a research library of
+          thousands of scholarly works, clinician-led courses, a clinical glossary, and patient FAQs,
+          all grounded in evidence and focused on finding and treating the root causes of
+          reproductive health conditions. RRM Academy was founded by Dr. Naomi Whittaker, MD, a
+          board-certified OB-GYN and fellowship-trained NaProTechnology surgeon.
+        </p>
+      </div>
+    </section>
+  </div>
+</BaseLayout>
+
+<style>
+  .press-eyebrow {
+    font-family: 'Inter', sans-serif;
+    font-size: 0.6875rem;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--text-tertiary);
+    margin-bottom: var(--space-3);
+  }
+  .press-hero {
+    padding: var(--space-12) 0 var(--space-8);
+    background: var(--gradient-hero-subtle);
+  }
+  .press-hero__lead {
+    font-size: 1rem;
+    line-height: 1.7;
+    color: var(--text-secondary);
+    max-width: 42rem;
+    margin-top: var(--space-4);
+  }
+  .press-hero__actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-3);
+    margin-top: var(--space-6);
+  }
+
+  .press-section {
+    padding: var(--space-10) 0;
+  }
+  .press-section--alt {
+    background: var(--bg-surface);
+    border-top: 1px solid var(--border-light);
+    border-bottom: 1px solid var(--border-light);
+  }
+  .press-h2 {
+    margin-bottom: var(--space-5);
+  }
+  .press-h2--center {
+    text-align: center;
+  }
+  .press-lead {
+    font-size: 1rem;
+    line-height: 1.8;
+    color: var(--text-secondary);
+  }
+  .press-mission {
+    font-family: 'Cormorant Garamond', Georgia, serif;
+    font-size: 1.375rem;
+    font-weight: 600;
+    color: var(--accent);
+    margin: var(--space-4) 0;
+  }
+  .press-section p {
+    color: var(--text-secondary);
+    line-height: 1.8;
+  }
+  .press-muted {
+    color: var(--text-tertiary);
+    font-size: 0.9375rem;
+    margin-bottom: var(--space-5);
+  }
+  .press-muted--center {
+    text-align: center;
+    max-width: 36rem;
+    margin-left: auto;
+    margin-right: auto;
+  }
+
+  /* Facts */
+  .press-facts {
+    display: grid;
+    gap: 0;
+    border-top: 1px solid var(--border-color);
+  }
+  .press-facts > div {
+    display: grid;
+    grid-template-columns: 200px 1fr;
+    gap: var(--space-4);
+    padding: var(--space-3) 0;
+    border-bottom: 1px solid var(--border-color);
+  }
+  .press-facts dt {
+    font-size: 0.8125rem;
+    font-weight: 600;
+    color: var(--text-tertiary);
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+  }
+  .press-facts dd {
+    font-size: 0.9375rem;
+    color: var(--text-primary);
+  }
+
+  /* Stats */
+  .press-stats {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: var(--space-6);
+    text-align: center;
+  }
+  .press-stat {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-2);
+  }
+  .press-stat__num {
+    font-family: 'Cormorant Garamond', Georgia, serif;
+    font-size: 2rem;
+    font-weight: 600;
+    line-height: 1;
+    color: var(--accent);
+  }
+  .press-stat__label {
+    font-size: 0.8125rem;
+    color: var(--text-tertiary);
+    line-height: 1.4;
+  }
+
+  /* Programs list */
+  .press-list {
+    list-style: none;
+    display: grid;
+    gap: var(--space-5);
+    padding: 0;
+  }
+  .press-list h3 {
+    font-size: 1.125rem;
+    margin-bottom: var(--space-1);
+  }
+  .press-list p {
+    font-size: 0.9375rem;
+  }
+
+  /* Chips */
+  .press-chips {
+    list-style: none;
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-2);
+    padding: 0;
+  }
+  .press-chip {
+    font-size: 0.8125rem;
+    font-weight: 500;
+    color: var(--purple-700);
+    background: var(--purple-50);
+    border: 1px solid var(--purple-100);
+    border-radius: var(--radius-pill);
+    padding: var(--space-2) var(--space-3);
+  }
+
+  /* Team */
+  .press-team-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: var(--space-5);
+    margin-top: var(--space-5);
+  }
+  @media (min-width: 640px) {
+    .press-team-grid { grid-template-columns: 1fr 1fr; }
+  }
+  .press-note {
+    font-size: 0.875rem;
+    color: var(--text-tertiary);
+    margin-top: var(--space-6);
+    line-height: 1.7;
+  }
+
+  /* Brand assets */
+  .press-asset-heading {
+    font-size: 1.125rem;
+    margin: var(--space-8) 0 var(--space-4);
+    text-align: center;
+  }
+  .press-assets {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: var(--space-5);
+  }
+  .press-assets--marks {
+    grid-template-columns: repeat(auto-fit, minmax(180px, 220px));
+    justify-content: center;
+  }
+  .press-asset {
+    margin: 0;
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-md);
+    overflow: hidden;
+    background: var(--bg-body);
+  }
+  .press-asset__tile {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: var(--space-8) var(--space-6);
+    min-height: 120px;
+  }
+  .press-asset__tile img {
+    max-width: 100%;
+    max-height: 80px;
+    height: auto;
+  }
+  .press-assets--marks .press-asset__tile img {
+    max-height: 120px;
+  }
+  .press-asset__tile--light { background: var(--bg-surface); }
+  .press-asset__tile--dark { background: var(--purple-700); }
+  .press-asset__tile--plain { background: var(--neutral-100); }
+  .press-asset__tile--photo { background: var(--neutral-100); padding: var(--space-4); }
+  .press-asset__tile--photo img { max-height: 160px; border-radius: var(--radius-md); }
+  .press-asset figcaption {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-1);
+    padding: var(--space-4);
+    border-top: 1px solid var(--border-light);
+  }
+  .press-asset__name {
+    font-size: 0.875rem;
+    font-weight: 600;
+    color: var(--text-primary);
+  }
+  .press-asset__note {
+    font-size: 0.75rem;
+    color: var(--text-tertiary);
+  }
+  .press-asset__dl {
+    display: flex;
+    gap: var(--space-2);
+    margin-top: var(--space-2);
+  }
+  .press-asset__dl a {
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: var(--accent);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-sm);
+    padding: var(--space-1) var(--space-3);
+    text-decoration: none;
+    transition: border-color 0.15s, color 0.15s;
+  }
+  .press-asset__dl a:hover {
+    border-color: var(--purple-300);
+    color: var(--accent-hover);
+  }
+
+  /* Brand grid (colors + type) */
+  .press-brand-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: var(--space-8);
+    margin-top: var(--space-8);
+  }
+  @media (min-width: 640px) {
+    .press-brand-grid { grid-template-columns: 1fr 1fr; }
+  }
+  .press-swatches {
+    list-style: none;
+    display: grid;
+    gap: var(--space-3);
+    padding: 0;
+  }
+  .press-swatches li {
+    display: flex;
+    align-items: center;
+    gap: var(--space-3);
+  }
+  .press-swatch {
+    width: 32px;
+    height: 32px;
+    border-radius: var(--radius-sm);
+    border: 1px solid var(--border-color);
+    flex-shrink: 0;
+  }
+  .press-swatch--purple { background: var(--purple-700); }
+  .press-swatch--deep { background: var(--purple-900); }
+  .press-swatch--ink { background: var(--neutral-900); }
+  .press-swatch--paper { background: var(--neutral-100); }
+  .press-swatch__name {
+    font-size: 0.875rem;
+    color: var(--text-primary);
+  }
+  .press-swatch__hex {
+    font-size: 0.8125rem;
+    color: var(--text-tertiary);
+    margin-left: auto;
+    font-variant-numeric: tabular-nums;
+  }
+  .press-type {
+    margin: 0;
+    line-height: 1.2;
+  }
+  .press-type--display {
+    font-family: 'Cormorant Garamond', Georgia, serif;
+    font-size: 2rem;
+    font-weight: 600;
+    color: var(--text-primary);
+  }
+  .press-type--body {
+    font-family: 'Inter', sans-serif;
+    font-size: 1.5rem;
+    font-weight: 600;
+    color: var(--text-primary);
+    margin-top: var(--space-4);
+  }
+  .press-type__role {
+    font-size: 0.8125rem;
+    color: var(--text-tertiary);
+    margin: var(--space-1) 0 0;
+  }
+
+  /* Usage */
+  .press-usage {
+    margin-top: var(--space-8);
+  }
+  .press-usage__cols {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: var(--space-6);
+  }
+  @media (min-width: 640px) {
+    .press-usage__cols { grid-template-columns: 1fr 1fr; }
+  }
+  .press-usage__label {
+    font-size: 0.75rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    margin-bottom: var(--space-3);
+  }
+  .press-usage__label--do { color: var(--green-700); }
+  .press-usage__label--dont { color: var(--color-error); }
+  .press-usage ul {
+    list-style: none;
+    padding: 0;
+    display: grid;
+    gap: var(--space-2);
+  }
+  .press-usage li {
+    font-size: 0.875rem;
+    color: var(--text-secondary);
+    line-height: 1.6;
+    padding-left: var(--space-4);
+    position: relative;
+  }
+  .press-usage li::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 0.6em;
+    width: 5px;
+    height: 5px;
+    border-radius: 50%;
+    background: var(--purple-300);
+  }
+
+  /* Follow + boilerplate */
+  .press-follow {
+    margin: var(--space-6) 0;
+  }
+  .press-follow__label {
+    font-size: 0.6875rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--text-tertiary);
+    margin-bottom: var(--space-3);
+  }
+  .press-boilerplate {
+    font-size: 0.875rem;
+    line-height: 1.75;
+    color: var(--text-secondary);
+    background: var(--bg-surface);
+    border: 1px solid var(--border-light);
+    border-radius: var(--radius-md);
+    padding: var(--space-5);
+    margin-top: var(--space-6);
+  }
+
+  @media (max-width: 768px) {
+    .press-stats { grid-template-columns: 1fr 1fr; gap: var(--space-5); }
+    .press-assets { grid-template-columns: 1fr; }
+    .press-facts > div { grid-template-columns: 1fr; gap: var(--space-1); }
+  }
+</style>

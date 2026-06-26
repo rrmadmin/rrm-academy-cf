@@ -98,6 +98,6 @@
     "llms_full": "https://rrmacademy.org/llms-full.txt",
     "agents_md": "https://rrmacademy.org/agents.md"
   },
-  "updated_at": "2026-06-06",
+  "updated_at": "2026-06-26",
   "x-protocols-note": "Interactive tool access is served over MCP at https://mcp.rrmacademy.org. No A2A JSON-RPC endpoint is currently exposed; this card uses the A2A AgentCard schema for discoverability and skill enumeration."
 }
