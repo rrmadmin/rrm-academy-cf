@@ -2,7 +2,7 @@
  * Community email notification helpers.
  * Prefixed with _ so CF Pages doesn't treat it as a route handler.
  */
-import { sendEmail } from '../_ses.js';
+import { sendEmail, logEmailFailure } from '../_ses.js';
 import { SITE_URL } from '../auth/_shared.js';
 import { STUC_MEMBER_WHERE } from './_shared.js';
 import { log } from '../_log.js';
@@ -173,12 +173,14 @@ export async function notifyNewPost(env, db, post, authorName) {
   const results = await Promise.allSettled(emailPromises);
   const successCount = results.filter(r => r.status === 'fulfilled').length;
   const totalCount = results.length;
+  if (env.EVENTS) env.EVENTS.writeDataPoint({ blobs: ['rrm-academy', 'community', 'stuc_blast_result', String(post.id)], doubles: [totalCount, successCount, totalCount - successCount], indexes: ['stuc_blast_result'] });
 
-  for (const r of results) {
+  results.forEach((r, i) => {
     if (r.status === 'rejected') {
       console.error('Failed to send community post email:', r.reason?.message);
+      logEmailFailure(db, { email: members.results[i].email, category: 'transactional', source: 'community/new-post', subject, detail: r.reason?.message });
     }
-  }
+  });
 
   if (env.COMMUNITY_KV) {
     if (successCount / totalCount >= 0.5) {

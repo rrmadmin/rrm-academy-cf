@@ -119,6 +119,7 @@ export async function onRequestPost({ request, env, waitUntil }) {
             ].join('\n'),
             log: { db: env.DB, source: 'auth/forgot-password', category: 'transactional' },
           });
+          log(env, null, 'auth', 'magic_link_request', 'ok', 'reset');
         } catch (bgErr) {
           log(env, waitUntil, 'auth', 'forgot_password_error', 'error', bgErr.message);
           await logEmailFailure(env.DB, { email, category: 'transactional', source: 'auth/forgot-password', subject: 'Reset your password — RRM Academy', detail: bgErr.message });
