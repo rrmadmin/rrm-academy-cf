@@ -155,6 +155,7 @@ export async function onRequestPost({ request, env, waitUntil }) {
     if (isWelcome) {
       return json({ ok: true, requiresLogin: true }, 200);
     }
+    log(env, waitUntil, 'auth', 'magic_link_success', 'ok', 'reset');
     return json(
       { ok: true },
       200,

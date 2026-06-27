@@ -15,11 +15,11 @@
       "note": "Account creation"
     },
     "functions/api/auth/forgot-password.js": {
-      "hash": "5012f1a82be1cde1e4002e784ca7f607588817e2e1f50f250f0382e03ba44d62",
+      "hash": "24f668d6835c8ec48a2e3104d952b81a9a4a7e1577a6aef4a66b02bdc5ea4995",
       "note": "Password reset tokens + email"
     },
     "functions/api/auth/reset-password.js": {
-      "hash": "32a212c33a7232ac1e870d72a0ab75f1f0e4b00d9d78a9bf26035a9379f8768e",
+      "hash": "122c0c2ad799534cd02e81b3b82c581fdb7482f09e4015decd65de0b23bb620f",
       "note": "Reset token consumption + password change"
     },
     "functions/api/auth/change-password.js": {
