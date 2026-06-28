@@ -83,6 +83,13 @@ describe('single icon + adaptive visual', () => {
     const heroAsValue = svg.includes('class="num" font-size') && /class="num"[^>]*>88%</.test(svg);
     assert.ok(!heroAsValue, 'the raw 88% is not the hero numeral');
   });
+  it('renders the subhead hook on tall aspects and omits it on the short card', () => {
+    const spec = { template: 'single', eyebrow: 'x', value: '88%', headline: '9 in 10', subhead: 'women...', label: 'conceived within a year', source: src };
+    const square = renderInfographic(spec, { mode: 'standalone', aspect: '1:1' });
+    assert.ok(square.includes('>women...<'), 'square shows the subhead hook');
+    const card = renderInfographic(spec, { mode: 'standalone', aspect: '1.91:1' });
+    assert.ok(!card.includes('>women...<'), 'short 1.91:1 card omits the subhead (would overflow)');
+  });
 });
 
 describe('ratio template uses figures, not dots', () => {

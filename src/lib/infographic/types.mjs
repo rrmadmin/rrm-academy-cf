@@ -33,6 +33,7 @@
  * @property {'woman'|'man'|'couple'} [icon]
  * @property {string} [was]
  * @property {string} [headline]
+ * @property {string} [subhead]
  */
 
 export const TEMPLATES = ['single', 'delta', 'bars', 'ratio', 'correction'];
