@@ -79,7 +79,7 @@
       "note": "D1, KV, R2 bindings"
     },
     "functions/api/_ses.js": {
-      "hash": "b5eceb82fafd306e43dfa0e761e06ef49584aa0541ad6cde545b98c613625ebf",
+      "hash": "87822e9b010b746b4db0750a9385a581f7afadff37157123dc40e7f53a40abe0",
       "note": "SES email sending infrastructure"
     },
     "functions/api/_elv.js": {
@@ -228,6 +228,10 @@
     "functions/api/_track-events.js": {
       "hash": "e35ca6888d2c8975a1d24ddf3b001ca6ac6ff6f21e839c3e9948da0aa188e703",
       "note": "Allowed events, required params, PII_REGEX, reserved params (security invariants for /api/track)"
+    },
+    "functions/api/email/events.js": {
+      "hash": "9bd41fadde6cf5650e8bdf2960491047af6e3dd1dd3f4a2613020661784903d6",
+      "note": "SNS SES event ingestion (RSA signature + webhook_event dedup)"
     }
   }
 }
