@@ -161,12 +161,21 @@ function renderSingle(spec, { mode, box }) {
   // Hero = the humanized figure when provided (e.g. "9 in 10"), else the value. The exact
   // figure (spec.value) still drives the pictograph fill and is explained in the label below.
   const hero = spec.headline || spec.value;
-  const alt = (spec.headline ? `${spec.headline} (${spec.value})` : spec.value) + ` ${spec.label}. Source: ${sourceLine(spec)}`;
+  // The subhead ("women") is the hook noun under the headline -- "9 in 10 women..." pulls the
+  // eye into the descriptor. Omitted on the short 1.91:1 card (the full stack would overflow);
+  // it shows on square/portrait/story + the on-page (1:1) render.
+  const subhead = typeof spec.subhead === 'string' ? spec.subhead.trim() : '';
+  const showSub = subhead.length > 0 && (h / w) >= 0.7;
+  const alt = (spec.headline ? `${spec.headline}${showSub ? ' ' + subhead : ''} (${spec.value})` : spec.value) + ` ${spec.label}. Source: ${sourceLine(spec)}`;
   // The NUMBER leads at the top of the card; the visual and a one-line descriptor follow.
   // (No eyebrow above the number: the stat is read first, then explained.) Clamp by hero width
-  // so a multi-word headline ("9 in 10") stays on one line.
-  const numFs = Math.min(Math.round(Math.min(plotW * 0.4, h * 0.32)), Math.floor(plotW / Math.max(3, hero.length * 0.5)));
+  // so a multi-word headline ("9 in 10") stays on one line; reserve height for the subhead.
+  const numFs = Math.min(Math.round(Math.min(plotW * 0.4, h * (showSub ? 0.28 : 0.32))), Math.floor(plotW / Math.max(3, hero.length * 0.5)));
   const numY = pad + Math.round(numFs * 0.8);
+  const subFs = Math.round(numFs * 0.42);
+  const subY = numY + Math.round(numFs * 0.16) + Math.round(subFs * 0.78);
+  const subEl = showSub ? `<text x="${pad}" y="${subY}" class="num" font-size="${subFs}" font-weight="600" fill="${color('purple-700', mode)}">${escapeXml(subhead)}</text>` : '';
+  const contentTop = showSub ? subY + Math.round(subFs * 0.34) + 20 : numY;
   const icon = spec.icon || 'woman';
   let visual = '';
   let descY;
@@ -177,7 +186,7 @@ function renderSingle(spec, { mode, box }) {
     const figW = Math.round((plotW / N) * 0.8);
     const gap = Math.round((plotW - figW * N) / (N - 1));
     const figH = figW;
-    const figTop = numY + Math.round(numFs * 0.26);
+    const figTop = showSub ? contentTop : numY + Math.round(numFs * 0.26);
     const sc = figW / 48;
     const on = color('purple-700', mode), off = color('purple-100', mode);
     const fig = (x, fill) =>
@@ -199,7 +208,7 @@ function renderSingle(spec, { mode, box }) {
     descY = figTop + figH + 66;
   } else if (pct != null) {
     // Low rate: a sparse pictograph reads as failure, so show a progress bar instead.
-    const barY = numY + Math.round(numFs * 0.34);
+    const barY = showSub ? contentTop : numY + Math.round(numFs * 0.34);
     const barH = Math.round(numFs * 0.42);
     const fillW = Math.max(Math.round(plotW * (pct / 100)), barH);
     const r = Math.round(barH / 2);
@@ -217,9 +226,13 @@ function renderSingle(spec, { mode, box }) {
   const numEl = pct != null
     ? `<text x="${pad}" y="${numY}" class="num" font-size="${numFs}" font-weight="600" fill="${numFill}">${escapeXml(hero)}</text>`
     : `<text x="${w / 2}" y="${numY}" text-anchor="middle" class="num" font-size="${numFs}" font-weight="600" fill="${numFill}">${escapeXml(hero)}</text>`;
-  const lbl = wrapLabel(spec.label, mode, pad, descY, plotW, 40, color('text-primary', mode));
+  // Fit the descriptor on one line when it reasonably can, so a short tail ("Creighton Model")
+  // is not orphaned on its own line; shrink to a 28px floor, then wrap only if still too long.
+  const fitFs = Math.floor(plotW / Math.max(1, spec.label.length * 0.54));
+  const labelFs = fitFs < 40 ? Math.max(28, fitFs) : 40;
+  const lbl = wrapLabel(spec.label, mode, pad, descY, plotW, labelFs, color('text-primary', mode));
   const srcY = Math.min(descY + lbl.lines * lbl.lineH + 36, provY);
-  const body = visual + numEl + lbl.svg + provenance(spec, mode, pad, srcY, plotW);
+  const body = visual + numEl + subEl + lbl.svg + provenance(spec, mode, pad, srcY, plotW);
   return { body, alt };
 }
 
