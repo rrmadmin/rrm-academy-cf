@@ -8,7 +8,7 @@
 
 Most April audit items shipped 2026-04-19 / 2026-04-20 (Physician entity, policy pages, Organization trust fields, BreadcrumbList, IndexNow, sitemap chunking, CF managed-robots-txt unblock, timestamp system, pillar inline-author flatten, commentary/library hub linked @graph). See `projects/whittaker-ai/public/reports/rrmacademy/2026-04-18/index.html` for full audit + current state (80/100 from 68/100 baseline). Remaining open actionable items:
 
-- **#4 Wikidata QIDs** -- mint Wikidata entries for RRM Academy (Organization) + Dr. Whittaker (Person), then add the QIDs as `sameAs` on both entities. Highest-leverage remaining entity-graph move for LLM retrieval. Effort: high (multi-week, needs notability evidence + Wikidata community review). Separate workstream, not a code task
+- **#4 Wikidata QIDs** -- Naomi's Person item now EXISTS (`Q139936526`) and is in the `/about` Person `sameAs`. Org item still open. This now rolls up into the broader **Entity Knowledge Panel initiative** below (2026-06-27). Effort: high (separate workstream, not a code task)
 - **#7 Condition pages** -- ship `/conditions/endometriosis/`, `/conditions/pcos/`, `/conditions/adenomyosis/`. Each needs direct-answer opening, `MedicalCondition` schema, cross-links to relevant library articles. Currently covered only inside pillar guides. Splitting doubles conditioned entry points for AI retrieval. Effort: medium per page
 - **#8 Compare pages** -- ship standalone `/compare/napro-vs-ivf/` and `/compare/rrm-vs-ivf/` (both currently 404). Partial mitigation already live: "Is RRM an Alternative to IVF?" H3 section on `/what-is-rrm/` citing Boyle 2025. Effort: medium
 - **#9 FAQ schemaAnswer expansion** -- expand `schemaAnswer` fields to 80-120 word target across all 25 FAQ detail pages. Validate each with Rich Results Test. Effort: Gianna-dispatch (content) + D1 UPDATE (mechanical)
@@ -16,6 +16,16 @@ Most April audit items shipped 2026-04-19 / 2026-04-20 (Physician entity, policy
 Items explicitly SKIPPED per Perplexity verification (not backlog):
 - #6 "Key Takeaways" -> "Here is what matters:" rename -- folk SEO, zero evidence of LLM-extraction impact. Memory: `feedback-aeo-folk-rules.md`
 - #12 `/schema/*.json` + `schemamap.xml` (NLWeb pattern) -- proposal-only, zero adoption by ChatGPT/Claude/Perplexity/Gemini. Memory: `feedback-nlweb-schemamap-skip.md`
+
+### Entity Knowledge Panel initiative (2026-06-27)
+
+Get key RRM people a Google Knowledge Panel via Ben Sigman's benobi.one/panel recipe (homepage Person schema + Wikidata item + Wikimedia Commons image/`P18` = the unlock + cross-platform consistency). Audited live per person; decision gate is Wikidata notability (clears it -> organic KP; fails -> GBP local panel). Method captured in the `/knowledge-panel` skill + memory `knowledge-panel-playbook`.
+
+- **Naomi** -- organic track, ~70% done (schema bridge + `Q139936526` exist). Missing the unlock: Commons headshot + `P18`. Photo decided (her IG selfie). Held inside the UPMC-separation hold (additive identity only; city + affiliation-reframe held for Brian). Plan + chunked handoff: `docs/seo/wikidata/2026-06-27-naomi-knowledge-panel-{plan,comet-handoff}.md`.
+- **Dr. Boyle** -- organic + GBP local, ~35% done. His Wikidata item `Q140303096` ALREADY EXISTS (stub) = de-risker. Held at Dr. Boyle's consent (CC-BY-SA photo + scope); he is independent. Plan + handoff in `projects/neofertility/docs/seo/`. Guards: OpenAlex mis-merge, verify each PMID, not OBGYN, never mowsenter.
+- **Dr. Stigen** (whittaker.ai client) -- organic NOT feasible (fails Wikidata notability); route to a GBP local panel (in the Jul 7 MROG brief). Note: `projects/whittaker-ai/docs/2026-06-27-stigen-knowledge-panel-note.md`.
+
+Common blocker across the organic tracks: a CC-BY-SA headshot + the person's consent. Next: release the held items + source photos.
 
 ### 2026-05-27 6-Agent Audit — Remaining P1 / P2
 
