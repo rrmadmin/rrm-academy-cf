@@ -89,7 +89,7 @@ async function handleSummary(url, db) {
   // All 10 queries run in parallel — no sequential awaits
   const [listRow, sendsRow, sendsByDayRows, sendsBySourceRows,
          deliverabilityRow, delivByDayRows, engRow, neRow,
-         unsubPeriodRow, unsubImportedRow] = await Promise.all([
+         unsubPeriodRow, unsubImportedRow, newSubsRow] = await Promise.all([
 
     // List health from newsletter_subscriber
     db.prepare(`
@@ -187,6 +187,15 @@ async function handleSummary(url, db) {
       WHERE status = 'unsubscribed'
         AND COALESCE(source, '') = 'import'
     `).first(),
+
+    // Organic new subscribers in the selected period (excludes import source)
+    db.prepare(`
+      SELECT COUNT(*) AS n
+      FROM newsletter_subscriber
+      WHERE COALESCE(source, '') <> 'import'
+        AND subscribed_at >= ?
+        AND subscribed_at <= ?
+    `).bind(fromTs, toTs).first(),
   ]);
 
   const listActive = listRow?.active ?? 0;
@@ -195,6 +204,7 @@ async function handleSummary(url, db) {
 
   const unsubPeriod   = unsubPeriodRow?.n   ?? 0;
   const unsubImported = unsubImportedRow?.n  ?? 0;
+  const newSubs       = newSubsRow?.n        ?? 0;
 
   const sendTotal       = sendsRow?.total         ?? 0;
   const sendTransact    = sendsRow?.transactional  ?? 0;
@@ -224,6 +234,7 @@ async function handleSummary(url, db) {
         unsub_period: unsubPeriod,
         unsub_imported: unsubImported,
         unsub_period_rate: safeRate(unsubPeriod, listActive),
+        new_subscribers: newSubs,
       },
       sends: {
         total: sendTotal,
