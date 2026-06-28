@@ -86,9 +86,10 @@ async function handleSummary(url, db) {
   const toTs = toEndOfDay(to);
   const days = Math.round((new Date(to) - new Date(from)) / 86400000) + 1;
 
-  // All 8 queries run in parallel — no sequential awaits
+  // All 10 queries run in parallel — no sequential awaits
   const [listRow, sendsRow, sendsByDayRows, sendsBySourceRows,
-         deliverabilityRow, delivByDayRows, engRow, neRow] = await Promise.all([
+         deliverabilityRow, delivByDayRows, engRow, neRow,
+         unsubPeriodRow, unsubImportedRow] = await Promise.all([
 
     // List health from newsletter_subscriber
     db.prepare(`
@@ -168,11 +169,32 @@ async function handleSummary(url, db) {
       FROM newsletter_event
       WHERE created_at >= ? AND created_at <= ?
     `).bind(fromTs, toTs).first(),
+
+    // Organic unsubscribes in the selected period (excludes import source)
+    db.prepare(`
+      SELECT COUNT(*) AS n
+      FROM newsletter_subscriber
+      WHERE status = 'unsubscribed'
+        AND COALESCE(source, '') <> 'import'
+        AND unsubscribed_at >= ?
+        AND unsubscribed_at <= ?
+    `).bind(fromTs, toTs).first(),
+
+    // All import-source unsubscribes (legacy opt-outs, no date filter)
+    db.prepare(`
+      SELECT COUNT(*) AS n
+      FROM newsletter_subscriber
+      WHERE status = 'unsubscribed'
+        AND COALESCE(source, '') = 'import'
+    `).first(),
   ]);
 
   const listActive = listRow?.active ?? 0;
   const listUnsub  = listRow?.unsubscribed ?? 0;
   const listTotal  = listRow?.total ?? 0;
+
+  const unsubPeriod   = unsubPeriodRow?.n   ?? 0;
+  const unsubImported = unsubImportedRow?.n  ?? 0;
 
   const sendTotal       = sendsRow?.total         ?? 0;
   const sendTransact    = sendsRow?.transactional  ?? 0;
@@ -199,6 +221,9 @@ async function handleSummary(url, db) {
         complained: listRow?.complained ?? 0,
         total: listTotal,
         unsub_rate: safeRate(listUnsub, listTotal),
+        unsub_period: unsubPeriod,
+        unsub_imported: unsubImported,
+        unsub_period_rate: safeRate(unsubPeriod, listActive),
       },
       sends: {
         total: sendTotal,

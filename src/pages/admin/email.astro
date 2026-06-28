@@ -309,7 +309,7 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
 
       var cards = [
         { l: 'Active subscribers', v: num(list.active), d: num(list.total) + ' on list', c: 'flat', spark: null, drill: null },
-        { l: 'Unsub rate', v: fmtPct(list.unsub_rate), d: num(list.unsubscribed) + ' unsubscribed', c: 'flat', spark: null, drill: null },
+        { l: 'Unsub rate', v: fmtPct(list.unsub_period_rate), d: num(list.unsub_period) + ' unsubscribed in ' + state.days + 'd', c: 'flat', spark: null, drill: null },
         { l: 'Sends (' + state.days + 'd)', v: num(sends.total), d: num(sends.transactional) + ' txn &middot; ' + num(sends.newsletter) + ' nl', c: 'flat', spark: sendSeries, drill: null },
         { l: 'Delivered', v: hasDeliv ? num(deliv.delivered) : '&mdash;', d: hasDeliv ? ('bounce ' + fmtPct(deliv.bounce_rate)) : 'awaiting SES feed', c: hasDeliv ? 'flat' : 'muteline', spark: hasDeliv ? delivSeries : null, drill: hasDeliv ? 'delivery' : null },
         { l: 'Open rate', v: tracked ? fmtPct(eng.open_rate) : '&mdash;', d: tracked ? (num(eng.opened) + ' opens') : 'awaiting SES feed', c: tracked ? 'flat' : 'muteline', spark: null, drill: tracked ? 'open' : null },
@@ -380,8 +380,10 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
           '<span class="lh-val tnum">' + num(s.v) + '</span>' +
           '<span class="lh-pct tnum faint">' + (total ? ((s.v / total) * 100).toFixed(1) + '%' : '0%') + '</span></div>';
       }).join('');
+      var importedUnsub = Number(list.unsub_imported) || 0;
+      var lhNote = importedUnsub > 0 ? '<p class="note">' + num(importedUnsub) + ' of the unsubscribed are imported legacy opt-outs (pre-2026) — suppressed, but not recent churn.</p>' : '';
       $('list-health').innerHTML = bar + '<div class="lh-rows">' + rows +
-        '<div class="lh-row lh-total"><span class="lh-key">Total</span><span class="lh-val tnum">' + num(total) + '</span><span class="lh-pct"></span></div></div>';
+        '<div class="lh-row lh-total"><span class="lh-key">Total</span><span class="lh-val tnum">' + num(total) + '</span><span class="lh-pct"></span></div></div>' + lhNote;
     }
 
     function renderSources(d) {
