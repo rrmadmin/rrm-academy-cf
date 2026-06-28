@@ -1,7 +1,7 @@
 ---
 import BaseLayout from '../../layouts/BaseLayout.astro';
 ---
-<BaseLayout title="Email Log | Admin" description="Admin email event log" noindex={true} bodyClass="admin-page">
+<BaseLayout title="Email Observatory | Admin" description="Email deliverability, broadcasts, and list health across all transactional and newsletter mail" noindex={true} bodyClass="admin-page">
 
   <div class="admin-bar">
     <div class="container admin-bar__inner">
@@ -22,392 +22,698 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
     </div>
   </div>
 
-  <section id="dashboard" class="em-section">
-    <div class="container">
+  <section class="emd" id="emd-root">
+    <div class="emd-wrap">
 
-      <div class="em-header">
-        <h1 id="em-title">Email Log</h1>
-        <div class="em-controls">
-          <button class="btn btn--primary em-btn" id="refresh-btn">Refresh</button>
+      <!-- Page head -->
+      <div class="head">
+        <div>
+          <h1>Email Observatory</h1>
+          <p>Deliverability, broadcasts, and list health across all transactional + newsletter mail <span class="faint" id="updated-note">&middot; loading&hellip;</span></p>
+        </div>
+        <div class="seg" id="period-seg" role="group" aria-label="Time period">
+          <button type="button" data-days="7">7d</button>
+          <button type="button" data-days="30" class="on">30d</button>
+          <button type="button" data-days="90">90d</button>
+          <button type="button" data-days="365">1y</button>
         </div>
       </div>
 
-      <!-- Stat cards -->
-      <div class="em-metrics em-metrics--6" id="stats-grid">
-        <div class="em-card">
-          <span class="em-card__label">Sent</span>
-          <span class="em-card__value" id="s-sent">--</span>
+      <div class="emd-grid">
+
+      <!-- KPIs (full width) -->
+      <div class="kpis span-full" id="kpis">
+        <div class="kpi"><div class="kpi__l">Loading&hellip;</div><div class="kpi__v">&middot;</div></div>
+      </div>
+
+      <!-- Send volume (full width) -->
+      <div class="card span-full">
+        <h2>Send volume <span class="faint h2sub">by day, transactional vs newsletter</span></h2>
+        <div id="vol-wrap">
+          <svg id="vol" viewBox="0 0 720 240" preserveAspectRatio="none" class="vol-svg"></svg>
         </div>
-        <div class="em-card">
-          <span class="em-card__label">Delivered</span>
-          <span class="em-card__value em-card__value--green" id="s-delivered">--</span>
-        </div>
-        <div class="em-card">
-          <span class="em-card__label">Bounced</span>
-          <span class="em-card__value em-card__value--red" id="s-bounced">--</span>
-        </div>
-        <div class="em-card">
-          <span class="em-card__label">Opened</span>
-          <span class="em-card__value" id="s-opened">--</span>
-        </div>
-        <div class="em-card">
-          <span class="em-card__label">Clicked</span>
-          <span class="em-card__value" id="s-clicked">--</span>
-        </div>
-        <div class="em-card">
-          <span class="em-card__label">Unsubscribed</span>
-          <span class="em-card__value em-card__value--amber" id="s-unsubscribed">--</span>
+        <div class="legend" id="vol-legend">
+          <span><i class="sw-tx"></i>Transactional</span>
+          <span><i class="sw-nl"></i>Newsletter</span>
+          <span class="faint" id="vol-total">&mdash;</span>
         </div>
       </div>
 
-      <!-- Filter row -->
-      <div class="em-filters" id="filter-row">
-        <select class="form-input em-select" id="filter-event">
-          <option value="">All Events</option>
-          <option value="send">Send</option>
-          <option value="delivery">Delivery</option>
-          <option value="bounce">Bounce</option>
-          <option value="complaint">Complaint</option>
-          <option value="open">Open</option>
-          <option value="click">Click</option>
-          <option value="unsubscribe">Unsubscribe</option>
-          <option value="reject">Reject</option>
-        </select>
-        <select class="form-input em-select" id="filter-category">
-          <option value="">All Categories</option>
-          <option value="transactional">Transactional</option>
-          <option value="newsletter">Newsletter</option>
-        </select>
-        <select class="form-input em-select" id="filter-source">
-          <option value="">All Sources</option>
-          <option value="auth">Auth</option>
-          <option value="contact">Contact</option>
-          <option value="survey">Survey</option>
-          <option value="newsletter">Newsletter</option>
-          <option value="billing">Billing</option>
-          <option value="community">Community</option>
-        </select>
-        <input type="date" class="form-input em-date" id="filter-from" title="From date" />
-        <input type="date" class="form-input em-date" id="filter-to" title="To date" />
-        <input type="text" class="form-input em-search" id="filter-email" placeholder="Search email..." />
-        <button class="btn btn--primary em-btn" id="apply-btn">Apply</button>
-      </div>
-
-      <!-- Recipient profile (hidden by default) -->
-      <div class="em-recipient" id="recipient-panel" style="display:none;">
-        <div class="em-recipient__header">
-          <button class="em-recipient__back" id="back-btn">&larr; Back to log</button>
-          <h2 class="em-recipient__email" id="recipient-email"></h2>
+      <!-- 3-column row: deliverability | list health | sources -->
+      <div class="card">
+        <h2>Deliverability <span class="tag" id="deliv-tag">awaiting feed</span></h2>
+        <div class="gauges" id="gauges">
+          <div class="gauge" id="g-bounce"></div>
+          <div class="gauge" id="g-complaint"></div>
         </div>
-        <div class="em-metrics em-metrics--4" id="recipient-stats"></div>
-        <h3 class="em-heading">Event Timeline</h3>
+        <p class="note" id="deliv-note">Gauged against SES enforcement lines: <b>bounce 5%</b>, <b>complaint 0.1%</b>. Crossing either risks sending suspension.</p>
       </div>
 
-      <!-- Results table -->
-      <div class="em-table-wrap">
-        <table class="em-table">
-          <thead>
-            <tr>
-              <th data-sort="timestamp">Time<span class="em-sort-arrow"></span></th>
-              <th data-sort="event_type">Event<span class="em-sort-arrow"></span></th>
-              <th data-sort="recipient">Recipient<span class="em-sort-arrow"></span></th>
-              <th data-sort="category">Category<span class="em-sort-arrow"></span></th>
-              <th data-sort="source">Source<span class="em-sort-arrow"></span></th>
-              <th data-sort="subject">Subject<span class="em-sort-arrow"></span></th>
+      <div class="card">
+        <h2>List health <span class="faint h2sub">newsletter subscribers</span></h2>
+        <div id="list-health">
+          <div class="cell-empty">Loading&hellip;</div>
+        </div>
+      </div>
+
+      <div class="card">
+        <h2>Top send sources <span class="faint h2sub" id="src-period">period</span></h2>
+        <div class="src" id="src">
+          <div class="cell-empty">Loading&hellip;</div>
+        </div>
+      </div>
+
+      <!-- Campaign breakdown (full width) -->
+      <div class="card span-full">
+        <h2>Campaign breakdown <span class="faint h2sub">per newsletter send &middot; full send metrics</span></h2>
+        <div class="x-scroll">
+          <table class="tbl">
+            <thead><tr><th>Campaign</th><th>Sent</th><th>Funnel</th><th>Delivered</th><th>Open</th><th>Click</th><th>Bounce</th><th>Complaint</th><th>Status</th></tr></thead>
+            <tbody id="broadcasts-body">
+              <tr><td colspan="9" class="cell-empty">Loading&hellip;</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <p class="note">Click any open, click, or bounce count to open the recipient cohort. Detailed per-recipient cohorts populate once the SES event feed is live.</p>
+      </div>
+
+      <!-- Event log (full width) -->
+      <div class="card span-full">
+        <h2>Event log &amp; recipient timeline</h2>
+        <div class="emd-filters" id="filters">
+          <select class="emd-select" id="f-event" aria-label="Event type">
+            <option value="">All events</option>
+            <option value="send">Send</option>
+            <option value="failed">Failed</option>
+            <option value="delivery">Delivery</option>
+            <option value="open">Open</option>
+            <option value="click">Click</option>
+            <option value="bounce">Bounce</option>
+            <option value="complaint">Complaint</option>
+            <option value="reject">Reject</option>
+          </select>
+          <select class="emd-select" id="f-category" aria-label="Category">
+            <option value="">All categories</option>
+            <option value="transactional">Transactional</option>
+            <option value="newsletter">Newsletter</option>
+          </select>
+          <input type="text" class="emd-input" id="f-source" placeholder="Source&hellip;" aria-label="Source" />
+          <input type="text" class="emd-input" id="f-email" placeholder="Email prefix&hellip;" aria-label="Email prefix" />
+          <button type="button" class="emd-apply" id="apply-btn">Apply</button>
+        </div>
+        <div class="logwrap">
+          <table class="log">
+            <thead><tr>
+              <th class="sortable" data-sort="created_at">Time<span class="sort-arrow"></span></th>
+              <th class="sortable" data-sort="event">Event<span class="sort-arrow"></span></th>
+              <th class="sortable" data-sort="email">Recipient<span class="sort-arrow"></span></th>
+              <th class="sortable" data-sort="source">Source<span class="sort-arrow"></span></th>
+              <th>Subject</th>
               <th>Detail</th>
-            </tr>
-          </thead>
-          <tbody id="em-tbody">
-            <tr><td colspan="7" class="em-empty">Loading...</td></tr>
-          </tbody>
-        </table>
+            </tr></thead>
+            <tbody id="log-body">
+              <tr><td colspan="6" class="cell-empty">Loading&hellip;</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="emd-pager" id="pager">
+          <button type="button" class="emd-page-btn" id="prev-btn" disabled>&larr; Prev</button>
+          <span class="emd-page-info" id="page-info">Page 1</span>
+          <button type="button" class="emd-page-btn" id="next-btn" disabled>Next &rarr;</button>
+        </div>
+        <p class="note">Click any recipient to open a per-person timeline (sent &rarr; delivered &rarr; opened &rarr; clicked &rarr; bounced), reconstructed from the email log joined to SES events.</p>
       </div>
 
-      <!-- Pagination -->
-      <div class="em-pagination" id="pagination">
-        <button class="btn em-page-btn" id="prev-btn" disabled>&larr; Prev</button>
-        <span class="em-page-info" id="page-info">Page 1</span>
-        <button class="btn em-page-btn" id="next-btn" disabled>Next &rarr;</button>
-      </div>
+    </div>
 
-      <p class="em-meta" id="em-meta"></p>
+    <!-- Drawer -->
+    <div class="emd-drawer" id="drawer" hidden>
+      <div class="emd-drawer__scrim" id="drawer-scrim"></div>
+      <aside class="emd-drawer__panel" role="dialog" aria-modal="true" aria-labelledby="drawer-title">
+        <header class="emd-drawer__head">
+          <div>
+            <div class="emd-drawer__eyebrow" id="drawer-eyebrow">Cohort</div>
+            <h2 class="emd-drawer__title" id="drawer-title">&mdash;</h2>
+          </div>
+          <button type="button" class="emd-drawer__close" id="drawer-close" aria-label="Close">&times;</button>
+        </header>
+        <div class="emd-drawer__body" id="drawer-body"></div>
+      </aside>
     </div>
   </section>
 
   <script is:inline>
   (function () {
-    // Helpers
-    function esc(str) { var d = document.createElement('div'); d.textContent = str; return d.innerHTML; }
-    function num(n) { return (n || 0).toLocaleString(); }
+    var $ = function (id) { return document.getElementById(id); };
 
-    function formatTime(iso) {
+    // ---- helpers ----------------------------------------------------------
+    function esc(s) { var d = document.createElement('div'); d.textContent = (s == null ? '' : String(s)); return d.innerHTML; }
+    function num(n) { return (Number(n) || 0).toLocaleString(); }
+    function fmtPct(rate) {
+      var p = (Number(rate) || 0) * 100;
+      var dec = p >= 10 ? 1 : 2;
+      return p.toFixed(dec) + '%';
+    }
+    function pad2(n) { return String(n).padStart(2, '0'); }
+    function ymd(d) { return d.getFullYear() + '-' + pad2(d.getMonth() + 1) + '-' + pad2(d.getDate()); }
+    function rangeFor(days) {
+      var to = new Date();
+      var from = new Date(Date.now() - (days - 1) * 86400 * 1000);
+      return { from: ymd(from), to: ymd(to) };
+    }
+    var MON = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+    function fmtTime(iso) {
       if (!iso) return '--';
       var d = new Date(iso);
-      if (isNaN(d.getTime())) return '--';
-      var months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
-      var h = d.getHours();
-      var ampm = h >= 12 ? 'PM' : 'AM';
+      if (isNaN(d.getTime())) return esc(iso);
+      var h = d.getHours(), ampm = h >= 12 ? 'PM' : 'AM';
       h = h % 12 || 12;
-      var min = String(d.getMinutes()).padStart(2, '0');
-      return months[d.getMonth()] + ' ' + d.getDate() + ', ' + h + ':' + min + ' ' + ampm;
+      return MON[d.getMonth()] + ' ' + d.getDate() + ', ' + h + ':' + pad2(d.getMinutes()) + ' ' + ampm;
+    }
+    var EV_LABEL = { send:'Send', failed:'Failed', delivery:'Delivered', open:'Open', click:'Click', bounce:'Bounce', complaint:'Complaint', reject:'Reject' };
+    var EV_CLASS = { send:'send', failed:'bounce', delivery:'deliv', open:'open', click:'click', bounce:'bounce', complaint:'bounce', reject:'bounce' };
+    function evBadge(ev) {
+      var k = String(ev || '').toLowerCase();
+      return '<span class="ev ' + (EV_CLASS[k] || 'send') + '">' + esc(EV_LABEL[k] || ev || '?') + '</span>';
+    }
+    function emailLink(email) {
+      if (!email) return '<span class="faint">--</span>';
+      return '<button type="button" class="em emd-recip" data-email="' + esc(email) + '">' + esc(email) + '</button>';
     }
 
-    function eventBadge(type) {
-      var cls = 'em-badge em-badge--' + (type || 'unknown');
-      return '<span class="' + esc(cls) + '">' + esc(type || 'unknown') + '</span>';
-    }
+    // ---- state ------------------------------------------------------------
+    var state = {
+      days: 30,
+      from: '', to: '',
+      log: { page: 1, pages: 1, sort: 'created_at', order: 'desc' },
+      cohortRows: [],
+      cohortMeta: null
+    };
 
-    // State
-    var currentView = 'log'; // 'log' or 'recipient'
-    var currentPage = 1;
-    var totalPages = 1;
-    var sortCol = 'timestamp';
-    var sortDir = 'desc';
-    var currentRecipient = '';
-
-    // DOM refs
-    var tbody = document.getElementById('em-tbody');
-    var recipientPanel = document.getElementById('recipient-panel');
-    var filterRow = document.getElementById('filter-row');
-    var statsGrid = document.getElementById('stats-grid');
-    var titleEl = document.getElementById('em-title');
-    var pageInfo = document.getElementById('page-info');
-    var prevBtn = document.getElementById('prev-btn');
-    var nextBtn = document.getElementById('next-btn');
-
-    // API
+    // ---- API --------------------------------------------------------------
     async function apiCall(params) {
-      var qs = params ? '?' + new URLSearchParams(params).toString() : '';
+      var qs = '?' + new URLSearchParams(params).toString();
       var resp = await fetch('/api/admin/email' + qs, { credentials: 'include' });
       if (resp.status === 401 || resp.status === 403) {
         window.location.href = '/login/?redirect=/admin/email/';
+        return null;
+      }
+      var data = await resp.json().catch(function () { return {}; });
+      if (!resp.ok || !data || data.ok === false) {
+        throw new Error((data && data.error) || ('Request failed (' + resp.status + ')'));
+      }
+      return data.data;
+    }
+
+    // ---- SVG renderers (ported from approved mockup) ----------------------
+    function sparkline(d) {
+      if (!d || d.length < 2) return '';
+      var w = 120, h = 30, min = Math.min.apply(null, d), max = Math.max.apply(null, d), r = (max - min) || 1;
+      var pts = d.map(function (v, i) { return [i / (d.length - 1) * w, h - 2 - ((v - min) / r) * (h - 6)]; });
+      var path = pts.map(function (p, i) { return (i ? 'L' : 'M') + p[0].toFixed(1) + ' ' + p[1].toFixed(1); }).join(' ');
+      var area = path + ' L' + w + ' ' + h + ' L0 ' + h + ' Z';
+      return '<svg class="spark" viewBox="0 0 ' + w + ' ' + h + '" preserveAspectRatio="none">' +
+        '<path d="' + area + '" fill="rgba(114,94,126,.10)"/>' +
+        '<path d="' + path + '" fill="none" stroke="#725E7E" stroke-width="1.6"/></svg>';
+    }
+
+    function volumeSvg(byDay) {
+      if (!byDay || !byDay.length) return null;
+      var days = byDay.length;
+      var tx = byDay.map(function (d) { return Number(d.transactional) || 0; });
+      var nl = byDay.map(function (d) { return Number(d.newsletter) || 0; });
+      var W = 720, H = 240, pad = 24, max = 0;
+      for (var j = 0; j < days; j++) { max = Math.max(max, tx[j] + nl[j]); }
+      max = Math.max(10, Math.ceil(max / 10) * 10);
+      var xw = days > 1 ? (W - pad * 2) / (days - 1) : 0;
+      function X(i) { return days > 1 ? pad + i * xw : W / 2; }
+      function Y(v) { return H - pad - (v / max) * (H - pad * 2); }
+      function areaPath(top, bot) {
+        var up = top.map(function (v, i) { return (i ? 'L' : 'M') + X(i).toFixed(1) + ' ' + Y(v).toFixed(1); }).join(' ');
+        var dn = [];
+        for (var i = bot.length - 1; i >= 0; i--) { dn.push('L' + X(i).toFixed(1) + ' ' + Y(bot[i]).toFixed(1)); }
+        return up + ' ' + dn.join(' ') + ' Z';
+      }
+      var base = tx.map(function () { return 0; });
+      var txTop = tx.slice();
+      var nlTop = tx.map(function (v, i) { return v + nl[i]; });
+      var grid = '';
+      for (var g = 0; g <= 4; g++) {
+        var gy = pad + (g / 4) * (H - pad * 2);
+        grid += '<line x1="' + pad + '" y1="' + gy + '" x2="' + (W - pad) + '" y2="' + gy + '" stroke="#eee" stroke-width="1"/>' +
+          '<text x="4" y="' + (gy + 4) + '" font-size="10" fill="#bbb">' + Math.round(max - (g / 4) * max) + '</text>';
+      }
+      return grid +
+        '<path d="' + areaPath(nlTop, base) + '" fill="rgba(114,94,126,.55)"/>' +
+        '<path d="' + areaPath(txTop, base) + '" fill="rgba(138,166,198,.65)"/>' +
+        '<path d="' + txTop.map(function (v, i) { return (i ? 'L' : 'M') + X(i).toFixed(1) + ' ' + Y(v).toFixed(1); }).join(' ') + '" fill="none" stroke="#5f7da9" stroke-width="1.4"/>';
+    }
+
+    function gaugeMarkup(label, val, unit, warn, bad, type, empty) {
+      var cx = 75, cy = 78, r = 58;
+      function pt(a) { var rad = a * Math.PI / 180; return [cx + r * Math.cos(rad), cy + r * Math.sin(rad)]; }
+      function arc(a1, a2, col, wd) {
+        var p1 = pt(a1), p2 = pt(a2), large = (a2 - a1) > 180 ? 1 : 0;
+        return '<path d="M' + p1[0].toFixed(1) + ' ' + p1[1].toFixed(1) + ' A' + r + ' ' + r + ' 0 ' + large + ' 1 ' + p2[0].toFixed(1) + ' ' + p2[1].toFixed(1) + '" fill="none" stroke="' + col + '" stroke-width="' + wd + '" stroke-linecap="round"/>';
+      }
+      var frac = Math.min(Math.max(val, 0) / bad, 1);
+      var ang = -90 + frac * 180;
+      var warnAng = -90 + (warn / bad) * 180;
+      var state2 = val >= bad ? 'bad' : val >= warn ? 'warn' : 'ok';
+      var needle = pt(ang);
+      var valTxt = (Math.round(val * 100) / 100) + unit;
+      var svg = '<svg viewBox="0 0 150 100" role="img" aria-label="' + esc(label + ' ' + valTxt) + '">' +
+        arc(-90, 90, '#ece6e9', 11) +
+        arc(-90, warnAng, '#1f9d57', 11) +
+        arc(warnAng, -90 + 0.92 * 180, '#d98324', 11) +
+        arc(-90 + 0.92 * 180, 90, '#c0392b', 11) +
+        '<line x1="' + cx + '" y1="' + cy + '" x2="' + needle[0].toFixed(1) + '" y2="' + needle[1].toFixed(1) + '" stroke="#2c2530" stroke-width="2.4"/>' +
+        '<circle cx="' + cx + '" cy="' + cy + '" r="4" fill="#2c2530"/>' +
+        '<text x="75" y="60" text-anchor="middle" font-size="20" font-weight="700" fill="#2c2530">' + esc(valTxt) + '</text>' +
+        '</svg>';
+      var pill = empty
+        ? '<span class="pill warn">awaiting feed</span>'
+        : '<span class="pill ' + state2 + '">' + (state2 === 'ok' ? 'healthy' : state2) + ' &middot; line ' + bad + unit + '</span>';
+      return '<button type="button" class="gauge-btn emd-drill" data-type="' + esc(type) + '" data-label="' + esc(label) + '">' +
+        svg + '<div class="gauge__cap">' + esc(label) + '</div>' + pill + '</button>';
+    }
+
+    // ---- summary ----------------------------------------------------------
+    function renderKpis(d) {
+      var list = d.list || {}, sends = d.sends || {}, deliv = d.deliverability || {}, eng = d.engagement || {};
+      var byDay = sends.by_day || [];
+      var sendSeries = byDay.map(function (x) { return (Number(x.transactional) || 0) + (Number(x.newsletter) || 0); });
+      var delivSeries = (deliv.by_day || []).map(function (x) { return Number(x.delivered) || 0; });
+      var hasDeliv = (Number(deliv.delivered) || 0) + (Number(deliv.bounced) || 0) + (Number(deliv.complained) || 0) + (Number(deliv.rejected) || 0) > 0;
+      var tracked = !!eng.tracked;
+
+      var cards = [
+        { l: 'Active subscribers', v: num(list.active), d: num(list.total) + ' on list', c: 'flat', spark: null, drill: null },
+        { l: 'Unsub rate', v: fmtPct(list.unsub_rate), d: num(list.unsubscribed) + ' unsubscribed', c: 'flat', spark: null, drill: null },
+        { l: 'Sends (' + state.days + 'd)', v: num(sends.total), d: num(sends.transactional) + ' txn &middot; ' + num(sends.newsletter) + ' nl', c: 'flat', spark: sendSeries, drill: null },
+        { l: 'Delivered', v: hasDeliv ? num(deliv.delivered) : '&mdash;', d: hasDeliv ? ('bounce ' + fmtPct(deliv.bounce_rate)) : 'awaiting SES feed', c: hasDeliv ? 'flat' : 'muteline', spark: hasDeliv ? delivSeries : null, drill: hasDeliv ? 'delivery' : null },
+        { l: 'Open rate', v: tracked ? fmtPct(eng.open_rate) : '&mdash;', d: tracked ? (num(eng.opened) + ' opens') : 'awaiting SES feed', c: tracked ? 'flat' : 'muteline', spark: null, drill: tracked ? 'open' : null },
+        { l: 'Complaint rate', v: hasDeliv ? fmtPct(deliv.complaint_rate) : '&mdash;', d: hasDeliv ? (num(deliv.complained) + ' complaints') : 'awaiting SES feed', c: hasDeliv ? 'flat' : 'muteline', spark: null, drill: hasDeliv ? 'complaint' : null }
+      ];
+
+      $('kpis').innerHTML = cards.map(function (k) {
+        var drillAttr = k.drill ? ' emd-drill" data-type="' + esc(k.drill) + '" tabindex="0' : '';
+        var open = k.drill ? '<div class="kpi kpi--drill' + drillAttr + '" role="button">' : '<div class="kpi">';
+        return open +
+          '<div class="kpi__l">' + esc(k.l) + '</div>' +
+          '<div class="kpi__v tnum">' + k.v + '</div>' +
+          '<div class="kpi__d ' + k.c + '">' + k.d + '</div>' +
+          (k.spark ? sparkline(k.spark) : '') +
+          '</div>';
+      }).join('');
+    }
+
+    function renderVolume(d) {
+      var sends = d.sends || {};
+      var byDay = sends.by_day || [];
+      var svg = volumeSvg(byDay);
+      if (svg === null) {
+        $('vol-wrap').innerHTML = '<div class="cell-empty">No sends recorded in this period.</div>';
+      } else {
+        $('vol-wrap').innerHTML = '<svg id="vol" viewBox="0 0 720 240" preserveAspectRatio="none" class="vol-svg">' + svg + '</svg>';
+      }
+      $('vol-total').innerHTML = num(sends.total) + ' sends in period &middot; ' +
+        num(sends.transactional) + ' transactional, ' + num(sends.newsletter) + ' newsletter';
+    }
+
+    function renderGauges(d) {
+      var deliv = d.deliverability || {};
+      var hasDeliv = (Number(deliv.delivered) || 0) + (Number(deliv.bounced) || 0) + (Number(deliv.complained) || 0) + (Number(deliv.rejected) || 0) > 0;
+      var bounceP = (Number(deliv.bounce_rate) || 0) * 100;
+      var complP = (Number(deliv.complaint_rate) || 0) * 100;
+      $('g-bounce').outerHTML = '<div class="gauge" id="g-bounce">' + gaugeMarkup('Bounce rate', bounceP, '%', 3, 5, 'bounce', !hasDeliv) + '</div>';
+      $('g-complaint').outerHTML = '<div class="gauge" id="g-complaint">' + gaugeMarkup('Complaint rate', complP, '%', 0.05, 0.1, 'complaint', !hasDeliv) + '</div>';
+      if (hasDeliv) {
+        $('deliv-tag').style.display = 'none';
+        $('deliv-note').innerHTML = 'Gauged against SES enforcement lines: <b>bounce 5%</b>, <b>complaint 0.1%</b>. Crossing either risks sending suspension.';
+      } else {
+        $('deliv-tag').style.display = '';
+        $('deliv-note').innerHTML = '<b>Awaiting SES event feed.</b> Deliverability populates once SES bounce/complaint/delivery notifications are wired. Gauges read 0 until then.';
+      }
+    }
+
+    function renderListHealth(d) {
+      var list = d.list || {};
+      var total = Number(list.total) || 0;
+      var segs = [
+        { l: 'Active', v: Number(list.active) || 0, cls: 'lh-active' },
+        { l: 'Unsubscribed', v: Number(list.unsubscribed) || 0, cls: 'lh-unsub' },
+        { l: 'Bounced', v: Number(list.bounced) || 0, cls: 'lh-bounce' },
+        { l: 'Complained', v: Number(list.complained) || 0, cls: 'lh-compl' }
+      ];
+      if (total === 0) {
+        $('list-health').innerHTML = '<div class="cell-empty">No subscribers on file.</div>';
         return;
       }
-      var data = await resp.json();
-      if (!resp.ok) throw new Error(data.error || 'Request failed');
-      return data;
+      var bar = '<div class="lh-bar" role="img" aria-label="List composition">' + segs.map(function (s) {
+        var w = (s.v / total) * 100;
+        if (w <= 0) return '';
+        return '<span class="' + s.cls + '" style="width:' + w.toFixed(2) + '%" title="' + esc(s.l + ': ' + num(s.v)) + '"></span>';
+      }).join('') + '</div>';
+      var rows = segs.map(function (s) {
+        return '<div class="lh-row"><span class="lh-key"><i class="' + s.cls + '"></i>' + esc(s.l) + '</span>' +
+          '<span class="lh-val tnum">' + num(s.v) + '</span>' +
+          '<span class="lh-pct tnum faint">' + (total ? ((s.v / total) * 100).toFixed(1) + '%' : '0%') + '</span></div>';
+      }).join('');
+      $('list-health').innerHTML = bar + '<div class="lh-rows">' + rows +
+        '<div class="lh-row lh-total"><span class="lh-key">Total</span><span class="lh-val tnum">' + num(total) + '</span><span class="lh-pct"></span></div></div>';
     }
 
-    // Stats
-    async function loadStats() {
+    function renderSources(d) {
+      var sources = (d.sends && d.sends.by_source) || [];
+      $('src-period').textContent = state.days + 'd';
+      if (!sources.length) {
+        $('src').innerHTML = '<div class="cell-empty">No sends in this period.</div>';
+        return;
+      }
+      var smax = Math.max.apply(null, sources.map(function (s) { return Number(s.n) || 0; })) || 1;
+      $('src').innerHTML = sources.map(function (s) {
+        var label = s.source || '(unknown)';
+        var n = Number(s.n) || 0;
+        return '<div class="src__row"><b title="' + esc(label) + '">' + esc(label) + '</b>' +
+          '<div class="src__bar" style="width:' + Math.max(6, (n / smax * 100)) + '%"></div>' +
+          '<span class="src__n tnum">' + num(n) + '</span></div>';
+      }).join('');
+    }
+
+    async function loadSummary() {
       try {
-        var resp = await apiCall({ view: 'stats' });
-        var s = resp.data || {};
-        document.getElementById('s-sent').textContent = num(s.sent);
-        document.getElementById('s-delivered').textContent = num(s.delivered);
-        document.getElementById('s-bounced').textContent = num(s.bounced);
-        document.getElementById('s-opened').textContent = num(s.opened);
-        document.getElementById('s-clicked').textContent = num(s.clicked);
-        document.getElementById('s-unsubscribed').textContent = num(s.unsubscribed);
+        var d = await apiCall({ view: 'summary', from: state.from, to: state.to });
+        if (!d) return;
+        renderKpis(d);
+        renderVolume(d);
+        renderGauges(d);
+        renderListHealth(d);
+        renderSources(d);
+        $('updated-note').textContent = '· updated ' + fmtTime(new Date().toISOString());
       } catch (e) {
-        // Stats load failure is non-fatal
+        $('kpis').innerHTML = '<div class="kpi"><div class="kpi__l">Error</div><div class="kpi__d down">' + esc(e.message) + '</div></div>';
       }
     }
 
-    // Build filter params
-    function getFilterParams() {
-      var p = { view: 'log', page: currentPage, sort: sortCol, dir: sortDir };
-      var ev = document.getElementById('filter-event').value;
-      var cat = document.getElementById('filter-category').value;
-      var src = document.getElementById('filter-source').value;
-      var from = document.getElementById('filter-from').value;
-      var to = document.getElementById('filter-to').value;
-      var email = document.getElementById('filter-email').value.trim();
-      if (ev) p.event_type = ev;
+    // ---- broadcasts -------------------------------------------------------
+    function funnel(sent, delivered, opened, clicked) {
+      var s = Math.max(sent, 1);
+      var segs = [
+        { c: 'f1', v: sent, t: 'Sent' },
+        { c: 'f2', v: delivered, t: 'Delivered' },
+        { c: 'f3', v: opened, t: 'Opened' },
+        { c: 'f4', v: clicked, t: 'Clicked' }
+      ];
+      return '<div class="funnel">' + segs.map(function (x) {
+        var flex = Math.max(0.07, x.v / s);
+        return '<span class="' + x.c + '" style="flex:' + flex.toFixed(3) + '" title="' + esc(x.t + ': ' + num(x.v)) + '">' + num(x.v) + '</span>';
+      }).join('') + '</div>';
+    }
+
+    function renderBroadcasts(rows) {
+      if (!rows || !rows.length) {
+        $('broadcasts-body').innerHTML = '<tr><td colspan="9" class="cell-empty">No broadcasts sent yet.</td></tr>';
+        return;
+      }
+      $('broadcasts-body').innerHTML = rows.map(function (b) {
+        var sent = Number(b.sent) || 0;
+        var delivered = Number(b.delivered) || 0;
+        var bounced = Number(b.bounced) || 0;
+        var complained = Number(b.complained) || 0;
+        function ofSent(n) { return sent ? ((n / sent) * 100).toFixed((n / sent) >= 0.1 ? 1 : 2) + '%' : '0%'; }
+        var statusCls = (b.status === 'sent' || b.status === 'completed') ? '' : 'stpill--alt';
+        var deliveredCell = '<b class="tnum">' + num(delivered) + '</b> <small class="faint">' + ofSent(delivered) + '</small>';
+        var openCell = '<button type="button" class="rate emd-cohort" data-type="open" data-send="' + esc(b.id) + '" data-label="' + esc('Opens · ' + (b.subject || '')) + '">' + fmtPct(b.open_rate) + ' <small>' + num(b.opened) + '</small></button>';
+        var clickCell = '<button type="button" class="rate emd-cohort" data-type="click" data-send="' + esc(b.id) + '" data-label="' + esc('Clicks · ' + (b.subject || '')) + '">' + fmtPct(b.click_rate) + ' <small>' + num(b.clicked) + '</small></button>';
+        var bounceCell = '<button type="button" class="rate emd-cohort" data-type="bounce" data-send="' + esc(b.id) + '" data-label="' + esc('Bounces · ' + (b.subject || '')) + '">' + num(bounced) + ' <small class="faint">' + ofSent(bounced) + '</small></button>';
+        var complaintCell = '<button type="button" class="rate emd-cohort" data-type="complaint" data-send="' + esc(b.id) + '" data-label="' + esc('Complaints · ' + (b.subject || '')) + '">' + num(complained) + '</button>';
+        return '<tr>' +
+          '<td class="subj">' + esc(b.subject || '(no subject)') + '<small>' + esc(fmtTime(b.sent_at)) + '</small></td>' +
+          '<td class="tnum">' + num(sent) + '</td>' +
+          '<td>' + funnel(sent, delivered, Number(b.opened) || 0, Number(b.clicked) || 0) + '</td>' +
+          '<td class="tnum">' + deliveredCell + '</td>' +
+          '<td>' + openCell + '</td>' +
+          '<td>' + clickCell + '</td>' +
+          '<td>' + bounceCell + '</td>' +
+          '<td>' + complaintCell + '</td>' +
+          '<td><span class="stpill ' + statusCls + '">' + esc(b.status || '--') + '</span></td>' +
+          '</tr>';
+      }).join('');
+    }
+
+    async function loadBroadcasts() {
+      try {
+        var d = await apiCall({ view: 'broadcasts' });
+        if (!d) return;
+        renderBroadcasts(d.broadcasts || []);
+      } catch (e) {
+        $('broadcasts-body').innerHTML = '<tr><td colspan="9" class="cell-empty down">' + esc(e.message) + '</td></tr>';
+      }
+    }
+
+    // ---- log --------------------------------------------------------------
+    function logParams() {
+      var p = {
+        view: 'log',
+        from: state.from, to: state.to,
+        page: state.log.page,
+        sort: state.log.sort,
+        order: state.log.order,
+        limit: 50
+      };
+      var ev = $('f-event').value;
+      var cat = $('f-category').value;
+      var src = $('f-source').value.trim();
+      var email = $('f-email').value.trim();
+      if (ev) p.event = ev;
       if (cat) p.category = cat;
       if (src) p.source = src;
-      if (from) p.from = from;
-      if (to) p.to = to;
       if (email) p.email = email;
       return p;
     }
 
-    // Render log table
-    function renderLog(events) {
-      if (!events || !events.length) {
-        tbody.innerHTML = '<tr><td colspan="7" class="em-empty">No events found</td></tr>';
-        return;
+    function renderLog(d) {
+      var events = d.events || [];
+      if (!events.length) {
+        $('log-body').innerHTML = '<tr><td colspan="6" class="cell-empty">No events match.</td></tr>';
+      } else {
+        $('log-body').innerHTML = events.map(function (e) {
+          return '<tr>' +
+            '<td class="faint nowrap">' + esc(fmtTime(e.created_at)) + '</td>' +
+            '<td>' + evBadge(e.event) + '</td>' +
+            '<td>' + emailLink(e.email) + '</td>' +
+            '<td class="muted">' + esc(e.source || '--') + '</td>' +
+            '<td class="muted col-subj">' + esc(e.subject || '--') + '</td>' +
+            '<td class="muted col-detail">' + esc(e.detail || '') + '</td>' +
+            '</tr>';
+        }).join('');
       }
-      tbody.innerHTML = events.map(function (e) {
-        var recipientLink = '<a href="#" class="em-email-link" data-email="' + esc(e.recipient || '') + '">' + esc(e.recipient || '--') + '</a>';
-        return '<tr>' +
-          '<td class="em-col-time">' + esc(formatTime(e.timestamp)) + '</td>' +
-          '<td>' + eventBadge(e.event_type) + '</td>' +
-          '<td>' + recipientLink + '</td>' +
-          '<td>' + esc(e.category || '--') + '</td>' +
-          '<td>' + esc(e.source || '--') + '</td>' +
-          '<td class="em-col-subject">' + esc(e.subject || '--') + '</td>' +
-          '<td class="em-col-detail">' + esc(e.detail || '') + '</td>' +
-          '</tr>';
-      }).join('');
-
-      // Attach click handlers to email links
-      tbody.querySelectorAll('.em-email-link').forEach(function (a) {
-        a.addEventListener('click', function (ev) {
-          ev.preventDefault();
-          var email = a.dataset.email;
-          if (email) showRecipient(email);
-        });
-      });
+      state.log.page = d.page || 1;
+      state.log.pages = d.pages || 1;
+      $('page-info').textContent = 'Page ' + state.log.page + ' of ' + state.log.pages + ' · ' + num(d.total) + ' events';
+      $('prev-btn').disabled = state.log.page <= 1;
+      $('next-btn').disabled = state.log.page >= state.log.pages;
+      document.querySelectorAll('#filters ~ .logwrap .sortable .sort-arrow, .log .sortable .sort-arrow').forEach(function (a) { a.textContent = ''; });
+      var active = document.querySelector('.log th.sortable[data-sort="' + state.log.sort + '"] .sort-arrow');
+      if (active) active.textContent = state.log.order === 'asc' ? ' ▲' : ' ▼';
     }
 
-    // Update pagination
-    function updatePagination() {
-      pageInfo.textContent = 'Page ' + currentPage + ' of ' + totalPages;
-      prevBtn.disabled = currentPage <= 1;
-      nextBtn.disabled = currentPage >= totalPages;
-    }
-
-    // Update sort indicators
-    function updateSortIndicators() {
-      document.querySelectorAll('.em-table th[data-sort]').forEach(function (th) {
-        var arrow = th.querySelector('.em-sort-arrow');
-        if (th.dataset.sort === sortCol) {
-          arrow.textContent = sortDir === 'asc' ? ' \u25B2' : ' \u25BC';
-        } else {
-          arrow.textContent = '';
-        }
-      });
-    }
-
-    // Load log
     async function loadLog() {
-      tbody.innerHTML = '<tr><td colspan="7" class="em-empty">Loading...</td></tr>';
+      $('log-body').innerHTML = '<tr><td colspan="6" class="cell-empty">Loading&hellip;</td></tr>';
       try {
-        var params = getFilterParams();
-        var resp = await apiCall(params);
-        var d = resp.data || {};
-        renderLog(d.events || []);
-        currentPage = d.page || 1;
-        totalPages = d.totalPages || 1;
-        updatePagination();
-        updateSortIndicators();
-        if (resp.fetchedAt) {
-          document.getElementById('em-meta').textContent = 'Fetched: ' + resp.fetchedAt;
-        }
+        var d = await apiCall(logParams());
+        if (!d) return;
+        renderLog(d);
       } catch (e) {
-        tbody.innerHTML = '<tr><td colspan="7" class="em-empty em-error">' + esc(e.message) + '</td></tr>';
+        $('log-body').innerHTML = '<tr><td colspan="6" class="cell-empty down">' + esc(e.message) + '</td></tr>';
       }
     }
 
-    // Show recipient profile
-    async function showRecipient(email) {
-      currentView = 'recipient';
-      currentRecipient = email;
-      currentPage = 1;
+    // ---- drawer -----------------------------------------------------------
+    var lastFocus = null;
+    function openDrawer() {
+      var dr = $('drawer');
+      if (!dr.hasAttribute('hidden')) return;
+      lastFocus = document.activeElement;
+      dr.removeAttribute('hidden');
+      document.body.style.overflow = 'hidden';
+      $('drawer-close').focus();
+    }
+    function closeDrawer() {
+      var dr = $('drawer');
+      dr.setAttribute('hidden', '');
+      document.body.style.overflow = '';
+      if (lastFocus && lastFocus.focus) lastFocus.focus();
+    }
 
-      recipientPanel.style.display = 'block';
-      filterRow.style.display = 'none';
-      statsGrid.style.display = 'none';
-      titleEl.textContent = 'Recipient Profile';
-      document.getElementById('recipient-email').textContent = email;
+    function recipientRowsHtml(rows) {
+      return rows.map(function (r) {
+        var bits = [];
+        if (r.bounce_type) bits.push('bounce: ' + r.bounce_type);
+        if (r.feedback_type) bits.push('feedback: ' + r.feedback_type);
+        if (r.link_url) bits.push(r.link_url);
+        if (!bits.length && r.detail) bits.push(r.detail);
+        return '<div class="dr-row">' +
+          '<button type="button" class="em emd-recip" data-email="' + esc(r.email) + '">' + esc(r.email) + '</button>' +
+          '<div class="dr-meta"><span class="faint">' + esc(fmtTime(r.ts)) + '</span>' +
+          (bits.length ? '<span class="muted">' + esc(bits.join(' · ')) + '</span>' : '') + '</div></div>';
+      }).join('');
+    }
 
-      tbody.innerHTML = '<tr><td colspan="7" class="em-empty">Loading...</td></tr>';
-
+    async function openCohort(type, sendId, label) {
+      $('drawer-eyebrow').textContent = 'Cohort';
+      $('drawer-title').textContent = label || (type.charAt(0).toUpperCase() + type.slice(1));
+      $('drawer-body').innerHTML = '<div class="cell-empty">Loading&hellip;</div>';
+      openDrawer();
       try {
-        var resp = await apiCall({ view: 'recipient', email: email, page: currentPage, sort: sortCol, dir: sortDir });
-        var d = resp.data || {};
-
-        // Render recipient stats
-        var rs = d.stats || {};
-        var rsGrid = document.getElementById('recipient-stats');
-        rsGrid.innerHTML =
-          '<div class="em-card"><span class="em-card__label">Total Events</span><span class="em-card__value">' + num(rs.total) + '</span></div>' +
-          '<div class="em-card"><span class="em-card__label">Delivered</span><span class="em-card__value em-card__value--green">' + num(rs.delivered) + '</span></div>' +
-          '<div class="em-card"><span class="em-card__label">Opened</span><span class="em-card__value">' + num(rs.opened) + '</span></div>' +
-          '<div class="em-card"><span class="em-card__label">Bounced</span><span class="em-card__value em-card__value--red">' + num(rs.bounced) + '</span></div>';
-
-        renderLog(d.events || []);
-        totalPages = d.totalPages || 1;
-        updatePagination();
+        var params = { view: 'cohort', type: type, from: state.from, to: state.to, page: 1, limit: 200 };
+        if (sendId) params.send_id = sendId;
+        var d = await apiCall(params);
+        if (!d) return;
+        state.cohortRows = d.recipients || [];
+        state.cohortMeta = { cohort: d.cohort, send_id: d.send_id, count: d.count };
+        var head = '<div class="dr-head"><div><b class="tnum">' + num(d.count) + '</b> ' + esc(d.cohort) + ' recipients' +
+          (d.send_id ? ' <span class="faint">(this broadcast)</span>' : ' <span class="faint">(' + state.days + 'd)</span>') + '</div>' +
+          (state.cohortRows.length ? '<button type="button" class="emd-csv" id="csv-btn">Export CSV</button>' : '') + '</div>';
+        var body = state.cohortRows.length
+          ? '<div class="dr-list">' + recipientRowsHtml(state.cohortRows) + '</div>'
+          : '<div class="cell-empty">No recipients recorded for this cohort yet. Per-recipient event cohorts populate once the SES event feed is live.</div>';
+        $('drawer-body').innerHTML = head + body;
       } catch (e) {
-        tbody.innerHTML = '<tr><td colspan="7" class="em-empty em-error">' + esc(e.message) + '</td></tr>';
+        $('drawer-body').innerHTML = '<div class="cell-empty down">' + esc(e.message) + '</div>';
       }
     }
 
-    // Back to log view
-    function showLog() {
-      currentView = 'log';
-      currentRecipient = '';
-      currentPage = 1;
-
-      recipientPanel.style.display = 'none';
-      filterRow.style.display = 'flex';
-      statsGrid.style.display = 'grid';
-      titleEl.textContent = 'Email Log';
-
-      loadStats();
-      loadLog();
+    function exportCohortCsv() {
+      var rows = state.cohortRows || [];
+      var cols = ['email', 'ts', 'bounce_type', 'feedback_type', 'link_url', 'detail'];
+      var lines = [cols.join(',')];
+      rows.forEach(function (r) {
+        lines.push(cols.map(function (c) {
+          var v = r[c] == null ? '' : String(r[c]);
+          if (/[",\n]/.test(v)) v = '"' + v.replace(/"/g, '""') + '"';
+          return v;
+        }).join(','));
+      });
+      var blob = new Blob([lines.join('\n')], { type: 'text/csv;charset=utf-8' });
+      var url = URL.createObjectURL(blob);
+      var a = document.createElement('a');
+      var meta = state.cohortMeta || {};
+      a.href = url;
+      a.download = 'cohort-' + (meta.cohort || 'export') + (meta.send_id ? '-' + meta.send_id : '') + '.csv';
+      document.body.appendChild(a); a.click(); document.body.removeChild(a);
+      setTimeout(function () { URL.revokeObjectURL(url); }, 1000);
     }
 
-    // Event listeners
-    document.getElementById('logout-btn').addEventListener('click', async function () {
+    async function openRecipient(email) {
+      if (!email) return;
+      $('drawer-eyebrow').textContent = 'Recipient timeline';
+      $('drawer-title').textContent = email;
+      $('drawer-body').innerHTML = '<div class="cell-empty">Loading&hellip;</div>';
+      openDrawer();
+      try {
+        var d = await apiCall({ view: 'recipient', email: email });
+        if (!d) return;
+        var s = d.summary || {};
+        var statGrid = '<div class="dr-stats">' +
+          dstat('Sent', num(s.total_sent)) +
+          dstat('Delivered', num(s.delivered)) +
+          dstat('Opens', num(s.opens)) +
+          dstat('Clicks', num(s.clicks)) +
+          dstat('Bounces', num(s.bounces)) +
+          dstat('Complained', s.complained ? 'Yes' : 'No') +
+          '</div>';
+        var span = '<p class="note">First seen ' + esc(s.first_seen ? fmtTime(s.first_seen) : '--') +
+          ' &middot; last activity ' + esc(s.last_activity ? fmtTime(s.last_activity) : '--') + '</p>';
+        var events = d.events || [];
+        var timeline = events.length
+          ? '<div class="dr-timeline">' + events.map(function (e) {
+              return '<div class="dr-tl-row">' + evBadge(e.event) +
+                '<div class="dr-tl-main"><div class="dr-tl-top"><span class="faint">' + esc(fmtTime(e.created_at)) + '</span>' +
+                (e.source ? '<span class="muted">' + esc(e.source) + '</span>' : '') + '</div>' +
+                (e.subject ? '<div class="dr-tl-subj">' + esc(e.subject) + '</div>' : '') +
+                (e.detail ? '<div class="dr-tl-detail muted">' + esc(e.detail) + '</div>' : '') +
+                '</div></div>';
+            }).join('') + '</div>'
+          : '<div class="cell-empty">No events recorded for this recipient.</div>';
+        $('drawer-body').innerHTML = statGrid + span + '<h3 class="dr-h3">Event timeline</h3>' + timeline;
+      } catch (e) {
+        $('drawer-body').innerHTML = '<div class="cell-empty down">' + esc(e.message) + '</div>';
+      }
+    }
+    function dstat(label, val) {
+      return '<div class="dr-stat"><span class="dr-stat__l">' + esc(label) + '</span><span class="dr-stat__v tnum">' + val + '</span></div>';
+    }
+
+    // ---- events -----------------------------------------------------------
+    $('logout-btn').addEventListener('click', async function () {
       await fetch('/api/auth/logout', { method: 'POST', credentials: 'include' });
       window.location.href = '/login/';
     });
 
-    document.getElementById('apply-btn').addEventListener('click', function () {
-      currentPage = 1;
-      loadLog();
+    $('period-seg').addEventListener('click', function (ev) {
+      var btn = ev.target.closest('button[data-days]');
+      if (!btn) return;
+      state.days = parseInt(btn.dataset.days, 10);
+      var r = rangeFor(state.days);
+      state.from = r.from; state.to = r.to;
+      state.log.page = 1;
+      Array.prototype.forEach.call($('period-seg').children, function (b) { b.classList.toggle('on', b === btn); });
+      loadSummary(); loadLog();
     });
 
-    document.getElementById('refresh-btn').addEventListener('click', function () {
-      if (currentView === 'recipient') {
-        showRecipient(currentRecipient);
-      } else {
-        loadStats();
-        loadLog();
-      }
-    });
+    $('apply-btn').addEventListener('click', function () { state.log.page = 1; loadLog(); });
+    $('f-email').addEventListener('keydown', function (e) { if (e.key === 'Enter') { state.log.page = 1; loadLog(); } });
+    $('f-source').addEventListener('keydown', function (e) { if (e.key === 'Enter') { state.log.page = 1; loadLog(); } });
 
-    document.getElementById('back-btn').addEventListener('click', function () {
-      showLog();
-    });
+    $('prev-btn').addEventListener('click', function () { if (state.log.page > 1) { state.log.page--; loadLog(); } });
+    $('next-btn').addEventListener('click', function () { if (state.log.page < state.log.pages) { state.log.page++; loadLog(); } });
 
-    prevBtn.addEventListener('click', function () {
-      if (currentPage > 1) {
-        currentPage--;
-        if (currentView === 'recipient') {
-          showRecipient(currentRecipient);
-        } else {
-          loadLog();
-        }
-      }
-    });
-
-    nextBtn.addEventListener('click', function () {
-      if (currentPage < totalPages) {
-        currentPage++;
-        if (currentView === 'recipient') {
-          showRecipient(currentRecipient);
-        } else {
-          loadLog();
-        }
-      }
-    });
-
-    // Column sorting
-    document.querySelectorAll('.em-table th[data-sort]').forEach(function (th) {
+    document.querySelectorAll('.log th.sortable').forEach(function (th) {
       th.addEventListener('click', function () {
         var col = th.dataset.sort;
-        if (sortCol === col) {
-          sortDir = sortDir === 'asc' ? 'desc' : 'asc';
+        if (state.log.sort === col) {
+          state.log.order = state.log.order === 'asc' ? 'desc' : 'asc';
         } else {
-          sortCol = col;
-          sortDir = col === 'timestamp' ? 'desc' : 'asc';
+          state.log.sort = col;
+          state.log.order = col === 'created_at' ? 'desc' : 'asc';
         }
-        currentPage = 1;
-        if (currentView === 'recipient') {
-          showRecipient(currentRecipient);
-        } else {
-          loadLog();
-        }
+        state.log.page = 1;
+        loadLog();
       });
     });
 
-    // Init
-    loadStats();
-    loadLog();
+    // Delegated clicks for drill-downs + recipient links
+    $('emd-root').addEventListener('click', function (ev) {
+      var recip = ev.target.closest('.emd-recip');
+      if (recip) { ev.preventDefault(); openRecipient(recip.dataset.email); return; }
+      var cohort = ev.target.closest('.emd-cohort');
+      if (cohort) { ev.preventDefault(); openCohort(cohort.dataset.type, cohort.dataset.send || '', cohort.dataset.label || ''); return; }
+      var drill = ev.target.closest('.emd-drill');
+      if (drill) { ev.preventDefault(); openCohort(drill.dataset.type, '', drill.dataset.label || ''); return; }
+      var csv = ev.target.closest('#csv-btn');
+      if (csv) { ev.preventDefault(); exportCohortCsv(); return; }
+    });
+    // Keyboard activation for drill KPI cards
+    $('emd-root').addEventListener('keydown', function (ev) {
+      if (ev.key !== 'Enter' && ev.key !== ' ') return;
+      var card = ev.target.closest('.kpi--drill');
+      if (card) { ev.preventDefault(); openCohort(card.dataset.type, '', ''); }
+    });
+
+    $('drawer-scrim').addEventListener('click', closeDrawer);
+    $('drawer-close').addEventListener('click', closeDrawer);
+    document.addEventListener('keydown', function (e) { if (e.key === 'Escape' && !$('drawer').hasAttribute('hidden')) closeDrawer(); });
+
+    // ---- init -------------------------------------------------------------
+    (function init() {
+      var r = rangeFor(state.days);
+      state.from = r.from; state.to = r.to;
+      loadSummary();
+      loadBroadcasts();
+      loadLog();
+    })();
   })();
   </script>
 
@@ -440,83 +746,184 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
   .admin-bar__site-link:hover { color: var(--white); border-color: var(--white); text-decoration: none; }
   .admin-bar__logout { font-size: 0.8125rem; color: var(--white); background: none; border: none; cursor: pointer; padding: var(--space-1) var(--space-2); }
   .admin-bar__logout:hover { color: var(--white); }
-
-  .em-section { padding: var(--space-8) 0; background: var(--admin-bg); min-height: 80vh; }
-  .em-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: var(--space-6); flex-wrap: wrap; gap: var(--space-3); }
-  .em-header h1 { margin-bottom: 0; color: var(--admin-text); }
-  .em-controls { display: flex; gap: var(--space-3); align-items: center; }
-  .em-btn { background: var(--admin-rose-700); border-color: var(--admin-rose-700); color: var(--white); }
-  .em-btn:hover { background: #764d5e; }
-
-  /* Stat cards */
-  .em-metrics { display: grid; gap: var(--space-4); margin-bottom: var(--space-6); }
-  .em-metrics--6 { grid-template-columns: repeat(6, 1fr); }
-  .em-metrics--4 { grid-template-columns: repeat(4, 1fr); }
-  @media (max-width: 768px) { .em-metrics--6 { grid-template-columns: repeat(3, 1fr); } .em-metrics--4 { grid-template-columns: repeat(2, 1fr); } }
-  @media (max-width: 480px) { .em-metrics--6 { grid-template-columns: repeat(2, 1fr); } }
-
-  .em-card { background: var(--admin-surface); border: 1px solid var(--admin-border); border-radius: var(--radius-md); padding: var(--space-4) var(--space-5); text-align: center; }
-  .em-card__label { display: block; font-size: 0.75rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; color: var(--admin-text-faint); margin-bottom: var(--space-1); }
-  .em-card__value { display: block; font-size: 1.75rem; font-weight: 600; color: var(--admin-text); font-family: 'Inter', sans-serif; }
-  .em-card__value--green { color: #27ae60; }
-  .em-card__value--red { color: var(--status-error-text); }
-  .em-card__value--amber { color: #e67e22; }
-
-  /* Filters */
-  .em-filters { display: flex; gap: var(--space-3); align-items: center; margin-bottom: var(--space-6); flex-wrap: wrap; }
-  .em-select { max-width: 180px; border-color: var(--admin-border); }
-  .em-select:focus { border-color: var(--admin-rose-700); box-shadow: 0 0 0 2px rgba(138,96,110,0.15); outline: none; }
-  .em-date { max-width: 150px; border-color: var(--admin-border); }
-  .em-date:focus { border-color: var(--admin-rose-700); box-shadow: 0 0 0 2px rgba(138,96,110,0.15); outline: none; }
-  .em-search { max-width: 200px; border-color: var(--admin-border); }
-  .em-search:focus { border-color: var(--admin-rose-700); box-shadow: 0 0 0 2px rgba(138,96,110,0.15); outline: none; }
-
-  /* Recipient profile */
-  .em-recipient { margin-bottom: var(--space-6); }
-  .em-recipient__header { display: flex; align-items: center; gap: var(--space-4); margin-bottom: var(--space-4); }
-  .em-recipient__back { background: none; border: 1px solid var(--admin-border); color: var(--admin-rose-700); padding: var(--space-1) var(--space-3); border-radius: var(--radius-sm); cursor: pointer; font-size: 0.8125rem; font-weight: 500; }
-  .em-recipient__back:hover { border-color: var(--admin-rose-700); background: #f0e5e9; }
-  .em-recipient__email { margin-bottom: 0; color: var(--admin-text); font-size: 1.25rem; }
-
-  .em-heading { color: var(--admin-text); margin-bottom: var(--space-4); }
-
-  /* Table */
-  .em-table-wrap { overflow-x: auto; border: 1px solid var(--admin-border); border-radius: var(--radius-md); background: var(--admin-surface); margin-bottom: var(--space-4); }
-  .em-empty { text-align: center; color: var(--admin-text-faint); padding: var(--space-8) var(--space-4); }
-  .em-error { color: var(--status-error-text); }
-
-  /* Pagination */
-  .em-pagination { display: flex; align-items: center; justify-content: center; gap: var(--space-4); margin-bottom: var(--space-4); }
-  .em-page-btn { background: none; border: 1px solid var(--admin-border); color: var(--admin-rose-700); padding: 6px var(--space-4); border-radius: var(--radius-sm); cursor: pointer; font-size: 0.8125rem; }
-  .em-page-btn:hover:not(:disabled) { border-color: var(--admin-rose-700); background: #f0e5e9; }
-  .em-page-btn:disabled { opacity: 0.4; cursor: not-allowed; }
-  .em-page-info { font-size: 0.8125rem; color: var(--admin-text-muted); }
-
-  .em-meta { font-size: 0.75rem; color: var(--admin-text-faint); margin-top: var(--space-4); }
 </style>
 
 <style is:global>
-  .em-table { width: 100%; border-collapse: collapse; font-size: 0.875rem; }
-  .em-table th, .em-table td { padding: var(--space-3) var(--space-4); text-align: left; border-bottom: 1px solid #d9d3cc; }
-  .em-table th { background: var(--cream); font-weight: 600; font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.04em; color: var(--neutral-700); }
-  .em-table th[data-sort] { cursor: pointer; user-select: none; }
-  .em-table th[data-sort]:hover { background: #e4d9ce; }
-  .em-sort-arrow { font-size: 0.625rem; color: #8a606e; }
-  .em-table tbody tr:last-child td { border-bottom: none; }
-  .em-table tbody tr:hover { background: #f0e5e9; }
-  .em-col-time { white-space: nowrap; font-size: 0.8125rem; }
-  .em-col-subject { max-width: 220px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-  .em-col-detail { max-width: 160px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 0.8125rem; color: var(--neutral-700); }
-  .em-email-link { color: #8a606e; text-decoration: none; font-weight: 500; }
-  .em-email-link:hover { text-decoration: underline; color: #764d5e; }
-  .em-badge { display: inline-block; padding: 2px var(--space-2); border-radius: var(--radius-sm); font-size: 0.6875rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.03em; }
-  .em-badge--send { background: #e3f2fd; color: #1565c0; }
-  .em-badge--delivery { background: var(--green-100); color: var(--green-700); }
-  .em-badge--bounce { background: var(--status-error-text); color: var(--status-error-text); }
-  .em-badge--complaint { background: #fce4ec; color: #c62828; }
-  .em-badge--open { background: #f3e5f5; color: #7b1fa2; }
-  .em-badge--click { background: #e0f2f1; color: #00695c; }
-  .em-badge--unsubscribe { background: #fff3e0; color: #e65100; }
-  .em-badge--reject { background: #efebe9; color: #4e342e; }
-  .em-badge--unknown { background: #f0e5e9; color: var(--neutral-700); }
+  /* ====== Email Observatory dashboard (ported from approved mockup) ====== */
+  /* All rules namespaced under .emd so generic class names (.card, .tag, etc.) */
+  /* never leak site-wide, and styles still reach runtime-injected innerHTML.  */
+
+  .emd {
+    --plum: #725E7E; --rose700: #8a606e; --rose300: #c9a8b2; --bar: #3d2a32;
+    --bg: #f7f4f1; --surface: #ffffff; --border: #e7ded7; --border2: #d9d3cc;
+    --text: #2c2530; --muted: #6c6670; --faint: #9a949e;
+    --green: #1f9d57; --greenbg: #e7f5ec; --red: #c0392b; --redbg: #fbeceb;
+    --amber: #d98324; --amberbg: #fbf0e2; --blue: #3b6fb0; --bluebg: #eaf1fa;
+    --radius: 14px; --shadow: 0 1px 2px rgba(44,37,48,.04), 0 4px 16px rgba(44,37,48,.05);
+    display: block; background: var(--bg); color: var(--text); min-height: 82vh;
+    font-family: 'Inter', system-ui, sans-serif; -webkit-font-smoothing: antialiased;
+  }
+  .emd * { box-sizing: border-box; }
+  .emd .tnum { font-variant-numeric: tabular-nums; }
+  .emd .nowrap { white-space: nowrap; }
+  .emd-wrap { max-width: 1280px; margin: 0 auto; padding: 24px 20px 64px; }
+
+  /* head */
+  .emd .head { display: flex; align-items: flex-end; justify-content: space-between; gap: 16px; flex-wrap: wrap; margin-bottom: 22px; }
+  .emd .head h1 { font-family: 'Cormorant Garamond', 'Georgia', serif; font-weight: 600; font-size: 2.3rem; line-height: 1.05; margin: 0; color: var(--text); }
+  .emd .head p { margin: 6px 0 0; color: var(--muted); font-size: 0.92rem; }
+  .emd .seg { display: inline-flex; background: var(--surface); border: 1px solid var(--border2); border-radius: 10px; overflow: hidden; }
+  .emd .seg button { border: 0; background: none; font: inherit; font-size: 0.82rem; padding: 7px 14px; color: var(--muted); cursor: pointer; }
+  .emd .seg button.on { background: var(--plum); color: #fff; font-weight: 600; }
+
+  /* grids — unified 3-column dashboard grid */
+  .emd .emd-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 18px; align-items: start; }
+  .emd .span-full { grid-column: 1 / -1; }
+  @media (max-width: 980px) { .emd .emd-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+  @media (max-width: 640px) { .emd .emd-grid { grid-template-columns: 1fr; } }
+  .emd .kpis { display: grid; grid-template-columns: repeat(6, 1fr); gap: 14px; }
+  @media (max-width: 1080px) { .emd .kpis { grid-template-columns: repeat(3, 1fr); } }
+  @media (max-width: 560px) { .emd .kpis { grid-template-columns: repeat(2, 1fr); } }
+
+  .emd .card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); box-shadow: var(--shadow); padding: 18px 18px 16px; min-width: 0; }
+  .emd .card h2 { font-family: 'Inter', sans-serif; font-size: 0.78rem; font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase; color: var(--faint); margin: 0 0 14px; display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+  .emd .h2sub { font-weight: 500; text-transform: none; letter-spacing: 0; }
+  .emd .tag { font-size: 0.62rem; font-weight: 600; letter-spacing: 0.04em; text-transform: uppercase; padding: 2px 7px; border-radius: 20px; background: var(--amberbg); color: var(--amber); }
+
+  /* kpi card */
+  .emd .kpi { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius); box-shadow: var(--shadow); padding: 14px 15px; min-width: 0; }
+  .emd .kpi--drill { cursor: pointer; transition: border-color 0.15s, box-shadow 0.15s; }
+  .emd .kpi--drill:hover { border-color: var(--plum); box-shadow: 0 2px 4px rgba(44,37,48,.06), 0 6px 18px rgba(44,37,48,.08); }
+  .emd .kpi--drill:focus-visible { outline: none; border-color: var(--plum); box-shadow: 0 0 0 3px rgba(114,94,126,.18); }
+  .emd .kpi__l { font-size: 0.7rem; font-weight: 600; letter-spacing: 0.04em; text-transform: uppercase; color: var(--faint); margin-bottom: 7px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .emd .kpi__v { font-size: 1.7rem; font-weight: 600; line-height: 1; color: var(--text); }
+  .emd .kpi__v small { font-size: 0.95rem; font-weight: 600; color: var(--muted); }
+  .emd .kpi__d { margin-top: 8px; font-size: 0.72rem; font-weight: 600; display: flex; align-items: center; gap: 5px; }
+  .emd .up { color: var(--green); } .emd .down { color: var(--red); } .emd .flat { color: var(--muted); } .emd .muteline { color: var(--faint); }
+  .emd .spark { margin-top: 8px; height: 30px; width: 100%; display: block; }
+  .emd .vol-svg { width: 100%; height: clamp(200px, 22vw, 280px); display: block; }
+
+  /* gauges */
+  .emd .gauges { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  .emd .gauge { text-align: center; }
+  .emd .gauge-btn { width: 100%; background: none; border: 0; padding: 6px 4px 4px; cursor: pointer; border-radius: var(--radius); transition: background 0.15s; display: block; }
+  .emd .gauge-btn:hover { background: rgba(114,94,126,.05); }
+  .emd .gauge-btn:focus-visible { outline: none; box-shadow: 0 0 0 3px rgba(114,94,126,.18); }
+  .emd .gauge-btn svg { width: 100%; max-width: 150px; height: auto; }
+  .emd .gauge__cap { font-size: 0.74rem; color: var(--muted); margin-top: 2px; }
+  .emd .pill { display: inline-block; font-size: 0.66rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.04em; padding: 3px 9px; border-radius: 20px; margin-top: 6px; }
+  .emd .pill.ok { background: var(--greenbg); color: var(--green); } .emd .pill.warn { background: var(--amberbg); color: var(--amber); } .emd .pill.bad { background: var(--redbg); color: var(--red); }
+
+  /* broadcast table */
+  .emd .x-scroll { overflow-x: auto; }
+  .emd .tbl { width: 100%; border-collapse: collapse; font-size: 0.84rem; }
+  .emd .tbl th { text-align: left; font-size: 0.68rem; text-transform: uppercase; letter-spacing: 0.05em; color: var(--faint); font-weight: 600; padding: 0 12px 9px; border-bottom: 1px solid var(--border); white-space: nowrap; }
+  .emd .tbl td { padding: 13px 12px; border-bottom: 1px solid var(--border); vertical-align: middle; }
+  .emd .tbl tr:last-child td { border-bottom: 0; }
+  .emd .subj { font-weight: 600; color: var(--text); min-width: 160px; }
+  .emd .subj small { display: block; font-weight: 400; color: var(--faint); font-size: 0.74rem; margin-top: 2px; }
+  .emd .funnel { display: flex; align-items: center; gap: 3px; min-width: 180px; }
+  .emd .funnel span { height: 22px; border-radius: 4px; display: flex; align-items: center; justify-content: center; font-size: 0.66rem; font-weight: 600; color: #fff; overflow: hidden; }
+  .emd .f1 { background: #8aa6c6; } .emd .f2 { background: #6f8db3; } .emd .f3 { background: var(--plum); } .emd .f4 { background: var(--rose700); }
+  .emd .rate { font-weight: 600; background: none; border: 0; font: inherit; font-weight: 600; padding: 2px 4px; margin: -2px -4px; border-radius: 6px; color: var(--text); cursor: pointer; }
+  .emd button.rate:hover { background: rgba(114,94,126,.08); color: var(--plum); }
+  .emd button.rate:focus-visible { outline: none; box-shadow: 0 0 0 3px rgba(114,94,126,.18); }
+  .emd .rate small { color: var(--faint); font-weight: 500; }
+  .emd .stpill { font-size: 0.66rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.03em; padding: 3px 9px; border-radius: 20px; background: var(--greenbg); color: var(--green); white-space: nowrap; }
+  .emd .stpill--alt { background: var(--amberbg); color: var(--amber); }
+
+  /* list health */
+  .emd .lh-bar { display: flex; height: 14px; border-radius: 7px; overflow: hidden; background: var(--border); margin-bottom: 16px; }
+  .emd .lh-bar span { display: block; height: 100%; }
+  .emd .lh-active { background: var(--plum); } .emd .lh-unsub { background: var(--red); }
+  .emd .lh-bounce { background: var(--amber); } .emd .lh-compl { background: var(--rose700); }
+  .emd .lh-rows { display: flex; flex-direction: column; gap: 9px; }
+  .emd .lh-row { display: grid; grid-template-columns: 1fr auto auto; align-items: center; gap: 12px; font-size: 0.82rem; }
+  .emd .lh-key { color: var(--muted); display: flex; align-items: center; gap: 8px; }
+  .emd .lh-key i { width: 10px; height: 10px; border-radius: 3px; display: inline-block; flex: none; }
+  .emd .lh-val { font-weight: 600; color: var(--text); text-align: right; min-width: 56px; }
+  .emd .lh-pct { font-size: 0.74rem; min-width: 46px; text-align: right; }
+  .emd .lh-total { border-top: 1px solid var(--border); padding-top: 9px; }
+  .emd .lh-total .lh-key { color: var(--text); font-weight: 600; }
+
+  /* sources bars */
+  .emd .src { display: flex; flex-direction: column; gap: 11px; }
+  .emd .src__row { display: grid; grid-template-columns: 130px 1fr 50px; align-items: center; gap: 10px; font-size: 0.8rem; }
+  .emd .src__row b { font-weight: 500; color: var(--muted); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .emd .src__bar { height: 9px; border-radius: 6px; background: linear-gradient(90deg, var(--plum), var(--rose300)); min-width: 6px; }
+  .emd .src__n { text-align: right; color: var(--text); font-weight: 600; font-size: 0.78rem; }
+
+  /* filters */
+  .emd-filters { display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 14px; }
+  .emd-select, .emd-input { font: inherit; font-size: 0.82rem; padding: 7px 10px; border: 1px solid var(--border2); border-radius: 8px; background: var(--surface); color: var(--text); max-width: 200px; }
+  .emd-select:focus, .emd-input:focus { outline: none; border-color: var(--plum); box-shadow: 0 0 0 3px rgba(114,94,126,.12); }
+  .emd-apply { font: inherit; font-size: 0.82rem; font-weight: 600; padding: 7px 16px; border: 0; border-radius: 8px; background: var(--plum); color: #fff; cursor: pointer; }
+  .emd-apply:hover { background: var(--rose700); }
+  .emd-apply:focus-visible { outline: none; box-shadow: 0 0 0 3px rgba(114,94,126,.25); }
+
+  /* log */
+  .emd .logwrap { overflow-x: auto; border: 1px solid var(--border); border-radius: 12px; }
+  .emd .log { width: 100%; border-collapse: collapse; font-size: 0.8rem; min-width: 620px; }
+  .emd .log th { text-align: left; font-size: 0.66rem; text-transform: uppercase; letter-spacing: 0.05em; color: var(--faint); font-weight: 600; background: #faf6f3; padding: 9px 12px; white-space: nowrap; }
+  .emd .log th.sortable { cursor: pointer; user-select: none; }
+  .emd .log th.sortable:hover { color: var(--plum); }
+  .emd .log td { padding: 10px 12px; border-top: 1px solid var(--border); white-space: nowrap; }
+  .emd .log .col-subj { max-width: 220px; overflow: hidden; text-overflow: ellipsis; }
+  .emd .log .col-detail { max-width: 180px; overflow: hidden; text-overflow: ellipsis; }
+  .emd .ev { font-size: 0.64rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.03em; padding: 2px 8px; border-radius: 5px; display: inline-block; }
+  .emd .ev.send { background: var(--bluebg); color: var(--blue); } .emd .ev.deliv { background: var(--greenbg); color: var(--green); }
+  .emd .ev.open { background: #f1ebf5; color: #7b50a0; } .emd .ev.click { background: #e3f3ee; color: #1b8a6b; } .emd .ev.bounce { background: var(--redbg); color: var(--red); }
+  .emd .em { color: var(--rose700); font-weight: 600; background: none; border: 0; font: inherit; font-weight: 600; padding: 0; cursor: pointer; text-align: left; }
+  .emd button.em:hover { text-decoration: underline; }
+  .emd button.em:focus-visible { outline: none; box-shadow: 0 0 0 3px rgba(114,94,126,.18); border-radius: 3px; }
+  .emd .muted { color: var(--muted); } .emd .faint { color: var(--faint); }
+  .emd .note { font-size: 0.74rem; color: var(--faint); margin: 10px 0 0; line-height: 1.5; }
+  .emd .legend { display: flex; gap: 14px; flex-wrap: wrap; font-size: 0.72rem; color: var(--muted); margin-top: 10px; }
+  .emd .legend i { display: inline-block; width: 10px; height: 10px; border-radius: 3px; margin-right: 5px; vertical-align: -1px; }
+  .emd .sw-tx { background: #8aa6c6; } .emd .sw-nl { background: var(--plum); }
+  .emd .cell-empty { text-align: center; color: var(--faint); padding: 28px 12px; font-size: 0.84rem; }
+  .emd .cell-empty.down { color: var(--red); }
+
+  /* pager */
+  .emd-pager { display: flex; align-items: center; justify-content: center; gap: 16px; margin-top: 14px; }
+  .emd-page-btn { font: inherit; font-size: 0.8rem; background: none; border: 1px solid var(--border2); color: var(--rose700); padding: 6px 14px; border-radius: 8px; cursor: pointer; }
+  .emd-page-btn:hover:not(:disabled) { border-color: var(--plum); background: rgba(114,94,126,.05); }
+  .emd-page-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+  .emd-page-info { font-size: 0.8rem; color: var(--muted); }
+
+  /* drawer */
+  .emd-drawer { position: fixed; inset: 0; z-index: 300; }
+  .emd-drawer[hidden] { display: none; }
+  .emd-drawer__scrim { position: absolute; inset: 0; background: rgba(44,37,48,.4); }
+  .emd-drawer__panel { position: absolute; top: 0; right: 0; height: 100%; width: min(480px, 94vw); background: var(--surface); box-shadow: -8px 0 34px rgba(44,37,48,.2); display: flex; flex-direction: column; }
+  @media (prefers-reduced-motion: no-preference) { .emd-drawer__panel { animation: emd-slide 0.2s ease-out; } }
+  @keyframes emd-slide { from { transform: translateX(24px); opacity: 0.5; } to { transform: none; opacity: 1; } }
+  .emd-drawer__head { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; padding: 18px 20px; border-bottom: 1px solid var(--border); }
+  .emd-drawer__eyebrow { font-size: 0.66rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.06em; color: var(--faint); margin-bottom: 3px; }
+  .emd-drawer__title { font-family: 'Inter', sans-serif; font-size: 1.05rem; font-weight: 600; margin: 0; color: var(--text); word-break: break-word; line-height: 1.25; }
+  .emd-drawer__close { font-size: 1.5rem; line-height: 1; background: none; border: 0; color: var(--muted); cursor: pointer; padding: 0 4px; }
+  .emd-drawer__close:hover { color: var(--text); }
+  .emd-drawer__close:focus-visible { outline: none; box-shadow: 0 0 0 3px rgba(114,94,126,.2); border-radius: 6px; }
+  .emd-drawer__body { padding: 16px 20px 36px; overflow-y: auto; flex: 1; }
+
+  .emd .dr-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; font-size: 0.86rem; margin-bottom: 14px; flex-wrap: wrap; }
+  .emd .dr-head b { font-size: 1.05rem; }
+  .emd .emd-csv { font: inherit; font-size: 0.74rem; font-weight: 600; padding: 6px 12px; border: 1px solid var(--border2); border-radius: 8px; background: var(--surface); color: var(--rose700); cursor: pointer; }
+  .emd .emd-csv:hover { border-color: var(--plum); background: rgba(114,94,126,.05); }
+  .emd .dr-list { display: flex; flex-direction: column; }
+  .emd .dr-row { padding: 10px 0; border-top: 1px solid var(--border); }
+  .emd .dr-row:first-child { border-top: 0; }
+  .emd .dr-meta { display: flex; gap: 10px; flex-wrap: wrap; font-size: 0.74rem; margin-top: 2px; }
+  .emd .dr-stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-bottom: 12px; }
+  .emd .dr-stat { background: var(--bg); border: 1px solid var(--border); border-radius: 10px; padding: 10px 12px; text-align: center; }
+  .emd .dr-stat__l { display: block; font-size: 0.64rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.04em; color: var(--faint); margin-bottom: 4px; }
+  .emd .dr-stat__v { display: block; font-size: 1.2rem; font-weight: 600; color: var(--text); }
+  .emd .dr-h3 { font-size: 0.78rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; color: var(--faint); margin: 18px 0 10px; }
+  .emd .dr-timeline { display: flex; flex-direction: column; }
+  .emd .dr-tl-row { display: flex; gap: 10px; padding: 11px 0; border-top: 1px solid var(--border); }
+  .emd .dr-tl-row:first-child { border-top: 0; }
+  .emd .dr-tl-main { min-width: 0; flex: 1; }
+  .emd .dr-tl-top { display: flex; gap: 10px; flex-wrap: wrap; font-size: 0.74rem; }
+  .emd .dr-tl-subj { font-size: 0.82rem; font-weight: 500; color: var(--text); margin-top: 2px; word-break: break-word; }
+  .emd .dr-tl-detail { font-size: 0.74rem; margin-top: 2px; word-break: break-word; }
 </style>

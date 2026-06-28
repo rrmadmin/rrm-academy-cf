@@ -7,10 +7,10 @@ function sanitizeHeader(v) {
   return s.slice(0, 998);
 }
 
-async function insertEmailLog(db, { event, email, category, source, subject, detail, send_id }) {
+async function insertEmailLog(db, { event, email, category, source, subject, detail, send_id, ses_message_id }) {
   try {
     await db.prepare(
-      'INSERT INTO email_log (event, email, category, source, subject, detail, send_id) VALUES (?, ?, ?, ?, ?, ?, ?)'
+      'INSERT INTO email_log (event, email, category, source, subject, detail, send_id, ses_message_id) VALUES (?, ?, ?, ?, ?, ?, ?, ?)'
     ).bind(
       event,
       email.toLowerCase(),
@@ -19,6 +19,7 @@ async function insertEmailLog(db, { event, email, category, source, subject, det
       subject || null,
       detail ? String(detail).slice(0, 500) : null,
       send_id || null,
+      ses_message_id || null,
     ).run();
   } catch (err) {
     console.error('insertEmailLog failed:', err.message);
@@ -30,7 +31,7 @@ export async function logEmailFailure(db, { email, category, source, subject, de
   await insertEmailLog(db, { event: 'failed', email, category, source, subject, detail });
 }
 
-export async function sendEmail(env, { from, to, subject, html, text, replyTo, log }) {
+export async function sendEmail(env, { from, to, subject, html, text, replyTo, configurationSet, log }) {
   if (!env.AWS_ACCESS_KEY_ID || !env.AWS_SECRET_ACCESS_KEY) {
     throw new Error('AWS SES credentials not configured');
   }
@@ -56,6 +57,8 @@ export async function sendEmail(env, { from, to, subject, html, text, replyTo, l
   if (html) payload.Content.Simple.Body.Html = { Data: html, Charset: 'UTF-8' };
   if (text) payload.Content.Simple.Body.Text = { Data: text, Charset: 'UTF-8' };
   if (replyTo) payload.ReplyToAddresses = [replyTo];
+  const effectiveConfigSet = configurationSet || env.SES_CONFIGURATION_SET;
+  if (effectiveConfigSet) payload.ConfigurationSetName = effectiveConfigSet;
 
   let res;
   try {
@@ -90,6 +93,7 @@ export async function sendEmail(env, { from, to, subject, html, text, replyTo, l
       subject,
       detail: messageId,
       send_id: messageId,
+      ses_message_id: messageId,
     });
   }
 
@@ -152,8 +156,9 @@ export async function sendRawEmail(env, { from, to, subject, html, text, replyTo
   const payload = {
     Content: { Raw: { Data: rawData } },
   };
-  if (configurationSet) {
-    payload.ConfigurationSetName = configurationSet;
+  const effectiveRawConfigSet = configurationSet || env.SES_CONFIGURATION_SET;
+  if (effectiveRawConfigSet) {
+    payload.ConfigurationSetName = effectiveRawConfigSet;
   }
 
   let res;
@@ -189,6 +194,7 @@ export async function sendRawEmail(env, { from, to, subject, html, text, replyTo
       subject,
       detail: sesMessageId,
       send_id: sesMessageId,
+      ses_message_id: sesMessageId,
     });
   }
 
