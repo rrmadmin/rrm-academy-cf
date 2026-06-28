@@ -70,7 +70,7 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
       </div>
 
       <div class="card">
-        <h2>List health <span class="faint h2sub">newsletter subscribers</span></h2>
+        <h2>List health <span class="faint h2sub">current composition (not period-filtered)</span></h2>
         <div id="list-health">
           <div class="cell-empty">Loading&hellip;</div>
         </div>
@@ -308,7 +308,7 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
       var tracked = !!eng.tracked;
 
       var cards = [
-        { l: 'Active subscribers', v: num(list.active), d: num(list.total) + ' on list', c: 'flat', spark: null, drill: null },
+        { l: 'Active subscribers', v: num(list.active), d: '+' + num(list.new_subscribers) + ' new in ' + state.days + 'd', c: 'flat', spark: null, drill: null },
         { l: 'Unsub rate', v: fmtPct(list.unsub_period_rate), d: num(list.unsub_period) + ' unsubscribed in ' + state.days + 'd', c: 'flat', spark: null, drill: null },
         { l: 'Sends (' + state.days + 'd)', v: num(sends.total), d: num(sends.transactional) + ' txn &middot; ' + num(sends.newsletter) + ' nl', c: 'flat', spark: sendSeries, drill: null },
         { l: 'Delivered', v: hasDeliv ? num(deliv.delivered) : '&mdash;', d: hasDeliv ? ('bounce ' + fmtPct(deliv.bounce_rate)) : 'awaiting SES feed', c: hasDeliv ? 'flat' : 'muteline', spark: hasDeliv ? delivSeries : null, drill: hasDeliv ? 'delivery' : null },
