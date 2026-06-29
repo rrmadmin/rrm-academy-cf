@@ -86,10 +86,10 @@ async function handleSummary(url, db) {
   const toTs = toEndOfDay(to);
   const days = Math.round((new Date(to) - new Date(from)) / 86400000) + 1;
 
-  // All 10 queries run in parallel — no sequential awaits
+  // All 12 queries run in parallel — no sequential awaits
   const [listRow, sendsRow, sendsByDayRows, sendsBySourceRows,
          deliverabilityRow, delivByDayRows, engRow, neRow,
-         unsubPeriodRow, unsubImportedRow, newSubsRow] = await Promise.all([
+         unsubPeriodRow, unsubImportedRow, newSubsRow, subscribersByDayRows] = await Promise.all([
 
     // List health from newsletter_subscriber
     db.prepare(`
@@ -196,6 +196,17 @@ async function handleSummary(url, db) {
         AND subscribed_at >= ?
         AND subscribed_at <= ?
     `).bind(fromTs, toTs).first(),
+
+    // Organic new subscribers per day in the selected period
+    db.prepare(`
+      SELECT substr(subscribed_at, 1, 10) AS day, COUNT(*) AS n
+      FROM newsletter_subscriber
+      WHERE COALESCE(source, '') <> 'import'
+        AND subscribed_at >= ?
+        AND subscribed_at <= ?
+      GROUP BY day
+      ORDER BY day
+    `).bind(fromTs, toTs).all(),
   ]);
 
   const listActive = listRow?.active ?? 0;
@@ -259,6 +270,7 @@ async function handleSummary(url, db) {
         click_rate: safeRate(evClicked, sendTotal),
         tracked,
       },
+      subscribers_by_day: (subscribersByDayRows.results ?? []).map(r => ({ day: r.day, new: r.n })),
     },
   });
 }
