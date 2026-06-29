@@ -1,0 +1,36 @@
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Sid": "SESConfigSetSetup",
+      "Effect": "Allow",
+      "Action": [
+        "ses:CreateConfigurationSet",
+        "ses:DeleteConfigurationSet",
+        "ses:GetConfigurationSet",
+        "ses:ListConfigurationSets",
+        "ses:CreateConfigurationSetEventDestination",
+        "ses:UpdateConfigurationSetEventDestination",
+        "ses:DeleteConfigurationSetEventDestination",
+        "ses:GetConfigurationSetEventDestinations",
+        "ses:PutConfigurationSetTrackingOptions"
+      ],
+      "Resource": "*"
+    },
+    {
+      "Sid": "SNSEventTopicSetup",
+      "Effect": "Allow",
+      "Action": [
+        "sns:CreateTopic",
+        "sns:DeleteTopic",
+        "sns:GetTopicAttributes",
+        "sns:SetTopicAttributes",
+        "sns:ListTopics",
+        "sns:Subscribe",
+        "sns:ListSubscriptionsByTopic",
+        "sns:Unsubscribe"
+      ],
+      "Resource": "*"
+    }
+  ]
+}
