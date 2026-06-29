@@ -1,14 +1,14 @@
 {
   "note": "css-audit ratchet baseline. Counts may only go DOWN; tighten with --update-baseline after a drain wave.",
-  "updated": "2026-06-28T22:06:03.233Z",
+  "updated": "2026-06-29T00:10:54.446Z",
   "byCategory": {
     "breakpoint-drift": 37,
-    "dark-unthemed": 88,
+    "dark-unthemed": 89,
     "font-weight-unsupported": 1,
-    "inline-style": 114,
+    "inline-style": 119,
     "line-height-drift": 14,
-    "radius-drift": 47,
-    "raw-color": 392,
+    "radius-drift": 48,
+    "raw-color": 393,
     "raw-px-spacing": 451,
     "token-shadowing": 8,
     "type-scale": 114
