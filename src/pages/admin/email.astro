@@ -201,6 +201,97 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
       return '<button type="button" class="em emd-recip" data-email="' + esc(email) + '">' + esc(email) + '</button>';
     }
 
+    // ---- house-primitive animation (ported from skills/stats-2) -----------
+    var prefersReduced = window.matchMedia &&
+      window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+    // shimmer skeleton blocks: a single primitive + shape composers.
+    function skel(w, h, r) {
+      return '<span class="emd-skel" style="display:block;width:' + w + ';height:' + (h || '12px') +
+        (r ? ';border-radius:' + r : '') + '"></span>';
+    }
+    function skelKpis(n) {
+      var out = '';
+      for (var i = 0; i < n; i++) {
+        out += '<div class="kpi">' + skel('60%', '9px') +
+          '<div style="margin-top:11px">' + skel('48%', '22px', '6px') + '</div>' +
+          '<div style="margin-top:11px">' + skel('72%', '8px') + '</div></div>';
+      }
+      return out;
+    }
+    function skelTableRows(cols, n) {
+      var out = '';
+      for (var i = 0; i < n; i++) {
+        var cells = '';
+        for (var c = 0; c < cols; c++) { cells += '<td>' + skel(c === 0 ? '80%' : '52%', '11px') + '</td>'; }
+        out += '<tr>' + cells + '</tr>';
+      }
+      return out;
+    }
+    function skelBars(n) {
+      var out = '';
+      for (var i = 0; i < n; i++) {
+        out += '<div class="src__row">' + skel('72%', '10px') +
+          skel(Math.max(22, 92 - i * 12) + '%', '9px', '6px') + skel('60%', '10px') + '</div>';
+      }
+      return out;
+    }
+    function skelListHealth() {
+      var rows = '';
+      for (var i = 0; i < 4; i++) {
+        rows += '<div class="lh-row">' + skel('50%', '10px') + skel('44px', '10px') + skel('30px', '10px') + '</div>';
+      }
+      return '<div style="margin-bottom:16px">' + skel('100%', '14px', '7px') + '</div>' +
+        '<div class="lh-rows">' + rows + '</div>';
+    }
+    function skelVol() {
+      return '<div style="padding:8px 0">' + skel('100%', 'clamp(200px, 22vw, 280px)', '10px') + '</div>';
+    }
+
+    // staggered entrance: add .emd-enter with a capped per-index delay.
+    function staggerIn(nodes, step, cap) {
+      if (prefersReduced || !nodes) return;
+      step = step || 35; cap = (cap == null ? 12 : cap);
+      for (var i = 0; i < nodes.length; i++) {
+        nodes[i].style.animationDelay = (Math.min(i, cap) * step) + 'ms';
+        nodes[i].classList.add('emd-enter');
+      }
+    }
+
+    // count-up on a metric string: parse {prefix, number, suffix, decimals,
+    // grouping}, animate 0 -> target with easeOutCubic. Non-numeric (e.g. the
+    // em-dash "awaiting feed" KPIs) is left untouched. Reduced motion -> land.
+    function parseMetric(text) {
+      var m = String(text).match(/^(\D*)([\d.,]+)(.*)$/);
+      if (!m) return null;
+      var raw = m[2], hadComma = raw.indexOf(',') !== -1, n = parseFloat(raw.replace(/,/g, ''));
+      if (!isFinite(n)) return null;
+      return { prefix: m[1], target: n, suffix: m[3], decimals: (raw.split('.')[1] || '').length, group: hadComma };
+    }
+    function fmtMetric(n, info) {
+      var s = n.toFixed(info.decimals);
+      if (info.group) { var p = s.split('.'); p[0] = p[0].replace(/\B(?=(\d{3})+(?!\d))/g, ','); s = p.join('.'); }
+      return info.prefix + s + info.suffix;
+    }
+    function countUp(el) {
+      var info = parseMetric(el.textContent);
+      if (!info) return;                                   // non-numeric: leave as-is
+      if (prefersReduced) { el.textContent = fmtMetric(info.target, info); return; }
+      var dur = 1000, start = null;
+      function stepFn(ts) {
+        if (start === null) start = ts;
+        var t = Math.min(1, (ts - start) / dur), eased = 1 - Math.pow(1 - t, 3);
+        el.textContent = fmtMetric(info.target * eased, info);
+        if (t < 1) requestAnimationFrame(stepFn);
+        else el.textContent = fmtMetric(info.target, info);   // exact landing
+      }
+      requestAnimationFrame(stepFn);
+    }
+    function countUpKpis() {
+      var vals = $('kpis').querySelectorAll('.kpi__v');
+      for (var i = 0; i < vals.length; i++) countUp(vals[i]);
+    }
+
     // ---- state ------------------------------------------------------------
     var state = {
       days: 30,
@@ -326,6 +417,8 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
           (k.spark ? sparkline(k.spark) : '') +
           '</div>';
       }).join('');
+      staggerIn($('kpis').querySelectorAll('.kpi'), 35, 8);
+      countUpKpis();
     }
 
     function renderVolume(d) {
@@ -401,9 +494,14 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
           '<div class="src__bar" style="width:' + Math.max(6, (n / smax * 100)) + '%"></div>' +
           '<span class="src__n tnum">' + num(n) + '</span></div>';
       }).join('');
+      staggerIn($('src').querySelectorAll('.src__row'), 30, 12);
     }
 
     async function loadSummary() {
+      $('kpis').innerHTML = skelKpis(6);
+      $('vol-wrap').innerHTML = skelVol();
+      $('list-health').innerHTML = skelListHealth();
+      $('src').innerHTML = skelBars(6);
       try {
         var d = await apiCall({ view: 'summary', from: state.from, to: state.to });
         if (!d) return;
@@ -462,9 +560,11 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
           '<td><span class="stpill ' + statusCls + '">' + esc(b.status || '--') + '</span></td>' +
           '</tr>';
       }).join('');
+      staggerIn($('broadcasts-body').querySelectorAll('tr'), 30, 14);
     }
 
     async function loadBroadcasts() {
+      $('broadcasts-body').innerHTML = skelTableRows(9, 4);
       try {
         var d = await apiCall({ view: 'broadcasts' });
         if (!d) return;
@@ -511,6 +611,7 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
             '</tr>';
         }).join('');
       }
+      staggerIn($('log-body').querySelectorAll('tr'), 28, 16);
       state.log.page = d.page || 1;
       state.log.pages = d.pages || 1;
       $('page-info').textContent = 'Page ' + state.log.page + ' of ' + state.log.pages + ' · ' + num(d.total) + ' events';
@@ -522,7 +623,7 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
     }
 
     async function loadLog() {
-      $('log-body').innerHTML = '<tr><td colspan="6" class="cell-empty">Loading&hellip;</td></tr>';
+      $('log-body').innerHTML = skelTableRows(6, 6);
       try {
         var d = await apiCall(logParams());
         if (!d) return;
@@ -712,6 +813,7 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
     (function init() {
       var r = rangeFor(state.days);
       state.from = r.from; state.to = r.to;
+      staggerIn($('emd-root').querySelectorAll('.emd-grid > .card'), 40, 8);
       loadSummary();
       loadBroadcasts();
       loadLog();
@@ -762,6 +864,8 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
     --green: #1f9d57; --greenbg: #e7f5ec; --red: #c0392b; --redbg: #fbeceb;
     --amber: #d98324; --amberbg: #fbf0e2; --blue: #3b6fb0; --bluebg: #eaf1fa;
     --radius: 14px; --shadow: 0 1px 2px rgba(44,37,48,.04), 0 4px 16px rgba(44,37,48,.05);
+    /* house-primitive motion tokens (ported from skills/stats-2) */
+    --emd-anim-ease: cubic-bezier(0.23, 1, 0.32, 1); --emd-anim-dur: 480ms;
     display: block; background: var(--bg); color: var(--text); min-height: 82vh;
     font-family: 'Inter', system-ui, sans-serif; -webkit-font-smoothing: antialiased;
   }
@@ -769,6 +873,44 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
   .emd .tnum { font-variant-numeric: tabular-nums; }
   .emd .nowrap { white-space: nowrap; }
   .emd-wrap { max-width: 1280px; margin: 0 auto; padding: 24px 20px 64px; }
+
+  /* ===== house-primitive animations (ported from skills/stats-2) ===== */
+  /* 1. shimmer skeleton loaders: a transparent->light->transparent sweep   */
+  /*    over the block, via animated background-position (st2-shimmer).     */
+  .emd .emd-skel {
+    position: relative; overflow: hidden; display: block;
+    background: var(--border); border-radius: 6px;
+  }
+  .emd .emd-skel::after {
+    content: ""; position: absolute; inset: 0;
+    background: linear-gradient(90deg, transparent, rgba(255,255,255,.65), transparent);
+    background-size: 200% 100%; background-repeat: no-repeat; background-position: -150% 0;
+  }
+  @media (prefers-reduced-motion: no-preference) {
+    .emd .emd-skel::after { animation: emd-shimmer 1.4s ease-in-out infinite; }
+  }
+  @keyframes emd-shimmer {
+    0%   { background-position: -150% 0; }
+    100% { background-position: 250% 0; }
+  }
+
+  /* 2. staggered entrance: gentle fade + rise, applied per-node with a      */
+  /*    capped per-index delay set inline by staggerIn().                    */
+  @keyframes emd-rise {
+    from { opacity: 0; transform: translateY(8px); }
+    to   { opacity: 1; transform: none; }
+  }
+  @media (prefers-reduced-motion: no-preference) {
+    .emd .emd-enter { animation: emd-rise var(--emd-anim-dur) var(--emd-anim-ease) both; }
+  }
+
+  /* 3. reduced motion: kill ALL of it. Skeletons drop to a static tint      */
+  /*    block (still a legible loading placeholder); entrances are inert     */
+  /*    (gated above), count-up lands on final value immediately (in JS).    */
+  @media (prefers-reduced-motion: reduce) {
+    .emd .emd-skel::after { animation: none; display: none; }
+    .emd .emd-enter { animation: none; opacity: 1; transform: none; }
+  }
 
   /* head */
   .emd .head { display: flex; align-items: flex-end; justify-content: space-between; gap: 16px; flex-wrap: wrap; margin-bottom: 22px; }
