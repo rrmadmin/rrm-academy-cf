@@ -256,6 +256,7 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
     function areaChart(root, opts) {
       if (!root) return null;
       opts = opts || {};
+      var AC_DEFAULTS = ['var(--ac-series-1)', 'var(--ac-series-2)', 'var(--ac-series-3)', 'var(--ac-series-4)', 'var(--ac-series-5)', 'var(--ac-series-6)'];
 
       var REDUCE = global.matchMedia
         ? global.matchMedia('(prefers-reduced-motion: reduce)') : { matches: false };
@@ -266,7 +267,7 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
           return {
             key: s.key,
             label: s.label != null ? s.label : s.key,
-            color: s.color || ('var(--ac-series-' + ((i % 6) + 1) + ')')
+            color: s.color || AC_DEFAULTS[i % 6]
           };
         }),
         stacked: opts.stacked !== false,
@@ -558,7 +559,7 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
         setSeries: function (series) {
           state.series = (series || []).map(function (s, i) {
             return { key: s.key, label: s.label != null ? s.label : s.key,
-              color: s.color || ('var(--ac-series-' + ((i % 6) + 1) + ')') };
+              color: s.color || AC_DEFAULTS[i % 6] };
           });
           renderLegend();
           render();
