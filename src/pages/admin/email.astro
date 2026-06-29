@@ -49,14 +49,15 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
       <!-- Send volume (full width) -->
       <div class="card span-full">
         <h2>Send volume <span class="faint h2sub">by day, transactional vs newsletter</span></h2>
-        <div id="vol-wrap">
-          <svg id="vol" viewBox="0 0 720 240" preserveAspectRatio="none" class="vol-svg"></svg>
-        </div>
-        <div class="legend" id="vol-legend">
-          <span><i class="sw-tx"></i>Transactional</span>
-          <span><i class="sw-nl"></i>Newsletter</span>
-          <span class="faint" id="vol-total">&mdash;</span>
-        </div>
+        <div id="vol-chart" class="emd-chart"></div>
+        <p class="note" id="vol-total">&mdash;</p>
+      </div>
+
+      <!-- New subscribers (full width) -->
+      <div class="card span-full">
+        <h2>New subscribers <span class="faint h2sub">organic signups per day</span></h2>
+        <div id="subs-chart" class="emd-chart"></div>
+        <p class="note" id="subs-total">&mdash;</p>
       </div>
 
       <!-- 3-column row: deliverability | list health | sources -->
@@ -163,6 +164,432 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
   </section>
 
   <script is:inline>
+  /* ====== area-chart house primitive (inlined from skills/area-chart) ======
+     Responsive interactive stacked area chart in pure vanilla SVG: smooth
+     monotone-cubic areas, per-series gradient fills + stroke line, horizontal
+     gridlines, thinned date ticks, hover crosshair + tooltip, legend,
+     ResizeObserver re-render, reduced-motion safe. Defines window.areaChart,
+     used by the dashboard IIFE below. The .ac- prefix is a unique namespace. */
+  (function (global) {
+    'use strict';
+
+    var SVGNS = 'http://www.w3.org/2000/svg';
+    var MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
+                  'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+    var uidCounter = 0;
+
+    // ---- small helpers -----------------------------------------------------
+    function num(v) { var n = +v; return isFinite(n) ? n : 0; }
+    function r2(n) { return Math.round(n * 100) / 100; }
+    function clamp(v, lo, hi) { return v < lo ? lo : v > hi ? hi : v; }
+    function esc(s) {
+      return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+    }
+
+    // Parse an ISO date string without timezone drift (YYYY-MM-DD as a local
+    // calendar date). Falls back to Date for anything non-canonical.
+    function parseISO(iso) {
+      var m = /^(\d{4})-(\d{2})-(\d{2})/.exec(String(iso));
+      if (m) return { y: +m[1], m: +m[2], d: +m[3] };
+      var dt = new Date(iso);
+      return { y: dt.getFullYear(), m: dt.getMonth() + 1, d: dt.getDate() };
+    }
+    function defaultFormatX(iso) { var p = parseISO(iso); return MONTHS[p.m - 1] + ' ' + p.d; }
+    function defaultTooltipX(iso) { var p = parseISO(iso); return MONTHS[p.m - 1] + ' ' + p.d + ', ' + p.y; }
+
+    // "nice" number for axis ticks (round 1/2/5 x 10^k).
+    function niceNum(range, round) {
+      if (range <= 0) return 1;
+      var exp = Math.floor(Math.log10(range));
+      var f = range / Math.pow(10, exp);
+      var nf;
+      if (round) nf = f < 1.5 ? 1 : f < 3 ? 2 : f < 7 ? 5 : 10;
+      else nf = f <= 1 ? 1 : f <= 2 ? 2 : f <= 5 ? 5 : 10;
+      return nf * Math.pow(10, exp);
+    }
+
+    // ---- monotone-cubic smooth path (Fritsch-Carlson) ----------------------
+    function monotoneTangents(pts) {
+      var n = pts.length, m = new Array(n), i;
+      if (n < 2) { for (i = 0; i < n; i++) m[i] = 0; return m; }
+      var d = new Array(n - 1);
+      for (i = 0; i < n - 1; i++) {
+        var dx = pts[i + 1].x - pts[i].x;
+        d[i] = dx === 0 ? 0 : (pts[i + 1].y - pts[i].y) / dx;
+      }
+      m[0] = d[0];
+      for (i = 1; i < n - 1; i++) m[i] = (d[i - 1] * d[i] <= 0) ? 0 : (d[i - 1] + d[i]) / 2;
+      m[n - 1] = d[n - 2];
+      for (i = 0; i < n - 1; i++) {
+        if (d[i] === 0) { m[i] = 0; m[i + 1] = 0; continue; }
+        var a = m[i] / d[i], b = m[i + 1] / d[i], s = a * a + b * b;
+        if (s > 9) { var t = 3 / Math.sqrt(s); m[i] = t * a * d[i]; m[i + 1] = t * b * d[i]; }
+      }
+      return m;
+    }
+    function curveBody(pts, m) {
+      var d = '', i;
+      for (i = 0; i < pts.length - 1; i++) {
+        var dx = pts[i + 1].x - pts[i].x;
+        var c1x = pts[i].x + dx / 3, c1y = pts[i].y + m[i] * dx / 3;
+        var c2x = pts[i + 1].x - dx / 3, c2y = pts[i + 1].y - m[i + 1] * dx / 3;
+        d += 'C' + r2(c1x) + ' ' + r2(c1y) + ' ' + r2(c2x) + ' ' + r2(c2y) +
+             ' ' + r2(pts[i + 1].x) + ' ' + r2(pts[i + 1].y);
+      }
+      return d;
+    }
+    function linePathD(pts) {
+      if (pts.length < 2) return '';
+      return 'M' + r2(pts[0].x) + ' ' + r2(pts[0].y) + curveBody(pts, monotoneTangents(pts));
+    }
+    function areaPathD(top, bottom) {
+      if (top.length < 2) return '';
+      var rb = bottom.slice().reverse();
+      return 'M' + r2(top[0].x) + ' ' + r2(top[0].y) +
+        curveBody(top, monotoneTangents(top)) +
+        'L' + r2(rb[0].x) + ' ' + r2(rb[0].y) +
+        curveBody(rb, monotoneTangents(rb)) + 'Z';
+    }
+
+    // ---- the primitive -----------------------------------------------------
+    function areaChart(root, opts) {
+      if (!root) return null;
+      opts = opts || {};
+
+      var REDUCE = global.matchMedia
+        ? global.matchMedia('(prefers-reduced-motion: reduce)') : { matches: false };
+
+      var state = {
+        data: (opts.data || []).slice(),
+        series: (opts.series || []).map(function (s, i) {
+          return {
+            key: s.key,
+            label: s.label != null ? s.label : s.key,
+            color: s.color || ('var(--ac-series-' + ((i % 6) + 1) + ')')
+          };
+        }),
+        stacked: opts.stacked !== false,
+        xKey: opts.xKey || 'x',
+        height: +opts.height || 250,
+        formatX: typeof opts.formatX === 'function' ? opts.formatX : defaultFormatX,
+        formatY: typeof opts.formatY === 'function' ? opts.formatY : function (n) { return String(n); },
+        formatTooltipX: typeof opts.formatTooltipX === 'function' ? opts.formatTooltipX : defaultTooltipX
+      };
+
+      var uid = 'ac' + (++uidCounter);
+      root.classList.add('ac');
+
+      root.innerHTML =
+        '<div class="ac-plot"><div class="ac-svgwrap"></div>' +
+        '<div class="ac-tooltip" hidden role="status" aria-live="polite"></div></div>' +
+        '<div class="ac-legend"></div>';
+      var plot = root.querySelector('.ac-plot');
+      var svgWrap = root.querySelector('.ac-svgwrap');
+      var tooltip = root.querySelector('.ac-tooltip');
+      var legend = root.querySelector('.ac-legend');
+
+      var geom = null;
+      var firstMount = true;
+
+      function fillOpacities() {
+        var cs = global.getComputedStyle(root);
+        var top = parseFloat(cs.getPropertyValue('--ac-fill-top-opacity'));
+        var bot = parseFloat(cs.getPropertyValue('--ac-fill-bottom-opacity'));
+        return {
+          top: isFinite(top) ? top : 0.8,
+          bot: isFinite(bot) ? bot : 0.1
+        };
+      }
+
+      function renderLegend() {
+        var html = '';
+        for (var i = 0; i < state.series.length; i++) {
+          var s = state.series[i];
+          html += '<span class="ac-legend-item">' +
+            '<span class="ac-legend-swatch" style="background:' + s.color + '"></span>' +
+            '<span class="ac-legend-label">' + esc(s.label) + '</span></span>';
+        }
+        legend.innerHTML = html;
+      }
+
+      function render() {
+        var data = state.data, series = state.series;
+        var N = data.length;
+        var W = Math.max(120, Math.round(root.clientWidth || root.getBoundingClientRect().width || 600));
+        var H = state.height;
+
+        var yMaxRaw = 0, i, si;
+        if (state.stacked) {
+          for (i = 0; i < N; i++) {
+            var sum = 0;
+            for (si = 0; si < series.length; si++) sum += num(data[i][series[si].key]);
+            if (sum > yMaxRaw) yMaxRaw = sum;
+          }
+        } else {
+          for (i = 0; i < N; i++)
+            for (si = 0; si < series.length; si++) {
+              var v = num(data[i][series[si].key]);
+              if (v > yMaxRaw) yMaxRaw = v;
+            }
+        }
+        if (yMaxRaw <= 0) yMaxRaw = 1;
+        var tickCount = 4;
+        var step = niceNum(yMaxRaw / tickCount, true);
+        var niceMax = Math.ceil(yMaxRaw / step) * step;
+        var yticks = [];
+        for (var yv = 0; yv <= niceMax + 1e-9; yv += step) yticks.push(r2(yv));
+
+        var maxYLabelLen = 1;
+        for (i = 0; i < yticks.length; i++)
+          maxYLabelLen = Math.max(maxYLabelLen, state.formatY(yticks[i]).length);
+        var padL = clamp(maxYLabelLen * 7 + 14, 34, 72);
+        var padR = 12, padT = 12, padB = 28;
+        var plotW = Math.max(10, W - padL - padR);
+        var plotH = Math.max(10, H - padT - padB);
+
+        var spacing = N > 1 ? plotW / (N - 1) : 0;
+        function xAt(idx) { return padL + (N > 1 ? idx * spacing : plotW / 2); }
+        function yAt(val) { return padT + plotH - (val / niceMax) * plotH; }
+        var yBase = yAt(0);
+
+        var xs = [];
+        for (i = 0; i < N; i++) xs.push(xAt(i));
+
+        var ops = fillOpacities();
+        var defs = '', areas = '', lines = '';
+        var lineTops = [];
+        var values = [];
+        var lower = [];
+        for (i = 0; i < N; i++) lower.push(0);
+
+        for (si = 0; si < series.length; si++) {
+          var s = series[si];
+          var vals = [];
+          for (i = 0; i < N; i++) vals.push(num(data[i][s.key]));
+          values.push(vals);
+
+          var topVals;
+          if (state.stacked) { topVals = lower.map(function (lv, k) { return lv + vals[k]; }); }
+          else { topVals = vals.slice(); }
+
+          var topPts = xs.map(function (x, k) { return { x: x, y: yAt(topVals[k]) }; });
+          var botPts = state.stacked
+            ? xs.map(function (x, k) { return { x: x, y: yAt(lower[k]) }; })
+            : xs.map(function (x) { return { x: x, y: yBase }; });
+          lineTops.push(topPts);
+
+          var gid = uid + '-grad-' + si;
+          defs += '<linearGradient id="' + gid + '" x1="0" y1="0" x2="0" y2="1">' +
+            '<stop offset="0%" style="stop-color:' + s.color + ';stop-opacity:' + ops.top + '"/>' +
+            '<stop offset="100%" style="stop-color:' + s.color + ';stop-opacity:' + ops.bot + '"/>' +
+            '</linearGradient>';
+
+          var ad = areaPathD(topPts, botPts);
+          if (ad) areas += '<path class="ac-area" d="' + ad + '" fill="url(#' + gid + ')"></path>';
+          var ld = linePathD(topPts);
+          if (ld) lines += '<path class="ac-line" data-si="' + si + '" d="' + ld +
+            '" style="stroke:' + s.color + '" pathLength="1"></path>';
+
+          if (state.stacked) lower = topVals;
+        }
+
+        var grid = '', ylabels = '';
+        for (i = 0; i < yticks.length; i++) {
+          var gy = r2(yAt(yticks[i]));
+          grid += '<line class="ac-gridline" x1="' + padL + '" y1="' + gy +
+            '" x2="' + (W - padR) + '" y2="' + gy + '"></line>';
+          ylabels += '<text class="ac-axis-label" x="' + (padL - 8) + '" y="' + gy +
+            '" text-anchor="end" dominant-baseline="middle">' + esc(state.formatY(yticks[i])) + '</text>';
+        }
+
+        var minGap = 56;
+        var labelStep = Math.max(1, Math.ceil(minGap / (spacing || minGap)));
+        var xlabels = '';
+        for (i = 0; i < N; i += labelStep) {
+          var lx = xAt(i), anchor = 'middle';
+          if (lx < padL + 10) anchor = 'start';
+          else if (lx > W - padR - 10) anchor = 'end';
+          xlabels += '<text class="ac-axis-label" x="' + r2(lx) + '" y="' + (H - 10) +
+            '" text-anchor="' + anchor + '">' + esc(state.formatX(data[i][state.xKey])) + '</text>';
+        }
+
+        var dots = '';
+        for (si = 0; si < series.length; si++)
+          dots += '<circle class="ac-cursor-dot" data-si="' + si + '" cx="0" cy="0" style="fill:' +
+            series[si].color + '"></circle>';
+        var cursor = '<g class="ac-cursor" aria-hidden="true">' +
+          '<line class="ac-cursor-line" x1="0" y1="' + padT + '" x2="0" y2="' + (padT + plotH) + '"></line>' +
+          dots + '</g>';
+
+        var svg =
+          '<svg class="ac-svg" width="' + W + '" height="' + H + '" viewBox="0 0 ' + W + ' ' + H +
+          '" role="img" aria-label="Area chart">' +
+          '<defs>' + defs + '</defs>' +
+          '<g class="ac-grid">' + grid + '</g>' +
+          '<g class="ac-areas">' + areas + '</g>' +
+          '<g class="ac-lines">' + lines + '</g>' +
+          '<g class="ac-yaxis">' + ylabels + '</g>' +
+          '<g class="ac-xaxis">' + xlabels + '</g>' +
+          cursor +
+          '<rect class="ac-overlay" x="' + padL + '" y="' + padT + '" width="' + plotW +
+          '" height="' + plotH + '" fill="transparent" pointer-events="all"></rect>' +
+          '</svg>';
+
+        svgWrap.innerHTML = svg;
+
+        geom = {
+          N: N, W: W, H: H, padL: padL, padT: padT, plotW: plotW, plotH: plotH,
+          spacing: spacing, xs: xs, lineTops: lineTops, values: values, niceMax: niceMax
+        };
+
+        geom.svg = svgWrap.querySelector('.ac-svg');
+        geom.cursor = svgWrap.querySelector('.ac-cursor');
+        geom.cursorLine = svgWrap.querySelector('.ac-cursor-line');
+        geom.dotEls = svgWrap.querySelectorAll('.ac-cursor-dot');
+
+        if (firstMount && !REDUCE.matches && N >= 2) drawIn();
+        firstMount = false;
+      }
+
+      function drawIn() {
+        var dur = parseFloat(global.getComputedStyle(root).getPropertyValue('--ac-dur')) || 620;
+        var ease = (global.getComputedStyle(root).getPropertyValue('--ac-ease') || '').trim() ||
+          'cubic-bezier(0.23,1,0.32,1)';
+        var lineEls = svgWrap.querySelectorAll('.ac-line');
+        var areaEls = svgWrap.querySelectorAll('.ac-area');
+        var k;
+        for (k = 0; k < lineEls.length; k++) {
+          if (typeof lineEls[k].animate !== 'function') break;
+          lineEls[k].style.strokeDasharray = '1';
+          lineEls[k].animate(
+            [{ strokeDashoffset: 1 }, { strokeDashoffset: 0 }],
+            { duration: dur, easing: ease, fill: 'backwards' }
+          ).onfinish = (function (el) { return function () { el.style.strokeDasharray = ''; }; })(lineEls[k]);
+        }
+        for (k = 0; k < areaEls.length; k++) {
+          if (typeof areaEls[k].animate !== 'function') break;
+          areaEls[k].animate(
+            [{ opacity: 0 }, { opacity: 1 }],
+            { duration: dur, easing: ease, fill: 'backwards' }
+          );
+        }
+      }
+
+      function indexFromEvent(ev) {
+        if (!geom) return -1;
+        var rect = geom.svg.getBoundingClientRect();
+        var scale = rect.width ? geom.W / rect.width : 1;
+        var localX = (ev.clientX - rect.left) * scale;
+        if (geom.N <= 1) return geom.N - 1;
+        var idx = Math.round((localX - geom.padL) / geom.spacing);
+        return clamp(idx, 0, geom.N - 1);
+      }
+
+      function showAt(idx) {
+        if (!geom || idx < 0 || geom.N === 0) return;
+        var cx = geom.xs[idx];
+        geom.cursorLine.setAttribute('x1', r2(cx));
+        geom.cursorLine.setAttribute('x2', r2(cx));
+        var si;
+        for (si = 0; si < geom.dotEls.length; si++) {
+          var pt = geom.lineTops[si][idx];
+          geom.dotEls[si].setAttribute('cx', r2(pt.x));
+          geom.dotEls[si].setAttribute('cy', r2(pt.y));
+        }
+        geom.cursor.classList.add('ac-cursor--on');
+
+        var iso = state.data[idx][state.xKey];
+        var html = '<div class="ac-tip-title">' + esc(state.formatTooltipX(iso)) + '</div>';
+        for (si = 0; si < state.series.length; si++) {
+          var s = state.series[si];
+          html += '<div class="ac-tip-row">' +
+            '<span class="ac-tip-swatch" style="background:' + s.color + '"></span>' +
+            '<span class="ac-tip-name">' + esc(s.label) + '</span>' +
+            '<span class="ac-tip-val">' + esc(state.formatY(geom.values[si][idx])) + '</span></div>';
+        }
+        tooltip.innerHTML = html;
+        tooltip.hidden = false;
+
+        var ttW = tooltip.offsetWidth || 140;
+        var scaleCss = geom.W ? (geom.svg.getBoundingClientRect().width / geom.W) : 1;
+        var cssX = cx * scaleCss;
+        var left = clamp(cssX - ttW / 2, 4, Math.max(4, geom.svg.getBoundingClientRect().width - ttW - 4));
+        tooltip.style.left = left + 'px';
+        tooltip.style.top = '6px';
+      }
+
+      function hide() {
+        if (geom) geom.cursor.classList.remove('ac-cursor--on');
+        tooltip.hidden = true;
+      }
+
+      function onMove(ev) { var idx = indexFromEvent(ev); if (idx >= 0) showAt(idx); }
+
+      plot.addEventListener('pointermove', onMove);
+      plot.addEventListener('pointerleave', hide);
+      plot.addEventListener('pointercancel', hide);
+
+      var rafPending = false, lastW = 0;
+      var ro = null;
+      function onResize() {
+        var w = Math.round(root.clientWidth || 0);
+        if (w === lastW) return;
+        lastW = w;
+        if (rafPending) return;
+        rafPending = true;
+        global.requestAnimationFrame(function () { rafPending = false; hide(); render(); });
+      }
+      if (global.ResizeObserver) { ro = new ResizeObserver(onResize); ro.observe(root); }
+      else { global.addEventListener('resize', onResize); }
+
+      renderLegend();
+      lastW = Math.round(root.clientWidth || 0);
+      render();
+
+      return {
+        el: root,
+        update: function (data) {
+          state.data = (data || []).slice();
+          firstMount = false;
+          hide();
+          render();
+        },
+        setSeries: function (series) {
+          state.series = (series || []).map(function (s, i) {
+            return { key: s.key, label: s.label != null ? s.label : s.key,
+              color: s.color || ('var(--ac-series-' + ((i % 6) + 1) + ')') };
+          });
+          renderLegend();
+          render();
+        },
+        destroy: function () {
+          plot.removeEventListener('pointermove', onMove);
+          plot.removeEventListener('pointerleave', hide);
+          plot.removeEventListener('pointercancel', hide);
+          if (ro) ro.disconnect(); else global.removeEventListener('resize', onResize);
+          root.innerHTML = '';
+          root.classList.remove('ac');
+        }
+      };
+    }
+
+    function boot() {
+      var nodes = document.querySelectorAll('[data-area-chart]');
+      for (var i = 0; i < nodes.length; i++) {
+        if (nodes[i].__areaChart) continue;
+        var cfg;
+        try { cfg = JSON.parse(nodes[i].getAttribute('data-area-chart')); }
+        catch (e) { cfg = null; }
+        if (cfg) nodes[i].__areaChart = areaChart(nodes[i], cfg);
+      }
+    }
+    if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', boot);
+    else boot();
+
+    global.areaChart = areaChart;
+  })(typeof window !== 'undefined' ? window : this);
+
   (function () {
     var $ = function (id) { return document.getElementById(id); };
 
@@ -244,8 +671,8 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
       return '<div style="margin-bottom:16px">' + skel('100%', '14px', '7px') + '</div>' +
         '<div class="lh-rows">' + rows + '</div>';
     }
-    function skelVol() {
-      return '<div style="padding:8px 0">' + skel('100%', 'clamp(200px, 22vw, 280px)', '10px') + '</div>';
+    function skelVol(h) {
+      return '<div style="padding:8px 0">' + skel('100%', h || 'clamp(200px, 22vw, 280px)', '10px') + '</div>';
     }
 
     // staggered entrance: add .emd-enter with a capped per-index delay.
@@ -300,6 +727,8 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
       cohortRows: [],
       cohortMeta: null
     };
+    // live area-chart primitive instances (destroyed + recreated per load)
+    var volChart = null, subsChart = null;
 
     // ---- API --------------------------------------------------------------
     async function apiCall(params) {
@@ -328,36 +757,33 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
         '<path d="' + path + '" fill="none" stroke="#725E7E" stroke-width="1.6"/></svg>';
     }
 
-    function volumeSvg(byDay) {
-      if (!byDay || !byDay.length) return null;
-      var days = byDay.length;
-      var tx = byDay.map(function (d) { return Number(d.transactional) || 0; });
-      var nl = byDay.map(function (d) { return Number(d.newsletter) || 0; });
-      var W = 720, H = 240, pad = 24, max = 0;
-      for (var j = 0; j < days; j++) { max = Math.max(max, tx[j] + nl[j]); }
-      max = Math.max(10, Math.ceil(max / 10) * 10);
-      var xw = days > 1 ? (W - pad * 2) / (days - 1) : 0;
-      function X(i) { return days > 1 ? pad + i * xw : W / 2; }
-      function Y(v) { return H - pad - (v / max) * (H - pad * 2); }
-      function areaPath(top, bot) {
-        var up = top.map(function (v, i) { return (i ? 'L' : 'M') + X(i).toFixed(1) + ' ' + Y(v).toFixed(1); }).join(' ');
-        var dn = [];
-        for (var i = bot.length - 1; i >= 0; i--) { dn.push('L' + X(i).toFixed(1) + ' ' + Y(bot[i]).toFixed(1)); }
-        return up + ' ' + dn.join(' ') + ' Z';
+    // Parse 'YYYY-MM-DD' into a LOCAL midnight Date (matches ymd(), no TZ drift).
+    function parseYmd(s) {
+      var m = /^(\d{4})-(\d{2})-(\d{2})/.exec(String(s || ''));
+      if (!m) return null;
+      return new Date(+m[1], +m[2] - 1, +m[3]);
+    }
+    // Build a CONTINUOUS daily series from a SPARSE [{day, <key>:n}] source,
+    // filling every day from `from` to `to` (inclusive) and defaulting missing
+    // days to 0. Returns [{ x:'YYYY-MM-DD', subs:n }] for the area-chart.
+    function buildDailySeries(sparse, from, to, key, outKey) {
+      var map = {};
+      (sparse || []).forEach(function (r) {
+        if (r && r.day != null) map[r.day] = (Number(r[key]) || 0);
+      });
+      var start = parseYmd(from), end = parseYmd(to);
+      var out = [];
+      if (!start || !end || start.getTime() > end.getTime()) return out;
+      var d = new Date(start.getTime()), guard = 0, row;
+      while (d.getTime() <= end.getTime() && guard < 1000) {
+        var iso = ymd(d);
+        row = { x: iso };
+        row[outKey] = map[iso] || 0;
+        out.push(row);
+        d.setDate(d.getDate() + 1);
+        guard++;
       }
-      var base = tx.map(function () { return 0; });
-      var txTop = tx.slice();
-      var nlTop = tx.map(function (v, i) { return v + nl[i]; });
-      var grid = '';
-      for (var g = 0; g <= 4; g++) {
-        var gy = pad + (g / 4) * (H - pad * 2);
-        grid += '<line x1="' + pad + '" y1="' + gy + '" x2="' + (W - pad) + '" y2="' + gy + '" stroke="#eee" stroke-width="1"/>' +
-          '<text x="4" y="' + (gy + 4) + '" font-size="10" fill="#bbb">' + Math.round(max - (g / 4) * max) + '</text>';
-      }
-      return grid +
-        '<path d="' + areaPath(nlTop, base) + '" fill="rgba(114,94,126,.55)"/>' +
-        '<path d="' + areaPath(txTop, base) + '" fill="rgba(138,166,198,.65)"/>' +
-        '<path d="' + txTop.map(function (v, i) { return (i ? 'L' : 'M') + X(i).toFixed(1) + ' ' + Y(v).toFixed(1); }).join(' ') + '" fill="none" stroke="#5f7da9" stroke-width="1.4"/>';
+      return out;
     }
 
     function gaugeMarkup(label, val, unit, warn, bad, type, empty) {
@@ -424,14 +850,49 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
     function renderVolume(d) {
       var sends = d.sends || {};
       var byDay = sends.by_day || [];
-      var svg = volumeSvg(byDay);
-      if (svg === null) {
-        $('vol-wrap').innerHTML = '<div class="cell-empty">No sends recorded in this period.</div>';
+      var data = byDay.map(function (x) {
+        return { x: x.day, txn: Number(x.transactional) || 0, nl: Number(x.newsletter) || 0 };
+      });
+      var el = $('vol-chart');
+      if (volChart) { volChart.destroy(); volChart = null; }
+      if (!data.length) {
+        el.innerHTML = '<div class="cell-empty">No sends recorded in this period.</div>';
       } else {
-        $('vol-wrap').innerHTML = '<svg id="vol" viewBox="0 0 720 240" preserveAspectRatio="none" class="vol-svg">' + svg + '</svg>';
+        el.innerHTML = '';
+        volChart = areaChart(el, {
+          data: data,
+          series: [
+            { key: 'txn', label: 'Transactional', color: 'var(--ac-series-1)' },
+            { key: 'nl', label: 'Newsletter', color: 'var(--ac-series-2)' }
+          ],
+          stacked: true,
+          formatY: function (n) { return num(n); }
+        });
       }
       $('vol-total').innerHTML = num(sends.total) + ' sends in period &middot; ' +
         num(sends.transactional) + ' transactional, ' + num(sends.newsletter) + ' newsletter';
+    }
+
+    function renderSubscribers(d) {
+      var sparse = d.subscribers_by_day || [];
+      var data = buildDailySeries(sparse, state.from, state.to, 'new', 'subs');
+      var totalNew = data.reduce(function (a, r) { return a + (r.subs || 0); }, 0);
+      var el = $('subs-chart');
+      if (subsChart) { subsChart.destroy(); subsChart = null; }
+      if (!data.length) {
+        el.innerHTML = '<div class="cell-empty">No data for this period.</div>';
+      } else {
+        el.innerHTML = '';
+        subsChart = areaChart(el, {
+          data: data,
+          series: [{ key: 'subs', label: 'New subscribers', color: 'var(--ac-series-1)' }],
+          stacked: false,
+          height: 220,
+          formatY: function (n) { return num(n); }
+        });
+      }
+      $('subs-total').innerHTML = num(totalNew) + ' new subscriber' + (totalNew === 1 ? '' : 's') +
+        ' in the last ' + state.days + ' days &middot; organic signups only';
     }
 
     function renderGauges(d) {
@@ -498,8 +959,13 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
     }
 
     async function loadSummary() {
+      // tear down live charts before clobbering their containers with skeletons,
+      // so a stray ResizeObserver tick can't fire against a detached SVG.
+      if (volChart) { volChart.destroy(); volChart = null; }
+      if (subsChart) { subsChart.destroy(); subsChart = null; }
       $('kpis').innerHTML = skelKpis(6);
-      $('vol-wrap').innerHTML = skelVol();
+      $('vol-chart').innerHTML = skelVol();
+      $('subs-chart').innerHTML = skelVol('220px');
       $('list-health').innerHTML = skelListHealth();
       $('src').innerHTML = skelBars(6);
       try {
@@ -507,6 +973,7 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
         if (!d) return;
         renderKpis(d);
         renderVolume(d);
+        renderSubscribers(d);
         renderGauges(d);
         renderListHealth(d);
         renderSources(d);
@@ -945,7 +1412,7 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
   .emd .kpi__d { margin-top: 8px; font-size: 0.72rem; font-weight: 600; display: flex; align-items: center; gap: 5px; }
   .emd .up { color: var(--green); } .emd .down { color: var(--red); } .emd .flat { color: var(--muted); } .emd .muteline { color: var(--faint); }
   .emd .spark { margin-top: 8px; height: 30px; width: 100%; display: block; }
-  .emd .vol-svg { width: 100%; height: clamp(200px, 22vw, 280px); display: block; }
+  .emd .emd-chart { width: 100%; min-width: 0; }
 
   /* gauges */
   .emd .gauges { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
@@ -1022,9 +1489,6 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
   .emd button.em:focus-visible { outline: none; box-shadow: 0 0 0 3px rgba(114,94,126,.18); border-radius: 3px; }
   .emd .muted { color: var(--muted); } .emd .faint { color: var(--faint); }
   .emd .note { font-size: 0.74rem; color: var(--faint); margin: 10px 0 0; line-height: 1.5; }
-  .emd .legend { display: flex; gap: 14px; flex-wrap: wrap; font-size: 0.72rem; color: var(--muted); margin-top: 10px; }
-  .emd .legend i { display: inline-block; width: 10px; height: 10px; border-radius: 3px; margin-right: 5px; vertical-align: -1px; }
-  .emd .sw-tx { background: #8aa6c6; } .emd .sw-nl { background: var(--plum); }
   .emd .cell-empty { text-align: center; color: var(--faint); padding: 28px 12px; font-size: 0.84rem; }
   .emd .cell-empty.down { color: var(--red); }
 
@@ -1070,4 +1534,159 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
   .emd .dr-tl-top { display: flex; gap: 10px; flex-wrap: wrap; font-size: 0.74rem; }
   .emd .dr-tl-subj { font-size: 0.82rem; font-weight: 500; color: var(--text); margin-top: 2px; word-break: break-word; }
   .emd .dr-tl-detail { font-size: 0.74rem; margin-top: 2px; word-break: break-word; }
+
+  /* ====== area-chart house primitive (inlined from skills/area-chart) ======
+     Pure CSS + vanilla SVG/JS. Tokens live on :root; the .ac- prefix is a
+     unique namespace. Each chart container overrides --ac-series-N to rebrand
+     fills/lines/dots/legend (see the #vol-chart / #subs-chart blocks below). */
+  :root {
+    --ac-series-1: #5b6470;
+    --ac-series-2: #8a93a3;
+    --ac-series-3: #b3b9c4;
+    --ac-series-4: #3f4651;
+    --ac-series-5: #6f7a88;
+    --ac-series-6: #a0a8b4;
+    --ac-fill-top-opacity: 0.80;
+    --ac-fill-bottom-opacity: 0.10;
+    --ac-line-width: 2px;
+    --ac-dot-r: 4px;
+    --ac-dot-stroke: #ffffff;
+    --ac-dot-stroke-w: 2px;
+    --ac-grid: rgba(20, 16, 40, 0.08);
+    --ac-axis-text: #6b6877;
+    --ac-axis-size: 12px;
+    --ac-crosshair: rgba(20, 16, 40, 0.22);
+    --ac-tip-bg: #ffffff;
+    --ac-tip-border: rgba(20, 16, 40, 0.10);
+    --ac-tip-shadow: 0 8px 24px -8px rgba(20, 16, 40, 0.28), 0 0 0 1px rgba(20, 16, 40, 0.04);
+    --ac-tip-radius: 10px;
+    --ac-tip-title: #16141c;
+    --ac-tip-label: #6b6877;
+    --ac-tip-value: #16141c;
+    --ac-tip-size: 12px;
+    --ac-legend-text: #4b4856;
+    --ac-legend-size: 13px;
+    --ac-dur: 620ms;
+    --ac-ease: cubic-bezier(0.23, 1, 0.32, 1);
+  }
+  .ac {
+    display: block;
+    width: 100%;
+    font-family: inherit;
+    color: var(--ac-axis-text);
+    -webkit-tap-highlight-color: transparent;
+  }
+  .ac-plot { position: relative; width: 100%; }
+  .ac-svg {
+    display: block;
+    width: 100%;
+    max-width: 100%;
+    height: auto;
+    touch-action: pan-y;
+  }
+  .ac-gridline { stroke: var(--ac-grid); stroke-width: 1; shape-rendering: crispEdges; }
+  .ac-axis-label {
+    fill: var(--ac-axis-text);
+    font-size: var(--ac-axis-size);
+    font-family: inherit;
+  }
+  .ac-line {
+    fill: none;
+    stroke-width: var(--ac-line-width);
+    stroke-linecap: round;
+    stroke-linejoin: round;
+  }
+  .ac-cursor { visibility: hidden; }
+  .ac-cursor--on { visibility: visible; }
+  .ac-cursor-line {
+    stroke: var(--ac-crosshair);
+    stroke-width: 1;
+    stroke-dasharray: 4 4;
+    shape-rendering: crispEdges;
+  }
+  .ac-cursor-dot {
+    r: var(--ac-dot-r);
+    stroke: var(--ac-dot-stroke);
+    stroke-width: var(--ac-dot-stroke-w);
+  }
+  .ac-tooltip {
+    position: absolute;
+    top: 0;
+    left: 0;
+    z-index: 5;
+    pointer-events: none;
+    min-width: 0;
+    padding: 8px 10px;
+    background: var(--ac-tip-bg);
+    border-radius: var(--ac-tip-radius);
+    box-shadow: var(--ac-tip-shadow);
+    font-size: var(--ac-tip-size);
+    line-height: 1.3;
+    white-space: nowrap;
+  }
+  .ac-tooltip[hidden] { display: none; }
+  .ac-tip-title {
+    margin-bottom: 6px;
+    font-weight: 600;
+    color: var(--ac-tip-title);
+    font-variant-numeric: tabular-nums;
+  }
+  .ac-tip-row { display: flex; align-items: center; gap: 8px; }
+  .ac-tip-row + .ac-tip-row { margin-top: 3px; }
+  .ac-tip-swatch {
+    flex: none;
+    width: 10px;
+    height: 10px;
+    border-radius: 3px;
+  }
+  .ac-tip-name { color: var(--ac-tip-label); }
+  .ac-tip-val {
+    margin-left: auto;
+    padding-left: 14px;
+    font-weight: 600;
+    color: var(--ac-tip-value);
+    font-variant-numeric: tabular-nums;
+  }
+  .ac-legend {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px 18px;
+    margin-top: 14px;
+    padding: 0 4px;
+  }
+  .ac-legend-item {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    font-size: var(--ac-legend-size);
+    color: var(--ac-legend-text);
+    min-width: 0;
+  }
+  .ac-legend-swatch {
+    flex: none;
+    width: 11px;
+    height: 11px;
+    border-radius: 3px;
+  }
+  .ac-legend-label {
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .ac-line,
+    .ac-area,
+    .ac-cursor,
+    .ac-cursor-dot,
+    .ac-tooltip {
+      transition: none !important;
+      animation: none !important;
+    }
+  }
+
+  /* rebrand each chart to the dashboard palette via the series tokens:
+     send volume = plum (txn) + blue (nl); subscribers = plum. */
+  .emd #vol-chart { --ac-series-1: var(--plum); --ac-series-2: var(--blue); }
+  .emd #subs-chart { --ac-series-1: var(--plum); }
 </style>
