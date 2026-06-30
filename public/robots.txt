@@ -38,6 +38,11 @@ Disallow: /library/saved
 Disallow: /endo-survey/take
 Disallow: /donate/thank-you
 Disallow: /save-the-uterus-club/thank-you
+# Public R2-served images (commentary covers) are served under /api/assets/.
+# Allow crawling them so Google can index covers + use them as result
+# thumbnails. Longest-match precedence keeps the rest of /api/ blocked.
+# Without this, Google cannot fetch any cover and falls back to the footer seal.
+Allow: /api/assets/commentary/
 Disallow: /api/
 Disallow: /data/
 Disallow: /ivf-success-calculator
@@ -64,6 +69,7 @@ User-agent: Claude-Web
 User-agent: Perplexity-User
 User-agent: Applebot-Extended
 Allow: /
+Allow: /api/assets/commentary/
 Disallow: /api/
 Disallow: /account
 Disallow: /ask
@@ -86,6 +92,7 @@ User-agent: Amazonbot
 User-agent: cohere-ai
 User-agent: CCBot
 Allow: /
+Allow: /api/assets/commentary/
 Disallow: /api/
 Disallow: /account
 Disallow: /ask
