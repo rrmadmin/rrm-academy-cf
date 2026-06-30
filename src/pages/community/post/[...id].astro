@@ -84,6 +84,11 @@ const SHELL_ENABLED = isShellEnabled('community');
             <span id="post-event-date" class="event-info-value"></span>
           </div>
           <a id="post-event-link" class="btn btn--primary btn--sm event-join-btn" href="#" target="_blank" rel="noopener noreferrer">Join Call</a>
+          <div id="post-event-cal" class="event-cal" hidden>
+            <span class="event-cal-label">Add to calendar</span>
+            <a id="post-event-cal-google" class="event-cal-link" href="#" target="_blank" rel="noopener noreferrer">Google</a>
+            <a id="post-event-cal-ics" class="event-cal-link" href="#">Apple / Outlook</a>
+          </div>
         </div>
 
         <!-- Resource link -->
@@ -313,6 +318,20 @@ const SHELL_ENABLED = isShellEnabled('community');
         var etDate = new Date(Date.UTC(etYear, etMonth - 1, etDay, etHour, etMin));
         var delta = candidate.getTime() - etDate.getTime();
         return new Date(candidate.getTime() + delta).toISOString();
+      }
+
+      // --- Add-to-calendar (mirrors the events tab; .ics reuses /events/<slug>/?add=ics) ---
+      function toGCalDate(d) {
+        var pad = function (n) { return n < 10 ? '0' + n : '' + n; };
+        return d.getUTCFullYear() + pad(d.getUTCMonth() + 1) + pad(d.getUTCDate()) + 'T' +
+          pad(d.getUTCHours()) + pad(d.getUTCMinutes()) + pad(d.getUTCSeconds()) + 'Z';
+      }
+      function buildCalendarUrl(title, startDate, description) {
+        var endDate = new Date(startDate.getTime() + 60 * 60 * 1000);
+        return 'https://calendar.google.com/calendar/render?action=TEMPLATE' +
+          '&text=' + encodeURIComponent(title || 'Save the Uterus Club event') +
+          '&dates=' + toGCalDate(startDate) + '/' + toGCalDate(endDate) +
+          '&details=' + encodeURIComponent(description || '');
       }
 
       function escapeHtml(str) {
@@ -588,6 +607,16 @@ const SHELL_ENABLED = isShellEnabled('community');
           if (post.eventLink) {
             eventLinkEl.href = post.eventLink;
             eventLinkEl.hidden = false;
+          }
+          // Add to calendar: Google template (one-click) + .ics (Apple/Outlook) via the public events endpoint.
+          var calEl = document.getElementById('post-event-cal');
+          if (calEl) {
+            var calDesc = 'Save the Uterus Club live call' + (post.speaker ? ' with ' + post.speaker : '') + '.';
+            document.getElementById('post-event-cal-google').href = buildCalendarUrl(post.title, ed, calDesc);
+            var icsEl = document.getElementById('post-event-cal-ics');
+            if (post.slug) { icsEl.href = '/events/' + encodeURIComponent(post.slug) + '/?add=ics'; }
+            else { icsEl.hidden = true; }
+            calEl.hidden = false;
           }
           eventInfoEl.hidden = false;
         }
@@ -1348,6 +1377,9 @@ const SHELL_ENABLED = isShellEnabled('community');
     color: var(--text-primary);
   }
   .event-join-btn { margin-top: var(--space-2); }
+  .event-cal { margin-top: var(--space-2); display: flex; align-items: center; flex-wrap: wrap; gap: var(--space-1) var(--space-3); }
+  .event-cal-label { font-size: 0.8125rem; font-weight: 600; color: var(--text-tertiary); }
+  .event-cal-link { font-size: 0.8125rem; color: var(--text-tertiary); text-decoration: underline; text-underline-offset: 2px; }
 
   /* Inline images in post body */
   .post-inline-img {
