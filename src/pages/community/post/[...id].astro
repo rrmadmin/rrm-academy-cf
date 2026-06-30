@@ -612,7 +612,14 @@ const SHELL_ENABLED = isShellEnabled('community');
           var calEl = document.getElementById('post-event-cal');
           if (calEl) {
             var calDesc = 'Save the Uterus Club live call' + (post.speaker ? ' with ' + post.speaker : '') + '.';
-            document.getElementById('post-event-cal-google').href = buildCalendarUrl(post.title, ed, calDesc);
+            // The single-post API doesn't return a separate title field (the title is the
+            // first line of the body), so derive it the same way the events tab does.
+            var calTitle = (function (b) {
+              if (!b) return 'Save the Uterus Club event';
+              var lines = b.replace(/!\[[^\]]*\]\([^)]+\)/g, '').split('\n\n').map(function (s) { return s.trim(); }).filter(Boolean);
+              return lines[0] || 'Save the Uterus Club event';
+            })(post.body);
+            document.getElementById('post-event-cal-google').href = buildCalendarUrl(calTitle, ed, calDesc);
             var icsEl = document.getElementById('post-event-cal-ics');
             if (post.slug) { icsEl.href = '/events/' + encodeURIComponent(post.slug) + '/?add=ics'; }
             else { icsEl.hidden = true; }
