@@ -45,6 +45,16 @@ const pageSchema = {
     '@type': 'WebPage',
     '@id': 'https://rrmacademy.org/femm/',
   },
+  image: {
+    '@type': 'ImageObject',
+    url: 'https://rrmacademy.org/images/femm/femm-at-a-glance.webp',
+    contentUrl: 'https://rrmacademy.org/images/femm/femm-at-a-glance.webp',
+    width: 1040,
+    height: 826,
+    caption: 'FEMM at a glance: a sympto-hormonal method paired with a medical-management arm within restorative reproductive medicine.',
+    representativeOfPage: true,
+    creditText: 'RRM Academy',
+  },
   about: {
     '@type': 'MedicalTherapy',
     name: 'FEMM',
@@ -172,6 +182,19 @@ const faqSchema = {
 >
   <span data-pagefind-meta="type:Guide" style="display:none"></span>
   <span data-pagefind-meta="title:FEMM: A Clinician's Guide" style="display:none"></span>
+
+  <figure class="hero-figure">
+    <img
+      src="/images/femm/femm-at-a-glance.webp"
+      width="1040"
+      height="826"
+      loading="eager"
+      fetchpriority="high"
+      decoding="async"
+      alt="FEMM at a glance: a sympto-hormonal method that tracks cervical mucus, bleeding, and urinary LH, taught in two layers by a FEMM Teacher and a FEMM Medical Provider, with a medical-management arm within RRM."
+    />
+    <figcaption>FEMM at a glance. It has no published method-specific effectiveness study. Details are in the guide below.</figcaption>
+  </figure>
 
           <aside class="tldr">
             <h2 id="key-takeaways">Key Takeaways</h2>
@@ -495,6 +518,9 @@ const faqSchema = {
 </GuideLayout>
 
 <style>
+  .hero-figure { margin: var(--space-4) 0 var(--space-6); }
+  .hero-figure img { display: block; width: 100%; height: auto; max-width: 720px; border-radius: var(--radius-md); border: 1px solid var(--border-color); }
+  .hero-figure figcaption { margin-top: var(--space-2); font-size: 0.8125rem; color: var(--text-secondary); line-height: 1.5; }
   .author-byline {
     font-size: 0.875rem;
     color: var(--text-secondary);
