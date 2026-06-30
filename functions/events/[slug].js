@@ -12,6 +12,7 @@
  */
 import { getSessionIdFromCookie, validateSession } from '../api/auth/_shared.js';
 import { requireMember } from '../api/community/_shared.js';
+import { TRACKING_HEAD, TRACKING_BODY } from './_tracking.js';
 
 const SITE_ORIGIN = 'https://rrmacademy.org';
 
@@ -335,6 +336,7 @@ function renderHtml({ event, summary, speaker, visitor, cta, canonical, memberSu
 <link rel="preconnect" href="https://rsms.me">
 <link rel="stylesheet" href="https://rsms.me/inter/inter.css">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;600&display=swap">
+${TRACKING_HEAD}
 
 <script type="application/ld+json">${JSON.stringify(eventJsonLd).replace(/</g, '\\u003c')}</script>
 
@@ -521,6 +523,7 @@ function renderHtml({ event, summary, speaker, visitor, cta, canonical, memberSu
 <footer class="footer">
   <p>RRM Academy · <a href="${SITE_ORIGIN}/save-the-uterus-club">Save the Uterus Club</a> · <a href="${SITE_ORIGIN}/privacy-policy">Privacy</a> · <a href="${SITE_ORIGIN}/terms-of-use">Terms</a></p>
 </footer>
+${TRACKING_BODY}
 </body>
 </html>`;
 }
