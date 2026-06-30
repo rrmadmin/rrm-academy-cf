@@ -84,7 +84,7 @@ const graph: Record<string, unknown>[] = [
     description: 'A criteria-led, clinician-reviewed comparison of the major fertility awareness-based methods (Standard Days, TwoDay, Billings, Creighton, Sympto-Thermal Method, Marquette, and app-based methods) by effectiveness metric, biomarker tracked, instruction model, and diagnostic value in restorative reproductive medicine. Every effectiveness figure is cited and labeled by metric type.',
     inLanguage: 'en-US',
     datePublished: '2026-06-12T00:00:00-04:00',
-    dateModified: '2026-06-12T00:00:00-04:00',
+    dateModified: '2026-06-30T00:00:00-04:00',
     lastReviewed: '2026-06-12',
     about: [
       { '@type': 'MedicalEntity', name: 'Fertility awareness-based methods', alternateName: ['FABM', 'Natural Family Planning', 'Fertility awareness methods'] },
@@ -97,6 +97,7 @@ const graph: Record<string, unknown>[] = [
     reviewedBy: { '@id': 'https://rrmacademy.org/#naomi-whittaker' },
     reviewedByCredential: 'Dr. Naomi Whittaker, MD, Board-Certified OBGYN, MIGS, NFPMC, FCI',
     mainEntityOfPage: PAGE_URL,
+    image: { '@id': `${PAGE_URL}#primaryimage` },
     citation: citationNodes.map((c) => ({
       '@type': 'ScholarlyArticle',
       name: c.name,
@@ -104,6 +105,18 @@ const graph: Record<string, unknown>[] = [
       sameAs: `https://pubmed.ncbi.nlm.nih.gov/${c.pmid}/`,
     })),
     articleSection: TOC_ITEMS.map((t) => t.label),
+  },
+  {
+    '@type': 'ImageObject',
+    '@id': `${PAGE_URL}#primaryimage`,
+    url: 'https://rrmacademy.org/images/fertility-awareness-methods-compared/methods-compared-matrix.webp',
+    contentUrl: 'https://rrmacademy.org/images/fertility-awareness-methods-compared/methods-compared-matrix.webp',
+    width: 1280,
+    height: 772,
+    caption: 'At-a-glance comparison of seven fertility awareness-based methods by what each tracks, how it is taught, perfect-use pregnancy rate, and diagnostic value in restorative reproductive medicine.',
+    representativeOfPage: true,
+    creditText: 'RRM Academy',
+    author: { '@id': 'https://rrmacademy.org/#organization' },
   },
   {
     '@type': 'FAQPage',
@@ -192,6 +205,19 @@ const jsonLd = {
   <span data-pagefind-meta="title:Fertility Awareness-Based Methods Compared" style="display:none"></span>
 
   <p class="pillar-lead"><strong>Fertility awareness-based methods (FABMs) are ways to track your body's daily signals to know when you are and are not fertile. This guide compares seven: Standard Days, TwoDay, Billings, Creighton, the Sympto-Thermal Method, Marquette, and FEMM. Used carefully with a trained teacher, the best methods mean fewer than 2 in 100 women get pregnant in a year. Everyday-use numbers are higher, and no single method is best for everyone.</strong></p>
+
+  <figure class="hero-figure">
+    <img
+      src="/images/fertility-awareness-methods-compared/methods-compared-matrix.webp"
+      width="1280"
+      height="772"
+      loading="eager"
+      fetchpriority="high"
+      decoding="async"
+      alt="At-a-glance comparison of seven fertility awareness-based methods: Standard Days, TwoDay, Billings, Creighton, Sympto-Thermal Method, Marquette, and FEMM, by what each one tracks, how it is taught, tools needed, perfect-use pregnancy rate, and diagnostic value in restorative reproductive medicine."
+    />
+    <figcaption>The seven methods at a glance. Perfect-use figures are pregnancies per 100 women per year and are not directly comparable across studies. Full numbers and citations are in the table below.</figcaption>
+  </figure>
 
 <section id="comparison-table">
 <h2>How the Methods Compare at a Glance</h2>
@@ -506,6 +532,23 @@ const jsonLd = {
 </GuideLayout>
 
 <style>
+  .hero-figure {
+    margin: var(--space-6) 0 var(--space-8);
+  }
+  .hero-figure img {
+    display: block;
+    width: 100%;
+    height: auto;
+    border-radius: var(--radius-md);
+    border: 1px solid var(--border-color);
+  }
+  .hero-figure figcaption {
+    margin-top: var(--space-2);
+    font-size: 0.8125rem;
+    color: var(--text-secondary, #6f6a77);
+    line-height: 1.5;
+  }
+
   .table-wrap {
     overflow-x: auto;
     -webkit-overflow-scrolling: touch;
