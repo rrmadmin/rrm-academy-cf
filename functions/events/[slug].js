@@ -330,7 +330,7 @@ function renderHtml({ event, summary, speaker, visitor, cta, canonical, memberSu
 <meta name="twitter:title" content="${escapeHtml(fullTitle)}">
 <meta name="twitter:description" content="${escapeHtml(description)}">
 <meta name="twitter:image" content="${escapeHtml(ogImage)}">
-<meta name="twitter:site" content="@rrmacademy">
+<meta name="twitter:site" content="@rrm_academy">
 
 <link rel="icon" href="/favicon.ico">
 <link rel="preconnect" href="https://rsms.me">
