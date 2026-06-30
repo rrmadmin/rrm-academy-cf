@@ -49,6 +49,7 @@ function mapCourse(c, sections, steps) {
     includes: parseArray(c.includes_json),
     includedIn: parseArray(c.included_in_json),
     faqs: parseArray(c.faqs_json),
+    topics: parseArray(c.topics_json),
     sortOrder: c.sort_order,
     status: c.status,
     createdAt: c.created_at,
@@ -196,6 +197,9 @@ export async function onRequestPut(context) {
   if (body.faqs !== undefined && !Array.isArray(body.faqs)) {
     return json({ ok: false, error: 'faqs_must_be_array' }, 400);
   }
+  if (body.topics !== undefined && !Array.isArray(body.topics)) {
+    return json({ ok: false, error: 'topics_must_be_array' }, 400);
+  }
   if (body.settings !== undefined && (typeof body.settings !== 'object' || Array.isArray(body.settings) || body.settings === null)) {
     return json({ ok: false, error: 'settings_must_be_object' }, 400);
   }
@@ -248,6 +252,7 @@ export async function onRequestPut(context) {
     settings: 'settings_json',
     seo: 'seo_json',
     faqs: 'faqs_json',
+    topics: 'topics_json',
   };
 
   const setClauses = [];

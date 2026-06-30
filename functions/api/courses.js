@@ -167,6 +167,7 @@ function mapCourse(c, sections, steps, preview, participants = 0, renditionMap =
     includes: parseArray(c.includes_json),
     includedIn: parseArray(c.included_in_json),
     faqs: parseArray(c.faqs_json),
+    topics: parseArray(c.topics_json),
     status: c.status,
     sortOrder: c.sort_order,
     createdAt: c.created_at,
