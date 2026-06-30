@@ -20,7 +20,13 @@ const jsonLd = {
   author: { '@id': 'https://rrmacademy.org/#naomi-whittaker' },
   publisher: { '@id': 'https://rrmacademy.org/#organization' },
   datePublished: PUBLISHED, dateModified: MODIFIED,
-  image: `https://rrmacademy.org/og/${SLUG}.png`,
+  image: {
+    '@type': 'ImageObject',
+    url: `https://rrmacademy.org/images/${SLUG}/${SLUG}-at-a-glance.webp`,
+    contentUrl: `https://rrmacademy.org/images/${SLUG}/${SLUG}-at-a-glance.webp`,
+    representativeOfPage: true,
+    creditText: 'RRM Academy',
+  },
   mainEntityOfPage: { '@type': 'WebPage', '@id': PAGE_URL },
   about: data.about.map((a) => ({ '@type': ABOUT_TYPE_MAP[a.type] || 'Thing', name: a.name })),
   articleSection: ARTICLE_SECTIONS,
@@ -30,6 +36,18 @@ const faqSchema = { '@context': 'https://schema.org', '@type': 'FAQPage', mainEn
 ---
 
 <GuideLayout slug={SLUG} jsonLd={jsonLd} extraSchema={[faqSchema]} tocItems={TOC_ITEMS} faqs={FAQS} keyTakeawaysHtml={KEY_TAKEAWAYS_HTML} editingNoticeHtml="<strong>A quick note:</strong> this guide is newly published and still being reviewed by our clinical team, so some details may change as we finalize it. We wanted to share it now rather than make you wait.">
+  <figure class="hero-figure">
+    <img
+      src="/images/boston-cross-check/boston-cross-check-at-a-glance.webp"
+      width="1040"
+      height="889"
+      loading="eager"
+      fetchpriority="high"
+      decoding="async"
+      alt="Boston Cross-Check at a glance: a fertility awareness method that reads cervical mucus, basal body temperature, and an electronic hormone monitor together, with no published method-specific effectiveness study."
+    />
+    <figcaption>Boston Cross-Check at a glance. It has no published method-specific effectiveness study; cited figures are borrowed from its component methods. Details are in the guide below.</figcaption>
+  </figure>
   <aside class="facts-box">
     <dl>
       <div><dt>Biomarker</dt><dd>{FB.biomarker}</dd></div>
@@ -56,6 +74,9 @@ const faqSchema = { '@context': 'https://schema.org', '@type': 'FAQPage', mainEn
 </GuideLayout>
 
 <style>
+  .hero-figure { margin: 0 0 var(--space-5); }
+  .hero-figure img { display: block; width: 100%; height: auto; max-width: 720px; border-radius: var(--radius-md); border: 1px solid var(--border-color); }
+  .hero-figure figcaption { margin-top: var(--space-2); font-size: 0.8125rem; color: var(--text-secondary); line-height: 1.5; }
   .facts-box { background: var(--bg-surface); border-left: 3px solid var(--purple-700); border-radius: var(--radius-md); padding: var(--space-4); margin: var(--space-5) 0; }
   .facts-box dl { margin: 0; display: grid; gap: var(--space-3); }
   .facts-box dt { font-size: 0.75rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.04em; color: var(--text-muted); }
