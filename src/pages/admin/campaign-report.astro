@@ -1,0 +1,193 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+---
+<BaseLayout title="Campaign Report" description="Admin campaign cohort report" noindex={true} bodyClass="admin-page">
+
+  <!-- Admin Header Bar -->
+  <div class="admin-bar">
+    <div class="container admin-bar__inner">
+      <span class="admin-bar__title">RRM Admin</span>
+      <nav class="admin-bar__nav">
+        <a href="/admin/backlinks/" class="admin-bar__link">Backlinks</a>
+        <a href="/admin/conversions/" class="admin-bar__link">Conversions</a>
+        <a href="/admin/content/" class="admin-bar__link">Content</a>
+        <a href="/admin/email/" class="admin-bar__link">Email</a>
+        <a href="/admin/seo/" class="admin-bar__link">SEO</a>
+        <a href="/admin/revenue/" class="admin-bar__link">Revenue</a>
+        <a href="/admin/enrollments/" class="admin-bar__link">Enrollments</a>
+        <a href="/admin/campaign-report/" class="admin-bar__link admin-bar__link--active">Campaigns</a>
+      </nav>
+      <div class="admin-bar__actions">
+        <a href="/" class="admin-bar__site-link">Return to site</a>
+      </div>
+    </div>
+  </div>
+
+  <section class="dash-section">
+    <div class="container">
+      <div class="dash-header">
+        <h1 class="dash-header__title">Campaign Arrivals</h1>
+      </div>
+      <p class="cr-intro">
+        Visitors who arrived via a tagged campaign link (<code>utm_campaign</code>), with the
+        linked member where known and the pages they viewed afterward. The STUC member
+        broadcast tags arrivals as <code>event-broadcast</code>.
+      </p>
+
+      <div class="cr-controls">
+        <label for="cr-campaign">Campaign</label>
+        <input id="cr-campaign" type="text" value="event-broadcast" autocomplete="off" spellcheck="false" />
+        <button id="cr-load" class="btn btn--primary btn--sm" type="button">Load</button>
+      </div>
+
+      <div id="cr-status" class="cr-status">Enter a campaign and click Load.</div>
+      <div id="cr-summary" class="cr-summary" hidden></div>
+
+      <div class="cr-table-wrap">
+        <table id="cr-table" class="cr-table" hidden>
+          <thead>
+            <tr>
+              <th>Member</th>
+              <th>Arrived</th>
+              <th>Entry page</th>
+              <th>Source</th>
+              <th>Pages</th>
+            </tr>
+          </thead>
+          <tbody id="cr-tbody"></tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
+  <style>
+    .cr-intro { color: var(--text-secondary); max-width: 65ch; margin-bottom: var(--space-5); }
+    .cr-intro code { font-size: 0.85em; background: var(--neutral-100); padding: 1px 5px; border-radius: var(--radius-sm); }
+    .cr-controls { display: flex; align-items: center; gap: var(--space-3); flex-wrap: wrap; margin-bottom: var(--space-4); }
+    .cr-controls label { font-weight: 600; color: var(--text-secondary); }
+    .cr-controls input {
+      font: inherit; padding: 7px 11px; border: 1px solid var(--border-color);
+      border-radius: var(--radius-md); background: var(--bg-surface); color: var(--text-primary); min-width: 220px;
+    }
+    .cr-status { color: var(--text-tertiary); margin-bottom: var(--space-4); }
+    .cr-summary { color: var(--text-secondary); margin-bottom: var(--space-4); font-weight: 600; }
+    .cr-summary[hidden] { display: none; }
+    .cr-table-wrap { overflow-x: auto; }
+    .cr-table { width: 100%; border-collapse: collapse; font-size: 0.9375rem; }
+    .cr-table[hidden] { display: none; }
+    .cr-table th, .cr-table td { text-align: left; padding: 10px 12px; border-bottom: 1px solid var(--border-color); vertical-align: top; }
+    .cr-table th { color: var(--text-tertiary); font-size: 0.8125rem; text-transform: uppercase; letter-spacing: 0.04em; }
+    .cr-member-name { font-weight: 600; color: var(--text-primary); }
+    .cr-member-email { font-size: 0.8125rem; color: var(--text-tertiary); }
+    .cr-anon { color: var(--text-tertiary); font-style: italic; }
+    .cr-path { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 0.8125rem; word-break: break-all; }
+    .cr-pages-toggle { background: none; border: none; color: var(--accent); cursor: pointer; font: inherit; padding: 0; }
+    .cr-pages-list { margin: 6px 0 0; padding: 0 0 0 14px; color: var(--text-secondary); }
+    .cr-pages-list li { font-size: 0.8125rem; line-height: 1.5; }
+  </style>
+
+  <script is:inline>
+    (function () {
+      var elCampaign = document.getElementById('cr-campaign');
+      var elLoad = document.getElementById('cr-load');
+      var elStatus = document.getElementById('cr-status');
+      var elSummary = document.getElementById('cr-summary');
+      var elTable = document.getElementById('cr-table');
+      var elTbody = document.getElementById('cr-tbody');
+
+      function esc(s) {
+        var d = document.createElement('div');
+        d.appendChild(document.createTextNode(s == null ? '' : String(s)));
+        return d.innerHTML;
+      }
+      function fmtTs(ts) {
+        if (!ts) return '—';
+        var d = new Date(Number(ts));
+        if (isNaN(d.getTime())) return '—';
+        return d.toLocaleString('en-US', { timeZone: 'America/New_York', month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' });
+      }
+      function sourceLabel(c) {
+        if (c.utm_source || c.utm_medium) return esc([c.utm_source, c.utm_medium].filter(Boolean).join(' / '));
+        if (c.referrer) { try { return esc(new URL(c.referrer).hostname); } catch (e) { return esc(c.referrer); } }
+        return '<span class="cr-anon">direct</span>';
+      }
+
+      function render(data) {
+        elTbody.innerHTML = '';
+        var rows = data.cohort || [];
+        if (!rows.length) {
+          elTable.hidden = true;
+          elSummary.hidden = true;
+          elStatus.textContent = 'No arrivals recorded for campaign "' + data.campaign + '" yet.';
+          return;
+        }
+        elStatus.textContent = '';
+        elSummary.hidden = false;
+        elSummary.textContent = data.total + ' arrival' + (data.total === 1 ? '' : 's') + ' · ' + data.linked + ' linked to a member'
+          + (data.truncated ? ' · showing the most recent ' + rows.length : '');
+
+        rows.forEach(function (c, i) {
+          var tr = document.createElement('tr');
+          var member = c.member
+            ? '<div class="cr-member-name">' + esc(c.member.name || 'Member') + '</div>'
+              + (c.member.email ? '<div class="cr-member-email">' + esc(c.member.email) + '</div>' : '')
+            : '<span class="cr-anon">anonymous visitor</span>';
+
+          var pagesCell = String(c.page_count || 0);
+          if (c.pages && c.pages.length) {
+            var listId = 'cr-pages-' + i;
+            var items = c.pages.map(function (p) {
+              return '<li><span class="cr-path">' + esc(p.path) + '</span> · ' + fmtTs(p.ts) + '</li>';
+            }).join('');
+            pagesCell = '<button class="cr-pages-toggle" type="button" data-target="' + listId + '">'
+              + (c.page_count || c.pages.length) + ' page' + ((c.page_count || c.pages.length) === 1 ? '' : 's') + ' ▾</button>'
+              + '<ul id="' + listId + '" class="cr-pages-list" hidden>' + items + '</ul>';
+          }
+
+          tr.innerHTML =
+            '<td>' + member + '</td>'
+            + '<td>' + fmtTs(c.arrival_ts) + '</td>'
+            + '<td><span class="cr-path">' + esc(c.entry_path || '—') + '</span></td>'
+            + '<td>' + sourceLabel(c) + '</td>'
+            + '<td>' + pagesCell + '</td>';
+          elTbody.appendChild(tr);
+        });
+        elTable.hidden = false;
+      }
+
+      elTbody.addEventListener('click', function (e) {
+        var btn = e.target.closest('.cr-pages-toggle');
+        if (!btn) return;
+        var list = document.getElementById(btn.getAttribute('data-target'));
+        if (list) list.hidden = !list.hidden;
+      });
+
+      function load() {
+        var campaign = (elCampaign.value || '').trim();
+        if (!campaign) { elStatus.textContent = 'Enter a campaign name.'; return; }
+        elStatus.textContent = 'Loading…';
+        elTable.hidden = true;
+        elSummary.hidden = true;
+        elLoad.disabled = true;
+        fetch('/api/admin/campaign-report?campaign=' + encodeURIComponent(campaign), { credentials: 'same-origin' })
+          .then(function (r) {
+            if (r.status === 401 || r.status === 403) { throw new Error('Admin access required. Log in as an admin and reload.'); }
+            return r.json();
+          })
+          .then(function (data) {
+            if (!data || !data.ok) { throw new Error((data && data.error) || 'Request failed.'); }
+            render(data);
+          })
+          .catch(function (err) {
+            elTable.hidden = true;
+            elSummary.hidden = true;
+            elStatus.textContent = err.message || 'Request failed.';
+          })
+          .then(function () { elLoad.disabled = false; });
+      }
+
+      elLoad.addEventListener('click', load);
+      elCampaign.addEventListener('keydown', function (e) { if (e.key === 'Enter') load(); });
+    })();
+  </script>
+</BaseLayout>
