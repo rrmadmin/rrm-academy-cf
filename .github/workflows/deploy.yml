@@ -485,6 +485,13 @@ jobs:
         # replaced the typed-code box (2026-06-20).
         run: npm run gates:email-verify
 
+      - name: Validate email trickle gate (always)
+        # ET1-ET4: STUC member-roster broadcasts (notifyNewPost) must route through
+        # sendBroadcastTrickle (batched + inter-batch delay), never a bare Promise.all/
+        # allSettled blast over the roster, and the batch size must stay small. Born
+        # 2026-06-29 after the FemTech STUC event surfaced an all-at-once concurrent send.
+        run: npm run gates:email-trickle
+
       - name: Validate glossary spoke pages (full rebuild only)
         # Spoke directory only refreshes on full rebuild (getStaticPaths re-runs
         # against in-memory glossary.json, but dispatched single-record updates

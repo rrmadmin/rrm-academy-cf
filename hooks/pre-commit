@@ -177,6 +177,21 @@ if echo "$STAGED" | grep -qE '^functions/api/auth/(signup|resend-verification|ve
   fi
 fi
 
+# --- Email trickle gate: any staged change to the community email broadcast path ---
+#     STUC member-roster broadcasts (notifyNewPost) must be PACED via
+#     sendBroadcastTrickle (batched + inter-batch delay), never a bare
+#     Promise.all/allSettled blast over the roster. Guards SES send-rate + deliverability.
+if echo "$STAGED" | grep -qE '^functions/api/community/_email\.js$|^scripts/gates/validate-email-trickle\.mjs$'; then
+  node scripts/gates/validate-email-trickle.mjs
+  if [ $? -ne 0 ]; then
+    echo ""
+    echo "Commit blocked by email trickle gate."
+    echo "STUC member broadcasts must go through sendBroadcastTrickle (batched + delayed), not a Promise.all blast."
+    echo "Fix the failure above, or bypass with --no-verify."
+    exit 1
+  fi
+fi
+
 # --- Infographic SVG well-formedness gate: any staged infographic file ---
 if git diff --cached --name-only | grep -qE 'src/lib/infographic/|scripts/infographic-render\.mjs|scripts/gates/validate-infographic-svg\.mjs'; then
   node scripts/gates/validate-infographic-svg.mjs || { echo "infographic SVG gate failed"; exit 1; }

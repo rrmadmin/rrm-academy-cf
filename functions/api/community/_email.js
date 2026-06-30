@@ -9,6 +9,33 @@ import { log } from '../_log.js';
 
 const EVENT_SHARE_LINK_RECIPIENTS = ['naomimwhittaker@gmail.com'];
 
+const BROADCAST_BATCH_SIZE = 5;
+const BROADCAST_BATCH_DELAY_MS = 1800;
+
+/**
+ * Paces member-roster broadcasts so they never fire as one concurrent burst
+ * (SES rate safety + deliverability). This is ENFORCED by
+ * `scripts/gates/validate-email-trickle.mjs`; never replace it with a bare
+ * Promise.all/Promise.allSettled over the full recipient list. Results are
+ * returned in recipient order, so callers can correlate results[i] with
+ * recipients[i] (used below for per-failure logEmailFailure).
+ */
+async function sendBroadcastTrickle(env, recipients, buildEmail, { from, subject, replyTo, log }) {
+  const results = [];
+  for (let i = 0; i < recipients.length; i += BROADCAST_BATCH_SIZE) {
+    const batch = recipients.slice(i, i + BROADCAST_BATCH_SIZE);
+    const batchResults = await Promise.allSettled(batch.map(m => {
+      const { html, text } = buildEmail(m);
+      return sendEmail(env, { from, to: m.email, subject, html, text, replyTo, log });
+    }));
+    results.push(...batchResults);
+    if (i + BROADCAST_BATCH_SIZE < recipients.length) {
+      await new Promise(resolve => setTimeout(resolve, BROADCAST_BATCH_DELAY_MS));
+    }
+  }
+  return results;
+}
+
 function sanitizeSubject(s) {
   return String(s).replace(/[\r\n\t]/g, ' ').replace(/\s+/g, ' ').trim().slice(0, 200);
 }
@@ -157,20 +184,15 @@ export async function notifyNewPost(env, db, post, authorName) {
     };
   }
 
-  // Send individual emails to preserve privacy (don't expose member emails to each other)
-  const emailPromises = members.results.map(m => {
-    const { html, text } = buildEmail(m);
-    return sendEmail(env, {
-      from,
-      to: m.email,
-      subject,
-      html,
-      text,
-      replyTo: 'administrator@rrmacademy.org',
-      log: { db, source: 'community/new-post', category: 'transactional' },
-    });
+  // Send as a paced trickle (never an all-at-once concurrent burst): preserves
+  // privacy (individual emails) AND stays under SES's send-rate cap. Order is
+  // preserved, so results[i] still corresponds to members.results[i] below.
+  const results = await sendBroadcastTrickle(env, members.results, buildEmail, {
+    from,
+    subject,
+    replyTo: 'administrator@rrmacademy.org',
+    log: { db, source: 'community/new-post', category: 'transactional' },
   });
-  const results = await Promise.allSettled(emailPromises);
   const successCount = results.filter(r => r.status === 'fulfilled').length;
   const totalCount = results.length;
   if (env.EVENTS) env.EVENTS.writeDataPoint({ blobs: ['rrm-academy', 'community', 'stuc_blast_result', String(post.id)], doubles: [totalCount, successCount, totalCount - successCount], indexes: ['stuc_blast_result'] });
