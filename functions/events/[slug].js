@@ -204,6 +204,49 @@ function formatDate(iso) {
   }) + ' Eastern';
 }
 
+// --- Add-to-calendar helpers ---
+// Mirrors the community events-tab Google-template pattern (src/pages/community/events.astro)
+// and adds an iCalendar (.ics) for Apple/Outlook. Calendar entries are tier-agnostic and
+// deliberately DO NOT embed the Meet link -- they point at the public events page, where
+// members get the gated Join button. Keeps the "Meet link never leaves the gate" rule.
+function toICalUTC(ms) {
+  const d = new Date(ms);
+  const p = (n) => String(n).padStart(2, '0');
+  return `${d.getUTCFullYear()}${p(d.getUTCMonth() + 1)}${p(d.getUTCDate())}T${p(d.getUTCHours())}${p(d.getUTCMinutes())}${p(d.getUTCSeconds())}Z`;
+}
+function buildGoogleCalUrl({ title, startMs, endMs, details, location }) {
+  const params = 'action=TEMPLATE' +
+    '&text=' + encodeURIComponent(title || 'Save the Uterus Club event') +
+    '&dates=' + toICalUTC(startMs) + '/' + toICalUTC(endMs) +
+    '&details=' + encodeURIComponent(details || '') +
+    '&location=' + encodeURIComponent(location || '');
+  return 'https://calendar.google.com/calendar/render?' + params;
+}
+function icsEscape(s) {
+  return String(s == null ? '' : s).replace(/\\/g, '\\\\').replace(/;/g, '\\;').replace(/,/g, '\\,').replace(/\r?\n/g, '\\n');
+}
+function buildICS({ uid, title, startMs, endMs, description, location, url }) {
+  return [
+    'BEGIN:VCALENDAR',
+    'VERSION:2.0',
+    'PRODID:-//RRM Academy//Save the Uterus Club//EN',
+    'CALSCALE:GREGORIAN',
+    'METHOD:PUBLISH',
+    'BEGIN:VEVENT',
+    `UID:${icsEscape(uid)}`,
+    `DTSTAMP:${toICalUTC(Date.now())}`,
+    `DTSTART:${toICalUTC(startMs)}`,
+    `DTEND:${toICalUTC(endMs)}`,
+    `SUMMARY:${icsEscape(title)}`,
+    `DESCRIPTION:${icsEscape(description)}`,
+    `LOCATION:${icsEscape(location)}`,
+    `URL:${icsEscape(url)}`,
+    'STATUS:CONFIRMED',
+    'END:VEVENT',
+    'END:VCALENDAR',
+  ].join('\r\n') + '\r\n';
+}
+
 function renderHtml({ event, summary, speaker, visitor, cta, canonical, memberSummary }) {
   const title = event.title || summary.title || 'Save the Uterus Club Event';
   // summary.description is already scrubbed of Meet URL / dial / PIN.
@@ -214,6 +257,12 @@ function renderHtml({ event, summary, speaker, visitor, cta, canonical, memberSu
   const endMs = Number.isFinite(startMs) ? startMs + 60 * 60 * 1000 : null;
   const startISO = Number.isFinite(startMs) ? new Date(startMs).toISOString() : event.event_date;
   const endISO = endMs ? new Date(endMs).toISOString() : null;
+
+  // Add-to-calendar links (tier-agnostic; entry points at the public events page, not the Meet link).
+  const eventsUrl = `${SITE_ORIGIN}/events/${event.slug || event.id}/`;
+  const calDescription = `Save the Uterus Club live call${speaker ? ` with ${speaker}` : ''}. Join live inside Save the Uterus Club: ${eventsUrl}`;
+  const gcalUrl = Number.isFinite(startMs) ? buildGoogleCalUrl({ title, startMs, endMs, details: calDescription, location: eventsUrl }) : null;
+  const icsHref = `/events/${event.slug || event.id}/?add=ics`;
 
   // CRITICAL: Never expose the Meet link in JSON-LD. location.url points at the
   // public landing page itself; the Meet link is gated behind STUC membership.
@@ -409,6 +458,10 @@ function renderHtml({ event, summary, speaker, visitor, cta, canonical, memberSu
   .btn--secondary { background: transparent; color: var(--color-ink); border-color: var(--color-line); }
   .btn--secondary:hover { background: var(--color-bg); }
   .btn:active { transform: translateY(1px); }
+  .cta__cal { margin: 16px 0 0; display: flex; align-items: center; flex-wrap: wrap; gap: 8px 14px; font-size: 14px; }
+  .cta__cal-label { color: var(--color-muted); font-weight: 600; }
+  .cta__cal-link { color: var(--color-accent); text-decoration: underline; text-decoration-thickness: 1px; text-underline-offset: 3px; }
+  .cta__cal-link:hover { color: #532e3b; text-decoration-thickness: 2px; }
 
   .footer {
     margin-top: 64px;
@@ -457,6 +510,11 @@ function renderHtml({ event, summary, speaker, visitor, cta, canonical, memberSu
       <a class="btn btn--primary" href="${escapeHtml(cta.primaryHref)}" ${cta.primaryAttrs || ''}>${escapeHtml(cta.primaryLabel)}</a>
       ${cta.secondaryHref ? `<a class="btn btn--secondary" href="${escapeHtml(cta.secondaryHref)}">${escapeHtml(cta.secondaryLabel)}</a>` : ''}
     </div>
+    ${gcalUrl ? `<div class="cta__cal">
+      <span class="cta__cal-label">Add to calendar</span>
+      <a class="cta__cal-link" href="${escapeHtml(gcalUrl)}" target="_blank" rel="noopener noreferrer">Google</a>
+      <a class="cta__cal-link" href="${escapeHtml(icsHref)}">Apple / Outlook</a>
+    </div>` : ''}
   </section>
 </main>
 
@@ -505,6 +563,32 @@ export async function onRequestGet({ request, params, env }) {
   const summary = summarize(event.content, { scrub: true });
   const memberSummary = summarize(event.content, { scrub: false });
   const speaker = event.speaker || extractSpeaker(event.content);
+
+  // Calendar download: /events/<slug>/?add=ics -> .ics (tier-agnostic; no Meet link).
+  // Lightweight path -- skips visitor classification (no Stripe/KV) entirely.
+  if (new URL(request.url).searchParams.get('add') === 'ics') {
+    const sMs = Date.parse(event.event_date);
+    if (!Number.isFinite(sMs)) return new Response('Not Found', { status: 404 });
+    const eMs = sMs + 60 * 60 * 1000;
+    const evUrl = `${SITE_ORIGIN}/events/${event.slug || event.id}/`;
+    const desc = `Save the Uterus Club live call${speaker ? ` with ${speaker}` : ''}. Join live inside Save the Uterus Club: ${evUrl}`;
+    const ics = buildICS({
+      uid: `stuc-${event.slug || event.id}@rrmacademy.org`,
+      title: event.title || 'Save the Uterus Club event',
+      startMs: sMs, endMs: eMs, description: desc, location: evUrl, url: evUrl,
+    });
+    const fname = (event.slug || 'event').replace(/[^a-z0-9-]/gi, '') || 'event';
+    return new Response(ics, {
+      status: 200,
+      headers: {
+        'Content-Type': 'text/calendar; charset=utf-8',
+        'Content-Disposition': `attachment; filename="${fname}.ics"`,
+        'Cache-Control': 'public, max-age=3600',
+        'X-Robots-Tag': 'noindex',
+      },
+    });
+  }
+
   const visitor = await classifyVisitor(request, env);
   const cta = ctaForVisitor(visitor.tier, event);
   const canonical = `${SITE_ORIGIN}/events/${event.slug || event.id}`;
