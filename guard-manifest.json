@@ -131,7 +131,7 @@
       "note": "Search UX + RRF fusion (Pagefind init, relevance boost, error resilience)"
     },
     "src/layouts/BaseLayout.astro": {
-      "hash": "d27dcc7316e6bf4ba416bd90046580c488df59b2e9cc2bab6cee683ae6777cfc",
+      "hash": "8c39a6ef5a41364657e4508872852ecd639a7ab7b4c08271b84e44c7045cd114",
       "note": "FOUC theme + chrome prop SEO invariants"
     },
     "functions/api/community/_shared.js": {
