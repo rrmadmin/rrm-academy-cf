@@ -94,6 +94,9 @@ const SHELL_ENABLED = isShellEnabled('community');
         <!-- Filter tabs -->
         <div class="feed-tabs" role="tablist">
           <button class="feed-tab active" role="tab" data-type="">All</button>
+          <!-- Action Areas view: shows the hub (impact / areas / projects) instead of the post feed.
+               Revealed by the hub module only for members with >=1 active area. -->
+          <button id="tab-areas" class="feed-tab" role="tab" data-view="areas" hidden>Action Areas</button>
           <a class="feed-tab feed-tab--link" href="/community/members/">Members</a>
           <button class="feed-tab" role="tab" data-type="event">Events</button>
           <button class="feed-tab" role="tab" data-type="resource">Resources</button>
@@ -289,7 +292,14 @@ const SHELL_ENABLED = isShellEnabled('community');
       var composeSubmitBtn = document.getElementById('compose-submit-btn');
       var composeImageInput = document.getElementById('compose-image-input');
       var composeImagePreview = document.getElementById('compose-image-preview');
-      var tabs = document.querySelectorAll('.feed-tab[role="tab"]');
+      // Post-filter tabs only (All / Events / Resources / Discussions). The Action Areas
+      // tab is role="tab" but carries no data-type, so it is excluded from the feed filter.
+      var tabs = document.querySelectorAll('.feed-tab[role="tab"][data-type]');
+      var allRoleTabs = document.querySelectorAll('.feed-tab[role="tab"]');
+      var areasTabBtn = document.getElementById('tab-areas');
+      var feedTabsEl = document.querySelector('.feed-tabs');
+      var hubStructureEl = document.getElementById('hub-structure');
+      var areaPillsEl = document.getElementById('hub-area-pills');
 
       // Edit modal refs
       var editModalEl = document.getElementById('edit-modal');
@@ -384,6 +394,11 @@ const SHELL_ENABLED = isShellEnabled('community');
 
       // --- Feed setup ---
       function setupFeed() {
+        // Members read the hub (impact / areas / projects) under the "Action Areas" tab, so
+        // relocate it from its shared top position to sit directly under the feed tab bar.
+        // Non-members keep it at the top of the gate (this move never runs for them).
+        if (feedTabsEl && hubStructureEl) feedTabsEl.insertAdjacentElement('afterend', hubStructureEl);
+
         var isStaff = STAFF_ROLES.indexOf(currentUser.role) !== -1;
         if (isStaff) {
           composeTypeGroup.hidden = false;
@@ -477,14 +492,39 @@ const SHELL_ENABLED = isShellEnabled('community');
         composeResourceFields.hidden = val !== 'resource';
       });
 
-      // --- Tab clicks ---
+      // --- Tab view switching ---
+      // The feed has two views under one tab bar: the post FEED (default, post-filter tabs)
+      // and the ACTION AREAS hub (impact / areas / projects), collapsed behind its own tab.
+      function setActiveTab(tab) {
+        for (var j = 0; j < allRoleTabs.length; j++) allRoleTabs[j].classList.remove('active');
+        tab.classList.add('active');
+      }
+
+      function showAreasView() {
+        if (hubStructureEl) hubStructureEl.hidden = false;
+        composeTrigger.hidden = true;
+        composeCard.hidden = true;
+        if (areaPillsEl) areaPillsEl.hidden = true;
+        postListEl.hidden = true;
+        loadMoreWrap.hidden = true;
+        postsEmpty.hidden = true;
+      }
+
+      function showFeedView() {
+        if (hubStructureEl) hubStructureEl.hidden = true;
+        postListEl.hidden = false;
+        composeTrigger.hidden = false;
+        composeCard.hidden = true;
+        // Restore the area-filter pills only when they were populated (>=1 active area).
+        if (areaPillsEl && areaPillsEl.children.length > 0) areaPillsEl.hidden = false;
+      }
+
+      // --- Post-filter tab clicks (All / Events / Resources / Discussions) ---
       for (var i = 0; i < tabs.length; i++) {
         (function (tab) {
           tab.addEventListener('click', function () {
-            for (var j = 0; j < tabs.length; j++) {
-              tabs[j].classList.remove('active');
-            }
-            tab.classList.add('active');
+            setActiveTab(tab);
+            showFeedView();
             activeType = tab.getAttribute('data-type') || '';
             lastCreatedAt = null;
             allPostsLoaded = false;
@@ -493,6 +533,14 @@ const SHELL_ENABLED = isShellEnabled('community');
             loadPosts(false);
           });
         })(tabs[i]);
+      }
+
+      // --- Action Areas tab click (shows the hub instead of the feed) ---
+      if (areasTabBtn) {
+        areasTabBtn.addEventListener('click', function () {
+          setActiveTab(areasTabBtn);
+          showAreasView();
+        });
       }
 
       // Exposed so the Action Area pills (separate bundled module) can re-run the
@@ -1830,6 +1878,7 @@ const SHELL_ENABLED = isShellEnabled('community');
         projectsRail: document.getElementById('hub-projects-rail'),
         pills: document.getElementById('hub-area-pills'),
         streamLock: document.getElementById('gate-stream-lock'),
+        areasTab: document.getElementById('tab-areas'),
       };
 
       var state = {
@@ -2248,6 +2297,7 @@ const SHELL_ENABLED = isShellEnabled('community');
           if (areas.length === 0) {
             els.structure.hidden = true;
             if (els.streamLock) els.streamLock.hidden = true;
+            if (els.areasTab) els.areasTab.hidden = true;
             return;
           }
 
@@ -2282,7 +2332,15 @@ const SHELL_ENABLED = isShellEnabled('community');
             if (state.isMember && projects[pi].isMember) state.joinedProjects[projects[pi].id] = true;
           }
 
-          els.structure.hidden = false;
+          if (state.isMember) {
+            // Members: the hub lives behind the "Action Areas" tab — keep it collapsed by
+            // default (the feed is the landing view) and reveal the tab that opens it.
+            els.structure.hidden = true;
+            if (els.areasTab) els.areasTab.hidden = false;
+          } else {
+            // Non-members browse the hub inline above the join gate (unchanged).
+            els.structure.hidden = false;
+          }
           renderImpact(impact);
           renderAreas();
           renderProjects(projects);
@@ -2653,6 +2711,11 @@ const SHELL_ENABLED = isShellEnabled('community');
     display: flex;
     flex-direction: column;
   }
+  /* The Action Areas view toggles these off via the hidden attribute; flex/grid
+     display would otherwise win over the UA [hidden] rule. */
+  .post-list[hidden],
+  .compose-trigger[hidden],
+  .load-more-wrap[hidden] { display: none; }
 
   /* ── Post card (flat, border-bottom divider) ── */
   .post-card {
