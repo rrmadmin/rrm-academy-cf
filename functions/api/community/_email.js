@@ -119,10 +119,11 @@ export async function notifyNewPost(env, db, post, authorName) {
 
   if (!members.results.length) return;
 
+  // No UTM/tracking params on member-email links by rule: these emails must read as
+  // personal/transactional (from Dr. Naomi), not bulk marketing. Arrivals are still
+  // captured by the fingerprint worker on the landing page (a BaseLayout page).
+  const link = `${SITE_URL}/community/post/${post.id}`;
   const isEvent = post.type === 'event';
-  // utm_* so GA4 + the fingerprint worker attribute these arrivals to the STUC
-  // member broadcast (email referrers are stripped, so the tag is the only signal).
-  const link = `${SITE_URL}/community/post/${post.id}?utm_source=stuc&utm_medium=email&utm_campaign=${isEvent ? 'event' : 'post'}-broadcast`;
   const safeAuthor = escapeHtml(authorName);
   const from = isEvent ? STUC_BROADCAST_SENDER : authorFrom(post.authorId, authorName);
 
