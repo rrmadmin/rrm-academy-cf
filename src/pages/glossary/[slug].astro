@@ -12,6 +12,7 @@ import { isShellEnabled } from '../../lib/shell-routes';
 import GlossaryTerm from '../../components/GlossaryTerm.astro';
 import LastUpdated from '../../components/LastUpdated.astro';
 import glossaryData from '../../data/glossary.json';
+import glossarySameAs from '../../data/glossary-sameas.json';
 import { safeJsonLd } from '../../lib/jsonld';
 
 const SHELL_ENABLED = isShellEnabled('guides');
@@ -126,6 +127,10 @@ const definedTermSchema: Record<string, unknown> = {
   subjectOf: { '@id': WEBPAGE_ID },
 };
 if (term.abbreviation) definedTermSchema.termCode = term.abbreviation;
+// sameAs: authoritative entity identifiers (Wikidata QID + MeSH/NCI/MedlinePlus/Wikipedia)
+// that disambiguate this term against the knowledge graph. Concept-match verified.
+const _termSameAs = (glossarySameAs as Record<string, string[]>)[term.slug];
+if (Array.isArray(_termSameAs) && _termSameAs.length) definedTermSchema.sameAs = _termSameAs;
 
 // Block 2: MedicalWebPage (page wrapper)
 const medicalWebPageSchema: Record<string, unknown> = {

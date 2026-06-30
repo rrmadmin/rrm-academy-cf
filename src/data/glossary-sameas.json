@@ -1,0 +1,78 @@
+{
+ "ivf": [
+  "https://www.wikidata.org/wiki/Q200117",
+  "https://meshb.nlm.nih.gov/record/ui?ui=D005307",
+  "https://ncithesaurus.nci.nih.gov/ncitbrowser/ConceptReport.jsp?dictionary=NCI_Thesaurus&code=C16580",
+  "https://medlineplus.gov/ency/article/007279.htm",
+  "https://en.wikipedia.org/wiki/In_vitro_fertilisation"
+ ],
+ "endometriosis": [
+  "https://www.wikidata.org/wiki/Q205764",
+  "https://meshb.nlm.nih.gov/record/ui?ui=D004715",
+  "https://ncithesaurus.nci.nih.gov/ncitbrowser/ConceptReport.jsp?dictionary=NCI_Thesaurus&code=C3014",
+  "https://medlineplus.gov/endometriosis.html",
+  "https://en.wikipedia.org/wiki/Endometriosis"
+ ],
+ "hsg": [
+  "https://www.wikidata.org/wiki/Q515623",
+  "https://meshb.nlm.nih.gov/record/ui?ui=D007047",
+  "https://medlineplus.gov/ency/article/003404.htm",
+  "https://en.wikipedia.org/wiki/Hysterosalpingography"
+ ],
+ "uterine-septum": [
+  "https://www.wikidata.org/wiki/Q7902656",
+  "https://meshb.nlm.nih.gov/record/ui?ui=D000093665",
+  "https://en.wikipedia.org/wiki/Uterine_septum"
+ ],
+ "azoospermia": [
+  "https://www.wikidata.org/wiki/Q794026",
+  "https://meshb.nlm.nih.gov/record/ui?ui=D053713",
+  "https://ncithesaurus.nci.nih.gov/ncitbrowser/ConceptReport.jsp?dictionary=NCI_Thesaurus&code=C80076",
+  "https://en.wikipedia.org/wiki/Azoospermia"
+ ],
+ "icsi": [
+  "https://www.wikidata.org/wiki/Q28700",
+  "https://meshb.nlm.nih.gov/record/ui?ui=D020554",
+  "https://ncit.nci.nih.gov/ncitbrowser/ConceptReport.jsp?dictionary=NCI_Thesaurus&code=C185482",
+  "https://medlineplus.gov/ency/anatomyvideos/000074.htm",
+  "https://en.wikipedia.org/wiki/Intracytoplasmic_sperm_injection"
+ ],
+ "bbt": [
+  "https://www.wikidata.org/wiki/Q8973919",
+  "https://en.wikipedia.org/wiki/Basal_body_temperature"
+ ],
+ "pcos": [
+  "https://www.wikidata.org/wiki/Q500816",
+  "https://meshb.nlm.nih.gov/record/ui?ui=D011085",
+  "https://api-evsrest.nci.nih.gov/api/v1/concept/ncit/search?term=Polycystic+Ovary+Syndrome&type=contains&include=definitions&pageSize=5",
+  "https://medlineplus.gov/polycysticovarysyndrome.html",
+  "https://en.wikipedia.org/wiki/Polyendocrine_metabolic_ovarian_syndrome"
+ ],
+ "follicle-stimulation": [
+  "https://www.wikidata.org/wiki/Q3150564",
+  "https://meshb.nlm.nih.gov/record/ui?ui=D010062",
+  "https://en.wikipedia.org/wiki/Ovulation_induction"
+ ],
+ "amh": [
+  "https://www.wikidata.org/wiki/Q21108939",
+  "https://meshb.nlm.nih.gov/record/ui?ui=D054304",
+  "https://ncithesaurus.nci.nih.gov/ncitbrowser/ConceptReport.jsp?dictionary=NCI_Thesaurus&code=C101737",
+  "https://en.wikipedia.org/wiki/Anti-M%C3%BCllerian_hormone"
+ ],
+ "fertile-window": [
+  "https://meshb.nlm.nih.gov/record/ui?ui=D046910"
+ ],
+ "laparoscopy-diagnostic": [
+  "https://www.wikidata.org/wiki/Q675754",
+  "https://meshb.nlm.nih.gov/record/ui?ui=D010535",
+  "https://api-evsrest.nci.nih.gov/api/v1/concept/ncit/search?term=diagnostic+laparoscopy&type=contains&include=definitions&pageSize=5",
+  "https://medlineplus.gov/lab-tests/laparoscopy/",
+  "https://en.wikipedia.org/wiki/Laparoscopy"
+ ],
+ "coq10-fertility-use": [
+  "https://www.wikidata.org/wiki/Q321285",
+  "https://meshb.nlm.nih.gov/record/ui?ui=D014451",
+  "https://ncithesaurus.nci.nih.gov/ncitbrowser/ConceptReport.jsp?dictionary=NCI_Thesaurus&code=C916",
+  "https://en.wikipedia.org/wiki/Coenzyme_Q10"
+ ]
+}
