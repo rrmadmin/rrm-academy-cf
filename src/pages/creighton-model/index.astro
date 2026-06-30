@@ -74,7 +74,7 @@ const pageSchema = {
       inLanguage: 'en',
       isPartOf: { '@id': 'https://rrmacademy.org/#website' },
       datePublished: '2026-06-12',
-      dateModified: '2026-06-12',
+      dateModified: '2026-06-30',
       about: {
         '@type': 'MedicalProcedure',
         name: 'Creighton Model FertilityCare System (CrMS)',
@@ -90,6 +90,7 @@ const pageSchema = {
       publisher: { '@id': 'https://rrmacademy.org/#organization' },
       copyrightHolder: { '@id': 'https://rrmacademy.org/#organization' },
       mainEntityOfPage: PAGE_URL,
+      image: { '@id': `${PAGE_URL}#primaryimage` },
       significantLink: [
         'https://rrmacademy.org/what-is-rrm/',
         'https://rrmacademy.org/naprotechnology/',
@@ -217,6 +218,18 @@ const pageSchema = {
         'https://orcid.org/0000-0003-3706-3112',
         'https://npiregistry.cms.hhs.gov/provider-view/1881034908',
       ],
+    },
+    {
+      '@type': 'ImageObject',
+      '@id': `${PAGE_URL}#primaryimage`,
+      url: 'https://rrmacademy.org/images/creighton-model/creighton-at-a-glance.webp',
+      contentUrl: 'https://rrmacademy.org/images/creighton-model/creighton-at-a-glance.webp',
+      width: 1040,
+      height: 875,
+      caption: 'The Creighton Model FertilityCare System at a glance: what it tracks, how it is taught, method-related pregnancy rate, and its role as the diagnostic chart for NaProTechnology.',
+      representativeOfPage: true,
+      creditText: 'RRM Academy',
+      author: { '@id': 'https://rrmacademy.org/#organization' },
     },
   ],
 };
@@ -361,6 +374,19 @@ const faqs = [
 >
   <span data-pagefind-meta="type:Guide" style="display:none"></span>
   <span data-pagefind-meta="title:Creighton Model FertilityCare System (CrMS): A Clinician-Reviewed Guide" style="display:none"></span>
+
+  <figure class="hero-figure">
+    <img
+      src="/images/creighton-model/creighton-at-a-glance.webp"
+      width="1040"
+      height="875"
+      loading="eager"
+      fetchpriority="high"
+      decoding="async"
+      alt="The Creighton Model FertilityCare System at a glance: standardized cervical-mucus charting with coded stamps, taught by a certified FertilityCare Practitioner, with a method-related pregnancy of 0.14 per 100 couples at 12 months, serving as the diagnostic chart for NaProTechnology."
+    />
+    <figcaption>The Creighton Model at a glance. The 0.14 figure is a net life-table, method-related probability (Howard and Stanford 1999); a standard typical-use rate is not defined. Details and citations below.</figcaption>
+  </figure>
 
   <section id="crms-chart-dual-purpose">
     <h2>The Creighton chart is two things at once</h2>
@@ -576,6 +602,24 @@ const faqs = [
 </GuideLayout>
 
 <style>
+  .hero-figure {
+    margin: var(--space-6) 0 var(--space-8);
+  }
+  .hero-figure img {
+    display: block;
+    width: 100%;
+    height: auto;
+    max-width: 720px;
+    border-radius: var(--radius-md);
+    border: 1px solid var(--border-color);
+  }
+  .hero-figure figcaption {
+    margin-top: var(--space-2);
+    font-size: 0.8125rem;
+    color: var(--text-secondary);
+    line-height: 1.5;
+  }
+
   .references {
     font-size: 0.8125rem;
     line-height: 1.7;
