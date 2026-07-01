@@ -1,6 +1,7 @@
 ---
 import BaseLayout from '../../layouts/BaseLayout.astro';
 import articlesData from '../../data/articles.json';
+import superheroes from '../../data/superheroes.json';
 
 // Live count, mirroring the donate/homepage pattern so this stat never drifts.
 const libraryCountRounded = (Math.floor(articlesData.length / 1000) * 1000).toLocaleString();
@@ -36,53 +37,77 @@ const jsonLd = {
       <!-- Hero -->
       <section class="stuc-hero">
         <h1>Save the Uterus Club</h1>
-        <p class="stuc-tagline">Creating a different kind of healthcare model.</p>
-        <p class="stuc-subtext">One where the uterus isn't blamed for every problem. Where surgery isn't the first answer. Where women and couples get real answers about what's actually wrong. And real treatment to fix it.</p>
+        <p class="stuc-tagline">Creating a different kind of healthcare model, from the inside out.</p>
+        <p class="stuc-subtext">This is where the next study, the next advocacy fight, and Dr. Whittaker's answer on tonight's live call reach members first, before anyone outside the room hears about it.</p>
         <p class="stuc-login-hint" id="stuc-login-hint">Already a member? <a href="/login/?redirect=/save-the-uterus-club/">Log in</a></p>
         <p class="stuc-join-hint" id="stuc-join-hint">Ready to join? <a href="#tiers">See membership options</a></p>
       </section>
 
-      <section class="stuc-intro">
-        <p>Women are told their pain is normal. They're handed suppressive medications without investigation. Offered hysterectomy before anyone looks for the root cause. These reproductive health issues have been secretly getting worse with age. And no one told them.</p>
-        <p>That's not medicine. That's abandonment.</p>
-        <p>Most women don't even know there's another option. That's why the Save the Uterus Club exists.</p>
-      </section>
-
-      <section class="stuc-positioning">
-        <p>Save the Uterus Club is the community and collaboration arm of RRM Academy. It brings patients, clinicians, researchers, and advocates into the same space to work toward one goal: restorative reproductive medicine becoming the standard of care.</p>
-        <p>Patients and couples come here to find providers who dig for the root cause, learn from real research written in plain language, and meet others navigating similar diagnoses. Clinicians, researchers, and advocates come here to train each other, share their work, and grow the field together.</p>
-        <p>Here's what that looks like, depending on where you're standing.</p>
+      <section class="stuc-section stuc-story">
+        <h2>Two Tuesdays</h2>
+        <p>Picture the same woman on two Tuesdays, five months apart.</p>
+        <p>First Tuesday: an exam room, fluorescent light, the visit already timed. She describes the pain again, the kind that cancels plans, the kind she's rationed ibuprofen against for years. The answer arrives before she's finished asking. Normal, for some women. A prescription. Nothing that touches why.</p>
+        <p>Second Tuesday: same woman, laptop open at her kitchen table, joining a Save the Uterus Club live call already in progress. Dr. Whittaker is on screen, walking through cycle charts, lab timing, what a real workup actually looks like. This member asks the question she'd rehearsed for a year, the one she never got fifteen minutes for in an exam room. She gets a real answer. So does everyone else logged in with her.</p>
+        <p>That second Tuesday is why the Save the Uterus Club exists. It happens most months, and it's the reason members keep showing up.</p>
       </section>
 
       <hr class="divider" />
 
-      <!-- Who This Is For -->
       <section class="stuc-section">
-        <h2>Who This Is For</h2>
+        <h2>What the Club Actually Is</h2>
+        <p>Save the Uterus Club is the community and collaboration arm of RRM Academy, and it runs less like a newsletter and more like a newsroom with one beat: restorative reproductive medicine becoming the standard of care.</p>
+        <p>Members often hear about new research before it reaches anyone's Instagram feed. They watch an advocacy letter take shape in the Uterus Allies chat weeks before the public sees it. They ask Dr. Whittaker a question on a live call and get the kind of answer she'd give in an exam room.</p>
+        <p>That's the trade: members fund the work, and in exchange they get to watch it happen, and help shape it, from inside the room.</p>
+      </section>
+
+      <hr class="divider" />
+
+      <!-- Meet the Uterus Super Heroes -->
+      <section class="stuc-section stuc-spotlight">
+        <h2>Meet the Uterus Super Heroes</h2>
+        <p>Two women back the club at its top tier: $99 a month, with a seat at Dr. Whittaker's live quarterly Q&amp;A and a logo on the RRM Academy homepage. Their support funds a real share of what gets built. Here's who they are.</p>
+        <div class="spotlight-grid">
+          {superheroes.map((s) => (
+            <div class="card spotlight-card">
+              <a href={s.url} target="_blank" rel="noopener" class={`spotlight-logo spotlight-logo--${s.logoShape}`}>
+                <img src={s.logo} alt={`${s.org} logo`} loading="lazy" decoding="async" />
+              </a>
+              <h3>{s.name}</h3>
+              <p class="spotlight-org"><a href={s.url} target="_blank" rel="noopener">{s.org}</a></p>
+              <p class="spotlight-blurb">{s.blurb}</p>
+            </div>
+          ))}
+        </div>
+      </section>
+
+      <hr class="divider" />
+
+      <!-- What You're Let In On -->
+      <section class="stuc-section">
+        <h2>What You're Let In On</h2>
+        <p>Depending on where you're standing, the club looks like two different rooms.</p>
         <div class="audience-grid">
 
           <div class="card audience-track">
             <h3>If you're a patient</h3>
-            <p>Whether you're facing endometriosis, PCOS, infertility, recurrent loss, or pain no one has taken seriously, this is where you start getting real answers.</p>
+            <p>Whether it's endometriosis, PCOS, infertility, recurrent loss, or pain no one has taken seriously, this is the side of the room where you start getting real answers.</p>
             <ul>
-              <li>Get help finding restorative-minded care from women who've been where you are.</li>
-              <li>Get research from the RRM Research Library translated into plain language you can actually use.</li>
-              <li>Meet other women who've faced the same diagnosis.</li>
-              <li>Join a community built specifically around your condition.</li>
-              <li>Get an approach that treats both partners. Male factor accounts for about half of all fertility challenges.</li>
-              <li>Attend live Q&amp;As and events with clinicians who treat the underlying cause.</li>
+              <li>Hear what other members have learned about finding root-cause-minded care.</li>
+              <li>Get research translated into language you can bring to your next appointment.</li>
+              <li>Meet other women working through your exact diagnosis.</li>
+              <li>Ask your question on a live call and get a real answer.</li>
+              <li>Bring your partner into the picture. Fertility is a couple's issue, and male factor accounts for about half of all fertility challenges.</li>
             </ul>
           </div>
 
           <div class="card audience-track">
             <h3>If you're a provider or advocate</h3>
-            <p>Whether you're a clinician, a researcher, or someone who has watched a person you love get dismissed by the system, this is where you help build the change.</p>
+            <p>Whether you're a clinician, a researcher, or someone who has watched a person you love get dismissed, this is where the work gets built.</p>
             <ul>
-              <li>Grow your professional presence within a community already committed to restorative, cause-based care.</li>
-              <li>Connect directly with patients looking for a clinician who treats the underlying cause.</li>
-              <li>Collaborate with other clinicians, researchers, and FertilityCare Practitioners on research and advocacy.</li>
-              <li>Share your expertise through the Research Library, live Q&amp;As, and educational content.</li>
-              <li>Access speaking opportunities and help train the next clinician who wants to practice this way.</li>
+              <li>Join a community already organized around restorative, cause-based care.</li>
+              <li>Get a hand in the research and advocacy work as it takes shape in the Uterus Allies chat.</li>
+              <li>Share your expertise through live Q&amp;As and educational content.</li>
+              <li>Get a seat at the table when the next educational push gets planned.</li>
               <li>Take part as a partner, family member, or friend; the movement needs advocates as much as clinicians.</li>
             </ul>
           </div>
@@ -92,19 +117,19 @@ const jsonLd = {
 
       <hr class="divider" />
 
-      <!-- What We're Building Together -->
+      <!-- What's Being Built Right Now -->
       <section class="stuc-section">
-        <h2>What We're Building Together</h2>
-        <p>A future where:</p>
+        <h2>What's Being Built Right Now</h2>
+        <p>This is the long game, and it's already moving through the group chat, the live calls, and the research queue:</p>
         <ol class="goals-list">
-          <li><strong>Uteruses are valued</strong> instead of treated as disposable</li>
-          <li><strong>Women know their rights</strong> and what good care looks like</li>
-          <li><strong>Surgery is never offered</strong> without thorough investigation first</li>
-          <li><strong>Painful periods trigger diagnosis.</strong> Not dismissal.</li>
-          <li><strong>Couples get real answers</strong> about what's wrong and how to address it together</li>
-          <li><strong>Restorative reproductive medicine</strong> is the standard of care. Not the exception.</li>
+          <li><strong>Uteruses valued</strong> instead of treated as disposable</li>
+          <li><strong>Women who know their rights</strong> and what good care actually looks like</li>
+          <li><strong>Surgery that never gets offered</strong> without a real investigation first</li>
+          <li><strong>Painful periods that trigger a real diagnosis</strong></li>
+          <li><strong>Couples who get real answers</strong> about what's wrong, and how to fix it, together</li>
+          <li><strong>Restorative reproductive medicine</strong> recognized as the standard of care</li>
         </ol>
-        <p>This doesn't happen without funding. Without education. Without a community of people who refuse to accept inadequate care as normal. That's what your membership builds.</p>
+        <p>None of it happens without funding, without education, without a community of people who refuse to call inadequate care normal. That's what a membership builds: one call, one study, one advocacy letter at a time.</p>
       </section>
 
       <hr class="divider" />
@@ -112,13 +137,13 @@ const jsonLd = {
       <!-- What Your Membership Does -->
       <section class="stuc-section">
         <h2>What Your Membership Does</h2>
-        <p>Every monthly donation funds the work that changes how women and couples access real care:</p>
+        <p>Here's where the money goes, month over month.</p>
         <ul class="membership-benefits">
-          <li><strong>Education</strong> that reaches over 1,000,000 people monthly. Women discovering for the first time that their pain isn't normal. That endometriosis can be treated, not just managed. That fertility problems have causes. And those causes can often be addressed.</li>
-          <li><strong>Research made accessible.</strong> Over {libraryCountRounded} academic resources in the RRM Research Library. Peer-reviewed evidence translated into information women and couples can actually use to advocate for themselves.</li>
-          <li><strong>Training for medical professionals</strong> who want to practice cause-based medicine. Who want to find the root cause instead of masking symptoms with suppressive medications.</li>
-          <li><strong>A space for healing.</strong> Platforms where women can share their experiences of medical dismissal and reproductive trauma. You are not alone in what you've been through.</li>
-          <li><strong>Better care for every woman and couple who comes after you.</strong> Every resource we create, every professional we train, every woman who learns she deserves answers. That's because of members like you.</li>
+          <li><strong>Education</strong> that reaches over 1,000,000 people monthly. Women discovering for the first time that their pain isn't normal, that endometriosis can be treated rather than managed, that fertility problems have causes that can often be addressed.</li>
+          <li><strong>Research made accessible.</strong> Over {libraryCountRounded} academic resources in the RRM Research Library, peer-reviewed evidence translated into language women and couples can actually use.</li>
+          <li><strong>Training for medical professionals</strong> who want to practice cause-based medicine, finding the root cause behind the symptoms they're currently taught to suppress.</li>
+          <li><strong>A space for healing,</strong> where women share what medical dismissal and reproductive trauma actually felt like, and learn they were never the only one.</li>
+          <li><strong>Better care for every woman and couple who comes after you,</strong> built by the members who came before them.</li>
         </ul>
         <p class="footnote">Your donation supports the RRM Foundation's operating fund. All donations are tax-deductible (we're a registered 501(c)(3), EIN: 93-4594315).</p>
       </section>
@@ -158,6 +183,7 @@ const jsonLd = {
       <!-- Membership Tiers -->
       <section class="stuc-section" id="tiers">
         <h2>Membership Tiers</h2>
+        <p>Three ways to be part of what happens next. All of it funds the same work; the tiers just decide how far inside the room you sit.</p>
         <div class="tier-grid">
 
           <div class="tier-card card">
@@ -280,8 +306,8 @@ const jsonLd = {
 
       <!-- Bottom CTA -->
       <section class="stuc-bottom-cta">
-        <p>The healthcare model that dismisses women. That offers surgery before investigation. That bypasses root causes instead of treating them.</p>
-        <p>That model only changes when enough people demand better.</p>
+        <p>The exam-room Tuesday is still happening to someone else right now, in a different room. The next call is already on the calendar. The next study is already in the queue.</p>
+        <p>The only open question is whether you're in the room when it happens.</p>
         <a href="#tiers" class="btn btn--primary btn--lg">Join Us</a>
         <p class="footnote stuc-tax-note">All donations to the Restorative Reproductive Medicine Foundation, a 501(c)(3) non-profit, are tax-deductible. EIN: 93-4594315</p>
       </section>
@@ -515,16 +541,72 @@ const jsonLd = {
     text-decoration: underline;
   }
 
-  /* Intro prose */
-  .stuc-intro,
-  .stuc-positioning {
-    margin-bottom: var(--space-6);
-  }
-  .stuc-intro p,
-  .stuc-positioning p {
+  /* Story + section prose */
+  .stuc-story p {
     font-size: 0.9375rem;
     line-height: 1.8;
     color: var(--text-secondary);
+  }
+
+  /* Super Hero spotlight */
+  .spotlight-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: var(--space-5);
+    margin-top: var(--space-5);
+  }
+  @media (min-width: 640px) {
+    .spotlight-grid {
+      grid-template-columns: repeat(2, 1fr);
+    }
+  }
+  .spotlight-card {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+  }
+  .spotlight-logo {
+    display: inline-flex;
+    align-items: center;
+    margin-bottom: var(--space-3);
+    min-height: 64px;
+  }
+  .spotlight-logo img {
+    display: block;
+    max-width: 100%;
+    height: auto;
+  }
+  .spotlight-logo--square img {
+    width: 64px;
+    height: 64px;
+    border-radius: var(--radius-md);
+  }
+  .spotlight-logo--wide img {
+    width: 180px;
+  }
+  .spotlight-card h3 {
+    font-size: 1.125rem;
+    margin-bottom: 0;
+  }
+  .spotlight-org {
+    font-size: 0.8125rem;
+    font-weight: 600;
+    letter-spacing: 0.03em;
+    text-transform: uppercase;
+    margin: 0 0 var(--space-3);
+  }
+  .spotlight-org a {
+    color: var(--accent);
+    text-decoration: none;
+  }
+  .spotlight-org a:hover {
+    text-decoration: underline;
+  }
+  .spotlight-blurb {
+    font-size: 0.875rem;
+    line-height: 1.75;
+    color: var(--text-secondary);
+    margin: 0;
   }
 
   /* Sections */
