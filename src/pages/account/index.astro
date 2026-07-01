@@ -205,16 +205,6 @@ for (const c of coursesData) {
             <a href="/account/mcp-keys/" class="btn btn--secondary btn--sm" style="margin-top: var(--space-4); display: inline-flex;">Manage keys</a>
           </div>
 
-          <!-- 6. Privacy: forget this browser's device link + visitor cookie -->
-          <div class="account-section" id="privacy-section">
-            <h2>Privacy</h2>
-            <p class="account-placeholder">"Forget my devices" disconnects this browser from your account history and clears the visitor cookie we use to recognize returning devices. Your account, courses, and membership stay intact.</p>
-            <div id="forget-devices-feedback" class="profile-feedback" hidden>
-              <p id="forget-devices-feedback-text"></p>
-            </div>
-            <button id="forget-devices-btn" class="btn btn--secondary btn--sm privacy-forget-btn">Forget my devices</button>
-          </div>
-
         </div>
 
         <!-- Course metadata for client-side rendering (cover images, titles, slugs from courses.json) -->
@@ -676,46 +666,6 @@ for (const c of coursesData) {
             btn.textContent = 'Manage Billing';
           });
       });
-
-      // --- Forget my devices (fingerprint worker /unlink) ---
-      var forgetBtn = document.getElementById('forget-devices-btn');
-      var forgetFeedback = document.getElementById('forget-devices-feedback');
-      var forgetFeedbackText = document.getElementById('forget-devices-feedback-text');
-      var fpHost = location.hostname.endsWith('rrm.foundation') ? 'fp.rrm.foundation' : 'fp.rrmacademy.org';
-
-      function showForgetFeedback(msg, ok) {
-        forgetFeedbackText.textContent = msg;
-        forgetFeedback.className = 'profile-feedback ' + (ok ? 'profile-feedback--success' : 'profile-feedback--error');
-        forgetFeedback.hidden = false;
-      }
-
-      if (forgetBtn) {
-        forgetBtn.addEventListener('click', function () {
-          forgetBtn.disabled = true;
-          forgetBtn.textContent = 'Forgetting...';
-          forgetFeedback.hidden = true;
-          fetch('/api/fp/unlink-session', { method: 'POST', credentials: 'same-origin' })
-            .then(function (r) { return r.json().then(function (d) { return { status: r.status, data: d }; }); })
-            .then(function (res) {
-              if (res.status !== 200 || !res.data || !res.data.ok) throw new Error('session');
-              return fetch('https://' + fpHost + '/unlink', { method: 'POST', credentials: 'include' });
-            })
-            .then(function (r) { return r.json(); })
-            .then(function (data) {
-              if (data && data.clear_storage) {
-                try { localStorage.removeItem('rrm_vid'); } catch (_e) { /* storage disabled */ }
-              }
-              if (!data || !data.ok) throw new Error('unlink');
-              showForgetFeedback('This browser has been disconnected and the visitor cookie was cleared.', true);
-              forgetBtn.textContent = 'Devices forgotten';
-            })
-            .catch(function () {
-              forgetBtn.disabled = false;
-              forgetBtn.textContent = 'Forget my devices';
-              showForgetFeedback('Something went wrong. Please try again.', false);
-            });
-        });
-      }
     })();
   </script>
 </BaseLayout>
@@ -764,7 +714,6 @@ for (const c of coursesData) {
   .account-details dt { font-weight: 500; color: var(--text-secondary); }
   .account-details dd { color: var(--text-primary); }
   .account-placeholder { color: var(--text-muted); font-size: 0.875rem; }
-  .privacy-forget-btn { margin-top: var(--space-4); }
 
   .profile-edit-form .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: var(--space-4); }
   @media (max-width: 640px) { .profile-edit-form .form-row { grid-template-columns: 1fr; } }
