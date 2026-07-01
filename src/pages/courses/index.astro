@@ -16,11 +16,17 @@ const visibleCourses = coursesData.filter(isVisible);
 // Topic pills are derived from whatever topics actually appear on visible
 // courses (server-rendered order, not the client's DOM order) -- no
 // hardcoded taxonomy to keep in sync as courses are added/retagged.
-const topicSet = new Set<string>();
+const topicSet = new Map<string, string>();
 for (const course of visibleCourses) {
-  for (const topic of (course as any).topics ?? []) topicSet.add(topic);
+  for (const topic of (course as any).topics ?? []) {
+    if (typeof topic !== 'string') continue;
+    const trimmed = topic.trim();
+    if (!trimmed || trimmed.toLowerCase() === 'all') continue;
+    const key = trimmed.toLowerCase();
+    if (!topicSet.has(key)) topicSet.set(key, trimmed);
+  }
 }
-const allTopics = [...topicSet].sort((a, b) => a.localeCompare(b));
+const allTopics = [...topicSet.values()].sort((a, b) => String(a).localeCompare(String(b)));
 
 const itemListNode = {
   '@type': 'ItemList',
@@ -172,7 +178,7 @@ const jsonLd = {
           <div
             class="course-card-wrap"
             data-cost={course.isFree ? 'free' : 'paid'}
-            data-topics={((course as any).topics ?? []).join('|')}
+            data-topics={JSON.stringify(((course as any).topics ?? []).filter((t: unknown) => typeof t === 'string'))}
             data-title={course.title}
             data-price={course.isFree ? 0 : (course.priceCents ?? 0)}
           >
@@ -290,9 +296,15 @@ const jsonLd = {
           let visibleCount = 0;
           for (const card of cards) {
             const cost = card.dataset.cost;
-            const topics = (card.dataset.topics || '').split('|').filter(Boolean);
+            let topics: string[];
+            try {
+              topics = JSON.parse(card.dataset.topics || '[]');
+            } catch {
+              topics = [];
+            }
+            if (!Array.isArray(topics)) topics = [];
             const costMatch = costFilter === 'all' || cost === costFilter;
-            const topicMatch = topicFilter === 'all' || topics.includes(topicFilter);
+            const topicMatch = topicFilter === 'all' || topics.some((t) => typeof t === 'string' && t.trim().toLowerCase() === topicFilter.toLowerCase());
             const visible = costMatch && topicMatch;
             card.hidden = !visible;
             if (visible) visibleCount++;

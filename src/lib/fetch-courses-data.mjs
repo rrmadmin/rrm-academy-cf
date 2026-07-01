@@ -167,6 +167,10 @@ async function fetchSingle(recordId) {
     console.error(`FATAL: step count after merge is ${steps} (floor: ${STEP_FLOOR}). Possible D1 data loss. Leaving courses.json untouched.`);
     process.exit(1);
   }
+  const coursesWithTopics = courses.filter(c => c.topics?.length > 0).length;
+  if (coursesWithTopics === 0) {
+    console.warn(`WARN: 0/${courses.length} courses have any topics. Structural counts (sections/steps) look fine, but this may indicate topics_json data loss.`);
+  }
 
   mkdirSync(dirname(OUTPUT_PATH), { recursive: true });
   const tmpPath = OUTPUT_PATH + '.tmp';
@@ -249,6 +253,10 @@ async function fetchAll() {
   if (steps < STEP_FLOOR) {
     console.error(`FATAL: step count after merge is ${steps} (floor: ${STEP_FLOOR}). Possible D1 data loss. Leaving courses.json untouched.`);
     process.exit(1);
+  }
+  const coursesWithTopics = courses.filter(c => c.topics?.length > 0).length;
+  if (coursesWithTopics === 0) {
+    console.warn(`WARN: 0/${courses.length} courses have any topics. Structural counts (sections/steps) look fine, but this may indicate topics_json data loss.`);
   }
 
   mkdirSync(dirname(OUTPUT_PATH), { recursive: true });
