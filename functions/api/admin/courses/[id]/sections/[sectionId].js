@@ -296,7 +296,7 @@ export async function onRequestDelete(context) {
 
     const allR2Keys = [...audioKeys, ...attachmentKeys];
     if (allR2Keys.length > 0 && env.R2_ASSETS) {
-      waitUntil(Promise.all(allR2Keys.map(k => env.R2_ASSETS.delete(k).catch(() => {}))));
+      waitUntil(Promise.all(allR2Keys.map(k => env.R2_ASSETS.delete(k).catch(r2Err => log(env, waitUntil, 'admin-courses', 'section_delete_r2_error', 'error', `${k}: ${r2Err.message}`, 0, 500)))));
     }
 
     return json({ ok: true });
