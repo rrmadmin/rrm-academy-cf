@@ -151,7 +151,7 @@
       "note": "Guard script (self-guarding)"
     },
     "functions/api/auth/verify-email.js": {
-      "hash": "8c75de3c01008c4982c69b80f822dfbe2761ea62bd09c99800f32248b8cb5a86",
+      "hash": "4f3ba26cef3d5357d7068e894ae7286223da29bd29c81eec916e16cfcdfedf24",
       "note": "Email verification token consumption"
     },
     "functions/api/auth/logout.js": {
