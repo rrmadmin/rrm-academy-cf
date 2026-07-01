@@ -127,12 +127,17 @@ function parseCheckSets(tableBody) {
 
 /**
  * Within a table body, return Set(column names). A column line starts (after
- * optional whitespace / newline) with an identifier followed by a SQLite type.
+ * optional whitespace / newline / comma) with an identifier followed by a
+ * SQLite type. The leading-comma alternative matters because `ALTER TABLE
+ * ADD COLUMN` splices the new column in ahead of the closing paren as
+ * `\n, colname TYPE)` rather than giving it its own comma-terminated line
+ * like the original CREATE TABLE columns -- without it, any column added via
+ * ALTER TABLE is invisible to this parser and CS2 false-fails as "missing".
  * Constraint lines (CHECK/PRIMARY/FOREIGN/UNIQUE/CONSTRAINT) don't match.
  */
 function parseColumns(tableBody) {
   const out = new Set();
-  const re = /(?:^|\n)\s*["`]?(\w+)["`]?\s+(TEXT|INTEGER|REAL|BLOB|NUMERIC)\b/gi;
+  const re = /(?:^|\n|,)\s*["`]?(\w+)["`]?\s+(TEXT|INTEGER|REAL|BLOB|NUMERIC)\b/gi;
   let m;
   while ((m = re.exec(tableBody)) !== null) {
     const name = m[1].toLowerCase();
