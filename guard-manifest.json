@@ -23,7 +23,7 @@
       "note": "Reset token consumption + password change"
     },
     "functions/api/auth/change-password.js": {
-      "hash": "d4a29ddf65f8e6e7be17f97844fdb62f258200f321bc351d85cc6069da410132",
+      "hash": "98b00bc90dd916f15e62bb1836cd2e6f7e32a032a2467d27ab1e52a643763bfc",
       "note": "Authenticated password change"
     },
     "functions/api/auth/google.js": {

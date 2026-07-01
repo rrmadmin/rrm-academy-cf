@@ -17,6 +17,7 @@ export async function onRequestOptions() {
 }
 
 export async function onRequestPost({ request, env, waitUntil }) {
+  let responseHeaders = {};
   try {
     const db = env.DB;
     if (!db) return json({ ok: false, error: 'Server misconfigured' }, 500);
@@ -26,43 +27,51 @@ export async function onRequestPost({ request, env, waitUntil }) {
     const session = await validateSession(db, sessionId);
     if (!session) return json({ ok: false, error: 'Not logged in.' }, 401);
 
+    // Build renewed-cookie headers once so every return path after this point
+    // carries them (rate limit/validation early returns included) — the final
+    // success response overrides with a brand-new session, so this only
+    // matters for the error paths below.
+    if (session.renewed) {
+      responseHeaders['Set-Cookie'] = [sessionCookie(session.cookieId, session.expiresAt), authHintCookie(session.expiresAt)];
+    }
+
     if (!await checkRateLimit(env, `change-pw:${session.userId}`, 5, 900)) {
-      return json({ ok: false, error: 'Too many attempts. Please try again later.' }, 429);
+      return json({ ok: false, error: 'Too many attempts. Please try again later.' }, 429, responseHeaders);
     }
 
     let body;
-    try { body = await request.json(); } catch { return json({ ok: false, error: 'Invalid JSON' }, 400); }
-    if (typeof body !== 'object' || body === null || Array.isArray(body)) return json({ ok: false, error: 'Invalid payload' }, 400);
+    try { body = await request.json(); } catch { return json({ ok: false, error: 'Invalid JSON' }, 400, responseHeaders); }
+    if (typeof body !== 'object' || body === null || Array.isArray(body)) return json({ ok: false, error: 'Invalid payload' }, 400, responseHeaders);
 
     const currentPassword = body.currentPassword || '';
     const newPassword = body.newPassword || '';
 
-    if (!currentPassword || currentPassword.length > 128) return json({ ok: false, error: 'Current password is required.' }, 400);
+    if (!currentPassword || currentPassword.length > 128) return json({ ok: false, error: 'Current password is required.' }, 400, responseHeaders);
     if (!isValidPassword(newPassword)) {
       const pwErr = (typeof newPassword === 'string' && newPassword.length >= 8 && newPassword.length <= 128)
         ? COMMON_PASSWORD_ERROR
         : 'New password must be between 8 and 128 characters.';
-      return json({ ok: false, error: pwErr }, 400);
+      return json({ ok: false, error: pwErr }, 400, responseHeaders);
     }
 
     // Get user's current hashed password (email + name included for notification)
     const user = await db.prepare('SELECT id, email, name, hashed_password, google_id FROM user WHERE id = ?')
       .bind(session.userId).first();
-    if (!user) return json({ ok: false, error: 'Not authenticated.' }, 401);
+    if (!user) return json({ ok: false, error: 'Not authenticated.' }, 401, responseHeaders);
 
     if (!user.hashed_password) {
       if (user.google_id) {
-        return json({ ok: false, error: 'This account uses Google sign-in. Use "Forgot password" to set a password first.' }, 400);
+        return json({ ok: false, error: 'This account uses Google sign-in. Use "Forgot password" to set a password first.' }, 400, responseHeaders);
       }
-      return json({ ok: false, error: 'Your account doesn\'t have a password yet. Use "Forgot password" to set one.' }, 400);
+      return json({ ok: false, error: 'Your account doesn\'t have a password yet. Use "Forgot password" to set one.' }, 400, responseHeaders);
     }
 
     // Verify current password
     const valid = await verifyPassword(currentPassword, user.hashed_password);
-    if (!valid) return json({ ok: false, error: 'Current password is incorrect.' }, 401);
+    if (!valid) return json({ ok: false, error: 'Current password is incorrect.' }, 401, responseHeaders);
 
     const sameAsCurrent = await verifyPassword(newPassword, user.hashed_password);
-    if (sameAsCurrent) return json({ ok: false, error: 'New password must differ from your current password.' }, 400);
+    if (sameAsCurrent) return json({ ok: false, error: 'New password must differ from your current password.' }, 400, responseHeaders);
 
     // Hash and save new password, invalidate sessions, create fresh session — atomically
     const hashedPassword = await hashPassword(newPassword);
@@ -117,6 +126,6 @@ export async function onRequestPost({ request, env, waitUntil }) {
     );
   } catch (err) {
     log(env, waitUntil, 'auth', 'change_password_error', 'error', err.message);
-    return json({ ok: false, error: 'An unexpected error occurred. Please try again.' }, 500);
+    return json({ ok: false, error: 'An unexpected error occurred. Please try again.' }, 500, responseHeaders);
   }
 }
