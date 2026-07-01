@@ -99,7 +99,8 @@ export async function onRequestGet(context) {
 
       case 'google-callback': {
         const code = url.searchParams.get('code');
-        const cbUrl = `${baseUrl}/api/auth/google/callback?code=${encodeURIComponent(code || '')}`;
+        const state = url.searchParams.get('state');
+        const cbUrl = `${baseUrl}/api/auth/google/callback?code=${encodeURIComponent(code || '')}&state=${encodeURIComponent(state || '')}`;
         try {
           const resp = await fetch(cbUrl, { headers: workerHeaders, redirect: 'manual' });
           if (resp.status === 302) {
