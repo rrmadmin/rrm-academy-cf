@@ -1,0 +1,109 @@
+---
+// Recognition band for Uterus Super Hero members ($99/mo Save the Uterus Club
+// tier, which promises logo placement). Data-driven from superheroes.json so
+// adding a supporter is a JSON edit, no markup change.
+import superheroes from '../data/superheroes.json';
+
+interface Props {
+  heading?: string;
+}
+
+const { heading = 'Supported by our Uterus Super Heroes' } = Astro.props;
+---
+{superheroes.length > 0 && (
+  <section class="shl" aria-labelledby="shl-heading" data-pagefind-ignore>
+    <p id="shl-heading" class="shl__label">{heading}</p>
+    <ul class="shl__row">
+      {superheroes.map((s) => (
+        <li class="shl__cell">
+          <a href={s.url} target="_blank" rel="noopener" class="shl__link" title={`${s.name}, ${s.org}`}>
+            <img
+              src={s.logo}
+              alt={`${s.org} logo`}
+              class={`shl__logo shl__logo--${s.logoShape}`}
+              loading="lazy"
+              decoding="async"
+            />
+          </a>
+        </li>
+      ))}
+    </ul>
+    <p class="shl__cta"><a href="/save-the-uterus-club/">Become a Super Hero</a></p>
+  </section>
+)}
+
+<style>
+  .shl {
+    text-align: center;
+    padding: var(--space-6) 0;
+  }
+  .shl__label {
+    font-size: 0.75rem;
+    font-weight: 600;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--text-tertiary);
+    margin: 0 0 var(--space-4);
+  }
+  .shl__row {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: center;
+    gap: var(--space-6) var(--space-8);
+    list-style: none;
+    margin: 0;
+    padding: 0;
+  }
+  .shl__cell {
+    display: block;
+  }
+  .shl__link {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .shl__logo {
+    display: block;
+    max-width: 100%;
+    height: auto;
+    filter: grayscale(0.15);
+    transition: filter 0.15s, transform 0.15s;
+  }
+  .shl__link:hover .shl__logo {
+    filter: none;
+    transform: translateY(-1px);
+  }
+  .shl__logo--square {
+    width: 72px;
+    height: 72px;
+    border-radius: var(--radius-md);
+  }
+  .shl__logo--wide {
+    width: 190px;
+  }
+  .shl__cta {
+    margin: var(--space-4) 0 0;
+    font-size: 0.8125rem;
+  }
+  .shl__cta a {
+    color: var(--accent);
+    text-decoration: none;
+  }
+  .shl__cta a:hover {
+    text-decoration: underline;
+  }
+
+  @media (max-width: 480px) {
+    .shl__row {
+      gap: var(--space-5) var(--space-8);
+    }
+    .shl__logo--square {
+      width: 56px;
+      height: 56px;
+    }
+    .shl__logo--wide {
+      width: 150px;
+    }
+  }
+</style>
