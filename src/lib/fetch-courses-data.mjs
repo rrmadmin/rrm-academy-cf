@@ -45,10 +45,17 @@ function countSectionsAndSteps(courses) {
 }
 
 function sortD1Courses(courses) {
-  // Sort D1-origin courses by sortOrder ASC. Overrides MUST be filtered out
-  // before calling this -- they have no sortOrder and slot in via mergeOverrides
-  // splice afterward.
-  courses.sort((a, b) => (a.sortOrder ?? 999999) - (b.sortOrder ?? 999999));
+  // Sort D1-origin courses by createdAt DESC (newest first), matching the
+  // API's `ORDER BY created_at DESC, id DESC`. Overrides MUST be filtered out
+  // before calling this -- they have no createdAt and slot in via mergeOverrides
+  // splice afterward. A missing createdAt (shouldn't happen post-API-change)
+  // falls back to sorting last, never throws.
+  courses.sort((a, b) => {
+    const aTime = a.createdAt ?? '';
+    const bTime = b.createdAt ?? '';
+    if (bTime !== aTime) return bTime < aTime ? -1 : 1;
+    return a.id < b.id ? 1 : a.id > b.id ? -1 : 0;
+  });
   return courses;
 }
 
@@ -138,11 +145,11 @@ async function fetchSingle(recordId) {
     if (wasPresent) {
       console.log(`Updated course: ${course.slug || course.id}`);
     } else {
-      console.warn(`WARN: appended new course (not in cache): ${course.slug || course.id}. If sortOrder is undefined, course will land at end of catalog.`);
+      console.warn(`WARN: appended new course (not in cache): ${course.slug || course.id}. With a fresh createdAt, this course will sort to the FRONT of the catalog under the recency sort.`);
     }
   }
 
-  // Sort D1 courses by sortOrder so the catalog order is stable across
+  // Sort D1 courses by createdAt DESC so the catalog order is stable across
   // single-record updates (otherwise filter+push moves the updated course to
   // the end of the array).
   sortD1Courses(courses);
@@ -159,6 +166,10 @@ async function fetchSingle(recordId) {
   if (steps < STEP_FLOOR) {
     console.error(`FATAL: step count after merge is ${steps} (floor: ${STEP_FLOOR}). Possible D1 data loss. Leaving courses.json untouched.`);
     process.exit(1);
+  }
+  const coursesWithTopics = courses.filter(c => c.topics?.length > 0).length;
+  if (coursesWithTopics === 0) {
+    console.warn(`WARN: 0/${courses.length} courses have any topics. Structural counts (sections/steps) look fine, but this may indicate topics_json data loss.`);
   }
 
   mkdirSync(dirname(OUTPUT_PATH), { recursive: true });
@@ -224,8 +235,9 @@ async function fetchAll() {
     delete course.status;
   }
 
-  // Sort D1 courses by sortOrder before merging overrides (endpoint already
-  // sorts but explicit sort here is defensive against future endpoint changes).
+  // Sort D1 courses by createdAt DESC before merging overrides (endpoint
+  // already sorts but explicit sort here is defensive against future
+  // endpoint changes).
   sortD1Courses(courses);
 
   // Merge affiliate / externally-hosted courses (NOT in D1, source of truth
@@ -241,6 +253,10 @@ async function fetchAll() {
   if (steps < STEP_FLOOR) {
     console.error(`FATAL: step count after merge is ${steps} (floor: ${STEP_FLOOR}). Possible D1 data loss. Leaving courses.json untouched.`);
     process.exit(1);
+  }
+  const coursesWithTopics = courses.filter(c => c.topics?.length > 0).length;
+  if (coursesWithTopics === 0) {
+    console.warn(`WARN: 0/${courses.length} courses have any topics. Structural counts (sections/steps) look fine, but this may indicate topics_json data loss.`);
   }
 
   mkdirSync(dirname(OUTPUT_PATH), { recursive: true });

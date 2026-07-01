@@ -8,8 +8,8 @@
  *                       Steps default to status='published'. Add ?preview=1 to
  *                       include draft/archived steps (explicit preview intent).
  *   (none)            - all published courses with sections + published steps,
- *                       sorted by sort_order ASC. Sections with no published
- *                       steps are omitted from output.
+ *                       sorted by created_at DESC (most recently added first).
+ *                       Sections with no published steps are omitted from output.
  */
 import { json, optionsResponse, constantTimeEqual } from './auth/_shared.js';
 import { log } from './_log.js';
@@ -79,7 +79,7 @@ export async function onRequestGet(context) {
     }
 
     const { results: courses } = await env.DB.prepare(
-      "SELECT * FROM course WHERE status = 'published' ORDER BY sort_order ASC, id ASC"
+      "SELECT * FROM course WHERE status = 'published' ORDER BY created_at DESC, id DESC"
     ).all();
 
     if (!courses || courses.length === 0) {
@@ -167,8 +167,10 @@ function mapCourse(c, sections, steps, preview, participants = 0, renditionMap =
     includes: parseArray(c.includes_json),
     includedIn: parseArray(c.included_in_json),
     faqs: parseArray(c.faqs_json),
+    topics: parseArray(c.topics_json),
     status: c.status,
     sortOrder: c.sort_order,
+    createdAt: c.created_at,
     sections: mappedSections,
   };
 

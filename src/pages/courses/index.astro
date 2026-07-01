@@ -13,6 +13,21 @@ const SHELL_ENABLED = isShellEnabled('courses');
 const isVisible = (c: any) => !(c.comingSoon && c.accessType !== 'members');
 const visibleCourses = coursesData.filter(isVisible);
 
+// Topic pills are derived from whatever topics actually appear on visible
+// courses (server-rendered order, not the client's DOM order) -- no
+// hardcoded taxonomy to keep in sync as courses are added/retagged.
+const topicSet = new Map<string, string>();
+for (const course of visibleCourses) {
+  for (const topic of (course as any).topics ?? []) {
+    if (typeof topic !== 'string') continue;
+    const trimmed = topic.trim();
+    if (!trimmed || trimmed.toLowerCase() === 'all') continue;
+    const key = trimmed.toLowerCase();
+    if (!topicSet.has(key)) topicSet.set(key, trimmed);
+  }
+}
+const allTopics = [...topicSet.values()].sort((a, b) => String(a).localeCompare(String(b)));
+
 const itemListNode = {
   '@type': 'ItemList',
   name: 'RRM Academy Courses',
@@ -91,11 +106,249 @@ const jsonLd = {
       </section>
 
       <h2 class="sr-only">Available Courses</h2>
-      <div class="courses-grid">
+
+      <div class="courses-toolbar courses-toolbar--dropdowns">
+        <div class="courses-toolbar__row">
+          <div class="cdd" id="courses-topic-dd" data-value="all">
+            <button type="button" class="cdd-trigger" aria-haspopup="listbox" aria-expanded="false">
+              <span class="cdd-trigger__label">All Topics</span>
+              <svg class="cdd-chevron" width="14" height="14" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M6 9l6 6 6-6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            </button>
+            <div class="cdd-panel" role="listbox" aria-label="Filter by topic" hidden>
+              <button type="button" class="cdd-item" role="option" aria-selected="true" data-value="all">
+                <svg class="cdd-check" width="14" height="14" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M20 6L9 17l-5-5" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                <span>All Topics</span>
+              </button>
+              {allTopics.map((topic) => (
+                <button type="button" class="cdd-item" role="option" aria-selected="false" data-value={topic}>
+                  <svg class="cdd-check" width="14" height="14" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M20 6L9 17l-5-5" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                  <span>{topic}</span>
+                </button>
+              ))}
+            </div>
+          </div>
+
+          <div class="cdd" id="courses-cost-dd" data-value="all">
+            <button type="button" class="cdd-trigger" aria-haspopup="listbox" aria-expanded="false">
+              <span class="cdd-trigger__label">Any Cost</span>
+              <svg class="cdd-chevron" width="14" height="14" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M6 9l6 6 6-6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            </button>
+            <div class="cdd-panel" role="listbox" aria-label="Filter by cost" hidden>
+              <button type="button" class="cdd-item" role="option" aria-selected="true" data-value="all">
+                <svg class="cdd-check" width="14" height="14" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M20 6L9 17l-5-5" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                <span>Any Cost</span>
+              </button>
+              <button type="button" class="cdd-item" role="option" aria-selected="false" data-value="free">
+                <svg class="cdd-check" width="14" height="14" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M20 6L9 17l-5-5" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                <span>Free</span>
+              </button>
+              <button type="button" class="cdd-item" role="option" aria-selected="false" data-value="paid">
+                <svg class="cdd-check" width="14" height="14" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M20 6L9 17l-5-5" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                <span>Paid</span>
+              </button>
+            </div>
+          </div>
+
+          <div class="cdd" id="courses-sort-dd" data-value="newest">
+            <button type="button" class="cdd-trigger" aria-haspopup="listbox" aria-expanded="false">
+              <span class="cdd-trigger__label">Sort: Newest</span>
+              <svg class="cdd-chevron" width="14" height="14" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M6 9l6 6 6-6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            </button>
+            <div class="cdd-panel" role="listbox" aria-label="Sort courses" hidden>
+              <button type="button" class="cdd-item" role="option" aria-selected="true" data-value="newest">
+                <svg class="cdd-check" width="14" height="14" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M20 6L9 17l-5-5" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                <span>Sort: Newest</span>
+              </button>
+              <button type="button" class="cdd-item" role="option" aria-selected="false" data-value="az">
+                <svg class="cdd-check" width="14" height="14" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M20 6L9 17l-5-5" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                <span>Sort: A&ndash;Z</span>
+              </button>
+              <button type="button" class="cdd-item" role="option" aria-selected="false" data-value="price">
+                <svg class="cdd-check" width="14" height="14" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M20 6L9 17l-5-5" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                <span>Sort: Price, Low to High</span>
+              </button>
+            </div>
+          </div>
+        </div>
+        <p class="courses-toolbar__count" id="courses-count" aria-live="polite">{visibleCourses.length} course{visibleCourses.length === 1 ? '' : 's'}</p>
+      </div>
+
+      <div class="courses-grid" id="courses-grid">
         {visibleCourses.map((course, i) => (
-          <CourseCard course={course} eager={i < 2} />
+          <div
+            class="course-card-wrap"
+            data-cost={course.isFree ? 'free' : 'paid'}
+            data-topics={JSON.stringify(((course as any).topics ?? []).filter((t: unknown) => typeof t === 'string'))}
+            data-title={course.title}
+            data-price={course.isFree ? 0 : (course.priceCents ?? 0)}
+          >
+            <CourseCard course={course} eager={i < 2} />
+          </div>
         ))}
       </div>
+      <p class="courses-empty" id="courses-empty" hidden>No courses match your filters. <button type="button" id="courses-clear-filters" class="courses-empty__clear">Clear filters</button></p>
+
+      <script>
+        const grid = document.getElementById('courses-grid');
+        const cards = grid ? Array.from(grid.querySelectorAll<HTMLElement>('.course-card-wrap')) : [];
+        const countEl = document.getElementById('courses-count');
+        const emptyEl = document.getElementById('courses-empty');
+        const clearBtn = document.getElementById('courses-clear-filters');
+
+        // Custom dropdown ("cdd") -- real <button> trigger + role="listbox"
+        // panel, matching shadcn's dropdown-menu visual language (rounded
+        // popover card, fade+zoom-in, rounded-sm row highlight, left
+        // checkmark on the active item) but framework-free.
+        class Dropdown {
+          root: HTMLElement;
+          trigger: HTMLButtonElement;
+          panel: HTMLElement;
+          items: HTMLButtonElement[];
+          onChange: (value: string) => void;
+
+          constructor(rootId: string, onChange: (value: string) => void) {
+            this.root = document.getElementById(rootId)!;
+            this.trigger = this.root.querySelector('.cdd-trigger')!;
+            this.panel = this.root.querySelector('.cdd-panel')!;
+            this.items = Array.from(this.root.querySelectorAll('.cdd-item'));
+            this.onChange = onChange;
+
+            this.trigger.addEventListener('click', () => this.toggle());
+            this.trigger.addEventListener('keydown', (e) => {
+              if (e.key === 'ArrowDown' || e.key === 'Enter' || e.key === ' ') {
+                e.preventDefault();
+                this.open();
+                this.items.find((i) => i.getAttribute('aria-selected') === 'true')?.focus();
+              }
+            });
+            this.panel.addEventListener('keydown', (e) => this.onPanelKeydown(e));
+            for (const item of this.items) {
+              item.addEventListener('click', () => this.select(item));
+            }
+          }
+
+          get isOpen() {
+            return !this.panel.hidden;
+          }
+
+          open() {
+            if (this.isOpen) return;
+            closeAllExcept(this);
+            this.panel.hidden = false;
+            this.trigger.setAttribute('aria-expanded', 'true');
+            requestAnimationFrame(() => this.panel.setAttribute('data-open', ''));
+          }
+
+          close() {
+            if (!this.isOpen) return;
+            this.panel.removeAttribute('data-open');
+            this.trigger.setAttribute('aria-expanded', 'false');
+            this.panel.hidden = true;
+          }
+
+          toggle() {
+            this.isOpen ? this.close() : this.open();
+          }
+
+          select(item: HTMLButtonElement) {
+            const value = item.dataset.value || 'all';
+            for (const i of this.items) i.setAttribute('aria-selected', String(i === item));
+            const label = this.trigger.querySelector('.cdd-trigger__label');
+            if (label) label.textContent = item.querySelector('span')?.textContent || '';
+            this.root.dataset.value = value;
+            this.close();
+            this.trigger.focus();
+            this.onChange(value);
+          }
+
+          onPanelKeydown(e: KeyboardEvent) {
+            const focusIdx = this.items.indexOf(document.activeElement as HTMLButtonElement);
+            if (e.key === 'ArrowDown') {
+              e.preventDefault();
+              this.items[Math.min(focusIdx + 1, this.items.length - 1)]?.focus();
+            } else if (e.key === 'ArrowUp') {
+              e.preventDefault();
+              this.items[Math.max(focusIdx - 1, 0)]?.focus();
+            } else if (e.key === 'Escape') {
+              e.preventDefault();
+              this.close();
+              this.trigger.focus();
+            } else if (e.key === 'Tab') {
+              this.close();
+            }
+          }
+        }
+
+        const dropdowns: Dropdown[] = [];
+        function closeAllExcept(active: Dropdown) {
+          for (const dd of dropdowns) if (dd !== active) dd.close();
+        }
+        document.addEventListener('click', (e) => {
+          const target = e.target as HTMLElement;
+          for (const dd of dropdowns) {
+            if (!dd.root.contains(target)) dd.close();
+          }
+        });
+
+        function applyFilters() {
+          const costFilter = document.getElementById('courses-cost-dd')?.dataset.value || 'all';
+          const topicFilter = document.getElementById('courses-topic-dd')?.dataset.value || 'all';
+          let visibleCount = 0;
+          for (const card of cards) {
+            const cost = card.dataset.cost;
+            let topics: string[];
+            try {
+              topics = JSON.parse(card.dataset.topics || '[]');
+            } catch {
+              topics = [];
+            }
+            if (!Array.isArray(topics)) topics = [];
+            const costMatch = costFilter === 'all' || cost === costFilter;
+            const topicMatch = topicFilter === 'all' || topics.some((t) => typeof t === 'string' && t.trim().toLowerCase() === topicFilter.toLowerCase());
+            const visible = costMatch && topicMatch;
+            card.hidden = !visible;
+            if (visible) visibleCount++;
+          }
+          if (countEl) countEl.textContent = `${visibleCount} course${visibleCount === 1 ? '' : 's'}`;
+          if (emptyEl) emptyEl.hidden = visibleCount > 0;
+          if (grid) grid.hidden = visibleCount === 0;
+        }
+
+        function applySort() {
+          if (!grid) return;
+          const mode = document.getElementById('courses-sort-dd')?.dataset.value || 'newest';
+          if (mode === 'newest') {
+            for (const card of cards) grid.appendChild(card);
+            return;
+          }
+          const sorted = [...cards].sort((a, b) => {
+            if (mode === 'az') return (a.dataset.title || '').localeCompare(b.dataset.title || '');
+            if (mode === 'price') return Number(a.dataset.price || 0) - Number(b.dataset.price || 0);
+            return 0;
+          });
+          for (const card of sorted) grid.appendChild(card);
+        }
+
+        dropdowns.push(new Dropdown('courses-topic-dd', applyFilters));
+        dropdowns.push(new Dropdown('courses-cost-dd', applyFilters));
+        dropdowns.push(new Dropdown('courses-sort-dd', applySort));
+
+        clearBtn?.addEventListener('click', () => {
+          const topicDd = document.getElementById('courses-topic-dd');
+          const costDd = document.getElementById('courses-cost-dd');
+          if (topicDd) {
+            topicDd.dataset.value = 'all';
+            topicDd.querySelector('.cdd-trigger__label')!.textContent = 'All Topics';
+            topicDd.querySelectorAll('.cdd-item').forEach((i) => i.setAttribute('aria-selected', String(i.getAttribute('data-value') === 'all')));
+          }
+          if (costDd) {
+            costDd.dataset.value = 'all';
+            costDd.querySelector('.cdd-trigger__label')!.textContent = 'Any Cost';
+            costDd.querySelectorAll('.cdd-item').forEach((i) => i.setAttribute('aria-selected', String(i.getAttribute('data-value') === 'all')));
+          }
+          applyFilters();
+        });
+      </script>
 
       <section class="courses-faq">
         <h2>Course FAQ</h2>
@@ -190,6 +443,133 @@ const jsonLd = {
     color: var(--text-primary);
   }
 
+  .courses-toolbar {
+    max-width: 900px;
+    margin: 0 auto var(--space-6);
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-3);
+  }
+  .courses-toolbar__row {
+    display: flex;
+    align-items: center;
+    gap: var(--space-3);
+    flex-wrap: wrap;
+  }
+  /* Custom dropdown ("cdd") -- shadcn dropdown-menu visual language
+     (rounded popover, subtle border+shadow, fade+zoom-in, rounded-sm row
+     highlight, left checkmark) rebuilt in vanilla CSS on our own tokens. */
+  .cdd {
+    position: relative;
+    flex: 1;
+    min-width: 160px;
+  }
+  .cdd-trigger {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--space-2);
+    width: 100%;
+    font-family: 'Inter', sans-serif;
+    font-size: 0.8125rem;
+    color: var(--text-primary);
+    background: var(--bg-surface);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-md);
+    padding: var(--space-2) var(--space-3);
+    cursor: pointer;
+    transition: border-color 0.15s, box-shadow 0.15s;
+  }
+  .cdd-trigger:hover {
+    border-color: var(--accent);
+  }
+  .cdd-trigger:focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 2px;
+  }
+  .cdd[data-value]:not([data-value="all"]):not([data-value="newest"]) .cdd-trigger {
+    border-color: var(--accent);
+    color: var(--accent);
+  }
+  .cdd-trigger__label {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .cdd-chevron {
+    flex-shrink: 0;
+    color: var(--text-secondary);
+    transition: transform 0.15s;
+  }
+  .cdd-trigger[aria-expanded="true"] .cdd-chevron {
+    transform: rotate(180deg);
+  }
+  .cdd-panel {
+    position: absolute;
+    top: calc(100% + var(--space-1));
+    left: 0;
+    z-index: 20;
+    min-width: 100%;
+    width: max-content;
+    max-width: 280px;
+    max-height: 320px;
+    overflow-y: auto;
+    background: var(--bg-surface);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-md);
+    box-shadow: var(--shadow-md);
+    padding: var(--space-1);
+    transform: scale(0.96);
+    opacity: 0;
+    transition: transform 0.12s ease-out, opacity 0.12s ease-out;
+  }
+  .cdd-panel[data-open] {
+    transform: scale(1);
+    opacity: 1;
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .cdd-panel, .cdd-chevron {
+      transition: none;
+    }
+  }
+  .cdd-item {
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+    width: 100%;
+    font-family: 'Inter', sans-serif;
+    font-size: 0.8125rem;
+    color: var(--text-primary);
+    background: none;
+    border: none;
+    border-radius: var(--radius-sm);
+    padding: var(--space-2) var(--space-3);
+    text-align: left;
+    cursor: pointer;
+    white-space: nowrap;
+  }
+  .cdd-item:hover,
+  .cdd-item:focus-visible {
+    background: var(--neutral-100);
+    outline: none;
+  }
+  .cdd-check {
+    flex-shrink: 0;
+    color: var(--accent);
+    visibility: hidden;
+  }
+  .cdd-item[aria-selected="true"] .cdd-check {
+    visibility: visible;
+  }
+  .cdd-item[aria-selected="true"] {
+    font-weight: 600;
+  }
+  .courses-toolbar__count {
+    margin: 0;
+    font-size: 0.8125rem;
+    color: var(--text-tertiary);
+  }
+
   .courses-grid {
     display: grid;
     grid-template-columns: repeat(2, 1fr);
@@ -197,10 +577,43 @@ const jsonLd = {
     max-width: 900px;
     margin: 0 auto var(--space-16);
   }
+  .course-card-wrap[hidden] {
+    display: none;
+  }
+  .courses-empty {
+    max-width: 900px;
+    margin: 0 auto var(--space-16);
+    text-align: center;
+    color: var(--text-secondary);
+    font-size: 0.9375rem;
+  }
+  .courses-empty__clear {
+    font-family: 'Inter', sans-serif;
+    font-size: 0.9375rem;
+    color: var(--accent);
+    background: none;
+    border: none;
+    text-decoration: underline;
+    cursor: pointer;
+    padding: 0;
+  }
   @media (max-width: 768px) {
     .courses-grid {
       grid-template-columns: 1fr;
       max-width: 480px;
+    }
+    .courses-toolbar {
+      max-width: 480px;
+    }
+    .courses-toolbar__row {
+      flex-direction: column;
+      align-items: stretch;
+    }
+    .cdd {
+      width: 100%;
+    }
+    .cdd-panel {
+      max-width: none;
     }
   }
 

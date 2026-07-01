@@ -25,6 +25,7 @@ CREATE TABLE IF NOT EXISTS course (
     settings_json TEXT,
     seo_json TEXT,
     faqs_json TEXT,
+    topics_json TEXT,
     sort_order INTEGER NOT NULL DEFAULT 0,
     status TEXT NOT NULL DEFAULT 'draft' CHECK(status IN ('draft', 'published', 'archived')),
     created_at TEXT DEFAULT (datetime('now')),

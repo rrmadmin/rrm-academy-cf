@@ -127,7 +127,7 @@ export async function onRequestPost(context) {
   } catch (err) {
     log(env, waitUntil, 'admin-courses-attachments', 'db_write_error', 'error', err.message, 0, 500);
     log(env, waitUntil, 'admin-courses-attachments', 'r2_cleanup_after_d1_fail', 'warn', key);
-    waitUntil(env.R2_ASSETS.delete(key).catch(() => {}));
+    waitUntil(env.R2_ASSETS.delete(key).catch(r2Err => log(env, waitUntil, 'admin-courses-attachments', 'r2_cleanup_after_d1_fail_r2_error', 'error', `${key}: ${r2Err.message}`, 0, 500)));
     return json({ ok: false, error: 'Internal error' }, 500);
   }
 
