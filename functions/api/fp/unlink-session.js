@@ -32,9 +32,9 @@ function base64urlFromString(str) {
 }
 
 function pkcs8DerFromPem(pem) {
+  // Strip PEM armor lines generically (the BEGIN/END delimiters) then whitespace.
   const body = pem
-    .replace(/-----BEGIN PRIVATE KEY-----/, '')
-    .replace(/-----END PRIVATE KEY-----/, '')
+    .replace(/-{5}[^-]+-{5}/g, '')
     .replace(/\s+/g, '');
   const bin = atob(body);
   const der = new Uint8Array(bin.length);
