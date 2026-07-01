@@ -45,10 +45,45 @@ const jsonLd = {
       <section class="donate-hero">
         <h1 class="hero-title">Donate to RRM Academy</h1>
         <p class="donate-lead">Women are being told their pain is normal. They deserve real answers. Your support funds the education, research, and advocacy that gets them those answers. Monthly members are the backbone of everything we do.</p>
+        <p class="donate-jump-hint" id="donate-jump-hint">Already know you want to give? <a href="#tiers">Jump to giving options</a></p>
       </section>
 
+      <!-- Positioning bridge -->
+      <section class="donate-positioning">
+        <p>Every dollar goes to work in two places: education for the women and couples looking for answers, and training for the clinicians learning to provide them.</p>
+        <p>That means a research library that stays free for anyone still searching, courses that teach clinicians a field most were never taught in school, and a growing community of providers and advocates bringing restorative care into more clinics.</p>
+      </section>
+
+      <!-- The Foundation -->
+      <section class="donate-section">
+        <h2>About the RRM Foundation</h2>
+        <p>RRM Academy is an educational project of the Restorative Reproductive Medicine Foundation (RRM Foundation), a 501(c)(3) nonprofit dedicated to transforming reproductive health through education, research, and a restorative approach to care.</p>
+        <p>When you donate to RRM Academy, you're supporting the Foundation's mission. We exist for every person who has been told their pain is normal or has been left to navigate years of uncertainty.</p>
+      </section>
+
+      <!-- By the Numbers -->
+      <section class="donate-section">
+        <h2>Fighting for True Healing</h2>
+        <div class="stats-row">
+          <div class="stat">
+            <span class="stat-number">1,000,000+</span>
+            <span class="stat-label">People reached monthly on Instagram</span>
+          </div>
+          <div class="stat">
+            <span class="stat-number">{libraryCountRounded}+</span>
+            <a href="/library/" class="stat-label">Research articles in our free library</a>
+          </div>
+          <div class="stat">
+            <span class="stat-number">{selfPacedCourseCount}</span>
+            <a href="/courses/" class="stat-label">Self-paced online courses</a>
+          </div>
+        </div>
+      </section>
+
+      <hr class="divider" />
+
       <!-- Membership tiers -->
-      <section class="donate-cta-section">
+      <section class="donate-cta-section" id="tiers">
         <div id="supporter-banner" class="donate-supporter-banner" hidden>
           <p class="supporter-banner__name" id="supporter-name"></p>
           <p class="supporter-banner__tier" id="supporter-tier"></p>
@@ -131,32 +166,6 @@ const jsonLd = {
       </section>
 
       <hr class="divider" />
-
-      <!-- By the Numbers -->
-      <section class="donate-section">
-        <h2>Fighting for True Healing</h2>
-        <div class="stats-row">
-          <div class="stat">
-            <span class="stat-number">1,000,000+</span>
-            <span class="stat-label">People reached monthly on Instagram</span>
-          </div>
-          <div class="stat">
-            <span class="stat-number">{libraryCountRounded}+</span>
-            <a href="/library/" class="stat-label">Research articles in our free library</a>
-          </div>
-          <div class="stat">
-            <span class="stat-number">{selfPacedCourseCount}</span>
-            <a href="/courses/" class="stat-label">Self-paced online courses</a>
-          </div>
-        </div>
-      </section>
-
-      <!-- The Foundation -->
-      <section class="donate-section">
-        <h2>About the RRM Foundation</h2>
-        <p>RRM Academy is an educational project of the Restorative Reproductive Medicine Foundation (RRM Foundation), a 501(c)(3) nonprofit dedicated to transforming reproductive health through education, research, and a restorative approach to care.</p>
-        <p>When you donate to RRM Academy, you're supporting the Foundation's mission. We exist for every person who has been told their pain is normal or has been left to navigate years of uncertainty.</p>
-      </section>
 
       <!-- Featured campaign card: rendered only when campaign.foreground is true. Held false pre-launch; flip to true at launch. -->
       {providerDirectory && providerDirectory.foreground && (
@@ -252,6 +261,10 @@ const jsonLd = {
           document.getElementById('supporter-tier').textContent = tierLine;
           document.getElementById('supporter-body').textContent = body;
           document.getElementById('supporter-banner').hidden = false;
+
+          // Active supporter: hide the hero "jump to giving options" prompt
+          var jumpHint = document.getElementById('donate-jump-hint');
+          if (jumpHint) jumpHint.style.display = 'none';
 
           document.querySelector('.donate-cta-section').style.paddingTop = '0';
         })
@@ -468,6 +481,29 @@ const jsonLd = {
     color: var(--text-secondary);
     max-width: 600px;
     margin: 0 auto;
+  }
+  .donate-jump-hint {
+    margin-top: var(--space-4);
+    font-size: 0.875rem;
+    color: var(--text-secondary);
+  }
+  .donate-jump-hint a {
+    color: var(--accent);
+    text-decoration: none;
+  }
+  .donate-jump-hint a:hover {
+    text-decoration: underline;
+  }
+
+  /* Positioning bridge */
+  .donate-positioning {
+    max-width: 600px;
+    margin: 0 auto var(--space-8);
+  }
+  .donate-positioning p {
+    font-size: 0.9375rem;
+    line-height: 1.8;
+    color: var(--text-secondary);
   }
 
   /* Supporter thank-you banner */

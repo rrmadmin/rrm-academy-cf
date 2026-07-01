@@ -1,5 +1,9 @@
 ---
 import BaseLayout from '../../layouts/BaseLayout.astro';
+import articlesData from '../../data/articles.json';
+
+// Live count, mirroring the donate/homepage pattern so this stat never drifts.
+const libraryCountRounded = (Math.floor(articlesData.length / 1000) * 1000).toLocaleString();
 
 const jsonLd = {
   '@context': 'https://schema.org',
@@ -35,12 +39,88 @@ const jsonLd = {
         <p class="stuc-tagline">Creating a different kind of healthcare model.</p>
         <p class="stuc-subtext">One where the uterus isn't blamed for every problem. Where surgery isn't the first answer. Where women and couples get real answers about what's actually wrong. And real treatment to fix it.</p>
         <p class="stuc-login-hint" id="stuc-login-hint">Already a member? <a href="/login/?redirect=/save-the-uterus-club/">Log in</a></p>
+        <p class="stuc-join-hint" id="stuc-join-hint">Ready to join? <a href="#tiers">See membership options</a></p>
       </section>
 
       <section class="stuc-intro">
         <p>Women are told their pain is normal. They're handed suppressive medications without investigation. Offered hysterectomy before anyone looks for the root cause. These reproductive health issues have been secretly getting worse with age. And no one told them.</p>
         <p>That's not medicine. That's abandonment.</p>
         <p>Most women don't even know there's another option. That's why the Save the Uterus Club exists.</p>
+      </section>
+
+      <section class="stuc-positioning">
+        <p>Save the Uterus Club is the community and collaboration arm of RRM Academy. It brings patients, clinicians, researchers, and advocates into the same space to work toward one goal: restorative reproductive medicine becoming the standard of care.</p>
+        <p>Patients and couples come here to find providers who dig for the root cause, learn from real research written in plain language, and meet others navigating similar diagnoses. Clinicians, researchers, and advocates come here to train each other, share their work, and grow the field together.</p>
+        <p>Here's what that looks like, depending on where you're standing.</p>
+      </section>
+
+      <hr class="divider" />
+
+      <!-- Who This Is For -->
+      <section class="stuc-section">
+        <h2>Who This Is For</h2>
+        <div class="audience-grid">
+
+          <div class="card audience-track">
+            <h3>If you're a patient</h3>
+            <p>Whether you're facing endometriosis, PCOS, infertility, recurrent loss, or pain no one has taken seriously, this is where you start getting real answers.</p>
+            <ul>
+              <li>Get help finding restorative-minded care from women who've been where you are.</li>
+              <li>Get research from the RRM Research Library translated into plain language you can actually use.</li>
+              <li>Meet other women who've faced the same diagnosis.</li>
+              <li>Join a community built specifically around your condition.</li>
+              <li>Get an approach that treats both partners. Male factor accounts for about half of all fertility challenges.</li>
+              <li>Attend live Q&amp;As and events with clinicians who treat the underlying cause.</li>
+            </ul>
+          </div>
+
+          <div class="card audience-track">
+            <h3>If you're a provider or advocate</h3>
+            <p>Whether you're a clinician, a researcher, or someone who has watched a person you love get dismissed by the system, this is where you help build the change.</p>
+            <ul>
+              <li>Grow your professional presence within a community already committed to restorative, cause-based care.</li>
+              <li>Connect directly with patients looking for a clinician who treats the underlying cause.</li>
+              <li>Collaborate with other clinicians, researchers, and FertilityCare Practitioners on research and advocacy.</li>
+              <li>Share your expertise through the Research Library, live Q&amp;As, and educational content.</li>
+              <li>Access speaking opportunities and help train the next clinician who wants to practice this way.</li>
+              <li>Take part as a partner, family member, or friend; the movement needs advocates as much as clinicians.</li>
+            </ul>
+          </div>
+
+        </div>
+      </section>
+
+      <hr class="divider" />
+
+      <!-- What We're Building Together -->
+      <section class="stuc-section">
+        <h2>What We're Building Together</h2>
+        <p>A future where:</p>
+        <ol class="goals-list">
+          <li><strong>Uteruses are valued</strong> instead of treated as disposable</li>
+          <li><strong>Women know their rights</strong> and what good care looks like</li>
+          <li><strong>Surgery is never offered</strong> without thorough investigation first</li>
+          <li><strong>Painful periods trigger diagnosis.</strong> Not dismissal.</li>
+          <li><strong>Couples get real answers</strong> about what's wrong and how to address it together</li>
+          <li><strong>Restorative reproductive medicine</strong> is the standard of care. Not the exception.</li>
+        </ol>
+        <p>This doesn't happen without funding. Without education. Without a community of people who refuse to accept inadequate care as normal. That's what your membership builds.</p>
+      </section>
+
+      <hr class="divider" />
+
+      <!-- What Your Membership Does -->
+      <section class="stuc-section">
+        <h2>What Your Membership Does</h2>
+        <p>Every monthly donation funds the work that changes how women and couples access real care:</p>
+        <ul class="membership-benefits">
+          <li><strong>Education</strong> that reaches over 1,000,000 people monthly. Women discovering for the first time that their pain isn't normal. That endometriosis can be treated, not just managed. That fertility problems have causes. And those causes can often be addressed.</li>
+          <li><strong>Research made accessible.</strong> Over {libraryCountRounded} academic resources in the RRM Research Library. Peer-reviewed evidence translated into information women and couples can actually use to advocate for themselves.</li>
+          <li><strong>Training for medical professionals</strong> who want to practice cause-based medicine. Who want to find the root cause instead of masking symptoms with suppressive medications.</li>
+          <li><strong>A space for healing.</strong> Platforms where women can share their experiences of medical dismissal and reproductive trauma. You are not alone in what you've been through.</li>
+          <li><strong>Better care for every woman and couple who comes after you.</strong> Every resource we create, every professional we train, every woman who learns she deserves answers. That's because of members like you.</li>
+        </ul>
+        <p class="footnote">Your donation supports the RRM Foundation's operating fund. All donations are tax-deductible (we're a registered 501(c)(3), EIN: 93-4594315).</p>
       </section>
 
       <hr class="divider" />
@@ -126,69 +206,6 @@ const jsonLd = {
           </div>
 
         </div>
-      </section>
-
-      <hr class="divider" />
-
-      <!-- What Your Membership Does -->
-      <section class="stuc-section">
-        <h2>What Your Membership Does</h2>
-        <p>Every monthly donation funds the work that changes how women and couples access real care:</p>
-        <ul class="membership-benefits">
-          <li><strong>Education</strong> that reaches over 1,000,000 people monthly. Women discovering for the first time that their pain isn't normal. That endometriosis can be treated, not just managed. That fertility problems have causes. And those causes can often be addressed.</li>
-          <li><strong>Research made accessible.</strong> Over 3,000 academic resources in the RRM Research Library. Peer-reviewed evidence translated into information women and couples can actually use to advocate for themselves.</li>
-          <li><strong>Training for medical professionals</strong> who want to practice cause-based medicine. Who want to find the root cause instead of masking symptoms with suppressive medications.</li>
-          <li><strong>A space for healing.</strong> Platforms where women can share their experiences of medical dismissal and reproductive trauma. You are not alone in what you've been through.</li>
-          <li><strong>Better care for every woman and couple who comes after you.</strong> Every resource we create, every professional we train, every woman who learns she deserves answers. That's because of members like you.</li>
-        </ul>
-        <p class="footnote">100% of your donation goes directly to the RRM Foundation's operating fund. All donations are tax-deductible (we're a registered 501(c)(3), EIN: 93-4594315).</p>
-      </section>
-
-      <hr class="divider" />
-
-      <!-- Who This Is For -->
-      <section class="stuc-section">
-        <h2>Who This Is For</h2>
-        <div class="audience-grid">
-
-          <div class="card">
-            <h3>Women navigating reproductive health challenges</h3>
-            <p>Endometriosis. PCOS. Infertility. Recurrent miscarriage. Painful periods that everyone said were "normal." You deserve real answers. Real treatment. A community that understands what you've been through.</p>
-          </div>
-
-          <div class="card">
-            <h3>Couples building families</h3>
-            <p>Fertility is a couple's issue. Male factor accounts for about half of all fertility challenges. If you want an approach that finds and treats the root cause for both partners, you're in the right place.</p>
-          </div>
-
-          <div class="card">
-            <h3>Healthcare professionals</h3>
-            <p>Clinicians, nurses, FertilityCare Practitioners, physical therapists, researchers. If you believe in cause-based, restorative medicine. If you want to find and treat the cause instead of managing symptoms. Join us.</p>
-          </div>
-
-          <div class="card">
-            <h3>Allies and advocates</h3>
-            <p>Partners, family members, friends. People who've watched someone they love get dismissed by the healthcare model. Who want to see that change.</p>
-          </div>
-
-        </div>
-      </section>
-
-      <hr class="divider" />
-
-      <!-- What We're Building Together -->
-      <section class="stuc-section">
-        <h2>What We're Building Together</h2>
-        <p>A future where:</p>
-        <ol class="goals-list">
-          <li><strong>Uteruses are valued</strong> instead of treated as disposable</li>
-          <li><strong>Women know their rights</strong> and what good care looks like</li>
-          <li><strong>Surgery is never offered</strong> without thorough investigation first</li>
-          <li><strong>Painful periods trigger diagnosis.</strong> Not dismissal.</li>
-          <li><strong>Couples get real answers</strong> about what's wrong and how to address it together</li>
-          <li><strong>Restorative reproductive medicine</strong> is the standard of care. Not the exception.</li>
-        </ol>
-        <p>This doesn't happen without funding. Without education. Without a community of people who refuse to accept inadequate care as normal. That's what your membership builds.</p>
       </section>
 
       <hr class="divider" />
@@ -351,9 +368,11 @@ const jsonLd = {
             }
           }
 
-          // Hide bottom CTA
+          // Hide bottom CTA and the early hero join-hint (already a member)
           var bottomCta = document.querySelector('.stuc-bottom-cta .btn');
           if (bottomCta) bottomCta.style.display = 'none';
+          var joinHint = document.getElementById('stuc-join-hint');
+          if (joinHint) joinHint.style.display = 'none';
         })
         .catch(function () {});
 
@@ -481,23 +500,28 @@ const jsonLd = {
     max-width: 600px;
     margin: 0 auto;
   }
-  .stuc-login-hint {
+  .stuc-login-hint,
+  .stuc-join-hint {
     margin-top: var(--space-4);
     color: var(--text-secondary);
   }
-  .stuc-login-hint a {
+  .stuc-login-hint a,
+  .stuc-join-hint a {
     color: var(--accent);
     text-decoration: none;
   }
-  .stuc-login-hint a:hover {
+  .stuc-login-hint a:hover,
+  .stuc-join-hint a:hover {
     text-decoration: underline;
   }
 
   /* Intro prose */
-  .stuc-intro {
+  .stuc-intro,
+  .stuc-positioning {
     margin-bottom: var(--space-6);
   }
-  .stuc-intro p {
+  .stuc-intro p,
+  .stuc-positioning p {
     font-size: 0.9375rem;
     line-height: 1.8;
     color: var(--text-secondary);
@@ -629,6 +653,17 @@ const jsonLd = {
     font-size: 0.875rem;
     line-height: 1.75;
     color: var(--text-secondary);
+  }
+  .audience-track ul {
+    list-style: disc;
+    padding-left: var(--space-5);
+    margin: var(--space-3) 0 0;
+  }
+  .audience-track li {
+    font-size: 0.875rem;
+    line-height: 1.75;
+    color: var(--text-secondary);
+    margin-bottom: var(--space-2);
   }
 
   /* Bottom CTA */
