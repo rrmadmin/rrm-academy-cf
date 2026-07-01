@@ -84,7 +84,8 @@
     "gates:share": "node scripts/gates/validate-share-button.mjs",
     "gates:email-verify": "node scripts/gates/validate-email-verification.mjs",
     "gates:infographic": "node scripts/gates/validate-infographic-svg.mjs",
-    "gates:email-trickle": "node scripts/gates/validate-email-trickle.mjs"
+    "gates:email-trickle": "node scripts/gates/validate-email-trickle.mjs",
+    "gates:faq-lead": "node scripts/gates/faq-no-affirmative-lead.mjs --dir=dist --guides-registry=ssot/guides.json"
   },
   "dependencies": {
     "@astrojs/sitemap": "^3.3.0",
