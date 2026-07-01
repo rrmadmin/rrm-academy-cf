@@ -1,6 +1,6 @@
 import { json, optionsResponse } from '../../auth/_shared.js';
 import { log } from '../../_log.js';
-import { VALID_STATUSES, VALID_ACCESS_TYPES, bool, groupBy, parseArray, parseObject } from './_shared.js';
+import { VALID_STATUSES, VALID_ACCESS_TYPES, bool, groupBy, parseArray, parseObject, validateTopics } from './_shared.js';
 
 function mapStep(s) {
   const step = {
@@ -49,6 +49,7 @@ function mapCourse(c, sections, steps) {
     includes: parseArray(c.includes_json),
     includedIn: parseArray(c.included_in_json),
     faqs: parseArray(c.faqs_json),
+    topics: parseArray(c.topics_json),
     sortOrder: c.sort_order,
     status: c.status,
     createdAt: c.created_at,
@@ -196,6 +197,12 @@ export async function onRequestPut(context) {
   if (body.faqs !== undefined && !Array.isArray(body.faqs)) {
     return json({ ok: false, error: 'faqs_must_be_array' }, 400);
   }
+  if (body.topics !== undefined) {
+    const topicsError = validateTopics(body.topics);
+    if (topicsError) {
+      return json({ ok: false, error: topicsError }, 400);
+    }
+  }
   if (body.settings !== undefined && (typeof body.settings !== 'object' || Array.isArray(body.settings) || body.settings === null)) {
     return json({ ok: false, error: 'settings_must_be_object' }, 400);
   }
@@ -204,15 +211,15 @@ export async function onRequestPut(context) {
   }
 
   if (body.certificateQuizId !== undefined && body.certificateQuizId !== null) {
-    const stepCheck = await (async () => {
-      try {
-        return await env.DB.prepare(
-          "SELECT id FROM course_step WHERE id = ? AND course_id = ? AND status = 'published' AND type = 'quiz'"
-        ).bind(body.certificateQuizId, id).first();
-      } catch {
-        return null;
-      }
-    })();
+    let stepCheck;
+    try {
+      stepCheck = await env.DB.prepare(
+        "SELECT id FROM course_step WHERE id = ? AND course_id = ? AND status = 'published' AND type = 'quiz'"
+      ).bind(body.certificateQuizId, id).first();
+    } catch (err) {
+      log(env, waitUntil, 'admin-courses', 'cert_quiz_check_error', 'error', err.message, 0, 500);
+      return json({ ok: false, error: 'Internal error' }, 500);
+    }
     if (!stepCheck) {
       return json({ ok: false, error: 'invalid_certificate_quiz_step_id' }, 400);
     }
@@ -248,6 +255,7 @@ export async function onRequestPut(context) {
     settings: 'settings_json',
     seo: 'seo_json',
     faqs: 'faqs_json',
+    topics: 'topics_json',
   };
 
   const setClauses = [];
@@ -423,7 +431,9 @@ export async function onRequestDelete(context) {
     ]);
 
     if (r2Keys.length > 0 && env.R2_ASSETS) {
-      waitUntil(Promise.all(r2Keys.map(k => env.R2_ASSETS.delete(k).catch(() => {}))));
+      waitUntil(Promise.all(r2Keys.map(k => env.R2_ASSETS.delete(k).catch(r2Err =>
+        log(env, waitUntil, 'admin-courses', 'course_delete_r2_error', 'error', `${k}: ${r2Err.message}`, 0, 500)
+      ))));
     }
 
     for (const key of audioKeys) {
