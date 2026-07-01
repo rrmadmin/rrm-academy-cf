@@ -127,15 +127,12 @@ function parseCheckSets(tableBody) {
 
 /**
  * Within a table body, return Set(column names). A column line starts (after
- * optional whitespace / newline, and an optional leading comma -- live D1
- * DDL from `ALTER TABLE ... ADD COLUMN` splices the new column in as
- * `\n, colname TYPE)` rather than reformatting the whole CREATE statement)
- * with an identifier followed by a SQLite type. Constraint lines
- * (CHECK/PRIMARY/FOREIGN/UNIQUE/CONSTRAINT) don't match.
+ * optional whitespace / newline) with an identifier followed by a SQLite type.
+ * Constraint lines (CHECK/PRIMARY/FOREIGN/UNIQUE/CONSTRAINT) don't match.
  */
 function parseColumns(tableBody) {
   const out = new Set();
-  const re = /(?:^|\n)\s*,?\s*["`]?(\w+)["`]?\s+(TEXT|INTEGER|REAL|BLOB|NUMERIC)\b/gi;
+  const re = /(?:^|\n)\s*["`]?(\w+)["`]?\s+(TEXT|INTEGER|REAL|BLOB|NUMERIC)\b/gi;
   let m;
   while ((m = re.exec(tableBody)) !== null) {
     const name = m[1].toLowerCase();
