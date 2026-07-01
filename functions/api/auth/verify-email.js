@@ -126,9 +126,13 @@ export async function onRequestPost({ request, env, waitUntil }) {
       }
 
       // Set verified and clear any other outstanding verification rows for this user.
-      await db.prepare("UPDATE user SET email_verified = 1, updated_at = datetime('now') WHERE id = ?")
-        .bind(row.user_id).run();
-      await db.prepare('DELETE FROM email_verification WHERE user_id = ?').bind(row.user_id).run();
+      // Batched so a failure partway doesn't leave the consumed token's verification
+      // half-applied (email_verified left at 0 with no surviving token to retry).
+      await db.batch([
+        db.prepare("UPDATE user SET email_verified = 1, updated_at = datetime('now') WHERE id = ?")
+          .bind(row.user_id),
+        db.prepare('DELETE FROM email_verification WHERE user_id = ?').bind(row.user_id),
+      ]);
 
       // Mint a session so the click lands the user logged in (no separate login step).
       const sessionId = generateSessionId();
