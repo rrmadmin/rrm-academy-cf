@@ -13,15 +13,6 @@ const SHELL_ENABLED = isShellEnabled('courses');
 const isVisible = (c: any) => !(c.comingSoon && c.accessType !== 'members');
 const visibleCourses = coursesData.filter(isVisible);
 
-// Topic pills are derived from whatever topics actually appear on visible
-// courses (server-rendered order, not the client's DOM order) -- no
-// hardcoded taxonomy to keep in sync as courses are added/retagged.
-const topicSet = new Set<string>();
-for (const course of visibleCourses) {
-  for (const topic of (course as any).topics ?? []) topicSet.add(topic);
-}
-const allTopics = [...topicSet].sort((a, b) => a.localeCompare(b));
-
 const itemListNode = {
   '@type': 'ItemList',
   name: 'RRM Academy Courses',
@@ -100,135 +91,11 @@ const jsonLd = {
       </section>
 
       <h2 class="sr-only">Available Courses</h2>
-
-      <div class="courses-toolbar">
-        <div class="courses-toolbar__row">
-          <div class="courses-toolbar__group" role="group" aria-label="Filter by cost">
-            <span class="courses-toolbar__label">Cost</span>
-            <div class="courses-toolbar__pills" id="courses-cost-pills">
-              <button type="button" class="filter-pill filter-pill--active" data-filter-cost="all" aria-pressed="true">All</button>
-              <button type="button" class="filter-pill" data-filter-cost="free" aria-pressed="false">Free</button>
-              <button type="button" class="filter-pill" data-filter-cost="paid" aria-pressed="false">Paid</button>
-            </div>
-          </div>
-          <div class="courses-toolbar__sort">
-            <label for="courses-sort" class="courses-toolbar__label">Sort</label>
-            <select id="courses-sort" class="courses-sort-select">
-              <option value="newest">Newest</option>
-              <option value="az">A&ndash;Z</option>
-              <option value="price">Price: Low to High</option>
-            </select>
-          </div>
-        </div>
-        {allTopics.length > 0 && (
-          <div class="courses-toolbar__row" role="group" aria-label="Filter by topic">
-            <span class="courses-toolbar__label">Topic</span>
-            <div class="courses-toolbar__pills courses-toolbar__pills--wrap" id="courses-topic-pills">
-              <button type="button" class="filter-pill filter-pill--active" data-filter-topic="all" aria-pressed="true">All Topics</button>
-              {allTopics.map((topic) => (
-                <button type="button" class="filter-pill" data-filter-topic={topic} aria-pressed="false">{topic}</button>
-              ))}
-            </div>
-          </div>
-        )}
-        <p class="courses-toolbar__count" id="courses-count" aria-live="polite">{visibleCourses.length} course{visibleCourses.length === 1 ? '' : 's'}</p>
-      </div>
-
-      <div class="courses-grid" id="courses-grid">
+      <div class="courses-grid">
         {visibleCourses.map((course, i) => (
-          <div
-            class="course-card-wrap"
-            data-cost={course.isFree ? 'free' : 'paid'}
-            data-topics={((course as any).topics ?? []).join('|')}
-            data-title={course.title}
-            data-price={course.isFree ? 0 : (course.priceCents ?? 0)}
-          >
-            <CourseCard course={course} eager={i < 2} />
-          </div>
+          <CourseCard course={course} eager={i < 2} />
         ))}
       </div>
-      <p class="courses-empty" id="courses-empty" hidden>No courses match your filters. <button type="button" id="courses-clear-filters" class="courses-empty__clear">Clear filters</button></p>
-
-      <script>
-        const grid = document.getElementById('courses-grid');
-        const cards = grid ? Array.from(grid.querySelectorAll<HTMLElement>('.course-card-wrap')) : [];
-        const countEl = document.getElementById('courses-count');
-        const emptyEl = document.getElementById('courses-empty');
-        const sortSelect = document.getElementById('courses-sort') as HTMLSelectElement | null;
-        const costPills = Array.from(document.querySelectorAll<HTMLButtonElement>('#courses-cost-pills [data-filter-cost]'));
-        const topicPills = Array.from(document.querySelectorAll<HTMLButtonElement>('#courses-topic-pills [data-filter-topic]'));
-        const clearBtn = document.getElementById('courses-clear-filters');
-
-        let costFilter = 'all';
-        let topicFilter = 'all';
-
-        function setPressed(pills: HTMLButtonElement[], active: HTMLButtonElement) {
-          for (const pill of pills) {
-            const isActive = pill === active;
-            pill.classList.toggle('filter-pill--active', isActive);
-            pill.setAttribute('aria-pressed', String(isActive));
-          }
-        }
-
-        function applyFilters() {
-          let visibleCount = 0;
-          for (const card of cards) {
-            const cost = card.dataset.cost;
-            const topics = (card.dataset.topics || '').split('|').filter(Boolean);
-            const costMatch = costFilter === 'all' || cost === costFilter;
-            const topicMatch = topicFilter === 'all' || topics.includes(topicFilter);
-            const visible = costMatch && topicMatch;
-            card.hidden = !visible;
-            if (visible) visibleCount++;
-          }
-          if (countEl) countEl.textContent = `${visibleCount} course${visibleCount === 1 ? '' : 's'}`;
-          if (emptyEl) emptyEl.hidden = visibleCount > 0;
-          if (grid) grid.hidden = visibleCount === 0;
-        }
-
-        function applySort() {
-          if (!grid || !sortSelect) return;
-          const mode = sortSelect.value;
-          if (mode === 'newest') {
-            for (const card of cards) grid.appendChild(card);
-            return;
-          }
-          const sorted = [...cards].sort((a, b) => {
-            if (mode === 'az') return (a.dataset.title || '').localeCompare(b.dataset.title || '');
-            if (mode === 'price') return Number(a.dataset.price || 0) - Number(b.dataset.price || 0);
-            return 0;
-          });
-          for (const card of sorted) grid.appendChild(card);
-        }
-
-        for (const btn of costPills) {
-          btn.addEventListener('click', () => {
-            costFilter = btn.dataset.filterCost || 'all';
-            setPressed(costPills, btn);
-            applyFilters();
-          });
-        }
-
-        for (const btn of topicPills) {
-          btn.addEventListener('click', () => {
-            topicFilter = btn.dataset.filterTopic || 'all';
-            setPressed(topicPills, btn);
-            applyFilters();
-          });
-        }
-
-        sortSelect?.addEventListener('change', applySort);
-
-        clearBtn?.addEventListener('click', () => {
-          costFilter = 'all';
-          topicFilter = 'all';
-          const allCostPill = costPills.find((b) => b.dataset.filterCost === 'all');
-          const allTopicPill = topicPills.find((b) => b.dataset.filterTopic === 'all');
-          if (allCostPill) setPressed(costPills, allCostPill);
-          if (allTopicPill) setPressed(topicPills, allTopicPill);
-          applyFilters();
-        });
-      </script>
 
       <section class="courses-faq">
         <h2>Course FAQ</h2>
@@ -323,96 +190,6 @@ const jsonLd = {
     color: var(--text-primary);
   }
 
-  .courses-toolbar {
-    max-width: 900px;
-    margin: 0 auto var(--space-6);
-    display: flex;
-    flex-direction: column;
-    gap: var(--space-3);
-  }
-  .courses-toolbar__row {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: var(--space-4);
-    flex-wrap: wrap;
-  }
-  .courses-toolbar__group {
-    display: flex;
-    align-items: center;
-    gap: var(--space-3);
-  }
-  .courses-toolbar__label {
-    font-family: 'Inter', sans-serif;
-    font-size: 0.75rem;
-    font-weight: 600;
-    color: var(--text-tertiary);
-    text-transform: uppercase;
-    letter-spacing: 0.04em;
-    flex-shrink: 0;
-  }
-  .courses-toolbar__pills {
-    display: flex;
-    gap: var(--space-2);
-    flex-wrap: wrap;
-  }
-  .courses-toolbar__pills--wrap {
-    flex: 1;
-  }
-  .filter-pill {
-    font-family: 'Inter', sans-serif;
-    font-size: 0.8125rem;
-    font-weight: 500;
-    color: var(--text-secondary);
-    background: var(--bg-surface);
-    border: 1px solid var(--border-color);
-    border-radius: var(--radius-pill);
-    padding: 6px 14px;
-    cursor: pointer;
-    transition: background 0.15s, color 0.15s, border-color 0.15s;
-    line-height: 1.3;
-  }
-  .filter-pill:hover {
-    border-color: var(--accent);
-    color: var(--accent);
-  }
-  .filter-pill:focus-visible {
-    outline: 2px solid var(--accent);
-    outline-offset: 2px;
-  }
-  .filter-pill--active {
-    background: var(--accent);
-    border-color: var(--accent);
-    color: var(--bg-surface);
-  }
-  .filter-pill--active:hover {
-    color: var(--bg-surface);
-  }
-  .courses-toolbar__sort {
-    display: flex;
-    align-items: center;
-    gap: var(--space-2);
-  }
-  .courses-sort-select {
-    font-family: 'Inter', sans-serif;
-    font-size: 0.8125rem;
-    color: var(--text-primary);
-    background: var(--bg-surface);
-    border: 1px solid var(--border-color);
-    border-radius: var(--radius-md);
-    padding: 6px 10px;
-    cursor: pointer;
-  }
-  .courses-sort-select:focus-visible {
-    outline: 2px solid var(--accent);
-    outline-offset: 2px;
-  }
-  .courses-toolbar__count {
-    margin: 0;
-    font-size: 0.8125rem;
-    color: var(--text-tertiary);
-  }
-
   .courses-grid {
     display: grid;
     grid-template-columns: repeat(2, 1fr);
@@ -420,42 +197,10 @@ const jsonLd = {
     max-width: 900px;
     margin: 0 auto var(--space-16);
   }
-  .course-card-wrap[hidden] {
-    display: none;
-  }
-  .courses-empty {
-    max-width: 900px;
-    margin: 0 auto var(--space-16);
-    text-align: center;
-    color: var(--text-secondary);
-    font-size: 0.9375rem;
-  }
-  .courses-empty__clear {
-    font-family: 'Inter', sans-serif;
-    font-size: 0.9375rem;
-    color: var(--accent);
-    background: none;
-    border: none;
-    text-decoration: underline;
-    cursor: pointer;
-    padding: 0;
-  }
   @media (max-width: 768px) {
     .courses-grid {
       grid-template-columns: 1fr;
       max-width: 480px;
-    }
-    .courses-toolbar {
-      max-width: 480px;
-    }
-    .courses-toolbar__row {
-      flex-direction: column;
-      align-items: flex-start;
-    }
-    .courses-toolbar__group {
-      flex-direction: column;
-      align-items: flex-start;
-      gap: var(--space-2);
     }
   }
 
