@@ -1,6 +1,6 @@
 import { json, optionsResponse } from '../../auth/_shared.js';
 import { log } from '../../_log.js';
-import { VALID_STATUSES, VALID_ACCESS_TYPES, ID_PATTERN, bool, groupBy, parseArray, parseObject } from './_shared.js';
+import { VALID_STATUSES, VALID_ACCESS_TYPES, ID_PATTERN, bool, groupBy, parseArray, parseObject, validateTopics } from './_shared.js';
 
 export function onRequestOptions() {
   return optionsResponse();
@@ -209,8 +209,11 @@ export async function onRequestPost(context) {
   if (faqs !== undefined && !Array.isArray(faqs)) {
     return json({ ok: false, error: 'faqs_must_be_array' }, 400);
   }
-  if (topics !== undefined && !Array.isArray(topics)) {
-    return json({ ok: false, error: 'topics_must_be_array' }, 400);
+  if (topics !== undefined) {
+    const topicsError = validateTopics(topics);
+    if (topicsError) {
+      return json({ ok: false, error: topicsError }, 400);
+    }
   }
   if (settings !== undefined && (typeof settings !== 'object' || Array.isArray(settings) || settings === null)) {
     return json({ ok: false, error: 'settings_must_be_object' }, 400);
