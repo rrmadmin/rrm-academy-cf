@@ -375,7 +375,7 @@ export async function onRequestDelete(context) {
             .filter(a => typeof a?.url === 'string' && a.url.startsWith(R2_PUBLIC_HOST))
             .map(a => a.url.slice(R2_PUBLIC_HOST.length));
           if (keys.length > 0) {
-            waitUntil(Promise.all(keys.map(k => env.R2_ASSETS.delete(k).catch(() => {}))));
+            waitUntil(Promise.all(keys.map(k => env.R2_ASSETS.delete(k).catch(r2Err => log(env, waitUntil, 'admin-courses', 'step_delete_r2_error', 'error', `${k}: ${r2Err.message}`, 0, 500)))));
           }
         }
       } catch {
