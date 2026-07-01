@@ -1,0 +1,72 @@
+{/*
+  rrm-fingerprint-worker client snippet (cookie + localStorage redundancy).
+
+  This is a standalone-HTML page (no BaseLayout), so it does NOT inherit the
+  site-wide instrumentation. This component MIRRORS, and must be kept in sync
+  with, the preconnect + inline script in src/layouts/BaseLayout.astro.
+  Copy changes there over here verbatim -- do not hand-modify the logic here.
+*/}
+<!-- Fingerprint/visitor-ID worker preconnect (credentialed first-load call) -->
+<link rel="preconnect" href="https://fp.rrmacademy.org" crossorigin />
+<link rel="dns-prefetch" href="https://fp.rrmacademy.org" />
+
+<!-- rrm-fingerprint-worker client snippet (cookie + localStorage redundancy). -->
+<script is:inline>
+  (async () => {
+    // Global Privacy Control: skip visitor identification (the /identify fetch
+    // and the rrm_vid write) when the browser signals GPC. The property may be
+    // undefined; only an explicit `=== true` opts out.
+    if (navigator.globalPrivacyControl === true) return;
+    const inFlight = Number(sessionStorage.getItem('fp_in_flight'));
+    if (inFlight && Date.now() - inFlight < 10000) return;
+    sessionStorage.setItem('fp_in_flight', String(Date.now()));
+    const fpHost = location.hostname.endsWith('rrm.foundation') ? 'fp.rrm.foundation' : 'fp.rrmacademy.org';
+    const fire = async () => {
+      try {
+        const params = new URLSearchParams(location.search);
+        const utm = {
+          source: params.get('utm_source') || undefined,
+          medium: params.get('utm_medium') || undefined,
+          campaign: params.get('utm_campaign') || undefined,
+        };
+        const vid_hint = localStorage.getItem('rrm_vid') || undefined;
+        const res = await fetch(`https://${fpHost}/identify`, {
+          method: 'POST',
+          credentials: 'include',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            path: location.pathname,
+            referrer: document.referrer || null,
+            utm,
+            vid_hint,
+          }),
+        });
+        if (res.ok) {
+          const data = await res.json();
+          if (data && data.clear_storage) { localStorage.removeItem('rrm_vid'); }
+          else if (data && data.visitor_id) { localStorage.setItem('rrm_vid', data.visitor_id); }
+        } else {
+          navigator.sendBeacon?.(
+            `https://${fpHost}/metrics/client-error`,
+            JSON.stringify({ status: res.status, ts: Date.now() }),
+          );
+        }
+      } catch (e) {
+        navigator.sendBeacon?.(
+          `https://${fpHost}/metrics/client-error`,
+          JSON.stringify({ phase: 'network', msg: String(e && e.message || e), ts: Date.now() }),
+        );
+      } finally {
+        sessionStorage.removeItem('fp_in_flight');
+      }
+    };
+    if ('requestIdleCallback' in window) {
+      let fired = false;
+      const fireOnce = () => { if (!fired) { fired = true; fire(); } };
+      requestIdleCallback(fireOnce);
+      setTimeout(fireOnce, 2000);
+    } else {
+      setTimeout(fire, 0);
+    }
+  })();
+</script>

@@ -1,5 +1,6 @@
 ---
 import { fetchAllPosts } from '../lib/blog';
+import FingerprintTracking from '../components/FingerprintTracking.astro';
 import '../styles/fonts.css';
 import '../styles/global.css';
 
@@ -27,6 +28,7 @@ const INITIAL_BATCH = 15;
   <meta property="og:locale" content="en_US" />
   <meta name="twitter:card" content="summary_large_image" />
   <meta name="twitter:image" content="https://rrmacademy.org/images/og-default.png" />
+  <FingerprintTracking />
   <script is:inline>
     (function() {
       var saved = null;
