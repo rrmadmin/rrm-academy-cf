@@ -19,6 +19,7 @@ export async function onRequestOptions() {
 }
 
 export async function onRequestPost({ request, env, waitUntil }) {
+  let responseHeaders = {};
   try {
     const db = env.DB;
     if (!db) return json({ ok: false, error: 'Server misconfigured' }, 500);
@@ -27,23 +28,27 @@ export async function onRequestPost({ request, env, waitUntil }) {
     const session = await validateSession(db, sessionId);
     if (!session) return json({ ok: false, error: 'Not authenticated.' }, 401);
 
+    // Build renewed-cookie headers once so every return path after this point
+    // (including rate-limit/service-unavailable early returns) carries them.
+    if (session.renewed) {
+      responseHeaders['Set-Cookie'] = [sessionCookie(session.cookieId, session.expiresAt), authHintCookie(session.expiresAt)];
+    }
+
     // Rate limit: 5 attempts per 15 minutes
     if (!await checkRateLimit(env, `resend-verify:${session.userId}`, 5, 900)) {
-      return json({ ok: false, error: 'Please wait before requesting another code.' }, 429);
+      return json({ ok: false, error: 'Please wait before requesting another code.' }, 429, responseHeaders);
     }
 
     if (!env.AWS_ACCESS_KEY_ID) {
-      return json({ ok: false, error: 'Verification email service is temporarily unavailable. Please try again later or contact administrator@rrmacademy.org for help.' }, 503);
+      return json({ ok: false, error: 'Verification email service is temporarily unavailable. Please try again later or contact administrator@rrmacademy.org for help.' }, 503, responseHeaders);
     }
 
     // Get user
     const user = await db.prepare('SELECT email, name, email_verified FROM user WHERE id = ?')
       .bind(session.userId).first();
-    if (!user) return json({ ok: false, error: 'Not authenticated.' }, 401);
+    if (!user) return json({ ok: false, error: 'Not authenticated.' }, 401, responseHeaders);
     if (user.email_verified) {
-      const headers = {};
-      if (session.renewed) headers['Set-Cookie'] = [sessionCookie(session.cookieId, session.expiresAt), authHintCookie(session.expiresAt)];
-      return json({ ok: true }, 200, headers);
+      return json({ ok: true }, 200, responseHeaders);
     }
 
     // Generate new code (dormant fallback) + a strong single-use magic-link token.
@@ -57,9 +62,7 @@ export async function onRequestPost({ request, env, waitUntil }) {
     const freshUser = await db.prepare('SELECT email_verified FROM user WHERE id = ?')
       .bind(session.userId).first();
     if (!freshUser || freshUser.email_verified) {
-      const headers = {};
-      if (session.renewed) headers['Set-Cookie'] = [sessionCookie(session.cookieId, session.expiresAt), authHintCookie(session.expiresAt)];
-      return json({ ok: true }, 200, headers);
+      return json({ ok: true }, 200, responseHeaders);
     }
 
     // Write D1 first — if SES fails, the new code is already in D1 and the user
@@ -95,20 +98,12 @@ export async function onRequestPost({ request, env, waitUntil }) {
     } catch (emailErr) {
       log(env, waitUntil, 'auth', 'resend_verification_send_error', 'error', emailErr.message, 0, 502);
       await logEmailFailure(env.DB, { email: user.email, category: 'transactional', source: 'auth/resend-verification', subject: 'Confirm your email — RRM Academy', detail: emailErr.message });
-      return json({ ok: false, error: 'Failed to send verification email. Please try again.' }, 502);
-    }
-
-    const responseHeaders = {};
-    if (session.renewed) {
-      responseHeaders['Set-Cookie'] = [
-        sessionCookie(session.cookieId, session.expiresAt),
-        authHintCookie(session.expiresAt),
-      ];
+      return json({ ok: false, error: 'Failed to send verification email. Please try again.' }, 502, responseHeaders);
     }
 
     return json({ ok: true }, 200, responseHeaders);
   } catch (err) {
     log(env, waitUntil, 'auth', 'resend_verification_error', 'error', err.message);
-    return json({ ok: false, error: 'An unexpected error occurred. Please try again.' }, 500);
+    return json({ ok: false, error: 'An unexpected error occurred. Please try again.' }, 500, responseHeaders);
   }
 }
