@@ -2,6 +2,20 @@ export const VALID_STATUSES = new Set(['draft', 'published', 'archived']);
 export const VALID_ACCESS_TYPES = new Set(['public', 'private', 'members']);
 export const VALID_TYPES = new Set(['video', 'article', 'quiz']);
 export const ID_PATTERN = /^[a-z][a-z0-9-]*$/;
+export const TOPICS_MAX_COUNT = 20;
+export const TOPIC_MAX_LENGTH = 60;
+
+export function validateTopics(topics) {
+  if (!Array.isArray(topics)) return 'topics_must_be_array';
+  if (topics.length > TOPICS_MAX_COUNT) return 'topics_too_many';
+  for (const t of topics) {
+    if (typeof t !== 'string' || !t.trim()) return 'topic_invalid';
+    if (t.length > TOPIC_MAX_LENGTH) return 'topic_too_long';
+    if (t.includes('|')) return 'topic_invalid_char';
+    if (t.trim().toLowerCase() === 'all') return 'topic_reserved_value';
+  }
+  return null;
+}
 
 export function bool(v) {
   return (v === true || v === 1 || v === '1') ? 1 : 0;
