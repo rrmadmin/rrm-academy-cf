@@ -1,7 +1,8 @@
 ---
-// Recognition band for Uterus Super Hero members ($99/mo Save the Uterus Club
-// tier, which promises logo placement). Data-driven from superheroes.json so
-// adding a supporter is a JSON edit, no markup change.
+// Recognition strip for Uterus Super Hero members ($99/mo Save the Uterus Club
+// tier, which promises logo placement). Follows the homepage journal trust-bar
+// pattern: quiet tagline, bare muted logos on the page background, no box.
+// Data-driven from superheroes.json so adding a supporter is a JSON edit.
 import superheroes from '../data/superheroes.json';
 
 interface Props {
@@ -12,8 +13,8 @@ const { heading = 'Supported by our Uterus Super Heroes' } = Astro.props;
 ---
 {superheroes.length > 0 && (
   <section class="shl" aria-labelledby="shl-heading" data-pagefind-ignore>
-    <p id="shl-heading" class="shl__label">{heading}</p>
-    <ul class="shl__row">
+    <p id="shl-heading" class="shl__tagline">{heading}</p>
+    <ul class="shl__logos">
       {superheroes.map((s) => (
         <li class="shl__cell">
           <a href={s.url} target="_blank" rel="noopener" class="shl__link" title={`${s.name}, ${s.org}`}>
@@ -37,22 +38,22 @@ const { heading = 'Supported by our Uterus Super Heroes' } = Astro.props;
     text-align: center;
     padding: var(--space-6) 0;
   }
-  .shl__label {
-    font-size: 0.75rem;
-    font-weight: 600;
-    letter-spacing: 0.06em;
-    text-transform: uppercase;
-    color: var(--text-tertiary);
+
+  .shl__tagline {
+    font-size: 0.8125rem;
+    color: var(--text-secondary);
+    letter-spacing: 0.01em;
     margin: 0 0 var(--space-4);
   }
-  .shl__row {
+
+  .shl__logos {
     display: flex;
-    flex-wrap: wrap;
     align-items: center;
     justify-content: center;
-    gap: var(--space-6) var(--space-8);
+    gap: var(--space-3) var(--space-8);
+    flex-wrap: wrap;
     list-style: none;
-    margin: 0;
+    margin: 0 0 var(--space-4);
     padding: 0;
   }
   .shl__cell {
@@ -61,30 +62,47 @@ const { heading = 'Supported by our Uterus Super Heroes' } = Astro.props;
   .shl__link {
     display: inline-flex;
     align-items: center;
-    justify-content: center;
   }
+  .shl__link:focus-visible {
+    outline: none;
+    box-shadow: 0 0 0 3px var(--focus-ring);
+    border-radius: var(--radius-sm);
+  }
+
+  /* Muted at rest, full color on hover (sponsor-strip convention) */
   .shl__logo {
     display: block;
-    max-width: 100%;
-    height: auto;
-    filter: grayscale(0.15);
-    transition: filter 0.15s, transform 0.15s;
+    filter: grayscale(1);
+    opacity: 0.65;
+    transition: filter 0.2s, opacity 0.2s;
   }
   .shl__link:hover .shl__logo {
     filter: none;
-    transform: translateY(-1px);
+    opacity: 1;
   }
+
   .shl__logo--square {
-    width: 72px;
-    height: 72px;
-    border-radius: var(--radius-md);
+    width: 44px;
+    height: 44px;
   }
   .shl__logo--wide {
-    width: 190px;
+    width: 150px;
+    height: auto;
   }
+
+  /* Dark mode: invert the grayscaled marks so they read as light-gray on dark */
+  :global([data-theme="dark"]) .shl__logo {
+    filter: grayscale(1) invert(0.85);
+    opacity: 0.7;
+  }
+  :global([data-theme="dark"]) .shl__link:hover .shl__logo {
+    filter: none;
+    opacity: 1;
+  }
+
   .shl__cta {
-    margin: var(--space-4) 0 0;
     font-size: 0.8125rem;
+    margin: 0;
   }
   .shl__cta a {
     color: var(--accent);
@@ -95,15 +113,17 @@ const { heading = 'Supported by our Uterus Super Heroes' } = Astro.props;
   }
 
   @media (max-width: 480px) {
-    .shl__row {
-      gap: var(--space-5) var(--space-8);
-    }
-    .shl__logo--square {
-      width: 56px;
-      height: 56px;
+    .shl__logos {
+      gap: var(--space-3) var(--space-6);
     }
     .shl__logo--wide {
-      width: 150px;
+      width: 128px;
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .shl__logo {
+      transition: none;
     }
   }
 </style>
