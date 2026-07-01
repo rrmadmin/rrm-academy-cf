@@ -53,7 +53,6 @@ function mapCourse(c, sections, steps) {
     includes: parseArray(c.includes_json),
     includedIn: parseArray(c.included_in_json),
     faqs: parseArray(c.faqs_json),
-    topics: parseArray(c.topics_json),
     sortOrder: c.sort_order,
     status: c.status,
     createdAt: c.created_at,
@@ -127,7 +126,7 @@ export async function onRequestPost(context) {
     id, slug, title, description, shortDescription, image, imageAlt,
     priceCents, stripePriceId, isFree, hasCertificate, certificateQuizId,
     selfPaced, accessType, comingSoon, participants, instructors, includes,
-    includedIn, settings, seo, faqs, topics, status, sortOrder,
+    includedIn, settings, seo, faqs, status, sortOrder,
   } = body;
 
   if (typeof id !== 'string' || !id.trim()) {
@@ -209,9 +208,6 @@ export async function onRequestPost(context) {
   if (faqs !== undefined && !Array.isArray(faqs)) {
     return json({ ok: false, error: 'faqs_must_be_array' }, 400);
   }
-  if (topics !== undefined && !Array.isArray(topics)) {
-    return json({ ok: false, error: 'topics_must_be_array' }, 400);
-  }
   if (settings !== undefined && (typeof settings !== 'object' || Array.isArray(settings) || settings === null)) {
     return json({ ok: false, error: 'settings_must_be_object' }, 400);
   }
@@ -230,8 +226,8 @@ export async function onRequestPost(context) {
       `INSERT INTO course (id, slug, title, description, short_description, image_url, image_alt,
          price_cents, stripe_price_id, is_free, has_certificate, certificate_quiz_step_id,
          self_paced, access_type, coming_soon, participants, instructors_json, includes_json,
-         included_in_json, settings_json, seo_json, faqs_json, topics_json, sort_order, status)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
+         included_in_json, settings_json, seo_json, faqs_json, sort_order, status)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
     ).bind(
       id,
       slug.trim(),
@@ -255,7 +251,6 @@ export async function onRequestPost(context) {
       settings !== undefined ? JSON.stringify(settings) : null,
       seo !== undefined ? JSON.stringify(seo) : null,
       faqs !== undefined ? JSON.stringify(faqs) : null,
-      topics !== undefined ? JSON.stringify(topics) : null,
       resolvedSortOrder,
       resolvedStatus
     ).run();
