@@ -212,7 +212,7 @@ for (const c of coursesData) {
             <div id="forget-devices-feedback" class="profile-feedback" hidden>
               <p id="forget-devices-feedback-text"></p>
             </div>
-            <button id="forget-devices-btn" class="btn btn--secondary btn--sm" style="margin-top: var(--space-4);">Forget my devices</button>
+            <button id="forget-devices-btn" class="btn btn--secondary btn--sm privacy-forget-btn">Forget my devices</button>
           </div>
 
         </div>
@@ -764,6 +764,7 @@ for (const c of coursesData) {
   .account-details dt { font-weight: 500; color: var(--text-secondary); }
   .account-details dd { color: var(--text-primary); }
   .account-placeholder { color: var(--text-muted); font-size: 0.875rem; }
+  .privacy-forget-btn { margin-top: var(--space-4); }
 
   .profile-edit-form .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: var(--space-4); }
   @media (max-width: 640px) { .profile-edit-form .form-row { grid-template-columns: 1fr; } }
