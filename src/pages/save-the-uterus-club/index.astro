@@ -1,5 +1,9 @@
 ---
 import BaseLayout from '../../layouts/BaseLayout.astro';
+import articlesData from '../../data/articles.json';
+
+// Live count, mirroring the donate/homepage pattern so this stat never drifts.
+const libraryCountRounded = (Math.floor(articlesData.length / 1000) * 1000).toLocaleString();
 
 const jsonLd = {
   '@context': 'https://schema.org',
@@ -50,6 +54,8 @@ const jsonLd = {
         <p>Here's what that looks like, depending on where you're standing.</p>
       </section>
 
+      <hr class="divider" />
+
       <!-- Who This Is For -->
       <section class="stuc-section">
         <h2>Who This Is For</h2>
@@ -59,7 +65,7 @@ const jsonLd = {
             <h3>If you're a patient</h3>
             <p>Whether you're facing endometriosis, PCOS, infertility, recurrent loss, or pain no one has taken seriously, this is where you start getting real answers.</p>
             <ul>
-              <li>Find a restorative-minded provider who investigates the root cause.</li>
+              <li>Get help finding restorative-minded care from women who've been where you are.</li>
               <li>Get research from the RRM Research Library translated into plain language you can actually use.</li>
               <li>Meet other women who've faced the same diagnosis.</li>
               <li>Join a community built specifically around your condition.</li>
@@ -77,7 +83,7 @@ const jsonLd = {
               <li>Collaborate with other clinicians, researchers, and FertilityCare Practitioners on research and advocacy.</li>
               <li>Share your expertise through the Research Library, live Q&amp;As, and educational content.</li>
               <li>Access speaking opportunities and help train the next clinician who wants to practice this way.</li>
-              <li>Join as a partner, family member, or friend who's watched someone you love dismissed, and help build the change you want to see.</li>
+              <li>Take part as a partner, family member, or friend; the movement needs advocates as much as clinicians.</li>
             </ul>
           </div>
 
@@ -109,12 +115,12 @@ const jsonLd = {
         <p>Every monthly donation funds the work that changes how women and couples access real care:</p>
         <ul class="membership-benefits">
           <li><strong>Education</strong> that reaches over 1,000,000 people monthly. Women discovering for the first time that their pain isn't normal. That endometriosis can be treated, not just managed. That fertility problems have causes. And those causes can often be addressed.</li>
-          <li><strong>Research made accessible.</strong> Over 3,000 academic resources in the RRM Research Library. Peer-reviewed evidence translated into information women and couples can actually use to advocate for themselves.</li>
+          <li><strong>Research made accessible.</strong> Over {libraryCountRounded} academic resources in the RRM Research Library. Peer-reviewed evidence translated into information women and couples can actually use to advocate for themselves.</li>
           <li><strong>Training for medical professionals</strong> who want to practice cause-based medicine. Who want to find the root cause instead of masking symptoms with suppressive medications.</li>
           <li><strong>A space for healing.</strong> Platforms where women can share their experiences of medical dismissal and reproductive trauma. You are not alone in what you've been through.</li>
           <li><strong>Better care for every woman and couple who comes after you.</strong> Every resource we create, every professional we train, every woman who learns she deserves answers. That's because of members like you.</li>
         </ul>
-        <p class="footnote">100% of your donation goes directly to the RRM Foundation's operating fund. All donations are tax-deductible (we're a registered 501(c)(3), EIN: 93-4594315).</p>
+        <p class="footnote">Your donation supports the RRM Foundation's operating fund. All donations are tax-deductible (we're a registered 501(c)(3), EIN: 93-4594315).</p>
       </section>
 
       <hr class="divider" />
@@ -228,7 +234,7 @@ const jsonLd = {
               </span>
             </summary>
             <div class="faq-answer">
-              <p>Yes. All donations to the Restorative Reproductive Medicine Foundation (501(c)(3), EIN: 93-4594315) are tax-deductible.</p>
+              <p>All donations to the Restorative Reproductive Medicine Foundation (501(c)(3), EIN: 93-4594315) are tax-deductible.</p>
             </div>
           </details>
 
@@ -240,7 +246,7 @@ const jsonLd = {
               </span>
             </summary>
             <div class="faq-answer">
-              <p>Yes. Monthly donations. Cancel whenever you need to.</p>
+              <p>Monthly donations. Cancel whenever you need to.</p>
             </div>
           </details>
 

@@ -45,13 +45,13 @@ const jsonLd = {
       <section class="donate-hero">
         <h1 class="hero-title">Donate to RRM Academy</h1>
         <p class="donate-lead">Women are being told their pain is normal. They deserve real answers. Your support funds the education, research, and advocacy that gets them those answers. Monthly members are the backbone of everything we do.</p>
-        <p class="donate-jump-hint">Already know you want to give? <a href="#tiers">Jump to giving options</a></p>
+        <p class="donate-jump-hint" id="donate-jump-hint">Already know you want to give? <a href="#tiers">Jump to giving options</a></p>
       </section>
 
       <!-- Positioning bridge -->
       <section class="donate-positioning">
-        <p>Your gift funds real answers for patients who were told their pain was normal, and it funds the training that gives clinicians and advocates the tools to say otherwise.</p>
-        <p>That means a research library that stays free for anyone still searching, courses that teach clinicians about a field most of them were never taught in school, and a growing network of providers and advocates bringing restorative care into more clinics and more conversations with insurers.</p>
+        <p>Every dollar goes to work in two places: education for the women and couples looking for answers, and training for the clinicians learning to provide them.</p>
+        <p>That means a research library that stays free for anyone still searching, courses that teach clinicians a field most were never taught in school, and a growing community of providers and advocates bringing restorative care into more clinics.</p>
       </section>
 
       <!-- The Foundation -->
@@ -261,6 +261,10 @@ const jsonLd = {
           document.getElementById('supporter-tier').textContent = tierLine;
           document.getElementById('supporter-body').textContent = body;
           document.getElementById('supporter-banner').hidden = false;
+
+          // Active supporter: hide the hero "jump to giving options" prompt
+          var jumpHint = document.getElementById('donate-jump-hint');
+          if (jumpHint) jumpHint.style.display = 'none';
 
           document.querySelector('.donate-cta-section').style.paddingTop = '0';
         })
