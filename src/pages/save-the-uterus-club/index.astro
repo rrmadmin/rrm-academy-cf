@@ -65,6 +65,7 @@ const jsonLd = {
       <hr class="divider" />
 
       <section class="stuc-section">
+        <img class="cuterus-peek cuterus-peek--left" src="/images/save-the-uterus-club/cuterus-wave.webp" alt="" aria-hidden="true" width="1024" height="1024" loading="lazy" decoding="async" />
         <p class="eyebrow">The Vibe</p>
         <h2>What the Club Actually Is</h2>
         <p>Save the Uterus Club is the community and collaboration arm of RRM Academy, and it runs less like a newsletter and more like a group chat with one mission: restorative reproductive medicine becoming the standard of care.</p>
@@ -140,6 +141,7 @@ const jsonLd = {
 
       <!-- What's Being Built Right Now -->
       <section class="stuc-section">
+        <img class="cuterus-peek cuterus-peek--right" src="/images/save-the-uterus-club/cuterus-book.webp" alt="" aria-hidden="true" width="1024" height="1024" loading="lazy" decoding="async" />
         <p class="eyebrow">The Master Plan</p>
         <h2>What's Being Built Right Now</h2>
         <p>This is the long game, and it's already moving through the group chat, the live calls, and the research queue. Big goals, good company:</p>
@@ -158,6 +160,7 @@ const jsonLd = {
 
       <!-- What Your Membership Does -->
       <section class="stuc-section">
+        <img class="cuterus-peek cuterus-peek--left" src="/images/save-the-uterus-club/cuterus-plain.webp" alt="" aria-hidden="true" width="1024" height="1024" loading="lazy" decoding="async" />
         <p class="eyebrow">The Receipts</p>
         <h2>What Your Membership Does</h2>
         <p>Here's where the money goes, month over month.</p>
@@ -331,7 +334,7 @@ const jsonLd = {
 
       <!-- Bottom CTA -->
       <section class="stuc-bottom-cta">
-        <img class="cuterus-peek" src="/images/save-the-uterus-club/cuterus-heart.webp" alt="" aria-hidden="true" width="1024" height="1024" loading="lazy" decoding="async" />
+        <img class="cuterus-peek cuterus-peek--center" src="/images/save-the-uterus-club/cuterus-heart.webp" alt="" aria-hidden="true" width="1024" height="1024" loading="lazy" decoding="async" />
         <p>Somewhere right now, someone's having that first Tuesday. The next call's already on the calendar. The next study's already in the queue.</p>
         <p>The only question left: are you in the room for it?</p>
         <a href="#tiers" class="btn btn--primary btn--lg">Join Us</a>
@@ -1100,15 +1103,19 @@ const jsonLd = {
   .spotlight-card:hover { transform: rotate(-0.6deg) translateY(-2px); box-shadow: var(--shadow-md); }
   .audience-track:hover { transform: rotate(0.4deg) translateY(-2px); box-shadow: var(--shadow-md); }
 
-  /* Recurring Cuterus spot mascots peeking at section corners */
+  /* Recurring Cuterus spot mascots dotted through the page */
   .cuterus-peek {
     display: block;
-    width: 96px;
+    width: 104px;
     height: auto;
-    margin: 0 auto var(--space-2);
+    margin: 0 0 calc(-1 * var(--space-2));
   }
-  .cuterus-peek--right { margin-right: 0; margin-left: auto; transform: rotate(6deg); }
-  .cuterus-peek--left { margin-left: 0; margin-right: auto; transform: rotate(-6deg); }
+  .cuterus-peek--left { margin-right: auto; transform: rotate(-5deg); }
+  .cuterus-peek--right { margin-left: auto; transform: rotate(5deg); }
+  .cuterus-peek--center { margin: 0 auto var(--space-2); transform: rotate(-3deg); }
+  @media (min-width: 640px) {
+    .cuterus-peek { width: 120px; }
+  }
 
   @media (prefers-reduced-motion: reduce) {
     .goal-card, .benefit-cards li, .spotlight-card, .audience-track { transition: none; }
