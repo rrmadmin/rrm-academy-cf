@@ -13,4 +13,6 @@
 // scrapers to drop the stale provider-directory card cached at ?v=v4.
 // v6 (2026-07-02): Save the Uterus Club OG card now features the Cuterus mascot
 // (functions/og/[[path]].js buildStucTree). Bump re-unfurls the STUC card.
-export const OG_VERSION = 'v6';
+// v7 (2026-07-02): STUC card uses fixed short club copy so the hero title/desc
+// don't wrap+clamp under the mascot. Bump re-unfurls the corrected card.
+export const OG_VERSION = 'v7';
