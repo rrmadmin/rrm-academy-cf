@@ -4,11 +4,14 @@
 // Responsibilities (per spec §Component boundaries):
 //   - Emit <main class="app-shell-main"> directly (BaseLayout chrome="shell" omits its <main>)
 //   - Render desktop sidebar (above 900px); mobile gets the global Header (no shell-specific mobile UI)
-//   - Middle column DOM is emitted ONLY on article pages (`context === 'article'`).
-//     Index and saved pages omit the <aside class="app-shell-middle-column"> entirely.
-//     The G-SEO-6 grep (Task 30 step 6) reflects this — it filters to article paths
-//     only. Do NOT switch to always-emit; doing so would carry an empty aside on
-//     index/saved and break the G-SEO-6 grep semantics.
+//   - Middle column DOM is emitted on article pages (`context === 'article'`), OR on
+//     any page that opts in via the `rail` slot (`hasRail`) or a non-empty
+//     `relatedSections` array (e.g. /glossary/<slug>/, GuideLayout pages). Index/saved/
+//     page contexts that pass none of these three still omit the
+//     <aside class="app-shell-middle-column"> entirely, so the G-SEO-6 grep ("library
+//     index has no middle column") stays green. Do NOT switch to unconditional
+//     always-emit; that would carry an empty aside on index/saved pages that opt into
+//     none of the three mechanisms.
 //   - Pre-paint inline script: read sessionStorage.rrm-shell-context, add .shell-no-context if absent
 //   - Card-click writer: capture intent, commit on pagehide
 //   - Theme toggle handler: shared __rrmThemeToggle__() IIFE
@@ -192,7 +195,7 @@ const NAV_ICONS: Record<string, string> = {
           <img class="shell-account__photo" id="shell-account-photo" alt="" decoding="async" hidden />
           <span class="shell-account__initials" id="shell-account-initials" hidden></span>
         </span>
-        <span class="app-shell-nav__account-text">
+        <span class="app-shell-nav__account-text" aria-live="polite" aria-atomic="true">
           <span class="app-shell-nav__account-name" id="shell-account-name">Sign in</span>
           <span class="app-shell-nav__account-sub" id="shell-account-sub">Save &amp; track progress</span>
         </span>
@@ -514,6 +517,12 @@ const NAV_ICONS: Record<string, string> = {
       } else {
         document.documentElement.classList.add('shell-no-context');
       }
+      // Re-hydrate the middle column too: sessionStorage may have changed while this
+      // page was bfcache-frozen (e.g. the user visited a different filtered index in
+      // the interim), and the hydrator below only runs once at initial script
+      // execution. Without this, the visibility class above can un-hide the rail while
+      // the DOM still shows the stale pre-freeze content (/arise-review finding).
+      if (window.__rrmHydrateMiddleColumn__) window.__rrmHydrateMiddleColumn__();
     });
   })();
 
@@ -598,12 +607,13 @@ const NAV_ICONS: Record<string, string> = {
   })();
 
   // Middle column hydration (article pages only, when sessionStorage has valid context).
-  (function() {
+  // Exposed on window so the bfcache pageshow handler (pre-paint block above) can
+  // re-run it -- a sessionStorage context that changed while this page was
+  // bfcache-frozen must not leave stale "Continue browsing" content rendered under a
+  // freshly-unhidden rail.
+  window.__rrmHydrateMiddleColumn__ = function hydrateMiddleColumn() {
     var rootDiv = document.querySelector('.app-shell-layout[data-shell-context]');
     if (!rootDiv || rootDiv.dataset.shellContext !== 'article') return;
-
-    var ctx = window.__rrmGetShellContext__ ? window.__rrmGetShellContext__() : null;
-    if (!ctx) return;
 
     var aside = document.querySelector('.app-shell-middle-column');
     if (!aside) return;
@@ -611,6 +621,13 @@ const NAV_ICONS: Record<string, string> = {
     var meta = aside.querySelector('.app-shell-middle-column__meta');
     var list = aside.querySelector('.app-shell-middle-column__list');
     if (!meta || !list) return;
+
+    // Clear any previously-hydrated content before re-rendering.
+    meta.textContent = '';
+    while (list.firstChild) list.removeChild(list.firstChild);
+
+    var ctx = window.__rrmGetShellContext__ ? window.__rrmGetShellContext__() : null;
+    if (!ctx) return;
 
     // textContent only, never innerHTML (XSS guard per spec §Render rules).
     meta.textContent = ctx.label;
@@ -630,7 +647,8 @@ const NAV_ICONS: Record<string, string> = {
       li.appendChild(a);
       list.appendChild(li);
     });
-  })();
+  };
+  window.__rrmHydrateMiddleColumn__();
 
   // Theme toggle: shared handler so sidebar + drawer toggles operate identically.
   // Header.astro / Footer.astro use the View Transitions API for the theme animation;
