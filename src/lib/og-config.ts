@@ -15,4 +15,6 @@
 // (functions/og/[[path]].js buildStucTree). Bump re-unfurls the STUC card.
 // v7 (2026-07-02): STUC card uses fixed short club copy so the hero title/desc
 // don't wrap+clamp under the mascot. Bump re-unfurls the corrected card.
-export const OG_VERSION = 'v7';
+// v8 (2026-07-02): STUC card mascot enlarged (tight-cropped image, 430px) with
+// a shorter one-line tagline. Bump re-unfurls the bigger-Cuterus card.
+export const OG_VERSION = 'v8';
