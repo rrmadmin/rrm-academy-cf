@@ -60,12 +60,12 @@ describe('tierFromPriceOrAmount -- price ID hit', () => {
     assert.equal(tierFromPriceOrAmount(sub, env), 'superhero');
   });
 
-  it('subscription.metadata.tier takes priority over price ID', () => {
+  it('price ID takes priority over stale subscription.metadata.tier (portal upgrades re-label, 2026-07-02)', () => {
     const sub = {
       metadata: { tier: 'hero' },
       items: { data: [{ price: { id: 'price_super_789', unit_amount: 5000 } }] },
     };
-    assert.equal(tierFromPriceOrAmount(sub, env), 'hero');
+    assert.equal(tierFromPriceOrAmount(sub, env), 'superhero');
   });
 
   it('ignores invalid metadata.tier values and falls through to price ID', () => {

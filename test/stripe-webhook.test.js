@@ -185,23 +185,34 @@ describe('webhook-checkout -- name null consistency (F6)', () => {
   });
 });
 
-// --- F7: Test-mode price guard uses _test_ not bare test ---
+// --- F7: Live-key price misconfiguration guard replaces the useless _test_ check ---
+// Stripe price IDs are opaque tokens (e.g. price_1AbC...) and can never
+// contain the substring '_test_' -- the old guard could never fire in
+// practice. Retired 2026-07-02 in favor of a real misconfiguration guard: a
+// live Stripe key deployed without every STRIPE_PRICE_* tier price configured.
 
-describe('create-checkout -- test-mode price guard (F7)', () => {
-  it('uses _test_ substring check, not bare test', async () => {
+describe('create-checkout -- live price misconfiguration guard (F7)', () => {
+  it('checks every configured tier price ID for sk_live_ deploys, not a bare priceId.includes(_test_)', async () => {
     const { readFileSync } = await import('node:fs');
     const source = readFileSync(
       new URL('../functions/api/create-checkout.js', import.meta.url),
       'utf8'
     );
     assert.ok(
-      source.includes("priceId.includes('_test_')"),
-      'Should check for _test_ (with underscores) to avoid false positives'
+      !source.includes("priceId.includes('_test_')"),
+      'Old _test_ substring check must be retired -- Stripe price IDs are opaque and can never contain it'
     );
-    // Verify the OLD pattern is gone
     assert.ok(
-      !source.includes("priceId.includes('test')") || source.includes("priceId.includes('_test_')"),
-      'Should not have bare includes(test) without underscores'
+      source.includes("STRIPE_SECRET_KEY.startsWith('sk_live_')"),
+      'Guard must still gate on a live secret key'
+    );
+    assert.ok(
+      /Object\.entries\(priceMap\)\.find\(/.test(source),
+      'Guard must check ALL configured tier price IDs (priceMap), not just the resolved priceId for this one request'
+    );
+    assert.ok(
+      /error:\s*'Payments not configured'\s*\},\s*503\s*\)/.test(source),
+      'Misconfigured live price IDs must fail with 503, not silently proceed to Stripe'
     );
   });
 });

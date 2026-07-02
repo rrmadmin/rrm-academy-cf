@@ -13,16 +13,35 @@
  */
 import {
   json, optionsResponse, getSessionIdFromCookie, validateSession, checkRateLimit,
-  SITE_URL,
+  SITE_URL, constantTimeEqual,
 } from './auth/_shared.js';
 import { log } from './_log.js';
 import { sendGA4Event } from './_ga4.js';
 import { classifySource, extractUtm, getClientId, deriveSessionId } from './_ga4-source.js';
 import { getStripeClient } from './billing/_shared.js';
 import {
-  lookupPendingWixMigration, validateOffAmount, isCustomAmount,
+  lookupPendingWixMigration, validateOffAmount, validateFrequency,
   acquireMigrationHandoffLock, clampTrialEnd, findBlockingActiveSubscription,
 } from './billing/_migration-handoff.js';
+
+// Releases the 15-min migration handoff write-lock. Must be called on every
+// return path between acquireMigrationHandoffLock() and a successful
+// checkout.sessions.create() — otherwise a donor who hits a validation error
+// (invalid tier, live-price misconfiguration, blocking subscription) is
+// locked out of retrying for up to 15 minutes even after fixing the
+// underlying issue.
+async function releaseMigrationLock(db, wixLookup, env) {
+  if (!wixLookup) return;
+  await db.prepare(
+    "UPDATE wix_subscription SET migration_handoff_started_at = NULL " +
+    "WHERE wix_subscription_id = ? AND stripe_subscription_id IS NULL"
+  ).bind(wixLookup.wix_subscription_id).run().catch(_releaseErr => {
+    env.EVENTS?.writeDataPoint({
+      blobs: ['billing', 'stuc-migration', 'lock-release-failed', wixLookup.wix_subscription_id, ''],
+      indexes: ['lock-release-failed'],
+    });
+  });
+}
 
 export async function onRequestOptions() {
   return optionsResponse();
@@ -61,7 +80,7 @@ async function handleCheckout(request, env, waitUntil) {
   }
 
   const canaryToken = request.headers.get('X-Canary-Token');
-  const isCanary = env.CANARY_SECRET && canaryToken === env.CANARY_SECRET;
+  const isCanary = !!env.CANARY_SECRET && constantTimeEqual(canaryToken || '', env.CANARY_SECRET);
 
   if (!isCanary) {
     const ip = request.headers.get('CF-Connecting-IP') || 'unknown';
@@ -113,9 +132,11 @@ async function handleCheckout(request, env, waitUntil) {
   const landingUrl = entry_url || '';
   const utmParams = extractUtm(landingUrl);
   const { source, medium, entry_category, entry_platform } = classifySource(referrer);
-  const gaSource = utmParams.utm_source || source;
-  const gaMedium = utmParams.utm_medium || medium;
-  const gaCampaign = utmParams.utm_campaign || '';
+  // Stripe metadata values are capped at 500 chars; UTM values come from
+  // unbounded query params and would otherwise make sessions.create() throw.
+  const gaSource = (utmParams.utm_source || source || '').slice(0, 500);
+  const gaMedium = (utmParams.utm_medium || medium || '').slice(0, 500);
+  const gaCampaign = (utmParams.utm_campaign || '').slice(0, 500);
 
   // Store client_id + session_id so webhook can replay the real user identity
   const clientId = await getClientId(request);
@@ -231,22 +252,41 @@ async function handleCheckout(request, env, waitUntil) {
       }
     }
 
-    // --- Migration: atomic write-lock + off-amount detection + trial_end clamp ---
-    let useCustomAmount = false;
+    // --- Migration: hard refusal on off-amount/non-monthly rows + write-lock + trial_end clamp ---
     let trialEndUnix = null;
     let migrationMetadata = {};
 
     if (wixLookup) {
-      // Off-amount detection: reject BEFORE acquiring the lock so a 412 does not
-      // hold the 15-min mutex. A donor who sees the off-amount prompt and re-POSTs
-      // with acknowledge_off_amount:true must be able to acquire the lock on the
-      // second request -- if we locked first they'd hit 409 instead.
-      const offAmountBody = validateOffAmount(wixLookup, body);
-      if (offAmountBody) return json(offAmountBody, 412);
-      useCustomAmount = isCustomAmount(wixLookup);
+      // Off-amount and non-MONTH rows are a permanent refusal (no acknowledge
+      // escape hatch -- all 52 live wix_subscription rows are 900/1900/9900
+      // cents, all MONTH). Reject BEFORE acquiring the lock so a refusal never
+      // holds the 15-min mutex.
+      const offAmountBody = validateOffAmount(wixLookup);
+      if (offAmountBody) {
+        console.error(`BLOCKED: off-amount Wix migration wxs=${wixLookup.wix_subscription_id} amount_cents=${wixLookup.amount_cents}`);
+        env.EVENTS?.writeDataPoint({
+          blobs: ['billing', 'stuc-migration', 'off-amount-refused', wixLookup.wix_subscription_id, String(wixLookup.amount_cents)],
+          indexes: ['off-amount-refused'],
+        });
+        log(env, waitUntil, 'billing', 'off_amount_refused', 'error',
+          `wxs=${wixLookup.wix_subscription_id} amount_cents=${wixLookup.amount_cents}`, 0, 409);
+        return json(offAmountBody, 409);
+      }
+
+      const frequencyBody = validateFrequency(wixLookup);
+      if (frequencyBody) {
+        console.error(`BLOCKED: non-monthly Wix migration wxs=${wixLookup.wix_subscription_id} frequency=${wixLookup.frequency}`);
+        env.EVENTS?.writeDataPoint({
+          blobs: ['billing', 'stuc-migration', 'unsupported-frequency-refused', wixLookup.wix_subscription_id, String(wixLookup.frequency)],
+          indexes: ['unsupported-frequency-refused'],
+        });
+        log(env, waitUntil, 'billing', 'unsupported_frequency_refused', 'error',
+          `wxs=${wixLookup.wix_subscription_id} frequency=${wixLookup.frequency}`, 0, 409);
+        return json(frequencyBody, 409);
+      }
 
       // Atomic write-lock with 15-min TTL — only acquired for requests we're
-      // forwarding to Stripe (off-amount rejection has already been handled above).
+      // forwarding to Stripe (refusals above have already been handled).
       const lock = await acquireMigrationHandoffLock(db, wixLookup.wix_subscription_id, env, waitUntil);
       if (!lock.acquired) return lock.response;
 
@@ -267,7 +307,6 @@ async function handleCheckout(request, env, waitUntil) {
     // --- Tier resolution: fall back to wixLookup.tier when no tier sent ---
     let effectiveTier = tier;
     if (!effectiveTier && wixLookup) effectiveTier = wixLookup.tier;
-    if (useCustomAmount && !effectiveTier) effectiveTier = 'member';
 
     const priceMap = {
       member: env.STRIPE_PRICE_MEMBER,
@@ -275,38 +314,37 @@ async function handleCheckout(request, env, waitUntil) {
       superhero: env.STRIPE_PRICE_SUPERHERO,
     };
     const priceId = Object.hasOwn(priceMap, effectiveTier) ? priceMap[effectiveTier] : undefined;
+    // Guard: live Stripe key requires every tier price to be configured.
+    // Retired 2026-07-02: the old guard substring-matched a "_test_" marker
+    // inside the price id, but Stripe price ids are opaque tokens
+    // (price_1AbC...) that can never contain that marker, so it could never
+    // fire. The real failure mode is a live deploy missing a
+    // STRIPE_PRICE_MEMBER/HERO/SUPERHERO secret; check all configured tiers,
+    // not just the one this request happens to target.
+    if (env.STRIPE_SECRET_KEY.startsWith('sk_live_')) {
+      const missingTier = Object.entries(priceMap).find(([, id]) => !id);
+      if (missingTier) {
+        console.error(`BLOCKED: live Stripe key configured without price ID for tier "${missingTier[0]}"`);
+        await releaseMigrationLock(db, wixLookup, env);
+        return json({ ok: false, error: 'Payments not configured' }, 503);
+      }
+    }
     if (!priceId) {
+      await releaseMigrationLock(db, wixLookup, env);
       return json({ ok: false, error: 'Invalid tier' }, 400);
     }
-    // Guard: reject test-mode price IDs when using a live key
-    if (env.STRIPE_SECRET_KEY.startsWith('sk_live_') && priceId.includes('_test_')) {
-      console.error(`BLOCKED: test-mode price ID for tier "${effectiveTier}": ${priceId}`);
-      return json({ ok: false, error: 'Payments not configured' }, 500);
-    }
-
     // Guard: if logged-in user already has an active/trialing/past_due subscription, don't create a new one
     if (stripeCustomerId) {
       const blocker = await findBlockingActiveSubscription(stripe, stripeCustomerId, env, waitUntil);
-      if (blocker) return blocker.response;
+      if (blocker) {
+        await releaseMigrationLock(db, wixLookup, env);
+        return blocker.response;
+      }
     }
-
-    // --- Build line_items: use price_data for off-amount donors ---
-    const lineItems = useCustomAmount && wixLookup
-      ? [{
-          price_data: {
-            currency: 'usd',
-            product_data: { name: `Save the Uterus Club ($${(wixLookup.amount_cents / 100).toFixed(0)}/month)` },
-            unit_amount: wixLookup.amount_cents,
-            recurring: { interval: 'month' },
-            nickname: `STUC Custom $${(wixLookup.amount_cents / 100).toFixed(0)}/mo`,
-          },
-          quantity: 1,
-        }]
-      : [{ price: priceId, quantity: 1 }];
 
     const sessionParams = {
       mode: 'subscription',
-      line_items: lineItems,
+      line_items: [{ price: priceId, quantity: 1 }],
       success_url: `${origin}/save-the-uterus-club/thank-you/?session_id={CHECKOUT_SESSION_ID}`,
       cancel_url: `${origin}/save-the-uterus-club/`,
       metadata: { tier: effectiveTier },
@@ -336,12 +374,9 @@ async function handleCheckout(request, env, waitUntil) {
     // Carry migration metadata + tier into subscription_data so webhook can read it.
     // tier on subscription.metadata enables admin/revenue.js MRR grouping and
     // tierFromPriceOrAmount() short-circuit for all new Stripe-era subscriptions.
-    const offAmountSubMeta = useCustomAmount && wixLookup
-      ? { tier_custom: '1', amount_cents: String(wixLookup.amount_cents) }
-      : {};
     sessionParams.subscription_data = {
       ...(trialEndUnix ? { trial_end: trialEndUnix } : {}),
-      metadata: { tier: effectiveTier, ...migrationMetadata, ...offAmountSubMeta },
+      metadata: { tier: effectiveTier, ...migrationMetadata },
     };
 
     let checkoutSession;
@@ -349,23 +384,14 @@ async function handleCheckout(request, env, waitUntil) {
       checkoutSession = await stripe.checkout.sessions.create(sessionParams);
     } catch (err) {
       log(env, waitUntil, 'billing', 'create_subscription_error', 'error', `stripe checkout: ${err.message}`, 0, 503);
-      if (wixLookup) {
-        await db.prepare(
-          "UPDATE wix_subscription SET migration_handoff_started_at = NULL " +
-          "WHERE wix_subscription_id = ? AND stripe_subscription_id IS NULL"
-        ).bind(wixLookup.wix_subscription_id).run().catch(_releaseErr => {
-          env.EVENTS?.writeDataPoint({
-            blobs: ['billing', 'stuc-migration', 'lock-release-failed', wixLookup.wix_subscription_id, ''],
-            indexes: ['lock-release-failed'],
-          });
-        });
-      }
+      await releaseMigrationLock(db, wixLookup, env);
       return json({ ok: false, error: 'Payment service temporarily unavailable. Please try again.' }, 503);
     }
-    const tierValueMap = { member: 10, hero: 25, superhero: 50 };
+    const tierValueMap = { member: 9, hero: 19, superhero: 99 };
+    const checkoutValue = tierValueMap[effectiveTier] ?? 0;
     waitUntil(sendGA4Event(env, request, 'begin_checkout', {
       page_location: entry_url || request.headers.get('Referer') || SITE_URL,
-      currency: 'USD', value: tierValueMap[effectiveTier] ?? 0, items: [{ item_name: `STUC ${effectiveTier}` }],
+      currency: 'USD', value: checkoutValue, items: [{ item_name: `STUC ${effectiveTier}` }],
     }).catch(() => {}));
     return json({ ok: true, url: checkoutSession.url });
   }

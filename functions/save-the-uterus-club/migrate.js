@@ -352,7 +352,6 @@ export async function onRequestGet(context) {
 
   // Note: wix_subscription_id is JSON-stringified into client JS to avoid quote-injection.
   const wixSubIdJson = JSON.stringify(wixSub.wix_subscription_id);
-  const amountDollarsJson = JSON.stringify(amountDollars);
 
   return renderShell({
     title: 'Switch your donation',
@@ -362,11 +361,10 @@ export async function onRequestGet(context) {
   ${dateBlock}
   <div id="error-region" class="error-region" role="alert" aria-live="polite"></div>
   <div id="off-amount-panel" class="off-amount-panel">
-    <h2>Your donation is at a custom amount</h2>
-    <p>Your current donation is <strong id="off-amount-display"></strong>/month, which isn't one of our three standard tiers.</p>
+    <h2>We can't switch this donation automatically</h2>
+    <p id="off-amount-message"></p>
     <div class="actions">
-      <button id="btn-continue-off-amount" class="btn-primary">Continue at <span id="off-amount-btn-label"></span>/month</button>
-      <a id="off-amount-email-link" href="#" class="btn-secondary">Email us to switch tiers</a>
+      <a id="off-amount-email-link" href="#" class="btn-primary">Email administrator@rrmacademy.org</a>
     </div>
   </div>
   <div class="actions" id="main-actions">
@@ -376,13 +374,11 @@ export async function onRequestGet(context) {
 <script>
 (function () {
   var wixSubId = ${wixSubIdJson};
-  var amountDollars = ${amountDollarsJson};
 
   var btnContinue = document.getElementById('btn-continue');
   var errorRegion = document.getElementById('error-region');
   var offAmountPanel = document.getElementById('off-amount-panel');
   var mainActions = document.getElementById('main-actions');
-  var btnOffAmount = document.getElementById('btn-continue-off-amount');
 
   function showError(msg) {
     errorRegion.textContent = msg;
@@ -394,23 +390,19 @@ export async function onRequestGet(context) {
     errorRegion.textContent = '';
   }
 
-  function showOffAmount(amount_cents) {
-    var dollars = (amount_cents / 100).toFixed(0);
-    document.getElementById('off-amount-display').textContent = '$' + dollars;
-    document.getElementById('off-amount-btn-label').textContent = '$' + dollars;
-    var emailBody = encodeURIComponent(
-      "I'd like to change my $" + dollars + "/month donation to a standard tier. My donation ID: " + wixSubId
-    );
+  function showRefusal(message) {
+    document.getElementById('off-amount-message').textContent =
+      message || 'This membership requires manual assistance to migrate. Please contact administrator@rrmacademy.org.';
+    var emailBody = encodeURIComponent('My donation ID: ' + wixSubId);
     document.getElementById('off-amount-email-link').href =
-      'mailto:administrator@rrmacademy.org?subject=Switch%20my%20donation%20tier&body=' + emailBody;
+      'mailto:administrator@rrmacademy.org?subject=Switch%20my%20donation&body=' + emailBody;
     offAmountPanel.style.display = 'block';
     mainActions.style.display = 'none';
   }
 
-  async function doCheckout(acknowledgeOffAmount) {
+  async function doCheckout() {
     hideError();
     var payload = { mode: 'subscription', wix_sub_id: wixSubId };
-    if (acknowledgeOffAmount) payload.acknowledge_off_amount = true;
 
     var res;
     try {
@@ -425,17 +417,13 @@ export async function onRequestGet(context) {
       return null;
     }
 
-    if (res.status === 412) {
-      var errData = await res.json().catch(function () { return {}; });
-      if (errData.error === 'off_amount') {
-        showOffAmount(errData.amount_cents);
-        return null;
-      }
-    }
-
     if (!res.ok) {
       var errBody = await res.json().catch(function () { return {}; });
       var code = errBody.error || '';
+      if (code === 'off_amount' || code === 'unsupported_frequency') {
+        showRefusal(errBody.message);
+        return null;
+      }
       var msg;
       if (code === 'migration_in_progress') {
         msg = 'We’re already starting your switch. Refresh this page in a minute and try again.';
@@ -455,24 +443,12 @@ export async function onRequestGet(context) {
   btnContinue.addEventListener('click', async function () {
     btnContinue.disabled = true;
     btnContinue.textContent = 'Starting your checkout…';
-    var checkoutUrl = await doCheckout(false);
+    var checkoutUrl = await doCheckout();
     if (checkoutUrl) {
       window.location.href = checkoutUrl;
     } else {
       btnContinue.textContent = 'Switch my donation';
       btnContinue.disabled = false;
-    }
-  });
-
-  btnOffAmount.addEventListener('click', async function () {
-    btnOffAmount.disabled = true;
-    btnOffAmount.textContent = 'Starting your checkout…';
-    var checkoutUrl = await doCheckout(true);
-    if (checkoutUrl) {
-      window.location.href = checkoutUrl;
-    } else {
-      btnOffAmount.textContent = 'Continue at $' + amountDollars + '/month';
-      btnOffAmount.disabled = false;
     }
   });
 })();

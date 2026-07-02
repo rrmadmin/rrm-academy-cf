@@ -56,7 +56,7 @@ describe('create-checkout migration handoff (Phase 3.1)', () => {
     );
   });
 
-  it('off-amount detection returns 412 with structured response', () => {
+  it('off-amount detection returns 409 with structured response', () => {
     assert.ok(
       /'off_amount'/.test(source),
       'Must have off_amount error code'
@@ -65,15 +65,18 @@ describe('create-checkout migration handoff (Phase 3.1)', () => {
       /standard_tiers/.test(source),
       'Off-amount response must include standard_tiers list'
     );
-    // Post-2026-05-15 refactor: validateOffAmount() (in _migration-handoff.js)
-    // returns the inline {... 'off_amount' ...} body; create-checkout.js wraps
-    // it as `return json(offAmountBody, 412)`. Either shape proves the 412 contract.
+    // Off-amount became a hard, permanent refusal (no acknowledge escape
+    // hatch) since all 52 live wix_subscription rows are 900/1900/9900 cents.
+    // validateOffAmount() (in _migration-handoff.js) returns the inline
+    // {... 'off_amount' ...} body; create-checkout.js wraps it as
+    // `return json(offAmountBody, 409)`.
     assert.ok(
-      /\bstatus:\s*412\b/.test(source) ||
-      /\b412\b[^,]*'off_amount'/.test(source) ||
-      /json\(\s*\{[^}]*'off_amount'[\s\S]*?\}\s*,\s*412\s*\)/.test(source) ||
-      (/'off_amount'/.test(source) && /json\(\s*offAmountBody\s*,\s*412\s*\)/.test(source)),
-      'off_amount must use HTTP 412'
+      /json\(\s*offAmountBody\s*,\s*409\s*\)/.test(source),
+      'off_amount must use HTTP 409'
+    );
+    assert.ok(
+      !/\b412\b/.test(source),
+      'Old 412 off_amount status must be retired'
     );
     assert.ok(
       /STANDARD_CENTS|standardCents|standard_cents/.test(source),
@@ -81,14 +84,22 @@ describe('create-checkout migration handoff (Phase 3.1)', () => {
     );
   });
 
-  it('off-amount accepts acknowledge_off_amount=true and uses price_data', () => {
+  it('off-amount is a hard refusal -- no acknowledge_off_amount escape hatch, no ad-hoc Stripe price', () => {
     assert.ok(
-      /acknowledge_off_amount/.test(source),
-      'Must check body.acknowledge_off_amount to bypass off_amount block'
+      !/acknowledge_off_amount/.test(source),
+      'acknowledge_off_amount flow must be removed -- off-amount is always refused (dead code for a scenario that cannot occur)'
     );
     assert.ok(
-      /price_data/.test(source),
-      'Off-amount accepted path must use Stripe price_data ad-hoc pricing'
+      !/useCustomAmount/.test(source),
+      'useCustomAmount branch must be removed from create-checkout.js'
+    );
+    assert.ok(
+      /administrator@rrmacademy\.org/.test(source),
+      'Refusal message must direct the donor to contact administrator@rrmacademy.org'
+    );
+    assert.ok(
+      /isCustomAmount/.test(source),
+      'isCustomAmount() must still gate the refusal in billing/_migration-handoff.js'
     );
   });
 
@@ -144,6 +155,51 @@ describe('create-checkout migration handoff (Phase 3.1)', () => {
     assert.ok(
       !/env\.WORKER_EVENTS/.test(source),
       "Must use env.EVENTS, never env.WORKER_EVENTS"
+    );
+    assert.ok(
+      !/STUC_PRODUCT_ID/.test(source),
+      "STUC_PRODUCT_ID was only used by the removed price_data branch; must not linger as dead code"
+    );
+  });
+});
+
+describe('create-checkout: Wix frequency guard', () => {
+  it('lookupPendingWixMigration SELECTs frequency', () => {
+    assert.ok(
+      /SELECT[\s\S]*?\bfrequency\b[\s\S]*?FROM wix_subscription/i.test(source),
+      'lookupPendingWixMigration must SELECT frequency so non-MONTH rows can be refused'
+    );
+  });
+
+  it('refuses any non-MONTH wix_subscription row with a structured 409', () => {
+    assert.ok(
+      /'unsupported_frequency'/.test(source),
+      'Must have an unsupported_frequency refusal error code'
+    );
+    assert.ok(
+      /wixLookup\.frequency\s*===\s*'MONTH'/.test(source),
+      'validateFrequency must gate on wixLookup.frequency === MONTH'
+    );
+    assert.ok(
+      /json\(\s*frequencyBody\s*,\s*409\s*\)/.test(source),
+      'Non-MONTH refusal must use HTTP 409'
+    );
+    assert.ok(
+      /administrator@rrmacademy\.org/.test(source),
+      'Frequency refusal message must direct the donor to contact administrator@rrmacademy.org'
+    );
+  });
+});
+
+describe('create-checkout: canary token constant-time compare', () => {
+  it('uses constantTimeEqual, not a direct === comparison, for the canary token', () => {
+    assert.ok(
+      /constantTimeEqual\(/.test(source),
+      'Canary token comparison must use constantTimeEqual to avoid a timing side-channel'
+    );
+    assert.ok(
+      !/canaryToken\s*===\s*env\.CANARY_SECRET/.test(source),
+      'Must not use a direct === comparison for canaryToken'
     );
   });
 });

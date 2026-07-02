@@ -135,9 +135,9 @@ describe('giftFromCheckoutSession', () => {
     assert.equal(g.kind, 'one_time');
     assert.equal(g.occurredAt, new Date(1760000000 * 1000).toISOString());
   });
-  it('falls back to the session id when payment_intent is null', () => {
+  it('skips recording when payment_intent is null (pi_-only dedup; daemon owns the sweep, 2026-07-02)', () => {
     const g = giftFromCheckoutSession({ ...base, payment_intent: null }, 1760000000);
-    assert.equal(g.sourceId, 'cs_1');
+    assert.equal(g, null);
   });
   it('treats missing metadata.type in payment mode as donation (matches GA4 branch)', () => {
     assert.ok(giftFromCheckoutSession({ ...base, metadata: {} }, 1760000000));
