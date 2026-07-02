@@ -1,6 +1,7 @@
 ---
 import BaseLayout from '../../layouts/BaseLayout.astro';
 import articlesData from '../../data/articles.json';
+import superheroes from '../../data/superheroes.json';
 
 // Live count, mirroring the donate/homepage pattern so this stat never drifts.
 const libraryCountRounded = (Math.floor(articlesData.length / 1000) * 1000).toLocaleString();
@@ -9,7 +10,7 @@ const jsonLd = {
   '@context': 'https://schema.org',
   '@type': 'WebPage',
   name: 'Save the Uterus Club',
-  description: 'Join the Save the Uterus Club and help build a future where uteruses are valued, women get real answers, and restorative reproductive medicine becomes the standard of care.',
+  description: 'Join the Save the Uterus Club and help build a future where uteruses are valued, women are taken seriously, and restorative reproductive medicine becomes the standard of care.',
   url: 'https://rrmacademy.org/save-the-uterus-club/',
   isPartOf: {
     '@type': 'WebSite',
@@ -36,53 +37,99 @@ const jsonLd = {
       <!-- Hero -->
       <section class="stuc-hero">
         <h1>Save the Uterus Club</h1>
-        <p class="stuc-tagline">Creating a different kind of healthcare model.</p>
-        <p class="stuc-subtext">One where the uterus isn't blamed for every problem. Where surgery isn't the first answer. Where women and couples get real answers about what's actually wrong. And real treatment to fix it.</p>
+        <p class="stuc-tagline">Community, advocacy, and a whole lot of fun, led by our mascot, the Cuterus.</p>
+        <p class="stuc-subtext">New research, live calls with Dr. Whittaker, and the next advocacy move reach the group first, before anyone outside the room hears a thing.</p>
+        <figure class="stuc-illustration stuc-illustration--mascot">
+          <img src="/images/save-the-uterus-club/cuterus.webp" alt="The Cuterus, the Save the Uterus Club's soft pink crocheted mascot, with fluffy white pom-pom ovaries, sitting beside a scatter of stickers" width="1024" height="1024" loading="lazy" decoding="async" />
+          <figcaption>Meet the Cuterus. Our crocheted mascot, our comic relief, and proof you can hold the change. Her whole job is helping the world fall back in love with the uterus.</figcaption>
+        </figure>
         <p class="stuc-login-hint" id="stuc-login-hint">Already a member? <a href="/login/?redirect=/save-the-uterus-club/">Log in</a></p>
         <p class="stuc-join-hint" id="stuc-join-hint">Ready to join? <a href="#tiers">See membership options</a></p>
       </section>
 
-      <section class="stuc-intro">
-        <p>Women are told their pain is normal. They're handed suppressive medications without investigation. Offered hysterectomy before anyone looks for the root cause. These reproductive health issues have been secretly getting worse with age. And no one told them.</p>
-        <p>That's not medicine. That's abandonment.</p>
-        <p>Most women don't even know there's another option. That's why the Save the Uterus Club exists.</p>
-      </section>
-
-      <section class="stuc-positioning">
-        <p>Save the Uterus Club is the community and collaboration arm of RRM Academy. It brings patients, clinicians, researchers, and advocates into the same space to work toward one goal: restorative reproductive medicine becoming the standard of care.</p>
-        <p>Patients and couples come here to find providers who dig for the root cause, learn from real research written in plain language, and meet others navigating similar diagnoses. Clinicians, researchers, and advocates come here to train each other, share their work, and grow the field together.</p>
-        <p>Here's what that looks like, depending on where you're standing.</p>
+      <section class="stuc-section stuc-story scrapbook-panel">
+        <p class="eyebrow">The Twist</p>
+        <h2>Tuesday, Take Two</h2>
+        <p>Same woman, two Tuesdays, five months apart.</p>
+        <p>First Tuesday: a rushed ten-minute appointment, the same pain she's had for years, and a shrug that doesn't explain a thing.</p>
+        <p>Second Tuesday: laptop open, tea going, she's logged into a Save the Uterus Club live call already in progress. Dr. Whittaker's on screen walking through what a real workup looks like, cycle charts, lab timing, the questions worth bringing to her own doctor. This member finally has language for what's been happening to her body. She looks around the chat and realizes a dozen other women have been exactly where she is.</p>
+        <figure class="stuc-illustration">
+          <img src="/images/save-the-uterus-club/second-tuesday.webp" alt="A woman at her kitchen table in warm evening light, joining a live video call with a notebook and tea beside her" width="1024" height="1024" loading="lazy" decoding="async" />
+        </figure>
+        <blockquote class="pull-quote">
+          <p>She's not carrying it alone anymore. Neither is anyone else logged in with her.</p>
+        </blockquote>
+        <p>She logs off with a list of questions for her own doctor and a plan for what to ask next. That second Tuesday happens most months. It's why members keep showing up, and it's the whole party.</p>
       </section>
 
       <hr class="divider" />
 
-      <!-- Who This Is For -->
       <section class="stuc-section">
-        <h2>Who This Is For</h2>
+        <img class="cuterus-peek cuterus-peek--left" src="/images/save-the-uterus-club/cuterus-wave.webp" alt="" aria-hidden="true" width="1024" height="1024" loading="lazy" decoding="async" />
+        <p class="eyebrow">The Vibe</p>
+        <h2>What the Club Actually Is</h2>
+        <p>Save the Uterus Club is the community and collaboration arm of RRM Academy, and it runs less like a newsletter and more like a group chat with one mission: restorative reproductive medicine becoming the standard of care.</p>
+        <p>We're a do tank, not a think tank. This is where the action happens: live calls, new research, and advocacy letters taking shape in real time in the Uterus Allies chat, often before anyone outside the room hears about it.</p>
+        <p>Members team up, so we spend less time duplicating each other's work and more time boosting it. Less work, more fun, bigger impact.</p>
+        <p>That's the deal: members fund the work, and in exchange, they get a front-row seat to watch it happen, help shape it, and have some fun along the way.</p>
+      </section>
+
+      <hr class="divider" />
+
+      <!-- Meet the Uterus Super Heroes -->
+      <section class="stuc-section stuc-spotlight">
+        <p class="eyebrow">The A-List</p>
+        <h2>Meet the Uterus Super Heroes</h2>
+        <p>Two women back the club at the very top tier: $99 a month, a seat at Dr. Whittaker's live quarterly Q&amp;A, and a logo on the RRM Academy homepage. Consider them the club's VIPs. Here's who they are.</p>
+        <div class="spotlight-grid">
+          {superheroes.map((s) => (
+            <div class="card spotlight-card">
+              <a href={s.url} target="_blank" rel="noopener" class={`spotlight-logo spotlight-logo--${s.logoShape}`}>
+                <img src={s.logo} alt={`${s.org} logo`} loading="lazy" decoding="async" />
+              </a>
+              <h3>{s.name}</h3>
+              <p class="spotlight-org"><a href={s.url} target="_blank" rel="noopener">{s.org}</a></p>
+              <p class="spotlight-blurb">{s.blurb}</p>
+            </div>
+          ))}
+        </div>
+      </section>
+
+      <hr class="divider" />
+
+      <!-- What You're Let In On -->
+      <section class="stuc-section">
+        <p class="eyebrow">Behind the Curtain</p>
+        <h2>What You're Let In On</h2>
+        <p>Depending on where you're standing, the club looks like two different rooms. Either way, it's a good time.</p>
+        <figure class="stuc-illustration stuc-illustration--compact">
+          <img src="/images/save-the-uterus-club/community.webp" alt="Two women at a table with coffee, one showing the other a page in her notebook" width="1024" height="1024" loading="lazy" decoding="async" />
+        </figure>
         <div class="audience-grid">
 
           <div class="card audience-track">
             <h3>If you're a patient</h3>
-            <p>Whether you're facing endometriosis, PCOS, infertility, recurrent loss, or pain no one has taken seriously, this is where you start getting real answers.</p>
+            <p>Endometriosis, PCOS, infertility, recurrent loss, or pain nobody's taken seriously: this is the side of the room where you start understanding what's actually happening in your body.</p>
             <ul>
-              <li>Get help finding restorative-minded care from women who've been where you are.</li>
-              <li>Get research from the RRM Research Library translated into plain language you can actually use.</li>
-              <li>Meet other women who've faced the same diagnosis.</li>
-              <li>Join a community built specifically around your condition.</li>
-              <li>Get an approach that treats both partners. Male factor accounts for about half of all fertility challenges.</li>
-              <li>Attend live Q&amp;As and events with clinicians who treat the underlying cause.</li>
+              <li>Swap notes with members who found root-cause care before you did.</li>
+              <li>Get research turned into plain English you can bring to your next appointment.</li>
+              <li>Meet women working through your exact diagnosis, in the group chat and on live calls.</li>
+              <li>Learn live and walk away with what to ask your own doctor next.</li>
+              <li>Hold the club in your hands. Uterus Super Heroes get the crochet Cuterus plushie and stickers, mailed to their door.</li>
+              <li>Show up for live calls now, and real-life events down the road. Screens are great, but nothing beats an actual conversation.</li>
+              <li>Bring your partner in. Fertility's a couple's thing, and male factor accounts for about half of all fertility challenges.</li>
             </ul>
           </div>
 
           <div class="card audience-track">
             <h3>If you're a provider or advocate</h3>
-            <p>Whether you're a clinician, a researcher, or someone who has watched a person you love get dismissed by the system, this is where you help build the change.</p>
+            <p>Whether you're a clinician, a researcher, an advocacy organization, or someone who's watched a person you love get dismissed, this is where the work gets built.</p>
             <ul>
-              <li>Grow your professional presence within a community already committed to restorative, cause-based care.</li>
-              <li>Connect directly with patients looking for a clinician who treats the underlying cause.</li>
-              <li>Collaborate with other clinicians, researchers, and FertilityCare Practitioners on research and advocacy.</li>
-              <li>Share your expertise through the Research Library, live Q&amp;As, and educational content.</li>
-              <li>Access speaking opportunities and help train the next clinician who wants to practice this way.</li>
+              <li>Team up instead of duplicating work. Less redundant effort, more boosted impact.</li>
+              <li>Watch, and help shape, research and advocacy as it takes shape in the Uterus Allies chat.</li>
+              <li>Share your expertise through live Q&amp;As and the resource library.</li>
+              <li>Get a seat at the table when the next educational push gets planned.</li>
+              <li>Plug in alongside advocacy organizations already doing this work. We compare notes and boost each other's campaigns.</li>
               <li>Take part as a partner, family member, or friend; the movement needs advocates as much as clinicians.</li>
             </ul>
           </div>
@@ -92,33 +139,37 @@ const jsonLd = {
 
       <hr class="divider" />
 
-      <!-- What We're Building Together -->
+      <!-- What's Being Built Right Now -->
       <section class="stuc-section">
-        <h2>What We're Building Together</h2>
-        <p>A future where:</p>
-        <ol class="goals-list">
-          <li><strong>Uteruses are valued</strong> instead of treated as disposable</li>
-          <li><strong>Women know their rights</strong> and what good care looks like</li>
-          <li><strong>Surgery is never offered</strong> without thorough investigation first</li>
-          <li><strong>Painful periods trigger diagnosis.</strong> Not dismissal.</li>
-          <li><strong>Couples get real answers</strong> about what's wrong and how to address it together</li>
-          <li><strong>Restorative reproductive medicine</strong> is the standard of care. Not the exception.</li>
-        </ol>
-        <p>This doesn't happen without funding. Without education. Without a community of people who refuse to accept inadequate care as normal. That's what your membership builds.</p>
+        <img class="cuterus-peek cuterus-peek--right" src="/images/save-the-uterus-club/cuterus-book.webp" alt="" aria-hidden="true" width="1024" height="1024" loading="lazy" decoding="async" />
+        <p class="eyebrow">The Master Plan</p>
+        <h2>What's Being Built Right Now</h2>
+        <p>This is the long game, and it's already moving through the group chat, the live calls, and the research queue. Big goals, good company:</p>
+        <ul class="goal-cards">
+          <li class="goal-card"><span class="goal-dot" aria-hidden="true"></span><span><strong>Uteruses valued</strong> instead of treated as disposable</span></li>
+          <li class="goal-card"><span class="goal-dot" aria-hidden="true"></span><span><strong>Women who know their rights</strong> and what good care actually looks like</span></li>
+          <li class="goal-card"><span class="goal-dot" aria-hidden="true"></span><span><strong>Surgery that never gets offered</strong> without a real investigation first</span></li>
+          <li class="goal-card"><span class="goal-dot" aria-hidden="true"></span><span><strong>Painful periods that trigger a real diagnosis</strong></span></li>
+          <li class="goal-card"><span class="goal-dot" aria-hidden="true"></span><span><strong>Couples taken seriously as a team</strong>, with both partners actually investigated</span></li>
+          <li class="goal-card"><span class="goal-dot" aria-hidden="true"></span><span><strong>Restorative reproductive medicine</strong> recognized as the standard of care</span></li>
+        </ul>
+        <p>None of it happens without funding, or without a bunch of people who show up every month and refuse to call any of this 'normal.' Good news: that's basically the whole club. Your membership builds it, one call, one study, one advocacy letter at a time.</p>
       </section>
 
       <hr class="divider" />
 
       <!-- What Your Membership Does -->
       <section class="stuc-section">
+        <img class="cuterus-peek cuterus-peek--left" src="/images/save-the-uterus-club/cuterus-plain.webp" alt="" aria-hidden="true" width="1024" height="1024" loading="lazy" decoding="async" />
+        <p class="eyebrow">The Receipts</p>
         <h2>What Your Membership Does</h2>
-        <p>Every monthly donation funds the work that changes how women and couples access real care:</p>
-        <ul class="membership-benefits">
-          <li><strong>Education</strong> that reaches over 1,000,000 people monthly. Women discovering for the first time that their pain isn't normal. That endometriosis can be treated, not just managed. That fertility problems have causes. And those causes can often be addressed.</li>
-          <li><strong>Research made accessible.</strong> Over {libraryCountRounded} academic resources in the RRM Research Library. Peer-reviewed evidence translated into information women and couples can actually use to advocate for themselves.</li>
-          <li><strong>Training for medical professionals</strong> who want to practice cause-based medicine. Who want to find the root cause instead of masking symptoms with suppressive medications.</li>
-          <li><strong>A space for healing.</strong> Platforms where women can share their experiences of medical dismissal and reproductive trauma. You are not alone in what you've been through.</li>
-          <li><strong>Better care for every woman and couple who comes after you.</strong> Every resource we create, every professional we train, every woman who learns she deserves answers. That's because of members like you.</li>
+        <p>Here's where the money goes, month over month.</p>
+        <ul class="membership-benefits benefit-cards">
+          <li><strong>Education</strong> that reaches over 1,000,000 people monthly: women finding out, some for the first time, that their pain isn't normal, that endometriosis has real treatment options, and that fertility problems usually have a findable cause.</li>
+          <li><strong>Research made accessible.</strong> Over {libraryCountRounded} academic resources in the RRM Research Library, peer-reviewed evidence translated into language women and couples can actually use.</li>
+          <li><strong>Training for medical professionals</strong> who want to practice cause-based medicine, finding the root cause behind the symptoms they're currently taught to suppress.</li>
+          <li><strong>A space to be heard,</strong> where women trade stories, compare notes, and figure out pretty fast that they were never the only one.</li>
+          <li><strong>Better care for every woman and couple who comes after you,</strong> built by the members who came before them.</li>
         </ul>
         <p class="footnote">Your donation supports the RRM Foundation's operating fund. All donations are tax-deductible (we're a registered 501(c)(3), EIN: 93-4594315).</p>
       </section>
@@ -157,7 +208,10 @@ const jsonLd = {
 
       <!-- Membership Tiers -->
       <section class="stuc-section" id="tiers">
+        <img class="cuterus-peek" src="/images/save-the-uterus-club/cuterus-wave.webp" alt="" aria-hidden="true" width="1024" height="1024" loading="lazy" decoding="async" />
+        <p class="eyebrow">Join the Room</p>
         <h2>Membership Tiers</h2>
+        <p>Three ways to be part of what happens next. All of it funds the same work; the tiers just decide how far inside the room you sit.</p>
         <div class="tier-grid">
 
           <div class="tier-card card">
@@ -280,8 +334,9 @@ const jsonLd = {
 
       <!-- Bottom CTA -->
       <section class="stuc-bottom-cta">
-        <p>The healthcare model that dismisses women. That offers surgery before investigation. That bypasses root causes instead of treating them.</p>
-        <p>That model only changes when enough people demand better.</p>
+        <img class="cuterus-peek cuterus-peek--center" src="/images/save-the-uterus-club/cuterus-heart.webp" alt="" aria-hidden="true" width="1024" height="1024" loading="lazy" decoding="async" />
+        <p>Somewhere right now, someone's having that first Tuesday. The next call's already on the calendar. The next study's already in the queue. Somewhere else, someone's finally not doing this alone.</p>
+        <p>The only question left: are you in the room for it?</p>
         <a href="#tiers" class="btn btn--primary btn--lg">Join Us</a>
         <p class="footnote stuc-tax-note">All donations to the Restorative Reproductive Medicine Foundation, a 501(c)(3) non-profit, are tax-deductible. EIN: 93-4594315</p>
       </section>
@@ -294,7 +349,7 @@ const jsonLd = {
     (function () {
       var entryReferrer = sessionStorage.getItem('entry_ref') || '';
       var entryUrl = sessionStorage.getItem('entry_url') || '';
-      var tierNames = { member: 'STUC Member', hero: 'Uterus Hero', superhero: 'Uterus Super Hero' };
+      var tierNames = { member: 'Save the Uterus Club Member', hero: 'Uterus Hero', superhero: 'Uterus Super Hero' };
 
       // Check billing status for logged-in users
       fetch('/api/billing/status', { credentials: 'same-origin' })
@@ -515,16 +570,123 @@ const jsonLd = {
     text-decoration: underline;
   }
 
-  /* Intro prose */
-  .stuc-intro,
-  .stuc-positioning {
-    margin-bottom: var(--space-6);
+  /* Editorial illustrations */
+  .stuc-illustration--mascot {
+    max-width: 300px;
   }
-  .stuc-intro p,
-  .stuc-positioning p {
+  .stuc-illustration figcaption {
+    font-size: 0.8125rem;
+    line-height: 1.6;
+    color: var(--text-tertiary);
+    text-align: center;
+    margin-top: var(--space-3);
+  }
+  .stuc-illustration {
+    margin: var(--space-6) auto;
+    max-width: 520px;
+  }
+  .stuc-illustration--compact {
+    max-width: 440px;
+  }
+  .stuc-illustration img {
+    display: block;
+    width: 100%;
+    height: auto;
+    border-radius: var(--radius-lg);
+  }
+
+  /* Magazine eyebrow kicker */
+  .eyebrow {
+    font-size: 0.6875rem;
+    font-weight: 600;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--accent);
+    margin: 0 0 var(--space-2);
+  }
+
+  /* Pull-quote */
+  .pull-quote {
+    border-left: 3px solid var(--accent);
+    margin: var(--space-6) 0;
+    padding: var(--space-2) 0 var(--space-2) var(--space-5);
+  }
+  .pull-quote p {
+    font-family: 'Cormorant Garamond', 'Georgia', serif;
+    font-size: 1.5rem;
+    font-style: italic;
+    font-weight: 400;
+    line-height: 1.4;
+    color: var(--text-primary);
+    margin: 0;
+  }
+
+  /* Story + section prose */
+  .stuc-story p {
     font-size: 0.9375rem;
     line-height: 1.8;
     color: var(--text-secondary);
+  }
+
+  /* Super Hero spotlight */
+  .spotlight-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: var(--space-5);
+    margin-top: var(--space-5);
+  }
+  @media (min-width: 640px) {
+    .spotlight-grid {
+      grid-template-columns: repeat(2, 1fr);
+    }
+  }
+  .spotlight-card {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+  }
+  .spotlight-logo {
+    display: inline-flex;
+    align-items: center;
+    margin-bottom: var(--space-3);
+    min-height: 64px;
+  }
+  .spotlight-logo img {
+    display: block;
+    max-width: 100%;
+    height: auto;
+  }
+  .spotlight-logo--square img {
+    width: 64px;
+    height: 64px;
+    border-radius: var(--radius-md);
+  }
+  .spotlight-logo--wide img {
+    width: 180px;
+  }
+  .spotlight-card h3 {
+    font-size: 1.125rem;
+    margin-bottom: 0;
+  }
+  .spotlight-org {
+    font-size: 0.8125rem;
+    font-weight: 600;
+    letter-spacing: 0.03em;
+    text-transform: uppercase;
+    margin: 0 0 var(--space-3);
+  }
+  .spotlight-org a {
+    color: var(--accent);
+    text-decoration: none;
+  }
+  .spotlight-org a:hover {
+    text-decoration: underline;
+  }
+  .spotlight-blurb {
+    font-size: 0.875rem;
+    line-height: 1.75;
+    color: var(--text-secondary);
+    margin: 0;
   }
 
   /* Sections */
@@ -787,4 +949,176 @@ const jsonLd = {
       justify-content: center;
     }
   }
+
+  /* ============================================================
+     Scrapbook vibe: sticker badges, dot dividers, playful cards
+     ============================================================ */
+
+  /* Eyebrow kickers become tilted sticker badges, tint rotates per section */
+  .stuc-section .eyebrow,
+  .stuc-story .eyebrow {
+    display: inline-block;
+    background: var(--rose-50);
+    color: var(--accent);
+    padding: 5px 15px;
+    border-radius: var(--radius-pill);
+    border: 1.5px dashed var(--sand-500);
+    box-shadow: var(--shadow-sm);
+    transform: rotate(-2.5deg);
+    transform-origin: left center;
+    margin-bottom: var(--space-4);
+  }
+  .stuc-section:nth-of-type(even) .eyebrow {
+    background: var(--sage-50);
+    transform: rotate(2deg);
+  }
+  .stuc-section:nth-of-type(3n) .eyebrow {
+    background: var(--purple-50);
+    transform: rotate(-1.5deg);
+  }
+
+  /* Sticker-dot divider replaces the plain rule */
+  .sticker-divider {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: var(--space-4);
+    margin: var(--space-10) 0;
+  }
+  .sticker-divider span {
+    width: 12px;
+    height: 12px;
+    border-radius: var(--radius-pill);
+    display: block;
+    opacity: 0.85;
+  }
+  .sticker-divider span:nth-child(1) { background: var(--rose-300); }
+  .sticker-divider span:nth-child(2) { background: var(--sage-300); }
+  .sticker-divider span:nth-child(3) { background: var(--purple-300); transform: scale(1.25); }
+  .sticker-divider span:nth-child(4) { background: var(--amber-100); }
+  .sticker-divider span:nth-child(5) { background: var(--sand-500); }
+
+  /* Story panel: soft scrapbook card behind the "Tuesday, Take Two" moment */
+  .scrapbook-panel {
+    background: var(--cream);
+    border: 1.5px solid var(--border-light);
+    border-radius: var(--radius-lg);
+    padding: var(--space-6);
+    box-shadow: var(--shadow-sm);
+  }
+  @media (min-width: 769px) {
+    .scrapbook-panel { padding: var(--space-8); }
+  }
+
+  /* Goal cards: sticker-dot bullet tiles in a grid */
+  .goal-cards {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: var(--space-4);
+    list-style: none;
+    margin: var(--space-5) 0;
+    padding: 0;
+  }
+  @media (min-width: 640px) {
+    .goal-cards { grid-template-columns: repeat(2, 1fr); }
+  }
+  .goal-card {
+    display: flex;
+    align-items: flex-start;
+    gap: var(--space-3);
+    background: var(--bg-surface);
+    border: 1.5px solid var(--border-light);
+    border-radius: var(--radius-md);
+    padding: var(--space-4) var(--space-5);
+    box-shadow: var(--shadow-sm);
+    font-size: 0.9375rem;
+    line-height: 1.6;
+    color: var(--text-secondary);
+    transition: transform 0.2s, box-shadow 0.2s;
+  }
+  .goal-card:hover { transform: translateY(-2px) rotate(-0.5deg); box-shadow: var(--shadow-md); }
+  .goal-card strong { color: var(--text-primary); }
+  .goal-dot {
+    flex-shrink: 0;
+    width: 16px;
+    height: 16px;
+    border-radius: var(--radius-pill);
+    margin-top: 3px;
+    background: var(--accent);
+  }
+  .goal-card:nth-child(2) .goal-dot { background: var(--rose-500); }
+  .goal-card:nth-child(3) .goal-dot { background: var(--sage-500); }
+  .goal-card:nth-child(4) .goal-dot { background: var(--amber-700); }
+  .goal-card:nth-child(5) .goal-dot { background: var(--purple-500); }
+  .goal-card:nth-child(6) .goal-dot { background: var(--sand-700); }
+
+  /* Membership "receipts" as playful tiles */
+  .benefit-cards {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: var(--space-4);
+    list-style: none;
+    padding: 0;
+    margin: var(--space-5) 0;
+  }
+  @media (min-width: 640px) {
+    .benefit-cards { grid-template-columns: repeat(2, 1fr); }
+  }
+  .benefit-cards li {
+    background: var(--bg-surface);
+    border: 1.5px solid var(--border-light);
+    border-radius: var(--radius-md);
+    padding: var(--space-5);
+    box-shadow: var(--shadow-sm);
+    font-size: 0.9375rem;
+    line-height: 1.7;
+    color: var(--text-secondary);
+    margin: 0;
+    position: relative;
+    transition: transform 0.2s, box-shadow 0.2s;
+  }
+  .benefit-cards li:hover { transform: translateY(-2px) rotate(0.4deg); box-shadow: var(--shadow-md); }
+  .benefit-cards li strong { color: var(--text-primary); }
+  /* little corner sticker on each receipt tile */
+  .benefit-cards li::before {
+    content: '';
+    position: absolute;
+    top: -6px;
+    left: var(--space-5);
+    width: 22px;
+    height: 22px;
+    border-radius: var(--radius-pill);
+    border: 2px solid var(--bg-surface);
+  }
+  .benefit-cards li:nth-child(1)::before { background: var(--rose-300); }
+  .benefit-cards li:nth-child(2)::before { background: var(--sage-300); }
+  .benefit-cards li:nth-child(3)::before { background: var(--purple-300); }
+  .benefit-cards li:nth-child(4)::before { background: var(--amber-100); }
+  .benefit-cards li:nth-child(5)::before { background: var(--sand-500); }
+
+  /* Spotlight + audience cards get a gentle scrapbook tilt on hover */
+  .spotlight-card, .audience-track {
+    transition: transform 0.2s, box-shadow 0.2s;
+  }
+  .spotlight-card:hover { transform: rotate(-0.6deg) translateY(-2px); box-shadow: var(--shadow-md); }
+  .audience-track:hover { transform: rotate(0.4deg) translateY(-2px); box-shadow: var(--shadow-md); }
+
+  /* Recurring Cuterus spot mascots dotted through the page */
+  .cuterus-peek {
+    display: block;
+    width: 104px;
+    height: auto;
+    margin: 0 0 calc(-1 * var(--space-2));
+  }
+  .cuterus-peek--left { margin-right: auto; transform: rotate(-5deg); }
+  .cuterus-peek--right { margin-left: auto; transform: rotate(5deg); }
+  .cuterus-peek--center { margin: 0 auto var(--space-2); transform: rotate(-3deg); }
+  @media (min-width: 640px) {
+    .cuterus-peek { width: 120px; }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .goal-card, .benefit-cards li, .spotlight-card, .audience-track { transition: none; }
+  }
+
 </style>

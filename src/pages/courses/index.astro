@@ -5,6 +5,7 @@ import { isShellEnabled } from '../../lib/shell-routes';
 import { buildBreadcrumbList } from '../../lib/identity';
 import CourseCard from '../../components/CourseCard.astro';
 import coursesData from '../../data/courses.json';
+import SuperHeroLogos from '../../components/SuperHeroLogos.astro';
 
 const SHELL_ENABLED = isShellEnabled('courses');
 
@@ -406,6 +407,8 @@ const jsonLd = {
 
         </div>
       </section>
+
+      <SuperHeroLogos />
 
       <p class="page-updated">Last updated: February 2026</p>
     </div>
