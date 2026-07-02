@@ -1,12 +1,12 @@
 /* src/styles/app-shell.css
- * Z-stack, layout grid, middle column, print rules.
+ * Layout grid, middle column, print rules.
  * Color/spacing/radius/font tokens come from src/styles/global.css (semantic tokens
- * auto-switch under [data-theme="dark"]). Z-stack is the load-bearing primitive
- * — proof gate G-Z-STACK enforces no raw z-index literals here. */
+ * auto-switch under [data-theme="dark"]). Proof gate G-Z-STACK enforces no raw
+ * z-index literals here — none of the shell's regions currently need explicit
+ * stacking (sticky nav/aside rely on paint order), so there is no z-index custom
+ * property in this file either; add one only if/when overlapping shell UI needs it. */
 
 :root {
-  --z-modal: 100;
-
   --shell-sidebar-width: 240px;
   --shell-middle-column-width: 280px;
   --shell-breakpoint-mobile: 900px;
@@ -28,7 +28,7 @@
 .app-shell-mobile-header {
   display: block;
 }
-@media (min-width: 901px) {
+@media (width >= 900px) {
   .app-shell-mobile-header { display: none; }
 }
 
@@ -37,8 +37,19 @@
   .app-shell-nav,
   .app-shell-middle-column,
   .app-shell-footer-row,
+  .app-shell-mobile-header,
   .site-footer {
     display: none !important;
+  }
+  /* Collapse the grid entirely (rather than leaving grid-template-columns'
+     fixed-length nav/aside tracks reserved-but-blank now that their content is
+     display:none) so .app-shell-main gets the full page width. Print engines
+     often resolve width-based media features against the page box, not the
+     on-screen viewport, so the desktop grid's `width >= 900px` query can
+     evaluate independently of what's visible on screen -- this override applies
+     regardless of whether that query matches. */
+  .app-shell-layout {
+    display: block !important;
   }
   .app-shell-main {
     margin: 0 !important;
@@ -47,9 +58,17 @@
 }
 
 /* Desktop layout grid (above mobile breakpoint).
- * Hard-coded 901px because CSS custom properties cannot resolve inside @media query conditions.
- * --shell-breakpoint-mobile in :root is documentation-only. */
-@media (min-width: 901px) {
+ * Uses the CSS media-query range syntax (`width >= 900px`) rather than a
+ * min-width/max-width pair on two separate 900/901px boundaries -- those two
+ * numbers are not true complements (any fractional viewport width between them,
+ * reachable via browser zoom / OS display-scaling / DPR combinations, matches
+ * neither), which left a dead zone where the desktop nav and mobile Header could
+ * both render at once. `width >= 900px` / `width < 900px` (used below) are exact
+ * mathematical complements of the single breakpoint in --shell-breakpoint-mobile,
+ * with no gap. CSS custom properties still cannot resolve inside @media query
+ * conditions, so the literal 900px is hard-coded here and must stay in lockstep
+ * with --shell-breakpoint-mobile in :root (documentation-only). */
+@media (width >= 900px) {
   /* Default 2-col layout for index + saved contexts (no right rail). */
   .app-shell-layout {
     display: grid;
@@ -125,6 +144,10 @@
 }
 .app-shell-nav__brand:hover {
   color: var(--accent);
+}
+.app-shell-nav__brand:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
 }
 .app-shell-nav__brand strong {
   font-weight: 600;
@@ -358,6 +381,10 @@
   background: var(--cream);
   color: var(--text-primary);
 }
+.app-shell-nav__link:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
 .app-shell-nav__link[aria-current="page"] {
   background: var(--sand-300);
   color: var(--text-primary);
@@ -434,6 +461,10 @@
   background: var(--cream);
   color: var(--text-primary);
 }
+.app-shell-nav__account:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
 .app-shell-nav__account[aria-current="page"] {
   background: var(--sand-300);
   color: var(--text-primary);
@@ -475,9 +506,15 @@
 }
 .app-shell-nav__account:hover .app-shell-nav__avatar { color: var(--text-primary); }
 .app-shell-nav__account.is-authed .app-shell-nav__avatar {
-  background: linear-gradient(135deg, var(--purple-500), var(--accent));
-  border-color: transparent;
-  color: #fff;
+  /* Solid text-primary/bg-surface pairing, not the purple accent scale: the purple
+     tokens intentionally invert lightness per theme for TEXT-on-page use (lighter
+     purple text reads on a dark page), which makes them unsuitable as a fixed-white-
+     text background fill -- the same tokens fail WCAG AA here in dark mode. text-
+     primary/bg-surface are already the site's own per-theme high-contrast pairing
+     (documented >=10:1 AAA), so reusing them here guarantees AA in every theme. */
+  background: var(--text-primary);
+  border-color: var(--accent);
+  color: var(--bg-surface);
 }
 .shell-account__photo { width: 100%; height: 100%; object-fit: cover; }
 .shell-account__initials { font-size: 0.75rem; font-weight: 600; letter-spacing: 0.02em; }
@@ -596,8 +633,8 @@
   font-weight: 500;
 }
 
-/* Mobile (≤900px): sidebar + middle column hidden; the global Header serves mobile. */
-@media (max-width: 900px) {
+/* Mobile (<900px): sidebar + middle column hidden; the global Header serves mobile. */
+@media (width < 900px) {
   .app-shell-nav { display: none; }
   .app-shell-middle-column { display: none; }
 
