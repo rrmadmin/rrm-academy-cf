@@ -1,4 +1,4 @@
-<!-- Last reviewed: 2026-03-10 -->
+<!-- Last reviewed: 2026-07-02 (component/route/endpoint inventory synced to code) -->
 # RRM Academy (Astro + CF Pages)
 
 > **This is `rrm-academy-cf` — the rrmacademy.org website.** Not `rrm-foundation` (separate project, separate site). All work here affects the live education platform.
@@ -244,57 +244,194 @@ Validation: `npm run ssot:validate` (schema + cross-ref) and `npm run ssot:smoke
 
 ## Site Map
 
+100 `.astro` pages under `src/pages/` + 2 function-served page routes. Full inventory (last synced 2026-07-02 — when adding a page, add its row here):
+
+**Core & legal**
+
 | Route | File |
 |-------|------|
 | `/` | `src/pages/index.astro` |
 | `/about` | `src/pages/about.astro` |
 | `/contact` | `src/pages/contact.astro` (form + Turnstile) |
-| `/donate` | `src/pages/donate/index.astro` |
-| `/donate/thank-you` | `src/pages/donate/thank-you.astro` |
-| `/faqs` | `src/pages/faqs.astro` |
-| `/faqs/[slug]` | `src/pages/faqs/[...slug].astro` |
+| `/press` | `src/pages/press/index.astro` (press & media kit) |
+| `/terms-of-use` | `src/pages/terms-of-use.astro` |
+| `/privacy-policy` | `src/pages/privacy-policy.astro` |
+| `/medical-disclaimer` | `src/pages/medical-disclaimer.astro` |
+
+**Auth & account**
+
+| Route | File |
+|-------|------|
+| `/login` | `src/pages/login.astro` |
+| `/signup` | `src/pages/signup.astro` |
+| `/account` | `src/pages/account/index.astro` (auth required) |
+| `/account/mcp-keys` | `src/pages/account/mcp-keys.astro` (auth; issue/revoke MCP API keys) |
+| `/forgot-password` | `src/pages/forgot-password.astro` |
+| `/reset-password` | `src/pages/reset-password.astro` |
+
+**Library**
+
+| Route | File |
+|-------|------|
 | `/library` | `src/pages/library/index.astro` |
 | `/library/[slug]` | `src/pages/library/[...slug].astro` |
 | `/library/page/[page]` | `src/pages/library/page/[page].astro` |
+| `/library/topics` | `src/pages/library/topics/index.astro` (topic-hub directory) |
+| `/library/topics/[slug]` | `src/pages/library/topics/[slug].astro` (per-topic article hub) |
 | `/saved/` | `src/pages/saved/index.astro` (universal saved pages, tabbed by type; legacy `/library/saved` 301s here via `public/_redirects`) |
+
+**Commentary**
+
+| Route | File |
+|-------|------|
 | `/commentary` | `src/pages/commentary/index.astro` |
 | `/commentary/[slug]` | `src/pages/commentary/[...slug].astro` |
 | `/commentary/page/[page]` | `src/pages/commentary/page/[page].astro` |
+
+**FAQs**
+
+| Route | File |
+|-------|------|
+| `/faqs` | `src/pages/faqs.astro` |
+| `/faqs/[slug]` | `src/pages/faqs/[...slug].astro` |
+
+**Courses**
+
+| Route | File |
+|-------|------|
 | `/courses` | `src/pages/courses/index.astro` |
 | `/courses/[slug]` | `src/pages/courses/[slug].astro` |
-| `/courses/[slug]/[stepId]` | `src/pages/courses/[slug]/[stepId].astro` |
-| `/community` | `src/pages/community/index.astro` |
+| `/courses/[slug]/[stepId]` | `src/pages/courses/[slug]/[stepId].astro` (lesson player) |
+
+**Community**
+
+| Route | File |
+|-------|------|
+| `/community` | `src/pages/community/index.astro` (Save the Uterus Club hub) |
 | `/community/events` | `src/pages/community/events.astro` |
 | `/community/members` | `src/pages/community/members.astro` |
-| `/community/post/[id]` | `src/pages/community/post/[...id].astro` |
-| `/admin/seo` | `src/pages/admin/seo.astro` |
+| `/community/post/[id]` | `src/pages/community/post/[...id].astro` (client-rendered; single placeholder static shell) |
+| `/community/areas/[slug]` | `src/pages/community/areas/[...slug].astro` (client-rendered action-area feed; single placeholder static shell) |
+| `/community/archive/masterclass` | `src/pages/community/archive/masterclass.astro` (admin-only; unlinked, direct URL; API + inline script enforce bounce) |
+| `/community/archive/members` | `src/pages/community/archive/members.astro` (admin-only; unlinked, direct URL; API + inline script enforce bounce) |
+| `/events/[slug]` | `functions/events/[slug].js` (public shareable STUC event landing page from D1 `community_post`; strips join info for non-members) |
+
+**Guides & pillars**
+
+| Route | File |
+|-------|------|
+| `/guides` | `src/pages/guides/index.astro` (guide directory, driven by `ssot/guides.json`) |
 | `/naprotechnology` | `src/pages/naprotechnology/index.astro` (pillar guide) |
 | `/what-is-rrm` | `src/pages/what-is-rrm/index.astro` (pillar guide) |
 | `/common-questions-about-rrm` | `src/pages/common-questions-about-rrm.astro` (pillar guide) |
 | `/femm` | `src/pages/femm/index.astro` (pillar guide) |
 | `/neofertility` | `src/pages/neofertility/index.astro` (pillar guide) |
+| `/creighton-model` | `src/pages/creighton-model/index.astro` (method guide) |
+| `/billings-ovulation-method` | `src/pages/billings-ovulation-method/index.astro` (method guide) |
+| `/boston-cross-check` | `src/pages/boston-cross-check/index.astro` (method guide) |
+| `/marquette-model` | `src/pages/marquette-model/index.astro` (method guide) |
+| `/sympto-thermal-method` | `src/pages/sympto-thermal-method/index.astro` (method guide) |
+| `/twoday-method` | `src/pages/twoday-method/index.astro` (method guide) |
+| `/fertility-awareness-methods-compared` | `src/pages/fertility-awareness-methods-compared/index.astro` (FABM comparison pillar) |
+| `/endometriosis` | `src/pages/endometriosis/index.astro` (condition guide) |
+| `/endometritis` | `src/pages/endometritis/index.astro` (condition guide) |
+| `/pcos` | `src/pages/pcos/index.astro` (condition guide, PCOS/PMOS dual-label) |
+| `/miscarriage` | `src/pages/miscarriage/index.astro` (condition guide: recurrent pregnancy loss) |
+| `/isthmocele` | `src/pages/isthmocele/index.astro` (condition guide) |
+| `/fertility-preserving-surgery` | `src/pages/fertility-preserving-surgery/index.astro` (surgical approach comparison) |
+| `/art-registries-and-codes` | `src/pages/art-registries-and-codes/index.astro` (ART registries & codes reference) |
+| `/rrm-success-rates` | `src/pages/rrm-success-rates/index.astro` (evidence/outcome-studies pillar) |
+| `/ivf-success-calculator` | `src/pages/ivf-success-calculator.astro` (interactive calculator tool; root-level, not in a pillar dir) |
+
+**Glossary**
+
+| Route | File |
+|-------|------|
 | `/glossary` | `src/pages/glossary/index.astro` (pillar guide) |
-| `/glossary/[slug]` | `src/pages/glossary/[slug].astro` (per-term page) |
+| `/glossary/[slug]` | `src/pages/glossary/[slug].astro` (per-term page; shares body render via `GlossaryTerm` component) |
+
+**Ask**
+
+| Route | File |
+|-------|------|
 | `/ask` | `src/pages/ask.astro` (auth-gated chat UI; per-answer Save button) |
 | `/ask/saved` | `src/pages/ask/saved.astro` (auth, lists user's saved Q&As) |
 | `/ask/s/<token>` | `functions/ask/s/[token].js` (public HTML share view, server-rendered, noindex) |
-| `/endo-survey` | `src/pages/endo-survey/index.astro` |
-| `/endo-survey/take` | `src/pages/endo-survey/take.astro` |
+
+**Fundraising & STUC**
+
+| Route | File |
+|-------|------|
+| `/donate` | `src/pages/donate/index.astro` |
+| `/donate/thank-you` | `src/pages/donate/thank-you.astro` |
 | `/save-the-uterus-club` | `src/pages/save-the-uterus-club/index.astro` |
 | `/save-the-uterus-club/thank-you` | `src/pages/save-the-uterus-club/thank-you.astro` |
-| `/login` | `src/pages/login.astro` |
-| `/signup` | `src/pages/signup.astro` |
-| `/account` | `src/pages/account/index.astro` (auth required) |
-| `/forgot-password` | `src/pages/forgot-password.astro` |
-| `/reset-password` | `src/pages/reset-password.astro` |
-| `/terms-of-use` | `src/pages/terms-of-use.astro` |
-| `/privacy-policy` | `src/pages/privacy-policy.astro` |
-| `/medical-disclaimer` | `src/pages/medical-disclaimer.astro` |
+
+**Surveys**
+
+| Route | File |
+|-------|------|
+| `/endo-survey` | `src/pages/endo-survey/index.astro` |
+| `/endo-survey/take` | `src/pages/endo-survey/take.astro` (handles expired-link state) |
+
+**Partners & providers**
+
+| Route | File |
+|-------|------|
+| `/partners` | `src/pages/partners/index.astro` (educational partners directory) |
+| `/partners/apply` | `src/pages/partners/apply.astro` (partner application form) |
+| `/providers` | `src/pages/providers/index.astro` (find-a-provider fundraiser/directory page) |
+
+**Original research & policies**
+
+| Route | File |
+|-------|------|
+| `/original-research` | `src/pages/original-research/index.astro` (citation-authority artifact index) |
+| `/original-research/lint-identity` | `src/pages/original-research/lint-identity/index.astro` |
+| `/original-research/proof-gates` | `src/pages/original-research/proof-gates/index.astro` |
+| `/original-research/proof-gates/patterns` | `src/pages/original-research/proof-gates/patterns/index.astro` |
+| `/policies` | `src/pages/policies/index.astro` (policy index) |
+| `/policies/editorial` | `src/pages/policies/editorial.astro` |
+| `/policies/corrections` | `src/pages/policies/corrections.astro` |
+| `/policies/fact-checking` | `src/pages/policies/fact-checking.astro` |
+
+**Admin UI** (all session + admin/superadmin gated)
+
+| Route | File |
+|-------|------|
+| `/admin` | `src/pages/admin/index.astro` (redirect stub to `/admin/backlinks/`) |
+| `/admin/backlinks` | `src/pages/admin/backlinks.astro` |
+| `/admin/campaign-report` | `src/pages/admin/campaign-report.astro` (campaign arrivals) |
+| `/admin/community` | `src/pages/admin/community.astro` (action-area ownership) |
+| `/admin/content` | `src/pages/admin/content.astro` (content performance) |
+| `/admin/conversions` | `src/pages/admin/conversions.astro` |
+| `/admin/email` | `src/pages/admin/email.astro` (email observatory) |
+| `/admin/enrollments` | `src/pages/admin/enrollments.astro` |
+| `/admin/partners` | `src/pages/admin/partners.astro` (partner application management) |
+| `/admin/revenue` | `src/pages/admin/revenue.astro` |
+| `/admin/seo` | `src/pages/admin/seo.astro` |
+
+**Dev previews** (unlinked, sample-data harnesses)
+
+| Route | File |
+|-------|------|
+| `/dev/campaign-callout-preview` | `src/pages/dev/campaign-callout-preview.astro` (CampaignCallout against sample data) |
+| `/dev/providers` | `src/pages/dev/providers.astro` (provider-card preview) |
+| `/dev/supporter-recognition-preview` | `src/pages/dev/supporter-recognition-preview.astro` (supporter-recognition components, sample snapshots; noindex) |
+
+**System & agent surfaces**
+
+| Route | File |
+|-------|------|
+| `/404` | `src/pages/404.astro` |
+| `/500` | `src/pages/500.astro` |
+| `/webhooks` | `src/pages/webhooks.astro` (webhook status + subscription channels for AI agents/devs) |
+| `/openapi` | `src/pages/openapi.astro` (OpenAPI 3.1 reference, build-time imports `public/openapi.json`) |
+| `/connect` | `src/pages/connect/index.astro` (MCP setup guide + developer section) |
+| `/agent-auth` | `src/pages/agent-auth.astro` (API-token auth guide for AI agents) |
+| `/ai-instructions` | `src/pages/ai-instructions/index.astro` (structured reference for AI assistants/answer engines) |
 | `/linkinbio` | `src/pages/linkinbio.astro` |
 | `/linkinbio/jointhecall` | `src/pages/linkinbio/jointhecall.astro` |
-| `/connect` | `src/pages/connect/index.astro` (MCP setup guide + developer section) |
-| `/openapi` | `src/pages/openapi.astro` (OpenAPI 3.1 reference, build-time imports `public/openapi.json`) |
-| `/404` | `src/pages/404.astro` |
 
 ## Original Research Pages (`/original-research/`)
 
@@ -308,9 +445,7 @@ Do NOT ask Brian for these URLs. Resolve any rrmadmin artifact repo with `gh rep
 
 **arXiv handling (settled 2026-05-28):** The paper "Proof Gates: Sycophancy-Resistant Self-Verification via Agent-Authored Postconditions" (Whittaker 2026) is NOT yet on arXiv. It is fine to publish these pages on GitHub now and connect the arXiv ID later. Until an arXiv ID is assigned: use `Preprint forthcoming.` in "Cite the paper" blocks, and point any "preprint" link at the GitHub repo. Do NOT ask whether it is OK to ship without a live arXiv paper. Wire the real arXiv ID/URL in when assigned.
 
-**Known gaps (verified 2026-05-28, NOT yet fixed):**
-- Production routing: `/original-research` is NOT in rrm-router `ASTRO_ROUTES` (`~/iCode/projects/rrm-router/src/index.js`). Pages serve on `rrm-academy.pages.dev` but 404 on `rrmacademy.org`. Add `/original-research` to that array (same pattern as `/og`) and deploy the router to make them reachable.
-- Index pages `/original-research/` and `/original-research/proof-gates/` do not exist, so the breadcrumb links 404. Build these before routing the section publicly.
+**Known gaps: RESOLVED (verified 2026-07-02).** `/original-research` is in rrm-router `ASTRO_ROUTES` (added 2026-05-28) and both index pages (`/original-research/`, `/original-research/proof-gates/`) exist and serve 200 on rrmacademy.org.
 
 ## Information Architecture
 
@@ -421,62 +556,166 @@ Unknown slugs -> branded fallback card (still 200 PNG, never a 404).
 
 ## Components
 
-`src/components/`: Header, Footer, SearchBar, ArticleCard, BlogCard, CourseCard, Citation, AuthorByline, TopicTag, LibraryFundingCallout
+41 files in `src/components/` (last synced 2026-07-02 — when adding a component, add it here):
 
-## API Functions (`functions/api/`)
+**Chrome & shell:** `Header` (site header/nav), `Footer`, `AppShellChrome` (app-shell sidebar wrapper), `MaybeShell` (conditional shell-on/off wrapper), `BackToTop`, `MobileSearchModal`
+
+**Cards:** `ArticleCard` (library), `BlogCard` (commentary), `CourseCard`, `ProviderCard`, `ProviderAvatar`, `TeamCard`
+
+**Article & guide furniture:** `ArticleHero`, `AuthorByline` (identity-SSOT byline), `Citation`, `CiteThisPage`, `GlossaryTerm` (shared term-body renderer, pillar + per-term pages), `LastUpdated` (from `page-dates.json`), `PdfDownload`, `SectionShare`, `SectionTocChips` (chip TOC for shell-enabled guides), `StatCards`, `SynopsisInfographic`, `TopicTag`
+
+**Course renditions:** `LessonTabs`, `RenditionAudio`, `RenditionFlashcards`, `RenditionQuiz`, `RenditionReading`, `AudioPlayer` (commentary audio; separate consumer from RenditionAudio, not redundant)
+
+**Fundraising & social:** `CampaignCallout`, `FoundingSupporters`, `LibraryFundingCallout`, `NewsletterSignup`, `ShareKit`, `SocialRow`, `SuperHeroLogos` (donor/partner logo strip), `SupporterTicker`, `SupporterWall`
+
+**Search & tracking:** `SearchBar` (Pagefind + semantic RRF fusion), `FingerprintTracking` (visitor-ID script injector)
+
+**Layouts** (`src/layouts/`): `BaseLayout` (every page; head/SEO/JSON-LD — see Page Templates section), `GuideLayout` (long-form pillar/condition/method guides)
+
+## API Functions (`functions/`)
+
+179 `.js` files: 93 user/public endpoint files, 38 admin endpoint files, 48 `_`-prefixed shared helpers/middleware. Full inventory (last synced 2026-07-02 — when adding an endpoint, add its row here). File paths relative to `functions/api/` unless prefixed `functions/`.
+
+### User & public endpoints
 
 | Endpoint | File | Purpose |
 |----------|------|---------|
-| **Auth** | | |
-| `POST /api/auth/signup` | `auth/signup.js` | Create account |
-| `POST /api/auth/login` | `auth/login.js` | Login, set session cookie |
-| `POST /api/auth/logout` | `auth/logout.js` | Clear session |
-| `GET /api/auth/session` | `auth/session.js` | Check current session |
-| `GET /api/auth/profile` | `auth/profile.js` | Get/update user profile |
-| `POST /api/auth/forgot-password` | `auth/forgot-password.js` | Send reset email |
-| `POST /api/auth/reset-password` | `auth/reset-password.js` | Reset with token |
-| `POST /api/auth/change-password` | `auth/change-password.js` | Authenticated password change |
-| `GET /api/auth/verify-email` | `auth/verify-email.js` | Email verification link handler |
-| `POST /api/auth/resend-verification` | `auth/resend-verification.js` | Resend verification email |
-| `GET /api/auth/google` | `auth/google.js` | Redirect to Google OAuth consent |
-| `GET /api/auth/google-callback` | `auth/google-callback.js` | Google OAuth callback, account link/create |
+| **Auth** (all rate-limited) | | |
+| `POST /api/auth/signup` | `auth/signup.js` | Create account, send verification email (Turnstile) |
+| `POST /api/auth/login` | `auth/login.js` | Email/password login, set session cookie (Turnstile) |
+| `POST /api/auth/logout` | `auth/logout.js` | Invalidate session, clear cookies |
+| `GET /api/auth/session` | `auth/session.js` | Return current session's user or null |
+| `PATCH /api/auth/profile` | `auth/profile.js` | Update first/last name (session) |
+| `POST /api/auth/forgot-password` | `auth/forgot-password.js` | Send reset email (Turnstile) |
+| `POST /api/auth/reset-password` | `auth/reset-password.js` | Reset with emailed token (no Turnstile — token possession) |
+| `POST /api/auth/change-password` | `auth/change-password.js` | Authenticated password change (session) |
+| `GET/POST /api/auth/verify-email` | `auth/verify-email.js` | Email verification (GET side-effect-free, POST consumes) |
+| `POST /api/auth/resend-verification` | `auth/resend-verification.js` | Resend verification email (session) |
+| `GET /api/auth/google` | `auth/google.js` | Redirect to Google OAuth consent (CSRF nonce cookie) |
+| `GET /api/auth/google-callback` | `auth/google-callback.js` | OAuth callback, account link/create (state CSRF check) |
+| `GET/POST /api/account/mcp-keys` | `account/mcp-keys/index.js` | List/create MCP API keys (session; POST rate-limited) |
+| `DELETE /api/account/mcp-keys/[id]` | `account/mcp-keys/[id].js` | Soft-revoke an MCP API key (session) |
 | **Courses** | | |
-| `POST /api/courses/enroll` | `courses/enroll.js` | Enroll in a course |
-| `GET/POST /api/courses/progress` | `courses/progress.js` | Track step completion |
-| `POST /api/courses/quiz` | `courses/quiz.js` | Submit quiz/questionnaire answers |
-| `GET/POST /api/courses/comments` | `courses/comments.js` | Course step comments |
-| `GET /api/courses/certificate` | `courses/certificate.js` | Generate completion certificate |
-| **Community** | | |
-| `GET/POST /api/community/posts` | `community/posts.js` | Community posts CRUD |
-| `GET/POST /api/community/comments` | `community/comments.js` | Post comments (author editing via PUT) |
-| `POST /api/community/reactions` | `community/reactions.js` | Post/comment reactions |
-| `GET /api/community/status` | `community/status.js` | Community membership status |
-| `GET /api/community/members` | `community/members.js` | Members list with tiers/badges |
-| `POST /api/community/flags` | `community/flags.js` | Report/flag posts and comments |
-| `POST /api/community/ban` | `community/ban.js` | Ban user (admin only) |
-| `POST /api/community/unban` | `community/unban.js` | Unban user (admin only) |
-| `GET/PUT /api/community/notifications` | `community/notifications.js` | Email notification preferences |
-| `POST /api/community/upload` | `community/upload.js` | Image upload to R2 |
+| `GET /api/courses` | `courses.js` | Published catalog/single course (Bearer LIBRARY_BUILD_TOKEN; build-time) |
+| `POST /api/courses/enroll` | `courses/enroll.js` | Enroll or start paid-course Stripe checkout (session + gating) |
+| `GET/PATCH /api/courses/progress` | `courses/progress.js` | Read/update step progress (session) |
+| `GET/POST /api/courses/quiz` | `courses/quiz.js` | Fetch quiz / submit + score answers (session; POST rate-limited) |
+| `GET/POST /api/courses/comments` | `courses/comments.js` | Lesson comments (session + enrollment/membership gate) |
+| `GET /api/courses/certificate` | `courses/certificate.js` | HTML completion certificate (session) |
+| `GET /api/courses/rendition` | `courses/rendition.js` | Published lesson rendition content (session + gate) |
+| `POST /api/courses/waitlist` | `courses/waitlist.js` | Affiliate-course waitlist signup (public; Turnstile + rate limit) |
+| `POST /api/courses/affiliate-click` | `courses/affiliate-click.js` | Affiliate click tracking (public, best-effort session) |
+| `GET /api/stream/token` | `stream/token.js` | Signed CF Stream JWT (session + enrollment/membership check) |
+| **Community** (all `requireMember` STUC gate unless noted) | | |
+| `GET/POST/PATCH/DELETE /api/community/posts` | `community/posts.js` | Posts CRUD; pin is mod+ |
+| `GET/POST/PATCH/DELETE /api/community/comments` | `community/comments.js` | Threaded comments CRUD (author/mod checks) |
+| `POST/DELETE /api/community/reactions` | `community/reactions.js` | Toggle/remove emoji reactions (rate-limited) |
+| `GET /api/community/status` | `community/status.js` | Caller's access level (session; anonymous-safe) |
+| `GET /api/community/members` | `community/members.js` | Active member roster with tiers/badges |
+| `GET /api/community/memberships` | `community/memberships.js` | Caller's own area/project memberships |
+| `POST/GET/PATCH /api/community/flags` | `community/flags.js` | Flag/moderate content (GET mod+, PATCH admin+) |
+| `POST /api/community/ban` | `community/ban.js` | Ban user, optional content wipe (admin role) |
+| `POST /api/community/unban` | `community/unban.js` | Unban user (admin role) |
+| `PATCH /api/community/notifications` | `community/notifications.js` | Toggle own email opt-out |
+| `POST /api/community/upload` | `community/upload.js` | Image upload to R2 (type sniffing + rate limit) |
+| `GET /api/community/unfurl` | `community/unfurl.js` | SSRF-guarded OG metadata fetch (rate-limited) |
+| `GET /api/community/areas` | `community/areas.js` | List active action areas (public; session optional) |
+| `POST /api/community/areas/join` | `community/areas/join.js` | Join an action area (idempotent) |
+| `POST /api/community/areas/leave` | `community/areas/leave.js` | Leave area (blocked for area owner) |
+| `POST/DELETE /api/community/areas/volunteer` | `community/areas/volunteer.js` | Volunteer/withdraw to lead an ownerless area |
+| `GET /api/community/projects` | `community/projects.js` | List projects under active areas (public; session optional) |
+| `POST /api/community/projects/join` | `community/projects/join.js` | Join a joinable project (idempotent) |
+| `POST /api/community/projects/leave` | `community/projects/leave.js` | Leave project (blocked for owner) |
+| `GET /api/community/impact` | `community/impact.js` | Current-month curated impact entries (public) |
 | **Billing** | | |
-| `GET /api/billing/status` | `billing/status.js` | Subscription + donation history |
-| `POST /api/billing/portal` | `billing/portal.js` | Stripe customer portal link |
-| `GET /api/billing/checkout-account` | `billing/checkout-account.js` | Check if account exists for checkout session |
-| `POST /api/create-checkout` | `create-checkout.js` | Stripe checkout session |
-| `POST /api/stripe-webhook` | `stripe-webhook.js` | Stripe webhook handler |
-| **Other** | | |
-| `POST /api/admin/cleanup` | `admin/cleanup.js` | Prune expired sessions/resets/verifications/webhook events (ADMIN_API_SECRET) |
-| `GET /api/admin/seo` | `admin/seo.js` | Proxy to rrm-seo-monitor Worker (ADMIN_TOKEN) |
-| `POST /api/contact/submit` | `contact/submit.js` | Contact form submission |
-| `GET/POST /api/saved` | `saved.js` | Save/unsave library articles |
-| `GET/POST/DELETE /api/ask/saved` | `ask/saved.js` | Save/list/delete user's /Ask Q&As (auth, 30/hr POST rate limit) |
-| `GET /api/ask/shared/[id]` | `ask/shared/[id].js` | Public read of a shared Q&A by id (no auth, 60/min/IP) |
-| `GET /api/stream/token` | `stream/token.js` | CF Stream video token |
-| `POST /api/survey/request` | `survey/request.js` | Request survey link |
-| `GET /api/survey/validate` | `survey/validate.js` | Validate survey magic-link token |
-| `POST /api/survey/submit` | `survey/submit.js` | Submit survey responses |
-| `POST /api/survey/event` | `survey/event.js` | Survey button click tracking (beacon) |
+| `POST /api/create-checkout` | `create-checkout.js` | Stripe Checkout session, donation + membership (public; rate-limited; Wix migration handoff) |
+| `POST /api/stripe-webhook` | `stripe-webhook.js` | Webhook dispatcher (signature verify + dedup; handlers in `billing/_webhook-*.js`) |
+| `GET /api/billing/status` | `billing/status.js` | Subscription + donation history, Stripe + legacy Wix (session) |
+| `POST /api/billing/portal` | `billing/portal.js` | Stripe customer portal link (session) |
+| `GET /api/billing/checkout-account` | `billing/checkout-account.js` | Account-exists check for checkout session (public; rate-limited) |
+| `GET /api/billing/supporter-badge` | `billing/supporter-badge.js` | Public donor badge by checkout session (rate-limited) |
+| `GET /api/fund-progress` | `fund-progress.js` | Fundraising totals from Stripe (public; KV-cached) |
+| `GET /api/fund-supporters` | `fund-supporters.js` | Supporter recognition list (public; KV-cached) |
+| **Newsletter** | | |
+| `POST /api/newsletter/subscribe` | `newsletter/subscribe.js` | Signup (Turnstile + honeypot + ELV + rate limit + idempotency) |
+| `GET/POST /api/newsletter/unsubscribe` | `newsletter/unsubscribe.js` | RFC 8058 one-click + page (HMAC token) |
+| `POST /api/newsletter/send` | `newsletter/send.js` | Paginated campaign send (Bearer ADMIN_API_SECRET) |
+| `POST /api/newsletter/send-first-email` | `newsletter/send-first-email.js` | Welcome backfill to explicit ids (Bearer ADMIN_API_SECRET) |
+| `POST /api/newsletter/rss-check` | `newsletter/rss-check.js` | RSS poll to trigger send (Bearer ADMIN_API_SECRET) |
+| `POST /api/newsletter/bounce` | `newsletter/bounce.js` | SES/SNS bounce+complaint webhook (secret param + SNS RSA sig) |
+| `GET /api/newsletter/open` | `newsletter/open.js` | Open-tracking pixel (rate-limited) |
+| `GET /api/newsletter/click` | `newsletter/click.js` | Click log + 302 redirect (rate-limited) |
+| `POST /api/email/events` | `email/events.js` | SES/SNS delivery-event ingest (secret param + SNS RSA sig) |
+| **Content data (build-time consumers)** | | |
+| `GET /api/articles` | `articles.js` | Library articles, proxies rrm-library-worker (public; 30/min) |
+| `GET/HEAD /api/articles/bulk` | `articles/bulk.js` | Bulk article fetch by id (shares rate-limit budget) |
+| `GET/HEAD /api/bulk` | `bulk.js` | Alias re-exporting `articles/bulk.js` |
+| `GET /api/blog/posts` | `blog/posts.js` | Published posts from D1 (Bearer LIBRARY_BUILD_TOKEN) |
+| `GET /api/faqs` | `faqs.js` | Published FAQs + refs/resources (Bearer LIBRARY_BUILD_TOKEN) |
+| `GET /api/glossary/terms` | `glossary/terms.js` | Terms/refs/abbreviations (Bearer LIBRARY_BUILD_TOKEN) |
+| `GET /api/partners` | `partners/index.js` | Partner list for build (Bearer LIBRARY_BUILD_TOKEN) |
+| `POST /api/library/deploy-record` | `library/deploy-record.js` | Trigger GH Actions single-record rebuild (X-Deploy-Secret header) |
+| **Search & tracking** | | |
+| `GET /api/search/semantic` | `search/semantic.js` | Vectorize semantic search (public; 20/min/IP) |
+| `POST /api/search/log` | `search/log.js` | Pagefind query logging (public; rate-limited) |
+| `POST /api/track` | `track.js` | Allowlisted client analytics → GA4/AE (public; rate-limited; see Analytics Gates) |
+| **Ask & MCP** | | |
+| `GET/POST /api/ask` | `ask.js` | Q&A chat; GET capability JSON, POST session + daily cap |
+| `POST /api/ask/sandbox` | `ask/sandbox.js` | Canned test response (public) |
+| `GET/POST/DELETE /api/ask/saved` | `ask/saved.js` | Save/list/delete user's Q&As (session; 30/hr POST) |
+| `GET /api/ask/shared/[id]` | `ask/shared/[id].js` | Public read of shared Q&A (60/min/IP) |
+| `GET /ask/s/<token>` | `functions/ask/s/[token].js` | Public server-rendered share page (noindex) |
+| `ALL /mcp` | `functions/mcp/index.js` | Transparent proxy to mcp.rrmacademy.org |
+| `GET /.well-known/mcp` | `functions/.well-known/mcp.js` | MCP manifest (extensionless-path workaround for static dir) |
+| **Surveys, contact, partners, PDF** | | |
+| `POST /api/survey/request` | `survey/request.js` | Email magic-link survey token (public; rate-limited) |
+| `GET /api/survey/validate` | `survey/validate.js` | Validate magic-link token (rate-limited) |
+| `POST /api/survey/submit` | `survey/submit.js` | Consume token, store pseudonymized responses |
+| `POST /api/survey/event` | `survey/event.js` | Survey click beacon (rate-limited) |
+| `GET /api/survey/count` | `survey/count.js` | Public survey-taker counts (edge-cached) |
+| `POST /api/contact/submit` | `contact/submit.js` | Contact form via SES (Turnstile + rate limit) |
+| `POST /api/partners/apply` | `partners/apply.js` | Partner application intake (Turnstile) |
+| `POST /api/pdf/request` | `pdf/request.js` | Email guide-PDF redeem token (Turnstile + 5/15min) |
+| `GET /api/pdf/redeem` | `pdf/redeem.js` | Single-use expiring token gates R2 PDF download |
+| **Other pages/assets served by functions** | | |
+| `GET/POST/DELETE /api/saved` | `saved.js` | Save/unsave pages universally (session) |
+| `GET /api/assets/*` | `assets/[[path]].js` | R2 assets; auth + enrollment for non-image course files |
+| `ALL /og/*` | `functions/og/[[path]].js` | On-demand OG image PNGs (public; see OG Images section) |
+| `GET /events/<slug>` | `functions/events/[slug].js` | Public STUC event landing page (join info stripped for non-members) |
+| `GET /save-the-uterus-club/migrate` | `functions/save-the-uterus-club/migrate.js` | Wix→Stripe migration interstitial (feature flag + HMAC token + session) |
 
-Middleware: `functions/_middleware.js` (session injection, CORS, auth gating)
+### Admin endpoints (`functions/api/admin/`)
+
+Auth is per-endpoint, NOT via the admin middleware (`admin/_middleware.js` only injects `context.data.user` best-effort and never blocks — `ADMIN_API_SECRET` endpoints ignore sessions). Three patterns: **[A]** session + admin-or-superadmin role, **[S]** `requireSuperAdmin` (superadmin only), **[B]** Bearer `ADMIN_API_SECRET` (constant-time compare; service/cron).
+
+| Endpoint | File | Purpose |
+|----------|------|---------|
+| **Courses [A]** — 17 endpoints | `admin/courses/…` | Course/section/step/rendition CRUD + multipart attachments. FK refusals, cert-quiz integrity, explicit `db.batch()` cleanup, R2 cleanup on delete. Files: `index.js`, `[id].js`, `[id]/attachments.js`, `[id]/sections.js`, `[id]/sections/[sectionId].js`, `[id]/steps.js`, `[id]/steps/[stepId].js`, `[id]/steps/[stepId]/renditions.js` |
+| **FAQs [A]** — 9 endpoints | `admin/faqs/…` | FAQ CRUD + library-refs + resources sub-endpoints. Files: `index.js`, `[id].js`, `[id]/library-refs.js`, `[id]/resources.js`. NOTE: `[id].js` PUT also accepts Bearer ADMIN_API_SECRET (dual-path; only CRUD endpoint with a service-token bypass) |
+| **Glossary [A]** — 15 endpoints | `admin/glossary/…` | Term/reference/abbreviation CRUD; slug immutable, cross-citation delete refusals. Files: `terms/index.js`, `terms/[id].js`, `refs/index.js`, `refs/[refnum].js`, `abbreviations/index.js`, `abbreviations/[abbr].js` |
+| **Community [A]** — 11 endpoints | `admin/community/…` | Action areas, projects, impact log CRUD (soft-archive or hard-delete) + area-ownership request approve/reject. Files: `areas.js`, `projects.js`, `impact.js`, `ownership.js` |
+| `GET/POST /api/admin/partners[/(id)]` **[S]** | `admin/partners/index.js`, `[id].js` | List applications; approve/reject/revoke + notification email |
+| `GET /api/admin/revenue` **[S]** | `admin/revenue.js` | MRR/tier/donation report (KV-cached 15m) |
+| `GET /api/admin/enrollments` **[S]** | `admin/enrollments.js` | Enrollment summary + paginated list |
+| `GET /api/admin/content` **[S]** | `admin/content.js` | GA4 content-performance report |
+| `GET /api/admin/conversions` **[S]** | `admin/conversions.js` | GA4 conversion funnels (KV-cached 1h) |
+| `GET /api/admin/email` **[S]** | `admin/email.js` | Email observability (summary/broadcasts/log/cohort views) |
+| `GET/PUT/POST /api/admin/seo` **[S]** | `admin/seo.js` | Proxy to rrm-seo-monitor + rrm-observatory Workers |
+| `POST /api/admin/backlinks` **[S]** | `admin/backlinks.js` | Proxy to rrm-backlinks Worker |
+| `GET /api/admin/campaign-report` **[S]** | `admin/campaign-report.js` | HMAC-signed UTM-cohort pull from fp.rrmacademy.org, resolved to members |
+| `POST /api/admin/cleanup` **[B]** | `admin/cleanup.js` | Prune expired sessions/resets/verifications/webhook events (n8n cron) |
+| `GET /api/admin/ecosystem` **[B]** | `admin/ecosystem.js` | Ecosystem-map SSOT JSON from `system_config` (gzip-aware) |
+| `GET /api/admin/search-queries` **[B]** | `admin/search-queries.js` | Query `search_log` (list/top/gaps/users views) |
+| `POST /api/admin/wix-migration-email` **[B]** | `admin/wix-migration-email.js` | Migration outreach/reminder send (dry-run supported) |
+| `POST /api/admin/wix-migration-link` **[B]** | `admin/wix-migration-link.js` | Bind `wix_subscription` row to a user (dry-run supported) |
+| `GET /api/admin/wix-migration-status` **[B]** | `admin/wix-migration-status.js` | Read-only migration dashboard (rate-limited) |
+
+### Middleware & shared helpers
+
+- `functions/_middleware.js` — site-wide: security headers/CSP, subdomain + case redirects, session injection, auth gating for `/account`, `/community`, `/ask`, `/save-the-uterus-club/migrate`; superadmin gate for `/admin`
+- `functions/api/admin/_middleware.js` — best-effort user injection ONLY (never blocks; see Admin endpoints above)
+
+Cross-cutting helpers in `functions/api/`: `_ses.js` (SES send + `email_log`), `_elv.js` (EmailListVerify + CRM tag), `_validate.js` (schema body validator), `_idempotency.js` (Idempotency-Key + KV), `_log.js` (Analytics Engine), `_ga4.js` + `_ga4-source.js` (server-side GA4), `_track-events.js` (client-event allowlist), `_ratelimit-headers.js`, `_search_log.js`, `_fp-link.js` (fingerprint-worker link), `_map-article.js`, `_ask_prompt.js`, `_guide-pdfs.js` (guide→R2 PDF map), `_endpoint-template.js` (inert scaffold, fully commented out). Subsystem helpers live beside their consumers: `auth/_shared.js` (sessions, PBKDF2, rate limiting, Turnstile, OAuth, `requireSuperAdmin`), `auth/_email-validate.js` + `auth/_disposable-domains.js`, `billing/_shared.js` + `_webhook-*.js` handlers + `_migration-handoff.js`/`_migration-token.js` + `_donor-gift.js`/`_supporter-gift.js`/`_campaign-count.js`, `community/_shared.js` (`requireMember`) + `_email.js` + `_areas-shared.js`, `courses/_shared.js` + `_quiz-content.js` + `_sanitize.js` + `_notify-admin.js`, `newsletter/_template.js`/`_tracking.js`/`_mail.js`/`_signup-emails.js`, `partners/_emails.js`, `contact/_subject.js`, `functions/events/_tracking.js`, `functions/og/_cuterus-image.js`.
 
 ## Email
 
