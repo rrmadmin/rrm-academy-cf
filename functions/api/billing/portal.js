@@ -47,14 +47,19 @@ async function handlePortal(request, env, waitUntil) {
   const user = await db.prepare('SELECT stripe_customer_id, email FROM user WHERE id = ?')
     .bind(session.userId).first();
   if (!user || !user.stripe_customer_id) {
-    let wix = null;
+    let wix;
     try {
       wix = await db.prepare(
-        "SELECT 1 FROM wix_subscription WHERE (user_id = ? OR email = ? COLLATE NOCASE) AND status = 'active' LIMIT 1"
+        `SELECT 1 FROM wix_subscription
+           WHERE (user_id = ? OR email = ? COLLATE NOCASE)
+             AND status = 'active'
+             AND migration_status NOT IN ('stripe_active', 'migrated', 'fully_exited')
+             AND COALESCE(next_expected_at, datetime(last_order_at, '+31 days')) >= datetime('now', '-7 days')
+           LIMIT 1`
       ).bind(session.userId, user?.email || '').first();
     } catch (_err) {
       log(env, waitUntil, 'billing', 'portal_wix_lookup_fail', 'error', _err.message);
-      // fall through to generic error so user sees a clean message
+      return json({ ok: false, error: 'Service temporarily unavailable. Please try again.' }, 503);
     }
     if (wix) {
       return json({ ok: false, error: 'Your donation is on our previous platform and cannot be managed through Stripe. Email administrator@rrmacademy.org for help managing it.' }, 404);

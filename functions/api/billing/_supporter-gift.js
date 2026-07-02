@@ -31,7 +31,12 @@ export function readSupporterConsent(session) {
 export async function recordSupporterGift(db, gift) {
   const displayName = gift && typeof gift.displayName === 'string' ? gift.displayName : '';
   if (!displayName) return { recorded: false };
-  if (!gift.sourceId || typeof gift.giftSeq !== 'number' || gift.giftSeq < 1) return { recorded: false };
+  if (!gift.sourceId) return { recorded: false };
+  // gift_seq is NOT NULL in the schema; a fail-soft/unavailable count (null or 0 from
+  // countCampaignGifts) must not drop the whole consented-recognition row -- write a 0
+  // sentinel (real sequence positions start at 1) so it can be backfilled later instead
+  // of being silently and permanently lost.
+  const giftSeq = (typeof gift.giftSeq === 'number' && gift.giftSeq >= 1) ? gift.giftSeq : 0;
   const id = 'sr_' + crypto.randomUUID();
   await db.prepare(
     `INSERT INTO supporter_recognition
@@ -42,7 +47,7 @@ export async function recordSupporterGift(db, gift) {
     id,
     gift.campaign || 'provider-directory',
     displayName,
-    gift.giftSeq,
+    giftSeq,
     (gift.email || '').toLowerCase().trim() || null,
     String(gift.sourceId),
     gift.occurredAt,

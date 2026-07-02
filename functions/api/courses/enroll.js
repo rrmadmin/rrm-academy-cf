@@ -95,6 +95,15 @@ async function handleEnroll(request, env, waitUntil) {
   // --- Free course: enroll immediately ---
   if (course.isFree) {
     const wasNewlyEnrolled = await enrollUser(db, session.userId, courseId, null);
+    // enrollUser's UPSERT counts as a "change" whenever the conflict branch runs,
+    // even if revoked_at was left untouched (still revoked). Re-check actual access
+    // before reporting success -- an admin-revoked row must not report enrolled:true.
+    const activeEnrollment = await db.prepare(
+      'SELECT id FROM enrollment WHERE user_id = ? AND course_id = ? AND revoked_at IS NULL'
+    ).bind(session.userId, courseId).first();
+    if (!activeEnrollment) {
+      return json({ ok: false, error: 'Not enrolled' }, 403);
+    }
     if (wasNewlyEnrolled) {
       if (course.accessType !== 'members') {
         waitUntil((async () => {
@@ -203,11 +212,10 @@ export async function enrollUser(db, userId, courseId, stripePaymentIntent) {
       'INSERT INTO enrollment (id, user_id, course_id, stripe_payment_intent) VALUES (?, ?, ?, ?)' +
       ' ON CONFLICT(user_id, course_id) DO UPDATE SET' +
       ' revoked_at = CASE' +
-      '   WHEN enrollment.revoked_at IS NOT NULL' +
-      '     AND enrollment.stripe_payment_intent IS NOT NULL' +
-      '     AND enrollment.stripe_payment_intent = excluded.stripe_payment_intent' +
-      '   THEN enrollment.revoked_at' +
-      '   ELSE NULL' +
+      '   WHEN excluded.stripe_payment_intent IS NOT NULL' +
+      '     AND excluded.stripe_payment_intent IS NOT enrollment.stripe_payment_intent' +
+      '   THEN NULL' +
+      '   ELSE enrollment.revoked_at' +
       ' END,' +
       ' stripe_payment_intent = COALESCE(excluded.stripe_payment_intent, enrollment.stripe_payment_intent)'
     ).bind(generateId(), userId, courseId, stripePaymentIntent),
