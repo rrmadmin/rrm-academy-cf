@@ -517,11 +517,20 @@ export async function onRequest(context) {
   const description = entry.description ? clamp(entry.description, 240) : null;
 
   // Save the Uterus Club: featured-Cuterus card. Same branding as the default
-  // card, mascot foregrounded. Description is clamped shorter to leave room
-  // beside the 380px image.
+  // card, mascot foregrounded. Uses fixed short club copy (not the augmented
+  // SEO title/meta description, which are too long for a hero card and clamp
+  // mid-word beneath the 300px mascot).
   if (slug === 'save-the-uterus-club') {
-    const stucDesc = entry.description ? clamp(entry.description, 150) : null;
-    return renderCard(env, buildStucTree(title, stucDesc), title, statusLabel, start);
+    return renderCard(
+      env,
+      buildStucTree(
+        'Save the Uterus Club',
+        'Join a community of patients and providers committed to restorative reproductive medicine.'
+      ),
+      'save-the-uterus-club',
+      statusLabel,
+      start
+    );
   }
 
   return renderCard(env, buildTree(title, description), title, statusLabel, start);
