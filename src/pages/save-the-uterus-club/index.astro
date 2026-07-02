@@ -47,12 +47,12 @@ const jsonLd = {
         <p class="stuc-join-hint" id="stuc-join-hint">Ready to join? <a href="#tiers">See membership options</a></p>
       </section>
 
-      <section class="stuc-section stuc-story">
+      <section class="stuc-section stuc-story scrapbook-panel">
         <p class="eyebrow">The Twist</p>
-        <h2>The Second Tuesday</h2>
+        <h2>Tuesday, Take Two</h2>
         <p>Same woman, two Tuesdays, five months apart.</p>
-        <p>First Tuesday: exam room, fluorescent light, five rushed minutes. Same pain she's had for years. A shrug, and nothing that touches why.</p>
-        <p>Second Tuesday: laptop open, tea going, she's logged into a Save the Uterus Club live call already in progress. Dr. Whittaker's on screen, walking through cycle charts and lab timing, what a real workup actually looks like. This member finally asks the question she's been sitting on for a year. She gets a real answer. So does everyone else logged in with her.</p>
+        <p>First Tuesday: a rushed ten-minute appointment, the same pain she's had for years, and a shrug that doesn't explain a thing.</p>
+        <p>Second Tuesday: laptop open, tea going, she's logged into a Save the Uterus Club live call already in progress. Dr. Whittaker's on screen making cycle charts and lab timing finally make sense. This member asks the question she's been sitting on for a year, out loud, in front of the whole group. She gets a real answer. So does everyone else logged in with her.</p>
         <figure class="stuc-illustration">
           <img src="/images/save-the-uterus-club/second-tuesday.webp" alt="A woman at her kitchen table in warm evening light, joining a live video call with a notebook and tea beside her" width="1024" height="1024" loading="lazy" decoding="async" />
         </figure>
@@ -142,16 +142,16 @@ const jsonLd = {
       <section class="stuc-section">
         <p class="eyebrow">The Master Plan</p>
         <h2>What's Being Built Right Now</h2>
-        <p>This is the long game, and it's already moving through the group chat, the live calls, and the research queue:</p>
-        <ol class="goals-list">
-          <li><strong>Uteruses valued</strong> instead of treated as disposable</li>
-          <li><strong>Women who know their rights</strong> and what good care actually looks like</li>
-          <li><strong>Surgery that never gets offered</strong> without a real investigation first</li>
-          <li><strong>Painful periods that trigger a real diagnosis</strong></li>
-          <li><strong>Couples who get real answers</strong> about what's wrong, and how to fix it, together</li>
-          <li><strong>Restorative reproductive medicine</strong> recognized as the standard of care</li>
-        </ol>
-        <p>None of it happens without funding, without members showing up, and without a community that refuses to settle for 'normal.' That's what your membership builds: one call, one study, one advocacy letter at a time.</p>
+        <p>This is the long game, and it's already moving through the group chat, the live calls, and the research queue. Big goals, good company:</p>
+        <ul class="goal-cards">
+          <li class="goal-card"><span class="goal-dot" aria-hidden="true"></span><span><strong>Uteruses valued</strong> instead of treated as disposable</span></li>
+          <li class="goal-card"><span class="goal-dot" aria-hidden="true"></span><span><strong>Women who know their rights</strong> and what good care actually looks like</span></li>
+          <li class="goal-card"><span class="goal-dot" aria-hidden="true"></span><span><strong>Surgery that never gets offered</strong> without a real investigation first</span></li>
+          <li class="goal-card"><span class="goal-dot" aria-hidden="true"></span><span><strong>Painful periods that trigger a real diagnosis</strong></span></li>
+          <li class="goal-card"><span class="goal-dot" aria-hidden="true"></span><span><strong>Couples who get real answers</strong> about what's wrong, and how to fix it, together</span></li>
+          <li class="goal-card"><span class="goal-dot" aria-hidden="true"></span><span><strong>Restorative reproductive medicine</strong> recognized as the standard of care</span></li>
+        </ul>
+        <p>None of it happens without funding, or without a bunch of people who show up every month and refuse to call any of this 'normal.' Good news: that's basically the whole club. Your membership builds it, one call, one study, one advocacy letter at a time.</p>
       </section>
 
       <hr class="divider" />
@@ -161,11 +161,11 @@ const jsonLd = {
         <p class="eyebrow">The Receipts</p>
         <h2>What Your Membership Does</h2>
         <p>Here's where the money goes, month over month.</p>
-        <ul class="membership-benefits">
-          <li><strong>Education</strong> that reaches over 1,000,000 people monthly. Women discovering for the first time that their pain isn't normal, that endometriosis can be treated rather than managed, that fertility problems have causes that can often be addressed.</li>
+        <ul class="membership-benefits benefit-cards">
+          <li><strong>Education</strong> that reaches over 1,000,000 people monthly: women finding out, some for the first time, that their pain isn't normal, that endometriosis has real treatment options, and that fertility problems usually have a findable cause.</li>
           <li><strong>Research made accessible.</strong> Over {libraryCountRounded} academic resources in the RRM Research Library, peer-reviewed evidence translated into language women and couples can actually use.</li>
           <li><strong>Training for medical professionals</strong> who want to practice cause-based medicine, finding the root cause behind the symptoms they're currently taught to suppress.</li>
-          <li><strong>A space to be heard,</strong> where women swap what medical dismissal actually felt like, and realize they were never the only one.</li>
+          <li><strong>A space to be heard,</strong> where women trade stories, compare notes, and figure out pretty fast that they were never the only one.</li>
           <li><strong>Better care for every woman and couple who comes after you,</strong> built by the members who came before them.</li>
         </ul>
         <p class="footnote">Your donation supports the RRM Foundation's operating fund. All donations are tax-deductible (we're a registered 501(c)(3), EIN: 93-4594315).</p>
@@ -205,6 +205,7 @@ const jsonLd = {
 
       <!-- Membership Tiers -->
       <section class="stuc-section" id="tiers">
+        <img class="cuterus-peek" src="/images/save-the-uterus-club/cuterus-wave.webp" alt="" aria-hidden="true" width="1024" height="1024" loading="lazy" decoding="async" />
         <p class="eyebrow">Join the Room</p>
         <h2>Membership Tiers</h2>
         <p>Three ways to be part of what happens next. All of it funds the same work; the tiers just decide how far inside the room you sit.</p>
@@ -330,6 +331,7 @@ const jsonLd = {
 
       <!-- Bottom CTA -->
       <section class="stuc-bottom-cta">
+        <img class="cuterus-peek" src="/images/save-the-uterus-club/cuterus-heart.webp" alt="" aria-hidden="true" width="1024" height="1024" loading="lazy" decoding="async" />
         <p>Somewhere right now, someone's having that first Tuesday. The next call's already on the calendar. The next study's already in the queue.</p>
         <p>The only question left: are you in the room for it?</p>
         <a href="#tiers" class="btn btn--primary btn--lg">Join Us</a>
@@ -944,4 +946,172 @@ const jsonLd = {
       justify-content: center;
     }
   }
+
+  /* ============================================================
+     Scrapbook vibe: sticker badges, dot dividers, playful cards
+     ============================================================ */
+
+  /* Eyebrow kickers become tilted sticker badges, tint rotates per section */
+  .stuc-section .eyebrow,
+  .stuc-story .eyebrow {
+    display: inline-block;
+    background: var(--rose-50);
+    color: var(--accent);
+    padding: 5px 15px;
+    border-radius: var(--radius-pill);
+    border: 1.5px dashed var(--sand-500);
+    box-shadow: var(--shadow-sm);
+    transform: rotate(-2.5deg);
+    transform-origin: left center;
+    margin-bottom: var(--space-4);
+  }
+  .stuc-section:nth-of-type(even) .eyebrow {
+    background: var(--sage-50);
+    transform: rotate(2deg);
+  }
+  .stuc-section:nth-of-type(3n) .eyebrow {
+    background: var(--purple-50);
+    transform: rotate(-1.5deg);
+  }
+
+  /* Sticker-dot divider replaces the plain rule */
+  .sticker-divider {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: var(--space-4);
+    margin: var(--space-10) 0;
+  }
+  .sticker-divider span {
+    width: 12px;
+    height: 12px;
+    border-radius: var(--radius-pill);
+    display: block;
+    opacity: 0.85;
+  }
+  .sticker-divider span:nth-child(1) { background: var(--rose-300); }
+  .sticker-divider span:nth-child(2) { background: var(--sage-300); }
+  .sticker-divider span:nth-child(3) { background: var(--purple-300); transform: scale(1.25); }
+  .sticker-divider span:nth-child(4) { background: var(--amber-100); }
+  .sticker-divider span:nth-child(5) { background: var(--sand-500); }
+
+  /* Story panel: soft scrapbook card behind the "Tuesday, Take Two" moment */
+  .scrapbook-panel {
+    background: var(--cream);
+    border: 1.5px solid var(--border-light);
+    border-radius: var(--radius-lg);
+    padding: var(--space-6);
+    box-shadow: var(--shadow-sm);
+  }
+  @media (min-width: 769px) {
+    .scrapbook-panel { padding: var(--space-8); }
+  }
+
+  /* Goal cards: sticker-dot bullet tiles in a grid */
+  .goal-cards {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: var(--space-4);
+    list-style: none;
+    margin: var(--space-5) 0;
+    padding: 0;
+  }
+  @media (min-width: 640px) {
+    .goal-cards { grid-template-columns: repeat(2, 1fr); }
+  }
+  .goal-card {
+    display: flex;
+    align-items: flex-start;
+    gap: var(--space-3);
+    background: var(--bg-surface);
+    border: 1.5px solid var(--border-light);
+    border-radius: var(--radius-md);
+    padding: var(--space-4) var(--space-5);
+    box-shadow: var(--shadow-sm);
+    font-size: 0.9375rem;
+    line-height: 1.6;
+    color: var(--text-secondary);
+    transition: transform 0.2s, box-shadow 0.2s;
+  }
+  .goal-card:hover { transform: translateY(-2px) rotate(-0.5deg); box-shadow: var(--shadow-md); }
+  .goal-card strong { color: var(--text-primary); }
+  .goal-dot {
+    flex-shrink: 0;
+    width: 16px;
+    height: 16px;
+    border-radius: var(--radius-pill);
+    margin-top: 3px;
+    background: var(--accent);
+  }
+  .goal-card:nth-child(2) .goal-dot { background: var(--rose-500); }
+  .goal-card:nth-child(3) .goal-dot { background: var(--sage-500); }
+  .goal-card:nth-child(4) .goal-dot { background: var(--amber-700); }
+  .goal-card:nth-child(5) .goal-dot { background: var(--purple-500); }
+  .goal-card:nth-child(6) .goal-dot { background: var(--sand-700); }
+
+  /* Membership "receipts" as playful tiles */
+  .benefit-cards {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: var(--space-4);
+    list-style: none;
+    padding: 0;
+    margin: var(--space-5) 0;
+  }
+  @media (min-width: 640px) {
+    .benefit-cards { grid-template-columns: repeat(2, 1fr); }
+  }
+  .benefit-cards li {
+    background: var(--bg-surface);
+    border: 1.5px solid var(--border-light);
+    border-radius: var(--radius-md);
+    padding: var(--space-5);
+    box-shadow: var(--shadow-sm);
+    font-size: 0.9375rem;
+    line-height: 1.7;
+    color: var(--text-secondary);
+    margin: 0;
+    position: relative;
+    transition: transform 0.2s, box-shadow 0.2s;
+  }
+  .benefit-cards li:hover { transform: translateY(-2px) rotate(0.4deg); box-shadow: var(--shadow-md); }
+  .benefit-cards li strong { color: var(--text-primary); }
+  /* little corner sticker on each receipt tile */
+  .benefit-cards li::before {
+    content: '';
+    position: absolute;
+    top: -6px;
+    left: var(--space-5);
+    width: 22px;
+    height: 22px;
+    border-radius: var(--radius-pill);
+    border: 2px solid var(--bg-surface);
+  }
+  .benefit-cards li:nth-child(1)::before { background: var(--rose-300); }
+  .benefit-cards li:nth-child(2)::before { background: var(--sage-300); }
+  .benefit-cards li:nth-child(3)::before { background: var(--purple-300); }
+  .benefit-cards li:nth-child(4)::before { background: var(--amber-100); }
+  .benefit-cards li:nth-child(5)::before { background: var(--sand-500); }
+
+  /* Spotlight + audience cards get a gentle scrapbook tilt on hover */
+  .spotlight-card, .audience-track {
+    transition: transform 0.2s, box-shadow 0.2s;
+  }
+  .spotlight-card:hover { transform: rotate(-0.6deg) translateY(-2px); box-shadow: var(--shadow-md); }
+  .audience-track:hover { transform: rotate(0.4deg) translateY(-2px); box-shadow: var(--shadow-md); }
+
+  /* Recurring Cuterus spot mascots peeking at section corners */
+  .cuterus-peek {
+    display: block;
+    width: 96px;
+    height: auto;
+    margin: 0 auto var(--space-2);
+  }
+  .cuterus-peek--right { margin-right: 0; margin-left: auto; transform: rotate(6deg); }
+  .cuterus-peek--left { margin-left: 0; margin-right: auto; transform: rotate(-6deg); }
+
+  @media (prefers-reduced-motion: reduce) {
+    .goal-card, .benefit-cards li, .spotlight-card, .audience-track { transition: none; }
+  }
+
 </style>
