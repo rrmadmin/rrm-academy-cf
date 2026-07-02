@@ -6,6 +6,7 @@ import coursesData from '../data/courses.json';
 import surveyCountData from '../data/survey-count.json';
 import { buildIdentityGraph, getFoundationJsonLd, NAOMI_SAME_AS } from '../lib/identity';
 import CampaignCallout from '../components/CampaignCallout.astro';
+import SuperHeroLogos from '../components/SuperHeroLogos.astro';
 import campaigns from '../data/campaigns.json';
 import campaignSnapshot from '../data/campaign-snapshot.json';
 
@@ -571,6 +572,13 @@ const jsonLd = {
           <a href="/neofertility/">NeoFertility</a>, plus the most
           <a href="/common-questions-about-rrm">common questions about RRM</a>.
         </p>
+      </div>
+    </section>
+
+    <!-- Super Hero recognition band -->
+    <section class="hp-section">
+      <div class="container container--narrow">
+        <SuperHeroLogos />
       </div>
     </section>
 
