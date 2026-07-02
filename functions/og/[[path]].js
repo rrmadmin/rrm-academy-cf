@@ -18,6 +18,7 @@
 
 import { ImageResponse } from 'workers-og';
 import ogIndex from '../../src/data/og-index.json';
+import { CUTERUS_OG } from './_cuterus-image.js';
 
 // Brand tokens (matches scripts/og-template.js exactly)
 const BG          = '#f7f5f3';
@@ -162,6 +163,73 @@ function buildTree(title, description) {
           },
         },
         // Brand band: 132px solid --purple-700, full-bleed.
+        brandBand(),
+      ],
+    },
+  };
+}
+
+// Save the Uterus Club card. Keeps the standard branding (cream bg, Cormorant
+// title, Inter description, purple brand band) but features the Cuterus mascot
+// prominently on the left. Image is an inlined JPEG data URI (CUTERUS_OG),
+// flattened on the card BG so it blends without a visible edge.
+function buildStucTree(title, description) {
+  const contentChildren = [
+    // Cuterus mascot, featured at top
+    {
+      type: 'img',
+      props: {
+        src: CUTERUS_OG,
+        width: 300,
+        height: 300,
+        style: { marginBottom: '4px' },
+      },
+    },
+    {
+      type: 'span',
+      props: {
+        style: { fontSize: '60px', fontWeight: 600, color: TITLE_C, lineHeight: 1.1, textAlign: 'center', fontFamily: 'Cormorant Garamond' },
+        children: title,
+      },
+    },
+  ];
+  if (description) {
+    contentChildren.push({
+      type: 'span',
+      props: {
+        style: { fontSize: '28px', fontWeight: 400, color: DESC_C, lineHeight: 1.4, marginTop: '16px', textAlign: 'center', maxWidth: '860px', fontFamily: 'Inter' },
+        children: description,
+      },
+    });
+  }
+
+  return {
+    type: 'div',
+    props: {
+      style: {
+        width: '1200px',
+        height: '630px',
+        backgroundColor: BG,
+        display: 'flex',
+        flexDirection: 'column',
+        fontFamily: 'Cormorant Garamond',
+      },
+      children: [
+        {
+          type: 'div',
+          props: {
+            style: {
+              display: 'flex',
+              flexDirection: 'column',
+              flexGrow: 1,
+              alignItems: 'center',
+              justifyContent: 'center',
+              padding: '24px 60px',
+              overflow: 'hidden',
+            },
+            children: contentChildren,
+          },
+        },
         brandBand(),
       ],
     },
@@ -447,6 +515,14 @@ export async function onRequest(context) {
   }
 
   const description = entry.description ? clamp(entry.description, 240) : null;
+
+  // Save the Uterus Club: featured-Cuterus card. Same branding as the default
+  // card, mascot foregrounded. Description is clamped shorter to leave room
+  // beside the 380px image.
+  if (slug === 'save-the-uterus-club') {
+    const stucDesc = entry.description ? clamp(entry.description, 150) : null;
+    return renderCard(env, buildStucTree(title, stucDesc), title, statusLabel, start);
+  }
 
   return renderCard(env, buildTree(title, description), title, statusLabel, start);
 }
