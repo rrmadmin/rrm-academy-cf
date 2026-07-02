@@ -1,7 +1,7 @@
 # RRM Academy — Style Guide
 
 > Canonical reference for `rrmacademy.org`. Every pattern documented here is live in production.
-> Last updated: 2026-05-29.
+> Last updated: 2026-07-02.
 
 ---
 
@@ -135,6 +135,8 @@ The footer uses its own token set (not the theme-inverting semantic aliases) so 
 ### Dark Theme
 
 Dark mode is **warm charcoal, not OLED black.** Think Kindle Paperwhite dark mode: `#1e1a16` background with soft cream text.
+
+**Gotcha — the raw purple/neutral scale tokens invert lightness per theme, not just the semantic aliases.** `--purple-900`/`--purple-700`/`--purple-500` etc. are redefined under `[data-theme="dark"]` and `[data-theme="eink"]` (see `global.css`), and in dark mode the scale flips direction (e.g. `--purple-900` becomes the *lightest* purple, since dark-mode hover states get lighter, not darker). Never assume a `--purple-*`/`--accent*` token is reliably dark (or light) across all three themes. This bit a real bug: an authenticated-avatar badge used `linear-gradient(135deg, var(--purple-500), var(--accent))` with hardcoded `color: #fff` — passed contrast in light mode, failed WCAG AA outright in dark mode because `--accent` inverted to a light lavender. For anything that needs a background reliably dark (or light) in every theme for a *fixed*-color foreground, use the `--text-primary`/`--bg-surface` pairing instead (they're defined as each theme's own high-contrast pair, ≥10:1 AAA) rather than the purple/accent scale.
 
 | Semantic Token | Dark Value |
 |----------------|------------|
@@ -934,6 +936,8 @@ Mobile: single column.
 ### Design approach
 
 Mobile-first. Base styles are for narrow viewports. `min-width` queries add complexity for larger screens.
+
+**Gotcha — avoid pairing `min-width: Npx` on one element with `max-width: (N-1)px` on another as "the same breakpoint."** Those two literal values are not true complements under fractional/zoomed effective CSS-pixel widths (reachable via browser zoom or OS display-scaling), which can leave a dead zone where neither query matches — real bug: `app-shell.css` hid the mobile header at `min-width: 901px` and the desktop nav at `max-width: 900px`, so both could render simultaneously in that gap. Prefer the CSS media-query range syntax on a single shared value instead: `@media (width >= 900px)` / `@media (width < 900px)` — exact mathematical complements, no gap, no browser-support concern (this codebase already relies on `oklch()` colors, a newer feature than range syntax).
 
 ---
 
