@@ -16,7 +16,8 @@ import {
 import { log } from '../_log.js';
 
 function toUnix(isoString) {
-  return Math.floor(new Date(isoString).getTime() / 1000);
+  const t = new Date(isoString).getTime();
+  return Number.isFinite(t) ? Math.floor(t / 1000) : null;
 }
 
 export async function onRequestOptions() {
@@ -54,7 +55,7 @@ async function handleStatus(request, env, waitUntil) {
   const user = await db.prepare('SELECT stripe_customer_id, email FROM user WHERE id = ?')
     .bind(session.userId).first();
   if (!user) {
-    return json({ ok: true, subscription: null, donations: [], payments: [] });
+    return json({ ok: true, subscription: null, donations: [], payments: [], hasMore: false });
   }
 
   // --- Default empty Stripe result ---
@@ -97,16 +98,26 @@ async function handleStatus(request, env, waitUntil) {
     }
 
     // --- Build Stripe charge lists ---
+    // Fully-refunded charges are excluded entirely — the account UI's
+    // renderHistoryList() has no refund affordance, so a refunded donation
+    // would otherwise still read as a completed one. Partial refunds
+    // (amount_refunded > 0, refunded === false) still display.
     chargesHasMore = charges.has_more === true;
-    const succeeded = charges.data.filter(c => c.status === 'succeeded');
+    const succeeded = charges.data.filter(c => c.status === 'succeeded' && !c.refunded);
     const mapCharge = c => ({
       amount: c.amount,
       date: c.created,
       receiptUrl: c.receipt_url || null,
       source: 'stripe',
     });
-    stripeDonations = succeeded.filter(c => !c.invoice).map(mapCharge);
-    stripePayments = succeeded.filter(c => !!c.invoice).map(mapCharge);
+    // One-time (non-invoice) charges are donations UNLESS stamped as a course
+    // purchase — create-checkout.js sets payment_intent_data.metadata.type
+    // to 'donation' for donations and courses/enroll.js sets it to 'course'
+    // for one-time course purchases; Stripe copies PI metadata onto the
+    // resulting charge, so it's a reliable discriminator here.
+    const isCoursePurchase = c => c.metadata?.type === 'course';
+    stripeDonations = succeeded.filter(c => !c.invoice && !isCoursePurchase(c)).map(mapCharge);
+    stripePayments = succeeded.filter(c => !!c.invoice || isCoursePurchase(c)).map(mapCharge);
 
     // --- Build Stripe subscription ---
     if (subscriptions.data.length) {
@@ -140,22 +151,48 @@ async function handleStatus(request, env, waitUntil) {
 
   // --- Query Wix tables in parallel ---
   let wixDonations = [];
+  let wixPayments = [];
+  let wixLookupFailed = false;
   try {
     const userId = session.userId;
     const email = user.email || '';
-    const [wixSubRow, wixPayRows] = await Promise.all([
+    const [wixSubRow, wixPayRows, cancelledRow] = await Promise.all([
       db.prepare(
         'SELECT tier, status, amount_cents, next_expected_at FROM wix_subscription' +
         ' WHERE (user_id = ? OR email = ? COLLATE NOCASE) AND status = \'active\'' +
         ' AND migration_status NOT IN (\'stripe_active\', \'migrated\', \'fully_exited\')' +
+        ' AND COALESCE(next_expected_at, datetime(last_order_at, \'+31 days\')) >= datetime(\'now\', \'-7 days\')' +
         ' ORDER BY started_at DESC LIMIT 1'
       ).bind(userId, email).first(),
       db.prepare(
-        'SELECT amount_cents, paid_at, receipt_number FROM wix_payment' +
+        'SELECT amount_cents, paid_at, receipt_number, is_donation FROM wix_payment' +
         ' WHERE (user_id = ? OR email = ? COLLATE NOCASE) AND payment_status = \'PAID\'' +
         ' ORDER BY paid_at DESC LIMIT 51'
       ).bind(userId, email).all(),
+      db.prepare(
+        `SELECT tier, status, amount_cents, next_expected_at, last_order_at
+           FROM wix_subscription
+           WHERE (user_id = ? OR email = ? COLLATE NOCASE)
+           AND migration_status NOT IN ('stripe_active', 'migrated', 'fully_exited')
+           ORDER BY CASE status WHEN 'active' THEN 0 ELSE 1 END, COALESCE(last_order_at, started_at) DESC
+           LIMIT 1`
+      ).bind(userId, email).first(),
     ]);
+
+    const wixPayResults = wixPayRows.results || [];
+    wixPaymentsHasMore = wixPayResults.length > 50;
+    const mapWixPay = p => ({
+      amount: p.amount_cents,
+      date: toUnix(p.paid_at),
+      receiptUrl: null,
+      receiptNumber: p.receipt_number || null,
+      source: 'wix',
+    });
+    // is_donation = 0 for STUC course/product purchases synced from Wix —
+    // route those into wixPayments so they stop appearing as donations.
+    const wixPageResults = wixPayResults.slice(0, 50);
+    wixDonations = wixPageResults.filter(p => p.is_donation === 1).map(mapWixPay);
+    wixPayments = wixPageResults.filter(p => p.is_donation !== 1).map(mapWixPay);
 
     // Surface Wix subscription only when Stripe has none
     if (!subscription && wixSubRow) {
@@ -170,45 +207,34 @@ async function handleStatus(request, env, waitUntil) {
     }
 
     // Surface most-recent cancelled Wix sub when no active sub exists — enables welcome-back UI
-    if (!subscription) {
-      const cancelledRow = await db.prepare(
-        `SELECT tier, status, amount_cents, next_expected_at, last_order_at
-           FROM wix_subscription
-           WHERE (user_id = ? OR email = ? COLLATE NOCASE)
-           AND migration_status NOT IN ('stripe_active', 'migrated', 'fully_exited')
-           ORDER BY CASE status WHEN 'active' THEN 0 ELSE 1 END, COALESCE(last_order_at, started_at) DESC
-           LIMIT 1`
-      ).bind(userId, email).first();
-      if (cancelledRow && cancelledRow.status !== 'active') {
-        subscription = {
-          tier: cancelledRow.tier,
-          status: 'cancelled',
-          currentPeriodEnd: null,
-          cancelAtPeriodEnd: false,
-          source: 'wix',
-          lastPaymentAt: cancelledRow.last_order_at || null,
-        };
-      }
+    if (!subscription && cancelledRow && cancelledRow.status !== 'active') {
+      subscription = {
+        tier: cancelledRow.tier,
+        status: 'cancelled',
+        currentPeriodEnd: null,
+        cancelAtPeriodEnd: false,
+        source: 'wix',
+        lastPaymentAt: cancelledRow.last_order_at || null,
+      };
     }
-
-    const wixPayResults = wixPayRows.results || [];
-    wixPaymentsHasMore = wixPayResults.length > 50;
-    wixDonations = wixPayResults.slice(0, 50).map(p => ({
-      amount: p.amount_cents,
-      date: toUnix(p.paid_at),
-      receiptUrl: null,
-      receiptNumber: p.receipt_number || null,
-      source: 'wix',
-    }));
   } catch (err) {
+    wixLookupFailed = true;
     log(env, waitUntil, 'billing', 'wix_lookup_error', 'error', err.message, 0, 500);
-    // Non-fatal: fall back to Stripe-only result
+    // Non-fatal only when Stripe already has a subscription or charges to fall back on
   }
 
-  // --- Merge and sort donations ---
-  const donations = [...stripeDonations, ...wixDonations].sort((a, b) => b.date - a.date);
-  const payments = stripePayments;
-  const hasMore = chargesHasMore || wixPaymentsHasMore;
+  if (wixLookupFailed && !subscription && !stripeDonations.length && !stripePayments.length) {
+    return json({ ok: false, error: 'Service temporarily unavailable. Please try again.' }, 503);
+  }
+
+  // --- Merge, sort, and truncate to a stable page size ---
+  const PAGE_SIZE = 50;
+  const mergedDonations = [...stripeDonations, ...wixDonations].sort((a, b) => (b.date ?? -Infinity) - (a.date ?? -Infinity));
+  const mergedPayments = [...stripePayments, ...wixPayments].sort((a, b) => (b.date ?? -Infinity) - (a.date ?? -Infinity));
+  const donations = mergedDonations.slice(0, PAGE_SIZE);
+  const payments = mergedPayments.slice(0, PAGE_SIZE);
+  const hasMore = chargesHasMore || wixPaymentsHasMore ||
+    mergedDonations.length > PAGE_SIZE || mergedPayments.length > PAGE_SIZE;
 
   return json({ ok: true, subscription, donations, payments, hasMore });
 }

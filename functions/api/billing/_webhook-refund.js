@@ -5,6 +5,7 @@
 import { sendEmailSafe } from './_webhook-shared.js';
 import { log } from '../_log.js';
 import { removeSupporterGift } from './_supporter-gift.js';
+import { recomputeContactRollups } from './_donor-gift.js';
 
 /**
  * @param {D1Database} db
@@ -61,8 +62,36 @@ export async function handleChargeRefunded(db, event, env, waitUntil) {
       log(env, waitUntil, 'billing', 'supporter_recognition_removed', 'ok',
         `payment_intent=${charge.payment_intent}`);
     } catch (removeErr) {
-      log(env, waitUntil, 'billing', 'supporter_recognition_remove_fail', 'warn',
-        `payment_intent=${charge.payment_intent}`);
+      log(env, waitUntil, 'billing', 'supporter_recognition_remove_fail', 'error',
+        `payment_intent=${charge.payment_intent}: ${removeErr.message}`, 0, 500);
+      // Return 500 so dispatcher rolls back dedup row; Stripe retries.
+      return new Response(JSON.stringify({ ok: false, error: 'Internal error' }), {
+        status: 500,
+        headers: { 'Content-Type': 'application/json' },
+      });
+    }
+
+    // CRM mirror: stamp refunded_at so total_donated/gift_count/donor_stage rollups drop
+    // this gift. refunded_at IS NULL guard makes this idempotent on Stripe retries.
+    // RETURNING email in the same statement avoids a read-then-write race.
+    try {
+      const refundedGift = await db.prepare(
+        "UPDATE donor_gift SET refunded_at = datetime('now') " +
+        "WHERE source = 'stripe' AND source_id = ? AND refunded_at IS NULL RETURNING email"
+      ).bind(String(charge.payment_intent)).first();
+      if (refundedGift?.email) {
+        await recomputeContactRollups(db, refundedGift.email);
+        log(env, waitUntil, 'billing', 'donor_gift_refunded', 'ok',
+          `payment_intent=${charge.payment_intent}`);
+      }
+    } catch (giftRefundErr) {
+      log(env, waitUntil, 'billing', 'donor_gift_refund_fail', 'error',
+        `payment_intent=${charge.payment_intent}: ${giftRefundErr.message}`, 0, 500);
+      // Return 500 so dispatcher rolls back dedup row; Stripe retries.
+      return new Response(JSON.stringify({ ok: false, error: 'Internal error' }), {
+        status: 500,
+        headers: { 'Content-Type': 'application/json' },
+      });
     }
   }
 

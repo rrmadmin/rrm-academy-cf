@@ -4,7 +4,7 @@
  */
 import { SITE_URL } from '../auth/_shared.js';
 import { log } from '../_log.js';
-import { getEmailByStripeCustomer, sendEmailSafe } from './_webhook-shared.js';
+import { sendEmailSafe } from './_webhook-shared.js';
 
 /**
  * @param {D1Database} db
@@ -20,7 +20,19 @@ export async function handlePaymentFailed(db, event, env, request, waitUntil) {
 
   // Email user about the failed payment
   if (env.AWS_ACCESS_KEY_ID) {
-    const email = await getEmailByStripeCustomer(db, invoice.customer, env, waitUntil);
+    let email;
+    try {
+      const row = await db.prepare('SELECT email FROM user WHERE stripe_customer_id = ?')
+        .bind(invoice.customer).first();
+      email = row?.email || null;
+    } catch (err) {
+      log(env, waitUntil, 'billing', 'email_lookup_fail', 'error', `${invoice.customer}: ${err.message}`);
+      // Return 500 so dispatcher rolls back webhook_event dedup; Stripe retries.
+      return new Response(JSON.stringify({ ok: false, error: 'Internal error' }), {
+        status: 500,
+        headers: { 'Content-Type': 'application/json' },
+      });
+    }
     if (email) {
       waitUntil(sendEmailSafe(env, waitUntil, {
         to: email,
@@ -41,8 +53,9 @@ export async function handlePaymentFailed(db, event, env, request, waitUntil) {
           'RRM Academy',
           'A project of the RRM Foundation -- 501(c)(3), EIN: 93-4594315',
         ].join('\n'),
+      }).then(() => {
+        log(env, waitUntil, 'billing', 'payment_failed_notified', 'ok', email);
       }).catch(() => {}));
-      log(env, waitUntil, 'billing', 'payment_failed_notified', 'ok', email);
     }
   }
 

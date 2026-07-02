@@ -9,10 +9,21 @@
  * - accountExists + needsPassword  → auto-created account, check email for password link
  * - accountExists + !needsPassword → existing account, just log in
  * - !accountExists                 → no account yet (webhook may not have fired)
+ *
+ * Unauthenticated by design (fresh donors have no session cookie on the
+ * thank-you redirect) — this is an account-existence oracle keyed on any
+ * valid cs_ session id, which can leak via referrer headers/logs well after
+ * checkout. Mitigated by: rate limiting (below), a hard 24h session-age
+ * cutoff (thank-you pages poll within seconds of redirect; anything older
+ * is refused with the same response as an unknown session id), and strict
+ * session_id shape validation.
  */
 import Stripe from 'stripe';
 import { json, optionsResponse, checkRateLimit, STRIPE_API_VERSION } from '../auth/_shared.js';
 import { log } from '../_log.js';
+
+const SESSION_ID_RE = /^cs_[A-Za-z0-9_]+$/;
+const MAX_SESSION_AGE_SECONDS = 24 * 60 * 60;
 
 export async function onRequestOptions() {
   return optionsResponse();
@@ -26,7 +37,11 @@ export async function onRequestGet({ request, env, waitUntil }) {
 
     const url = new URL(request.url);
     const sessionId = url.searchParams.get('session_id');
-    if (!sessionId || !sessionId.startsWith('cs_')) {
+    if (
+      typeof sessionId !== 'string' ||
+      sessionId.length > 200 ||
+      !SESSION_ID_RE.test(sessionId)
+    ) {
       return json({ ok: false, error: 'Invalid session_id' }, 400);
     }
 
@@ -43,7 +58,18 @@ export async function onRequestGet({ request, env, waitUntil }) {
     let checkoutSession;
     try {
       checkoutSession = await stripe.checkout.sessions.retrieve(sessionId);
-    } catch (_err) {
+    } catch (err) {
+      if (err.code === 'resource_missing') {
+        return json({ ok: false, error: 'Invalid session' }, 400);
+      }
+      return json({ ok: false, error: 'Payment service temporarily unavailable' }, 503);
+    }
+
+    const ageSeconds = Math.floor(Date.now() / 1000) - (checkoutSession.created || 0);
+    if (!checkoutSession.created || ageSeconds > MAX_SESSION_AGE_SECONDS) {
+      // Same response as a bogus/unknown session id — a stale-but-real cs_ id
+      // (leaked via referrer/logs long after checkout) must not be
+      // distinguishable from one that never existed.
       return json({ ok: false, error: 'Invalid session' }, 400);
     }
 

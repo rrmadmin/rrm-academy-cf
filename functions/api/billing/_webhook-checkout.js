@@ -17,6 +17,7 @@ import { getCourse } from '../courses/_shared.js';
 import { sendGA4Event } from '../_ga4.js';
 import { log } from '../_log.js';
 import { sendEmailSafe } from './_webhook-shared.js';
+import { sendEmail as sesSendEmail, logEmailFailure } from '../_ses.js';
 import { verifyAndTagEmail } from '../_elv.js';
 import { notifyAdminEnrollment } from '../courses/_notify-admin.js';
 import { recordDonorGift, giftFromCheckoutSession } from './_donor-gift.js';
@@ -44,17 +45,18 @@ export async function handleCheckoutCompleted(db, event, env, request, waitUntil
   }
 
   // Link Stripe customer to D1 user, or auto-create account for anonymous checkout
-  const checkoutType = session.metadata?.type;
   try {
     await ensureAccountForCheckout(db, session, env, waitUntil);
   } catch (linkErr) {
     log(env, waitUntil, 'billing', 'account_link_fail', 'error', linkErr.message, 0, 500);
-    if (checkoutType === 'course') {
-      return new Response(JSON.stringify({ ok: false, error: 'Account linkage failed' }), {
-        status: 500,
-        headers: { 'Content-Type': 'application/json' },
-      });
-    }
+    // Return 5xx for every checkout type (course, donation, subscription) so the
+    // stripe-webhook dispatcher rolls back the dedup row and Stripe retries the event.
+    // Falling through here would let the dispatcher mark the event completed while
+    // the account link is permanently lost.
+    return new Response(JSON.stringify({ ok: false, error: 'Account linkage failed' }), {
+      status: 500,
+      headers: { 'Content-Type': 'application/json' },
+    });
   }
 
   // Course purchase: create enrollment
@@ -64,7 +66,7 @@ export async function handleCheckoutCompleted(db, event, env, request, waitUntil
     // Resolve the user ID: logged-in user or look up by email for anonymous checkout
     let userId = session.client_reference_id;
     if (!userId) {
-      const email = (session.customer_details?.email || session.customer_email || '').toLowerCase().trim();
+      const email = (session.customer_details?.email || session.customer_email || '').toLowerCase().trim().replace(/[\r\n]/g, '');
       if (email) {
         const user = await db.prepare('SELECT id FROM user WHERE email = ? COLLATE NOCASE').bind(email).first();
         if (user) userId = user.id;
@@ -86,9 +88,38 @@ export async function handleCheckoutCompleted(db, event, env, request, waitUntil
       });
     }
 
+    // Resolve the real Stripe payment_intent before enrolling. session.payment_intent is
+    // null at checkout.session.completed time for async payment methods -- if we stored
+    // session.id (cs_...) here, the refund handler's
+    // WHERE stripe_payment_intent = charge.payment_intent (pi_...) filter could never match
+    // and a fully-refunded student would keep access. Retrieve the session to resolve the
+    // PI; only fall back to session.id if Stripe genuinely has no PI (free/100%-discount).
+    let paymentIntentId = session.payment_intent || null;
+    if (!paymentIntentId) {
+      try {
+        const stripe = getStripeClient(env);
+        const fullSession = await stripe.checkout.sessions.retrieve(session.id);
+        paymentIntentId = fullSession.payment_intent || null;
+      } catch (piErr) {
+        log(env, waitUntil, 'billing', 'course_pi_retrieve_fail', 'error', `${courseId}: ${piErr.message}`, 0, 500);
+        return new Response(JSON.stringify({ ok: false, error: 'Enrollment failed' }), {
+          status: 500,
+          headers: { 'Content-Type': 'application/json' },
+        });
+      }
+      if (!paymentIntentId) {
+        // Stripe never creates a PaymentIntent for a $0 session (free / 100%-discount course).
+        // Fall back to session.id -- there is nothing for the refund handler to match against
+        // anyway since a $0 charge cannot be refunded.
+        log(env, waitUntil, 'billing', 'course_no_payment_intent', 'warn',
+          `${courseId}: session ${session.id} has no payment_intent after retrieve (free/100%-discount)`);
+      }
+    }
+    const enrollmentKey = paymentIntentId || session.id;
+
+    let enrolled;
     try {
-      await enrollUser(db, userId, courseId, session.payment_intent || session.id);
-      log(env, waitUntil, 'billing', 'course_enrolled', 'ok', `${courseId} user=${userId}`);
+      enrolled = await enrollUser(db, userId, courseId, enrollmentKey);
     } catch (enrollErr) {
       log(env, waitUntil, 'billing', 'course_enroll_fail', 'error', `${courseId}: ${enrollErr.message}`, 0, 500);
       return new Response(JSON.stringify({ ok: false, error: 'Enrollment failed' }), {
@@ -96,9 +127,24 @@ export async function handleCheckoutCompleted(db, event, env, request, waitUntil
         headers: { 'Content-Type': 'application/json' },
       });
     }
+    if (!enrolled) {
+      // enrollUser returns false (without throwing) when the D1 batch reports a per-statement
+      // failure -- the customer has been charged but the enrollment row never landed. Skip the
+      // confirmation email + GA4 purchase event (nothing to confirm) and return 500 so the
+      // dispatcher rolls back webhook dedup and Stripe retries the event. Safe to retry:
+      // enrollUser's INSERT ... ON CONFLICT(user_id, course_id) DO UPDATE upserts, so redelivery
+      // re-runs the same idempotent UPSERT rather than double-inserting or double-charging.
+      log(env, waitUntil, 'billing', 'course_enroll_fail', 'error',
+        `${courseId}: enrollUser returned false (D1 batch per-statement failure) user=${userId}`, 0, 500);
+      return new Response(JSON.stringify({ ok: false, error: 'Enrollment failed' }), {
+        status: 500,
+        headers: { 'Content-Type': 'application/json' },
+      });
+    }
+    log(env, waitUntil, 'billing', 'course_enrolled', 'ok', `${courseId} user=${userId}`);
 
     // Send course enrollment confirmation email
-    const email = (session.customer_details?.email || session.customer_email || '').toLowerCase().trim() || null;
+    const email = (session.customer_details?.email || session.customer_email || '').toLowerCase().trim().replace(/[\r\n]/g, '') || null;
     const name = (session.customer_details?.name || '').slice(0, 200);
     // Admin notify is not gated on SES -- notifyAdminEnrollment checks AWS_ACCESS_KEY_ID internally
     // and can use alternate transports. Always fire so admin sees paid enrollments even when SES
@@ -188,7 +234,13 @@ export async function handleCheckoutCompleted(db, event, env, request, waitUntil
           }
         }
 
-        if (migrationEmailSubStatus !== 'active' && migrationEmailSubStatus !== 'trialing') {
+        if (!session.subscription) {
+          // No subscription on the completed session -- we have no status to check, so don't
+          // guess. Sending the "in progress" copy here would be a false pending notification
+          // (the sub could already be active). Log and let Phase 7 cron reconcile.
+          log(env, waitUntil, 'billing', 'migration_email_no_subscription', 'warning',
+            `${session.metadata.wix_subscription_id}: session.subscription missing on completed checkout; skipping status email`);
+        } else if (migrationEmailSubStatus !== 'active' && migrationEmailSubStatus !== 'trialing') {
           waitUntil(sendEmailSafe(env, waitUntil, {
             to: email,
             subject: 'Your donation switch is in progress',
@@ -339,7 +391,7 @@ export async function handleCheckoutCompleted(db, event, env, request, waitUntil
               blobs: ['billing', 'stuc-migration', 'metadata-duplicate-stripe-sub', wixSubIdMeta, session.subscription || ''],
               indexes: ['metadata-duplicate-stripe-sub'],
             });
-            const email = (session.customer_details?.email || session.customer_email || '').toLowerCase().trim();
+            const email = (session.customer_details?.email || session.customer_email || '').toLowerCase().trim().replace(/[\r\n]/g, '');
             if (env.AWS_ACCESS_KEY_ID) {
               waitUntil(sendEmailSafe(env, waitUntil, {
                 to: 'administrator@rrmacademy.org',
@@ -432,11 +484,15 @@ export async function handleCheckoutCompleted(db, event, env, request, waitUntil
                 ? new Date(wixRow.next_expected_at).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })
                 : 'their next scheduled donation date';
 
+              const adminNotifySubject = `STUC migration: cancel Wix sub for ${donorEmail || wixSubIdMeta}`;
               try {
-                await sendEmailSafe(env, waitUntil, {
+                // Call sesSendEmail directly (not sendEmailSafe) so a send failure throws
+                // and is caught below -- sendEmailSafe swallows errors internally, which
+                // would let the admin_notified_at UPDATE run even after a failed send.
+                await sesSendEmail(env, {
+                  from: 'RRM Academy <accounts@mail.rrmacademy.org>',
                   to: 'administrator@rrmacademy.org',
-                  subject: `STUC migration: cancel Wix sub for ${donorEmail || wixSubIdMeta}`,
-                  source: 'billing/migration-metadata',
+                  subject: adminNotifySubject,
                   text:
 `${donorEmail || '(unknown email)'} just migrated Wix → Stripe via the new self-service flow.
 
@@ -453,9 +509,10 @@ VERIFY in Stripe Dashboard that the sub status is 'active', then cancel the Wix 
 within 24 hours to prevent double-billing.
 
 Wix Dashboard -> Subscriptions -> Cancel immediately (NOT end-of-cycle).`,
+                  log: { db: env.DB, source: 'billing/migration-metadata', category: 'transactional' },
                 });
 
-                // Mark notified so cron Sweep 2 doesn't re-send.
+                // Mark notified so cron Sweep 2 doesn't re-send. Only reached on a confirmed send.
                 await db.prepare(
                   "UPDATE wix_subscription SET admin_notified_at=strftime('%s','now') WHERE wix_subscription_id=?"
                 ).bind(wixSubIdMeta).run();
@@ -468,6 +525,13 @@ Wix Dashboard -> Subscriptions -> Cancel immediately (NOT end-of-cycle).`,
                 // SES failed -- log, leave admin_notified_at NULL so cron Sweep 2 retries.
                 log(env, waitUntil, 'billing', 'metadata_admin_notify_fail', 'error',
                   `${wixSubIdMeta}: ${notifyErr.message}`);
+                await logEmailFailure(env.DB, {
+                  email: 'administrator@rrmacademy.org',
+                  category: 'transactional',
+                  source: 'billing/migration-metadata',
+                  subject: adminNotifySubject,
+                  detail: notifyErr.message,
+                });
               }
 
               migrationHandled = true;
@@ -580,7 +644,7 @@ Manually set migration_status='stripe_active' and stripe_subscription_id to the 
   // Donor data layer: record one-time donations in donor_gift (CRM mirror).
   // STUC/course payments are swept by the rrm-observatory donor-gift-feed daemon
   // from Stripe charges, keyed on payment_intent, so they are skipped here.
-  const donorGift = giftFromCheckoutSession(session, event.created);
+  const donorGift = giftFromCheckoutSession(session, event.created, env, waitUntil);
   if (donorGift && db) {
     try {
       const res = await recordDonorGift(db, donorGift);
@@ -640,10 +704,14 @@ Manually set migration_status='stripe_active' and stripe_subscription_id to the 
       ...(session.metadata?.ga_entry_platform && { entry_platform: session.metadata.ga_entry_platform }),
     }, gaOverrides).catch(() => {}));
   } else if (session.mode === 'subscription' && stucTiers[tier]) {
+    // amount_total is 0 for trial-clamped migration checkouts (subscription_data.trial_end
+    // delays the first invoice), which would otherwise report $0 subscription revenue.
+    // Fall back to the standard tier price when the first invoice hasn't billed yet.
+    const stucTierCentsFallback = { member: 900, hero: 1900, superhero: 9900 };
     waitUntil(sendGA4Event(env, request, 'purchase', {
       page_location: pageLocation,
       currency: 'USD',
-      value: (session.amount_total || 0) / 100,
+      value: (session.amount_total || stucTierCentsFallback[tier] || 0) / 100,
       transaction_id: session.subscription || session.id,
       items: [{ item_name: `STUC ${stucTiers[tier]}` }],
       ...(session.metadata?.ga_source && { utm_source: session.metadata.ga_source }),
@@ -667,10 +735,15 @@ export async function handleCheckoutExpired(db, event, env, waitUntil) {
     return null;
   }
   try {
+    // Only release the lock if it predates this expired session's creation -- an expired
+    // session must never clear a lock acquired by a newer, still-in-flight checkout for
+    // the same Wix sub (see handleCheckoutExpired doc comment).
+    const sessionCreatedSec = Number.isFinite(session.created) ? session.created : Math.floor(Date.now() / 1000);
     await db.prepare(
       "UPDATE wix_subscription SET migration_handoff_started_at = NULL " +
-      "WHERE wix_subscription_id = ? AND stripe_subscription_id IS NULL"
-    ).bind(wixSubId).run();
+      "WHERE wix_subscription_id = ? AND stripe_subscription_id IS NULL " +
+      "  AND migration_handoff_started_at IS NOT NULL AND migration_handoff_started_at <= ?"
+    ).bind(wixSubId, sessionCreatedSec).run();
     log(env, waitUntil, 'billing', 'migration_lock_released_on_expiry', 'ok', wixSubId);
     env.EVENTS?.writeDataPoint({
       blobs: ['billing', 'stuc-migration', 'lock-released-session-expired', wixSubId, session.id || ''],
@@ -706,9 +779,9 @@ async function ensureAccountForCheckout(db, session, env, waitUntil) {
   // Case 1: User was logged in (client_reference_id = D1 user ID)
   const name = (session.customer_details?.name || '').slice(0, 200);
   const [first, ...rest] = name.split(' ');
-  const emailLocalParts = email.split('@')[0].replace(/[._-]/g, ' ').replace(/\b(\w)/g, c => c.toUpperCase()).split(' ');
-  const derivedFirstName = first || emailLocalParts[0] || '';
-  const derivedLastName = rest.join(' ') || (first ? '' : emailLocalParts.slice(1).join(' '));
+  const emailLocalParts = email.split('@')[0].slice(0, 100).replace(/[._-]/g, ' ').replace(/\b(\w)/g, c => c.toUpperCase()).split(' ');
+  const derivedFirstName = (first || emailLocalParts[0] || '').slice(0, 100);
+  const derivedLastName = (rest.join(' ') || (first ? '' : emailLocalParts.slice(1).join(' '))).slice(0, 100);
 
   if (session.client_reference_id) {
     if (customerId) {

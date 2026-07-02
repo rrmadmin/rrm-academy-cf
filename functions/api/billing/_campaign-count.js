@@ -43,13 +43,16 @@ export async function countCampaignGifts(stripe, campaign) {
 
   if (searchFailed) {
     count = 0;
+    const MAX_FALLBACK_PAGES = 50; // safety cap: bounds the unindexed full-account scan
     try {
       let cursor = undefined;
       let listHasMore = true;
-      while (listHasMore) {
+      let pages = 0;
+      while (listHasMore && pages < MAX_FALLBACK_PAGES) {
         const listParams = { limit: 100, expand: ['data.latest_charge'] };
         if (cursor) listParams.starting_after = cursor;
         const page = await stripe.paymentIntents.list(listParams);
+        pages++;
         for (const pi of page.data) {
           if (pi.status === 'succeeded' && pi.metadata?.campaign === campaign) {
             count++;
@@ -61,6 +64,9 @@ export async function countCampaignGifts(stripe, campaign) {
         } else {
           listHasMore = false;
         }
+      }
+      if (listHasMore && pages >= MAX_FALLBACK_PAGES) {
+        console.error(`countCampaignGifts: fallback scan truncated at ${MAX_FALLBACK_PAGES} pages for campaign '${campaign}'; count may be incomplete`);
       }
     } catch {
       return 0;

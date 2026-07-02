@@ -4,10 +4,17 @@
  *
  * Exports:
  *   lookupPendingWixMigration(db, { wixSubId, userEmail, env })
- *   validateOffAmount(wixLookup, body)
+ *   validateOffAmount(wixLookup)
+ *   validateFrequency(wixLookup)
+ *   isCustomAmount(wixLookup)
  *   acquireMigrationHandoffLock(db, wixSubscriptionId, env, waitUntil)
  *   clampTrialEnd(wixLookup, env)
  *   findBlockingActiveSubscription(stripe, stripeCustomerId, env, waitUntil)
+ *
+ * All 52 live wix_subscription rows are exactly 900/1900/9900 cents, all
+ * MONTH frequency (Brian-confirmed, verified in live D1). Off-amount and
+ * non-monthly rows are permanent refusals, not a UX flow -- see
+ * validateOffAmount() and validateFrequency().
  */
 import { json } from '../auth/_shared.js';
 import { log } from '../_log.js';
@@ -29,7 +36,7 @@ export async function lookupPendingWixMigration(db, { wixSubId, userEmail, env }
     let wixQuery;
     if (wixSubId && userEmail) {
       wixQuery = db.prepare(
-        "SELECT wix_subscription_id, tier, amount_cents, next_expected_at, status, migration_status, email " +
+        "SELECT wix_subscription_id, tier, amount_cents, frequency, next_expected_at, status, migration_status, email " +
         "FROM wix_subscription " +
         "WHERE (wix_subscription_id = ? OR email = ? COLLATE NOCASE) " +
         "  AND status = 'active' " +
@@ -39,7 +46,7 @@ export async function lookupPendingWixMigration(db, { wixSubId, userEmail, env }
       ).bind(wixSubId, userEmail);
     } else if (wixSubId) {
       wixQuery = db.prepare(
-        "SELECT wix_subscription_id, tier, amount_cents, next_expected_at, status, migration_status, email " +
+        "SELECT wix_subscription_id, tier, amount_cents, frequency, next_expected_at, status, migration_status, email " +
         "FROM wix_subscription " +
         "WHERE wix_subscription_id = ? " +
         "  AND status = 'active' " +
@@ -49,7 +56,7 @@ export async function lookupPendingWixMigration(db, { wixSubId, userEmail, env }
       ).bind(wixSubId);
     } else {
       wixQuery = db.prepare(
-        "SELECT wix_subscription_id, tier, amount_cents, next_expected_at, status, migration_status, email " +
+        "SELECT wix_subscription_id, tier, amount_cents, frequency, next_expected_at, status, migration_status, email " +
         "FROM wix_subscription " +
         "WHERE email = ? COLLATE NOCASE " +
         "  AND status = 'active' " +
@@ -74,20 +81,29 @@ export async function lookupPendingWixMigration(db, { wixSubId, userEmail, env }
 const STANDARD_CENTS = new Set([900, 1900, 9900]);
 
 /**
- * Check whether the wixLookup amount deviates from standard tiers.
- *
- * Returns null if the amount is standard OR if body.acknowledge_off_amount === true.
- * Returns the 412 response body object (not a Response) if the caller must reject.
- * Caller pattern: const offResp = validateOffAmount(wixLookup, body); if (offResp) return json(offResp, 412);
+ * Derive whether a non-standard amount is in use.
  */
-export function validateOffAmount(wixLookup, body) {
-  if (STANDARD_CENTS.has(wixLookup.amount_cents) || body.acknowledge_off_amount === true) {
-    return null;
-  }
+export function isCustomAmount(wixLookup) {
+  return !STANDARD_CENTS.has(wixLookup.amount_cents);
+}
+
+/**
+ * Off-amount rows are a permanent, hard refusal -- no custom-amount migration
+ * path exists (all 52 live wix_subscription rows are 900/1900/9900 cents;
+ * an off-amount row is a data anomaly, never a legitimate donor state). We
+ * never build an ad-hoc Stripe price for one.
+ *
+ * Returns null if the amount is standard.
+ * Returns the 409 response body object (not a Response) if the caller must reject.
+ * Caller pattern: const offResp = validateOffAmount(wixLookup); if (offResp) return json(offResp, 409);
+ */
+export function validateOffAmount(wixLookup) {
+  if (!isCustomAmount(wixLookup)) return null;
   return {
     ok: false,
     error: 'off_amount',
     amount_cents: wixLookup.amount_cents,
+    message: 'This membership amount requires manual assistance to migrate. Please contact administrator@rrmacademy.org.',
     standard_tiers: [
       { tier: 'member',    amount_cents: 900 },
       { tier: 'hero',      amount_cents: 1900 },
@@ -97,10 +113,22 @@ export function validateOffAmount(wixLookup, body) {
 }
 
 /**
- * Derive whether a non-standard amount is in use. Call after validateOffAmount passes.
+ * Non-MONTH rows are a permanent, hard refusal -- the migration flow only
+ * knows how to hand off to a monthly Stripe subscription. Without this guard
+ * an annual Wix donor could be silently re-billed monthly on Stripe.
+ *
+ * Returns null if frequency is 'MONTH'.
+ * Returns the 409 response body object (not a Response) if the caller must reject.
+ * Caller pattern: const freqResp = validateFrequency(wixLookup); if (freqResp) return json(freqResp, 409);
  */
-export function isCustomAmount(wixLookup) {
-  return !STANDARD_CENTS.has(wixLookup.amount_cents);
+export function validateFrequency(wixLookup) {
+  if (wixLookup.frequency === 'MONTH') return null;
+  return {
+    ok: false,
+    error: 'unsupported_frequency',
+    frequency: wixLookup.frequency,
+    message: 'This membership frequency requires manual assistance to migrate. Please contact administrator@rrmacademy.org.',
+  };
 }
 
 /**

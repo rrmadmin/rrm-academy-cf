@@ -39,10 +39,13 @@ export const LABEL_FOR_TIER = Object.fromEntries(
  * Derive a STUC tier ('member' | 'hero' | 'superhero') from a Stripe subscription object.
  *
  * Resolution order:
- *   1. subscription.metadata.tier (set by create-checkout subscription_data.metadata)
- *   2. price ID match against STRIPE_PRICE_* env vars
- *   3. unit_amount fallback for tier_custom price_data subscriptions:
+ *   1. price ID match against STRIPE_PRICE_* env vars
+ *   2. unit_amount fallback for tier_custom price_data subscriptions:
  *      >= 9900 cents -> superhero, >= 1900 -> hero, else -> member
+ *   3. subscription.metadata.tier (set by create-checkout subscription_data.metadata) --
+ *      last resort only, since Stripe never mutates subscription metadata on portal
+ *      price changes, so a stale metadata.tier would otherwise mask a portal upgrade
+ *      or downgrade.
  *
  * Always returns a string ('member' | 'hero' | 'superhero'), never null.
  * Defaults to 'member' when no signal is available.
@@ -54,9 +57,6 @@ export const LABEL_FOR_TIER = Object.fromEntries(
 export function tierFromPriceOrAmount(sub, env) {
   const VALID_TIERS = new Set(['member', 'hero', 'superhero']);
 
-  const metaTier = sub.metadata?.tier;
-  if (metaTier && VALID_TIERS.has(metaTier)) return metaTier;
-
   const priceToTier = {};
   if (env.STRIPE_PRICE_MEMBER) priceToTier[env.STRIPE_PRICE_MEMBER] = 'member';
   if (env.STRIPE_PRICE_HERO) priceToTier[env.STRIPE_PRICE_HERO] = 'hero';
@@ -65,9 +65,15 @@ export function tierFromPriceOrAmount(sub, env) {
   const price = sub.items?.data?.[0]?.price;
   if (price?.id && priceToTier[price.id]) return priceToTier[price.id];
 
-  const unitAmount = price?.unit_amount ?? 0;
-  if (unitAmount >= 9900) return 'superhero';
-  if (unitAmount >= 1900) return 'hero';
+  if (price && typeof price.unit_amount === 'number') {
+    if (price.unit_amount >= 9900) return 'superhero';
+    if (price.unit_amount >= 1900) return 'hero';
+    return 'member';
+  }
+
+  const metaTier = sub.metadata?.tier;
+  if (metaTier && VALID_TIERS.has(metaTier)) return metaTier;
+
   return 'member';
 }
 
@@ -160,6 +166,7 @@ export async function requireMember(request, env) {
       `SELECT tier FROM wix_subscription
          WHERE (user_id = ? OR email = ? COLLATE NOCASE)
            AND status = 'active'
+           AND migration_status NOT IN ('stripe_active', 'migrated', 'fully_exited')
            AND COALESCE(next_expected_at, datetime(last_order_at, '+31 days')) >= datetime('now', '-7 days')
          ORDER BY last_order_at DESC LIMIT 1`
     ).bind(user.id, user.email).first();
@@ -223,13 +230,7 @@ export async function requireMember(request, env) {
     return json({ ok: false, error: 'Membership required' }, 403);
   }
 
-  const priceToTier = {};
-  if (env.STRIPE_PRICE_MEMBER) priceToTier[env.STRIPE_PRICE_MEMBER] = 'member';
-  if (env.STRIPE_PRICE_HERO) priceToTier[env.STRIPE_PRICE_HERO] = 'hero';
-  if (env.STRIPE_PRICE_SUPERHERO) priceToTier[env.STRIPE_PRICE_SUPERHERO] = 'superhero';
-
-  const price = validSub.items.data[0]?.price;
-  const tier = priceToTier[price?.id] || 'member';
+  const tier = tierFromPriceOrAmount(validSub, env);
 
   if (env.COMMUNITY_KV) {
     env.COMMUNITY_KV.put(cacheKey, JSON.stringify({ tier }), { expirationTtl: 300 }).catch(() => {});
@@ -265,6 +266,7 @@ export const STUC_MEMBER_WHERE = `
       SELECT 1 FROM wix_subscription ws
       WHERE (ws.user_id = u.id OR ws.email = u.email COLLATE NOCASE)
         AND ws.status = 'active'
+        AND ws.migration_status NOT IN ('stripe_active', 'migrated', 'fully_exited')
         AND COALESCE(ws.next_expected_at, datetime(ws.last_order_at, '+31 days')) >= datetime('now', '-7 days')
     )
     OR (
