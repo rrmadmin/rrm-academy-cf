@@ -55,7 +55,7 @@ export async function onRequestGet({ request, env, waitUntil }) {
       ).bind(CAMPAIGN, limit).all();
       recent = (r.results || []).map((x) => ({ displayName: x.display_name, seq: x.gift_seq }));
       const f = await env.DB.prepare(
-        'SELECT display_name, gift_seq FROM supporter_recognition WHERE campaign = ? AND gift_seq <= ? ORDER BY gift_seq ASC'
+        'SELECT display_name, gift_seq FROM supporter_recognition WHERE campaign = ? AND gift_seq >= 1 AND gift_seq <= ? ORDER BY gift_seq ASC'
       ).bind(CAMPAIGN, FOUNDING_CAP).all();
       founding = (f.results || []).map((x) => ({ displayName: x.display_name, seq: x.gift_seq }));
       const c = await env.DB.prepare(

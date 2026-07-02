@@ -15,7 +15,8 @@
  *   On duplicate, SELECT completed_at:
  *     - NOT NULL -> safe skip (200)
  *     - NULL and row is fresh (<60s) -> in-flight (500 forces Stripe retry)
- *     - NULL and row is stale (>=60s) -> assume completed (200; covers pre-migration rows + crashed handlers)
+ *     - NULL and row is stale (>=60s) -> prior attempt almost certainly crashed (handlers finish
+ *       well under 60s); delete + reinsert the row and reprocess (handlers are idempotent)
  */
 import Stripe from 'stripe';
 import { json, STRIPE_API_VERSION } from '../auth/_shared.js';
@@ -61,8 +62,8 @@ export function requireWebhookConfig(env) {
  * INSERT writes event_id (processed_at default; completed_at NULL = in-flight).
  *
  * Returns:
- *   { skip: false }                                -- new event; caller proceeds + must call markWebhookEventCompleted on success
- *   { skip: true,  response: <Response 200> }      -- duplicate completed OR stale; safe skip
+ *   { skip: false }                                -- new event, OR stale crashed-attempt reprocess; caller proceeds + must call markWebhookEventCompleted on success
+ *   { skip: true,  response: <Response 200> }      -- duplicate completed; safe skip
  *   { skip: true,  response: <Response 500> }      -- duplicate in-flight; force Stripe retry
  *   { skip: false, error: <Response 500> }         -- DB error; caller returns error
  */
@@ -87,14 +88,38 @@ export async function dedupWebhookEvent(db, eventId, env, waitUntil) {
       const nowSec = Math.floor(Date.now() / 1000);
       const ageSec = nowSec - (row.processed_at || 0);
       if (ageSec >= WEBHOOK_INFLIGHT_TTL_SECONDS) {
-        log(env, waitUntil, 'billing', 'webhook_duplicate', 'skipped', `${eventId} (stale-${ageSec}s)`);
-        return {
-          skip: true,
-          response: new Response(JSON.stringify({ ok: true, skipped: true, stale: true }), {
-            status: 200,
-            headers: { 'Content-Type': 'application/json' },
-          }),
-        };
+        // Never completed and past the in-flight TTL: Pages Function handlers finish well under
+        // 60s, so this is almost certainly a crashed prior attempt (isolate OOM / CPU timeout /
+        // uncaught rejection) whose rollback never ran. Reprocess instead of assuming completed --
+        // handlers are idempotent, but silently ack'ing here would permanently drop the event's
+        // side effects with no re-drive.
+        log(env, waitUntil, 'billing', 'webhook_duplicate', 'reprocess', `${eventId} (stale-${ageSec}s, crashed-retry)`);
+        const del = await db
+          .prepare('DELETE FROM webhook_event WHERE event_id = ? AND completed_at IS NULL AND processed_at <= ?')
+          .bind(eventId, nowSec - WEBHOOK_INFLIGHT_TTL_SECONDS)
+          .run();
+        if (del.meta.changes === 0) {
+          log(env, waitUntil, 'billing', 'webhook_in_flight', 'skipped', `${eventId} (lost-reclaim-race)`);
+          return {
+            skip: true,
+            response: new Response(JSON.stringify({ ok: false, error: 'in-flight' }), {
+              status: 500,
+              headers: { 'Content-Type': 'application/json' },
+            }),
+          };
+        }
+        const reins = await db.prepare('INSERT OR IGNORE INTO webhook_event (event_id) VALUES (?)').bind(eventId).run();
+        if (reins.meta.changes === 0) {
+          log(env, waitUntil, 'billing', 'webhook_in_flight', 'skipped', `${eventId} (lost-reclaim-race)`);
+          return {
+            skip: true,
+            response: new Response(JSON.stringify({ ok: false, error: 'in-flight' }), {
+              status: 500,
+              headers: { 'Content-Type': 'application/json' },
+            }),
+          };
+        }
+        return { skip: false };
       }
       log(env, waitUntil, 'billing', 'webhook_in_flight', 'skipped', `${eventId} (age-${ageSec}s)`);
       return {

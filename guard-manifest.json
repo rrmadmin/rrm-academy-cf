@@ -43,23 +43,23 @@
       "note": "Webhook + signature verification"
     },
     "functions/api/create-checkout.js": {
-      "hash": "8106dabdd8b919d84801a594680d218874759c44b2e7c8bc29b55fb0bae2d540",
+      "hash": "b88aa7c2f3730547a57d7e57d96d14088c4e426c1134c289853ea75a647e8103",
       "note": "Stripe checkout"
     },
     "functions/api/billing/status.js": {
-      "hash": "c203fb7d944c601eb291d30b565dd9ea79a39a491d9dc80d35cefe68ab07da2c",
+      "hash": "8689ab51f4032b24af16d5a535516975a194ed04913f9b9d68d1119e00b46f2b",
       "note": "Billing status"
     },
     "functions/api/billing/portal.js": {
-      "hash": "02f7f4e7a9fb893815dce97294ae65a7d10434f860246a73c786ad9fc8d679bc",
+      "hash": "ec1c00062c5001232ebf9fec1f7d9012c5549012a82a6115d5f0be3d8806065e",
       "note": "Stripe portal"
     },
     "functions/api/billing/_webhook-checkout.js": {
-      "hash": "44880b65f9bcb95d87dc8ec16c36628eaf9863dd1afd66c858a6ceb5b63759e4",
+      "hash": "5c23b72673717621767f06d4a5d44bd3349c254df04ad806d5b2e7f1efd9e24c",
       "note": "Stripe checkout completion handler"
     },
     "functions/api/billing/_webhook-subscription.js": {
-      "hash": "427f42e37693d210e81d4fb3b98b6844662c46629b87a332e1dbc0936d65833a",
+      "hash": "9e85a3d93711a70707cf129f4f6f172aa71b1aa6472008ee608503a06b5f8114",
       "note": "Subscription lifecycle handler"
     },
     "functions/api/billing/_webhook-shared.js": {
@@ -135,7 +135,7 @@
       "note": "FOUC theme + chrome prop SEO invariants"
     },
     "functions/api/community/_shared.js": {
-      "hash": "786b012ea1801f9a3fbe09c2e591cc4ab0bc4f2ced71e231af5963297087714a",
+      "hash": "1cc5ec154a8d5263edd3f89eb183da7b37e13b51b9387254d26072811e06ac01",
       "note": "Community access control (requireMember)"
     },
     "functions/api/admin/cleanup.js": {
@@ -159,39 +159,39 @@
       "note": "Session invalidation"
     },
     "functions/api/billing/checkout-account.js": {
-      "hash": "dee0cc343a95736625a99ec8fa12565d589caeffade1aec614519a3047d7f81b",
+      "hash": "0003aed99c3462ab536d1cf54f3aaf97c6c30c4a0f6063339e2dd8a6ee6a9620",
       "note": "Pre-checkout account lookup"
     },
     "functions/api/billing/supporter-badge.js": {
-      "hash": "54daebbe8e21fdb7157ede3263465bc4c44656c2fec8351548969dd8d0a32744",
+      "hash": "1932942bcc06c09f93ac6de202b7d5f5015d7ad55cc7ebbcb5cbfd5c41bc00b1",
       "note": "Supporter badge lookup (session_id -> consented name + seq, always-200 fail-soft)"
     },
     "functions/api/billing/_webhook-invoice.js": {
-      "hash": "2c36c046ff94905f9d55a5a4ec84e1d5623f7bce9a0c002657440ce93583777c",
+      "hash": "11af49117711c675314848a829b0ae7a041954cc71435bd761c84292cc515950",
       "note": "Invoice event handler"
     },
     "functions/api/billing/_shared.js": {
-      "hash": "5c699c854be57b8c5cdc590065f90ceba5396802dcdfb445a561df01c1731a81",
+      "hash": "d3ced5ba4c1bf4bae01189e8118c12bfcce34bfcd79c39b1029d93f649c0a018",
       "note": "Shared Stripe constants + webhook dedup helpers"
     },
     "functions/api/billing/_webhook-refund.js": {
-      "hash": "2595d6235dac3526b96c4d137c194698610889a9e1f291f80c266644ff81fb08",
+      "hash": "685c8dfa728986f6ebd6d4877ac4be1c808371a3e2338e123c5ad7f85c204640",
       "note": "Stripe refund handler (enrollment revocation)"
     },
     "functions/api/billing/_migration-handoff.js": {
-      "hash": "56727e589cbeade90e1d70d625c41444a8381370d1048805ccea81a5dab15af5",
+      "hash": "1539ffac36354e9709d765f41a29aaf1558f101695f8cb02fc2e1ab638c78a7a",
       "note": "Wix-to-Stripe migration handoff lock primitives"
     },
     "functions/api/billing/_donor-gift.js": {
-      "hash": "2fee5567be2c94635f9de7684a9390e6cfc976f3a51025dd6183680c5c9f3ee2",
+      "hash": "889b40659e50b39ac864f60aaa42c4b18ad806b64323fb442c556a84160a75a4",
       "note": "Donor gift recording + contact rollups/stage derivation"
     },
     "functions/api/billing/_supporter-gift.js": {
-      "hash": "071bf76c80acf2f300c660a3520415d2b6476b587f371d86b3b3eacd9f4aaaec",
+      "hash": "6f042d940bec00621537c4daab663a17d3bab977658f11614a680a476a5424f0",
       "note": "Supporter recognition helpers (derive/consent/record/remove)"
     },
     "functions/api/billing/_campaign-count.js": {
-      "hash": "aa37d2abc9d8b3fa6353a98f249bb8af09cd19182d7882af8018bdfb39218099",
+      "hash": "ae3e61314ddadb51c36117397c6a543ca650164b34831653e3088fbe009ec69f",
       "note": "Shared Stripe campaign gift count (net-of-refunds, used by fund-supporters + webhook)"
     },
     "functions/api/community/upload.js": {

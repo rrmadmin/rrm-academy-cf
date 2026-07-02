@@ -78,18 +78,30 @@ describe('migrate.js UX regression suite (Phase 3.2 overhaul)', () => {
     );
   });
 
-  it('off-amount flow: detects 412, has acknowledge_off_amount re-POST', () => {
+  it('off-amount/unsupported-frequency: hard refusal, no acknowledge re-POST', () => {
     assert.ok(
       source.includes('off_amount'),
       'Must handle off_amount error code'
     );
     assert.ok(
-      source.includes('acknowledge_off_amount'),
-      'Must include acknowledge_off_amount in re-POST payload'
+      source.includes('unsupported_frequency'),
+      'Must handle unsupported_frequency error code'
     );
     assert.ok(
-      /res\.status\s*===\s*412/.test(source),
-      'Must check for HTTP 412 status to detect off_amount'
+      !source.includes('acknowledge_off_amount'),
+      'acknowledge_off_amount re-POST flow must be removed -- off-amount/frequency are permanent 409 refusals'
+    );
+    assert.ok(
+      !/\b412\b/.test(source),
+      'Old 412 off_amount status must be retired'
+    );
+    assert.ok(
+      /showRefusal\(errBody\.message\)/.test(source),
+      'Must render the server-provided refusal message'
+    );
+    assert.ok(
+      /administrator@rrmacademy\.org/.test(source),
+      'Refusal panel must direct the donor to email administrator@rrmacademy.org'
     );
   });
 

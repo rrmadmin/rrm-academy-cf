@@ -6,7 +6,9 @@
  * Exports:
  *   recordDonorGift(db, gift)                      -- idempotent insert + contact rollup recompute
  *   recomputeContactRollups(db, email)             -- rollup recompute from donor_gift (derived state)
- *   giftFromCheckoutSession(session, epoch)        -- map Stripe checkout.session.completed -> gift (or null)
+ *   giftFromCheckoutSession(session, epoch, env?, waitUntil?)  -- map Stripe checkout.session.completed
+ *                                                     -> gift (or null; missing payment_intent skips --
+ *                                                     the rrm-observatory daemon owns cs_-keyed sweep)
  *   deriveStage(aggregates, nowMs)                 -- donor_stage from per-email aggregates
  *   MAJOR_DONOR_DOLLARS, RECURRING_LAPSE_DAYS      -- stage thresholds
  *
@@ -18,6 +20,8 @@
  * The rrm-observatory daemon `donor-gift-feed` duplicates the insert + stage rules
  * (cross-repo, cannot import). Keep MAJOR_DONOR_DOLLARS / RECURRING_LAPSE_DAYS in sync.
  */
+
+import { log } from '../_log.js';
 
 export const MAJOR_DONOR_DOLLARS = 500;
 export const RECURRING_LAPSE_DAYS = 45;
@@ -32,17 +36,31 @@ export function deriveStage({ giftCount, donatedCents, lastRecurringAt }, nowMs 
   return giftCount >= 2 ? 'repeat' : 'first_time';
 }
 
-/** Map a Stripe checkout.session.completed donation to a gift, or null if not a one-time donation. */
-export function giftFromCheckoutSession(session, eventCreatedEpoch) {
+/**
+ * Map a Stripe checkout.session.completed donation to a gift, or null if not a one-time
+ * donation. `env`/`waitUntil` are optional and used only to log the payment_intent-missing
+ * skip (see below) to Analytics Engine; callers that omit them simply skip silently.
+ */
+export function giftFromCheckoutSession(session, eventCreatedEpoch, env, waitUntil) {
   if (session.mode !== 'payment') return null;
   const type = session.metadata?.type;
   if (type && type !== 'donation') return null; // mirrors the GA4 donation branch (_webhook-checkout.js)
+  if (!session.payment_intent) {
+    // rrm-observatory's donor-gift-feed daemon keys donor_gift rows on payment_intent (pi_).
+    // Falling back to the checkout session id (cs_) here would double-record the same
+    // donation under a different source_id once the daemon sweeps the Stripe charge. Skip
+    // and let the pi_-keyed daemon own it.
+    if (env && waitUntil) {
+      log(env, waitUntil, 'billing', 'donor_gift_record', 'skipped', `no_payment_intent session=${session.id}`);
+    }
+    return null;
+  }
   return {
     email: session.customer_details?.email || session.customer_email || '',
     displayName: session.customer_details?.name || '',
     amountCents: session.amount_total || 0,
     source: 'stripe',
-    sourceId: String(session.payment_intent || session.id),
+    sourceId: String(session.payment_intent),
     entity: 'foundation',
     kind: 'one_time',
     ppgf: 0,

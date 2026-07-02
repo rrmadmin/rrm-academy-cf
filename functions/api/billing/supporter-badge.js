@@ -58,7 +58,7 @@ export async function onRequestGet({ request, env, waitUntil }) {
       return json(NOT_FOUND);
     }
 
-    return json({ ok: true, found: true, displayName: row.display_name, seq: row.gift_seq });
+    return json({ ok: true, found: true, displayName: row.display_name, seq: row.gift_seq >= 1 ? row.gift_seq : null });
   } catch (err) {
     log(env, waitUntil, 'billing', 'supporter_badge_db_error', 'error', err.message, 0, 500);
     return json(NOT_FOUND);
