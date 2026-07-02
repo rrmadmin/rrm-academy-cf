@@ -326,7 +326,7 @@ Do NOT ask Brian for these URLs. Resolve any rrmadmin artifact repo with `gh rep
 
 ## App Shell
 
-Wraps `/library/*`, `/commentary/*`, `/guides/`, `/faqs/*`, `/account/*`, `/ask/`, and 6 guide pages (`/what-is-rrm/`, `/naprotechnology/`, `/femm/`, `/neofertility/`, `/common-questions-about-rrm/`, `/glossary/`) with a left-sidebar app shell instead of the global Header. Code on main, **production INERT** until activated via:
+Wraps `/library/*`, `/commentary/*`, `/guides/`, `/faqs/*`, `/account/*`, `/ask/`, `/courses/*` (catalog + sales pages, not the lesson player), `/community/*` (except `/community/archive/*`), and `/saved/` with a left-sidebar app shell instead of the global Header. The shared `guides` flag also gates every `GuideLayout`-based page — not just the 6 originally named guides but all condition/method/compare pillar pages (`/endometriosis/`, `/pcos/`, `/creighton-model/`, etc., 20+ pages total; see `ssot/guides.json`). Code on main, **production INERT** until activated via:
 
 ```bash
 gh variable set PUBLIC_SHELL_ROUTES --body "library,commentary,guides,faqs,account,ask"
@@ -340,7 +340,7 @@ Rollback: `gh variable set PUBLIC_SHELL_ROUTES --body ""` + redeploy.
 - `src/components/MaybeShell.astro` — conditional wrapper for shell-on/shell-off without duplicating page body across two ternary branches. Forwards `hasRail` prop and `rail` named slot. Use this on every new wrap target.
 - `src/components/SectionTocChips.astro` — chip-pill "On this page" callout that replaces the sticky internal `.toc` sidebar on shell-enabled guide pages. Pair with `.article-layout--no-toc` modifier.
 - `src/styles/app-shell.css` — grid, tokens, mobile rules.
-- Helper: `src/lib/shell-routes.ts` exports `isShellEnabled(route)` reading `PUBLIC_SHELL_ROUTES`. `ShellRoute = 'commentary' | 'library' | 'guides' | 'faqs' | 'account' | 'ask'`.
+- Helper: `src/lib/shell-routes.ts` exports `isShellEnabled(route)` reading `PUBLIC_SHELL_ROUTES`. `ShellRoute = 'commentary' | 'library' | 'guides' | 'faqs' | 'account' | 'ask' | 'courses' | 'community' | 'saved'`. `courses`/`community`/`saved` are live call sites (`src/pages/courses/*`, 5 files under `src/pages/community/*`, `src/pages/saved/index.astro`), not reserved/dead type members.
 
 **Activation gating:** every wrapped page tests `isShellEnabled(...)` to decide between `chrome="shell"` (sidebar) and `chrome="default"` (Header). BaseLayout's `chrome="shell"` prop suppresses Header AND outer `<main>` (AppShellChrome emits its own); Footer renders inside AppShellChrome's grid.
 
