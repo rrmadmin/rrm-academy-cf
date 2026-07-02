@@ -175,20 +175,21 @@ function buildTree(title, description) {
 // flattened on the card BG so it blends without a visible edge.
 function buildStucTree(title, description) {
   const contentChildren = [
-    // Cuterus mascot, featured at top
+    // Cuterus mascot, featured large at top (image is pre-cropped tight to the
+    // mascot; 430x402 preserves the 940x880 crop aspect).
     {
       type: 'img',
       props: {
         src: CUTERUS_OG,
-        width: 300,
-        height: 300,
-        style: { marginBottom: '4px' },
+        width: 430,
+        height: 402,
+        style: { marginBottom: '6px' },
       },
     },
     {
       type: 'span',
       props: {
-        style: { fontSize: '60px', fontWeight: 600, color: TITLE_C, lineHeight: 1.1, textAlign: 'center', fontFamily: 'Cormorant Garamond' },
+        style: { fontSize: '52px', fontWeight: 600, color: TITLE_C, lineHeight: 1.1, textAlign: 'center', fontFamily: 'Cormorant Garamond' },
         children: title,
       },
     },
@@ -197,7 +198,7 @@ function buildStucTree(title, description) {
     contentChildren.push({
       type: 'span',
       props: {
-        style: { fontSize: '28px', fontWeight: 400, color: DESC_C, lineHeight: 1.4, marginTop: '16px', textAlign: 'center', maxWidth: '860px', fontFamily: 'Inter' },
+        style: { fontSize: '26px', fontWeight: 400, color: DESC_C, lineHeight: 1.4, marginTop: '14px', textAlign: 'center', maxWidth: '900px', fontFamily: 'Inter' },
         children: description,
       },
     });
@@ -224,7 +225,7 @@ function buildStucTree(title, description) {
               flexGrow: 1,
               alignItems: 'center',
               justifyContent: 'center',
-              padding: '24px 60px',
+              padding: '14px 60px',
               overflow: 'hidden',
             },
             children: contentChildren,
@@ -525,7 +526,7 @@ export async function onRequest(context) {
       env,
       buildStucTree(
         'Save the Uterus Club',
-        'Join a community of patients and providers committed to restorative reproductive medicine.'
+        'A community for restorative reproductive medicine.'
       ),
       'save-the-uterus-club',
       statusLabel,
