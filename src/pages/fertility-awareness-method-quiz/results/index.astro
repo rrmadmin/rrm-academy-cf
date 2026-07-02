@@ -1,0 +1,345 @@
+---
+import BaseLayout from '../../../layouts/BaseLayout.astro';
+import { TURNSTILE_SITE_KEY } from '../../../lib/turnstile';
+import methodGuides from '../../../data/quiz-method-guides.json';
+
+const PAGE_URL = 'https://rrmacademy.org/fertility-awareness-method-quiz/results/';
+---
+
+<BaseLayout
+  title="Your fertility awareness method match"
+  description="Your personalized fertility awareness method match, with a starter guide and where to learn it."
+  canonicalUrl={PAGE_URL}
+  noindex
+>
+  <div class="fam-quiz">
+    <div class="page-body">
+      <div class="container container--narrow">
+        <article id="result" class="rz-result" aria-live="polite" hidden>
+          <header class="rz-hero">
+            <span class="rz-hero__icon" id="result-icon" aria-hidden="true"></span>
+            <p class="rz-hero__eyebrow" id="result-eyebrow">Your suggested method</p>
+            <h1 class="rz-hero__method" id="result-primary"></h1>
+            <p class="rz-hero__startpoint">Your match is a starting point. Confirm the fit with a trained instructor or an RRM provider before you begin relying on it.</p>
+          </header>
+
+          <div class="rz-duo" id="result-duo" aria-hidden="true" hidden></div>
+
+          <div class="rz-why"><p id="result-why"></p></div>
+          <p class="rz-alt" id="result-alt"></p>
+          <p class="rz-instruction"><strong>Whatever you choose, learning from a trained instructor and using the method correctly are what make it work.</strong> Self-teaching does not reach the effectiveness reported in the studies.</p>
+
+          <section class="rz-guide" id="result-guide" aria-labelledby="rz-guide-title" hidden>
+            <h2 class="rz-guide__title" id="rz-guide-title"></h2>
+            <dl class="rz-guide__grid" id="rz-guide-grid"></dl>
+          </section>
+
+          <div class="rz-actions">
+            <button type="button" id="print-result" class="btn btn--secondary">Print or save my result</button>
+          </div>
+
+          <section class="rz-next" aria-labelledby="rz-next-title">
+            <h2 class="rz-next__title" id="rz-next-title">Your next step</h2>
+            <a class="rz-card" id="next-read" href="#" rel="noopener">
+              <span class="rz-card__ico" id="next-read-ico" aria-hidden="true"></span>
+              <span class="rz-card__body"><strong id="next-read-title">Keep reading</strong><span class="rz-card__sub">Learn how your method works and how to begin.</span></span>
+            </a>
+            <a class="rz-card" href="/providers/">
+              <span class="rz-card__ico" id="next-book-ico" aria-hidden="true"></span>
+              <span class="rz-card__body"><strong>Bring this result to a provider</strong><span class="rz-card__sub">Find an RRM clinician who can guide you and read your chart.</span></span>
+            </a>
+            <a class="rz-card rz-card--quiet" href="/fertility-awareness-methods-compared/">
+              <span class="rz-card__body"><strong>Compare every method</strong><span class="rz-card__sub">See the full side-by-side comparison with the evidence.</span></span>
+            </a>
+          </section>
+
+          <p id="result-saved" class="rz-saved footnote" hidden></p>
+          <p id="result-sent" class="rz-sent footnote"></p>
+          <button type="button" id="result-retry" class="btn btn--secondary" hidden>Retry sending my guide</button>
+          <a id="result-retake" class="btn btn--text rz-retake" href="../start/">Start over</a>
+        </article>
+
+        <script type="application/json" id="qz-guides" is:inline set:html={JSON.stringify(methodGuides)}></script>
+        <div id="turnstile-container" data-sitekey={TURNSTILE_SITE_KEY}></div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    import { decodeAnswers, score, buildWhy, METHODS, RULES_VERSION, trackEvent } from '../../../lib/fabm-quiz-engine.mjs';
+    import { ico } from '../../../lib/fabm-quiz-icons.mjs';
+
+    const HANDOFF_KEY = 'fabm-quiz-handoff';
+
+    const params = new URLSearchParams(window.location.search);
+    const answers = decodeAnswers(params.get('a'));
+
+    if (!answers) {
+      window.location.replace('../start/');
+    } else {
+      init(answers);
+    }
+
+    function init(answers) {
+      let handoff = null;
+      try {
+        const raw = sessionStorage.getItem(HANDOFF_KEY);
+        if (raw) handoff = JSON.parse(raw);
+      } catch (e) { handoff = null; }
+      const fresh = !!(handoff && typeof handoff === 'object' && handoff.email);
+
+      const recommendation = score(answers);
+      const p = METHODS[recommendation.primary];
+      const a = METHODS[recommendation.alternate];
+      const margin = recommendation.top - recommendation.second;
+      const closeCall = margin < 2;
+
+      const eyebrowEl = document.getElementById('result-eyebrow');
+      const primaryEl = document.getElementById('result-primary');
+      const whyEl = document.getElementById('result-why');
+      const altEl = document.getElementById('result-alt');
+      const duoEl = document.getElementById('result-duo');
+
+      document.getElementById('result-icon').innerHTML = ico(p.icon);
+
+      if (!closeCall) {
+        eyebrowEl.textContent = 'Your suggested method';
+        primaryEl.textContent = p.name;
+        const why = buildWhy(answers, recommendation.primary);
+        let whyText = 'Based on your answers';
+        if (why.length) whyText += ' (' + why.slice(0, 3).join(', ') + ')';
+        whyText += ', the ' + p.name + ' looks like the strongest fit, ' + p.blurb + '.';
+        whyEl.textContent = whyText;
+        altEl.innerHTML = '<strong>Also worth a look:</strong> the ' + a.name + ', ' + a.blurb + '.';
+      } else {
+        document.getElementById('result').classList.add('rz-result--close');
+        eyebrowEl.textContent = 'Two strong fits';
+        primaryEl.textContent = p.name + ' or ' + a.name;
+        whyEl.textContent = 'Your answers point almost equally to the ' + p.name + ' and the ' + a.name + ', so either is a solid place to begin.';
+        altEl.hidden = true;
+        duoEl.hidden = false;
+        duoEl.removeAttribute('aria-hidden');
+        duoEl.innerHTML =
+          '<div class="rz-duo__item"><span class="rz-duo__ico">' + ico(p.icon) + '</span><span class="rz-duo__name">' + p.name + '</span></div>' +
+          '<span class="rz-duo__or">or</span>' +
+          '<div class="rz-duo__item"><span class="rz-duo__ico">' + ico(a.icon) + '</span><span class="rz-duo__name">' + a.name + '</span></div>';
+      }
+
+      const readLink = document.getElementById('next-read');
+      readLink.href = p.learn;
+      document.getElementById('next-read-title').textContent = 'Keep reading: how the ' + p.name.replace(' FertilityCare System', '').replace('Sympto-Thermal Method ', '') + ' works';
+      document.getElementById('next-read-ico').innerHTML = ico('health-literacy') || ico(p.icon);
+      document.getElementById('next-book-ico').innerHTML = ico('stethoscope');
+
+      const GUIDES = JSON.parse((document.getElementById('qz-guides') || {}).textContent || '{}');
+      const g = GUIDES[recommendation.primary];
+      if (g) {
+        document.getElementById('rz-guide-title').textContent = 'Your starter guide: ' + g.name;
+        const rows = [
+          ['How it works', g.howItWorks],
+          ['How to start', g.howToStart],
+          ['What you need', g.tools],
+          ['A good fit if', g.goodFitIf],
+          ['Effectiveness', g.effectiveness],
+        ];
+        let gh = '';
+        rows.forEach(function (row) {
+          gh += '<div class="rz-guide__row"><dt class="rz-guide__label">' + row[0] + '</dt><dd class="rz-guide__value">' + row[1] + '</dd></div>';
+        });
+        gh += '<div class="rz-guide__row"><dt class="rz-guide__label">Where to learn</dt><dd class="rz-guide__value"><a href="' + g.learnUrl + '" target="_blank" rel="noopener">' + g.learnLabel + '</a></dd></div>';
+        document.getElementById('rz-guide-grid').innerHTML = gh;
+        document.getElementById('result-guide').hidden = false;
+      }
+
+      document.getElementById('result').hidden = false;
+      trackEvent('result_view');
+
+      document.querySelectorAll('#result .rz-card').forEach(function (card) {
+        card.addEventListener('click', function () { trackEvent('cta_click'); });
+      });
+      document.getElementById('print-result').addEventListener('click', function () { trackEvent('print_tap'); window.print(); });
+      const retake = document.getElementById('result-retake');
+      if (retake) retake.addEventListener('click', function () { trackEvent('start_over'); });
+
+      if (fresh) {
+        runSubmit(handoff, recommendation);
+      } else {
+        const saved = document.getElementById('result-saved');
+        if (saved) { saved.textContent = 'This is a saved result. Take the quiz yourself for a match based on your own answers.'; saved.hidden = false; }
+        if (retake) retake.textContent = 'Take the quiz';
+        const sent = document.getElementById('result-sent');
+        if (sent) sent.hidden = true;
+      }
+    }
+
+    function runSubmit(handoff, recommendation) {
+      const userEmail = handoff.email;
+      const researchConsent = (handoff.researchConsent === true || handoff.researchConsent === 1) ? 1 : 0;
+      const rulesVersion = (typeof handoff.rulesVersion === 'string' && handoff.rulesVersion) ? handoff.rulesVersion : RULES_VERSION;
+      const answers = handoff.answers || {};
+
+      let resultId = null;
+      let turnstileWidgetId = null, turnstileLoaded = false, pendingSubmit = null, tsWatchdog = null;
+
+      const sent = document.getElementById('result-sent');
+      const retryBtn = document.getElementById('result-retry');
+      if (sent) sent.textContent = 'Sending your starter guide...';
+
+      function loadTurnstile() {
+        if (turnstileLoaded) return; turnstileLoaded = true;
+        const sc = document.createElement('script');
+        sc.src = 'https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit';
+        sc.async = true; sc.defer = true; document.head.appendChild(sc);
+      }
+      function initTurnstile() {
+        loadTurnstile();
+        const c = document.getElementById('turnstile-container');
+        if (!c) return;
+        const t = setInterval(function () {
+          if (typeof turnstile !== 'undefined') {
+            clearInterval(t);
+            if (turnstileWidgetId === null) {
+              try {
+                turnstileWidgetId = turnstile.render(c, {
+                  sitekey: c.dataset.sitekey,
+                  size: 'invisible',
+                  callback: function (tok) { clearTimeout(tsWatchdog); if (pendingSubmit) { const pp = pendingSubmit; pendingSubmit = null; doSubmit(pp, tok); } },
+                  'error-callback': function () { clearTimeout(tsWatchdog); pendingSubmit = null; const s = document.getElementById('result-sent'); if (s) { s.textContent = 'Your result is ready above. We could not verify your browser to email a copy. Please refresh and retake to receive it.'; } const rb = document.getElementById('result-retry'); if (rb) rb.hidden = false; trackEvent('submit_fail'); },
+                });
+              } catch (e) {}
+            }
+          }
+        }, 250);
+        setTimeout(function () { clearInterval(t); }, 10000);
+      }
+
+      function sendResult() {
+        const payload = { email: userEmail, primary: recommendation.primary, alternate: recommendation.alternate, answers: answers, researchConsent: researchConsent, rulesVersion: rulesVersion };
+        if (typeof turnstile !== 'undefined' && turnstileWidgetId !== null) {
+          pendingSubmit = payload;
+          clearTimeout(tsWatchdog);
+          tsWatchdog = setTimeout(function () { if (pendingSubmit) { const pp = pendingSubmit; pendingSubmit = null; doSubmit(pp, ''); } }, 8000);
+          try { turnstile.reset(turnstileWidgetId); turnstile.execute(turnstileWidgetId); return; } catch (e) {}
+        }
+        doSubmit(payload, '');
+      }
+
+      function doSubmit(payload, token) {
+        payload.turnstileToken = token;
+        const sentEl = document.getElementById('result-sent');
+        const retryEl = document.getElementById('result-retry');
+        fetch('/api/quiz/request', {
+          method: 'POST', headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload),
+        }).then(function (res) { return res.json().then(function (d) { return { ok: res.ok, data: d }; }, function () { return { ok: res.ok, data: {} }; }); })
+          .then(function (r) {
+            if (r.ok && r.data && r.data.ok) {
+              if (r.data.id) resultId = r.data.id;
+              sentEl.textContent = 'We have also sent this to ' + userEmail + ' with a starter guide.';
+              if (retryEl) retryEl.hidden = true;
+              try { sessionStorage.removeItem(HANDOFF_KEY); } catch (e) {}
+              trackEvent('submit_ok');
+            } else if (r.data && r.data.suggestion) {
+              sentEl.textContent = 'Your result is ready above. Did you mean ' + r.data.suggestion + '? Refresh and retake with the corrected email to get your guide.';
+              if (retryEl) retryEl.hidden = false;
+              trackEvent('submit_fail');
+            } else {
+              sentEl.textContent = 'Your result is ready above. We could not email a copy just now. Please refresh and retake to receive your starter guide by email.';
+              if (retryEl) retryEl.hidden = false;
+              trackEvent('submit_fail');
+            }
+          })
+          .catch(function () {
+            sentEl.textContent = 'Your result is ready above. We could not email a copy (network error). Please try again later.';
+            if (retryEl) retryEl.hidden = false;
+            trackEvent('submit_fail');
+          });
+      }
+
+      if (retryBtn) retryBtn.addEventListener('click', function () {
+        retryBtn.hidden = true;
+        if (sent) sent.textContent = 'Sending your starter guide...';
+        sendResult();
+      });
+
+      initTurnstile();
+      sendResult();
+    }
+  </script>
+
+  <style is:global>
+    .fam-quiz .page-body { padding: var(--space-10) 0 var(--space-12); }
+    .fam-quiz .rz-hero { text-align: center; padding: var(--space-10) var(--space-6); background: linear-gradient(162deg, var(--purple-50) 0%, var(--cream) 64%); border-radius: var(--radius-lg); }
+    .fam-quiz .rz-hero__icon { display: inline-flex; color: var(--purple-700); margin-bottom: var(--space-3); }
+    .fam-quiz .rz-hero__icon .opt-ico { width: 3em; height: 3em; display: block; }
+    .fam-quiz .rz-hero__eyebrow { text-transform: uppercase; letter-spacing: 0.05em; font-size: var(--text-b4); font-weight: 600; color: var(--purple-700); margin: 0 0 var(--space-2); }
+    .fam-quiz .rz-hero__method { font-size: var(--text-d2); line-height: var(--leading-display); margin: 0 0 var(--space-4); color: var(--text-primary); text-wrap: balance; }
+    .fam-quiz .rz-hero__startpoint { font-size: var(--text-b2); line-height: var(--leading-ui); color: var(--text-secondary); margin: 0 auto; max-width: 52ch; }
+
+    .fam-quiz .rz-duo { display: flex; flex-direction: column; gap: var(--space-3); margin-top: var(--space-6); }
+    .fam-quiz .rz-duo__item { display: flex; align-items: center; gap: var(--space-3); padding: var(--space-5); border: 1px solid var(--border-color); border-radius: var(--radius-md); background: var(--bg-card); }
+    .fam-quiz .rz-duo__ico { display: inline-flex; flex-shrink: 0; color: var(--purple-700); }
+    .fam-quiz .rz-duo__ico .opt-ico { width: 2em; height: 2em; display: block; }
+    .fam-quiz .rz-duo__name { font-family: var(--font-display); font-size: var(--text-d4); font-weight: 600; color: var(--text-primary); }
+    .fam-quiz .rz-duo__or { text-align: center; font-size: var(--text-b3); text-transform: uppercase; letter-spacing: 0.08em; color: var(--text-tertiary); }
+    @media (min-width: 640px) {
+      .fam-quiz .rz-duo { flex-direction: row; align-items: stretch; }
+      .fam-quiz .rz-duo__item { flex: 1; }
+      .fam-quiz .rz-duo__or { align-self: center; }
+    }
+
+    .fam-quiz .rz-why { margin-top: var(--space-6); padding: var(--space-5) var(--space-6); background: var(--purple-50); border-left: 3px solid var(--purple-700); border-radius: var(--radius-md); }
+    .fam-quiz .rz-why p { margin: 0; font-size: var(--text-d5); line-height: var(--leading-ui); color: var(--text-primary); }
+    .fam-quiz .rz-alt { margin-top: var(--space-5); font-size: var(--text-b1); line-height: var(--leading-ui); color: var(--text-secondary); }
+    .fam-quiz .rz-alt strong { color: var(--text-primary); }
+    .fam-quiz .rz-instruction { margin-top: var(--space-5); padding-top: var(--space-5); border-top: 1px solid var(--border-color); font-size: var(--text-b1); line-height: var(--leading-body); color: var(--text-secondary); }
+    .fam-quiz .rz-instruction strong { color: var(--text-primary); }
+
+    .fam-quiz .rz-guide { margin-top: var(--space-8); border: 1px solid var(--border-color); border-radius: var(--radius-lg); background: var(--bg-surface); overflow: hidden; }
+    .fam-quiz .rz-guide__title { font-family: var(--font-display); font-size: var(--text-d3); margin: 0; padding: var(--space-6) var(--space-6) var(--space-4); color: var(--text-primary); border-bottom: 1px solid var(--border-light); }
+    .fam-quiz .rz-guide__grid { margin: 0; padding: 0; }
+    .fam-quiz .rz-guide__row { padding: var(--space-4) var(--space-6); border-bottom: 1px solid var(--border-light); }
+    .fam-quiz .rz-guide__row:last-child { border-bottom: 0; }
+    .fam-quiz .rz-guide__label { font-size: var(--text-b4); font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; color: var(--text-tertiary); margin: 0 0 var(--space-2); }
+    .fam-quiz .rz-guide__value { margin: 0; font-size: var(--text-b1); line-height: var(--leading-body); color: var(--text-secondary); }
+    .fam-quiz .rz-guide__value a { color: var(--accent); text-decoration: underline; text-underline-offset: 2px; }
+    @media (min-width: 640px) {
+      .fam-quiz .rz-guide__row { display: grid; grid-template-columns: 12rem 1fr; gap: var(--space-5); align-items: baseline; }
+      .fam-quiz .rz-guide__label { margin: 0; }
+    }
+
+    .fam-quiz .rz-actions { margin-top: var(--space-6); }
+    .fam-quiz .rz-next { margin-top: var(--space-8); }
+    .fam-quiz .rz-next__title { font-size: var(--text-d3); margin: 0 0 var(--space-4); color: var(--text-primary); }
+    .fam-quiz .rz-card { display: flex; align-items: center; gap: var(--space-4); padding: var(--space-4); border: 1px solid var(--border-color); border-radius: var(--radius-md); margin-bottom: var(--space-3); text-decoration: none; transition: border-color 0.15s, background 0.15s; }
+    .fam-quiz .rz-card:hover { border-color: var(--purple-700); background: var(--purple-50); }
+    .fam-quiz .rz-card__ico { display: inline-flex; flex-shrink: 0; color: var(--purple-700); }
+    .fam-quiz .rz-card__ico .opt-ico { width: 1.8em; height: 1.8em; display: block; }
+    .fam-quiz .rz-card__body { display: flex; flex-direction: column; }
+    .fam-quiz .rz-card strong { color: var(--text-primary); }
+    .fam-quiz .rz-card__sub { font-size: var(--text-b2); color: var(--text-secondary); }
+    .fam-quiz .rz-card--quiet { border-style: dashed; }
+
+    .fam-quiz .rz-saved { margin-top: var(--space-6); }
+    .fam-quiz .rz-sent { margin-top: var(--space-4); }
+    .fam-quiz #result-retry { margin-top: var(--space-3); }
+    .fam-quiz .rz-retake { margin-top: var(--space-5); }
+    .fam-quiz .rz-result--close .rz-hero__icon { display: none; }
+    /* .btn sets display:inline-flex and .rz-duo sets display:flex, both of which win the
+       cascade over the UA [hidden]{display:none} default (author origin beats user-agent
+       origin regardless of specificity). Without this, #result-retry stays visibly rendered
+       even while its `hidden` attribute is set (e.g. before a submit resolves, or on a
+       shared/no-submit view where it is never unhidden), and #result-duo can render an
+       empty flex box in the non-close-call path. Re-assert display:none at higher
+       specificity so `hidden` actually hides these two elements. */
+    .fam-quiz #result-retry[hidden] { display: none; }
+    .fam-quiz #result-duo[hidden] { display: none; }
+
+    @media print {
+      body * { visibility: hidden; }
+      .fam-quiz .rz-result, .fam-quiz .rz-result * { visibility: visible; }
+      .fam-quiz .rz-result { position: absolute; inset: 0; width: 100%; }
+      .fam-quiz .rz-actions, .fam-quiz .rz-sent, .fam-quiz .rz-saved, .fam-quiz #result-retry, .fam-quiz .rz-next, .fam-quiz .rz-retake, .fam-quiz #turnstile-container { display: none !important; }
+    }
+  </style>
+</BaseLayout>
