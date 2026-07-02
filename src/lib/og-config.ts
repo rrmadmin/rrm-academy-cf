@@ -11,4 +11,6 @@
 // v5 (2026-06-19): /providers/ became the fundraiser; OG cards are now derived
 // per-page from the rendered HTML (scripts/augment-og-index.mjs). Bump forces
 // scrapers to drop the stale provider-directory card cached at ?v=v4.
-export const OG_VERSION = 'v5';
+// v6 (2026-07-02): Save the Uterus Club OG card now features the Cuterus mascot
+// (functions/og/[[path]].js buildStucTree). Bump re-unfurls the STUC card.
+export const OG_VERSION = 'v6';
