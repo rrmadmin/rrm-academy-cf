@@ -10,7 +10,7 @@ const jsonLd = {
   '@context': 'https://schema.org',
   '@type': 'WebPage',
   name: 'Save the Uterus Club',
-  description: 'Join the Save the Uterus Club and help build a future where uteruses are valued, women get real answers, and restorative reproductive medicine becomes the standard of care.',
+  description: 'Join the Save the Uterus Club and help build a future where uteruses are valued, women are taken seriously, and restorative reproductive medicine becomes the standard of care.',
   url: 'https://rrmacademy.org/save-the-uterus-club/',
   isPartOf: {
     '@type': 'WebSite',
@@ -52,14 +52,14 @@ const jsonLd = {
         <h2>Tuesday, Take Two</h2>
         <p>Same woman, two Tuesdays, five months apart.</p>
         <p>First Tuesday: a rushed ten-minute appointment, the same pain she's had for years, and a shrug that doesn't explain a thing.</p>
-        <p>Second Tuesday: laptop open, tea going, she's logged into a Save the Uterus Club live call already in progress. Dr. Whittaker's on screen making cycle charts and lab timing finally make sense. This member asks the question she's been sitting on for a year, out loud, in front of the whole group. She gets a real answer. So does everyone else logged in with her.</p>
+        <p>Second Tuesday: laptop open, tea going, she's logged into a Save the Uterus Club live call already in progress. Dr. Whittaker's on screen walking through what a real workup looks like, cycle charts, lab timing, the questions worth bringing to her own doctor. This member finally has language for what's been happening to her body. She looks around the chat and realizes a dozen other women have been exactly where she is.</p>
         <figure class="stuc-illustration">
           <img src="/images/save-the-uterus-club/second-tuesday.webp" alt="A woman at her kitchen table in warm evening light, joining a live video call with a notebook and tea beside her" width="1024" height="1024" loading="lazy" decoding="async" />
         </figure>
         <blockquote class="pull-quote">
-          <p>She gets a real answer. So does everyone else logged in with her.</p>
+          <p>She's not carrying it alone anymore. Neither is anyone else logged in with her.</p>
         </blockquote>
-        <p>That second Tuesday happens most months. It's why members keep showing up, and it's the whole party.</p>
+        <p>She logs off with a list of questions for her own doctor and a plan for what to ask next. That second Tuesday happens most months. It's why members keep showing up, and it's the whole party.</p>
       </section>
 
       <hr class="divider" />
@@ -109,12 +109,12 @@ const jsonLd = {
 
           <div class="card audience-track">
             <h3>If you're a patient</h3>
-            <p>Endometriosis, PCOS, infertility, recurrent loss, or pain nobody's taken seriously: this is the side of the room where you start getting real answers.</p>
+            <p>Endometriosis, PCOS, infertility, recurrent loss, or pain nobody's taken seriously: this is the side of the room where you start understanding what's actually happening in your body.</p>
             <ul>
               <li>Swap notes with members who found root-cause care before you did.</li>
               <li>Get research turned into plain English you can bring to your next appointment.</li>
               <li>Meet women working through your exact diagnosis, in the group chat and on live calls.</li>
-              <li>Ask your question live and get a real answer, on the spot.</li>
+              <li>Learn live and walk away with what to ask your own doctor next.</li>
               <li>Hold the club in your hands. Uterus Super Heroes get the crochet Cuterus plushie and stickers, mailed to their door.</li>
               <li>Show up for live calls now, and real-life events down the road. Screens are great, but nothing beats an actual conversation.</li>
               <li>Bring your partner in. Fertility's a couple's thing, and male factor accounts for about half of all fertility challenges.</li>
@@ -150,7 +150,7 @@ const jsonLd = {
           <li class="goal-card"><span class="goal-dot" aria-hidden="true"></span><span><strong>Women who know their rights</strong> and what good care actually looks like</span></li>
           <li class="goal-card"><span class="goal-dot" aria-hidden="true"></span><span><strong>Surgery that never gets offered</strong> without a real investigation first</span></li>
           <li class="goal-card"><span class="goal-dot" aria-hidden="true"></span><span><strong>Painful periods that trigger a real diagnosis</strong></span></li>
-          <li class="goal-card"><span class="goal-dot" aria-hidden="true"></span><span><strong>Couples who get real answers</strong> about what's wrong, and how to fix it, together</span></li>
+          <li class="goal-card"><span class="goal-dot" aria-hidden="true"></span><span><strong>Couples taken seriously as a team</strong>, with both partners actually investigated</span></li>
           <li class="goal-card"><span class="goal-dot" aria-hidden="true"></span><span><strong>Restorative reproductive medicine</strong> recognized as the standard of care</span></li>
         </ul>
         <p>None of it happens without funding, or without a bunch of people who show up every month and refuse to call any of this 'normal.' Good news: that's basically the whole club. Your membership builds it, one call, one study, one advocacy letter at a time.</p>
@@ -335,7 +335,7 @@ const jsonLd = {
       <!-- Bottom CTA -->
       <section class="stuc-bottom-cta">
         <img class="cuterus-peek cuterus-peek--center" src="/images/save-the-uterus-club/cuterus-heart.webp" alt="" aria-hidden="true" width="1024" height="1024" loading="lazy" decoding="async" />
-        <p>Somewhere right now, someone's having that first Tuesday. The next call's already on the calendar. The next study's already in the queue.</p>
+        <p>Somewhere right now, someone's having that first Tuesday. The next call's already on the calendar. The next study's already in the queue. Somewhere else, someone's finally not doing this alone.</p>
         <p>The only question left: are you in the room for it?</p>
         <a href="#tiers" class="btn btn--primary btn--lg">Join Us</a>
         <p class="footnote stuc-tax-note">All donations to the Restorative Reproductive Medicine Foundation, a 501(c)(3) non-profit, are tax-deductible. EIN: 93-4594315</p>
@@ -349,7 +349,7 @@ const jsonLd = {
     (function () {
       var entryReferrer = sessionStorage.getItem('entry_ref') || '';
       var entryUrl = sessionStorage.getItem('entry_url') || '';
-      var tierNames = { member: 'STUC Member', hero: 'Uterus Hero', superhero: 'Uterus Super Hero' };
+      var tierNames = { member: 'Save the Uterus Club Member', hero: 'Uterus Hero', superhero: 'Uterus Super Hero' };
 
       // Check billing status for logged-in users
       fetch('/api/billing/status', { credentials: 'same-origin' })
