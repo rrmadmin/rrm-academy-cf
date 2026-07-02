@@ -14,6 +14,7 @@ const ALLOWED_ANSWER_KEYS = new Set([
 
 const MAX_ANSWER_VALUE_LEN = 40;
 const MAX_ANSWER_ENTRIES = 12;
+const RULES_VERSION_RE = /^v[0-9a-z-]{1,32}$/;
 
 const METHOD_EMAIL = {
   sdm: {
@@ -87,7 +88,11 @@ export async function onRequestPost(context) {
       return json({ error: 'invalid_payload' }, 400);
     }
 
-    const { email: rawEmail, primary, alternate, answers, researchConsent, turnstileToken } = body;
+    const { email: rawEmail, primary, alternate, answers, researchConsent, turnstileToken, rulesVersion } = body;
+
+    const safeRulesVersion = (typeof rulesVersion === 'string' && RULES_VERSION_RE.test(rulesVersion))
+      ? rulesVersion
+      : null;
 
     // Turnstile
     if (!env.CF_TURNSTILE_SECRET) {
@@ -160,7 +165,7 @@ export async function onRequestPost(context) {
     const createdAt = new Date().toISOString();
     try {
       await env.SURVEY_DB.prepare(
-        'INSERT INTO quiz_result (id, email, primary_method, alternate_method, answers, research_consent, source, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?)'
+        'INSERT INTO quiz_result (id, email, primary_method, alternate_method, answers, research_consent, source, created_at, rules_version) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)'
       ).bind(
         id,
         email,
@@ -170,6 +175,7 @@ export async function onRequestPost(context) {
         researchConsentInt,
         'fabm-quiz',
         createdAt,
+        safeRulesVersion,
       ).run();
     } catch (err) {
       console.error('quiz_result insert failed:', err.message);
@@ -206,7 +212,7 @@ export async function onRequestPost(context) {
       }
     }
 
-    return json({ ok: true });
+    return json({ ok: true, id });
   } catch (err) {
     console.error('quiz request unexpected error:', err);
     log(env, waitUntil, 'quiz', 'request_fail', 'error', 'unexpected error', 0, 500);
