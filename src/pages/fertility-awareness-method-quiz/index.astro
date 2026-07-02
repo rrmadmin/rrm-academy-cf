@@ -27,7 +27,7 @@ const jsonLd = {
       mainEntity: [
         { '@type': 'Question', name: "Is this quiz the same as getting instruction in a method?", acceptedAnswer: { '@type': 'Answer', text: "Not at all. The quiz matches you to a starting point; instruction is what makes the method work. Every evidence-based FABM has a trained-instructor program, and the effectiveness data assumes you have gone through it. Think of the quiz as a referral that points you to the right door, and the instructor as the person who teaches you to open it." } },
         { '@type': 'Question', name: "Can I use a fertility awareness method if my cycles are irregular?", acceptedAnswer: { '@type': 'Answer', text: "In most cases, yes. Some methods suit irregular cycles better than others. Mucus-based methods like Billings and the Creighton Model observe your body's actual signals rather than counting days, which makes them more flexible when cycle length varies. A trained instructor can confirm the right fit, and the quiz takes your cycle regularity into account." } },
-        { '@type': 'Question', name: "Do fertility awareness methods work for avoiding pregnancy, conceiving, or both?", acceptedAnswer: { '@type': 'Answer', text: "Both. Many of these methods can be used to both achieve and avoid pregnancy. The fertile window works the same way in either direction: knowing when it opens tells you when to time intercourse to conceive, and when to avoid it if you are not trying. The quiz asks about your goal so it can match accordingly." } },
+        { '@type': 'Question', name: "Do fertility awareness methods work for avoiding pregnancy, conceiving, or both?", acceptedAnswer: { '@type': 'Answer', text: "Both. Many of these methods can be used to both achieve and avoid pregnancy. The fertile window works the same way in either direction: knowing when it opens tells you when to time intercourse to conceive (Hilgers et al. 1992, PMID 1479570), and when to avoid it if you are not trying. The quiz asks about your goal so it can match accordingly." } },
         { '@type': 'Question', name: "Are these methods only for religious women?", acceptedAnswer: { '@type': 'Answer', text: "For many women, that is the first assumption, and it is worth correcting. Fertility awareness methods are physiological tools that work based on the biology of ovulation, not on any belief system. They have been studied and used by women across many backgrounds, religious and secular. Some methods originated within faith-based medical communities that remain active in training and research, but the methods themselves are available to anyone." } },
         { '@type': 'Question', name: "Can my chart help a doctor find a reproductive health problem?", acceptedAnswer: { '@type': 'Answer', text: "Often, yes, and it is one of the most underappreciated benefits of learning a FABM. A detailed chart shows ovulation timing, cervical mucus quality, luteal phase length, and changes over time. An RRM clinician can read that and spot things a standard exam or single blood draw would miss. Your chart is one of the most useful things to bring to a first appointment. You can find an RRM clinician at rrmacademy.org/providers/." } },
         { '@type': 'Question', name: "My cycles just came back after having a baby. Can I still take the quiz?", acceptedAnswer: { '@type': 'Answer', text: "Postpartum is actually a great time to start. Breastfeeding changes cycle patterns and ovulation can return unpredictably. The quiz includes a postpartum option and matches you to methods with established postpartum guidelines. Let your instructor know you are postpartum at your first session so they apply the right protocol from the start." } }
@@ -101,6 +101,7 @@ const jsonLd = {
             <h2 id="result-primary"></h2>
           </div>
         </div>
+        <p class="result-startpoint">Your match is a starting point. Confirm the fit with a trained instructor or an RRM provider before you begin relying on it.</p>
         <p id="result-why" class="result-why"></p>
         <p id="result-alt" class="result-alt"></p>
         <p class="result-instruction"><strong>Whatever you choose, learning from a trained instructor and using the method correctly are what make it work.</strong> Self-teaching does not reach the effectiveness reported in the studies.</p>
@@ -116,7 +117,7 @@ const jsonLd = {
           </a>
           <a class="next-card" href="/providers/">
             <span class="next-ico" id="next-book-ico" aria-hidden="true"></span>
-            <span class="next-body"><strong>Talk to a provider</strong><span class="next-sub">Find an RRM clinician who can guide you and read your chart.</span></span>
+            <span class="next-body"><strong>Bring this result to a provider</strong><span class="next-sub">Find an RRM clinician who can guide you and read your chart.</span></span>
           </a>
           <a class="next-card next-card--quiet" href="/fertility-awareness-methods-compared/">
             <span class="next-body"><strong>Compare every method</strong><span class="next-sub">See the full side-by-side comparison with the evidence.</span></span>
@@ -124,6 +125,7 @@ const jsonLd = {
         </div>
 
         <p id="result-sent" class="result-sent footnote"></p>
+        <button type="button" id="result-retry" class="btn btn--secondary" hidden>Retry sending my guide</button>
         <button type="button" id="quiz-restart" class="btn btn--text restart">Start over</button>
       </section>
 
@@ -141,7 +143,7 @@ const jsonLd = {
           <h2 class="qz-how__title">How it works</h2>
           <ol class="qz-flow">
             <li class="qz-flow__step"><span class="qz-flow__num">1</span><h3 class="qz-flow__heading">Enter your email</h3><p class="qz-flow__text">You will get your results and a free method-specific starter guide. No spam. Unsubscribe any time.</p></li>
-            <li class="qz-flow__step"><span class="qz-flow__num">2</span><h3 class="qz-flow__heading">Answer 8 honest questions</h3><p class="qz-flow__text">Your cycle length and regularity, your tracking preferences, whether you are trying to achieve or avoid pregnancy, and a few practicalities. The more honestly you answer, the more accurate your match.</p></li>
+            <li class="qz-flow__step"><span class="qz-flow__num">2</span><h3 class="qz-flow__heading">Answer 9 honest questions</h3><p class="qz-flow__text">Your cycle length and regularity, your tracking preferences, whether you are trying to achieve or avoid pregnancy, and a few practicalities. The more honestly you answer, the more accurate your match.</p></li>
             <li class="qz-flow__step"><span class="qz-flow__num">3</span><h3 class="qz-flow__heading">Get your match</h3><p class="qz-flow__text">A method recommendation, a plain explanation of why it fits, and where to find a trained instructor. Your chart can also give an RRM clinician a detailed window into your reproductive health.</p></li>
           </ol>
         </div>
@@ -149,20 +151,20 @@ const jsonLd = {
       <div class="qz-content">
         <section class="qz-block">
           <h2>What are fertility awareness methods?</h2>
-          <p>You may have heard the term and still felt unclear on what it actually means. Fertility awareness methods (FABMs) are evidence-based systems for observing and recording the naturally occurring signs of a woman's ovulatory cycle. Each method uses one or more biomarkers, including cervical mucus, basal body temperature, cycle day, or urinary hormone levels, to identify the fertile window. That window is real and biologically defined: an egg can be fertilized for about 12 to 24 hours after ovulation, and sperm can survive in fertile cervical mucus for up to five days.</p>
+          <p>You may have heard the term and still felt unclear on what it actually means. Fertility awareness methods (FABMs) are evidence-based systems for observing and recording the naturally occurring signs of a woman's ovulatory cycle. Each method uses one or more biomarkers, including cervical mucus, basal body temperature, cycle day, or urinary hormone levels, to identify the fertile window. That window is real and biologically defined: an egg can be fertilized for about 12 to 24 hours after ovulation, and sperm can survive in fertile cervical mucus for up to five days (Wilcox et al. 1995, PMID 7477165).</p>
           <p>FABMs are instructor-taught, standardized systems, and that distinction matters. Period-tracking apps like Flo, Clue, and Natural Cycles use fertility-awareness ideas, but they run on algorithms built from population averages, and most are not held to the same evidence standards as instructor-taught methods. The methods compared in this quiz are instructor-taught and standardized, and most have peer-reviewed effectiveness data behind them.</p>
           <p>FABMs serve two purposes: family planning (both achieving and avoiding pregnancy) and reproductive health monitoring. A well-kept chart is a medical record. It shows cycle length, ovulation timing, luteal phase length, and pattern changes over time, and an RRM clinician can read it to see things a standard blood panel can miss.</p>
         </section>
         <section class="qz-block">
           <h2>Which fertility awareness method is right for me?</h2>
-          <p>The overwhelm makes sense. There are real differences between these methods, and the wrong starting point can make the learning curve steeper than it needs to be. The right method is the one you will actually use, taught by an instructor you can actually reach. Effectiveness data for every FABM assumes correct and consistent use, and the biggest variable in correct, consistent use is the quality of instruction.</p>
-          <p>The methods do genuinely differ. The Standard Days Method works best when your cycles consistently fall between 26 and 32 days. The TwoDay Method is simpler to learn and works across a wider range. Billings and the Creighton Model rely entirely on cervical mucus, with no thermometer, but need a certified instructor. The Sympto-Thermal Method (Sensiplan) combines mucus and temperature and has some of the strongest research. The Marquette Model adds urinary hormone monitoring and suits women who prefer objective data. FEMM pairs cervical-mucus observation with optional hormone testing and a medical-management focus, supported by an app, and is a good fit if you want your charting tied closely to your health care.</p>
+          <p>The overwhelm makes sense. There are real differences between these methods, and the wrong starting point can make the learning curve steeper than it needs to be. The right method is the one you will actually use, taught by an instructor you can actually reach. Effectiveness data for every FABM assumes correct and consistent use, and the biggest variable in correct, consistent use is the quality of instruction (Peragallo Urrutia et al. 2018, PMID 30095777).</p>
+          <p>The methods do genuinely differ. The Standard Days Method works best when your cycles consistently fall between 26 and 32 days (Arevalo et al. 2002, PMID 12057784). The TwoDay Method is simpler to learn and works across a wider range (Arevalo et al. 2004, PMID 15482764). Billings (WHO 1981, PMID 7308503) and the Creighton Model (Hilgers et al. 1998, PMID 9653695) rely entirely on cervical mucus, with no thermometer, but need a certified instructor. The Sympto-Thermal Method (Sensiplan) combines mucus and temperature and has some of the strongest research (Frank-Herrmann et al. 2007, PMID 17314078). The Marquette Model adds urinary hormone monitoring and suits women who prefer objective data (Fehring et al. 2007, PMID 17371516). FEMM pairs cervical-mucus observation with optional hormone testing and a medical-management focus, supported by an app, and is a good fit if you want your charting tied closely to your health care.</p>
           <p>Irregular cycles, postpartum, and perimenopause all change the picture, and the quiz accounts for that. If you have a known reproductive health condition, pairing method instruction with an RRM clinician gives you both layers: charting literacy and a clinician who can read what the chart reveals.</p>
         </section>
         <section class="qz-block">
           <h2>Are fertility awareness methods effective?</h2>
-          <p>This is often the first question, and the honest answer is worth reading carefully. With correct, consistent use and a trained teacher, the strongest instructor-taught methods report fewer than 2 women in 100 getting pregnant over a year, comparable to many hormonal contraceptives. The gap between that number and everyday-use numbers is real, and it is mostly explained by inconsistent use and inadequate instruction, not by the method itself.</p>
-          <p>Numbers need context. A perfect-use rate tells you what happens when a woman has been trained, charts consistently, and follows the rules. Everyday-use rates include everyone who started and then skipped charting or never finished the learning curve. Both appear in the research, and both are honest; they measure different things.</p>
+          <p>This is often the first question, and the honest answer is worth reading carefully. With correct, consistent use and a trained teacher, the strongest instructor-taught methods report fewer than 2 women in 100 getting pregnant over a year, comparable to many hormonal contraceptives (Peragallo Urrutia et al. 2018, PMID 30095777). The gap between that number and everyday-use numbers is real, and it is mostly explained by inconsistent use and inadequate instruction, not by the method itself.</p>
+          <p>Numbers need context. A perfect-use rate tells you what happens when a woman has been trained, charts consistently, and follows the rules. Everyday-use rates include everyone who started and then skipped charting or never finished the learning curve. Both appear in the research, and both are honest; they measure different things (Frank-Herrmann et al. 2007, PMID 17314078).</p>
           <p>One clarification: effectiveness data from app-based tools is not the same as data from instructor-taught methods. Apps may present figures that actually belong to the underlying method, not to the app as a standalone product. For pregnancy avoidance, the instructor-taught method and the app built around its concepts are not interchangeable.</p>
         </section>
         <section class="qz-block">
@@ -175,14 +177,14 @@ const jsonLd = {
           <h2>Are period-tracking apps the same as fertility awareness methods?</h2>
           <p>If you have been using an app and sensed it was just guessing, you were right to wonder. Period-tracking apps track cycle length and predict your next period, mostly using historical averages to estimate when ovulation might occur. That estimate comes from population data, not from your body's signals on any given cycle.</p>
           <p>Fertility awareness methods teach you to observe your own biomarkers, in real time, each cycle. The mucus is there or it is not. The temperature rose or it did not. Those are observations, not predictions, and the difference matters most when your cycle deviates from its usual pattern, which is exactly when accuracy matters most.</p>
-          <p>Natural Cycles is sometimes called an exception because it holds a regulatory clearance for pregnancy prevention in several countries and uses temperature readings in an algorithm. It is more rigorous than a simple tracker, but it is still a software product, not an instructor-taught method, and its everyday-use figures should be read in that light. A trained instructor notices charting errors, signs of irregularity, and patterns worth raising with a clinician that an algorithm cannot.</p>
+          <p>Natural Cycles is sometimes called an exception because it holds a regulatory clearance for pregnancy prevention in several countries and uses temperature readings in an algorithm. It is more rigorous than a simple tracker, but it is still a software product, not an instructor-taught method, and its everyday-use figures should be read in that light (Berglund Scherwitzl et al. 2017, PMID 28882680). A trained instructor notices charting errors, signs of irregularity, and patterns worth raising with a clinician that an algorithm cannot.</p>
         </section>
         <section class="qz-block">
           <h2>Frequently asked questions</h2>
           <div class="qz-faq">
             <details class="qz-faq__item"><summary class="qz-faq__q">Is this quiz the same as getting instruction in a method?</summary><div class="qz-faq__a"><p>Not at all. The quiz matches you to a starting point; instruction is what makes the method work. Every evidence-based FABM has a trained-instructor program, and the effectiveness data assumes you have gone through it. Think of the quiz as a referral that points you to the right door, and the instructor as the person who teaches you to open it.</p></div></details>
             <details class="qz-faq__item"><summary class="qz-faq__q">Can I use a fertility awareness method if my cycles are irregular?</summary><div class="qz-faq__a"><p>In most cases, yes. Some methods suit irregular cycles better than others. Mucus-based methods like Billings and the Creighton Model observe your body's actual signals rather than counting days, which makes them more flexible when cycle length varies. A trained instructor can confirm the right fit, and the quiz takes your cycle regularity into account.</p></div></details>
-            <details class="qz-faq__item"><summary class="qz-faq__q">Do fertility awareness methods work for avoiding pregnancy, conceiving, or both?</summary><div class="qz-faq__a"><p>Both. Many of these methods can be used to both achieve and avoid pregnancy. The fertile window works the same way in either direction: knowing when it opens tells you when to time intercourse to conceive, and when to avoid it if you are not trying. The quiz asks about your goal so it can match accordingly.</p></div></details>
+            <details class="qz-faq__item"><summary class="qz-faq__q">Do fertility awareness methods work for avoiding pregnancy, conceiving, or both?</summary><div class="qz-faq__a"><p>Both. Many of these methods can be used to both achieve and avoid pregnancy. The fertile window works the same way in either direction: knowing when it opens tells you when to time intercourse to conceive (Hilgers et al. 1992, PMID 1479570), and when to avoid it if you are not trying. The quiz asks about your goal so it can match accordingly.</p></div></details>
             <details class="qz-faq__item"><summary class="qz-faq__q">Are these methods only for religious women?</summary><div class="qz-faq__a"><p>For many women, that is the first assumption, and it is worth correcting. Fertility awareness methods are physiological tools that work based on the biology of ovulation, not on any belief system. They have been studied and used by women across many backgrounds, religious and secular. Some methods originated within faith-based medical communities that remain active in training and research, but the methods themselves are available to anyone.</p></div></details>
             <details class="qz-faq__item"><summary class="qz-faq__q">Can my chart help a doctor find a reproductive health problem?</summary><div class="qz-faq__a"><p>Often, yes, and it is one of the most underappreciated benefits of learning a FABM. A detailed chart shows ovulation timing, cervical mucus quality, luteal phase length, and changes over time. An RRM clinician can read that and spot things a standard exam or single blood draw would miss. Your chart is one of the most useful things to bring to a first appointment. You can find an RRM clinician at rrmacademy.org/providers/.</p></div></details>
             <details class="qz-faq__item"><summary class="qz-faq__q">My cycles just came back after having a baby. Can I still take the quiz?</summary><div class="qz-faq__a"><p>Postpartum is actually a great time to start. Breastfeeding changes cycle patterns and ovulation can return unpredictably. The quiz includes a postpartum option and matches you to methods with established postpartum guidelines. Let your instructor know you are postpartum at your first session so they apply the right protocol from the start.</p></div></details>
@@ -259,6 +261,35 @@ const jsonLd = {
 
     const answers = {};
     let step = 0, userEmail = '', recommendation = null, researchConsent = 0;
+    let resultId = null, revealWatchdog = null, resultRevealed = false;
+
+    const RULES_VERSION = 'v3-2026-07-02';
+    let sid = null;
+    function ensureSid() {
+      if (!sid) {
+        try { sid = crypto.randomUUID(); }
+        catch (e) {
+          let s = '';
+          for (let i = 0; i < 20; i++) { s += 'abcdefghijklmnopqrstuvwxyz0123456789'[Math.floor(Math.random() * 36)]; }
+          sid = 'sid-' + s;
+        }
+      }
+      return sid;
+    }
+    function trackEvent(event, qid) {
+      try {
+        ensureSid();
+        const payload = { sid: sid, event: event, rulesVersion: RULES_VERSION };
+        if (qid) payload.qid = qid;
+        const body = JSON.stringify(payload);
+        if (navigator.sendBeacon) {
+          navigator.sendBeacon('/api/quiz/event', body);
+        } else {
+          fetch('/api/quiz/event', { method: 'POST', keepalive: true, headers: { 'Content-Type': 'application/json' }, body: body });
+        }
+      } catch (e) {}
+    }
+
     const GUIDES = JSON.parse((document.getElementById('qz-guides') || {}).textContent || '{}');
     const qEl = document.getElementById('quiz-question');
     const barEl = document.getElementById('quiz-bar');
@@ -268,12 +299,13 @@ const jsonLd = {
 
     function renderStep() {
       const item = QUESTIONS[step];
+      trackEvent('question_view', item.id);
       countEl.textContent = 'Question ' + (step + 1) + ' of ' + QUESTIONS.length;
       barEl.style.width = Math.round((step / QUESTIONS.length) * 100) + '%';
       let html = '<fieldset class="quiz-fieldset"><legend>' + item.q + '</legend>';
       item.options.forEach(function (opt, i) {
         const checked = answers[item.id] === opt.v ? ' checked' : '';
-        html += '<label class="quiz-option" style="animation-delay:' + (i * 70 + 80) + 'ms"><input type="radio" name="' + item.id + '" value="' + opt.v + '"' + checked + '><span class="opt-ico-wrap">' + ico(opt.icon) + '</span><span class="opt-text">' + opt.label + '</span></label>';
+        html += '<label class="quiz-option" style="--stagger:' + i + '"><input type="radio" name="' + item.id + '" value="' + opt.v + '"' + checked + '><span class="opt-ico-wrap">' + ico(opt.icon) + '</span><span class="opt-text">' + opt.label + '</span></label>';
       });
       html += '</fieldset>';
       qEl.innerHTML = html;
@@ -281,20 +313,15 @@ const jsonLd = {
       nextBtn.disabled = !answers[item.id];
       nextBtn.textContent = step === QUESTIONS.length - 1 ? 'See my result' : 'Next';
       qEl.querySelectorAll('input[type=radio]').forEach(function (r) {
-        r.addEventListener('change', function () { answers[item.id] = r.value; nextBtn.disabled = false; });
+        r.addEventListener('change', function () { answers[item.id] = r.value; nextBtn.disabled = false; trackEvent('question_answer', item.id); });
       });
     }
-    // Tie-break: when total scores tie, resolve toward the method that matches the user's
-    // stated cost/device preference, then toward the simpler/cheaper method. A fixed method
-    // list was replaced here because it silently decided ~25% of outcomes by list position.
-    const COST_BURDEN = { sdm: 0, twoday: 0, billings: 0, femm: 0, creighton: 1, sensiplan: 1, marquette: 2 };
-    const DEVICE_BURDEN = { sdm: 0, twoday: 0, billings: 0, femm: 0, creighton: 0, sensiplan: 1, marquette: 2 };
+    // Tie-break: when total scores tie, resolve by a fixed access-ordered list only.
+    // This is a pure static function of the method id and does not read the user's
+    // answers, so tie resolution is independent of any single question's weights.
     const ACCESS_ORDER = ['twoday', 'sdm', 'billings', 'creighton', 'femm', 'sensiplan', 'marquette'];
     function tiebreakKey(m) {
-      let k = ACCESS_ORDER.indexOf(m);
-      if (answers.budget === 'lowest') k += COST_BURDEN[m] * 100;
-      if (answers.device === 'none') k += DEVICE_BURDEN[m] * 20;
-      return k;
+      return ACCESS_ORDER.indexOf(m);
     }
     function score() {
       const t = { sdm: 0, twoday: 0, billings: 0, creighton: 0, femm: 0, sensiplan: 0, marquette: 0 };
@@ -303,34 +330,88 @@ const jsonLd = {
         Object.keys(d).forEach(function (m) { t[m] += d[m]; });
       });
       const ranked = Object.keys(t).sort(function (a, b) { return t[b] !== t[a] ? t[b] - t[a] : tiebreakKey(a) - tiebreakKey(b); });
-      return { primary: ranked[0], alternate: ranked[1] };
+      return { primary: ranked[0], alternate: ranked[1], top: t[ranked[0]], second: t[ranked[1]] };
     }
-    function buildWhy() {
-      const bits = [];
-      if (answers.goal === 'conceive') bits.push('you are trying to conceive');
-      if (answers.goal === 'health') bits.push('you want to understand your reproductive health');
-      if (answers.cycles === 'irregular') bits.push('your cycles are not always predictable');
-      if (answers.cycles === 'vary') bits.push('you are still getting to know your cycles');
-      if (answers.postpartum === 'yes') bits.push('you are postpartum or breastfeeding');
-      if (answers.offbc === 'yes') bits.push('you recently stopped hormonal birth control');
-      if (answers.effort === 'simplest') bits.push('you want to keep tracking simple');
-      if (answers.effort === 'detailed') bits.push('you are happy to chart in detail');
-      if (answers.device === 'none') bits.push('you prefer no devices');
-      if (answers.device === 'monitor') bits.push('you are comfortable with a monitor');
-      if (answers.clinical === 'yes') bits.push('you want a doctor to be able to read your chart');
-      return bits;
+    // One reason clause for every (qid, value) pair that appears in RULES. The why-sentence
+    // is derived from the score deltas that actually fired for the winning method, so the
+    // clauses reflect the real drivers of the match rather than a fixed if-chain.
+    const WHY_CLAUSES = {
+      goal: {
+        avoid: 'you want to avoid pregnancy',
+        conceive: 'you are trying to conceive',
+        health: 'you want to understand your reproductive health',
+      },
+      cycles: {
+        regular: 'your cycles are usually regular',
+        irregular: 'your cycles are not always predictable',
+        vary: 'you are still getting to know your cycles',
+      },
+      postpartum: {
+        yes: 'you are postpartum or breastfeeding',
+        no: 'your cycles have settled into a typical pattern',
+      },
+      offbc: {
+        yes: 'you recently stopped hormonal birth control',
+        no: 'your cycles reflect your natural hormones',
+      },
+      effort: {
+        simplest: 'you want to keep tracking simple',
+        moderate: 'a quick daily check suits you',
+        detailed: 'you are happy to chart in detail',
+      },
+      femtech: {
+        app: 'you already use a cycle-tracking app',
+        wearable: 'you already use a wearable or device',
+        none: 'you are choosing your tools fresh',
+      },
+      device: {
+        none: 'you prefer no devices',
+        thermometer: 'you are fine using a simple thermometer',
+        monitor: 'you are comfortable with a monitor',
+      },
+      budget: {
+        lowest: 'you want the lowest cost possible',
+        some: 'some ongoing cost is fine',
+      },
+      clinical: {
+        yes: 'you want a doctor to be able to read your chart',
+        no: 'you want a straightforward family-planning method',
+      },
+    };
+    function buildWhy(primary) {
+      const contribs = [];
+      QUESTIONS.forEach(function (item, idx) {
+        const qid = item.id;
+        const val = answers[qid];
+        if (!val) return;
+        const delta = ((RULES[qid] || {})[val] || {})[primary] || 0;
+        if (delta <= 0) return;
+        const clause = (WHY_CLAUSES[qid] || {})[val];
+        if (clause) contribs.push({ order: idx, delta: delta, clause: clause });
+      });
+      contribs.sort(function (a, b) { return b.delta !== a.delta ? b.delta - a.delta : a.order - b.order; });
+      return contribs.slice(0, 3).map(function (c) { return c.clause; });
     }
     function renderResult() {
       recommendation = score();
       const p = METHODS[recommendation.primary];
       const a = METHODS[recommendation.alternate];
       document.getElementById('result-icon').innerHTML = ico(p.icon);
-      document.getElementById('result-primary').textContent = p.name;
-      const why = buildWhy();
-      let whyText = 'Based on your answers';
-      if (why.length) whyText += ' (' + why.slice(0, 3).join(', ') + ')';
-      whyText += ', the ' + p.name + ' looks like the strongest fit, ' + p.blurb + '.';
-      document.getElementById('result-why').textContent = whyText;
+      const eyebrowEl = document.querySelector('#result .result-eyebrow');
+      const margin = recommendation.top - recommendation.second;
+      if (margin >= 2) {
+        if (eyebrowEl) eyebrowEl.textContent = 'Your suggested method';
+        document.getElementById('result-primary').textContent = p.name;
+        const why = buildWhy(recommendation.primary);
+        let whyText = 'Based on your answers';
+        if (why.length) whyText += ' (' + why.slice(0, 3).join(', ') + ')';
+        whyText += ', the ' + p.name + ' looks like the strongest fit, ' + p.blurb + '.';
+        document.getElementById('result-why').textContent = whyText;
+      } else {
+        if (eyebrowEl) eyebrowEl.textContent = 'Two strong fits';
+        document.getElementById('result-primary').textContent = p.name + ' or ' + a.name;
+        document.getElementById('result-why').textContent = 'Your answers point almost equally to the ' + p.name + ' and the ' + a.name + ', so either is a solid place to begin.';
+      }
       document.getElementById('result-alt').innerHTML = '<strong>Also worth a look:</strong> the ' + a.name + ', ' + a.blurb + '.';
       const readLink = document.getElementById('next-read');
       readLink.href = p.learn;
@@ -354,11 +435,30 @@ const jsonLd = {
       const r = document.getElementById('result');
       r.hidden = false;
       barEl.style.width = '100%';
+      // Gate the final reveal on the POST, with a 6s fallback. Show the card in a minimal
+      // pending state until the send resolves or the watchdog fires.
+      resultRevealed = false;
+      const retryBtn = document.getElementById('result-retry');
+      if (retryBtn) retryBtn.hidden = true;
+      r.classList.add('result--pending');
+      r.setAttribute('aria-busy', 'true');
+      const sent0 = document.getElementById('result-sent');
+      if (sent0) sent0.textContent = 'Finalizing your result and sending your starter guide...';
+      clearTimeout(revealWatchdog);
+      revealWatchdog = setTimeout(revealResult, 6000);
       r.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      trackEvent('result_view');
       sendResult();
     }
+    function revealResult() {
+      if (resultRevealed) return;
+      resultRevealed = true;
+      clearTimeout(revealWatchdog);
+      const r = document.getElementById('result');
+      if (r) { r.classList.remove('result--pending'); r.removeAttribute('aria-busy'); }
+    }
     function sendResult() {
-      const payload = { email: userEmail, primary: recommendation.primary, alternate: recommendation.alternate, answers: answers, researchConsent: researchConsent };
+      const payload = { email: userEmail, primary: recommendation.primary, alternate: recommendation.alternate, answers: answers, researchConsent: researchConsent, rulesVersion: RULES_VERSION };
       if (typeof turnstile !== 'undefined' && turnstileWidgetId !== null) {
         pendingSubmit = payload;
         clearTimeout(tsWatchdog);
@@ -370,20 +470,34 @@ const jsonLd = {
     function doSubmit(payload, token) {
       payload.turnstileToken = token;
       const sent = document.getElementById('result-sent');
+      const retryBtn = document.getElementById('result-retry');
       fetch('/api/quiz/request', {
         method: 'POST', headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload),
       }).then(function (res) { return res.json().then(function (d) { return { ok: res.ok, data: d }; }, function () { return { ok: res.ok, data: {} }; }); })
         .then(function (r) {
+          revealResult();
           if (r.ok && r.data && r.data.ok) {
+            if (r.data.id) resultId = r.data.id;
             sent.textContent = 'We have also sent this to ' + userEmail + ' with a starter guide.';
+            if (retryBtn) retryBtn.hidden = true;
+            trackEvent('submit_ok');
           } else if (r.data && r.data.suggestion) {
             sent.textContent = 'Your result is ready above. Did you mean ' + r.data.suggestion + '? Refresh and retake with the corrected email to get your guide.';
+            if (retryBtn) retryBtn.hidden = false;
+            trackEvent('submit_fail');
           } else {
             sent.textContent = 'Your result is ready above. We could not email a copy just now. Please refresh and retake to receive your starter guide by email.';
+            if (retryBtn) retryBtn.hidden = false;
+            trackEvent('submit_fail');
           }
         })
-        .catch(function () { sent.textContent = 'Your result is ready above. We could not email a copy (network error). Please try again later.'; });
+        .catch(function () {
+          revealResult();
+          sent.textContent = 'Your result is ready above. We could not email a copy (network error). Please try again later.';
+          if (retryBtn) retryBtn.hidden = false;
+          trackEvent('submit_fail');
+        });
     }
 
     nextBtn.addEventListener('click', function () {
@@ -391,16 +505,38 @@ const jsonLd = {
       if (step === QUESTIONS.length - 1) { renderResult(); return; }
       step++; renderStep();
     });
-    backBtn.addEventListener('click', function () { if (step > 0) { step--; renderStep(); } });
-    document.getElementById('print-result').addEventListener('click', function () { window.print(); });
+    backBtn.addEventListener('click', function () { trackEvent('back_tap', QUESTIONS[step].id); if (step > 0) { step--; renderStep(); } });
+    document.getElementById('print-result').addEventListener('click', function () { trackEvent('print_tap'); window.print(); });
     document.getElementById('quiz-restart').addEventListener('click', function () {
+      trackEvent('start_over');
       Object.keys(answers).forEach(function (k) { delete answers[k]; });
       step = 0;
+      userEmail = '';
+      researchConsent = 0;
+      clearTimeout(revealWatchdog);
+      const consentBox = document.getElementById('research-consent');
+      if (consentBox) consentBox.checked = false;
+      const emailInput = document.getElementById('start-email');
+      if (emailInput) emailInput.value = '';
+      const startMsg = document.getElementById('start-msg');
+      if (startMsg) startMsg.textContent = '';
       document.getElementById('result').hidden = true;
-      document.getElementById('quiz').hidden = false;
-      renderStep();
-      document.getElementById('quiz').scrollIntoView({ behavior: 'smooth', block: 'start' });
+      document.getElementById('quiz').hidden = true;
+      document.getElementById('start').hidden = false;
+      document.getElementById('start').scrollIntoView({ behavior: 'smooth', block: 'start' });
     });
+    document.querySelectorAll('#result .next-card').forEach(function (card) {
+      card.addEventListener('click', function () { trackEvent('cta_click'); });
+    });
+    var retryBtnEl = document.getElementById('result-retry');
+    if (retryBtnEl) retryBtnEl.addEventListener('click', function () {
+      retryBtnEl.hidden = true;
+      var s = document.getElementById('result-sent');
+      if (s) s.textContent = 'Sending your starter guide...';
+      sendResult();
+    });
+    var consentEl = document.getElementById('research-consent');
+    if (consentEl) consentEl.addEventListener('change', function () { if (consentEl.checked) trackEvent('consent_checked'); });
 
     let turnstileWidgetId = null, turnstileLoaded = false, pendingSubmit = null, tsWatchdog = null;
     function loadTurnstile() {
@@ -422,7 +558,7 @@ const jsonLd = {
                 sitekey: c.dataset.sitekey,
                 size: 'invisible',
                 callback: function (tok) { clearTimeout(tsWatchdog); if (pendingSubmit) { const p = pendingSubmit; pendingSubmit = null; doSubmit(p, tok); } },
-                'error-callback': function () { clearTimeout(tsWatchdog); pendingSubmit = null; const s = document.getElementById('result-sent'); if (s) { s.textContent = 'Your result is ready above. We could not verify your browser to email a copy. Please refresh and retake to receive it.'; } },
+                'error-callback': function () { clearTimeout(tsWatchdog); pendingSubmit = null; revealResult(); const s = document.getElementById('result-sent'); if (s) { s.textContent = 'Your result is ready above. We could not verify your browser to email a copy. Please refresh and retake to receive it.'; } const rb = document.getElementById('result-retry'); if (rb) rb.hidden = false; trackEvent('submit_fail'); },
               });
             } catch (e) {}
           }
@@ -441,9 +577,11 @@ const jsonLd = {
       userEmail = email;
       document.getElementById('start').hidden = true;
       document.getElementById('quiz').hidden = false;
+      trackEvent('quiz_start');
       renderStep();
       document.getElementById('quiz').scrollIntoView({ behavior: 'smooth', block: 'start' });
     });
+    trackEvent('gate_view');
     initTurnstile();
   </script>
 
@@ -451,15 +589,15 @@ const jsonLd = {
     .fam-quiz .qz-hero { padding: var(--space-12) 0 var(--space-10); background: linear-gradient(162deg, var(--purple-50) 0%, var(--cream) 64%); text-align: center; }
     .fam-quiz .qz-hero__inner { max-width: 46rem; margin: 0 auto; }
     .fam-quiz .qz-eyebrow { font-family: 'Inter', sans-serif; font-size: 0.75rem; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; color: var(--accent); margin-bottom: var(--space-3); }
-    .fam-quiz .qz-hero__title { font-size: clamp(2.25rem, 1.5rem + 2.8vw, 3.25rem); line-height: 1.1; letter-spacing: -0.015em; margin: 0 0 var(--space-4); text-wrap: balance; }
-    .fam-quiz .qz-hero__tagline { font-size: 1.1875rem; line-height: 1.65; color: var(--text-secondary); max-width: 52ch; margin: 0 auto; text-wrap: pretty; }
+    .fam-quiz .qz-hero__title { font-size: var(--text-d1); line-height: 1.1; letter-spacing: -0.015em; margin: 0 0 var(--space-4); text-wrap: balance; }
+    .fam-quiz .qz-hero__tagline { font-size: var(--text-d5); line-height: 1.65; color: var(--text-secondary); max-width: 52ch; margin: 0 auto; text-wrap: pretty; }
     .fam-quiz .qz-hero__meta { margin-top: var(--space-6); display: flex; flex-wrap: wrap; gap: var(--space-3); justify-content: center; }
     .fam-quiz .qz-chip { display: inline-flex; align-items: center; gap: var(--space-2); padding: var(--space-1) var(--space-3); background: var(--bg-card); border: 1px solid var(--border-color); border-radius: var(--radius-pill); font-size: 0.8125rem; font-weight: 500; color: var(--text-secondary); }
     .fam-quiz .qz-chip svg { color: var(--accent); flex-shrink: 0; }
     .fam-quiz .page-body { padding: var(--space-10) 0 var(--space-12); }
     .fam-quiz .qz-intro { margin-top: var(--space-12); }
     .fam-quiz .qz-section-title { font-size: 1.625rem; margin: 0 0 var(--space-5); }
-    .fam-quiz .qz-note__lead { font-family: var(--font-display); font-size: clamp(1.375rem, 1.1rem + 1.1vw, 1.75rem); line-height: 1.35; color: var(--text-primary); margin: 0 0 var(--space-5); text-wrap: balance; }
+    .fam-quiz .qz-note__lead { font-family: var(--font-display); font-size: var(--text-d3); line-height: 1.35; color: var(--text-primary); margin: 0 0 var(--space-5); text-wrap: balance; }
     .fam-quiz .qz-note p { font-size: 1.125rem; line-height: 1.75; color: var(--text-secondary); margin: 0 0 var(--space-4); }
     .fam-quiz .qz-note__sig { font-size: 0.875rem; font-weight: 500; color: var(--text-tertiary); margin-top: var(--space-5); padding-top: var(--space-4); border-top: 1px solid var(--border-light); }
     .fam-quiz .qz-how { margin-top: var(--space-10); }
@@ -467,7 +605,7 @@ const jsonLd = {
     .fam-quiz .qz-flow { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: 1fr; gap: var(--space-8); }
     @media (min-width: 680px) { .fam-quiz .qz-flow { grid-template-columns: repeat(3, 1fr); gap: var(--space-6); } }
     .fam-quiz .qz-flow__step { text-align: center; padding: 0 var(--space-2); }
-    .fam-quiz .qz-flow__num { display: inline-flex; align-items: center; justify-content: center; width: 2.5rem; height: 2.5rem; color: #fff; background: var(--purple-700); border-radius: var(--radius-pill); font-family: var(--font-display); font-weight: 600; font-size: 1.25rem; margin-bottom: var(--space-4); }
+    .fam-quiz .qz-flow__num { display: inline-flex; align-items: center; justify-content: center; width: 2.5rem; height: 2.5rem; color: var(--white); background: var(--purple-700); border-radius: var(--radius-pill); font-family: var(--font-display); font-weight: 600; font-size: 1.25rem; margin-bottom: var(--space-4); }
     .fam-quiz .qz-flow__heading { font-size: 1.125rem; margin: 0 0 var(--space-2); color: var(--text-primary); }
     .fam-quiz .qz-flow__text { font-size: 0.9375rem; line-height: 1.6; color: var(--text-secondary); margin: 0 auto; max-width: 30ch; }
     .fam-quiz .qz-content { margin-top: var(--space-12); }
@@ -478,18 +616,18 @@ const jsonLd = {
     .fam-quiz .qz-block a { color: var(--accent); text-decoration: underline; text-underline-offset: 2px; }
     .fam-quiz .qz-faq { display: flex; flex-direction: column; gap: var(--space-2); }
     .fam-quiz .qz-faq__item { border: 1px solid var(--border-color); border-radius: var(--radius-md); background: var(--bg-card); overflow: hidden; }
-    .fam-quiz .qz-faq__q { list-style: none; cursor: pointer; padding: var(--space-4) var(--space-5); font-family: var(--font-display); font-size: 1.1875rem; font-weight: 600; color: var(--text-primary); display: flex; align-items: center; justify-content: space-between; gap: var(--space-3); }
+    .fam-quiz .qz-faq__q { list-style: none; cursor: pointer; padding: var(--space-4) var(--space-5); font-family: var(--font-display); font-size: var(--text-d4); font-weight: 600; color: var(--text-primary); display: flex; align-items: center; justify-content: space-between; gap: var(--space-3); }
     .fam-quiz .qz-faq__q::-webkit-details-marker { display: none; }
     .fam-quiz .qz-faq__q::after { content: '+'; flex-shrink: 0; font-family: 'Inter', sans-serif; font-weight: 400; font-size: 1.5rem; line-height: 1; color: var(--accent); transition: transform 0.2s ease; }
     .fam-quiz .qz-faq__item[open] .qz-faq__q::after { transform: rotate(45deg); }
     .fam-quiz .qz-faq__a { padding: 0 var(--space-5) var(--space-5); }
     .fam-quiz .qz-faq__a p { font-size: 1rem; line-height: 1.7; color: var(--text-secondary); margin: 0; }
     .fam-quiz .qz-recap { margin-top: var(--space-12); padding: var(--space-10) var(--space-8); border-radius: var(--radius-lg); text-align: center; background: radial-gradient(120% 140% at 50% 0%, var(--purple-700) 0%, var(--purple-900) 100%); }
-    .fam-quiz .qz-recap__title { font-size: clamp(1.5rem, 1.2rem + 1.2vw, 2rem); margin: 0 0 var(--space-3); color: #fff; text-wrap: balance; }
+    .fam-quiz .qz-recap__title { font-size: var(--text-d2); margin: 0 0 var(--space-3); color: var(--white); text-wrap: balance; }
     .fam-quiz .qz-recap__text { font-size: 1.125rem; line-height: 1.7; color: var(--purple-200); margin: 0 auto var(--space-6); max-width: 44ch; }
     .fam-quiz .qz-recap__btn { background: var(--bg-surface); color: var(--purple-900); border: none; }
     .fam-quiz .qz-recap__providers { font-size: 0.875rem; color: var(--purple-300); margin: var(--space-5) 0 0; }
-    .fam-quiz .qz-recap__providers a { color: #fff; text-decoration: underline; }
+    .fam-quiz .qz-recap__providers a { color: var(--white); text-decoration: underline; }
     .fam-quiz .qz-disclaimer { margin-top: var(--space-10); padding-top: var(--space-4); border-top: 1px solid var(--border-light); }
     .fam-quiz .qz-disclaimer p { font-size: 0.75rem; line-height: 1.6; color: var(--text-secondary); margin: 0; }
     .fam-quiz .quiz-card { margin-top: var(--space-8); }
@@ -513,7 +651,7 @@ const jsonLd = {
     .fam-quiz .quiz-step-count { font-size: 0.875rem; color: var(--text-muted); margin: var(--space-4) 0 var(--space-2); }
     .fam-quiz .quiz-fieldset { border: 0; padding: 0; margin: 0; }
     .fam-quiz .quiz-fieldset legend { font-size: 1.25rem; font-weight: 600; line-height: 1.4; margin-bottom: var(--space-5); padding: 0; animation: famFadeUp 0.3s ease both; }
-    .fam-quiz .quiz-option { display: flex; align-items: center; gap: var(--space-3); padding: var(--space-4); border: 1px solid var(--border-color); border-radius: var(--radius-md); margin-bottom: var(--space-3); cursor: pointer; transition: border-color 0.15s, background 0.15s; animation: famFadeUp 0.35s ease both; }
+    .fam-quiz .quiz-option { display: flex; align-items: center; gap: var(--space-3); padding: var(--space-4); border: 1px solid var(--border-color); border-radius: var(--radius-md); margin-bottom: var(--space-3); cursor: pointer; transition: border-color 0.15s, background 0.15s; animation: famFadeUp 0.35s ease both; animation-delay: calc(var(--stagger, 0) * 70ms + 80ms); }
     @keyframes famFadeUp { from { opacity: 0; transform: translateY(0.5rem); } to { opacity: 1; transform: none; } }
     @media (prefers-reduced-motion: reduce) { .fam-quiz .quiz-fieldset legend, .fam-quiz .quiz-option { animation: none; } }
     .fam-quiz .quiz-option:hover { border-color: var(--purple-700); background: var(--purple-50); }
@@ -525,7 +663,7 @@ const jsonLd = {
     .fam-quiz .result-head { display: flex; align-items: center; gap: var(--space-4); margin-bottom: var(--space-4); }
     .fam-quiz .result-ico { display: inline-flex; flex-shrink: 0; color: var(--purple-700); }
     .fam-quiz .result-ico .opt-ico { width: 2.6em; height: 2.6em; display: block; }
-    .fam-quiz .result-eyebrow { text-transform: uppercase; letter-spacing: 0.05em; font-size: 0.8125rem; font-weight: 700; color: var(--purple-700); margin-bottom: var(--space-1); }
+    .fam-quiz .result-eyebrow { text-transform: uppercase; letter-spacing: 0.05em; font-size: 0.8125rem; font-weight: 600; color: var(--purple-700); margin-bottom: var(--space-1); }
     .fam-quiz .result-head h2 { margin: 0; }
     .fam-quiz .result-why { font-size: 1.125rem; line-height: 1.6; }
     .fam-quiz .qz-consent { display: flex; gap: var(--space-2); align-items: flex-start; margin: var(--space-4) 0; font-size: 0.875rem; color: var(--text-secondary); text-align: left; }
@@ -540,8 +678,11 @@ const jsonLd = {
       body * { visibility: hidden; }
       .fam-quiz #result, .fam-quiz #result * { visibility: visible; }
       .fam-quiz #result { position: absolute; inset: 0; width: 100%; border: none; box-shadow: none; padding: 0; }
-      .fam-quiz #print-result, .fam-quiz .result-sent, .fam-quiz .next-step { display: none !important; }
+      .fam-quiz #print-result, .fam-quiz .result-sent, .fam-quiz #result-retry, .fam-quiz .next-step { display: none !important; }
     }
+    .fam-quiz .result-startpoint { margin: var(--space-3) 0 var(--space-2); font-size: 0.9375rem; color: var(--text-secondary); }
+    .fam-quiz .result--pending .result-guide, .fam-quiz .result--pending .next-step { opacity: 0.55; }
+    .fam-quiz #result-retry { margin-top: var(--space-3); }
     .fam-quiz .result-alt { margin-top: var(--space-4); }
     .fam-quiz .result-instruction { margin-top: var(--space-5); padding-top: var(--space-5); border-top: 1px solid var(--border-color); }
     .fam-quiz .next-step { margin-top: var(--space-6); }
