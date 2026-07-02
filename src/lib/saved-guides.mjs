@@ -13,10 +13,19 @@
 // must resolve to type 'pillar'.
 import pillarsData from '../../ssot/guides.json';
 
-// Saveable pillar pages = pillars surfaced in the shell guides nav (own shell pages).
+// Saveable pillar pages = pillars surfaced in ANY sidebar nav surface -- either the
+// generic Guides index highlight (in_shell_guides_nav) or the Methods/Compare sidebar
+// sections (category + in_methods_nav, an independently-settable pair of flags in
+// ssot/guides.json -- see AppShellChrome.astro's methodNav/compareNav derivation).
+// Gating on in_shell_guides_nav alone would silently drop the Save toggle from any
+// future guide that opts out of the Guides-index highlight while still living in its
+// own Methods/Compare sidebar section, even though it's fully live and shell-wrapped.
 // Excludes glossary (it has its own /glossary/<slug>/ detail route).
 export const GUIDE_PATHS = new Set(
   (pillarsData.guides || [])
-    .filter((p) => p && p.in_shell_guides_nav)
+    .filter((p) => p && (
+      p.in_shell_guides_nav ||
+      ((p.category === 'methods' || p.category === 'compare') && p.in_methods_nav !== false)
+    ))
     .map((p) => `/${String(p.slug).toLowerCase()}/`)
 );
