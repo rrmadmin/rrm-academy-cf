@@ -554,6 +554,18 @@ Unknown slugs -> branded fallback card (still 200 PNG, never a 404).
 
 **Router:** `/og` is in `ASTRO_ROUTES` in rrm-router/src/index.js. Without that entry, the router proxies `/og/*` to Wix and the function never sees the request.
 
+**Per-slug custom cards:** the default template (`buildTree`) and the provider card (`buildProviderTree`) aren't the only layouts — `functions/og/[[path]].js` can branch on `slug` before falling through to the default (see `buildStucTree` for `save-the-uterus-club`, added 2026-07-02 to feature the Cuterus mascot). A custom card should use fixed copy, not the page's augmented SEO title/description — those are long and will wrap/clamp under an image slot sized for a short title.
+
+**Preview a satori change locally before pushing** (pushing auto-merges and deploys, so a bad render ships before anyone sees it): `satori` + `@resvg/resvg-js` are already in `node_modules`. Write a throwaway `.mjs` in the worktree that imports the exact tree-building function (or inlines an identical copy), renders with the same font URLs as `renderCard()`, and writes a PNG with `Resvg`:
+```js
+import satori from 'satori';
+import { Resvg } from '@resvg/resvg-js';
+// build the same `tree` object [[path]].js would build for the slug you're testing
+const svg = await satori(tree, { width: 1200, height: 630, fonts: [...] });
+new Resvg(svg, { background: BG }).render().asPng(); // write to a tmp path, Read it
+```
+This caught two real issues before deploy on the STUC card build (2026-07-02): a side-by-side layout that clipped description text off the right edge, and a version where the page's long augmented title/description wrapped under the mascot. Render every layout/size candidate this way, get sign-off, THEN commit the matching code into `[[path]].js` and bump `OG_VERSION`.
+
 ## Components
 
 41 files in `src/components/` (last synced 2026-07-02 — when adding a component, add it here):
