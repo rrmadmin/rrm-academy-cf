@@ -505,6 +505,27 @@
       "breadcrumbName": "Sympto-Thermal Method",
       "authorId": "#naomi-whittaker",
       "usesGuideLayout": true
+    },
+    {
+      "slug": "rrm-care-team",
+      "category": "reference",
+      "file": "rrm-care-team/index.astro",
+      "title": "Developing Your RRM Care Team",
+      "description": "A free guide to building your Restorative Reproductive Medicine care team. Learn the four types of RRM support, from medical management to cycle charting, and download the full PDF guide by Dr. Rebecca Vavilov.",
+      "og_title": "Developing Your RRM Care Team",
+      "og_description": "A free guide to building your RRM care team, covering medical management, cycle charting, natural support, and emotional wellness.",
+      "author": "Dr. Rebecca Vavilov",
+      "read_time": "8 min read",
+      "accent": "var(--purple-700)",
+      "in_guides_catalogue": true,
+      "in_shell_guides_nav": true,
+      "_order": 7.5,
+      "pageTitle": "Developing Your RRM Care Team",
+      "pageDescription": "A free guide to building your Restorative Reproductive Medicine care team. Learn the four types of RRM support, from medical management to cycle charting, and download the full PDF guide by Dr. Rebecca Vavilov.",
+      "pageH1": "Developing Your RRM Care Team",
+      "breadcrumbName": "RRM Care Team",
+      "authorId": "#rebecca-vavilov",
+      "usesGuideLayout": false
     }
   ]
 }
