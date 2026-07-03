@@ -1,0 +1,135 @@
+---
+import BaseLayout from '../../../layouts/BaseLayout.astro';
+
+const PAGE_URL = 'https://rrmacademy.org/endo-check/start/';
+---
+
+<BaseLayout
+  title="Start your endometriosis symptom self-check"
+  description="Check every symptom that applies to you across three categories, then see your results right away."
+  canonicalUrl={PAGE_URL}
+  noindex
+>
+  <div class="ec">
+    <section class="ec-hero">
+      <div class="container ec-hero__inner">
+        <p class="ec-eyebrow">Free educational tool</p>
+        <h1 class="ec-hero__title">Check the symptoms that apply to you</h1>
+        <p class="ec-hero__tagline">Be honest. There are no wrong answers. Your results appear right away once you finish.</p>
+      </div>
+    </section>
+
+    <div class="page-body">
+      <div class="container container--narrow">
+        <section class="card ec-card" aria-labelledby="ec-form-title">
+          <h2 id="ec-form-title" class="sr-only">Symptom checklist</h2>
+
+          <div class="tier-block" data-tier="1">
+            <div class="tier-header tier-header--1">
+              <h3>Very high suspicion symptoms</h3>
+              <p class="tier-header__meta"><span class="tier-count" data-tier-count="1">0</span> of 15 selected</p>
+            </div>
+            <div class="tier-items" id="tier1-items"></div>
+          </div>
+
+          <div class="tier-block" data-tier="2">
+            <div class="tier-header tier-header--2">
+              <h3>High suspicion symptoms</h3>
+              <p class="tier-header__meta"><span class="tier-count" data-tier-count="2">0</span> of 15 selected</p>
+            </div>
+            <div class="tier-items" id="tier2-items"></div>
+          </div>
+
+          <div class="tier-block" data-tier="3">
+            <div class="tier-header tier-header--3">
+              <h3>Suspicion symptoms</h3>
+              <p class="tier-header__meta"><span class="tier-count" data-tier-count="3">0</span> of 6 selected</p>
+            </div>
+            <div class="tier-items" id="tier3-items"></div>
+          </div>
+
+          <button type="button" id="ec-see-results" class="btn btn--primary btn--lg ec-submit">See my results</button>
+        </section>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // @ts-nocheck
+    import { TIER1, TIER2, TIER3, HANDOFF_KEY, RESULT_VERSION, computeScore } from '../../../lib/endo-check-symptoms.mjs';
+
+    function renderTier(containerId, name, items) {
+      const el = document.getElementById(containerId);
+      if (!el) return;
+      let html = '';
+      items.forEach(function (label, i) {
+        html += '<label class="symptom-item"><input type="checkbox" name="' + name + '" value="' + label.replace(/"/g, '&quot;') + '"><span class="symptom-check"></span><span class="symptom-label">' + label + '</span></label>';
+      });
+      el.innerHTML = html;
+    }
+
+    renderTier('tier1-items', 't1', TIER1);
+    renderTier('tier2-items', 't2', TIER2);
+    renderTier('tier3-items', 't3', TIER3);
+
+    document.querySelectorAll('.tier-items input[type="checkbox"]').forEach(function (cb) {
+      cb.addEventListener('change', function () {
+        const tier = cb.closest('[data-tier]') && cb.closest('[data-tier]').dataset.tier;
+        if (!tier) return;
+        const count = document.querySelectorAll('[data-tier="' + tier + '"] input:checked').length;
+        const countEl = document.querySelector('[data-tier-count="' + tier + '"]');
+        if (countEl) countEl.textContent = String(count);
+      });
+    });
+
+    document.getElementById('ec-see-results').addEventListener('click', function () {
+      const t1 = Array.from(document.querySelectorAll('input[name="t1"]:checked')).map(function (cb) { return cb.value; });
+      const t2 = Array.from(document.querySelectorAll('input[name="t2"]:checked')).map(function (cb) { return cb.value; });
+      const t3 = Array.from(document.querySelectorAll('input[name="t3"]:checked')).map(function (cb) { return cb.value; });
+
+      const symptoms = { tier1: t1, tier2: t2, tier3: t3 };
+      const score = computeScore(symptoms);
+
+      const handoff = {
+        symptoms: symptoms,
+        score: score,
+        resultVersion: RESULT_VERSION,
+        device: { viewport_width: window.innerWidth },
+        t: Date.now(),
+      };
+      try { sessionStorage.setItem(HANDOFF_KEY, JSON.stringify(handoff)); } catch (e) {}
+      window.location.href = '../results/';
+    });
+  </script>
+
+  <style is:global>
+    .ec .ec-hero { padding: var(--space-12) 0 var(--space-8); background: linear-gradient(162deg, var(--purple-50) 0%, var(--cream) 64%); text-align: center; }
+    .ec .ec-hero__inner { max-width: 46rem; margin: 0 auto; }
+    .ec .ec-eyebrow { font-family: 'Inter', sans-serif; font-size: 0.75rem; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; color: var(--accent); margin-bottom: var(--space-3); }
+    .ec .ec-hero__title { font-size: var(--text-d1); line-height: 1.1; letter-spacing: -0.015em; margin: 0 0 var(--space-4); text-wrap: balance; }
+    .ec .ec-hero__tagline { font-size: var(--text-d5); line-height: 1.65; color: var(--text-secondary); max-width: 52ch; margin: 0 auto; text-wrap: pretty; }
+    .ec .page-body { padding: var(--space-10) 0 var(--space-12); }
+    .ec .ec-card { padding: var(--space-8); }
+    .ec .sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0,0,0,0); white-space: nowrap; border: 0; }
+
+    .ec .tier-block { margin-bottom: var(--space-8); }
+    .ec .tier-header { display: flex; align-items: baseline; justify-content: space-between; gap: var(--space-3); padding-bottom: var(--space-3); margin-bottom: var(--space-4); border-bottom: 2px solid var(--border-color); }
+    .ec .tier-header h3 { font-size: 1.125rem; margin: 0; color: var(--text-primary); }
+    .ec .tier-header__meta { font-size: 0.875rem; color: var(--text-secondary); margin: 0; white-space: nowrap; }
+    .ec .tier-block[data-tier="1"] .tier-header { border-bottom-color: var(--tier1-accent); }
+    .ec .tier-block[data-tier="2"] .tier-header { border-bottom-color: var(--tier2-accent); }
+    .ec .tier-block[data-tier="3"] .tier-header { border-bottom-color: var(--tier3-accent); }
+
+    .ec .tier-items { display: flex; flex-direction: column; gap: var(--space-2); }
+    .ec .symptom-item { display: flex; align-items: flex-start; gap: var(--space-3); padding: var(--space-3) var(--space-4); border: 1px solid var(--border-color); border-radius: var(--radius-md); cursor: pointer; transition: border-color 0.15s, background 0.15s; }
+    .ec .symptom-item:hover { border-color: var(--purple-700); background: var(--purple-50); }
+    .ec .symptom-item input { margin-top: 0.2em; flex-shrink: 0; }
+    .ec .symptom-label { font-size: 0.9375rem; line-height: 1.5; color: var(--text-primary); }
+
+    .ec .ec-submit { display: block; width: 100%; margin-top: var(--space-4); }
+
+    @media (prefers-reduced-motion: reduce) {
+      .ec .symptom-item { transition: none; }
+    }
+  </style>
+</BaseLayout>

@@ -1,0 +1,230 @@
+---
+import BaseLayout from '../../../layouts/BaseLayout.astro';
+import { TURNSTILE_SITE_KEY } from '../../../lib/turnstile';
+
+const PAGE_URL = 'https://rrmacademy.org/endo-check/results/';
+---
+
+<BaseLayout
+  title="Your endometriosis symptom self-check results"
+  description="Your personalized symptom summary, with educational context and where to learn more."
+  canonicalUrl={PAGE_URL}
+  noindex
+>
+  <div class="ec">
+    <div class="page-body">
+      <div class="container container--narrow">
+        <article id="result" class="rz-result" hidden>
+          <header class="rz-hero">
+            <p class="rz-hero__eyebrow" id="result-band-label">Your results</p>
+            <h1 class="rz-hero__method" id="result-score" tabindex="-1"></h1>
+            <p class="rz-hero__startpoint">This is educational information, not a diagnosis. Only surgery can confirm endometriosis.</p>
+          </header>
+
+          <div class="rz-bars" id="result-bars"></div>
+
+          <div class="rz-why"><p id="result-interp"></p></div>
+
+          <section class="ec-gate card" id="ec-gate" aria-labelledby="ec-gate-title">
+            <h2 id="ec-gate-title">Get a copy of your results by email</h2>
+            <p>We will send your results summary to your inbox along with links to learn more.</p>
+            <form id="ec-email-form" novalidate>
+              <div class="form-group">
+                <label for="ec-email" class="form-label">Email address</label>
+                <input type="email" id="ec-email" name="email" class="form-input" placeholder="you@example.com" autocomplete="email" required />
+              </div>
+              <label class="ec-consent"><input type="checkbox" id="ec-consent" /> <span>Anonymized responses may be used for research. <a href="/privacy-policy/" target="_blank" rel="noopener">Privacy Policy</a></span></label>
+              <button type="submit" id="ec-email-submit" class="btn btn--primary btn--lg">Email me my results</button>
+              <p id="ec-email-msg" class="gate-msg" role="status"></p>
+            </form>
+          </section>
+
+          <section class="rz-next" aria-labelledby="rz-next-title">
+            <h2 class="rz-next__title" id="rz-next-title">Your next step</h2>
+            <a class="rz-card" href="/endometriosis/">
+              <span class="rz-card__body"><strong>Learn about endometriosis</strong><span class="rz-card__sub">How it is evaluated and treated.</span></span>
+            </a>
+            <a class="rz-card" href="/providers/">
+              <span class="rz-card__body"><strong>Find a provider</strong><span class="rz-card__sub">Find a restorative reproductive medicine provider who can evaluate your symptoms.</span></span>
+            </a>
+          </section>
+        </article>
+
+        <div id="turnstile-container" data-sitekey={TURNSTILE_SITE_KEY}></div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // @ts-nocheck
+    import { HANDOFF_KEY, MAX_SCORE, getBand, getBandLabel, getInterpretationText } from '../../../lib/endo-check-symptoms.mjs';
+
+    let handoff = null;
+    try {
+      const raw = sessionStorage.getItem(HANDOFF_KEY);
+      if (raw) handoff = JSON.parse(raw);
+    } catch (e) { handoff = null; }
+
+    if (!handoff || !handoff.score || !handoff.symptoms) {
+      window.location.replace('../start/');
+    } else {
+      init(handoff);
+    }
+
+    function init(handoff) {
+      const score = handoff.score;
+      const counts = {
+        tier1: (handoff.symptoms.tier1 || []).length,
+        tier2: (handoff.symptoms.tier2 || []).length,
+        tier3: (handoff.symptoms.tier3 || []).length,
+      };
+      const band = getBand(score, counts);
+
+      document.getElementById('result-band-label').textContent = getBandLabel(band);
+      const scoreEl = document.getElementById('result-score');
+      scoreEl.textContent = 'Score: ' + score.total + ' / ' + MAX_SCORE.total;
+      document.getElementById('result-interp').textContent = getInterpretationText(band, score);
+
+      const barsEl = document.getElementById('result-bars');
+      barsEl.innerHTML =
+        '<div class="rz-bar"><span class="rz-bar__label">Tier 1: ' + score.tier1 + ' / 45</span><div class="rz-bar__track"><div class="rz-bar__fill rz-bar__fill--1" style="width:' + Math.round((score.tier1 / 45) * 100) + '%"></div></div></div>' +
+        '<div class="rz-bar"><span class="rz-bar__label">Tier 2: ' + score.tier2 + ' / 30</span><div class="rz-bar__track"><div class="rz-bar__fill rz-bar__fill--2" style="width:' + Math.round((score.tier2 / 30) * 100) + '%"></div></div></div>' +
+        '<div class="rz-bar"><span class="rz-bar__label">Tier 3: ' + score.tier3 + ' / 6</span><div class="rz-bar__track"><div class="rz-bar__fill rz-bar__fill--3" style="width:' + Math.round((score.tier3 / 6) * 100) + '%"></div></div></div>';
+
+      document.getElementById('result').hidden = false;
+      const resultHeading = document.getElementById('result-score');
+      if (resultHeading) {
+        try { resultHeading.focus({ preventScroll: true }); } catch (e) { try { resultHeading.focus(); } catch (e2) {} }
+      }
+
+      setupEmailForm(handoff, score, band);
+    }
+
+    function setupEmailForm(handoff, score, band) {
+      let turnstileWidgetId = null, turnstileLoaded = false, pendingSubmit = null, tsWatchdog = null;
+
+      function loadTurnstile() {
+        if (turnstileLoaded) return; turnstileLoaded = true;
+        const sc = document.createElement('script');
+        sc.src = 'https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit';
+        sc.async = true; sc.defer = true; document.head.appendChild(sc);
+      }
+      function initTurnstile() {
+        loadTurnstile();
+        const c = document.getElementById('turnstile-container');
+        if (!c) return;
+        const t = setInterval(function () {
+          if (typeof turnstile !== 'undefined') {
+            clearInterval(t);
+            if (turnstileWidgetId === null) {
+              try {
+                turnstileWidgetId = turnstile.render(c, {
+                  sitekey: c.dataset.sitekey,
+                  size: 'invisible',
+                  callback: function (tok) { clearTimeout(tsWatchdog); if (pendingSubmit) { const pp = pendingSubmit; pendingSubmit = null; doSubmit(pp, tok); } },
+                  'error-callback': function () { clearTimeout(tsWatchdog); pendingSubmit = null; const m = document.getElementById('ec-email-msg'); if (m) m.textContent = 'We could not verify your browser. Please refresh and try again.'; setSubmitting(false); },
+                });
+              } catch (e) {}
+            }
+          }
+        }, 250);
+        setTimeout(function () { clearInterval(t); }, 10000);
+      }
+
+      function setSubmitting(state) {
+        const btn = document.getElementById('ec-email-submit');
+        if (btn) { btn.disabled = state; btn.textContent = state ? 'Sending...' : 'Email me my results'; }
+      }
+
+      function doSubmit(payload, token) {
+        payload.turnstileToken = token;
+        const msg = document.getElementById('ec-email-msg');
+        fetch('/api/endo-check/request', {
+          method: 'POST', headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload),
+        }).then(function (res) { return res.json().then(function (d) { return { ok: res.ok, data: d }; }, function () { return { ok: res.ok, data: {} }; }); })
+          .then(function (r) {
+            setSubmitting(false);
+            if (r.ok && r.data && r.data.ok) {
+              if (msg) msg.textContent = 'Sent. Check your inbox for your results.';
+              try { sessionStorage.removeItem(HANDOFF_KEY); } catch (e) {}
+              const form = document.getElementById('ec-email-form');
+              if (form) form.querySelectorAll('input, button').forEach(function (el) { el.disabled = true; });
+            } else if (r.data && r.data.suggestion) {
+              if (msg) msg.textContent = 'Did you mean ' + r.data.suggestion + '? Please correct and try again.';
+            } else {
+              if (msg) msg.textContent = 'We could not send your results just now. Please try again.';
+            }
+          })
+          .catch(function () {
+            setSubmitting(false);
+            if (msg) msg.textContent = 'Network error. Please try again.';
+          });
+      }
+
+      document.getElementById('ec-email-form').addEventListener('submit', function (e) {
+        e.preventDefault();
+        const msg = document.getElementById('ec-email-msg');
+        const email = document.getElementById('ec-email').value.trim();
+        if (!email || email.indexOf('@') < 1 || email.indexOf('.') < 0) { if (msg) msg.textContent = 'Please enter a valid email address.'; return; }
+        const consent = document.getElementById('ec-consent');
+        if (!consent || !consent.checked) { if (msg) msg.textContent = 'Please check the research consent box.'; return; }
+
+        setSubmitting(true);
+        if (msg) msg.textContent = '';
+
+        const payload = { email: email, score: score, symptoms: handoff.symptoms, band: band, researchConsent: 1, device: handoff.device || {} };
+
+        if (typeof turnstile !== 'undefined' && turnstileWidgetId !== null) {
+          pendingSubmit = payload;
+          clearTimeout(tsWatchdog);
+          tsWatchdog = setTimeout(function () { if (pendingSubmit) { const pp = pendingSubmit; pendingSubmit = null; doSubmit(pp, ''); } }, 8000);
+          try { turnstile.reset(turnstileWidgetId); turnstile.execute(turnstileWidgetId); return; } catch (e) {}
+        }
+        doSubmit(payload, '');
+      });
+
+      initTurnstile();
+    }
+  </script>
+
+  <style is:global>
+    .ec .page-body { padding: var(--space-10) 0 var(--space-12); }
+    .ec .rz-hero { text-align: center; padding: var(--space-10) var(--space-6); background: linear-gradient(162deg, var(--purple-50) 0%, var(--cream) 64%); border-radius: var(--radius-lg); }
+    .ec .rz-hero__eyebrow { text-transform: uppercase; letter-spacing: 0.05em; font-size: var(--text-b4); font-weight: 600; color: var(--purple-700); margin: 0 0 var(--space-2); }
+    .ec .rz-hero__method { font-size: var(--text-d2); line-height: var(--leading-display); margin: 0 0 var(--space-4); color: var(--text-primary); text-wrap: balance; }
+    .ec .rz-hero__startpoint { font-size: var(--text-b2); line-height: var(--leading-ui); color: var(--text-secondary); margin: 0 auto; max-width: 52ch; }
+
+    .ec .rz-bars { margin-top: var(--space-6); display: flex; flex-direction: column; gap: var(--space-4); }
+    .ec .rz-bar__label { font-size: var(--text-b3); color: var(--text-secondary); }
+    .ec .rz-bar__track { margin-top: var(--space-1); height: 0.5rem; background: var(--border-light); border-radius: var(--radius-pill); overflow: hidden; }
+    .ec .rz-bar__fill { height: 100%; }
+    .ec .rz-bar__fill--1 { background: var(--tier1-accent); }
+    .ec .rz-bar__fill--2 { background: var(--tier2-accent); }
+    .ec .rz-bar__fill--3 { background: var(--tier3-accent); }
+
+    .ec .rz-why { margin-top: var(--space-6); padding: var(--space-5) var(--space-6); background: var(--purple-50); border-left: 3px solid var(--purple-700); border-radius: var(--radius-md); }
+    .ec .rz-why p { margin: 0; font-size: var(--text-d5); line-height: var(--leading-ui); color: var(--text-primary); }
+
+    .ec .ec-gate { margin-top: var(--space-8); padding: var(--space-8); text-align: center; }
+    .ec .ec-gate h2 { margin: 0 0 var(--space-2); font-size: 1.375rem; }
+    .ec .ec-gate p { margin: 0 0 var(--space-5); color: var(--text-secondary); }
+    .ec .ec-gate form { text-align: left; max-width: 420px; margin: 0 auto; }
+    .ec .ec-consent { display: flex; gap: var(--space-2); align-items: flex-start; margin: var(--space-4) 0; font-size: var(--text-b3); color: var(--text-secondary); text-align: left; }
+    .ec .ec-consent input { margin-top: var(--space-1); flex-shrink: 0; }
+    .ec .ec-gate .btn { width: 100%; }
+    .ec .gate-msg { margin-top: var(--space-3); font-size: var(--text-b2); color: var(--text-secondary); }
+
+    .ec .rz-next { margin-top: var(--space-8); }
+    .ec .rz-next__title { font-size: var(--text-d3); margin: 0 0 var(--space-4); color: var(--text-primary); }
+    .ec .rz-card { display: flex; align-items: center; gap: var(--space-4); padding: var(--space-4); border: 1px solid var(--border-color); border-radius: var(--radius-md); margin-bottom: var(--space-3); text-decoration: none; transition: border-color 0.15s, background 0.15s; }
+    .ec .rz-card:hover { border-color: var(--purple-700); background: var(--purple-50); }
+    .ec .rz-card__body { display: flex; flex-direction: column; }
+    .ec .rz-card strong { color: var(--text-primary); }
+    .ec .rz-card__sub { font-size: var(--text-b2); color: var(--text-secondary); }
+
+    @media (prefers-reduced-motion: reduce) {
+      .ec .rz-card { transition: none; }
+    }
+  </style>
+</BaseLayout>

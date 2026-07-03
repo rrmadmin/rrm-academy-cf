@@ -373,6 +373,9 @@ Validation: `npm run ssot:validate` (schema + cross-ref) and `npm run ssot:smoke
 |-------|------|
 | `/endo-survey` | `src/pages/endo-survey/index.astro` |
 | `/endo-survey/take` | `src/pages/endo-survey/take.astro` (handles expired-link state) |
+| `/endo-check` | `src/pages/endo-check/index.astro` (Google Ads landing variant, FABM-quiz-style flow, no magic link; noindex) |
+| `/endo-check/start` | `src/pages/endo-check/start/index.astro` |
+| `/endo-check/results` | `src/pages/endo-check/results/index.astro` |
 
 **Partners & providers**
 
@@ -685,6 +688,7 @@ This caught two real issues before deploy on the STUC card build (2026-07-02): a
 | `POST /api/survey/submit` | `survey/submit.js` | Consume token, store pseudonymized responses |
 | `POST /api/survey/event` | `survey/event.js` | Survey click beacon (rate-limited) |
 | `GET /api/survey/count` | `survey/count.js` | Public survey-taker counts (edge-cached) |
+| `POST /api/endo-check/request` | `endo-check/request.js` | Google Ads landing-flow single-step email capture (Turnstile + rate limit); stores pseudonymized symptoms tagged `source='ads'`, fires Google Ads conversion (placeholder action ID) |
 | `POST /api/contact/submit` | `contact/submit.js` | Contact form via SES (Turnstile + rate limit) |
 | `POST /api/partners/apply` | `partners/apply.js` | Partner application intake (Turnstile) |
 | `POST /api/pdf/request` | `pdf/request.js` | Email guide-PDF redeem token (Turnstile + 5/15min) |
