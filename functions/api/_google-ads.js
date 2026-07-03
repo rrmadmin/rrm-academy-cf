@@ -1,28 +1,38 @@
 /**
- * Google Ads offline conversion upload (Enhanced Conversions for Leads style
- * click_conversions:upload via ConversionUploadService). No gtag.js, no
- * client-side third-party script -- server-to-server only, gclid-driven.
+ * Google Ads offline conversion upload via the Data Manager API
+ * (datamanager.googleapis.com events:ingest). No gtag.js, no client-side
+ * third-party script -- server-to-server only, gclid-driven.
  * Prefixed with _ so CF Pages doesn't treat it as a route handler.
+ *
+ * Why Data Manager and not the Google Ads API's uploadClickConversions:
+ * that service is closed to new integrations (CUSTOMER_NOT_ALLOWLISTED_FOR_
+ * THIS_FEATURE, verified live 2026-07-03); Google requires new offline click
+ * uploads to go through Data Manager. The OAuth refresh token carries both
+ * the adwords and datamanager scopes. The target conversion actions are type
+ * UPLOAD_CLICKS (gclid uploads are rejected for WEBPAGE-type actions).
+ * No login-customer-id equivalent is sent: the OAuth user has DIRECT access
+ * to the grant account, which is NOT linked under the manager (917-740-4425);
+ * routing through the manager returns 403 USER_PERMISSION_DENIED.
  *
  * Usage: fire-and-forget after a successful conversion action:
  *   sendGoogleAdsConversion(env, waitUntil, request.headers.get('Cookie') || '', NEWSLETTER_CONVERSION_ACTION_ID);
  *
  * Requires CF Pages secrets: GOOGLE_ADS_CLIENT_ID, GOOGLE_ADS_CLIENT_SECRET,
- * GOOGLE_ADS_REFRESH_TOKEN, GOOGLE_ADS_DEVELOPER_TOKEN. Missing any of these
- * is treated as "not configured yet" -- a silent no-op, not an error, since
- * this augments an already-successful user-facing response.
+ * GOOGLE_ADS_REFRESH_TOKEN. Missing any of these is treated as "not
+ * configured yet" -- a silent no-op, not an error, since this augments an
+ * already-successful user-facing response.
  */
 
 import { log } from './_log.js';
 
-const GOOGLE_ADS_API_VERSION = 'v21';
 const GOOGLE_ADS_CUSTOMER_ID = '4262268858';
-const GOOGLE_ADS_LOGIN_CUSTOMER_ID = '9177404425';
+const INGEST_ENDPOINT = 'https://datamanager.googleapis.com/v1/events:ingest';
 const TOKEN_ENDPOINT = 'https://oauth2.googleapis.com/token';
 
-export const NEWSLETTER_CONVERSION_ACTION_ID = '7671737988';
-export const QUIZ_CONVERSION_ACTION_ID = '7671737991';
-export const ENDO_QUIZ_CONVERSION_ACTION_ID = '7671879303';
+// Conversion actions of type UPLOAD_CLICKS in the Ad Grants account.
+export const NEWSLETTER_CONVERSION_ACTION_ID = '7671519545';
+export const QUIZ_CONVERSION_ACTION_ID = '7671519548';
+export const ENDO_QUIZ_CONVERSION_ACTION_ID = '7671519551';
 
 // gclid values are opaque alphanumeric-ish tokens Google generates; this is a
 // sanity bound, not a real format spec.
@@ -42,12 +52,10 @@ function parseGclidCookie(cookieHeader) {
   return value;
 }
 
-// Google Ads API requires "yyyy-MM-dd HH:mm:ss+00:00" (UTC).
-function formatConversionTime(date) {
-  const iso = date.toISOString();
-  const [datePart, timePart] = iso.split('T');
-  const time = timePart.split('.')[0];
-  return `${datePart} ${time}+00:00`;
+// Data Manager wants RFC 3339; strip fractional seconds for the exact shape
+// verified against the live endpoint ("2026-07-03T18:00:00Z").
+function formatEventTimestamp(date) {
+  return date.toISOString().replace(/\.\d{3}Z$/, 'Z');
 }
 
 async function getAccessToken(env) {
@@ -82,27 +90,27 @@ async function uploadConversion(env, gclid, conversionActionId) {
 
   let resp;
   try {
-    resp = await fetch(
-      `https://googleads.googleapis.com/${GOOGLE_ADS_API_VERSION}/customers/${GOOGLE_ADS_CUSTOMER_ID}:uploadClickConversions`,
-      {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${accessToken}`,
-          'developer-token': env.GOOGLE_ADS_DEVELOPER_TOKEN,
-          'login-customer-id': GOOGLE_ADS_LOGIN_CUSTOMER_ID,
-        },
-        body: JSON.stringify({
-          conversions: [{
-            gclid,
-            conversionAction: `customers/${GOOGLE_ADS_CUSTOMER_ID}/conversionActions/${conversionActionId}`,
-            conversionDateTime: formatConversionTime(new Date()),
-          }],
-          partialFailure: true,
-        }),
-        signal: AbortSignal.timeout(5000),
-      }
-    );
+    resp = await fetch(INGEST_ENDPOINT, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${accessToken}`,
+      },
+      body: JSON.stringify({
+        destinations: [{
+          operatingAccount: { accountType: 'GOOGLE_ADS', accountId: GOOGLE_ADS_CUSTOMER_ID },
+          productDestinationId: conversionActionId,
+        }],
+        events: [{
+          adIdentifiers: { gclid },
+          eventTimestamp: formatEventTimestamp(new Date()),
+          conversionValue: 1.0,
+          currency: 'USD',
+          eventSource: 'WEB',
+        }],
+      }),
+      signal: AbortSignal.timeout(5000),
+    });
   } catch (err) {
     throw new Error(`upload_network:${err.message}`, { cause: err });
   }
@@ -110,11 +118,6 @@ async function uploadConversion(env, gclid, conversionActionId) {
   if (!resp.ok) {
     const bodyText = await resp.text().catch(() => '');
     throw new Error(`upload_${resp.status}:${bodyText.slice(0, 150)}`);
-  }
-
-  const result = await resp.json().catch(() => null);
-  if (result?.partialFailureError) {
-    throw new Error(`partial_failure:${JSON.stringify(result.partialFailureError).slice(0, 150)}`);
   }
 }
 
@@ -125,7 +128,7 @@ async function uploadConversion(env, gclid, conversionActionId) {
  */
 export function sendGoogleAdsConversion(env, waitUntil, cookieHeader, conversionActionId) {
   try {
-    if (!env.GOOGLE_ADS_CLIENT_ID || !env.GOOGLE_ADS_CLIENT_SECRET || !env.GOOGLE_ADS_REFRESH_TOKEN || !env.GOOGLE_ADS_DEVELOPER_TOKEN) {
+    if (!env.GOOGLE_ADS_CLIENT_ID || !env.GOOGLE_ADS_CLIENT_SECRET || !env.GOOGLE_ADS_REFRESH_TOKEN) {
       return;
     }
     const gclid = parseGclidCookie(cookieHeader);
