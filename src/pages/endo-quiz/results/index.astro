@@ -2,11 +2,11 @@
 import BaseLayout from '../../../layouts/BaseLayout.astro';
 import { TURNSTILE_SITE_KEY } from '../../../lib/turnstile';
 
-const PAGE_URL = 'https://rrmacademy.org/endo-check/results/';
+const PAGE_URL = 'https://rrmacademy.org/endo-quiz/results/';
 ---
 
 <BaseLayout
-  title="Your endometriosis symptom self-check results"
+  title="Your endometriosis symptom quiz results"
   description="Your personalized symptom summary, with educational context and where to learn more."
   canonicalUrl={PAGE_URL}
   noindex
@@ -57,7 +57,7 @@ const PAGE_URL = 'https://rrmacademy.org/endo-check/results/';
 
   <script>
     // @ts-nocheck
-    import { HANDOFF_KEY, MAX_SCORE, getBand, getBandLabel, getInterpretationText } from '../../../lib/endo-check-symptoms.mjs';
+    import { HANDOFF_KEY, MAX_SCORE, getBand, getBandLabel, getInterpretationText } from '../../../lib/endo-quiz-symptoms.mjs';
 
     let handoff = null;
     try {
@@ -139,7 +139,7 @@ const PAGE_URL = 'https://rrmacademy.org/endo-check/results/';
       function doSubmit(payload, token) {
         payload.turnstileToken = token;
         const msg = document.getElementById('ec-email-msg');
-        fetch('/api/endo-check/request', {
+        fetch('/api/endo-quiz/request', {
           method: 'POST', headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(payload),
         }).then(function (res) { return res.json().then(function (d) { return { ok: res.ok, data: d }; }, function () { return { ok: res.ok, data: {} }; }); })
