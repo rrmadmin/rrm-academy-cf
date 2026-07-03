@@ -1,0 +1,215 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+
+const PAGE_URL = 'https://rrmacademy.org/fertility-awareness-method-quiz/';
+
+const jsonLd = {
+  '@context': 'https://schema.org',
+  '@graph': [
+    {
+      '@type': ['MedicalWebPage', 'WebPage'],
+      '@id': `${PAGE_URL}#webpage`,
+      url: PAGE_URL,
+      name: 'Which Fertility Awareness Method Is Right for You? A Self-Assessment',
+      description: 'A free, clinician-designed self-assessment that suggests which fertility awareness-based method (FABM) may fit your cycles, goals, and preferences, in restorative reproductive medicine.',
+      inLanguage: 'en-US',
+      isPartOf: { '@id': 'https://rrmacademy.org/#website' },
+      about: { '@type': 'MedicalEntity', name: 'Fertility awareness-based methods', alternateName: ['FABM', 'Natural Family Planning'] },
+      reviewedBy: { '@id': 'https://rrmacademy.org/#naomi-whittaker' },
+      mainEntityOfPage: PAGE_URL,
+    },
+    {
+      '@type': 'FAQPage',
+      '@id': `${PAGE_URL}#faq`,
+      isPartOf: { '@id': `${PAGE_URL}#webpage` },
+      mainEntity: [
+        { '@type': 'Question', name: "Is this quiz the same as getting instruction in a method?", acceptedAnswer: { '@type': 'Answer', text: "Not at all. The quiz matches you to a starting point; instruction is what makes the method work. Every evidence-based FABM has a trained-instructor program, and the effectiveness data assumes you have gone through it. Think of the quiz as a referral that points you to the right door, and the instructor as the person who teaches you to open it." } },
+        { '@type': 'Question', name: "Can I use a fertility awareness method if my cycles are irregular?", acceptedAnswer: { '@type': 'Answer', text: "In most cases, yes. Some methods suit irregular cycles better than others. Mucus-based methods like Billings and the Creighton Model observe your body's actual signals rather than counting days, which makes them more flexible when cycle length varies. A trained instructor can confirm the right fit, and the quiz takes your cycle regularity into account." } },
+        { '@type': 'Question', name: "Do fertility awareness methods work for avoiding pregnancy, conceiving, or both?", acceptedAnswer: { '@type': 'Answer', text: "Both. Many of these methods can be used to both achieve and avoid pregnancy. The fertile window works the same way in either direction: knowing when it opens tells you when to time intercourse to conceive (Hilgers et al. 1992, PMID 1479570), and when to avoid it if you are not trying. The quiz asks about your goal so it can match accordingly." } },
+        { '@type': 'Question', name: "Are these methods only for religious women?", acceptedAnswer: { '@type': 'Answer', text: "For many women, that is the first assumption, and it is worth correcting. Fertility awareness methods are physiological tools that work based on the biology of ovulation, not on any belief system. They have been studied and used by women across many backgrounds, religious and secular. Some methods originated within faith-based medical communities that remain active in training and research, but the methods themselves are available to anyone." } },
+        { '@type': 'Question', name: "Can my chart help a doctor find a reproductive health problem?", acceptedAnswer: { '@type': 'Answer', text: "Often, yes, and it is one of the most underappreciated benefits of learning a FABM. A detailed chart shows ovulation timing, cervical mucus quality, luteal phase length, and changes over time. An RRM clinician can read that and spot things a standard exam or single blood draw would miss. Your chart is one of the most useful things to bring to a first appointment. You can find an RRM clinician at rrmacademy.org/providers/." } },
+        { '@type': 'Question', name: "My cycles just came back after having a baby. Can I still take the quiz?", acceptedAnswer: { '@type': 'Answer', text: "Postpartum is actually a great time to start. Breastfeeding changes cycle patterns and ovulation can return unpredictably. The quiz includes a postpartum option and matches you to methods with established postpartum guidelines. Let your instructor know you are postpartum at your first session so they apply the right protocol from the start." } }
+      ],
+    },
+    { '@type': 'WebSite', '@id': 'https://rrmacademy.org/#website', url: 'https://rrmacademy.org/', name: 'RRM Academy' },
+    {
+      '@type': ['Physician', 'Person'],
+      '@id': 'https://rrmacademy.org/#naomi-whittaker',
+      name: 'Naomi M. Whittaker', honorificPrefix: 'Dr.', honorificSuffix: 'MD',
+      jobTitle: 'Board-Certified Obstetrician-Gynecologist',
+      identifier: [{ '@type': 'PropertyValue', propertyID: 'ORCID', value: '0000-0003-3706-3112' }],
+    },
+  ],
+};
+---
+
+<BaseLayout
+  title="Which Fertility Awareness Method Is Right for You?"
+  description="A free, clinician-designed quiz that matches you to a fertility awareness method based on your cycles, goals, and preferences. Two minutes."
+  canonicalUrl={PAGE_URL}
+  jsonLd={jsonLd}
+>
+  <div class="fam-quiz">
+  <section class="qz-hero">
+    <div class="container qz-hero__inner">
+      <p class="qz-eyebrow">Free 2-minute quiz</p>
+      <h1 class="qz-hero__title">Which Fertility Awareness Method Is Right for You?</h1>
+      <p class="qz-hero__tagline">This free quiz matches you to one of seven evidence-based fertility awareness methods (FABMs) based on your cycles, your goals, and your situation. It takes about two minutes. If you have been sorting through conflicting information and still do not know where to start, a clear, personalized answer is closer than you think.</p>
+      <div class="qz-hero__meta">
+        <span class="qz-chip"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6L9 17l-5-5"/></svg>Free</span>
+        <span class="qz-chip"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6L9 17l-5-5"/></svg>About 2 minutes</span>
+        <span class="qz-chip"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6L9 17l-5-5"/></svg>Evidence-based</span>
+      </div>
+    </div>
+  </section>
+
+  <div class="page-body">
+    <div class="container container--narrow">
+      <section class="qz-launch card" aria-labelledby="qz-launch-title">
+        <h2 id="qz-launch-title" class="qz-launch__title">Find your method in two minutes</h2>
+        <p class="qz-launch__text">Answer nine quick questions and get a personalized match with a free starter guide.</p>
+        <a class="btn btn--primary btn--lg" href="/fertility-awareness-method-quiz/start/">Start the quiz</a>
+      </section>
+
+      <div class="qz-intro">
+        <h2 class="qz-section-title">Can a quiz tell you which method to use?</h2>
+        <div class="qz-note">
+          <p class="qz-note__lead">Not completely. But it can cut through the overwhelm and point you to a real starting place. A trained instructor takes you the rest of the way.</p>
+          <p>If you feel like you have been reading in circles, you are not imagining it. There are seven evidence-based fertility awareness methods, and they are genuinely different from each other. Some rely on cervical mucus observations. Some add basal body temperature. Some use hormone testing. Each one has a different learning curve, a different fit for irregular cycles, and different evidence behind it. The right match depends on your cycles, your goals, and honestly, your personality.</p>
+          <p>This quiz narrows it down. It asks about your cycle patterns, your comfort with daily tracking, whether you are trying to achieve or avoid pregnancy, and a few other things that actually change the answer. At the end, you get a recommendation and a free starter guide sent to your inbox. Think of it as a first conversation, not a final prescription. When you are ready to go further, connecting with a trained instructor is the step that makes the difference.</p>
+          <p class="qz-note__sig">Dr. Naomi Whittaker, MD &middot; Board-Certified OBGYN, MIGS, NFPMC, FCI</p>
+        </div>
+      </div>
+
+        <div class="qz-how">
+          <h2 class="qz-how__title">How it works</h2>
+          <ol class="qz-flow">
+            <li class="qz-flow__step"><span class="qz-flow__num">1</span><h3 class="qz-flow__heading">Enter your email</h3><p class="qz-flow__text">You will get your results and a free method-specific starter guide. No spam. Unsubscribe any time.</p></li>
+            <li class="qz-flow__step"><span class="qz-flow__num">2</span><h3 class="qz-flow__heading">Answer 9 honest questions</h3><p class="qz-flow__text">Your cycle length and regularity, your tracking preferences, whether you are trying to achieve or avoid pregnancy, and a few practicalities. The more honestly you answer, the more accurate your match.</p></li>
+            <li class="qz-flow__step"><span class="qz-flow__num">3</span><h3 class="qz-flow__heading">Get your match</h3><p class="qz-flow__text">A method recommendation, a plain explanation of why it fits, and where to find a trained instructor. Your chart can also give an RRM clinician a detailed window into your reproductive health.</p></li>
+          </ol>
+        </div>
+
+      <div class="qz-content">
+        <section class="qz-block">
+          <h2>What are fertility awareness methods?</h2>
+          <p>You may have heard the term and still felt unclear on what it actually means. Fertility awareness methods (FABMs) are evidence-based systems for observing and recording the naturally occurring signs of a woman's ovulatory cycle. Each method uses one or more biomarkers, including cervical mucus, basal body temperature, cycle day, or urinary hormone levels, to identify the fertile window. That window is real and biologically defined: an egg can be fertilized for about 12 to 24 hours after ovulation, and sperm can survive in fertile cervical mucus for up to five days (Wilcox et al. 1995, PMID 7477165).</p>
+          <p>FABMs are instructor-taught, standardized systems, and that distinction matters. Period-tracking apps like Flo, Clue, and Natural Cycles use fertility-awareness ideas, but they run on algorithms built from population averages, and most are not held to the same evidence standards as instructor-taught methods. The methods compared in this quiz are instructor-taught and standardized, and most have peer-reviewed effectiveness data behind them.</p>
+          <p>FABMs serve two purposes: family planning (both achieving and avoiding pregnancy) and reproductive health monitoring. A well-kept chart is a medical record. It shows cycle length, ovulation timing, luteal phase length, and pattern changes over time, and an RRM clinician can read it to see things a standard blood panel can miss.</p>
+        </section>
+        <section class="qz-block">
+          <h2>Which fertility awareness method is right for me?</h2>
+          <p>The overwhelm makes sense. There are real differences between these methods, and the wrong starting point can make the learning curve steeper than it needs to be. The right method is the one you will actually use, taught by an instructor you can actually reach. Effectiveness data for every FABM assumes correct and consistent use, and the biggest variable in correct, consistent use is the quality of instruction (Peragallo Urrutia et al. 2018, PMID 30095777).</p>
+          <p>The methods do genuinely differ. The Standard Days Method works best when your cycles consistently fall between 26 and 32 days (Arevalo et al. 2002, PMID 12057784). The TwoDay Method is simpler to learn and works across a wider range (Arevalo et al. 2004, PMID 15482764). Billings (WHO 1981, PMID 7308503) and the Creighton Model (Hilgers et al. 1998, PMID 9653695) rely entirely on cervical mucus, with no thermometer, but need a certified instructor. The Sympto-Thermal Method (Sensiplan) combines mucus and temperature and has some of the strongest research (Frank-Herrmann et al. 2007, PMID 17314078). The Marquette Model adds urinary hormone monitoring and suits women who prefer objective data (Fehring et al. 2007, PMID 17371516). FEMM pairs cervical-mucus observation with optional hormone testing and a medical-management focus, supported by an app, and is a good fit if you want your charting tied closely to your health care.</p>
+          <p>Irregular cycles, postpartum, and perimenopause all change the picture, and the quiz accounts for that. If you have a known reproductive health condition, pairing method instruction with an RRM clinician gives you both layers: charting literacy and a clinician who can read what the chart reveals.</p>
+        </section>
+        <section class="qz-block">
+          <h2>Are fertility awareness methods effective?</h2>
+          <p>This is often the first question, and the honest answer is worth reading carefully. With correct, consistent use and a trained teacher, the strongest instructor-taught methods report fewer than 2 women in 100 getting pregnant over a year, comparable to many hormonal contraceptives (Peragallo Urrutia et al. 2018, PMID 30095777). The gap between that number and everyday-use numbers is real, and it is mostly explained by inconsistent use and inadequate instruction, not by the method itself.</p>
+          <p>Numbers need context. A perfect-use rate tells you what happens when a woman has been trained, charts consistently, and follows the rules. Everyday-use rates include everyone who started and then skipped charting or never finished the learning curve. Both appear in the research, and both are honest; they measure different things (Frank-Herrmann et al. 2007, PMID 17314078).</p>
+          <p>One clarification: effectiveness data from app-based tools is not the same as data from instructor-taught methods. Apps may present figures that actually belong to the underlying method, not to the app as a standalone product. For pregnancy avoidance, the instructor-taught method and the app built around its concepts are not interchangeable.</p>
+        </section>
+        <section class="qz-block">
+          <h2>Do fertility awareness methods work for irregular cycles or postpartum?</h2>
+          <p>If your cycles have never been regular, you may have assumed fertility awareness was not for you. That assumption is worth examining. Irregular cycles are not a barrier to fertility awareness, but they are a reason to choose carefully and to work with a trained teacher rather than self-teaching from a book.</p>
+          <p>Methods built on fixed cycle-day rules, like the Standard Days Method, are designed for regular cycles. Mucus-based methods like Billings and Creighton observe the body's actual signals whenever they appear, which makes them more adaptable, and the Marquette Model's hormone monitoring can pinpoint ovulation even when it shifts.</p>
+          <p>Postpartum is its own situation. Breastfeeding delays ovulation but does not prevent it, and ovulation can return before your first postpartum period. Certified instructors for most methods have specific postpartum protocols, so tell your instructor at the first appointment. The quiz flags this and factors it in.</p>
+        </section>
+        <section class="qz-block">
+          <h2>Are period-tracking apps the same as fertility awareness methods?</h2>
+          <p>If you have been using an app and sensed it was just guessing, you were right to wonder. Period-tracking apps track cycle length and predict your next period, mostly using historical averages to estimate when ovulation might occur. That estimate comes from population data, not from your body's signals on any given cycle.</p>
+          <p>Fertility awareness methods teach you to observe your own biomarkers, in real time, each cycle. The mucus is there or it is not. The temperature rose or it did not. Those are observations, not predictions, and the difference matters most when your cycle deviates from its usual pattern, which is exactly when accuracy matters most.</p>
+          <p>Natural Cycles is sometimes called an exception because it holds a regulatory clearance for pregnancy prevention in several countries and uses temperature readings in an algorithm. It is more rigorous than a simple tracker, but it is still a software product, not an instructor-taught method, and its everyday-use figures should be read in that light (Berglund Scherwitzl et al. 2017, PMID 28882680). A trained instructor notices charting errors, signs of irregularity, and patterns worth raising with a clinician that an algorithm cannot.</p>
+        </section>
+        <section id="sources" class="qz-block">
+          <h2>Sources</h2>
+          <p>The method information in this quiz draws on the following published research. The quiz's own matching logic is a self-assessment tool, not a validated diagnostic instrument; the sources below support the method facts, not the match itself.</p>
+          <ol class="sources-list">
+            <li>Wilcox AJ, Weinberg CR, Baird DD. Timing of sexual intercourse in relation to ovulation. Effects on the probability of conception, survival of the pregnancy, and sex of the baby. N Engl J Med. 1995;333(23):1517-1521. PMID: 7477165. DOI: 10.1056/NEJM199512073332301</li>
+            <li>Peragallo Urrutia R et al. Effectiveness of Fertility Awareness-Based Methods for Pregnancy Prevention: A Systematic Review. Obstet Gynecol. 2018;132(3):591-604. PMID: 30095777. DOI: 10.1097/AOG.0000000000002784. [Erratum: Obstet Gynecol. 2019;133(2):382.]</li>
+            <li>Arevalo M et al. Efficacy of a new method of family planning: the Standard Days Method. Contraception. 2002;65(5):333-338. PMID: 12057784. DOI: 10.1016/S0010-7824(02)00288-3</li>
+            <li>Arevalo M et al. Efficacy of the new TwoDay Method of family planning. Fertil Steril. 2004;82(4):885-892. PMID: 15482764. DOI: 10.1016/j.fertnstert.2004.03.040</li>
+            <li>WHO Task Force on Methods for the Determination of the Fertile Period. Prospective multicentre trial of the ovulation method of natural family planning, II. The effectiveness phase. Fertil Steril. 1981;36(5):591-598. PMID: 7308503. DOI: 10.1016/S0015-0282(16)45856-5</li>
+            <li>Hilgers TW et al. Creighton Model NaProEducation Technology for avoiding pregnancy. Use effectiveness. J Reprod Med. 1998;43(6):495-502. PMID: 9653695. [Figure sourced through Manhart 2013; primary full text not independently reviewed.]</li>
+            <li>Frank-Herrmann P et al. The effectiveness of a fertility awareness based method to avoid pregnancy in relation to a couple's sexual behaviour during the fertile time: a prospective longitudinal study. Hum Reprod. 2007;22(5):1310-1319. PMID: 17314078. DOI: 10.1093/humrep/dem003</li>
+            <li>Fehring RJ et al. Efficacy of cervical mucus observations plus electronic hormonal fertility monitoring as a method of natural family planning. J Obstet Gynecol Neonatal Nurs. 2007;36(2):152-160. PMID: 17371516. DOI: 10.1111/j.1552-6909.2007.000129.x</li>
+            <li>Berglund Scherwitzl E et al. Perfect-use and typical-use Pearl Index of a contraceptive mobile app. Contraception. 2017;96(6):420-425. PMID: 28882680. DOI: 10.1016/j.contraception.2017.08.014</li>
+            <li>Hilgers TW, Daly KD, Prebil AM, Hilgers SK. Cumulative pregnancy rates in patients with apparently normal fertility and fertility-focused intercourse. J Reprod Med. 1992;37(10):864-866. PMID: 1479570.</li>
+          </ol>
+        </section>
+        <section class="qz-block">
+          <h2>Frequently asked questions</h2>
+          <div class="qz-faq">
+            <details class="qz-faq__item"><summary class="qz-faq__q">Is this quiz the same as getting instruction in a method?</summary><div class="qz-faq__a"><p>Not at all. The quiz matches you to a starting point; instruction is what makes the method work. Every evidence-based FABM has a trained-instructor program, and the effectiveness data assumes you have gone through it. Think of the quiz as a referral that points you to the right door, and the instructor as the person who teaches you to open it.</p></div></details>
+            <details class="qz-faq__item"><summary class="qz-faq__q">Can I use a fertility awareness method if my cycles are irregular?</summary><div class="qz-faq__a"><p>In most cases, yes. Some methods suit irregular cycles better than others. Mucus-based methods like Billings and the Creighton Model observe your body's actual signals rather than counting days, which makes them more flexible when cycle length varies. A trained instructor can confirm the right fit, and the quiz takes your cycle regularity into account.</p></div></details>
+            <details class="qz-faq__item"><summary class="qz-faq__q">Do fertility awareness methods work for avoiding pregnancy, conceiving, or both?</summary><div class="qz-faq__a"><p>Both. Many of these methods can be used to both achieve and avoid pregnancy. The fertile window works the same way in either direction: knowing when it opens tells you when to time intercourse to conceive (Hilgers et al. 1992, PMID 1479570), and when to avoid it if you are not trying. The quiz asks about your goal so it can match accordingly.</p></div></details>
+            <details class="qz-faq__item"><summary class="qz-faq__q">Are these methods only for religious women?</summary><div class="qz-faq__a"><p>For many women, that is the first assumption, and it is worth correcting. Fertility awareness methods are physiological tools that work based on the biology of ovulation, not on any belief system. They have been studied and used by women across many backgrounds, religious and secular. Some methods originated within faith-based medical communities that remain active in training and research, but the methods themselves are available to anyone.</p></div></details>
+            <details class="qz-faq__item"><summary class="qz-faq__q">Can my chart help a doctor find a reproductive health problem?</summary><div class="qz-faq__a"><p>Often, yes, and it is one of the most underappreciated benefits of learning a FABM. A detailed chart shows ovulation timing, cervical mucus quality, luteal phase length, and changes over time. An RRM clinician can read that and spot things a standard exam or single blood draw would miss. Your chart is one of the most useful things to bring to a first appointment. You can find an RRM clinician at rrmacademy.org/providers/.</p></div></details>
+            <details class="qz-faq__item"><summary class="qz-faq__q">My cycles just came back after having a baby. Can I still take the quiz?</summary><div class="qz-faq__a"><p>Postpartum is actually a great time to start. Breastfeeding changes cycle patterns and ovulation can return unpredictably. The quiz includes a postpartum option and matches you to methods with established postpartum guidelines. Let your instructor know you are postpartum at your first session so they apply the right protocol from the start.</p></div></details>
+          </div>
+        </section>
+        <div class="qz-recap">
+          <h2 class="qz-recap__title">Ready to find your method?</h2>
+          <p class="qz-recap__text">Two minutes, and you walk away with a clear starting point and a free guide.</p>
+          <a href="/fertility-awareness-method-quiz/start/" class="btn btn--primary btn--lg qz-recap__btn">Take the quiz</a>
+          <p class="qz-recap__providers">Already know you need help? <a href="/providers/">Find a restorative reproductive medicine provider</a>.</p>
+        </div>
+        <div class="qz-disclaimer"><p><strong>Medical disclaimer:</strong> This quiz is for educational purposes only and does not constitute medical advice, diagnosis, or treatment. Always consult a qualified healthcare provider.</p></div>
+      </div>
+    </div>
+  </div>
+  </div>
+
+  <style is:global>
+    .fam-quiz .qz-hero { padding: var(--space-12) 0 var(--space-10); background: linear-gradient(162deg, var(--purple-50) 0%, var(--cream) 64%); text-align: center; }
+    .fam-quiz .qz-hero__inner { max-width: 46rem; margin: 0 auto; }
+    .fam-quiz .qz-eyebrow { font-family: 'Inter', sans-serif; font-size: 0.75rem; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; color: var(--accent); margin-bottom: var(--space-3); }
+    .fam-quiz .qz-hero__title { font-size: var(--text-d1); line-height: 1.1; letter-spacing: -0.015em; margin: 0 0 var(--space-4); text-wrap: balance; }
+    .fam-quiz .qz-hero__tagline { font-size: var(--text-d5); line-height: 1.65; color: var(--text-secondary); max-width: 52ch; margin: 0 auto; text-wrap: pretty; }
+    .fam-quiz .qz-hero__meta { margin-top: var(--space-6); display: flex; flex-wrap: wrap; gap: var(--space-3); justify-content: center; }
+    .fam-quiz .qz-chip { display: inline-flex; align-items: center; gap: var(--space-2); padding: var(--space-1) var(--space-3); background: var(--bg-card); border: 1px solid var(--border-color); border-radius: var(--radius-pill); font-size: 0.8125rem; font-weight: 500; color: var(--text-secondary); }
+    .fam-quiz .qz-chip svg { color: var(--accent); flex-shrink: 0; }
+    .fam-quiz .page-body { padding: var(--space-10) 0 var(--space-12); }
+    .fam-quiz .qz-intro { margin-top: var(--space-12); }
+    .fam-quiz .qz-section-title { font-size: 1.625rem; margin: 0 0 var(--space-5); }
+    .fam-quiz .qz-note__lead { font-family: var(--font-display); font-size: var(--text-d3); line-height: 1.35; color: var(--text-primary); margin: 0 0 var(--space-5); text-wrap: balance; }
+    .fam-quiz .qz-note p { font-size: 1.125rem; line-height: 1.75; color: var(--text-secondary); margin: 0 0 var(--space-4); }
+    .fam-quiz .qz-note__sig { font-size: 0.875rem; font-weight: 500; color: var(--text-tertiary); margin-top: var(--space-5); padding-top: var(--space-4); border-top: 1px solid var(--border-light); }
+    .fam-quiz .qz-how { margin-top: var(--space-10); }
+    .fam-quiz .qz-how__title { font-size: 1.5rem; text-align: center; margin: 0 0 var(--space-8); }
+    .fam-quiz .qz-flow { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: 1fr; gap: var(--space-8); }
+    @media (min-width: 680px) { .fam-quiz .qz-flow { grid-template-columns: repeat(3, 1fr); gap: var(--space-6); } }
+    .fam-quiz .qz-flow__step { text-align: center; padding: 0 var(--space-2); }
+    .fam-quiz .qz-flow__num { display: inline-flex; align-items: center; justify-content: center; width: 2.5rem; height: 2.5rem; color: var(--white); background: var(--purple-700); border-radius: var(--radius-pill); font-family: var(--font-display); font-weight: 600; font-size: 1.25rem; margin-bottom: var(--space-4); }
+    .fam-quiz .qz-flow__heading { font-size: 1.125rem; margin: 0 0 var(--space-2); color: var(--text-primary); }
+    .fam-quiz .qz-flow__text { font-size: 0.9375rem; line-height: 1.6; color: var(--text-secondary); margin: 0 auto; max-width: 30ch; }
+    .fam-quiz .qz-content { margin-top: var(--space-12); }
+    .fam-quiz .qz-block { margin-bottom: var(--space-10); }
+    .fam-quiz .qz-block h2 { font-size: 1.5rem; margin: 0 0 var(--space-4); color: var(--text-primary); text-wrap: balance; }
+    .fam-quiz .qz-block p { font-size: 1.125rem; line-height: 1.75; color: var(--text-secondary); margin: 0 0 var(--space-4); }
+    .fam-quiz .qz-block p:last-child { margin-bottom: 0; }
+    .fam-quiz .qz-block a { color: var(--accent); text-decoration: underline; text-underline-offset: 2px; }
+    .fam-quiz .sources-list { font-size: 0.875rem; line-height: 1.6; color: var(--text-secondary); padding-left: var(--space-5); margin: 0; }
+    .fam-quiz .sources-list li { margin-bottom: var(--space-3); }
+    .fam-quiz .sources-list li:last-child { margin-bottom: 0; }
+    .fam-quiz .qz-faq { display: flex; flex-direction: column; gap: var(--space-2); }
+    .fam-quiz .qz-faq__item { border: 1px solid var(--border-color); border-radius: var(--radius-md); background: var(--bg-card); overflow: hidden; }
+    .fam-quiz .qz-faq__q { list-style: none; cursor: pointer; padding: var(--space-4) var(--space-5); font-family: var(--font-display); font-size: var(--text-d4); font-weight: 600; color: var(--text-primary); display: flex; align-items: center; justify-content: space-between; gap: var(--space-3); }
+    .fam-quiz .qz-faq__q::-webkit-details-marker { display: none; }
+    .fam-quiz .qz-faq__q::after { content: '+'; flex-shrink: 0; font-family: 'Inter', sans-serif; font-weight: 400; font-size: 1.5rem; line-height: 1; color: var(--accent); transition: transform 0.2s ease; }
+    .fam-quiz .qz-faq__item[open] .qz-faq__q::after { transform: rotate(45deg); }
+    .fam-quiz .qz-faq__a { padding: 0 var(--space-5) var(--space-5); }
+    .fam-quiz .qz-faq__a p { font-size: 1rem; line-height: 1.7; color: var(--text-secondary); margin: 0; }
+    .fam-quiz .qz-recap { margin-top: var(--space-12); padding: var(--space-10) var(--space-8); border-radius: var(--radius-lg); text-align: center; background: radial-gradient(120% 140% at 50% 0%, var(--purple-700) 0%, var(--purple-900) 100%); }
+    .fam-quiz .qz-recap__title { font-size: var(--text-d2); margin: 0 0 var(--space-3); color: var(--white); text-wrap: balance; }
+    .fam-quiz .qz-recap__text { font-size: 1.125rem; line-height: 1.7; color: var(--purple-200); margin: 0 auto var(--space-6); max-width: 44ch; }
+    .fam-quiz .qz-recap__btn { background: var(--bg-surface); color: var(--purple-900); border: none; }
+    .fam-quiz .qz-recap__providers { font-size: 0.875rem; color: var(--purple-300); margin: var(--space-5) 0 0; }
+    .fam-quiz .qz-recap__providers a { color: var(--white); text-decoration: underline; }
+    .fam-quiz .qz-disclaimer { margin-top: var(--space-10); padding-top: var(--space-4); border-top: 1px solid var(--border-light); }
+    .fam-quiz .qz-disclaimer p { font-size: 0.75rem; line-height: 1.6; color: var(--text-secondary); margin: 0; }
+    .fam-quiz .qz-launch { margin-top: var(--space-8); text-align: center; }
+    .fam-quiz .qz-launch__title { font-size: var(--text-d3); margin: 0 0 var(--space-3); color: var(--text-primary); }
+    .fam-quiz .qz-launch__text { font-size: var(--text-d5); line-height: var(--leading-body); color: var(--text-secondary); margin: 0 auto var(--space-6); max-width: 44ch; }
+  </style>
+</BaseLayout>

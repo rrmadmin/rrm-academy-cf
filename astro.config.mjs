@@ -74,6 +74,8 @@ export default defineConfig({
           '/library/saved',
           '/saved/',
           '/endo-survey/take',
+          '/fertility-awareness-method-quiz/start',
+          '/fertility-awareness-method-quiz/results',
           '/donate/thank-you',
           '/save-the-uterus-club/thank-you',
           '/providers/claim',

@@ -1,0 +1,174 @@
+---
+import BaseLayout from '../../../layouts/BaseLayout.astro';
+
+const PAGE_URL = 'https://rrmacademy.org/fertility-awareness-method-quiz/start/';
+---
+
+<BaseLayout
+  title="Start the fertility awareness method quiz"
+  description="Enter your email and answer nine quick questions to find the fertility awareness method that fits your cycles, goals, and preferences."
+  canonicalUrl={PAGE_URL}
+  noindex
+>
+  <div class="fam-quiz">
+    <section class="qz-hero">
+      <div class="container qz-hero__inner">
+        <p class="qz-eyebrow">Free 2-minute quiz</p>
+        <h1 class="qz-hero__title">Find your fertility awareness method</h1>
+        <p class="qz-hero__tagline">Enter your email, then answer nine quick questions. Your match and a free starter guide are ready as soon as you finish.</p>
+      </div>
+    </section>
+
+    <div class="page-body">
+      <div class="container container--narrow">
+        <section id="start" class="card quiz-card" aria-labelledby="start-title">
+          <h2 id="start-title">First, where should we send your result?</h2>
+          <p>Enter your email to begin. We will show your match as soon as you finish, and send it to you with a short starter guide for your method. No password to remember.</p>
+          <form id="start-form" novalidate>
+            <div class="form-group">
+              <label for="start-email" class="form-label">Email address</label>
+              <input type="email" id="start-email" name="email" class="form-input" placeholder="you@example.com" autocomplete="email" required />
+            </div>
+            <label class="qz-consent"><input type="checkbox" id="research-consent" /> <span>Anonymized responses may be used for research. <a href="/privacy-policy/" target="_blank" rel="noopener">Privacy Policy</a></span></label>
+            <button type="submit" id="start-submit" class="btn btn--primary btn--lg">Start the quiz</button>
+            <p id="start-msg" class="gate-msg" role="status"></p>
+          </form>
+        </section>
+
+        <section id="quiz" class="card quiz-card" hidden>
+          <div class="quiz-progress"><div id="quiz-bar" class="quiz-bar"></div></div>
+          <p id="quiz-step-count" class="quiz-step-count"></p>
+          <div id="quiz-question"></div>
+          <div class="quiz-nav">
+            <button type="button" id="quiz-back" class="btn btn--secondary" disabled>Back</button>
+            <button type="button" id="quiz-next" class="btn btn--primary" disabled>Next</button>
+          </div>
+        </section>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    import { QUESTIONS, RULES_VERSION, encodeAnswers, ensureSid, trackEvent } from '../../../lib/fabm-quiz-engine.mjs';
+    import { ico } from '../../../lib/fabm-quiz-icons.mjs';
+
+    const answers = {};
+    let step = 0, userEmail = '', researchConsent = 0;
+
+    const qEl = document.getElementById('quiz-question');
+    const barEl = document.getElementById('quiz-bar');
+    const countEl = document.getElementById('quiz-step-count');
+    const backBtn = document.getElementById('quiz-back');
+    const nextBtn = document.getElementById('quiz-next');
+
+    function prefersReducedMotion() {
+      try { return window.matchMedia('(prefers-reduced-motion: reduce)').matches; } catch (e) { return false; }
+    }
+
+    // renderStep() moves focus onto the new question's fieldset every time it
+    // runs (gate unlock -> first question, and every Next/Back transition).
+    // The fieldset carries the legend as its accessible name and is described
+    // by quiz-step-count, so a single focus-triggered read covers both the
+    // progress ("Question 3 of 9") and the question text. Deliberately NOT
+    // paired with an aria-live region on #quiz: mutating that same subtree
+    // while also moving focus into it double-announces in several screen
+    // readers (live-region read + focus read of identical content).
+    function renderStep() {
+      const item = QUESTIONS[step];
+      trackEvent('question_view', item.id);
+      countEl.textContent = 'Question ' + (step + 1) + ' of ' + QUESTIONS.length;
+      barEl.style.width = Math.round((step / QUESTIONS.length) * 100) + '%';
+      let html = '<fieldset class="quiz-fieldset" tabindex="-1" aria-describedby="quiz-step-count"><legend>' + item.q + '</legend>';
+      item.options.forEach(function (opt, i) {
+        const checked = answers[item.id] === opt.v ? ' checked' : '';
+        html += '<label class="quiz-option" style="--stagger:' + i + '"><input type="radio" name="' + item.id + '" value="' + opt.v + '"' + checked + '><span class="opt-ico-wrap">' + ico(opt.icon) + '</span><span class="opt-text">' + opt.label + '</span></label>';
+      });
+      html += '</fieldset>';
+      qEl.innerHTML = html;
+      backBtn.disabled = step === 0;
+      nextBtn.disabled = !answers[item.id];
+      nextBtn.textContent = step === QUESTIONS.length - 1 ? 'See my result' : 'Next';
+      qEl.querySelectorAll('input[type=radio]').forEach(function (r) {
+        r.addEventListener('change', function () { answers[item.id] = r.value; nextBtn.disabled = false; trackEvent('question_answer', item.id); });
+      });
+      const fieldset = qEl.querySelector('fieldset');
+      if (fieldset) {
+        // preventScroll: the gate-unlock caller performs its own explicit,
+        // reduced-motion-aware scrollIntoView right after this call; Next/Back
+        // transitions don't need to scroll at all since #quiz is already
+        // in view. Either way this focus move itself introduces no motion.
+        try { fieldset.focus({ preventScroll: true }); } catch (e) { try { fieldset.focus(); } catch (e2) {} }
+      }
+    }
+
+    function finish() {
+      const handoff = {
+        answers: answers,
+        email: userEmail,
+        researchConsent: researchConsent,
+        rulesVersion: RULES_VERSION,
+        sid: ensureSid(),
+        t: Date.now(),
+      };
+      try { sessionStorage.setItem('fabm-quiz-handoff', JSON.stringify(handoff)); } catch (e) {}
+      window.location.href = '../results/?a=' + encodeAnswers(answers);
+    }
+
+    nextBtn.addEventListener('click', function () {
+      if (!answers[QUESTIONS[step].id]) return;
+      if (step === QUESTIONS.length - 1) { finish(); return; }
+      step++; renderStep();
+    });
+    backBtn.addEventListener('click', function () { trackEvent('back_tap', QUESTIONS[step].id); if (step > 0) { step--; renderStep(); } });
+
+    const consentEl = document.getElementById('research-consent');
+    if (consentEl) consentEl.addEventListener('change', function () { if (consentEl.checked) trackEvent('consent_checked'); });
+
+    document.getElementById('start-form').addEventListener('submit', function (e) {
+      e.preventDefault();
+      const msg = document.getElementById('start-msg');
+      const email = document.getElementById('start-email').value.trim();
+      if (!email || email.indexOf('@') < 1 || email.indexOf('.') < 0) { msg.textContent = 'Please enter a valid email address.'; return; }
+      const consent = document.getElementById('research-consent');
+      if (!consent || !consent.checked) { msg.textContent = 'Please check the research consent box to begin.'; return; }
+      researchConsent = 1;
+      userEmail = email;
+      document.getElementById('start').hidden = true;
+      document.getElementById('quiz').hidden = false;
+      trackEvent('quiz_start');
+      renderStep();
+      document.getElementById('quiz').scrollIntoView({ behavior: prefersReducedMotion() ? 'auto' : 'smooth', block: 'start' });
+    });
+
+    trackEvent('gate_view');
+  </script>
+
+  <style is:global>
+    .fam-quiz .qz-hero { padding: var(--space-12) 0 var(--space-8); background: linear-gradient(162deg, var(--purple-50) 0%, var(--cream) 64%); text-align: center; }
+    .fam-quiz .qz-hero__inner { max-width: 46rem; margin: 0 auto; }
+    .fam-quiz .qz-eyebrow { font-family: var(--font-body); font-size: var(--text-b5); font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; color: var(--accent); margin-bottom: var(--space-3); }
+    .fam-quiz .qz-hero__title { font-size: var(--text-d1); line-height: var(--leading-display-tight); letter-spacing: -0.015em; margin: 0 0 var(--space-4); text-wrap: balance; }
+    .fam-quiz .qz-hero__tagline { font-size: var(--text-d5); line-height: var(--leading-body); color: var(--text-secondary); max-width: 52ch; margin: 0 auto; text-wrap: pretty; }
+    .fam-quiz .page-body { padding: var(--space-10) 0 var(--space-12); }
+    .fam-quiz .quiz-card { margin-top: var(--space-8); padding: var(--space-8); }
+    .fam-quiz #start h2 { margin-bottom: var(--space-3); }
+    .fam-quiz #start form { margin-top: var(--space-5); }
+    .fam-quiz .gate-msg { margin-top: var(--space-3); font-size: var(--text-b2); color: var(--text-secondary); }
+    .fam-quiz .qz-consent { display: flex; gap: var(--space-2); align-items: flex-start; margin: var(--space-4) 0; font-size: var(--text-b3); color: var(--text-secondary); text-align: left; }
+    .fam-quiz .qz-consent input { margin-top: var(--space-1); flex-shrink: 0; }
+    .fam-quiz .quiz-progress { height: 0.375rem; background: var(--purple-100); border-radius: var(--radius-pill); overflow: hidden; }
+    .fam-quiz .quiz-bar { height: 100%; width: 0; background: var(--purple-700); transition: width 0.25s ease; }
+    .fam-quiz .quiz-step-count { font-size: var(--text-b3); color: var(--text-muted); margin: var(--space-4) 0 var(--space-2); }
+    .fam-quiz .quiz-fieldset { border: 0; padding: 0; margin: 0; }
+    .fam-quiz .quiz-fieldset legend { font-size: var(--text-d4); font-weight: 600; line-height: var(--leading-caption); margin-bottom: var(--space-5); padding: 0; animation: famFadeUp 0.3s ease both; }
+    .fam-quiz .quiz-option { display: flex; align-items: center; gap: var(--space-3); padding: var(--space-4); border: 1px solid var(--border-color); border-radius: var(--radius-md); margin-bottom: var(--space-3); cursor: pointer; transition: border-color 0.15s, background 0.15s; animation: famFadeUp 0.35s ease both; animation-delay: calc(var(--stagger, 0) * 70ms + 80ms); }
+    @keyframes famFadeUp { from { opacity: 0; transform: translateY(0.5rem); } to { opacity: 1; transform: none; } }
+    @media (prefers-reduced-motion: reduce) { .fam-quiz .quiz-fieldset legend, .fam-quiz .quiz-option { animation: none; } }
+    .fam-quiz .quiz-option:hover { border-color: var(--purple-700); background: var(--purple-50); }
+    .fam-quiz .quiz-option input { flex-shrink: 0; }
+    .fam-quiz .opt-ico-wrap { display: inline-flex; flex-shrink: 0; color: var(--purple-700); }
+    .fam-quiz .opt-ico-wrap .opt-ico { width: 1.6em; height: 1.6em; display: block; }
+    .fam-quiz .opt-text { flex: 1; }
+    .fam-quiz .quiz-nav { display: flex; justify-content: space-between; gap: var(--space-3); margin-top: var(--space-6); }
+  </style>
+</BaseLayout>
