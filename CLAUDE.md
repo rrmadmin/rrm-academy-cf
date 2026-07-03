@@ -340,6 +340,7 @@ Validation: `npm run ssot:validate` (schema + cross-ref) and `npm run ssot:smoke
 | `/isthmocele` | `src/pages/isthmocele/index.astro` (condition guide) |
 | `/fertility-preserving-surgery` | `src/pages/fertility-preserving-surgery/index.astro` (surgical approach comparison) |
 | `/art-registries-and-codes` | `src/pages/art-registries-and-codes/index.astro` (ART registries & codes reference) |
+| `/rrm-care-team` | `src/pages/rrm-care-team/index.astro` (companion page to gated-PDF-download guide by Dr. Rebecca Vavilov; standalone, does not use GuideLayout) |
 | `/rrm-success-rates` | `src/pages/rrm-success-rates/index.astro` (evidence/outcome-studies pillar) |
 | `/ivf-success-calculator` | `src/pages/ivf-success-calculator.astro` (interactive calculator tool; root-level, not in a pillar dir) |
 

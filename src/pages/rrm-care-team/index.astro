@@ -1,0 +1,228 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import MaybeShell from '../../components/MaybeShell.astro';
+import { isShellEnabled } from '../../lib/shell-routes';
+import LastUpdated from '../../components/LastUpdated.astro';
+import PdfDownload from '../../components/PdfDownload.astro';
+import pageDates from '../../data/page-dates.json';
+import { buildArticle, buildBreadcrumbList, buildFAQPage } from '../../lib/identity';
+
+const SHELL_ENABLED = isShellEnabled('guides');
+
+const PAGE_PATH = '/rrm-care-team/';
+const PAGE_URL = `https://rrmacademy.org${PAGE_PATH}`;
+const PUBLISH_DATE = '2026-07-03';
+const LAST_MODIFIED = (pageDates as { dates: Record<string, string> }).dates[PAGE_PATH] || PUBLISH_DATE;
+
+const META_DESCRIPTION = 'A free guide to building your Restorative Reproductive Medicine care team. Learn the four types of RRM support, from medical management to cycle charting, and download the full PDF guide by Dr. Rebecca Vavilov.';
+
+const FAQS = [
+  {
+    question: 'Do I need every type of support on this list?',
+    answerHtml: '<p>No. Your RRM care team is built around your specific needs and can shift as those needs change. Many people start with one or two types of support, such as a cycle charting instructor and a medical provider, and add others over time.</p>',
+    answerText: 'No. Your RRM care team is built around your specific needs and can shift as those needs change. Many people start with one or two types of support, such as a cycle charting instructor and a medical provider, and add others over time.',
+  },
+  {
+    question: 'How do I find an RRM-trained provider?',
+    answerHtml: '<p>Start with RRM Academy\'s <a href="/providers/">provider directory</a> to find clinicians and educators trained in Restorative Reproductive Medicine.</p>',
+    answerText: "Start with RRM Academy's provider directory to find clinicians and educators trained in Restorative Reproductive Medicine.",
+  },
+  {
+    question: 'Is the full guide free?',
+    answerHtml: '<p>Yes. "Developing Your RRM Care Team" is a free downloadable PDF written by Dr. Rebecca Vavilov, PhD, BCDNH, LEHP, covering all four categories of support in more depth, with real care-team examples.</p>',
+    answerText: 'Yes. "Developing Your RRM Care Team" is a free downloadable PDF written by Dr. Rebecca Vavilov, PhD, BCDNH, LEHP, covering all four categories of support in more depth, with real care-team examples.',
+  },
+];
+
+const CARE_TEAM_ROLES = [
+  'Dietitians & Nutritionists',
+  'Fertility Awareness Educators / Cycle Charting Instructors',
+  'Midwives, Doulas & Lactation Consultants',
+  'Naturopaths & Naturopathic Doctors',
+  'Functional Medicine Practitioners',
+  'Health & Wellness Coaches',
+  'Massage & Mercier Therapy Practitioners',
+  'Medical Doctors',
+  'Mental Health Professionals & Therapists',
+  'Natural Health Practitioners',
+  'OB/GYNs',
+  'Pelvic Floor & Physical Therapists',
+  'Personal Trainers',
+  'Acupuncturists',
+  'Chiropractors',
+];
+
+const articleRaw = buildArticle({
+  headline: 'Developing Your RRM Care Team',
+  url: PAGE_URL,
+  datePublished: PUBLISH_DATE,
+  dateModified: LAST_MODIFIED,
+  authorName: 'Dr. Rebecca Vavilov',
+  description: META_DESCRIPTION,
+  articleSection: 'Care Team',
+}) as Record<string, unknown> & { '@context'?: unknown };
+const { '@context': _artCtx, ...articleNodeRaw } = articleRaw;
+const articleNode = { ...articleNodeRaw, mainEntityOfPage: PAGE_URL };
+
+const breadcrumbRaw = buildBreadcrumbList([
+  { name: 'Home', url: 'https://rrmacademy.org/' },
+  { name: 'Guides', url: 'https://rrmacademy.org/guides/' },
+  { name: 'RRM Care Team', url: PAGE_URL },
+]) as Record<string, unknown> & { '@context'?: unknown };
+const { '@context': _bcCtx, ...breadcrumbNode } = breadcrumbRaw;
+
+const faqPageRaw = buildFAQPage(
+  FAQS.map((f) => ({ question: f.question, answer: f.answerText }))
+) as Record<string, unknown> & { '@context'?: unknown };
+const { '@context': _faqCtx, ...faqPageNode } = faqPageRaw;
+
+const jsonLd = {
+  '@context': 'https://schema.org',
+  '@graph': [articleNode, breadcrumbNode, faqPageNode],
+};
+---
+<BaseLayout
+  title="Developing Your RRM Care Team"
+  description="A free guide to building your Restorative Reproductive Medicine care team. Learn the four types of RRM support, from medical management to cycle charting, and download the full PDF guide by Dr. Rebecca Vavilov."
+  canonicalUrl="https://rrmacademy.org/rrm-care-team"
+  ogType="article"
+  publishDate={PUBLISH_DATE}
+  jsonLd={jsonLd}
+  speakable={['.pillar-lead', 'h1']}
+  chrome={SHELL_ENABLED ? 'shell' : 'default'}
+  trackScroll
+>
+  <MaybeShell enabled={SHELL_ENABLED} context="page" currentPath={Astro.url.pathname} saveTitle="RRM Care Team">
+  <div class="page-wrapper" data-pagefind-body>
+    <div class="container container--narrow">
+
+      <nav class="breadcrumb" aria-label="Breadcrumb">
+        <a href="/">Home</a>
+        <span aria-hidden="true"> &rsaquo; </span>
+        <a href="/guides/">Guides</a>
+        <span aria-hidden="true"> &rsaquo; </span>
+        <span>RRM Care Team</span>
+      </nav>
+
+      <h1>Developing Your RRM Care Team</h1>
+
+      <p class="author-byline">
+        By <strong>Dr. Rebecca Vavilov, PhD, BCDNH, LEHP, Fertility Awareness Educator</strong> &mdash; RRM Academy Contributor
+        <span class="byline-sep" aria-hidden="true">&middot;</span>
+        <LastUpdated path={PAGE_PATH} />
+      </p>
+
+      <article class="prose">
+
+        <p class="pillar-lead"><strong>There's no single "right team" for building a Restorative Reproductive Medicine (RRM) care team.</strong> Support for your hormonal and reproductive health can span medical, natural, educational, and emotional disciplines, and the team that works for you may look different from what works for someone else. This guide, written by naturopath and fertility awareness educator Dr. Rebecca Vavilov, breaks down the four main types of RRM support so you can build the team that fits your needs.</p>
+
+        <section id="medical-management">
+          <h2>Medical Management</h2>
+          <p>RRM medical professionals investigate the root causes of reproductive dysfunction rather than only managing symptoms. Diagnosis typically starts with a cycle chart review alongside lab testing or imaging. Treatment can include medications designed to support the body's natural function, restorative surgery to preserve or enhance fertility, and other integrative therapies. The International Institute for Restorative Reproductive Medicine (<a href="https://iirrm.org" rel="noopener">IIRRM</a>), established in 2000, sets the research and quality standards for RRM-trained physicians. Learn more about the diagnostic philosophy behind RRM in our guide, <a href="/what-is-rrm/">What Is Restorative Reproductive Medicine?</a></p>
+        </section>
+
+        <section id="cycle-charting">
+          <h2>Cycle Charting</h2>
+          <p>Cycle charting, also known as fertility awareness, FAM, FABMs, or NFP, gives you daily insight into your hormonal and reproductive health by tracking key biomarkers. It is often called the body's fifth vital sign. Charting methods generally fall into three families: cervical fluid-based methods (Billings, Creighton Model, Two-Day), symptothermal methods that add basal body temperature tracking (Couple to Couple League, Justisse, SymptoPro), and sympto-hormonal methods that combine at-home hormone monitoring with fluid observation (Boston Cross Check, FEMM, Marquette Method). See our full comparison in <a href="/fertility-awareness-methods-compared/">Fertility Awareness Methods Compared</a>.</p>
+        </section>
+
+        <section id="natural-holistic-support">
+          <h2>Natural &amp; Holistic Support</h2>
+          <p>Nutrition, supplements, exercise, bodywork, and lifestyle changes can support your body's own healing ability and often complement medical management. Nutritionists, functional medicine practitioners, pelvic floor therapists, and bodywork specialists can each play a role depending on your needs.</p>
+        </section>
+
+        <section id="emotional-spiritual-wellness">
+          <h2>Emotional &amp; Spiritual Wellness</h2>
+          <p>A difficult reproductive health journey can take a toll on mental health and relationships. Therapists and counselors, peer support groups, and spiritual or pastoral care can all help build resilience and provide healthy coping tools along the way.</p>
+        </section>
+
+        <section id="care-team-roles">
+          <h2>Who might be on your care team</h2>
+          <div class="care-team-pills">
+            {CARE_TEAM_ROLES.map((role) => <span class="topic-pill">{role}</span>)}
+          </div>
+          <p class="care-team-note">This is not an exhaustive list. Each profession has its own scope of practice within your care team.</p>
+        </section>
+
+        <div class="cta-box">
+          <h3>Download the Free Guide</h3>
+          <p>Get "Developing Your RRM Care Team" as a PDF and keep it on hand as you build your team.</p>
+          <PdfDownload slug="rrm-care-team" label="Download the Free Guide (PDF)" />
+        </div>
+
+        <section id="faq">
+          <h2>Frequently Asked Questions</h2>
+          <div class="faq-accordion" data-pagefind-ignore>
+            {FAQS.map((f) => (
+              <details>
+                <summary>{f.question}</summary>
+                <div class="faq-answer" set:html={f.answerHtml} />
+              </details>
+            ))}
+          </div>
+        </section>
+
+        <p class="disclaimer"><em>This guide is an educational resource only. It is not a substitute for medical advice and is not intended to aid in diagnosis or treatment of any health condition. Questions about your health should be directed to your own healthcare provider.</em></p>
+
+        <div class="cta-box">
+          <h3>Keep exploring RRM</h3>
+          <p><a href="/what-is-rrm/" class="btn btn--primary">What is Restorative Reproductive Medicine?</a></p>
+          <p><a href="/providers/" class="btn btn--secondary">Find an RRM Provider</a></p>
+        </div>
+
+      </article>
+    </div>
+  </div>
+  </MaybeShell>
+</BaseLayout>
+
+<style>
+  .author-byline {
+    font-size: 0.875rem;
+    color: var(--text-secondary);
+    margin-top: calc(-1 * var(--space-2));
+    margin-bottom: var(--space-6);
+    line-height: 1.6;
+  }
+  .byline-sep {
+    color: var(--text-muted);
+  }
+
+  .care-team-pills {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-2);
+    margin: var(--space-4) 0 var(--space-3);
+  }
+  .care-team-note {
+    font-size: 0.8125rem;
+    color: var(--text-tertiary);
+  }
+
+  .cta-box {
+    background: var(--bg-surface);
+    border: none;
+    border-radius: var(--radius-md);
+    padding: var(--space-8);
+    text-align: center;
+    margin: var(--space-8) 0;
+    box-shadow: var(--shadow-sm);
+  }
+  .cta-box h3 {
+    font-family: 'Cormorant Garamond', 'Georgia', serif;
+    margin-bottom: var(--space-3);
+  }
+  .cta-box p {
+    margin-bottom: var(--space-4);
+  }
+  .cta-box p:last-child {
+    margin-bottom: 0;
+  }
+
+  .disclaimer {
+    font-size: 0.8125rem;
+    color: var(--text-tertiary);
+    margin-top: var(--space-8);
+    line-height: 1.6;
+  }
+</style>
