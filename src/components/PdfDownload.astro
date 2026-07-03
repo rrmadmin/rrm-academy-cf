@@ -283,16 +283,20 @@ if (!config?.enabled) return;
     background: var(--purple-700);
     color: var(--white);
   }
+  /* Astro's scoped-style attribute selector gives .pdf-trigger higher
+     specificity than the global .btn/.btn--primary classes, so those can't
+     be reused via markup here -- this variant is self-contained instead.
+     font-family is intentionally omitted: button{font:inherit} (global.css)
+     plus the Inter-set ancestor (.prose) already supply it. */
   .pdf-trigger--labeled {
     width: auto;
     height: auto;
     align-self: auto;
     gap: var(--space-2);
-    padding: 10px var(--space-6);
+    padding: var(--space-2) var(--space-6);
     border-radius: var(--radius-pill);
     background: var(--purple-700);
     color: var(--white);
-    font-family: 'Inter', sans-serif;
     font-size: 0.875rem;
     font-weight: 500;
   }
