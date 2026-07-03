@@ -10,6 +10,7 @@ import { checkRateLimit, CORS_HEADERS, optionsResponse } from './auth/_shared.js
 import { sendGA4Event } from './_ga4.js';
 import { ALLOWED_CLIENT_EVENTS, REQUIRED_PARAMS, PII_REGEX, PII_VALUE_REGEX, RESERVED_PARAMS } from './_track-events.js';
 import { log } from './_log.js';
+import { isBotRequest } from './_bot.js';
 
 const EVENT_NAME_RE = /^[a-z][a-z0-9_]{0,39}$/;
 const PARAM_KEY_RE  = /^[a-z][a-z0-9_]{0,39}$/;
@@ -32,6 +33,19 @@ export async function onRequestPost(context) {
         status: 503,
         headers: CORS_HEADERS,
       });
+    }
+
+    // Bot short-circuit -- no GA4 relay, no AE write. Two independent signals,
+    // either trips it: UA string (spoofable) and request.cf.asn (datacenter/
+    // cloud-provider ASN -- catches browser-UA crawls hosted on cloud IP
+    // ranges that UA filtering alone misses).
+    if (isBotRequest(request)) {
+      env.EVENTS?.writeDataPoint({
+        blobs: ['track', 'bot_skipped', '', '', ''],
+        doubles: [0],
+        indexes: ['bot_skipped'],
+      });
+      return new Response(null, { status: 204, headers: CORS_HEADERS });
     }
 
     const ip = request.headers.get('cf-connecting-ip') || 'unknown';
