@@ -6,6 +6,7 @@
  */
 import { CORS_HEADERS, optionsResponse, checkRateLimit } from '../auth/_shared.js';
 import { log } from '../_log.js';
+import { isBotRequest } from '../_bot.js';
 
 const ALLOWED_ACTIONS = ['calculate', 'download_pdf', 'copy_for_ai', 'follow_instagram'];
 
@@ -25,6 +26,11 @@ export async function onRequestPost(context) {
         status: 503,
         headers: CORS_HEADERS,
       });
+    }
+
+    // Bot short-circuit -- no AE write. See _bot.js.
+    if (isBotRequest(request)) {
+      return new Response(null, { status: 204, headers: CORS_HEADERS });
     }
 
     const ip = request.headers.get('cf-connecting-ip') || 'unknown';
