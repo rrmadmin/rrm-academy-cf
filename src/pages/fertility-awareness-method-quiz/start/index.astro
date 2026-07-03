@@ -35,7 +35,7 @@ const PAGE_URL = 'https://rrmacademy.org/fertility-awareness-method-quiz/start/'
           </form>
         </section>
 
-        <section id="quiz" class="card quiz-card" aria-live="polite" hidden>
+        <section id="quiz" class="card quiz-card" hidden>
           <div class="quiz-progress"><div id="quiz-bar" class="quiz-bar"></div></div>
           <p id="quiz-step-count" class="quiz-step-count"></p>
           <div id="quiz-question"></div>
@@ -61,12 +61,24 @@ const PAGE_URL = 'https://rrmacademy.org/fertility-awareness-method-quiz/start/'
     const backBtn = document.getElementById('quiz-back');
     const nextBtn = document.getElementById('quiz-next');
 
+    function prefersReducedMotion() {
+      try { return window.matchMedia('(prefers-reduced-motion: reduce)').matches; } catch (e) { return false; }
+    }
+
+    // renderStep() moves focus onto the new question's fieldset every time it
+    // runs (gate unlock -> first question, and every Next/Back transition).
+    // The fieldset carries the legend as its accessible name and is described
+    // by quiz-step-count, so a single focus-triggered read covers both the
+    // progress ("Question 3 of 9") and the question text. Deliberately NOT
+    // paired with an aria-live region on #quiz: mutating that same subtree
+    // while also moving focus into it double-announces in several screen
+    // readers (live-region read + focus read of identical content).
     function renderStep() {
       const item = QUESTIONS[step];
       trackEvent('question_view', item.id);
       countEl.textContent = 'Question ' + (step + 1) + ' of ' + QUESTIONS.length;
       barEl.style.width = Math.round((step / QUESTIONS.length) * 100) + '%';
-      let html = '<fieldset class="quiz-fieldset"><legend>' + item.q + '</legend>';
+      let html = '<fieldset class="quiz-fieldset" tabindex="-1" aria-describedby="quiz-step-count"><legend>' + item.q + '</legend>';
       item.options.forEach(function (opt, i) {
         const checked = answers[item.id] === opt.v ? ' checked' : '';
         html += '<label class="quiz-option" style="--stagger:' + i + '"><input type="radio" name="' + item.id + '" value="' + opt.v + '"' + checked + '><span class="opt-ico-wrap">' + ico(opt.icon) + '</span><span class="opt-text">' + opt.label + '</span></label>';
@@ -79,6 +91,14 @@ const PAGE_URL = 'https://rrmacademy.org/fertility-awareness-method-quiz/start/'
       qEl.querySelectorAll('input[type=radio]').forEach(function (r) {
         r.addEventListener('change', function () { answers[item.id] = r.value; nextBtn.disabled = false; trackEvent('question_answer', item.id); });
       });
+      const fieldset = qEl.querySelector('fieldset');
+      if (fieldset) {
+        // preventScroll: the gate-unlock caller performs its own explicit,
+        // reduced-motion-aware scrollIntoView right after this call; Next/Back
+        // transitions don't need to scroll at all since #quiz is already
+        // in view. Either way this focus move itself introduces no motion.
+        try { fieldset.focus({ preventScroll: true }); } catch (e) { try { fieldset.focus(); } catch (e2) {} }
+      }
     }
 
     function finish() {
@@ -117,7 +137,7 @@ const PAGE_URL = 'https://rrmacademy.org/fertility-awareness-method-quiz/start/'
       document.getElementById('quiz').hidden = false;
       trackEvent('quiz_start');
       renderStep();
-      document.getElementById('quiz').scrollIntoView({ behavior: 'smooth', block: 'start' });
+      document.getElementById('quiz').scrollIntoView({ behavior: prefersReducedMotion() ? 'auto' : 'smooth', block: 'start' });
     });
 
     trackEvent('gate_view');
