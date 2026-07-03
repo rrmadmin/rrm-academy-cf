@@ -106,7 +106,7 @@ jobs:
         # Without this the site-data cache serves a stale copy and silently reverts
         # committed edits (tier rows, comparison cards, stats, citations). Any new
         # hand-authored src/data/*.json imported by a page MUST be added here.
-        run: git checkout HEAD -- src/data/quizzes.json src/data/courses-overrides.json src/data/funding-projects.json src/data/campaigns.json src/data/campaign-snapshot.json src/data/team.json src/data/survey-count.json src/data/.baselines.json src/data/glossary-sources-overrides.json src/data/fertility-preserving-surgery.json src/data/art-registries.json src/data/endometriosis.json src/data/endometritis.json src/data/miscarriage.json src/data/pcos.json src/data/rrm-success-rates.json src/data/billings-ovulation-method.json src/data/marquette-model.json src/data/twoday-method.json src/data/boston-cross-check.json src/data/sympto-thermal-method.json
+        run: git checkout HEAD -- src/data/quizzes.json src/data/courses-overrides.json src/data/funding-projects.json src/data/campaigns.json src/data/campaign-snapshot.json src/data/team.json src/data/survey-count.json src/data/.baselines.json src/data/glossary-sources-overrides.json src/data/fertility-preserving-surgery.json src/data/art-registries.json src/data/endometriosis.json src/data/endometritis.json src/data/miscarriage.json src/data/pcos.json src/data/rrm-success-rates.json src/data/billings-ovulation-method.json src/data/marquette-model.json src/data/twoday-method.json src/data/boston-cross-check.json src/data/sympto-thermal-method.json src/data/quiz-method-guides.json
 
       - name: Fetch single blog record (dispatch)
         if: ${{ github.event.client_payload.record_id }}
