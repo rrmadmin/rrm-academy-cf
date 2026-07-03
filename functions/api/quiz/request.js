@@ -15,6 +15,7 @@ const ALLOWED_ANSWER_KEYS = new Set([
 const MAX_ANSWER_VALUE_LEN = 40;
 const MAX_ANSWER_ENTRIES = 12;
 const RULES_VERSION_RE = /^v[0-9a-z-]{1,32}$/;
+const ANSWERS_CODE_RE = /^[0-9]{9}$/;
 
 const METHOD_EMAIL = {
   sdm: {
@@ -88,10 +89,13 @@ export async function onRequestPost(context) {
       return json({ error: 'invalid_payload' }, 400);
     }
 
-    const { email: rawEmail, primary, alternate, answers, researchConsent, turnstileToken, rulesVersion } = body;
+    const { email: rawEmail, primary, alternate, answers, researchConsent, turnstileToken, rulesVersion, answersCode } = body;
 
     const safeRulesVersion = (typeof rulesVersion === 'string' && RULES_VERSION_RE.test(rulesVersion))
       ? rulesVersion
+      : null;
+    const safeAnswersCode = (typeof answersCode === 'string' && ANSWERS_CODE_RE.test(answersCode))
+      ? answersCode
       : null;
 
     // Turnstile
@@ -188,7 +192,7 @@ export async function onRequestPost(context) {
     const alternateInfo = alternateMethod ? METHOD_EMAIL[alternateMethod] : null;
     if (methodInfo) {
       const emailSubject = `Your fertility awareness method match: ${methodInfo.name}`;
-      const emailText = buildEmailText(methodInfo, alternateInfo);
+      const emailText = buildEmailText(methodInfo, alternateInfo, safeAnswersCode);
       try {
         await sendEmail(env, {
           from: 'RRM Academy <info@mail.rrmacademy.org>',
@@ -220,7 +224,7 @@ export async function onRequestPost(context) {
   }
 }
 
-function buildEmailText(primary, alternate) {
+function buildEmailText(primary, alternate, answersCode) {
   const lines = [
     `Your quiz result: ${primary.name}`,
     '',
@@ -234,6 +238,12 @@ function buildEmailText(primary, alternate) {
 
   if (alternate) {
     lines.push(`Also worth a look: ${alternate.name} is ${alternate.tagline}.`);
+    lines.push('');
+  }
+
+  if (answersCode) {
+    lines.push('Revisit or share this result any time:');
+    lines.push(`https://rrmacademy.org/fertility-awareness-method-quiz/results/?a=${answersCode}`);
     lines.push('');
   }
 

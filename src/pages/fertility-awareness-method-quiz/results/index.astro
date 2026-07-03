@@ -214,7 +214,7 @@ const PAGE_URL = 'https://rrmacademy.org/fertility-awareness-method-quiz/results
       }
 
       function sendResult() {
-        const payload = { email: userEmail, primary: recommendation.primary, alternate: recommendation.alternate, answers: answers, researchConsent: researchConsent, rulesVersion: rulesVersion };
+        const payload = { email: userEmail, primary: recommendation.primary, alternate: recommendation.alternate, answers: answers, researchConsent: researchConsent, rulesVersion: rulesVersion, answersCode: params.get('a') };
         if (typeof turnstile !== 'undefined' && turnstileWidgetId !== null) {
           pendingSubmit = payload;
           clearTimeout(tsWatchdog);
