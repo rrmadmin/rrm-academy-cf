@@ -15,11 +15,11 @@ const PAGE_URL = 'https://rrmacademy.org/fertility-awareness-method-quiz/results
   <div class="fam-quiz">
     <div class="page-body">
       <div class="container container--narrow">
-        <article id="result" class="rz-result" aria-live="polite" hidden>
+        <article id="result" class="rz-result" hidden>
           <header class="rz-hero">
             <span class="rz-hero__icon" id="result-icon" aria-hidden="true"></span>
             <p class="rz-hero__eyebrow" id="result-eyebrow">Your suggested method</p>
-            <h1 class="rz-hero__method" id="result-primary"></h1>
+            <h1 class="rz-hero__method" id="result-primary" tabindex="-1"></h1>
             <p class="rz-hero__startpoint">Your match is a starting point. Confirm the fit with a trained instructor or an RRM provider before you begin relying on it.</p>
           </header>
 
@@ -54,7 +54,7 @@ const PAGE_URL = 'https://rrmacademy.org/fertility-awareness-method-quiz/results
           </section>
 
           <p id="result-saved" class="rz-saved footnote" hidden></p>
-          <p id="result-sent" class="rz-sent footnote"></p>
+          <p id="result-sent" class="rz-sent footnote" role="status" aria-live="polite"></p>
           <button type="button" id="result-retry" class="btn btn--secondary" hidden>Retry sending my guide</button>
           <a id="result-retake" class="btn btn--text rz-retake" href="../start/">Start over</a>
         </article>
@@ -169,6 +169,20 @@ const PAGE_URL = 'https://rrmacademy.org/fertility-awareness-method-quiz/results
         if (retake) retake.textContent = 'Take the quiz';
         const sent = document.getElementById('result-sent');
         if (sent) sent.hidden = true;
+      }
+
+      // This is a real page load (start/ redirects here with ?a=), so the
+      // browser places initial focus at the top of the document rather than
+      // on the freshly-revealed result. #result is the first thing inside
+      // <main>, so heading-navigation already lands here, but a linear
+      // screen-reader read would otherwise pass through the header chrome
+      // first. Move focus to the result heading once all synchronous content
+      // above (including the saved-result branch) is in place. preventScroll
+      // is safe here (no motion introduced either way): the heading is
+      // already at the top of the viewport on a fresh navigation.
+      const resultHeading = document.getElementById('result-primary');
+      if (resultHeading) {
+        try { resultHeading.focus({ preventScroll: true }); } catch (e) { try { resultHeading.focus(); } catch (e2) {} }
       }
     }
 
