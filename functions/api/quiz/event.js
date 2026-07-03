@@ -9,6 +9,7 @@
  */
 import { CORS_HEADERS, optionsResponse, checkRateLimit } from '../auth/_shared.js';
 import { log } from '../_log.js';
+import { isBotRequest } from '../_bot.js';
 
 const ALLOWED_EVENTS = new Set([
   'gate_view', 'consent_checked', 'quiz_start', 'question_view', 'question_answer',
@@ -35,6 +36,11 @@ export async function onRequestPost(context) {
 
   try {
     if (!env.SURVEY_DB) {
+      return noContent();
+    }
+
+    // Bot short-circuit -- no D1 write. See _bot.js.
+    if (isBotRequest(request)) {
       return noContent();
     }
 
