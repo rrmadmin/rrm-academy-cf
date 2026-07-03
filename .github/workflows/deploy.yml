@@ -35,7 +35,54 @@ permissions:
   contents: write
 
 jobs:
+  # Stale-dispatch-twin guard (added 2026-07-03). merge.yml's "Trigger Build &
+  # Deploy" step calls `gh workflow run deploy.yml --ref main` right after
+  # pushing a merge commit; that workflow_dispatch resolves main's tip at
+  # dispatch time via GitHub's API, which can lag the just-pushed commit by
+  # eventual consistency. The result: a dispatch run pinned to the pre-merge
+  # sha queues in this workflow's `deploy` concurrency group BEHIND the
+  # correct push-triggered run, finishes second, and redeploys an older build
+  # over the newer one -- silently rolling production back after a good
+  # deploy already went live. Observed 2026-07-03 (memory
+  # rrm-academy-deploy-dispatch-race): dispatch pinned ae98c6ac (pre-merge)
+  # while the push run built 8179e352; the stale twin finished second.
+  #
+  # This job re-checks freshness at the moment it actually runs (i.e. after
+  # its turn in the serialized concurrency queue, not at dispatch time), so
+  # it catches the race regardless of trigger type -- push, workflow_dispatch,
+  # or repository_dispatch. A stale sha is never worth deploying: whichever
+  # run IS still fresh fetches its own current D1 content at build time, so
+  # skipping here never drops content: it just avoids overwriting a newer
+  # build with an older one. Fails OPEN (proceeds as fresh) if the freshness
+  # check itself can't be resolved (e.g. transient network/API error) so a
+  # ls-remote hiccup never blocks a legitimate deploy -- the race this guards
+  # against is a ref-resolution timing issue, not a network-reliability one.
+  freshness:
+    runs-on: ubuntu-latest
+    timeout-minutes: 2
+    outputs:
+      fresh: ${{ steps.check.outputs.fresh }}
+    steps:
+      - name: Compare this run's sha to the current tip of main
+        id: check
+        run: |
+          TIP=$(git ls-remote "https://x-access-token:${{ github.token }}@github.com/${{ github.repository }}.git" refs/heads/main | cut -f1)
+          if [ -z "$TIP" ]; then
+            echo "::warning::Could not resolve main's tip via ls-remote; proceeding as fresh (fail-open) so a transient lookup failure never blocks a legitimate deploy."
+            echo "fresh=true" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          if [ "$TIP" = "${{ github.sha }}" ]; then
+            echo "fresh=true" >> "$GITHUB_OUTPUT"
+            echo "This run's sha (${{ github.sha }}) is the current tip of main. Proceeding."
+          else
+            echo "fresh=false" >> "$GITHUB_OUTPUT"
+            echo "::notice::Skipping deploy: this run's sha (${{ github.sha }}) is no longer the tip of main (now $TIP) -- newer commit on main; its own run deploys it."
+          fi
+
   deploy:
+    needs: freshness
+    if: needs.freshness.outputs.fresh == 'true'
     runs-on: ubuntu-latest
     timeout-minutes: 15
     steps:
