@@ -3,7 +3,7 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
 import { getPersonJsonLd } from '../../lib/identity';
 
 const SITE = 'https://rrmacademy.org';
-const PAGE_URL = `${SITE}/endo-check/`;
+const PAGE_URL = `${SITE}/endo-quiz/`;
 const ORG_ID = `${SITE}/#organization`;
 
 const naomiRaw = getPersonJsonLd(`${SITE}/#naomi-whittaker`);
@@ -19,8 +19,8 @@ const jsonLd = {
       '@type': ['MedicalWebPage', 'WebPage'],
       '@id': `${PAGE_URL}#webpage`,
       url: PAGE_URL,
-      name: 'Endometriosis Symptom Self-Check',
-      description: 'A free educational self-check from a 501(c)(3) nonprofit that helps you organize your endometriosis-associated symptoms into a summary you can bring to a healthcare provider.',
+      name: 'Endometriosis Symptom Quiz',
+      description: 'A free educational quiz from a 501(c)(3) nonprofit that helps you organize your endometriosis-associated symptoms into a summary you can bring to a healthcare provider.',
       inLanguage: 'en-US',
       isPartOf: { '@id': `${SITE}/#website` },
       about: { '@type': 'MedicalCondition', name: 'Endometriosis' },
@@ -34,8 +34,8 @@ const jsonLd = {
 ---
 
 <BaseLayout
-  title="Free Endometriosis Symptom Self-Check"
-  description="A free educational self-check from a 501(c)(3) nonprofit. Learn which of your symptoms are commonly associated with endometriosis and get a summary you can bring to your next appointment."
+  title="Free Endometriosis Symptom Quiz"
+  description="A free educational quiz from a 501(c)(3) nonprofit. Learn which of your symptoms are commonly associated with endometriosis and get a summary you can bring to your next appointment."
   canonicalUrl={PAGE_URL}
   jsonLd={jsonLd}
   noindex
@@ -44,7 +44,7 @@ const jsonLd = {
     <section class="ec-hero">
       <div class="container ec-hero__inner">
         <p class="ec-eyebrow">Free educational tool &middot; 501(c)(3) nonprofit</p>
-        <h1 class="ec-hero__title">Endometriosis Symptom Self-Check</h1>
+        <h1 class="ec-hero__title">Endometriosis Symptom Quiz</h1>
         <p class="ec-hero__tagline">Answer a short set of questions about your symptoms and see how your responses compare to patterns commonly associated with endometriosis. It is educational, confidential, and takes about five minutes.</p>
         <div class="ec-hero__meta">
           <span class="ec-chip"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6L9 17l-5-5"/></svg>Free</span>
@@ -59,13 +59,13 @@ const jsonLd = {
         <section class="ec-launch card" aria-labelledby="ec-launch-title">
           <h2 id="ec-launch-title" class="ec-launch__title">See your results in about five minutes</h2>
           <p class="ec-launch__text">Answer questions about your symptoms, see your results right away, and get a copy sent to your email.</p>
-          <a class="btn btn--primary btn--lg" href="/endo-check/start/">Start my free symptom check</a>
+          <a class="btn btn--primary btn--lg" href="/endo-quiz/start/">Start the free symptom quiz</a>
         </section>
 
         <div class="ec-content">
           <section class="ec-block">
-            <h2>What this self-check does</h2>
-            <p>Endometriosis can only be confirmed through surgery. This self-check does not diagnose anything. It organizes your symptoms into a summary based on symptom patterns commonly described in the medical literature, so you can decide whether to bring your results to a healthcare provider for a fuller evaluation.</p>
+            <h2>What this quiz does</h2>
+            <p>Endometriosis can only be confirmed through surgery. This quiz does not diagnose anything. It organizes your symptoms into a summary based on symptom patterns commonly described in the medical literature, so you can decide whether to bring your results to a healthcare provider for a fuller evaluation.</p>
             <p>The questions cover pain, bleeding patterns, bladder and bowel symptoms, and other signs sometimes associated with endometriosis. Your answers stay confidential.</p>
           </section>
 
@@ -80,19 +80,19 @@ const jsonLd = {
 
           <section class="ec-block">
             <h2>Why symptom awareness matters</h2>
-            <p>Many people live with symptoms associated with endometriosis for years before discussing them with a provider experienced in the condition. A structured self-check can help you put language to what you are experiencing and decide whether it is worth a closer look.</p>
+            <p>Many people live with symptoms associated with endometriosis for years before discussing them with a provider experienced in the condition. A structured symptom quiz can help you put language to what you are experiencing and decide whether it is worth a closer look.</p>
             <p>This tool is provided as free education by RRM Academy, a 501(c)(3) nonprofit focused on restorative reproductive medicine education. It does not collect payment, does not offer medical advice, and does not connect you directly with any individual clinician.</p>
           </section>
         </div>
 
         <div class="ec-recap">
-          <h2 class="ec-recap__title">Ready to check your symptoms?</h2>
+          <h2 class="ec-recap__title">Ready to take the quiz?</h2>
           <p class="ec-recap__text">Five minutes, completely confidential, no obligation.</p>
-          <a href="/endo-check/start/" class="btn btn--primary btn--lg ec-recap__btn">Start my free symptom check</a>
+          <a href="/endo-quiz/start/" class="btn btn--primary btn--lg ec-recap__btn">Start the free symptom quiz</a>
           <p class="ec-recap__providers">Already know you want to talk to someone? <a href="/providers/">Find a restorative reproductive medicine provider</a>.</p>
         </div>
 
-        <div class="ec-disclaimer"><p><strong>Medical disclaimer:</strong> This self-check is for educational purposes only and does not constitute medical advice, diagnosis, or treatment. Always consult a qualified healthcare provider. Reviewed by Dr. Naomi Whittaker, MD, Board-Certified OBGYN, for clinical accuracy of the symptom list.</p></div>
+        <div class="ec-disclaimer"><p><strong>Medical disclaimer:</strong> This quiz is for educational purposes only and does not constitute medical advice, diagnosis, or treatment. Always consult a qualified healthcare provider. Reviewed by Dr. Naomi Whittaker, MD, Board-Certified OBGYN, for clinical accuracy of the symptom list.</p></div>
       </div>
     </div>
   </div>

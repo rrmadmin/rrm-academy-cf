@@ -125,7 +125,7 @@ const REQUIRED_FIELDS = [
 const NON_PILLAR_CLINICAL = new Set([
   'endo-survey', // survey landing, emits clinical schema but is not a pillar guide
   'fertility-awareness-method-quiz', // quiz landing, emits clinical schema but is not a pillar guide
-  'endo-check', // Google Ads landing variant of the endo survey, noindex, not a pillar guide
+  'endo-quiz', // Google Ads landing variant of the endo survey, noindex, not a pillar guide
 ]);
 const CLINICAL_SCHEMA_RE = /MedicalWebPage|MedicalCondition/;
 

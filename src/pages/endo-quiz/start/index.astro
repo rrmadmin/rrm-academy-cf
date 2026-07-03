@@ -1,11 +1,11 @@
 ---
 import BaseLayout from '../../../layouts/BaseLayout.astro';
 
-const PAGE_URL = 'https://rrmacademy.org/endo-check/start/';
+const PAGE_URL = 'https://rrmacademy.org/endo-quiz/start/';
 ---
 
 <BaseLayout
-  title="Start your endometriosis symptom self-check"
+  title="Start your endometriosis symptom quiz"
   description="Check every symptom that applies to you across three categories, then see your results right away."
   canonicalUrl={PAGE_URL}
   noindex
@@ -56,7 +56,7 @@ const PAGE_URL = 'https://rrmacademy.org/endo-check/start/';
 
   <script>
     // @ts-nocheck
-    import { TIER1, TIER2, TIER3, HANDOFF_KEY, RESULT_VERSION, computeScore } from '../../../lib/endo-check-symptoms.mjs';
+    import { TIER1, TIER2, TIER3, HANDOFF_KEY, RESULT_VERSION, computeScore } from '../../../lib/endo-quiz-symptoms.mjs';
 
     function renderTier(containerId, name, items) {
       const el = document.getElementById(containerId);

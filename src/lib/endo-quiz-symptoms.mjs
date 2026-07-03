@@ -1,12 +1,12 @@
 // Endo-check (Google Ads landing flow) symptom list + scoring engine.
-// Scoped to /endo-check/ only. Deliberately duplicated (not imported) from the
+// Scoped to /endo-quiz/ only. Deliberately duplicated (not imported) from the
 // organic /endo-survey/ flow, which is off-limits for edits -- its magic-link
 // flow must keep working untouched. Symptom text and point values are copied
 // verbatim from that flow so the underlying clinical content matches exactly;
 // only the delivery mechanism (no magic link, no PII co-mingling) differs.
 /* eslint-disable */
 
-export const HANDOFF_KEY = 'endo-check-handoff';
+export const HANDOFF_KEY = 'endo-quiz-handoff';
 export const RESULT_VERSION = 'v1-2026-07-03';
 
 export const TIER1 = [
@@ -87,7 +87,7 @@ export function getInterpretationText(band, score) {
     case 'low':
       return `Your responses include a few symptoms that research associates with endometriosis, with a score of ${score.total} out of ${MAX_SCORE.total}. Even a small number of these symptoms can be worth mentioning at your next appointment, especially if they affect your daily life.`;
     default:
-      return `Your responses did not include symptoms commonly associated with endometriosis in this self-check (score: 0 out of ${MAX_SCORE.total}). If you are still experiencing symptoms that concern you, consider discussing them with a healthcare provider.`;
+      return `Your responses did not include symptoms commonly associated with endometriosis in this quiz (score: 0 out of ${MAX_SCORE.total}). If you are still experiencing symptoms that concern you, consider discussing them with a healthcare provider.`;
   }
 }
 
