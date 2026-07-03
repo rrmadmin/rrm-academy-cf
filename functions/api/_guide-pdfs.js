@@ -15,4 +15,10 @@ export const GUIDE_PDFS = {
     title: 'What Is Restorative Reproductive Medicine?',
     pagePath: '/what-is-rrm/',
   },
+  'rrm-care-team': {
+    enabled: true,
+    r2Key: 'guide-pdfs/rrm-care-team.pdf',
+    title: 'Developing Your RRM Care Team',
+    pagePath: '/rrm-care-team/',
+  },
 };

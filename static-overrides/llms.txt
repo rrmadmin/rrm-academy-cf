@@ -138,6 +138,9 @@ In-depth clinical education pages on key topics:
 - ART Registries and Codes of Practice: https://rrmacademy.org/art-registries-and-codes/
 - PCOS: https://rrmacademy.org/pcos/
 - RRM Success Rates: https://rrmacademy.org/rrm-success-rates/
+- RRM Care Team: https://rrmacademy.org/rrm-care-team/
+
+The RRM Care Team guide (added 2026-07-03) is a companion page to a free downloadable PDF guide, "Developing Your RRM Care Team," written by naturopath and fertility awareness educator Dr. Rebecca Vavilov, PhD, BCDNH, LEHP. It breaks down the four main types of support in an RRM care team (medical management, cycle charting, natural and holistic support, and emotional and spiritual wellness), lists the practitioner types patients may want on their team, and links to RRM Academy's provider directory. Author: Dr. Rebecca Vavilov, PhD, BCDNH, LEHP, Fertility Awareness Educator, RRM Academy Contributor.
 
 The PCOS pillar (added 2026-05-12) covers polycystic ovary syndrome diagnosis (NIH 1990, Rotterdam 2003, AE-PCOS 2006, and 2023 International Evidence-Based Guideline criteria), the four Rotterdam phenotypes (A/B/C/D) plus the RRM phenotype lens (insulin-resistant, inflammatory, adrenal, post-pill), the gap between conventional cycle-suppression care and phenotype-matched RRM care, fertility (letrozole as first-line per international guideline), long-term cardiometabolic and mental health implications, adolescent diagnosis caution, and PCOS-endometriosis co-occurrence. Author: Dr. Naomi Whittaker, MD, Board-Certified OBGYN, MIGS, NFPMC, FCI.
 
