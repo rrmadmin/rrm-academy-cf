@@ -124,6 +124,7 @@ const REQUIRED_FIELDS = [
 // fallback OG card and no sitemap/guides presence.
 const NON_PILLAR_CLINICAL = new Set([
   'endo-survey', // survey landing, emits clinical schema but is not a pillar guide
+  'fertility-awareness-method-quiz', // quiz landing, emits clinical schema but is not a pillar guide
 ]);
 const CLINICAL_SCHEMA_RE = /MedicalWebPage|MedicalCondition/;
 
