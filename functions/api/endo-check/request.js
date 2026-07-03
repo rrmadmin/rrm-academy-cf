@@ -132,7 +132,7 @@ export async function onRequestPost(context) {
       return json({ error: 'server_error' }, 500);
     }
 
-    try {
+    try { // arise-ignore unbatched-writes -- second half of the SURVEY_SYMPTOMS_DB/SURVEY_DB split above; db.batch() cannot span two D1 bindings, so this write is intentionally separate and alerted-on-failure below rather than transactional
       await env.SURVEY_DB.prepare(
         'INSERT INTO survey_identities (email, airtable_record_id, source) VALUES (?, ?, ?)'
       ).bind(email, recId, 'endo-check-ads').run();
