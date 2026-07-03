@@ -111,6 +111,10 @@ const STATIC_PAGES = {
     title: 'Take the Endometriosis Survey',
     description: 'Complete the 3-Tier Endometriosis Symptom Self-Survey developed by Dr. Naomi Whittaker.',
   },
+  'fertility-awareness-method-quiz': {
+    title: 'Which Fertility Awareness Method Is Right for You?',
+    description: 'A free, clinician-designed quiz that matches you to a fertility awareness method based on your cycles, goals, and preferences. Two minutes.',
+  },
   'ivf-success-calculator': {
     title: 'IVF Success Rate Calculator',
     description: 'Evidence-based IVF success rate estimates from HFEA mandatory reporting data. See realistic odds by age, not clinic marketing.',
