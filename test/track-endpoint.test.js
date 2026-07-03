@@ -353,3 +353,31 @@ describe('OPTIONS /api/track -- CORS preflight', () => {
     );
   });
 });
+
+describe('POST /api/track -- bot short-circuit', () => {
+  it('missing User-Agent and no request.cf is processed normally, not treated as a bot', async () => {
+    const { restore, state } = makeFetchStub();
+    try {
+      // makeContext's mockRequest never sets a User-Agent header and has no
+      // `cf` property -- this must NOT short-circuit (fail-open on missing UA).
+      const ctx = makeContext({ body: { event: 'cta_click', params: { id: 'donate-hero', page: '/' } } });
+      const res = await onRequestPost(ctx);
+      assert.equal(res.status, 204);
+      assert.equal(ctx.waitUntil.promises.length, 1, 'GA4 must still be called with no UA/cf present');
+      assert.equal(ctx.ae.calls.length, 1, 'AE must still be called with no UA/cf present');
+    } finally { restore(); }
+  });
+
+  it('returns 204 with no GA4/AE call when request.cf.asn is a known datacenter ASN', async () => {
+    const { restore, state } = makeFetchStub();
+    try {
+      const ctx = makeContext({ body: { event: 'cta_click', params: { id: 'donate-hero', page: '/' } } });
+      ctx.request.cf = { asn: 16509 }; // Amazon AWS
+      const res = await onRequestPost(ctx);
+      assert.equal(res.status, 204, 'bot short-circuit must still return the normal 204 success shape');
+      assert.equal(ctx.waitUntil.promises.length, 0, 'no GA4 call for a datacenter-ASN request');
+      assert.equal(ctx.ae.calls.length, 1, 'a cheap bot_skipped AE counter event is written, not the normal event');
+      assert.equal(ctx.ae.calls[0].blobs[1], 'bot_skipped');
+    } finally { restore(); }
+  });
+});
