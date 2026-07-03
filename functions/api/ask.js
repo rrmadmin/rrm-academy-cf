@@ -424,7 +424,8 @@ export async function onRequestPost(context) {
 }
 
 async function _handlePost(context) {
-  const { env } = context;
+  const { env, waitUntil, request } = context;
+  const start = Date.now();
 
   if (!env.DB) {
     return json({ error: 'service_unavailable' }, 503);
@@ -433,8 +434,30 @@ async function _handlePost(context) {
     return json({ error: 'service_unavailable' }, 503);
   }
 
-  const session = await tryGetSession(env, context.request);
+  const session = await tryGetSession(env, request);
   if (!session) {
+    let message = '';
+    try {
+      const body = await request.json();
+      if (body && typeof body.message === 'string') {
+        message = body.message;
+      }
+    } catch {
+      // unparseable/empty body — log with empty query rather than throwing
+    }
+    const { user_agent_short, referer_path } = extractRequestMeta(request);
+    const ipHash = await hashIp(request.headers.get('cf-connecting-ip') || '');
+    waitUntil(logSearchQuery(env, {
+      source: 'ask_unauth_blocked',
+      query: message,
+      user_id: null,
+      ip_hash: ipHash,
+      results_count: null,
+      duration_ms: Date.now() - start,
+      http_status: 401,
+      user_agent_short,
+      referer_path,
+    }).catch(() => {}));
     return json({ error: 'unauthorized' }, 401);
   }
   return handleAuthedAsk(context, session);
