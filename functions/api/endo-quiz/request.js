@@ -1,5 +1,5 @@
 /**
- * POST /api/endo-check/request
+ * POST /api/endo-quiz/request
  * Google Ads landing-flow counterpart to /api/survey/submit -- single-step
  * email capture (no magic link), source-tagged 'ads' in the same D1
  * pseudonymization split used by the organic /endo-survey/ flow:
@@ -13,7 +13,7 @@ import { log } from '../_log.js';
 import { validateEmail } from '../auth/_email-validate.js';
 import { verifyAndTagEmail } from '../_elv.js';
 import { json, optionsResponse, checkRateLimit, verifyTurnstile } from '../auth/_shared.js';
-import { sendGoogleAdsConversion, ENDO_CHECK_CONVERSION_ACTION_ID } from '../_google-ads.js';
+import { sendGoogleAdsConversion, ENDO_QUIZ_CONVERSION_ACTION_ID } from '../_google-ads.js';
 
 const TIER_MAX_ITEMS = { tier1: 15, tier2: 15, tier3: 6 };
 const MAX_SYMPTOM_LEN = 200;
@@ -36,7 +36,7 @@ export async function onRequestPost(context) {
     }
 
     const ip = request.headers.get('cf-connecting-ip') || 'unknown';
-    if (!await checkRateLimit(env, `endo-check:${ip}`, 5, 900)) {
+    if (!await checkRateLimit(env, `endo-quiz:${ip}`, 5, 900)) {
       return json({ error: 'rate_limited' }, 429);
     }
 
@@ -101,7 +101,7 @@ export async function onRequestPost(context) {
     }
 
     waitUntil(
-      verifyAndTagEmail(email, env, { source: 'endo-check-ads' }).catch(() => {})
+      verifyAndTagEmail(email, env, { source: 'endo-quiz-ads' }).catch(() => {})
     );
 
     const recId = crypto.randomUUID();
@@ -127,40 +127,40 @@ export async function onRequestPost(context) {
         referrer,
       ).run();
     } catch (err) {
-      console.error('endo-check symptom insert failed:', err.message);
-      log(env, waitUntil, 'endo_check', 'symptom_write_dropped', 'error', 'insert failed', 0, 500);
+      console.error('endo-quiz symptom insert failed:', err.message);
+      log(env, waitUntil, 'endo_quiz', 'symptom_write_dropped', 'error', 'insert failed', 0, 500);
       return json({ error: 'server_error' }, 500);
     }
 
     try { // arise-ignore unbatched-writes -- second half of the SURVEY_SYMPTOMS_DB/SURVEY_DB split above; db.batch() cannot span two D1 bindings, so this write is intentionally separate and alerted-on-failure below rather than transactional
       await env.SURVEY_DB.prepare(
         'INSERT INTO survey_identities (email, airtable_record_id, source) VALUES (?, ?, ?)'
-      ).bind(email, recId, 'endo-check-ads').run();
+      ).bind(email, recId, 'endo-quiz-ads').run();
     } catch (d1Err) {
       const detail = `D1 write failed: record=${recId} err=${d1Err.message}`;
-      log(env, waitUntil, 'endo_check', 'd1_identity_write_error', 'error', detail, 0, 500);
+      log(env, waitUntil, 'endo_quiz', 'd1_identity_write_error', 'error', detail, 0, 500);
 
-      const alertSubject = 'ALERT: endo-check identity link failed';
+      const alertSubject = 'ALERT: endo-quiz identity link failed';
       waitUntil((async () => {
         try {
           await sendEmail(env, {
             from: 'RRM Academy <alerts@mail.rrmacademy.org>',
             to: 'administrator@rrmacademy.org',
             subject: alertSubject,
-            text: `D1 write failed during endo-check (ads) submission.\n\nrec_id: ${recId}\nTimestamp: ${new Date().toISOString()}\n\nManual action required: look up the email for this rec_id and INSERT into survey_identities manually.`,
-            log: { db: env.SURVEY_DB, source: 'endo-check/d1-alert', category: 'transactional' },
+            text: `D1 write failed during endo-quiz (ads) submission.\n\nrec_id: ${recId}\nTimestamp: ${new Date().toISOString()}\n\nManual action required: look up the email for this rec_id and INSERT into survey_identities manually.`,
+            log: { db: env.SURVEY_DB, source: 'endo-quiz/d1-alert', category: 'transactional' },
           });
         } catch (emailErr) {
-          log(env, waitUntil, 'endo_check', 'd1_alert_email_failed', 'error', emailErr.message, 0, 500);
-          await logEmailFailure(env.SURVEY_DB, { email: 'administrator@rrmacademy.org', category: 'transactional', source: 'endo-check/d1-alert', subject: alertSubject, detail: emailErr.message });
+          log(env, waitUntil, 'endo_quiz', 'd1_alert_email_failed', 'error', emailErr.message, 0, 500);
+          await logEmailFailure(env.SURVEY_DB, { email: 'administrator@rrmacademy.org', category: 'transactional', source: 'endo-quiz/d1-alert', subject: alertSubject, detail: emailErr.message });
         }
       })());
     }
 
-    sendGoogleAdsConversion(env, waitUntil, request.headers.get('Cookie') || '', ENDO_CHECK_CONVERSION_ACTION_ID);
-    waitUntil(sendGA4Event(env, request, 'generate_lead', { lead_source: 'endo_check_ads', page_location: 'https://rrmacademy.org/endo-check/results/' }).catch(() => {}));
+    sendGoogleAdsConversion(env, waitUntil, request.headers.get('Cookie') || '', ENDO_QUIZ_CONVERSION_ACTION_ID);
+    waitUntil(sendGA4Event(env, request, 'generate_lead', { lead_source: 'endo_quiz_ads', page_location: 'https://rrmacademy.org/endo-quiz/results/' }).catch(() => {}));
 
-    const emailSubject = 'Your endometriosis symptom self-check results';
+    const emailSubject = 'Your endometriosis symptom quiz results';
     const emailText = buildEmailText(score, band);
     try {
       await sendEmail(env, {
@@ -168,26 +168,26 @@ export async function onRequestPost(context) {
         to: email,
         subject: emailSubject,
         text: emailText,
-        log: { db: env.SURVEY_DB, source: 'endo-check/request', category: 'transactional' },
+        log: { db: env.SURVEY_DB, source: 'endo-quiz/request', category: 'transactional' },
       });
     } catch (err) {
-      console.error('endo-check email send failed:', err.message);
-      log(env, waitUntil, 'endo_check', 'email_send_error', 'error', 'email failed', 0, 0);
+      console.error('endo-quiz email send failed:', err.message);
+      log(env, waitUntil, 'endo_quiz', 'email_send_error', 'error', 'email failed', 0, 0);
       try {
         await logEmailFailure(env.SURVEY_DB, {
           email,
           category: 'transactional',
-          source: 'endo-check/request',
+          source: 'endo-quiz/request',
           subject: emailSubject,
           detail: 'send failed',
         });
-      } catch (logErr) { console.error('endo-check logEmailFailure failed:', logErr.message); }
+      } catch (logErr) { console.error('endo-quiz logEmailFailure failed:', logErr.message); }
     }
 
     return json({ ok: true });
   } catch (err) {
-    console.error('endo-check request unexpected error:', err);
-    log(env, waitUntil, 'endo_check', 'request_fail', 'error', 'unexpected error', 0, 500);
+    console.error('endo-quiz request unexpected error:', err);
+    log(env, waitUntil, 'endo_quiz', 'request_fail', 'error', 'unexpected error', 0, 500);
     return json({ error: 'server_error' }, 500);
   }
 }
@@ -208,7 +208,7 @@ function buildEmailText(score, band) {
   } else if (band === 'low') {
     lines.push('Your responses include a few symptoms that research associates with endometriosis. Even a small number of these symptoms can be worth mentioning at your next appointment, especially if they affect your daily life.');
   } else {
-    lines.push('Your responses did not include symptoms commonly associated with endometriosis in this self-check. If you are still experiencing symptoms that concern you, consider discussing them with a healthcare provider.');
+    lines.push('Your responses did not include symptoms commonly associated with endometriosis in this quiz. If you are still experiencing symptoms that concern you, consider discussing them with a healthcare provider.');
   }
 
   lines.push('');
