@@ -261,6 +261,18 @@ if (!jsonLd) {
             ';max-age=2592000;path=/;SameSite=Lax;Secure';
         }
       } catch (_) { /* opaque URL; skip silently */ }
+      // gclid: Google Ads click identifier. 30-day cookie (standard Google Ads
+      // click-through attribution window) survives internal navigations so the
+      // newsletter/quiz API routes can read it server-side (same-origin fetch
+      // sends cookies automatically) and upload an offline conversion via the
+      // Google Ads API. Overwritten on a new click so re-arrival re-attributes.
+      try {
+        var gclidParam = new URLSearchParams(location.search).get('gclid');
+        if (gclidParam) {
+          document.cookie = 'gclid=' + encodeURIComponent(gclidParam) +
+            ';max-age=2592000;path=/;SameSite=Lax;Secure';
+        }
+      } catch (_) { /* opaque URL; skip silently */ }
     }
   </script>
   <meta name="description" content={description} />

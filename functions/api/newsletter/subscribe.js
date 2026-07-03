@@ -3,6 +3,7 @@
  * Validates Turnstile token, adds subscriber to D1, optionally updates D1 user table.
  */
 import { sendGA4Event } from '../_ga4.js';
+import { sendGoogleAdsConversion, NEWSLETTER_CONVERSION_ACTION_ID } from '../_google-ads.js';
 import { log } from '../_log.js';
 import { json, optionsResponse, verifyTurnstile, checkRateLimit } from '../auth/_shared.js';
 import { verifyAndTagEmail } from '../_elv.js';
@@ -129,6 +130,7 @@ async function _handlePost(context) {
   }
 
   waitUntil(sendGA4Event(env, request, 'generate_lead', { lead_source: 'newsletter' }).catch(() => {}));
+  sendGoogleAdsConversion(env, waitUntil, request.headers.get('Cookie') || '', NEWSLETTER_CONVERSION_ACTION_ID);
   sendSignupEmails(env, waitUntil, email);
 
   return json({ ok: true, message: 'You are subscribed!' });
