@@ -1,0 +1,133 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import { getPersonJsonLd } from '../../lib/identity';
+
+const SITE = 'https://rrmacademy.org';
+const PAGE_URL = `${SITE}/endo-check/`;
+const ORG_ID = `${SITE}/#organization`;
+
+const naomiRaw = getPersonJsonLd(`${SITE}/#naomi-whittaker`);
+const naomi = naomiRaw
+  ? (() => { const { ['@context']: _c, ...rest } = naomiRaw as Record<string, unknown>; return rest; })()
+  : null;
+const naomiId = (naomi as { '@id'?: string } | null)?.['@id'];
+
+const jsonLd = {
+  '@context': 'https://schema.org',
+  '@graph': [
+    {
+      '@type': ['MedicalWebPage', 'WebPage'],
+      '@id': `${PAGE_URL}#webpage`,
+      url: PAGE_URL,
+      name: 'Endometriosis Symptom Self-Check',
+      description: 'A free educational self-check from a 501(c)(3) nonprofit that helps you organize your endometriosis-associated symptoms into a summary you can bring to a healthcare provider.',
+      inLanguage: 'en-US',
+      isPartOf: { '@id': `${SITE}/#website` },
+      about: { '@type': 'MedicalCondition', name: 'Endometriosis' },
+      ...(naomiId ? { reviewedBy: { '@id': naomiId } } : {}),
+      publisher: { '@id': ORG_ID },
+      mainEntityOfPage: PAGE_URL,
+    },
+    ...(naomi ? [naomi] : []),
+  ],
+};
+---
+
+<BaseLayout
+  title="Free Endometriosis Symptom Self-Check"
+  description="A free educational self-check from a 501(c)(3) nonprofit. Learn which of your symptoms are commonly associated with endometriosis and get a summary you can bring to your next appointment."
+  canonicalUrl={PAGE_URL}
+  jsonLd={jsonLd}
+  noindex
+>
+  <div class="ec">
+    <section class="ec-hero">
+      <div class="container ec-hero__inner">
+        <p class="ec-eyebrow">Free educational tool &middot; 501(c)(3) nonprofit</p>
+        <h1 class="ec-hero__title">Endometriosis Symptom Self-Check</h1>
+        <p class="ec-hero__tagline">Answer a short set of questions about your symptoms and see how your responses compare to patterns commonly associated with endometriosis. It is educational, confidential, and takes about five minutes.</p>
+        <div class="ec-hero__meta">
+          <span class="ec-chip"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6L9 17l-5-5"/></svg>Free</span>
+          <span class="ec-chip"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>About 5 minutes</span>
+          <span class="ec-chip"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>Confidential</span>
+        </div>
+      </div>
+    </section>
+
+    <div class="page-body">
+      <div class="container container--narrow">
+        <section class="ec-launch card" aria-labelledby="ec-launch-title">
+          <h2 id="ec-launch-title" class="ec-launch__title">See your results in about five minutes</h2>
+          <p class="ec-launch__text">Answer questions about your symptoms, see your results right away, and get a copy sent to your email.</p>
+          <a class="btn btn--primary btn--lg" href="/endo-check/start/">Start my free symptom check</a>
+        </section>
+
+        <div class="ec-content">
+          <section class="ec-block">
+            <h2>What this self-check does</h2>
+            <p>Endometriosis can only be confirmed through surgery. This self-check does not diagnose anything. It organizes your symptoms into a summary based on symptom patterns commonly described in the medical literature, so you can decide whether to bring your results to a healthcare provider for a fuller evaluation.</p>
+            <p>The questions cover pain, bleeding patterns, bladder and bowel symptoms, and other signs sometimes associated with endometriosis. Your answers stay confidential.</p>
+          </section>
+
+          <section class="ec-block">
+            <h2>How it works</h2>
+            <ol class="ec-flow">
+              <li class="ec-flow__step"><span class="ec-flow__num">1</span><h3 class="ec-flow__heading">Answer the questions</h3><p class="ec-flow__text">Check every symptom that applies to you across a short set of categories.</p></li>
+              <li class="ec-flow__step"><span class="ec-flow__num">2</span><h3 class="ec-flow__heading">See your results</h3><p class="ec-flow__text">Your summary appears right away, with plain-language context.</p></li>
+              <li class="ec-flow__step"><span class="ec-flow__num">3</span><h3 class="ec-flow__heading">Get a copy by email</h3><p class="ec-flow__text">Enter your email to receive your summary and links to learn more.</p></li>
+            </ol>
+          </section>
+
+          <section class="ec-block">
+            <h2>Why symptom awareness matters</h2>
+            <p>Many people live with symptoms associated with endometriosis for years before discussing them with a provider experienced in the condition. A structured self-check can help you put language to what you are experiencing and decide whether it is worth a closer look.</p>
+            <p>This tool is provided as free education by RRM Academy, a 501(c)(3) nonprofit focused on restorative reproductive medicine education. It does not collect payment, does not offer medical advice, and does not connect you directly with any individual clinician.</p>
+          </section>
+        </div>
+
+        <div class="ec-recap">
+          <h2 class="ec-recap__title">Ready to check your symptoms?</h2>
+          <p class="ec-recap__text">Five minutes, completely confidential, no obligation.</p>
+          <a href="/endo-check/start/" class="btn btn--primary btn--lg ec-recap__btn">Start my free symptom check</a>
+          <p class="ec-recap__providers">Already know you want to talk to someone? <a href="/providers/">Find a restorative reproductive medicine provider</a>.</p>
+        </div>
+
+        <div class="ec-disclaimer"><p><strong>Medical disclaimer:</strong> This self-check is for educational purposes only and does not constitute medical advice, diagnosis, or treatment. Always consult a qualified healthcare provider. Reviewed by Dr. Naomi Whittaker, MD, Board-Certified OBGYN, for clinical accuracy of the symptom list.</p></div>
+      </div>
+    </div>
+  </div>
+
+  <style is:global>
+    .ec .ec-hero { padding: var(--space-12) 0 var(--space-10); background: linear-gradient(162deg, var(--purple-50) 0%, var(--cream) 64%); text-align: center; }
+    .ec .ec-hero__inner { max-width: 46rem; margin: 0 auto; }
+    .ec .ec-eyebrow { font-family: 'Inter', sans-serif; font-size: 0.75rem; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; color: var(--accent); margin-bottom: var(--space-3); }
+    .ec .ec-hero__title { font-size: var(--text-d1); line-height: 1.1; letter-spacing: -0.015em; margin: 0 0 var(--space-4); text-wrap: balance; }
+    .ec .ec-hero__tagline { font-size: var(--text-d5); line-height: 1.65; color: var(--text-secondary); max-width: 52ch; margin: 0 auto; text-wrap: pretty; }
+    .ec .ec-hero__meta { margin-top: var(--space-6); display: flex; flex-wrap: wrap; gap: var(--space-3); justify-content: center; }
+    .ec .ec-chip { display: inline-flex; align-items: center; gap: var(--space-2); padding: var(--space-1) var(--space-3); background: var(--bg-card); border: 1px solid var(--border-color); border-radius: var(--radius-pill); font-size: 0.8125rem; font-weight: 500; color: var(--text-secondary); }
+    .ec .ec-chip svg { color: var(--accent); flex-shrink: 0; }
+    .ec .page-body { padding: var(--space-10) 0 var(--space-12); }
+    .ec .ec-launch { margin-top: var(--space-8); text-align: center; }
+    .ec .ec-launch__title { font-size: var(--text-d3); margin: 0 0 var(--space-3); color: var(--text-primary); }
+    .ec .ec-launch__text { font-size: var(--text-d5); line-height: var(--leading-body); color: var(--text-secondary); margin: 0 auto var(--space-6); max-width: 44ch; }
+    .ec .ec-content { margin-top: var(--space-12); }
+    .ec .ec-block { margin-bottom: var(--space-10); }
+    .ec .ec-block h2 { font-size: 1.5rem; margin: 0 0 var(--space-4); color: var(--text-primary); text-wrap: balance; }
+    .ec .ec-block p { font-size: 1.125rem; line-height: 1.75; color: var(--text-secondary); margin: 0 0 var(--space-4); }
+    .ec .ec-block p:last-child { margin-bottom: 0; }
+    .ec .ec-flow { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: 1fr; gap: var(--space-8); }
+    @media (min-width: 680px) { .ec .ec-flow { grid-template-columns: repeat(3, 1fr); gap: var(--space-6); } }
+    .ec .ec-flow__step { text-align: center; padding: 0 var(--space-2); }
+    .ec .ec-flow__num { display: inline-flex; align-items: center; justify-content: center; width: 2.5rem; height: 2.5rem; color: var(--white); background: var(--purple-700); border-radius: var(--radius-pill); font-family: var(--font-display); font-weight: 600; font-size: 1.25rem; margin-bottom: var(--space-4); }
+    .ec .ec-flow__heading { font-size: 1.125rem; margin: 0 0 var(--space-2); color: var(--text-primary); }
+    .ec .ec-flow__text { font-size: 0.9375rem; line-height: 1.6; color: var(--text-secondary); margin: 0 auto; max-width: 30ch; }
+    .ec .ec-recap { margin-top: var(--space-12); padding: var(--space-10) var(--space-8); border-radius: var(--radius-lg); text-align: center; background: radial-gradient(120% 140% at 50% 0%, var(--purple-700) 0%, var(--purple-900) 100%); }
+    .ec .ec-recap__title { font-size: var(--text-d2); margin: 0 0 var(--space-3); color: var(--white); text-wrap: balance; }
+    .ec .ec-recap__text { font-size: 1.125rem; line-height: 1.7; color: var(--purple-200); margin: 0 auto var(--space-6); max-width: 44ch; }
+    .ec .ec-recap__btn { background: var(--bg-surface); color: var(--purple-900); border: none; }
+    .ec .ec-recap__providers { font-size: 0.875rem; color: var(--purple-300); margin: var(--space-5) 0 0; }
+    .ec .ec-recap__providers a { color: var(--white); text-decoration: underline; }
+    .ec .ec-disclaimer { margin-top: var(--space-10); padding-top: var(--space-4); border-top: 1px solid var(--border-light); }
+    .ec .ec-disclaimer p { font-size: 0.75rem; line-height: 1.6; color: var(--text-secondary); margin: 0; }
+  </style>
+</BaseLayout>

@@ -111,7 +111,7 @@
       "note": "CAN-SPAM unsubscribe (status update)"
     },
     "functions/api/newsletter/subscribe.js": {
-      "hash": "829966b88c2bfe5b0bb91f69e016a076da0dc4302e56d74f73f49d02bc036353",
+      "hash": "5453ae09cfbad92f431d10b2a8870a3928d3b1af8f708452f3611a240a94e012",
       "note": "Public newsletter intake (rate-limited)"
     },
     "functions/api/search/semantic.js": {
@@ -131,7 +131,7 @@
       "note": "Search UX + RRF fusion (Pagefind init, relevance boost, error resilience)"
     },
     "src/layouts/BaseLayout.astro": {
-      "hash": "8c39a6ef5a41364657e4508872852ecd639a7ab7b4c08271b84e44c7045cd114",
+      "hash": "79703c06b14fe9636e6313d3c7bd3996fe70a00688b2175843343570346bc377",
       "note": "FOUC theme + chrome prop SEO invariants"
     },
     "functions/api/community/_shared.js": {
