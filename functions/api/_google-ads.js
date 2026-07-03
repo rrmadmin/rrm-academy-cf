@@ -22,7 +22,7 @@ const TOKEN_ENDPOINT = 'https://oauth2.googleapis.com/token';
 
 export const NEWSLETTER_CONVERSION_ACTION_ID = '7671737988';
 export const QUIZ_CONVERSION_ACTION_ID = '7671737991';
-export const ENDO_CHECK_CONVERSION_ACTION_ID = '7671879303';
+export const ENDO_QUIZ_CONVERSION_ACTION_ID = '7671879303';
 
 // gclid values are opaque alphanumeric-ish tokens Google generates; this is a
 // sanity bound, not a real format spec.
