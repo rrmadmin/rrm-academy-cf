@@ -6,6 +6,14 @@
 // from fp_visitor sampling). Keep these two copies in sync when either the
 // UA regex or the DATACENTER_ASNS set changes.
 //
+// Deliberate divergence from the fingerprint worker's isBotUserAgent: that
+// copy treats a missing/empty UA as a bot (fail CLOSED) because it also
+// gates cookie-minting/DB-write side effects where an empty UA is itself
+// suspicious. This copy fails OPEN on missing/malformed UA -- real
+// datacenter crawls send full spoofed browser UAs and are still caught by
+// the ASN check below, so a missing UA here just means "can't classify by
+// UA", not "assume bot".
+//
 // Two independent signals, either trips it: UA string (spoofable) and
 // request.cf.asn (datacenter/cloud-provider ASN -- catches browser-UA crawls
 // hosted on cloud IP ranges that UA filtering alone misses).
@@ -32,9 +40,11 @@ export const DATACENTER_ASNS = new Set([
   136907, // Huawei Cloud (Huawei International)
 ]);
 
-// Null/empty/non-string UA is treated as a bot: real browsers always send a UA.
+// Null/empty/non-string UA fails open (not a bot) -- real datacenter crawls send
+// full spoofed browser UAs anyway and are still caught by the ASN check below.
+// Only a UA that actually matches the bot regex classifies as a bot.
 function isBotUserAgent(ua) {
-  if (!ua || typeof ua !== 'string') return true;
+  if (!ua || typeof ua !== 'string') return false;
   return BOT_RE.test(ua);
 }
 
