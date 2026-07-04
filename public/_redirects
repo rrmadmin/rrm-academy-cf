@@ -47,8 +47,11 @@
 # the request -- GSC's URL Inspection reported this as a Redirect error. D1 slug
 # ASCII-normalized (ü -> u) per rrm-library-worker slug conventions; old URL 301s
 # straight to the new one so the already-indexed URL doesn't dead-end.
-/library/elevated-prenatal-anti-müllerian-hormone-reprograms-the-fetus-and-induces-polycy-recklrtb6mq5jqzzj /library/elevated-prenatal-anti-mullerian-hormone-reprograms-the-fetus-and-induces-polycy-recklrtb6mq5jqzzj/ 301
-/library/elevated-prenatal-anti-müllerian-hormone-reprograms-the-fetus-and-induces-polycy-recklrtb6mq5jqzzj/ /library/elevated-prenatal-anti-mullerian-hormone-reprograms-the-fetus-and-induces-polycy-recklrtb6mq5jqzzj/ 301
+# Source uses the percent-encoded (lowercase %c3%bc) form of "ü": CF Pages matches
+# _redirects sources against the encoded request path, so a literal "ü" source
+# never fires. Both slash forms.
+/library/elevated-prenatal-anti-m%c3%bcllerian-hormone-reprograms-the-fetus-and-induces-polycy-recklrtb6mq5jqzzj /library/elevated-prenatal-anti-mullerian-hormone-reprograms-the-fetus-and-induces-polycy-recklrtb6mq5jqzzj/ 301
+/library/elevated-prenatal-anti-m%c3%bcllerian-hormone-reprograms-the-fetus-and-induces-polycy-recklrtb6mq5jqzzj/ /library/elevated-prenatal-anti-mullerian-hormone-reprograms-the-fetus-and-induces-polycy-recklrtb6mq5jqzzj/ 301
 
 # Trailing-slash redirects handled by middleware (_middleware.js).
 # DO NOT add trailing-slash rules here -- _redirects fires before middleware
