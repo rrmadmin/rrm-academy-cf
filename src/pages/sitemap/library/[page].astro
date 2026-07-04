@@ -97,7 +97,7 @@ const pages = Array.from({ length: totalPages }, (_, i) => i + 1);
         )}
       </nav>
 
-      <ul class="sitemap-list">
+      <ul class="smlib-list">
         {pageArticles.map((article) => (
           <li><a href={`/library/${article.slug}/`}>{article.title}</a></li>
         ))}
@@ -166,7 +166,7 @@ const pages = Array.from({ length: totalPages }, (_, i) => i + 1);
     font-weight: 600;
     color: var(--text-primary);
   }
-  .sitemap-list {
+  .smlib-list {
     list-style: none;
     display: grid;
     grid-template-columns: 1fr;
@@ -174,18 +174,18 @@ const pages = Array.from({ length: totalPages }, (_, i) => i + 1);
     margin: var(--space-4) 0;
   }
   @media (min-width: 768px) {
-    .sitemap-list {
+    .smlib-list {
       grid-template-columns: 1fr 1fr;
       gap: var(--space-2) var(--space-8);
     }
   }
-  .sitemap-list a {
+  .smlib-list a {
     font-size: 0.8125rem;
     color: var(--purple-700);
     text-decoration: none;
     line-height: 1.5;
   }
-  .sitemap-list a:hover {
+  .smlib-list a:hover {
     text-decoration: underline;
     text-underline-offset: 2px;
   }
