@@ -42,6 +42,14 @@
 /commentary/page/1 /commentary/ 301
 /commentary/page/1/ /commentary/ 301
 
+# Article slug de-diacritic fix 2026-07-04: legacy slug had a raw "ü" (non-ASCII),
+# which produced a two-hop 301+308 redirect chain when crawlers percent-encoded
+# the request -- GSC's URL Inspection reported this as a Redirect error. D1 slug
+# ASCII-normalized (ü -> u) per rrm-library-worker slug conventions; old URL 301s
+# straight to the new one so the already-indexed URL doesn't dead-end.
+/library/elevated-prenatal-anti-müllerian-hormone-reprograms-the-fetus-and-induces-polycy-recklrtb6mq5jqzzj /library/elevated-prenatal-anti-mullerian-hormone-reprograms-the-fetus-and-induces-polycy-recklrtb6mq5jqzzj/ 301
+/library/elevated-prenatal-anti-müllerian-hormone-reprograms-the-fetus-and-induces-polycy-recklrtb6mq5jqzzj/ /library/elevated-prenatal-anti-mullerian-hormone-reprograms-the-fetus-and-induces-polycy-recklrtb6mq5jqzzj/ 301
+
 # Trailing-slash redirects handled by middleware (_middleware.js).
 # DO NOT add trailing-slash rules here -- _redirects fires before middleware
 # and _headers converts the 301 to a mangled 200.
