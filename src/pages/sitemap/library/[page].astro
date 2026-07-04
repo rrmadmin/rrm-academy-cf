@@ -1,0 +1,192 @@
+---
+import BaseLayout from '../../../layouts/BaseLayout.astro';
+import { buildBreadcrumbList } from '../../../lib/identity';
+import { fetchAllArticles } from '../../../lib/airtable';
+
+// Paginated flat list of ALL published library articles. Plain server-rendered
+// anchors, fully indexable. This is the crawl-authority surface of the HTML
+// sitemap experiment: every deep library page is reachable in two hops from the
+// footer. Source set is fetchAllArticles() - the exact same collection that
+// src/pages/library/[...slug].astro builds pages from, so link targets never
+// point at a nonexistent slug.
+export async function getStaticPaths() {
+  const PER_PAGE = 400;
+  const articles = await fetchAllArticles();
+  const sorted = [...articles].sort((a, b) =>
+    String(a.title).localeCompare(String(b.title))
+  );
+  const totalPages = Math.ceil(sorted.length / PER_PAGE);
+
+  return Array.from({ length: totalPages }, (_, i) => ({
+    params: { page: String(i + 1) },
+    props: { sorted, currentPage: i + 1, totalPages, perPage: PER_PAGE },
+  }));
+}
+
+interface Props {
+  sorted: any[];
+  currentPage: number;
+  totalPages: number;
+  perPage: number;
+}
+
+const { sorted, currentPage, totalPages, perPage } = Astro.props;
+const start = (currentPage - 1) * perPage;
+const pageArticles = sorted.slice(start, start + perPage);
+const showingEnd = Math.min(start + perPage, sorted.length);
+
+const breadcrumbRaw = buildBreadcrumbList([
+  { name: 'Home', url: 'https://rrmacademy.org/' },
+  { name: 'Site Map', url: 'https://rrmacademy.org/sitemap/' },
+  { name: `Library index ${currentPage}`, url: `https://rrmacademy.org/sitemap/library/${currentPage}/` },
+]) as Record<string, unknown>;
+const { '@context': _bcCtx, ...breadcrumbNode } = breadcrumbRaw;
+
+const jsonLd = {
+  '@context': 'https://schema.org',
+  '@graph': [
+    {
+      '@type': 'CollectionPage',
+      name: `Library index - page ${currentPage}`,
+      description: `Alphabetical index of the RRM Academy research library, page ${currentPage} of ${totalPages}.`,
+      url: `https://rrmacademy.org/sitemap/library/${currentPage}/`,
+    },
+    breadcrumbNode,
+  ],
+};
+
+const pages = Array.from({ length: totalPages }, (_, i) => i + 1);
+---
+<BaseLayout
+  title={`Library Index - Page ${currentPage} | Site Map`}
+  description={`Alphabetical index of the RRM Academy research library, page ${currentPage} of ${totalPages}. Every published article, linked.`}
+  canonicalUrl={`https://rrmacademy.org/sitemap/library/${currentPage}/`}
+  jsonLd={jsonLd}
+>
+  <div class="page-wrapper">
+    <div class="container container--narrow">
+      <nav class="breadcrumb" aria-label="Breadcrumb">
+        <a href="/sitemap/">Site Map</a>
+        <span aria-hidden="true"> &rsaquo; </span>
+        <span>Library index - page {currentPage}</span>
+      </nav>
+
+      <header class="sitemap-hero">
+        <h1>Library index - page {currentPage}</h1>
+        <p class="sitemap-count">
+          Showing {start + 1}&ndash;{showingEnd} of {sorted.length.toLocaleString()} articles,
+          alphabetically. Page {currentPage} of {totalPages}.
+        </p>
+      </header>
+
+      <nav class="sm-pagination" aria-label="Library index pagination (top)">
+        {currentPage > 1 && (
+          <a class="sm-pagination__step" href={`/sitemap/library/${currentPage - 1}/`}>&laquo; Prev</a>
+        )}
+        <div class="sm-pagination__pages">
+          {pages.map((n) => (
+            n === currentPage ? (
+              <span class="sm-pagination__current" aria-current="page">{n}</span>
+            ) : (
+              <a href={`/sitemap/library/${n}/`}>{n}</a>
+            )
+          ))}
+        </div>
+        {currentPage < totalPages && (
+          <a class="sm-pagination__step" href={`/sitemap/library/${currentPage + 1}/`}>Next &raquo;</a>
+        )}
+      </nav>
+
+      <ul class="sitemap-list">
+        {pageArticles.map((article) => (
+          <li><a href={`/library/${article.slug}/`}>{article.title}</a></li>
+        ))}
+      </ul>
+
+      <nav class="sm-pagination" aria-label="Library index pagination (bottom)">
+        {currentPage > 1 && (
+          <a class="sm-pagination__step" href={`/sitemap/library/${currentPage - 1}/`}>&laquo; Prev</a>
+        )}
+        <div class="sm-pagination__pages">
+          {pages.map((n) => (
+            n === currentPage ? (
+              <span class="sm-pagination__current" aria-current="page">{n}</span>
+            ) : (
+              <a href={`/sitemap/library/${n}/`}>{n}</a>
+            )
+          ))}
+        </div>
+        {currentPage < totalPages && (
+          <a class="sm-pagination__step" href={`/sitemap/library/${currentPage + 1}/`}>Next &raquo;</a>
+        )}
+      </nav>
+    </div>
+  </div>
+</BaseLayout>
+
+<style>
+  .page-wrapper {
+    padding: var(--space-8) 0 var(--space-16);
+  }
+  .sitemap-hero {
+    margin: var(--space-4) 0 var(--space-6);
+  }
+  .sitemap-count {
+    font-size: 0.9375rem;
+    font-weight: 600;
+    color: var(--text-primary);
+    margin-top: var(--space-2);
+  }
+  .sm-pagination {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: var(--space-2) var(--space-3);
+    padding: var(--space-4) 0;
+  }
+  .sm-pagination__pages {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-2) var(--space-3);
+  }
+  .sm-pagination a {
+    font-size: 0.875rem;
+    color: var(--purple-700);
+    text-decoration: none;
+  }
+  .sm-pagination a:hover {
+    text-decoration: underline;
+    text-underline-offset: 2px;
+  }
+  .sm-pagination__step {
+    font-weight: 600;
+  }
+  .sm-pagination__current {
+    font-size: 0.875rem;
+    font-weight: 600;
+    color: var(--text-primary);
+  }
+  .sitemap-list {
+    list-style: none;
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: var(--space-2);
+    margin: var(--space-4) 0;
+  }
+  @media (min-width: 768px) {
+    .sitemap-list {
+      grid-template-columns: 1fr 1fr;
+      gap: var(--space-2) var(--space-8);
+    }
+  }
+  .sitemap-list a {
+    font-size: 0.8125rem;
+    color: var(--purple-700);
+    text-decoration: none;
+    line-height: 1.5;
+  }
+  .sitemap-list a:hover {
+    text-decoration: underline;
+    text-underline-offset: 2px;
+  }
+</style>

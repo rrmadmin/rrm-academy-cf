@@ -1,0 +1,258 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import { buildBreadcrumbList } from '../../lib/identity';
+import { fetchAllArticles } from '../../lib/airtable';
+import guideRegistry from '../../../ssot/guides.json';
+import coursesData from '../../data/courses.json';
+import postsData from '../../data/posts.json';
+import faqsData from '../../data/faqs.json';
+import glossaryData from '../../data/glossary.json';
+
+// Plain server-rendered HTML site map. No JS, fully indexable (NOT noindexed).
+// Purpose: a single footer-linked hub that links every content surface so
+// internal link authority reaches deep library pages in one hop. Experiment
+// doc: docs/experiments/2026-07-03-html-sitemap-experiment.md
+
+// Guides & pillars - driven by ssot/guides.json. Exclude the glossary (it has
+// its own section below) and any coming-soon guide (no live page yet).
+const guides = guideRegistry.guides
+  .filter((g) => g.slug !== 'glossary' && !(g.comingSoon ?? false))
+  .sort((a, b) => (a._order ?? 999) - (b._order ?? 999))
+  .map((g) => ({ title: g.title, href: `/${g.slug}/` }));
+
+// Courses
+const courses = (coursesData as any[])
+  .filter((c) => c && c.slug)
+  .map((c) => ({ title: c.title, href: `/courses/${c.slug}/` }));
+
+// Commentary posts
+const posts = (postsData as any[])
+  .filter((p) => p && p.slug)
+  .map((p) => ({ title: p.title, href: `/commentary/${p.slug}/` }));
+
+// FAQs
+const faqs = (faqsData as any[])
+  .filter((f) => f && f.slug)
+  .map((f) => ({ title: f.question, href: `/faqs/${f.slug}/` }));
+
+// Glossary terms
+const glossaryTerms = ((glossaryData as any).terms as any[])
+  .filter((t) => t && t.slug)
+  .sort((a, b) => String(a.name).localeCompare(String(b.name)))
+  .map((t) => ({ title: t.name, href: `/glossary/${t.slug}/` }));
+
+// Research library - count + paginated flat-list link targets
+const articles = await fetchAllArticles();
+const LIBRARY_PER_PAGE = 400;
+const libraryPages = Math.ceil(articles.length / LIBRARY_PER_PAGE);
+
+// Core pages - hand-maintained. Every non-content utility/hub URL.
+const coreLinks = [
+  { title: 'Home', href: '/' },
+  { title: 'About', href: '/about/' },
+  { title: 'Contact', href: '/contact/' },
+  { title: 'Donate', href: '/donate/' },
+  { title: 'Press & Media Kit', href: '/press/' },
+  { title: 'Find a Doctor or Teacher', href: '/providers/' },
+  { title: 'Educational Partners', href: '/partners/' },
+  { title: 'Save the Uterus Club', href: '/save-the-uterus-club/' },
+  { title: 'Original Research', href: '/original-research/' },
+  { title: 'Endometriosis Self-Survey', href: '/endo-survey/' },
+  { title: 'IVF Success Calculator', href: '/ivf-success-calculator/' },
+  { title: 'Ask RRM AI', href: '/ask/' },
+  { title: 'Connect an AI Assistant', href: '/connect/' },
+  { title: 'AI Instructions', href: '/ai-instructions/' },
+  { title: 'Editorial & Corrections Policies', href: '/policies/' },
+  { title: 'Terms of Use', href: '/terms-of-use/' },
+  { title: 'Privacy Policy', href: '/privacy-policy/' },
+  { title: 'Medical Disclaimer', href: '/medical-disclaimer/' },
+];
+
+// Section-hub links that head the content lists.
+const hubLinks = [
+  { title: 'Research Library', href: '/library/' },
+  { title: 'Library Topics', href: '/library/topics/' },
+  { title: 'Guides', href: '/guides/' },
+  { title: 'FAQs', href: '/faqs/' },
+  { title: 'Courses', href: '/courses/' },
+  { title: 'Commentary', href: '/commentary/' },
+  { title: 'Glossary', href: '/glossary/' },
+];
+
+const breadcrumbRaw = buildBreadcrumbList([
+  { name: 'Home', url: 'https://rrmacademy.org/' },
+  { name: 'Site Map', url: 'https://rrmacademy.org/sitemap/' },
+]) as Record<string, unknown>;
+const { '@context': _bcCtx, ...breadcrumbNode } = breadcrumbRaw;
+
+const jsonLd = {
+  '@context': 'https://schema.org',
+  '@graph': [
+    {
+      '@type': 'CollectionPage',
+      name: 'Site Map',
+      description:
+        'A complete map of RRM Academy: guides, research library, commentary, FAQs, courses, glossary, and core pages.',
+      url: 'https://rrmacademy.org/sitemap/',
+    },
+    breadcrumbNode,
+  ],
+};
+---
+<BaseLayout
+  title="Site Map"
+  description="A complete map of RRM Academy: pillar guides, the research library, commentary, FAQs, courses, the glossary, and core pages."
+  canonicalUrl="https://rrmacademy.org/sitemap/"
+  jsonLd={jsonLd}
+>
+  <div class="page-wrapper">
+    <div class="container container--narrow">
+      <nav class="breadcrumb" aria-label="Breadcrumb">
+        <a href="/">Home</a>
+        <span aria-hidden="true"> &rsaquo; </span>
+        <span>Site Map</span>
+      </nav>
+
+      <header class="sitemap-hero">
+        <h1>Site Map</h1>
+        <p class="sitemap-intro">
+          Every page on RRM Academy, organized by section. Use this map to browse
+          the full site or hand it to an AI assistant as an index of what we publish.
+        </p>
+      </header>
+
+      <section class="sitemap-section" aria-labelledby="sm-sections">
+        <h2 id="sm-sections">Sections</h2>
+        <ul class="sitemap-list sitemap-list--wrap">
+          {hubLinks.map((l) => (
+            <li><a href={l.href}>{l.title}</a></li>
+          ))}
+        </ul>
+      </section>
+
+      <section class="sitemap-section" aria-labelledby="sm-guides">
+        <h2 id="sm-guides">Guides &amp; Pillars</h2>
+        <ul class="sitemap-list">
+          {guides.map((l) => (
+            <li><a href={l.href}>{l.title}</a></li>
+          ))}
+        </ul>
+      </section>
+
+      <section class="sitemap-section" aria-labelledby="sm-library">
+        <h2 id="sm-library">Research Library</h2>
+        <p class="sitemap-note">
+          The library holds {articles.length.toLocaleString()} academic scholarly works.
+          The full alphabetical index is split across {libraryPages} pages. You can also
+          browse by <a href="/library/topics/">topic</a>.
+        </p>
+        <ul class="sitemap-list sitemap-list--wrap">
+          {Array.from({ length: libraryPages }, (_, i) => i + 1).map((n) => (
+            <li><a href={`/sitemap/library/${n}/`}>Library index - page {n}</a></li>
+          ))}
+        </ul>
+      </section>
+
+      <section class="sitemap-section" aria-labelledby="sm-courses">
+        <h2 id="sm-courses">Courses</h2>
+        <ul class="sitemap-list">
+          {courses.map((l) => (
+            <li><a href={l.href}>{l.title}</a></li>
+          ))}
+        </ul>
+      </section>
+
+      <section class="sitemap-section" aria-labelledby="sm-commentary">
+        <h2 id="sm-commentary">Commentary</h2>
+        <ul class="sitemap-list">
+          {posts.map((l) => (
+            <li><a href={l.href}>{l.title}</a></li>
+          ))}
+        </ul>
+      </section>
+
+      <section class="sitemap-section" aria-labelledby="sm-faqs">
+        <h2 id="sm-faqs">FAQs</h2>
+        <ul class="sitemap-list">
+          {faqs.map((l) => (
+            <li><a href={l.href}>{l.title}</a></li>
+          ))}
+        </ul>
+      </section>
+
+      <section class="sitemap-section" aria-labelledby="sm-glossary">
+        <h2 id="sm-glossary">Glossary ({glossaryTerms.length} terms)</h2>
+        <ul class="sitemap-list">
+          {glossaryTerms.map((l) => (
+            <li><a href={l.href}>{l.title}</a></li>
+          ))}
+        </ul>
+      </section>
+
+      <section class="sitemap-section" aria-labelledby="sm-core">
+        <h2 id="sm-core">Core Pages</h2>
+        <ul class="sitemap-list sitemap-list--wrap">
+          {coreLinks.map((l) => (
+            <li><a href={l.href}>{l.title}</a></li>
+          ))}
+        </ul>
+      </section>
+    </div>
+  </div>
+</BaseLayout>
+
+<style>
+  .page-wrapper {
+    padding: var(--space-8) 0 var(--space-16);
+  }
+  .sitemap-hero {
+    margin: var(--space-4) 0 var(--space-10);
+  }
+  .sitemap-intro {
+    font-size: 0.9375rem;
+    color: var(--text-secondary);
+    line-height: 1.7;
+    max-width: 640px;
+    margin-top: var(--space-3);
+  }
+  .sitemap-section {
+    margin-bottom: var(--space-10);
+  }
+  .sitemap-section h2 {
+    font-family: 'Cormorant Garamond', 'Georgia', serif;
+    font-size: 1.5rem;
+    font-weight: 600;
+    color: var(--text-primary);
+    margin-bottom: var(--space-4);
+    padding-bottom: var(--space-2);
+    border-bottom: 1px solid var(--border-color);
+  }
+  .sitemap-note {
+    font-size: 0.875rem;
+    color: var(--text-secondary);
+    line-height: 1.7;
+    margin-bottom: var(--space-4);
+    max-width: 640px;
+  }
+  .sitemap-list {
+    list-style: none;
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-2);
+  }
+  .sitemap-list--wrap {
+    flex-direction: row;
+    flex-wrap: wrap;
+    gap: var(--space-2) var(--space-5);
+  }
+  .sitemap-list a {
+    font-size: 0.875rem;
+    color: var(--purple-700);
+    text-decoration: none;
+    line-height: 1.5;
+  }
+  .sitemap-list a:hover {
+    text-decoration: underline;
+    text-underline-offset: 2px;
+  }
+</style>
