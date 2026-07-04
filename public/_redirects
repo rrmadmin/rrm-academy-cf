@@ -42,16 +42,18 @@
 /commentary/page/1 /commentary/ 301
 /commentary/page/1/ /commentary/ 301
 
-# Article slug de-diacritic fix 2026-07-04: legacy slug had a raw "ü" (non-ASCII),
-# which produced a two-hop 301+308 redirect chain when crawlers percent-encoded
-# the request -- GSC's URL Inspection reported this as a Redirect error. D1 slug
-# ASCII-normalized (ü -> u) per rrm-library-worker slug conventions; old URL 301s
-# straight to the new one so the already-indexed URL doesn't dead-end.
-# Source uses the percent-encoded (lowercase %c3%bc) form of "ü": CF Pages matches
-# _redirects sources against the encoded request path, so a literal "ü" source
-# never fires. Both slash forms.
-/library/elevated-prenatal-anti-m%c3%bcllerian-hormone-reprograms-the-fetus-and-induces-polycy-recklrtb6mq5jqzzj /library/elevated-prenatal-anti-mullerian-hormone-reprograms-the-fetus-and-induces-polycy-recklrtb6mq5jqzzj/ 301
-/library/elevated-prenatal-anti-m%c3%bcllerian-hormone-reprograms-the-fetus-and-induces-polycy-recklrtb6mq5jqzzj/ /library/elevated-prenatal-anti-mullerian-hormone-reprograms-the-fetus-and-induces-polycy-recklrtb6mq5jqzzj/ 301
+# Article slug de-diacritic fix 2026-07-04: legacy slug for article
+# recIxWdAwNOcGZG9I had a raw "ü" (non-ASCII), which produced a two-hop
+# 301+308 redirect chain when crawlers percent-encoded the request -- GSC's URL
+# Inspection reported this as a Redirect error. The D1 slug was ASCII-normalized
+# (ü -> u) per rrm-library-worker slug conventions; the new slug is live at 200
+# and in the sitemap. NO _redirects rule for the old ü URL: CF Pages cannot match
+# a non-ASCII source (neither the literal char nor %c3%bc fires), and a splat
+# broad enough to catch the ü would also match the new ASCII slug (they differ
+# only at that one char) and 301-loop the good URL. The old ü URL now returns a
+# clean terminal 404, which resolves the redirect-loop error; GSC drops it and
+# indexes the new slug from the sitemap. A worker/middleware rule was judged not
+# worth the added infra for one obscure, self-referential (sitemap-only) URL.
 
 # Trailing-slash redirects handled by middleware (_middleware.js).
 # DO NOT add trailing-slash rules here -- _redirects fires before middleware
