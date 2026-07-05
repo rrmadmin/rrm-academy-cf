@@ -90,11 +90,11 @@
     "gates:faq-lead": "node scripts/gates/faq-no-affirmative-lead.mjs --dir=dist --guides-registry=ssot/guides.json"
   },
   "dependencies": {
-    "@astrojs/sitemap": "^3.3.0",
+    "@astrojs/sitemap": "^3.7.3",
     "@fontsource/cormorant-garamond": "^5.2.11",
     "@fontsource/inter": "^5.2.8",
-    "@lucide/astro": "^1.16.0",
-    "astro": "^5.3.0",
+    "@lucide/astro": "^1.23.0",
+    "astro": "^6.4.8",
     "aws4fetch": "^1.0.20",
     "jspdf": "^4.2.0",
     "marked": "^15.0.12",
@@ -102,7 +102,7 @@
     "workers-og": "^0.0.27"
   },
   "devDependencies": {
-    "@astrojs/check": "^0.9.7",
+    "@astrojs/check": "^0.9.9",
     "@eslint/js": "^10.0.1",
     "@playwright/test": "^1.58.2",
     "@resvg/resvg-js": "^2.6.2",
