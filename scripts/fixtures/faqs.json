@@ -1,0 +1,68 @@
+[
+  {
+    "id": "faq_fixture_001",
+    "faqId": "FIX-001",
+    "slug": "fixture-faq-alpha",
+    "question": "Fixture FAQ Alpha: is this a real question?",
+    "basicAnswer": "No. Placeholder answer for build verification. This synthetic FAQ exists only to exercise the static build pipeline.",
+    "schemaAnswer": "Placeholder schema answer for build verification. Synthetic fixture, not real medical content.",
+    "publishedAnswer": "Placeholder published answer for build verification.\n\nThis synthetic FAQ record exists only so the FAQ templates and OG index builder have data to render during hermetic fixture builds.",
+    "category": "Fixture Category",
+    "seoTitle": "Fixture FAQ Alpha",
+    "seoDescription": "Placeholder description for build verification.",
+    "sortOrder": 1,
+    "status": "published",
+    "updatedAt": "2025-01-15T00:00:00.000Z",
+    "createdAt": "2025-01-01T00:00:00.000Z",
+    "evidence": [
+      {
+        "title": "Fixture Evidence Resource",
+        "url": "https://example.com/fixture-evidence",
+        "sortOrder": 1
+      }
+    ],
+    "libraryRefs": [
+      {
+        "articleId": "recFIXTURE0000001",
+        "label": "Fixture Article Alpha",
+        "sortOrder": 1
+      }
+    ]
+  },
+  {
+    "id": "faq_fixture_002",
+    "faqId": "FIX-002",
+    "slug": "fixture-faq-beta",
+    "question": "Fixture FAQ Beta: is this also synthetic?",
+    "basicAnswer": "Yes. Placeholder answer for build verification.",
+    "schemaAnswer": "Placeholder schema answer for build verification.",
+    "publishedAnswer": "Placeholder published answer for build verification. Second synthetic FAQ in the same fixture category so related-questions linking renders.",
+    "category": "Fixture Category",
+    "seoTitle": "Fixture FAQ Beta",
+    "seoDescription": "Placeholder description for build verification.",
+    "sortOrder": 2,
+    "status": "published",
+    "updatedAt": "2025-01-15T00:00:00.000Z",
+    "createdAt": "2025-01-02T00:00:00.000Z",
+    "evidence": [],
+    "libraryRefs": []
+  },
+  {
+    "id": "faq_fixture_003",
+    "faqId": "FIX-003",
+    "slug": "fixture-faq-gamma",
+    "question": "Fixture FAQ Gamma: minimal record?",
+    "basicAnswer": "Placeholder answer for build verification.",
+    "schemaAnswer": "",
+    "publishedAnswer": "",
+    "category": "",
+    "seoTitle": "",
+    "seoDescription": "",
+    "sortOrder": 3,
+    "status": "published",
+    "updatedAt": "2025-01-15T00:00:00.000Z",
+    "createdAt": "2025-01-03T00:00:00.000Z",
+    "evidence": [],
+    "libraryRefs": []
+  }
+]
