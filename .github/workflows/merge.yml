@@ -46,7 +46,7 @@ jobs:
           fi
 
       - name: Setup Node
-        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+        uses: actions/setup-node@2028fbc5c25fe9cf00d9f06a71cc4710d4507903 # v6.0.0
         with:
           node-version: 22
 
@@ -77,7 +77,7 @@ jobs:
       # Admin Automation App/Private Key. Token auto-expires in 1h.
       - name: Mint GitHub App token
         id: app-token
-        uses: actions/create-github-app-token@d72941d797fd3113feb6b93fd0dec494b13a2547 # v1
+        uses: actions/create-github-app-token@bcd2ba49218906704ab6c1aa796996da409d3eb1 # v3.2.0
         with:
           app-id: ${{ secrets.RRM_ADMIN_APP_ID }}
           private-key: ${{ secrets.RRM_ADMIN_APP_PRIVATE_KEY }}
