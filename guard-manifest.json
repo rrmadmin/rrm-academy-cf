@@ -195,7 +195,7 @@
       "note": "Shared Stripe campaign gift count (net-of-refunds, used by fund-supporters + webhook)"
     },
     "functions/api/community/upload.js": {
-      "hash": "01326e09ae56984a61e8253352204d4a6cdfcf57d34ce0fcd2919bfcd49c2850",
+      "hash": "4929cb18a776aa88a3c6f745c0a9721b6dda2b60b958f201a616e58908955686",
       "note": "R2 image upload (file validation)"
     },
     "functions/api/pdf/request.js": {
