@@ -1,0 +1,41 @@
+# Dependabot version updates (added 2026-07-05, Astro-upgrade hardening).
+# Strategy: small continuous PRs instead of piled-up majors. Every PR lands
+# through the claude/** auto-merge pipeline OR a manual PR — either way the
+# merge.yml fixture-build gate (npm run build:fixture) proves the framework
+# still builds before anything reaches main.
+version: 2
+updates:
+  - package-ecosystem: npm
+    directory: /
+    schedule:
+      interval: weekly
+      day: monday
+    open-pull-requests-limit: 5
+    groups:
+      # Astro + its integrations move in lockstep — one PR, one review.
+      astro:
+        patterns:
+          - astro
+          - "@astrojs/*"
+          - "@lucide/astro"
+      # Everything else minor/patch batches weekly; majors stay individual PRs.
+      minor-and-patch:
+        update-types:
+          - minor
+          - patch
+        exclude-patterns:
+          - astro
+          - "@astrojs/*"
+          - "@lucide/astro"
+    ignore:
+      # Majors for the framework group arrive deliberately (runbook:
+      # docs/plans/astro-upgrade-runbook.md), not as surprise PRs.
+      - dependency-name: astro
+        update-types: ["version-update:semver-major"]
+
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: weekly
+      day: monday
+    open-pull-requests-limit: 3

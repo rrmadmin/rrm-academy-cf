@@ -1,0 +1,124 @@
+[
+  {
+    "id": "fixture-course-alpha",
+    "slug": "fixture-course-alpha",
+    "title": "Fixture Course Alpha",
+    "description": "Placeholder description for build verification. This synthetic course exists only to exercise the courses catalog, sales page, and lesson player templates during hermetic fixture builds. It contains no real educational content.",
+    "shortDescription": "Placeholder short description for build verification.",
+    "image": "/images/og-default.png",
+    "imageAlt": "Fixture placeholder image for build verification",
+    "priceCents": 0,
+    "stripePriceId": null,
+    "isFree": true,
+    "hasCertificate": false,
+    "selfPaced": true,
+    "accessType": "public",
+    "comingSoon": false,
+    "participants": 3,
+    "instructors": [
+      {
+        "name": "Fixture Instructor",
+        "role": "Lead Instructor",
+        "bio": "Placeholder instructor bio for build verification. Not a real person."
+      }
+    ],
+    "settings": {
+      "stepOrder": "fixed",
+      "futureStepContent": "hidden",
+      "videoWatchRequirement": 0.9,
+      "autoplayNextVideo": true
+    },
+    "seo": {
+      "title": "Fixture Course Alpha",
+      "description": "Placeholder SEO description for build verification."
+    },
+    "includes": ["Placeholder inclusion item for build verification"],
+    "includedIn": [],
+    "faqs": [
+      {
+        "question": "Fixture course FAQ: is this synthetic?",
+        "answer": "Yes. Placeholder answer for build verification."
+      }
+    ],
+    "topics": ["Endometriosis"],
+    "sortOrder": 1,
+    "createdAt": "2025-02-01T00:00:00.000Z",
+    "sections": [
+      {
+        "id": "fixture-section-a1",
+        "title": "Fixture Section One",
+        "steps": [
+          {
+            "id": "fixture-step-a1-video",
+            "title": "Fixture Video Lesson",
+            "type": "video",
+            "streamUid": "0000000000000000000000000fixture",
+            "duration": 300
+          },
+          {
+            "id": "fixture-step-a2-article",
+            "title": "Fixture Reading Lesson",
+            "type": "article"
+          }
+        ]
+      },
+      {
+        "id": "fixture-section-a2",
+        "title": "Fixture Section Two",
+        "steps": [
+          {
+            "id": "fixture-step-a3-quiz",
+            "title": "Fixture Quiz",
+            "type": "quiz"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "fixture-course-beta",
+    "slug": "fixture-course-beta",
+    "title": "Fixture Course Beta",
+    "description": "Placeholder description for build verification. Second synthetic course with a single section and step.",
+    "shortDescription": "Placeholder short description for build verification.",
+    "image": "/images/og-default.png",
+    "imageAlt": "Fixture placeholder image for build verification",
+    "priceCents": 4900,
+    "stripePriceId": null,
+    "isFree": false,
+    "hasCertificate": false,
+    "selfPaced": true,
+    "accessType": "public",
+    "comingSoon": false,
+    "participants": 0,
+    "instructors": [
+      {
+        "name": "Fixture Instructor",
+        "role": "Lead Instructor"
+      }
+    ],
+    "settings": {},
+    "seo": {},
+    "includes": [],
+    "includedIn": [],
+    "faqs": [],
+    "topics": ["PCOS"],
+    "sortOrder": 2,
+    "createdAt": "2025-01-01T00:00:00.000Z",
+    "sections": [
+      {
+        "id": "fixture-section-b1",
+        "title": "Fixture Section One",
+        "steps": [
+          {
+            "id": "fixture-step-b1-video",
+            "title": "Fixture Video Lesson",
+            "type": "video",
+            "streamUid": "0000000000000000000000000fixture",
+            "duration": 120
+          }
+        ]
+      }
+    ]
+  }
+]
