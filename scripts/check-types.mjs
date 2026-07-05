@@ -28,7 +28,14 @@ try {
 
 // Parse error count from "Result (N files): \n- M errors"
 const errorMatch = output.match(/(\d+)\s+error/);
-const errorCount = errorMatch ? parseInt(errorMatch[1], 10) : 0;
+if (!errorMatch) {
+  console.error(`${RED}${BOLD}FAIL${RESET} — could not parse an "N errors" summary from astro check output.`);
+  console.error('The output format may have changed (or astro check crashed). Reconcile this parser before trusting any result.');
+  console.error('--- last 20 lines of output ---');
+  console.error(output.split('\n').slice(-20).join('\n'));
+  process.exit(1);
+}
+const errorCount = parseInt(errorMatch[1], 10);
 
 if (UPDATE_MODE) {
   writeFileSync(BASELINE_PATH, JSON.stringify({ errors: errorCount, updated: new Date().toISOString() }, null, 2) + '\n');
