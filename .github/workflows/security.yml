@@ -1,9 +1,14 @@
 name: Security
+# Trigger restricted to main + pull_request (backlog #15, 2026-05-27 audit):
+# the claude/* -> auto-merge -> main flow used to fire this workflow three
+# times (push claude/**, pull_request, push main). The claude/** push run is
+# redundant: the local pre-commit hook runs `gitleaks protect --staged`
+# (scripts/install-gitleaks-hook.mjs), and the auto-merge lands on main where
+# the push trigger scans the full history (fetch-depth: 0) minutes later.
 on:
   push:
     branches:
       - main
-      - 'claude/**'
   pull_request:
 
 permissions:
