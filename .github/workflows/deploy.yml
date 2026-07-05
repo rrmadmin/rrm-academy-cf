@@ -90,10 +90,16 @@ jobs:
         id: timer
         run: echo "start=$(date +%s%3N)" >> "$GITHUB_OUTPUT"
 
+      # persist-credentials MUST stay false: checkout v6+ persists the default
+      # GITHUB_TOKEN as an ambient header that overrides URL-embedded tokens, and
+      # the main ruleset rejects github-actions[bot] pushes. The baseline push
+      # authenticates via its own App-token URL; `git pull --rebase origin main`
+      # works unauthenticated (public repo).
       - name: Checkout
         uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
         with:
           fetch-depth: 0
+          persist-credentials: false
 
       - name: Setup Node
         uses: actions/setup-node@2028fbc5c25fe9cf00d9f06a71cc4710d4507903 # v6.0.0
@@ -619,6 +625,18 @@ jobs:
         run: node scripts/qa-post-deploy.mjs
         continue-on-error: true
 
+      # The `main: build-verify required` ruleset (2026-07-05) blocks pushes made
+      # with the default GITHUB_TOKEN — github-actions cannot be a bypass actor on
+      # a user-owned repo. Baselines therefore push as the RRM Admin Automation
+      # App, which holds an always-bypass on the ruleset.
+      - name: Mint GitHub App token (baseline push)
+        if: success()
+        id: baseline-app-token
+        uses: actions/create-github-app-token@bcd2ba49218906704ab6c1aa796996da409d3eb1 # v3.2.0
+        with:
+          app-id: ${{ secrets.RRM_ADMIN_APP_ID }}
+          private-key: ${{ secrets.RRM_ADMIN_APP_PRIVATE_KEY }}
+
       - name: Update data baselines
         if: success()
         run: |
@@ -639,8 +657,8 @@ jobs:
             fs.writeFileSync('src/data/.baselines.json', JSON.stringify(baselines, null, 2) + '\n');
             console.log('Updated baselines:', baselines);
           "
-          git config user.name "github-actions[bot]"
-          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git config user.name "rrm-admin-automation[bot]"
+          git config user.email "286686868+rrm-admin-automation[bot]@users.noreply.github.com"
           git add src/data/.baselines.json
           if git diff --cached --quiet; then
             echo "No baseline changes to commit"
@@ -649,9 +667,12 @@ jobs:
             # Concurrent workflows can push to main between this run's checkout and push.
             # Rebase + retry absorbs that race; deploy already succeeded so a stale
             # baseline is harmless (next green deploy refreshes it).
+            # Push with the App token URL (NOT the persisted default credential):
+            # checkout v6+ persists the default token outside .git/config, and the
+            # ruleset rejects github-actions[bot] pushes to main.
             pushed=0
             for attempt in 1 2 3 4 5; do
-              if git push; then
+              if git push "https://x-access-token:${{ steps.baseline-app-token.outputs.token }}@github.com/${{ github.repository }}.git" HEAD:main; then
                 pushed=1
                 echo "Baseline push succeeded on attempt $attempt"
                 break
