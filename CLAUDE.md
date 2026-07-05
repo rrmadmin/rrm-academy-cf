@@ -26,7 +26,7 @@
   - `repository_dispatch` with `article_id` (library article publish from yellowbase)
   - `repository_dispatch` with `record_id` (blog post publish from D1 `posts` table)
   - `workflow_dispatch` (manual, optional skip_fetch)
-- **AI Search refresh**: Decoupled into its own workflow `.github/workflows/ai-search-refresh.yml` (2026-05-05). Triggers via `workflow_run` after every successful Build & Deploy. Own concurrency group `ai-search-refresh` with `cancel-in-progress: true` so a stuck refresh never blocks the next deploy and newer refreshes supersede older ones. Source artifact `site-data` is uploaded by the deploy job and downloaded cross-workflow via run-id. Plan: `docs/plans/2026-05-05-ai-search-refresh-decoupling.md`. The `Build & Deploy` workflow's `concurrency: deploy` lock now releases the moment the deploy job finishes — does NOT wait on refresh.
+- **AI Search refresh**: RETIRED 2026-05-27 (retrieval Plan 3) — AutoRAG/AI-Search corpus upload is now owned by rrm-library-worker `/index/batch`. The workflow `.github/workflows/ai-search-refresh.yml` is neutralized to manual-only (`workflow_dispatch` + `if: false` on the job); file retained for rollback, do not delete. Historical design: `docs/plans/2026-05-05-ai-search-refresh-decoupling.md`.
 - **Build**: `npm run build` (runs `astro build && npx pagefind --site dist`)
 - **Data**: `LIBRARY_BUILD_TOKEN=xxx npm run fetch-all` then `npm run build` (post-courses-cutover; AIRTABLE_PAT/TINIFY_API_KEY removed from deploy.yml — Step 10 cleanup done)
 - **Router Worker**: `~/iCode/projects/rrm-router/src/index.js`
