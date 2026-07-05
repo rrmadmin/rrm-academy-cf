@@ -54,7 +54,7 @@ Six parallel sub-agents reviewed the codebase across non-overlapping slices (API
 
 **P2 — backlog (touch opportunistically when in the file):**
 
-16. **Dead components**: `AudienceRail.astro`, `OptimizedImage.astro` — 0 imports across `src/pages/` and `src/layouts/`. Archive or promote to use.
+16. ~~**Dead components**: `AudienceRail.astro`, `OptimizedImage.astro` — 0 imports across `src/pages/` and `src/layouts/`. Archive or promote to use.~~ DONE (2026-07-05, components deleted)
 17. **`/providers/index.astro` missing JSON-LD** — emit `ItemList` + per-provider `MedicalBusiness`/`Physician` nodes. Provider directory is the kind of structured page that benefits most.
 18. **Glossary references point to external PMC/PubMed** instead of `/library/<slug>/` where the paper exists in D1 — breaks internal citation graph. 85 external citations. Where library record exists, swap to internal URL; external fallback only when no library record.
 19. **Hardcoded shadows** (`rgba(0,0,0,0.08)` / `0.1`) appear inline in 8+ places — consolidate to `--shadow-sm` / `--shadow-md` / `--shadow-lg` tokens. Plus `CourseCard.astro` badge colors, `SearchBar.astro` focus shadow, `MobileSearchModal.astro` backdrop — all should be tokens.
