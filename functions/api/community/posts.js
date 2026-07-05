@@ -169,10 +169,17 @@ export async function onRequestGet({ request, env, waitUntil }) {
       }
       sql = `
         SELECT p.*, u.name as author_name, u.first_name, u.last_name, u.role as author_role, u.avatar_url as author_avatar,
-          (SELECT ul.label FROM user_label ul WHERE ul.user_id = p.author_id AND ul.label IN (${tierPlaceholders}) LIMIT 1) as author_tier_label,
-          (SELECT COUNT(*) FROM community_comment WHERE post_id = p.id) as comment_count
+          tl.label as author_tier_label,
+          COALESCE(cc.comment_count, 0) as comment_count
         FROM community_post p
         JOIN user u ON u.id = p.author_id
+        LEFT JOIN (
+          SELECT user_id, MIN(label) as label FROM user_label
+          WHERE label IN (${tierPlaceholders}) GROUP BY user_id
+        ) tl ON tl.user_id = p.author_id
+        LEFT JOIN (
+          SELECT post_id, COUNT(*) as comment_count FROM community_comment GROUP BY post_id
+        ) cc ON cc.post_id = p.id
         ${eventWhere}
         ORDER BY
           CASE WHEN p.event_date >= ? THEN 0 ELSE 1 END,
@@ -201,10 +208,17 @@ export async function onRequestGet({ request, env, waitUntil }) {
 
       sql = `
         SELECT p.*, u.name as author_name, u.first_name, u.last_name, u.role as author_role, u.avatar_url as author_avatar,
-          (SELECT ul.label FROM user_label ul WHERE ul.user_id = p.author_id AND ul.label IN (${tierPlaceholders}) LIMIT 1) as author_tier_label,
-          (SELECT COUNT(*) FROM community_comment WHERE post_id = p.id) as comment_count
+          tl.label as author_tier_label,
+          COALESCE(cc.comment_count, 0) as comment_count
         FROM community_post p
         JOIN user u ON u.id = p.author_id
+        LEFT JOIN (
+          SELECT user_id, MIN(label) as label FROM user_label
+          WHERE label IN (${tierPlaceholders}) GROUP BY user_id
+        ) tl ON tl.user_id = p.author_id
+        LEFT JOIN (
+          SELECT post_id, COUNT(*) as comment_count FROM community_comment GROUP BY post_id
+        ) cc ON cc.post_id = p.id
         WHERE 1=1 ${whereClause}
         ORDER BY p.pinned DESC, p.created_at DESC
         LIMIT ?
