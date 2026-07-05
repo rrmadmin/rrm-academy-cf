@@ -68,7 +68,7 @@ export async function onRequestPost(context) {
     }
 
     var url = '/api/assets/' + key;
-    return new Response(JSON.stringify({ url: url }), {
+    return new Response(JSON.stringify({ ok: true, url: url }), {
       status: 200,
       headers: { 'Content-Type': 'application/json', ...CORS_HEADERS },
     });

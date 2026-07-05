@@ -41,7 +41,11 @@ test('readSupporterConsent reads the dropdown by key', () => {
   assert.equal(readSupporterConsent({}), false);
 });
 
-test('recordSupporterGift rejects giftSeq=0 without writing (no #0 ghost)', async () => {
+// Intentional 0-sentinel fail-soft (commit 63217f9d, 2026-07-02): an invalid/unavailable
+// giftSeq must not drop a consented recognition row — it's written with gift_seq=0 for
+// later backfill, and consumers exclude the sentinel (fund-supporters.js founding query
+// filters gift_seq >= 1; supporter-badge.js returns seq: null when gift_seq < 1).
+test('recordSupporterGift writes a 0-sentinel row when giftSeq=0 (fail-soft, no dropped consent)', async () => {
   const calls = [];
   const mockDb = {
     prepare: () => ({
@@ -59,11 +63,12 @@ test('recordSupporterGift rejects giftSeq=0 without writing (no #0 ghost)', asyn
     email: 'sarah@example.com',
     occurredAt: new Date().toISOString(),
   });
-  assert.equal(result.recorded, false, 'should return recorded: false for giftSeq=0');
-  assert.equal(calls.length, 0, 'db.prepare should not be called when giftSeq=0');
+  assert.equal(result.recorded, true, 'fail-soft: row still recorded with 0 sentinel');
+  assert.equal(calls.length, 1, 'db.prepare should be called exactly once');
+  assert.equal(calls[0][3], 0, 'gift_seq bound as the 0 sentinel');
 });
 
-test('recordSupporterGift rejects negative giftSeq without writing', async () => {
+test('recordSupporterGift coerces negative giftSeq to the 0 sentinel and still writes', async () => {
   const calls = [];
   const mockDb = {
     prepare: () => ({
@@ -81,8 +86,9 @@ test('recordSupporterGift rejects negative giftSeq without writing', async () =>
     email: 'jane@example.com',
     occurredAt: new Date().toISOString(),
   });
-  assert.equal(result.recorded, false, 'should return recorded: false for negative giftSeq');
-  assert.equal(calls.length, 0, 'db.prepare should not be called when giftSeq is negative');
+  assert.equal(result.recorded, true, 'fail-soft: row still recorded with 0 sentinel');
+  assert.equal(calls.length, 1, 'db.prepare should be called exactly once');
+  assert.equal(calls[0][3], 0, 'negative giftSeq coerced to the 0 sentinel');
 });
 
 test('recordSupporterGift accepts giftSeq=1 and writes the row', async () => {
