@@ -102,11 +102,12 @@ export async function onRequestPost(context) {
         to: email,
         subject: surveySubject,
         html: buildEmailHtml(surveyUrl),
-        log: { db: env.DB, source: 'survey/request', category: 'transactional' },
+        log: env.DB ? { db: env.DB, source: 'survey/request', category: 'transactional' } : undefined,
       });
     } catch (err) {
       log(env, waitUntil, 'survey', 'request_send_error', 'error', err.message, 0, 502);
-      await logEmailFailure(env.DB, { email, category: 'transactional', source: 'survey/request', subject: surveySubject, detail: err.message });
+      // Best-effort: a missing/failed email_log write must not mask the send result
+      await logEmailFailure(env.DB, { email, category: 'transactional', source: 'survey/request', subject: surveySubject, detail: err.message }).catch(() => {});
       await env.SURVEY_TOKENS.delete(`email:${email}`);
       await env.SURVEY_TOKENS.delete(`token:${token}`);
       return json({ ok: false, error: 'Failed to send email. Please try again.' }, 502);

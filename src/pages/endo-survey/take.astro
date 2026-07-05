@@ -580,8 +580,12 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
         if (surveyContent) surveyContent.hidden = false;
       } else if (data.reason === 'used') {
         showInvalid('This survey link has already been used. Each link can only be used once.');
-      } else {
+      } else if (data.reason) {
         showInvalid('This survey link is invalid or has expired.');
+      } else {
+        // Server-side error shape ({ error: 'service_unavailable' | 'rate_limited' }) — the link
+        // itself may be fine, so don't tell the user it's invalid.
+        showInvalid('Unable to validate your link right now. Please try again in a few minutes.');
       }
     } catch {
       showInvalid('Unable to validate your link. Please try again later.');

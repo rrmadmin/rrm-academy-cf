@@ -56,12 +56,7 @@ export function slugify(name: string): string {
 }
 
 export function generatePartnerId(): string {
-  const chars = 'abcdefghijklmnopqrstuvwxyz0123456789';
-  let id = 'rec';
-  for (let i = 0; i < 14; i++) {
-    id += chars[Math.floor(Math.random() * chars.length)];
-  }
-  return id;
+  return crypto.randomUUID();
 }
 
 export const FRIEND_PRINCIPLES = [
