@@ -2335,7 +2335,7 @@ const SHELL_ENABLED = isShellEnabled('community');
           if (state.isMember) {
             // Members: the hub lives behind the "Action Areas" tab — keep it collapsed by
             // default (the feed is the landing view) and reveal the tab that opens it.
-            els.structure.hidden = true;
+            if (els.structure) els.structure.hidden = true;
             if (els.areasTab) els.areasTab.hidden = false;
           } else {
             // Non-members browse the hub inline above the join gate (unchanged).
