@@ -1,4 +1,5 @@
 {
-  "errors": 257,
-  "updated": "2026-07-05T18:09:54.504Z"
+  "errors": 258,
+  "updated": "2026-07-05T18:09:54.504Z",
+  "note": "Baseline tracks CI (Node 22): 258. Local Node 25 reports 257; the delta gate tolerates lower local counts."
 }
