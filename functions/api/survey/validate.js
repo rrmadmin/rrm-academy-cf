@@ -1,7 +1,8 @@
 /**
  * GET /api/survey/validate?token=<uuid>
  * Checks whether a survey token is valid and unused.
- * Returns: { valid: true } or { valid: false, reason: 'used' | 'expired' | 'missing' }
+ * Returns: { valid: true } or { valid: false, reason: 'used' | 'expired' | 'missing' }.
+ * Server-side failures return { error: 'service_unavailable' } (503) / { error: 'rate_limited' } (429).
  */
 import { json, optionsResponse, checkRateLimit } from '../auth/_shared.js';
 
@@ -18,7 +19,7 @@ export async function onRequestGet(context) {
   if (!svalAllowed) return json({ error: 'rate_limited' }, 429);
 
   if (!env.SURVEY_TOKENS) {
-    return json({ valid: false, reason: 'misconfigured' }, 500);
+    return json({ error: 'service_unavailable' }, 503);
   }
 
   const url = new URL(request.url);

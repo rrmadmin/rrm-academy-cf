@@ -241,6 +241,7 @@ export async function onRequest(context) {
     !url.pathname.endsWith('/') &&
     !url.pathname.startsWith('/api/') &&
     !url.pathname.startsWith('/cdn-cgi/') &&
+    url.pathname !== '/health' &&
     !url.pathname.includes('.')
   ) {
     const target = `${url.origin}${url.pathname}/${url.search}`;

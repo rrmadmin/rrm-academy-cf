@@ -6,12 +6,19 @@
 
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { readFileSync } from 'node:fs';
+import { existsSync, readFileSync } from 'node:fs';
 
 const SHELL_SLUG_CAP = 251; // [a-z0-9] + up to 250 chars = 251 max length
 
-test('articles.json canonicals have no query params', () => {
-  const data = JSON.parse(readFileSync('src/data/articles.json', 'utf8'));
+// articles.json / posts.json are gitignored build artifacts (fetched from D1 at
+// deploy time). Skip these gates when the data files are absent (fresh checkout,
+// CI test step runs before the data fetch) instead of false-failing.
+const loadIfPresent = (path) =>
+  existsSync(path) ? JSON.parse(readFileSync(path, 'utf8')) : null;
+
+test('articles.json canonicals have no query params', (t) => {
+  const data = loadIfPresent('src/data/articles.json');
+  if (!data) return t.skip('src/data/articles.json not present (fetched at build time)');
   for (const a of data) {
     if (!a.slug) continue;
     assert.ok(!a.slug.includes('?'), `slug contains '?': ${a.slug}`);
@@ -20,8 +27,9 @@ test('articles.json canonicals have no query params', () => {
   }
 });
 
-test('posts.json canonicals have no query params', () => {
-  const data = JSON.parse(readFileSync('src/data/posts.json', 'utf8'));
+test('posts.json canonicals have no query params', (t) => {
+  const data = loadIfPresent('src/data/posts.json');
+  if (!data) return t.skip('src/data/posts.json not present (fetched at build time)');
   for (const p of data) {
     if (!p.slug) continue;
     assert.ok(!p.slug.includes('?'), `slug contains '?': ${p.slug}`);
@@ -30,8 +38,9 @@ test('posts.json canonicals have no query params', () => {
   }
 });
 
-test('articles.json slug lengths fit shell SLUG_RE cap', () => {
-  const data = JSON.parse(readFileSync('src/data/articles.json', 'utf8'));
+test('articles.json slug lengths fit shell SLUG_RE cap', (t) => {
+  const data = loadIfPresent('src/data/articles.json');
+  if (!data) return t.skip('src/data/articles.json not present (fetched at build time)');
   const lengths = data.map(a => (a.slug || '').length).filter(n => n > 0);
   const max = Math.max(...lengths);
   assert.ok(
@@ -41,8 +50,9 @@ test('articles.json slug lengths fit shell SLUG_RE cap', () => {
   );
 });
 
-test('posts.json slug lengths fit shell SLUG_RE cap', () => {
-  const data = JSON.parse(readFileSync('src/data/posts.json', 'utf8'));
+test('posts.json slug lengths fit shell SLUG_RE cap', (t) => {
+  const data = loadIfPresent('src/data/posts.json');
+  if (!data) return t.skip('src/data/posts.json not present (fetched at build time)');
   const lengths = data.map(p => (p.slug || '').length).filter(n => n > 0);
   if (lengths.length === 0) return;
   const max = Math.max(...lengths);
