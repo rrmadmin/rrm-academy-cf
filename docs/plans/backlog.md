@@ -72,6 +72,14 @@ Six parallel sub-agents reviewed the codebase across non-overlapping slices (API
 31. ~~**`survey/validate.js:21`** mixes semantics: server-broken shape collides with invalid-token shape.~~ DONE (2026-07-05, PR #58) — missing-binding now 503 `{ error: 'service_unavailable' }`; `take.astro` distinguishes server errors from invalid links.
 32. **CASE_CANONICAL_PREFIXES tests** could be expanded to cover `/library/*` cases (the only remaining prefix). Currently zero test coverage on that path now that schedule-with-dr-whittaker is gone.
 
+### Dependabot: Astro 6 upgrade (investigated 2026-07-05)
+
+The 6 open Dependabot alerts (2 high / 2 moderate / 2 low) are 5 Astro advisories + 1 esbuild advisory in the same dependency pair (GitHub counts per-advisory; npm audit groups per-package). Installed: astro 5.18.2. **All five Astro advisories are patched within 6.x** — define:vars XSS &lt;6.1.6, server-island replay &lt;6.1.10, slot-name XSS &lt;6.3.3, spread-props XSS + host-header SSRF &lt;6.4.6 — so `astro@^6.4.6` clears everything including the bundled esbuild; npm audit's "fix = 7.0.6, breaking" is just it offering latest. The stale `claude/dependabot-remediation` branch is empty (0 commits ahead of main) — delete it.
+
+**Exploitability is LOW for this site** (fully static output: the XSS vectors are request-time SSR rendering paths and no Astro server runs in production; the SSRF is in SSR error-page serving; server islands unused; esbuild issue is Windows-dev-server-only). Not an emergency — schedule it.
+
+**Upgrade plan:** bump to `astro@^6.4.6` on a branch WITH data files available (`LIBRARY_BUILD_TOKEN`), run the full `npm run fetch-all && npm run build` locally, expect the `astro check` baseline (275) to shift and re-reconcile it, run e2e specs against the build output, then ship. Budget: check Astro 6 breaking changes (Vite 7, legacy API removals) against ssot-prebuild/build-og-index integration order.
+
 **Process / methodology:**
 
 33. **api-contract-surface-completeness invariant** — codify "if openapi.json `x-idempotency-policy.applies_to[]` lists a path, that path MUST have implementation + schema stub" as a `scripts/agent-discovery-check.mjs` invariant. Born from Batch D — the audit caught the drift this time; a guard would catch it the moment it appears.
