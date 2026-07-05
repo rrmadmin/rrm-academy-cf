@@ -28,7 +28,7 @@
   - `workflow_dispatch` (manual, optional skip_fetch)
 - **AI Search refresh**: Decoupled into its own workflow `.github/workflows/ai-search-refresh.yml` (2026-05-05). Triggers via `workflow_run` after every successful Build & Deploy. Own concurrency group `ai-search-refresh` with `cancel-in-progress: true` so a stuck refresh never blocks the next deploy and newer refreshes supersede older ones. Source artifact `site-data` is uploaded by the deploy job and downloaded cross-workflow via run-id. Plan: `docs/plans/2026-05-05-ai-search-refresh-decoupling.md`. The `Build & Deploy` workflow's `concurrency: deploy` lock now releases the moment the deploy job finishes — does NOT wait on refresh.
 - **Build**: `npm run build` (runs `astro build && npx pagefind --site dist`)
-- **Data**: `LIBRARY_BUILD_TOKEN=xxx npm run fetch-all` then `npm run build` (post-courses-cutover; AIRTABLE_PAT/TINIFY_API_KEY still in deploy.yml env but DEAD — no fetcher consumes them. Step 10 cleanup pending.)
+- **Data**: `LIBRARY_BUILD_TOKEN=xxx npm run fetch-all` then `npm run build` (post-courses-cutover; AIRTABLE_PAT/TINIFY_API_KEY removed from deploy.yml — Step 10 cleanup done)
 - **Router Worker**: `~/iCode/projects/rrm-router/src/index.js`
 - **Wix site code**: `~/iCode/projects/rrm-academy-wix/`
 - **Local 404 / error-page testing**: `astro preview` does NOT serve `dist/404.html` for unmatched routes -- it returns a generic `trailingSlash`-config 404. Use `npx wrangler pages dev dist` instead: it reproduces CF Pages' custom-404 serving (serves `404.html` at the original URL with status 404), the only faithful local repro of production behavior (and of the rrm-router catch-all that fetches `/404` and returns it at the bad path). Note `trailingSlash: 'always'` means `/foo` 301s to `/foo/` under `wrangler pages dev`; hit the trailing-slash form (or `curl -L`) to land on the real 404.
@@ -147,7 +147,7 @@ src/data/courses.json → Astro build → rrmacademy.org/courses
 
 **MANDATORY: route ALL course edits through the `/courses-update` skill** at `~/.claude/skills/courses-update/SKILL.md`. Workflows A-H cover edit metadata, add section, add step (with Stream UID validation), upload attachment, status changes, deletes, affiliate edits (route to JSON), and pre-flight FK check. Direct `wrangler d1 execute` bypasses input validation, FK checks, and cert-quiz integrity that admin endpoints enforce.
 
-**Soak window (Step 9 of migration plan):** 2026-04-26 → ~2026-05-03. During soak, no Airtable edits and no code changes to course pipeline. Step 10 cleanup follows: drop AIRTABLE_PAT + TINIFY_API_KEY from "Fetch all data" env, untrack `src/data/courses.json` from git, archive the legacy Airtable base. See `docs/plans/backlog.md` and memory `courses-d1-migration.md`.
+**Soak window (Step 9 of migration plan):** 2026-04-26 → ~2026-05-03. During soak, no Airtable edits and no code changes to course pipeline. Step 10 cleanup DONE: AIRTABLE_PAT + TINIFY_API_KEY dropped from "Fetch all data" env, `src/data/courses.json` untracked from git (now gitignored). Archiving the legacy Airtable base still pending. See `docs/plans/backlog.md` and memory `courses-d1-migration.md`.
 
 ### Glossary Pipeline
 
@@ -240,7 +240,6 @@ Validation: `npm run ssot:validate` (schema + cross-ref) and `npm run ssot:smoke
 - To change a CSS token: edit `src/styles/global.css`, then run `npm run design-tokens`.
 - To change a brand rule or typography scale: edit `docs/design/design-system.manual.json`, then run `npm run design-tokens`.
 - CI runs `npm run design-tokens:check` and blocks deploys on drift.
-- **Deprecated:** `docs/design/tokens.json` (older static snapshot, no longer consumed). Do not read. Will be removed.
 
 ## Site Map
 
@@ -590,7 +589,7 @@ This caught two real issues before deploy on the STUC card build (2026-07-02): a
 
 ## API Functions (`functions/`)
 
-179 `.js` files: 93 user/public endpoint files, 38 admin endpoint files, 48 `_`-prefixed shared helpers/middleware. Full inventory (last synced 2026-07-02 — when adding an endpoint, add its row here). File paths relative to `functions/api/` unless prefixed `functions/`.
+184 `.js` files: 96 user/public endpoint files, 38 admin endpoint files, 50 `_`-prefixed shared helpers/middleware. Full inventory (last synced 2026-07-02 — when adding an endpoint, add its row here). File paths relative to `functions/api/` unless prefixed `functions/`.
 
 ### User & public endpoints
 
@@ -1121,7 +1120,7 @@ Scanner rules are the source of truth. If arise-scanner catches it, the coder ag
 | R1: Blocked user check | Auth-gated endpoints check `user.blocked` after session validation | `community/_shared.js` `requireMember()` |
 | R2: Rate limiting scope | Public endpoints calling billed services (Stripe, SES, R2, Vectorize) have rate limits | `search/semantic.js` IP rate limiter |
 | R3: UNIQUE before OR IGNORE | Cross-ref `schema.sql` to verify a UNIQUE constraint exists before using `INSERT OR IGNORE` | `scripts/migrate-faqs-to-d1.sql` UNIQUE on `(faq_id, article_id)` |
-| R4: R2 cleanup on delete | DELETE handlers that remove D1 rows also clean up associated R2 objects | Known gap -- zero `R2_ASSETS.delete()` calls exist |
+| R4: R2 cleanup on delete | DELETE handlers that remove D1 rows also clean up associated R2 objects | `functions/api/admin/courses/[id].js` DELETE handler (also `community/posts.js`, `community/ban.js`, other admin/courses/* handlers) |
 | R5: Status gate in build | Single-record fetch endpoints returning all statuses have a downstream status guard in the build fetch script | `fetch-faq-data.mjs` `fetchSingle()` status check |
 | R6: Sibling pattern match | After writing/fixing code, grep the same directory for the pattern and apply consistently | Every /arise run's "fix one, grep all" step |
 
