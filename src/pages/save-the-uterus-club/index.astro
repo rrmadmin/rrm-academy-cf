@@ -1,10 +1,12 @@
 ---
 import BaseLayout from '../../layouts/BaseLayout.astro';
-import articlesData from '../../data/articles.json';
+import libraryStats from '../../data/library-stats.json';
 import superheroes from '../../data/superheroes.json';
 
-// Live count, mirroring the donate/homepage pattern so this stat never drifts.
-const libraryCountRounded = (Math.floor(articlesData.length / 1000) * 1000).toLocaleString();
+// Live count from the committed build fingerprint (library-stats.json is
+// regenerated from articles.json by scripts/sync-library-count.mjs before
+// every astro build), so this stat never drifts.
+const libraryCountRounded = (Math.floor(libraryStats.count / 1000) * 1000).toLocaleString();
 
 const jsonLd = {
   '@context': 'https://schema.org',
