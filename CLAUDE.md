@@ -987,7 +987,7 @@ Docs: `scripts/gates/README.md`.
 | **AG8** CSP lockdown | `CSP_VALUE` in `_middleware.js` must NOT include `googletagmanager.com`, `analytics.google.com`, `stats.g.doubleclick.net`, `connect.facebook.net`. Catches accidental CSP loosening. |
 | **AG9** Helper exclusivity | No raw `fetch('/api/track')` or `sendBeacon('/api/track')` outside `src/scripts/track.ts`. Forces every emission through the validated helper. |
 | **AG10** Conversion completeness | Every event in spec §15.3 has at least one call site (server or client). Catches dashboard-only conversion-flag drift. |
-| **AG11** Bundle size | `dist/_astro/track.*.js` ≤ 2 KiB; `track-auto.*.js` ≤ 3.5 KiB. Skipped in `--quick` mode (no build). |
+| **AG11** Bundle size | `dist/_astro/track.*.js` ≤ 3072 B (track.ts + merged ga-session.ts); `track-auto.*.js` ≤ 3584 B. Budgets SSOT: `BUNDLE_BUDGET_*` in `scripts/gates/validate-analytics-pipeline.mjs`. Skipped in `--quick` mode (no build). |
 | **AG12** Custom dimension parity | Spec §15.2 dimensions must appear as param names somewhere in the code. **Warn-only** (not fail) — surfaces drift without blocking deploy. |
 | **AG13** REQUIRED_PARAMS / PII disjointness | Every key in `REQUIRED_PARAMS` must NOT match `PII_REGEX`. A collision would cause runtime PII-strip to remove a required key before the required-params check sees it, turning every emission into a 400. |
 
