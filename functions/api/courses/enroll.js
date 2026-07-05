@@ -18,8 +18,9 @@
 import Stripe from 'stripe';
 import {
   json, optionsResponse, getSessionIdFromCookie, validateSession, generateId,
-  STRIPE_API_VERSION, SITE_URL,
+  STRIPE_API_VERSION, SITE_URL, checkRateLimit,
 } from '../auth/_shared.js';
+import { withIdempotency } from '../_idempotency.js';
 import { log } from '../_log.js';
 import { getCourse, getIncludedCourseIds } from './_shared.js';
 import { sendGA4Event } from '../_ga4.js';
@@ -38,13 +39,18 @@ export async function onRequestOptions() {
   return optionsResponse();
 }
 
-export async function onRequestPost({ request, env, waitUntil }) {
-  try {
-    return await handleEnroll(request, env, waitUntil);
-  } catch (err) {
-    log(env, waitUntil, 'courses', 'enroll_error', 'error', err.message, 0, 500);
-    return json({ ok: false, error: 'Internal error' }, 500);
-  }
+export async function onRequestPost(context) {
+  // Idempotency-Key replay (backlog #21): the enroll button sends a per-page-load
+  // key, so a retry or second tap after the first response completes replays the
+  // cached response — same Stripe checkoutUrl — instead of creating a new session.
+  return withIdempotency(context, async ({ request, env, waitUntil }) => {
+    try {
+      return await handleEnroll(request, env, waitUntil);
+    } catch (err) {
+      log(env, waitUntil, 'courses', 'enroll_error', 'error', err.message, 0, 500);
+      return json({ ok: false, error: 'Internal error' }, 500);
+    }
+  });
 }
 
 async function handleEnroll(request, env, waitUntil) {
@@ -130,6 +136,16 @@ async function handleEnroll(request, env, waitUntil) {
   const stripeKey = env.STRIPE_SECRET_KEY;
   if (!stripeKey) return json({ ok: false, error: 'Payments not configured' }, 500);
   if (!course.stripePriceId) return json({ ok: false, error: 'Course pricing not configured' }, 500);
+
+  // Double-tap guard (backlog #21): withIdempotency only replays *completed*
+  // responses, so two rapid taps can both reach Stripe before the first
+  // response is cached. Server-enforced KV lock closes that concurrent gap:
+  // max 1 Checkout session per user+course per 10s window. Free enrollments
+  // above are not affected (their INSERT is already ON CONFLICT-safe).
+  const lockAllowed = await checkRateLimit(env, `enroll-stripe:${session.userId}:${courseId}`, 1, 10);
+  if (!lockAllowed) {
+    return json({ ok: false, error: 'Your enrollment is already being processed. Please wait a moment and try again.' }, 429);
+  }
 
   const stripe = new Stripe(stripeKey, {
     httpClient: Stripe.createFetchHttpClient(),

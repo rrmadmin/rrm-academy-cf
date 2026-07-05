@@ -1023,18 +1023,35 @@ const relatedCourses = course.relatedCourses
           .catch(function () { /* leave static CTA */ });
       }
 
+      // Per-page-load Idempotency-Key: the server replays the cached response
+      // (same Stripe checkoutUrl) for a retry/second tap instead of creating a
+      // second Checkout session. 16-128 printable ASCII chars required.
+      var enrollIdemKey = 'enroll-' + ((window.crypto && crypto.randomUUID)
+        ? crypto.randomUUID()
+        : Date.now().toString(36) + Math.random().toString(36).slice(2) + Math.random().toString(36).slice(2));
+
+      function setEnrollBtnsDisabled(disabled) {
+        for (var j = 0; j < enrollBtns.length; j++) {
+          enrollBtns[j].disabled = disabled;
+          if (!disabled) {
+            enrollBtns[j].textContent = enrollBtns[j].getAttribute('data-free') === 'true' ? 'Start Learning' : 'Enroll Now';
+          }
+        }
+      }
+
       function handleEnroll(e) {
         var btn = e.currentTarget;
         var cid = btn.getAttribute('data-course-id');
-        var isFree = btn.getAttribute('data-free') === 'true';
 
-        btn.disabled = true;
+        if (btn.disabled) return;
+        // Disable every enroll button (hero + bottom CTA), not just the tapped one
+        setEnrollBtnsDisabled(true);
         btn.textContent = 'Processing...';
 
         fetch('/api/courses/enroll', {
           method: 'POST',
           credentials: 'same-origin',
-          headers: { 'Content-Type': 'application/json' },
+          headers: { 'Content-Type': 'application/json', 'Idempotency-Key': enrollIdemKey },
           body: JSON.stringify({ courseId: cid }),
         })
           .then(function (r) { return r.json(); })
@@ -1044,8 +1061,7 @@ const relatedCourses = course.relatedCourses
                 window.location.href = '/login/?redirect=' + encodeURIComponent(window.location.pathname);
                 return;
               }
-              btn.disabled = false;
-              btn.textContent = isFree ? 'Start Learning' : 'Enroll Now';
+              setEnrollBtnsDisabled(false);
               alert(data.error || 'Enrollment failed. Please try again.');
               return;
             }
@@ -1058,8 +1074,7 @@ const relatedCourses = course.relatedCourses
             }
           })
           .catch(function () {
-            btn.disabled = false;
-            btn.textContent = isFree ? 'Start Learning' : 'Enroll Now';
+            setEnrollBtnsDisabled(false);
             alert('Network error. Please try again.');
           });
       }
