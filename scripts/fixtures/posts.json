@@ -1,0 +1,47 @@
+[
+  {
+    "id": "recFIXTUREPOST001",
+    "slug": "fixture-post-alpha",
+    "title": "Fixture Post Alpha",
+    "content": "Placeholder body for build verification.\n\nThis synthetic commentary post exists only to exercise the static build pipeline. It carries no real editorial content.\n\n## Fixture Heading\n\nMore placeholder prose so the rendered page has a non-trivial body.",
+    "excerpt": "Placeholder excerpt for build verification. Synthetic fixture post, not real commentary.",
+    "author": "Fixture Author",
+    "contentPillar": "Fixture Pillar",
+    "coverImageUrl": "",
+    "publishDate": "2025-01-15",
+    "wordCount": 42,
+    "seoKeywords": "fixture, placeholder",
+    "audioUrl": "",
+    "lastModified": "2025-01-15T00:00:00.000Z"
+  },
+  {
+    "id": "recFIXTUREPOST002",
+    "slug": "fixture-post-beta",
+    "title": "Fixture Post Beta",
+    "content": "Placeholder body for build verification. Second synthetic post sharing a content pillar and author with fixture-post-alpha so related-commentary rails render during fixture builds.",
+    "excerpt": "Placeholder excerpt for build verification.",
+    "author": "Fixture Author",
+    "contentPillar": "Fixture Pillar",
+    "coverImageUrl": "",
+    "publishDate": "2025-01-10",
+    "wordCount": 25,
+    "seoKeywords": "",
+    "audioUrl": "",
+    "lastModified": "2025-01-10T00:00:00.000Z"
+  },
+  {
+    "id": "recFIXTUREPOST003",
+    "slug": "fixture-post-gamma",
+    "title": "Fixture Post Gamma",
+    "content": "Placeholder body for build verification. Minimal synthetic post with empty optional fields.",
+    "excerpt": "",
+    "author": "",
+    "contentPillar": "",
+    "coverImageUrl": "",
+    "publishDate": "2025-01-05",
+    "wordCount": 12,
+    "seoKeywords": "",
+    "audioUrl": "",
+    "lastModified": "2025-01-05T00:00:00.000Z"
+  }
+]
