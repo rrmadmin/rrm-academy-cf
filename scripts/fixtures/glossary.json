@@ -1,0 +1,77 @@
+{
+  "terms": [
+    {
+      "id": "term_fixture_001",
+      "slug": "fixture-term-alpha",
+      "name": "Fixture Term Alpha",
+      "part": "I",
+      "sortOrder": 1,
+      "bodyHtml": "<p><strong>Fixture Term Alpha</strong> is a synthetic glossary entry used only for build verification. Placeholder body for build verification: this paragraph exists so the glossary pillar page and the per-term spoke page both have a non-trivial definition body to render, long enough to look like a real entry without carrying any actual clinical meaning at all.</p>",
+      "abbreviation": "FTA",
+      "pillarLink": null,
+      "status": "published",
+      "updatedAt": "2025-01-15T00:00:00.000Z",
+      "createdAt": "2025-01-01T00:00:00.000Z",
+      "definitionSources": []
+    },
+    {
+      "id": "term_fixture_002",
+      "slug": "fixture-term-beta",
+      "name": "Fixture Term Beta",
+      "part": "I",
+      "sortOrder": 2,
+      "bodyHtml": "<p>Fixture Term Beta is a second synthetic glossary entry. Placeholder body for build verification. It mentions Fixture Term Alpha so the enrichment script can inject a cross-glossary auto-link between fixture terms during hermetic builds.</p>",
+      "abbreviation": null,
+      "pillarLink": null,
+      "status": "published",
+      "updatedAt": "2025-01-15T00:00:00.000Z",
+      "createdAt": "2025-01-02T00:00:00.000Z",
+      "definitionSources": []
+    },
+    {
+      "id": "term_fixture_003",
+      "slug": "fixture-term-gamma",
+      "name": "Fixture Term Gamma",
+      "part": "II",
+      "sortOrder": 1,
+      "bodyHtml": "<p>Fixture Term Gamma is a third synthetic glossary entry in a different part. Placeholder body for build verification only.</p>",
+      "abbreviation": null,
+      "pillarLink": null,
+      "status": "published",
+      "updatedAt": "2025-01-15T00:00:00.000Z",
+      "createdAt": "2025-01-03T00:00:00.000Z",
+      "definitionSources": []
+    }
+  ],
+  "references": [
+    {
+      "refNum": 1,
+      "anchorText": "Fixture Reference One",
+      "url": "https://example.com/fixture-reference-1",
+      "publisher": "Fixture Publisher",
+      "journal": ""
+    },
+    {
+      "refNum": 2,
+      "anchorText": "Fixture Reference Two",
+      "url": "https://example.com/fixture-reference-2",
+      "publisher": "",
+      "journal": "Fixture Journal of Build Verification"
+    }
+  ],
+  "abbreviations": [
+    {
+      "abbreviation": "FTA",
+      "fullTerm": "Fixture Term Alpha",
+      "termSlug": "fixture-term-alpha",
+      "sortOrder": 1
+    },
+    {
+      "abbreviation": "FPB",
+      "fullTerm": "Fixture Placeholder Beta",
+      "termSlug": null,
+      "sortOrder": 2
+    }
+  ],
+  "generatedAt": "2025-01-15T00:00:00.000Z"
+}
