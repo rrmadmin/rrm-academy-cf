@@ -26,10 +26,16 @@ jobs:
       # M1: clone with the default GITHUB_TOKEN. The privileged App installation
       # token (contents+workflows write) is minted only AFTER npm ci + gates, so
       # dependency lifecycle scripts never run with it in scope.
+      # persist-credentials MUST stay false: checkout v6+ persists the default
+      # token as an ambient header OUTSIDE .git/config, which overrides the
+      # App-token remote URL set below — pushes then authenticate as
+      # github-actions[bot], which the main ruleset rejects (GH013; caught by
+      # canary 2026-07-05). The C3 fetch below runs unauthenticated (public repo).
       - name: Checkout
         uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
         with:
           fetch-depth: 0
+          persist-credentials: false
 
       # C3: a claude/** auto-merge must never silently rewrite CI. If the branch
       # touches any workflow file, refuse and require a reviewed PR. merge.yml's
@@ -84,6 +90,8 @@ jobs:
 
       - name: Authenticate git with the App token
         run: |
+          # extraheader unset is belt-and-braces for checkout <=v5 layouts; the real
+          # control is persist-credentials: false on the Checkout step above.
           git config --unset-all http.https://github.com/.extraheader 2>/dev/null || true
           git remote set-url origin "https://x-access-token:${{ steps.app-token.outputs.token }}@github.com/${{ github.repository }}.git"
 
