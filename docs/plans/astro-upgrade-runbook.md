@@ -23,11 +23,14 @@ merge-a-green-PR operation: every upgrade is **proven to build before it can rea
 2. **`scripts/verify-build-output.mjs`** — post-build structural invariants on
    `dist/` (key routes exist, JSON-LD parses, pagefind index present, sitemap XML
    well-formed, page-count floors). Runs at the end of `build:fixture`.
-3. **`.github/workflows/build-verify.yml`** — runs `build:fixture` on Node 22 for
-   any PR touching the dependency/build-config surface (`package.json`,
-   `package-lock.json`, `astro.config.mjs`, `tsconfig.json`, or the harness files).
-   Recommend keeping this a **required status check** in branch protection so a red
-   build blocks merge — including Dependabot PRs.
+3. **`.github/workflows/build-verify.yml`** — runs on EVERY PR; an in-job diff
+   gate limits the heavy `build:fixture` run to PRs touching the dependency/build-config
+   surface (`package.json`, `package-lock.json`, `astro.config.mjs`, `tsconfig.json`,
+   or the harness files), everything else reports green in seconds. It IS a
+   **required status check** as of 2026-07-05 via the `main: build-verify required`
+   repository ruleset (bypass actors: RRM Admin Automation app for merge.yml's
+   direct pushes, plus repository admins). A red build blocks merge — including
+   Dependabot PRs.
 
 ## Node version coupling (the #1 foot-gun)
 
