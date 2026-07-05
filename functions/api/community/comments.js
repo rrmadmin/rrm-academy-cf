@@ -36,9 +36,13 @@ export async function onRequestGet({ request, env, waitUntil }) {
     const rows = await db.prepare(`
       SELECT c.id, c.author_id, c.content, c.parent_id, c.created_at, c.updated_at,
              u.name as author_name, u.first_name, u.last_name, u.role as author_role, u.avatar_url as author_avatar,
-             (SELECT ul.label FROM user_label ul WHERE ul.user_id = c.author_id AND ul.label IN (${tierPlaceholders}) LIMIT 1) as author_tier_label
+             tl.label as author_tier_label
       FROM community_comment c
       JOIN user u ON u.id = c.author_id
+      LEFT JOIN (
+        SELECT user_id, MIN(label) as label FROM user_label
+        WHERE label IN (${tierPlaceholders}) GROUP BY user_id
+      ) tl ON tl.user_id = c.author_id
       WHERE c.post_id = ?
       ORDER BY c.created_at ASC
     `).bind(...TIER_LABELS, postId).all();
