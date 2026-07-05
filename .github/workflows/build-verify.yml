@@ -1,0 +1,54 @@
+name: Build Verify
+
+# Durable upgrade gate (added 2026-07-05). Runs the FULL production build chain
+# hermetically (npm run build:fixture -- synthetic data, no secrets) whenever a PR
+# changes the dependency/build-config surface. Purpose: prove the site still builds
+# BEFORE a framework/dependency bump merges, so Astro majors (and Dependabot's
+# grouped astro PRs) can't silently break the build on main.
+#
+# Scoped to the upgrade-risk surface on purpose -- content/endpoint PRs that don't
+# touch deps or build config skip this (deploy.yml still does a real build on main).
+# Recommend making this a REQUIRED status check in branch protection so Dependabot
+# and reviewed PRs cannot merge on a red build.
+
+on:
+  pull_request:
+    paths:
+      - 'package.json'
+      - 'package-lock.json'
+      - 'astro.config.mjs'
+      - 'tsconfig.json'
+      - '.github/workflows/build-verify.yml'
+      - 'scripts/build-fixture.mjs'
+      - 'scripts/verify-build-output.mjs'
+      - 'scripts/fixtures/**'
+
+permissions:
+  contents: read
+
+concurrency:
+  group: build-verify-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build-verify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Checkout
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
+
+      - name: Setup Node
+        uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      # Runs the entire real build chain (pre-build scripts + astro build +
+      # pagefind + postbuild hooks) against staged synthetic fixtures, then
+      # asserts structural invariants on dist/ via verify-build-output.mjs.
+      - name: Hermetic fixture build
+        run: npm run build:fixture
