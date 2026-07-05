@@ -1626,8 +1626,12 @@ const hasSecondaryAudio = showTabs && presentFormats.has('audio');
           });
       });
 
-      // Event delegation for reply buttons (works for dynamically added comments)
+      // Event delegation for reply/edit/delete buttons (works for dynamically added comments)
       listEl.addEventListener('click', function (e) {
+        var editBtn = e.target.closest('.comment__edit-btn');
+        if (editBtn) { startEdit(editBtn.dataset.commentId); return; }
+        var deleteBtn = e.target.closest('.comment__delete-btn');
+        if (deleteBtn) { deleteComment(deleteBtn); return; }
         var btn = e.target.closest('.comment__reply-btn');
         if (btn) startReply(btn.dataset.commentId, btn.dataset.userName);
       });
@@ -1650,9 +1654,15 @@ const hasSecondaryAudio = showTabs && presentFormats.has('audio');
         h += '<span class="comment__time">' + timeAgo(c.createdAt) + '</span>';
         h += '</div>';
         h += '<p class="comment__text">' + escContent(c.content) + '</p>';
+        h += '<div class="comment__actions">';
         if (!isReply) {
           h += '<button class="comment__reply-btn" data-comment-id="' + esc(c.id) + '" data-user-name="' + esc(c.userName) + '">Reply</button>';
         }
+        if (c.isOwn) {
+          h += '<button class="comment__edit-btn" data-comment-id="' + esc(c.id) + '">Edit</button>';
+          h += '<button class="comment__delete-btn" data-comment-id="' + esc(c.id) + '"' + (isReply ? '' : ' data-has-replies="true"') + '>Delete</button>';
+        }
+        h += '</div>';
         h += '</div></div>';
 
         // Render replies if top-level
@@ -1690,6 +1700,133 @@ const hasSecondaryAudio = showTabs && presentFormats.has('audio');
         input.placeholder = 'Share a thought or question...';
         var indicator = document.getElementById('reply-indicator');
         if (indicator) indicator.remove();
+      }
+
+      function findCommentEl(commentId) {
+        var els = listEl.querySelectorAll('.comment');
+        for (var i = 0; i < els.length; i++) {
+          if (els[i].getAttribute('data-comment-id') === commentId) return els[i];
+        }
+        return null;
+      }
+
+      // Recover original text from rendered content (escContent turns \n into <br>)
+      function textWithBreaks(el) {
+        var out = '';
+        for (var i = 0; i < el.childNodes.length; i++) {
+          var node = el.childNodes[i];
+          out += node.nodeName === 'BR' ? '\n' : node.textContent;
+        }
+        return out;
+      }
+
+      function startEdit(commentId) {
+        var el = findCommentEl(commentId);
+        if (!el || el.querySelector('.comment__edit-area')) return;
+        var textEl = el.querySelector('.comment__text');
+        var actionsEl = el.querySelector('.comment__actions');
+        if (!textEl) return;
+
+        var wrap = document.createElement('div');
+        wrap.className = 'comment__edit-area';
+        var ta = document.createElement('textarea');
+        ta.className = 'lesson-comments__input';
+        ta.rows = 3;
+        ta.maxLength = 2000;
+        ta.value = textWithBreaks(textEl);
+        var saveBtn = document.createElement('button');
+        saveBtn.className = 'btn btn--primary comment__edit-save';
+        saveBtn.textContent = 'Save';
+        var cancelBtn = document.createElement('button');
+        cancelBtn.className = 'reply-cancel-btn';
+        cancelBtn.textContent = 'Cancel';
+        wrap.appendChild(ta);
+        wrap.appendChild(saveBtn);
+        wrap.appendChild(cancelBtn);
+
+        textEl.hidden = true;
+        if (actionsEl) actionsEl.hidden = true;
+        textEl.parentNode.insertBefore(wrap, textEl.nextSibling);
+        ta.focus();
+
+        function closeEdit() {
+          wrap.remove();
+          textEl.hidden = false;
+          if (actionsEl) actionsEl.hidden = false;
+        }
+        cancelBtn.addEventListener('click', closeEdit);
+
+        saveBtn.addEventListener('click', function () {
+          var newContent = ta.value.trim();
+          if (!newContent || newContent.length > 2000) return;
+          saveBtn.disabled = true;
+          saveBtn.textContent = 'Saving...';
+
+          fetch('/api/courses/comments', {
+            method: 'PATCH',
+            credentials: 'same-origin',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ commentId: commentId, content: newContent }),
+          })
+            .then(function (r) { return r.json(); })
+            .then(function (data) {
+              if (!data.ok) {
+                saveBtn.disabled = false;
+                saveBtn.textContent = 'Save';
+                alert(data.error || 'Could not save changes. Try again.');
+                return;
+              }
+              textEl.innerHTML = escContent(newContent);
+              closeEdit();
+            })
+            .catch(function () {
+              saveBtn.disabled = false;
+              saveBtn.textContent = 'Save';
+              alert('Network error. Please try again.');
+            });
+        });
+      }
+
+      function deleteComment(btn) {
+        var commentId = btn.dataset.commentId;
+        var repliesEl = document.getElementById('replies-' + commentId);
+        var replyCount = repliesEl ? repliesEl.querySelectorAll('.comment').length : 0;
+        var msg = replyCount > 0
+          ? 'Delete this comment and its ' + replyCount + (replyCount === 1 ? ' reply' : ' replies') + '?'
+          : 'Delete this comment?';
+        if (!window.confirm(msg)) return;
+        btn.disabled = true;
+
+        fetch('/api/courses/comments', {
+          method: 'DELETE',
+          credentials: 'same-origin',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ commentId: commentId }),
+        })
+          .then(function (r) { return r.json(); })
+          .then(function (data) {
+            if (!data.ok) {
+              btn.disabled = false;
+              alert(data.error || 'Could not delete. Try again.');
+              return;
+            }
+            var el = findCommentEl(commentId);
+            var removed = 1 + replyCount;
+            if (repliesEl) repliesEl.remove();
+            if (el) el.remove();
+            var cur = parseInt(countEl.textContent || '0', 10);
+            var next = Math.max(0, cur - removed);
+            countEl.textContent = next > 0 ? String(next) : '';
+            if (!listEl.querySelector('.comment')) {
+              // renderComments wiped listEl.innerHTML, so emptyEl may be detached — re-attach
+              if (!document.getElementById('comments-empty')) listEl.appendChild(emptyEl);
+              emptyEl.hidden = false;
+            }
+          })
+          .catch(function () {
+            btn.disabled = false;
+            alert('Network error. Please try again.');
+          });
       }
 
       function timeAgo(dateStr) {
@@ -2816,7 +2953,13 @@ const hasSecondaryAudio = showTabs && presentFormats.has('audio');
     margin: 0;
     word-break: break-word;
   }
-  :global(.comment__reply-btn) {
+  :global(.comment__actions) {
+    display: flex;
+    gap: var(--space-3);
+  }
+  :global(.comment__reply-btn),
+  :global(.comment__edit-btn),
+  :global(.comment__delete-btn) {
     background: none;
     border: none;
     color: var(--text-secondary);
@@ -2825,8 +2968,25 @@ const hasSecondaryAudio = showTabs && presentFormats.has('audio');
     padding: var(--space-1) 0;
     transition: color 0.15s;
   }
-  :global(.comment__reply-btn:hover) {
+  :global(.comment__reply-btn:hover),
+  :global(.comment__edit-btn:hover) {
     color: var(--accent);
+  }
+  :global(.comment__delete-btn:hover) {
+    color: var(--color-error);
+  }
+  :global(.comment__edit-area) {
+    margin-top: var(--space-2);
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-2);
+    align-items: flex-start;
+  }
+  :global(.comment__edit-area .lesson-comments__input) {
+    width: 100%;
+  }
+  :global(.comment__edit-area .reply-cancel-btn) {
+    align-self: flex-start;
   }
   :global(.comment__replies) {
     display: flex;
