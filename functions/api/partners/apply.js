@@ -3,22 +3,14 @@
  * Public, Turnstile-gated endpoint for Educational Partner applications.
  * Creates a pending record in the D1 `partners` table.
  */
-import { json, optionsResponse, verifyTurnstile } from '../auth/_shared.js';
+import { json, optionsResponse, verifyTurnstile, checkRateLimit } from '../auth/_shared.js';
 import { log } from '../_log.js';
 import { sendPartnerApplicationNotification } from './_emails.js';
+import { withIdempotency } from '../_idempotency.js';
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 const AFFIRMATION_KEYS = ['find_the_cause', 'treat_the_disease', 'restore_function', 'rrm_scope'];
-
-function generatePartnerId() {
-  const chars = 'abcdefghijklmnopqrstuvwxyz0123456789';
-  let id = 'rec';
-  for (let i = 0; i < 14; i++) {
-    id += chars[Math.floor(Math.random() * chars.length)];
-  }
-  return id;
-}
 
 function slugify(name) {
   return name
@@ -33,6 +25,10 @@ export async function onRequestOptions() {
 }
 
 export async function onRequestPost(context) {
+  return withIdempotency(context, _handlePost);
+}
+
+async function _handlePost(context) {
   const { request, env, waitUntil } = context;
 
   if (!env.DB) {
@@ -143,8 +139,14 @@ export async function onRequestPost(context) {
     }
   }
 
-  // Verify Turnstile token
   const ip = request.headers.get('CF-Connecting-IP') || 'unknown';
+
+  // Rate limit by IP (KV-backed; mirrors contact/submit.js)
+  if (!await checkRateLimit(env, `partners-apply:${ip}`, 5, 900)) {
+    return json({ error: 'rate_limited' }, 429);
+  }
+
+  // Verify Turnstile token
   const turnstileResult = await verifyTurnstile(env.CF_TURNSTILE_SECRET, turnstile_token, ip, env);
   if (!turnstileResult.ok) {
     return json({ error: 'invalid_turnstile' }, 400);
@@ -166,7 +168,7 @@ export async function onRequestPost(context) {
     rrm_scope: true,
   });
 
-  const id = generatePartnerId();
+  const id = crypto.randomUUID();
   const baseSlug = slugify(trimmedName);
 
   // Attempt INSERT with slug collision retry up to 10 suffix variants
