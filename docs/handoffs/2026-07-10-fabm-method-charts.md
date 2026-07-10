@@ -1,6 +1,6 @@
 # Handoff: FABM Method Chart Graphics (staged, NOT live)
 
-Date: 2026-07-10. Session: MacBook, Fable. Status: charts BUILT + VERIFIED + Brian-approved visually ("these are beautiful, i love these colors"). Nothing is deployed. Two expert-review IG DMs are drafted and approved but NOT yet sent (blocked at IG login). Embed + deploy remains gated on Brian's go-live after expert review.
+Date: 2026-07-10. Session: MacBook, Fable. Status: charts BUILT + VERIFIED + Brian-approved visually ("these are beautiful, i love these colors"). Nothing is deployed. Both expert-review IG DMs SENT 2026-07-10 (~1:49 PM ET Rebecca, ~1:57 PM ET Erin) from @rrmacademy, text + chart image each, verified in-thread. Awaiting reviewer replies. Embed + deploy remains gated on Brian's go-live after expert review.
 
 ## What this is
 
