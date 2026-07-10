@@ -62,7 +62,7 @@ export async function sendGA4Event(env, request, eventName, params = {}, overrid
     } else {
       sourceParams = await buildSourceParams(request, clientId);
     }
-    const defaultPageLocation = (() => { try { const u = new URL(request.headers.get('referer') || request.url); u.search = ''; return u.toString(); } catch { return ''; } })();
+    const defaultPageLocation = (() => { try { const u = new URL(request.headers.get('referer') || request.url); u.username = ''; u.password = ''; u.search = ''; u.hash = ''; return u.toString(); } catch { return ''; } })();
     const payload = {
       client_id: clientId,
       events: [{
