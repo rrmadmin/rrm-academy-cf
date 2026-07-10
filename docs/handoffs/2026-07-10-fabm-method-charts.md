@@ -42,6 +42,17 @@ Rebecca replied with Boston Cross Check's official standard example chart (Read 
 - Caption sentence now: "The fertile window closes on the evening of the fourth day after Peak Day, once the temperature shift confirms."
 Accepted as defensible simplifications (unchanged): no LH/cervix/progesterone rows; sign-based day-9 opening vs their calculated day-8 opening. Our page prose asserts no numeric rules, so no page edits needed. Open: whether to DM Rebecca the corrected chart (Brian's call). Erin (FEMM) has not replied yet.
 
+## Expert review round 2: FEMM teacher (2026-07-10 evening)
+
+FEMM teacher feedback (via Erin's circle, relayed by Brian): the chart omitted FEMM's count of three after Peak Day and started the post-ovulatory infertile phase before day 19. CORRECTED same day in this branch's assets:
+- Added count tiles 1, 2, 3 on days 16-18.
+- Moved the fertile-window bracket to days 9-18 and the post-ovulatory infertile bracket to start day 19.
+- Added a "count of three · window closes" pill and a sixth legend entry, "Post-Peak count 1·2·3."
+- Updated the teaching caption, alt text, and figcaption to name the count.
+- Re-rendered the chart assets.
+
+Resolves the residual-minor note summary.json had carried since the initial build (that note is removed in this same commit; see git history).
+
 ## SCHEDULED: Boston Cross-Check chart go-live 2026-07-12 09:07 ET (Brian's explicit go, 2026-07-10)
 
 Brian: "lets push this particular image to live in two days" = the BCC chart ONLY; the other 6 stay gated. Brian-gated plan APPROVED (15/15, two minors applied). Mechanics:
