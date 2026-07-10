@@ -20,13 +20,24 @@ const jsonLd = {
   author: { '@id': 'https://rrmacademy.org/#naomi-whittaker' },
   publisher: { '@id': 'https://rrmacademy.org/#organization' },
   datePublished: PUBLISHED, dateModified: MODIFIED,
-  image: {
-    '@type': 'ImageObject',
-    url: `https://rrmacademy.org/images/${SLUG}/${SLUG}-at-a-glance.webp`,
-    contentUrl: `https://rrmacademy.org/images/${SLUG}/${SLUG}-at-a-glance.webp`,
-    representativeOfPage: true,
-    creditText: 'RRM Academy',
-  },
+  image: [
+    {
+      '@type': 'ImageObject',
+      url: `https://rrmacademy.org/images/${SLUG}/${SLUG}-at-a-glance.webp`,
+      contentUrl: `https://rrmacademy.org/images/${SLUG}/${SLUG}-at-a-glance.webp`,
+      representativeOfPage: true,
+      creditText: 'RRM Academy',
+    },
+    {
+      '@type': 'ImageObject',
+      url: `https://rrmacademy.org/images/${SLUG}/${SLUG}-chart-example.webp`,
+      contentUrl: `https://rrmacademy.org/images/${SLUG}/${SLUG}-chart-example.webp`,
+      width: 2080,
+      height: 1596,
+      caption: 'This illustrative example charts one cycle three ways at once: temperature, mucus, and hormone monitor readings, the cross-checking approach at the center of this method. A trained instructor teaches you to read your own combined chart.',
+      creditText: 'RRM Academy',
+    },
+  ],
   mainEntityOfPage: { '@type': 'WebPage', '@id': PAGE_URL },
   about: data.about.map((a) => ({ '@type': ABOUT_TYPE_MAP[a.type] || 'Thing', name: a.name })),
   articleSection: ARTICLE_SECTIONS,
@@ -58,7 +69,19 @@ const faqSchema = { '@context': 'https://schema.org', '@type': 'FAQPage', mainEn
     </dl>
   </aside>
   <section id="what-it-is"><h2>What is Boston Cross-Check?</h2><Fragment set:html={data.prose.whatItIs} /></section>
-  <section id="how-it-works"><h2>How does Boston Cross-Check work?</h2><Fragment set:html={data.prose.howItWorks} /></section>
+  <section id="how-it-works"><h2>How does Boston Cross-Check work?</h2>
+    <figure class="hero-figure">
+      <img
+        src="/images/boston-cross-check/boston-cross-check-chart-example.webp"
+        width="2080"
+        height="1596"
+        loading="lazy"
+        decoding="async"
+        alt="Boston Cross-Check chart example showing one cycle charted with temperature, cervical mucus, and hormone monitor readings together."
+      />
+      <figcaption>This illustrative example charts one cycle three ways at once: temperature, mucus, and hormone monitor readings, the cross-checking approach at the center of this method. A trained instructor teaches you to read your own combined chart.</figcaption>
+    </figure>
+    <Fragment set:html={data.prose.howItWorks} /></section>
   <section id="taught"><h2>How is Boston Cross-Check taught?</h2><Fragment set:html={data.prose.taughtBy} /></section>
   <section id="effectiveness"><h2>How effective is Boston Cross-Check?</h2><Fragment set:html={data.prose.effectiveness} /></section>
   <section id="used-for"><h2>What is Boston Cross-Check used for?</h2><Fragment set:html={data.prose.usedFor} /></section>
