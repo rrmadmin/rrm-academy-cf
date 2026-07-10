@@ -1,0 +1,169 @@
+{
+  "charts": [
+    {
+      "slug": "creighton-model-chart-example",
+      "html": "/private/tmp/claude-501/-Users-brian-iCode/cc945e5e-15bd-433d-988a-db8855029b53/scratchpad/fabm-charts/out/creighton-model-chart-example.html",
+      "png": "/private/tmp/claude-501/-Users-brian-iCode/cc945e5e-15bd-433d-988a-db8855029b53/scratchpad/fabm-charts/out/creighton-model-chart-example.png",
+      "webp": "/private/tmp/claude-501/-Users-brian-iCode/cc945e5e-15bd-433d-988a-db8855029b53/scratchpad/fabm-charts/out/creighton-model-chart-example.webp",
+      "width": 2080,
+      "height": 1308,
+      "title": "Creighton Model Chart: One Example Cycle",
+      "accent": "#00837b",
+      "description": "A landscape, house-styled infographic on RRM Academy's paper background with a Cormorant Garamond title \"Creighton Model Chart: One Example Cycle\" and the eyebrow \"RRM Academy - Clinician-reviewed guide\". The centerpiece is a single horizontal strip of 28 rounded color-coded day tiles (days numbered 1-28 above, a short mucus-observation code below each). Days 1-4 are dusty-rose tiles for menstruation (codes H, M, M, L). Days 5-8 are pale stone tiles with a faint dot for dry, infertile days (code \"dry\"). Days 9-14 are teal tiles that deepen in saturation as mucus builds (codes damp, wet, wet, slip, slip, lub). Day 15 is the deepest teal tile bearing a white star mark, flagged above by a teal \"Peak Day\" pill with a downward pointer (code \"lub\"). Days 16-18 are white tiles outlined in teal showing large serif numerals 1, 2, and 3 (the post-Peak count of three; code \"dry\"). Days 19-28 return to pale stone dry tiles. Beneath the strip, four color-matched phase brackets label Menstruation (1-4), Dry days (5-8), Fertile window (9-18), and Post-Peak infertile (19-28), with a small teal pill \"count of three - window closes\" under days 16-18. Below the chart, a teaching line explains that each day a mucus sensation (dry, damp, wet, slippery, lubricative) is recorded, that Peak Day is the last day of the most slippery fertile-type mucus recognized once dry days return, and that the three days after Peak are counted 1, 2, 3. A five-item legend (Menstruation, Dry day, Fertile-type mucus gradient, Peak Day, Post-Peak count) sits above the footer alongside an italic \"Illustrative example, not a real patient chart\" note. A footer strip shows the \"RRM Academy\" wordmark and the URL rrmacademy.org/creighton-model/. No effectiveness statistics or percentages appear anywhere.",
+      "fixRounds": 0,
+      "residualBlockers": [],
+      "residualMinors": [
+        "accuracy: Fertile-type mucus is rendered as a teal gradient rather than the real Creighton stamp scheme (white 'baby'/peak-type stamps, green dry, red menses). This is a stylization only; the page never specifies stamp colors, and the chart self-labels 'Illustrative example, not a real patient chart.' No contradiction with page teaching. | fix: Optional: if strict fidelity to Creighton stamp colors is ever wanted, swap the teal ramp for the white-baby/green convention. Not required for accuracy against our page.",
+        "accuracy: Observations are shown as plain sensation words (dry/damp/wet/slip/lub) rather than Creighton's coded discharge recording system (0-10 plus letters). This matches the page verbatim (page frames observations as sensations 'dry, damp, wet, slippery, lubricative'), so it is aligned with our own teaching even though it simplifies the real method. | fix: No change needed; the chart mirrors the page's stated vocabulary exactly.",
+        "design: Title uses a colon (\"Creighton Model Chart: One Example Cycle\") whereas the live house card avoids colons (\"The Creighton Model at a Glance\"). Purely stylistic and within norms for a figure title; no stated check prohibits it. | fix: Optional: if colon-free house consistency is desired, recast as \"An Example Creighton Model Cycle\" or similar. Not required.",
+        "design: The chart introduces two new accent families not in the house token set (rose/wine for menstruation, teal gradient for the fertile window). House identity is carried only by the purple eyebrow + Cormorant wordmark, so the graphic reads teal-dominant rather than house-purple. | fix: Acceptable for a semantic data chart. If tighter house-tie is wanted, tint the menstruation band toward the #725e7e family, but the eyebrow already satisfies the purple-presence requirement.",
+        "originality: The section label \"Post-Peak infertile\" and legend entry \"Dry day (infertile)\" apply the word \"infertile\" to specific phases/days. Judged non-blocking: this is the method's standard, universally-used descriptive phase terminology (like \"luteal phase\"), shown in an explicitly illustrative frame, not an absolutist efficacy or reassurance claim to the reader. | fix: Optional hardening: soften to \"infertile phase\" as a category label or \"typically infertile\" to remove any absolutist read, especially given RRM's no-absolutist-patient-copy posture. Not required to ship."
+      ]
+    },
+    {
+      "slug": "billings-ovulation-method-chart-example",
+      "html": "/private/tmp/claude-501/-Users-brian-iCode/cc945e5e-15bd-433d-988a-db8855029b53/scratchpad/fabm-charts/out/billings-ovulation-method-chart-example.html",
+      "png": "/private/tmp/claude-501/-Users-brian-iCode/cc945e5e-15bd-433d-988a-db8855029b53/scratchpad/fabm-charts/out/billings-ovulation-method-chart-example.png",
+      "webp": "/private/tmp/claude-501/-Users-brian-iCode/cc945e5e-15bd-433d-988a-db8855029b53/scratchpad/fabm-charts/out/billings-ovulation-method-chart-example.webp",
+      "width": 2080,
+      "height": 1502,
+      "title": "Billings Ovulation Method Chart: One Example Cycle",
+      "accent": "#2B919B",
+      "description": "A landscape branded chart on RRM Academy's paper background. The eyebrow reads \"RRM Academy · Clinician-reviewed guide\"; a large Cormorant Garamond title reads \"Billings Ovulation Method Chart: One Example Cycle\" with a plain-language subtitle. The centerpiece is a 28-day cycle grid inside a white rounded card, built as two stacked observation strips labeled \"Feel\" and \"See\" in a left gutter. The top \"Feel\" strip is a row of 28 colored tiles: days 1-4 rose (Menstruation, tapering lighter), days 5-8 stone (dry, unchanged days), then a teal build-up crescendo from pale to saturated across days 9-14 (moist, wet, slippery), day 15 the deepest teal tile ringed and stamped with a white teardrop mark (Peak Day), day 16 a fading pale-teal (drying), and days 17-28 stone (dry). Sensation word labels sit beneath the tiles (dry, moist, wet, slippery, peak, drying, dry) in the Billings teal accent. The lower \"See\" strip shows small house-designed appearance marks per day: hollow rings for nothing seen, solid dots for sticky, paired dots for creamy, and dot-line-dot stretch marks for clear/stretchy mucus near ovulation. A dark-teal \"Peak Day\" pill with a downward pointer flags day 15, and a smaller \"mucus begins\" tag flags day 9. Four phase brackets label the cycle: Menstruation (1-4), Dry unchanged days (5-8), Fertile window mucus build-up (9-18), and Post-Peak infertile (19-28); a small teal sub-pill under days 16-18 reads \"count 1 · 2 · 3 · window closes.\" Below the card, a teaching sentence explains sensation vs appearance and Peak Day, a legend maps the color bands and the Peak droplet plus an \"Illustrative example, not a real patient chart\" note, and an appearance-marks sub-legend defines the four marks. A footer strip carries the Cormorant \"RRM Academy\" wordmark and the URL rrmacademy.org/billings-ovulation-method/. No effectiveness statistics or percentages appear anywhere.",
+      "fixRounds": 0,
+      "residualBlockers": [],
+      "residualMinors": [
+        "accuracy: The chart's own caption lists four sensations (dry, moist, wet, slippery), but the FEEL row also labels day 15 \"peak\" and day 16 \"drying.\" \"Peak\" is a day-marker rather than a sensation, and \"drying\" is a transitional descriptor not in the caption's four-term list. This is a chart-internal vocabulary mismatch, not a contradiction with the page (the page prose does not rigidly enumerate the four sensations, and describes the post-Peak change). | fix: Optional polish: either add \"drying\" to the caption's sensation list, or footnote that \"peak\" marks the last slippery day and \"drying\" denotes the post-Peak change. No content change required."
+      ]
+    },
+    {
+      "slug": "sympto-thermal-method-chart-example",
+      "html": "/private/tmp/claude-501/-Users-brian-iCode/cc945e5e-15bd-433d-988a-db8855029b53/scratchpad/fabm-charts/out/sympto-thermal-method-chart-example.html",
+      "png": "/private/tmp/claude-501/-Users-brian-iCode/cc945e5e-15bd-433d-988a-db8855029b53/scratchpad/fabm-charts/out/sympto-thermal-method-chart-example.png",
+      "webp": "/private/tmp/claude-501/-Users-brian-iCode/cc945e5e-15bd-433d-988a-db8855029b53/scratchpad/fabm-charts/out/sympto-thermal-method-chart-example.webp",
+      "width": 1040,
+      "height": 824,
+      "title": "Sympto-Thermal Method Chart: One Example Cycle",
+      "accent": "#C0573E",
+      "description": "A landscape, paper-toned RRM Academy figure titled \"Sympto-Thermal Method Chart: One Example Cycle\" (Cormorant Garamond) with a purple \"RRM Academy - Clinician-reviewed guide\" eyebrow and a two-line subtitle. The centerpiece is a classic basal body temperature (BBT) line chart spanning one 28-day cycle on graph-paper gridlines, with a Fahrenheit Y-axis (97.0 to 98.4). A terracotta temperature line plots a waking temperature each day: it stays low and clustered through the follicular phase (roughly 97.2 to 97.5), then steps up sharply after day 14 and holds in the luteal plateau (roughly 97.9 to 98.2) before easing down at the cycle's end. A dashed terracotta \"Coverline\" runs horizontally at 97.6. The three temperatures on days 15, 16, 17 are ringed and sit inside a light terracotta \"Temperature shift\" band with a labeled bracket above them; a purple \"Peak Day\" pill with a dotted guide marks day 14. Beneath the plot, a numbered day row (1-28) and a secondary \"Mucus\" observation row of rounded tiles run in lockstep: dusky-rose menstruation tiles (days 1-4), stone dry-day tiles with dots (days 5-8), a purple mucus build-up ramp (days 9-13), a purple Peak Day tile with a star (day 14), and three white tiles outlined in purple numbered 1, 2, 3 for the post-Peak count (days 15-17), then stone dry tiles to day 28. Four phase brackets label Menstruation, Early days, Fertile window (days 9-17), and Post-ovulatory infertile; a terracotta-outlined pill reading \"both signs confirm - window closes\" sits under the close of the fertile window, where the third high temperature and the third day past Peak coincide. Below the chart card sit a plain-language teaching sentence, a compact five-item legend (waking temperature, coverline, fertile-type mucus, Peak Day, post-ovulatory infertile) with an italic \"Illustrative example, not a real patient chart\" note, and a footer strip with the \"RRM Academy\" wordmark and the URL rrmacademy.org/sympto-thermal-method/. No effectiveness numbers, percentages, or protocol details appear anywhere.",
+      "fixRounds": 0,
+      "residualBlockers": [],
+      "residualMinors": [
+        "accuracy: Coverline is drawn floating ~0.1°F above the cluster of the six pre-shift low temperatures (days 9-14) rather than resting on the highest of them. Strict Sensiplan draws the Hilfslinie at the level of the highest of the 6 low temps. | fix: Optional only. The page never teaches coverline construction (it says only that temperature 'holds above the coverline'), and drawing the coverline a hair above the low cluster is a common STM convention and visually clearer. No change required; leave as-is unless you want strict Sensiplan fidelity, in which case nudge the coverline down to touch the highest low temp (day 10).",
+        "accuracy: The fertile window is shown opening at the first fertile-type mucus (day 9), with days 5-8 rendered as fully infertile 'Early days.' This simplifies real-world pre-ovulatory rules (dry-day/calendar minus-rules that can open the window earlier due to sperm survival). | fix: No change needed. This matches the page's own framing ('this build-up signals the opening of the fertile window'), so it does not contradict our teaching. It is a defensible pedagogical simplification for a single illustrative cycle."
+      ]
+    },
+    {
+      "slug": "marquette-model-chart-example",
+      "html": "/private/tmp/claude-501/-Users-brian-iCode/cc945e5e-15bd-433d-988a-db8855029b53/scratchpad/fabm-charts/out/marquette-model-chart-example.html",
+      "png": "/private/tmp/claude-501/-Users-brian-iCode/cc945e5e-15bd-433d-988a-db8855029b53/scratchpad/fabm-charts/out/marquette-model-chart-example.png",
+      "webp": "/private/tmp/claude-501/-Users-brian-iCode/cc945e5e-15bd-433d-988a-db8855029b53/scratchpad/fabm-charts/out/marquette-model-chart-example.webp",
+      "width": 2080,
+      "height": 1500,
+      "title": "Marquette Model Chart: One Example Cycle",
+      "accent": "#005450",
+      "description": "A branded RRM Academy figure on a warm paper background titled \"Marquette Model Chart: One Example Cycle\" in Cormorant Garamond, with the eyebrow \"RRM Academy · Clinician-reviewed guide.\" The body is a stepped electronic-hormone-monitor readout for a single 30-day illustrative cycle: one vertical bar per day inside a plot with three dashed y-axis gridlines labeled LOW, HIGH, and PEAK. Days 1-5 are short rose \"Menstruation\" bars (marked with a bleed dot). Days 6-10 are short pale-teal \"Low\" bars coded L (pre-fertile). Days 11-15 rise to mid-teal \"High\" bars coded H, and days 16-17 rise to full-height deep-teal (#005450) \"Peak\" bars coded P, forming a clear Low-to-High-to-Peak mountain silhouette that then drops back to short Low bars for days 18-30. A \"Peak Day\" pill points down to day 16, and a small \"Peak reading · LH surge\" chip sits under the two Peak days. Four color-keyed phase brackets run beneath the day numbers: Menstruation (days 1-5), Pre-fertile (Low) (6-10), Fertile window (High + Peak) (11-17), and Post-ovulatory infertile (18-30). A one-line teaching caption explains the Low/High/Peak levels and that High and Peak days together define the fertile window. A compact legend maps the four bar colors (Menstruation, Low reading, High reading, Peak reading with a small diamond marker), with an italic \"Illustrative example, not a real patient chart\" note. The footer strip shows the \"RRM Academy\" wordmark and the URL rrmacademy.org/marquette-model/. No percentages, effectiveness statistics, brand/product trade dress, or em dashes appear anywhere.",
+      "fixRounds": 0,
+      "residualBlockers": [],
+      "residualMinors": [
+        "accuracy: Chart begins the post-ovulatory infertile band on day 18 (immediately after the last Peak). Real Marquette rules close the fertile window at Peak+3/+4, not the day after Peak. However, the page's own howItWorks prose states the identical simplification ('After the Peak reading, the post-ovulatory infertile phase begins'), so the chart does NOT contradict the page — this is a shared simplification, not a blocker. | fix: Optional: if precision is ever wanted, shade days 18-20 as a transition/count-of-3 before the fully-infertile band, and update the page prose to match. Not required — chart and page are currently consistent with each other.",
+        "accuracy: Monitor reading sequence goes Peak (16-17) directly to Low (18+). A real Clearblue Advanced Fertility Monitor usually returns to High for ~2 days after the two Peak days before dropping to Low. The page never teaches a post-Peak High, so there is no page contradiction; this is a defensible illustrative simplification and the chart is labeled 'Illustrative example, not a real patient chart.' | fix: No change needed for page-consistency. If closer real-device fidelity is desired later, insert 2 High readings on days 18-19 before Lows resume.",
+        "accuracy: The 'Peak Day' callout points at day 16 (the first of two Peak readings). In mucus-based FABMs 'Peak Day' conventionally means the LAST day of peak signs; the monitor sense (first LH-surge detection) is defensible. The page does not define 'Peak Day', so no contradiction. | fix: Optional clarity: label it 'First Peak reading (LH surge detected)' to avoid conflation with the mucus-method 'Peak Day' definition. Not a blocker.",
+        "originality: Body text states 'after the Peak reading the post-ovulatory infertile phase begins,' and the fertile-window underline ends at day 17 (the last Peak day). The actual Marquette Model rule for avoiding pregnancy treats infertility as beginning on Peak+3 (evening of the 3rd day after Peak), not immediately after the Peak reading. This is a simplification, not one of the five IP/content-safety checks, and the piece is explicitly labeled an illustrative example, so it is not a blocker. | fix: Optionally soften to 'the days after Peak begin the return to the post-ovulatory infertile phase' or add a small note that confirmation takes a few days after Peak, to avoid implying instant post-Peak infertility."
+      ]
+    },
+    {
+      "slug": "boston-cross-check-chart-example",
+      "html": "/private/tmp/claude-501/-Users-brian-iCode/cc945e5e-15bd-433d-988a-db8855029b53/scratchpad/fabm-charts/out/boston-cross-check-chart-example.html",
+      "png": "/private/tmp/claude-501/-Users-brian-iCode/cc945e5e-15bd-433d-988a-db8855029b53/scratchpad/fabm-charts/out/boston-cross-check-chart-example.png",
+      "webp": "/private/tmp/claude-501/-Users-brian-iCode/cc945e5e-15bd-433d-988a-db8855029b53/scratchpad/fabm-charts/out/boston-cross-check-chart-example.webp",
+      "width": 1040,
+      "height": 798,
+      "title": "Boston Cross-Check Chart: One Example Cycle",
+      "accent": "#367588",
+      "description": "A landscape RRM Academy branded figure on a warm paper background. A mauve eyebrow reads \"RRM Academy · Clinician-reviewed guide\" above a large Cormorant Garamond title \"Boston Cross-Check Chart: One Example Cycle\" and a muted subtitle explaining that one cycle is charted three ways at once. The main white card holds the signature Boston Cross-Check anatomy: a single 28-day cycle axis (days 1 to 28 labeled \"Cycle day\") shared by three vertically stacked biomarker lanes, each with a left-side label. The top lane is a basal body temperature line chart in teal-blue that runs low and flat (near 97 degrees) through the first half, then steps up sharply after day 16 and holds a plateau near 98 degrees, with a dashed cover line and the three post-shift high temperatures (days 17, 18, 19, shown in accent) circled. The middle lane, \"Cervical mucus,\" is a row of rounded tiles: rose menstruation (days 1 to 4), stone dry days (5 to 8), a teal-blue ramp of building fertile-type mucus (9 to 14), a dark accent Peak Day tile with a star at day 15, then stone dry days to day 28. The bottom lane, \"Hormone monitor,\" is an abstract three-level bar meter that rises like a staircase from short faint \"low\" bars (1 to 8) to medium \"high\" bars (9 to 13) to two tall dark \"peak\" bars with stars (14 to 15), then drops back to low. A teal \"Peak Day\" flag with a down caret points to day 15. Below the lanes, a phase-bracket row marks Menstruation, Infertile, Fertile window (days 9 to 19, in accent), and Post-ovulatory infertile, with a small pill reading \"Peak Day and three high temperatures agree, window closes.\" A teaching sentence, a six-item legend (menstruation, infertile day, fertile-type mucus, Peak Day, basal temperature, monitor low/high/peak), and an italic \"Illustrative example, not a real patient chart\" note sit beneath the card. The footer strip shows the Cormorant \"RRM Academy\" wordmark at left and \"rrmacademy.org/boston-cross-check/\" at right. No percentages or effectiveness statistics appear anywhere.",
+      "fixRounds": 0,
+      "residualBlockers": [],
+      "residualMinors": [
+        "accuracy: Chart eyebrow says 'CLINICIAN-REVIEWED GUIDE' while the live page carries an editing notice stating the guide is 'still being reviewed by our clinical team, so some details may change.' Mild state mismatch between the chart's completed-review claim and the page's in-review banner. Not a method-teaching contradiction. | fix: Soften the badge to the neutral series label (e.g. 'RRM ACADEMY GUIDE' or 'RRM ACADEMY EDUCATION') until the review banner is removed, then restore 'CLINICIAN-REVIEWED' once the page finalizes.",
+        "accuracy: Days 5-8 are labeled flatly 'Infertile.' Real FABM teaching treats the pre-ovulatory phase as only conditionally infertile (sperm survival / early-mucus watch). This is a simplification, but the page teaches no specific pre-ovulatory day rule, so it does not contradict the page. | fix: Optional: rename the pre-ovulatory band to 'Pre-ovulatory (relatively infertile)' or add a footnote that early days are watched, not guaranteed infertile. Safe to leave as-is for an illustrative example.",
+        "accuracy: Monitor sequence goes Peak (days 14-15) straight to Low on day 16, omitting the one 'High' day that real electronic monitors (e.g. Clearblue) typically show after the second Peak day before returning to Low. Simplification of the post-peak monitor tail; the page does not teach the exact tail, so no contradiction. | fix: Optional: render day 16 monitor as High (not Low) to mirror real device behavior. Defensible either way for an illustrative chart.",
+        "design: Footer URL renders with a trailing slash (rrmacademy.org/boston-cross-check/), diverging from the house DNA: make-card.mjs strips the trailing slash (.replace(/\\/$/, '')) and the live at-a-glance card shows it without one. Purely cosmetic, both URLs resolve. | fix: Strip the trailing slash on the footer URL to match the house make-card.mjs normalization and the live card."
+      ]
+    },
+    {
+      "slug": "twoday-method-chart-example",
+      "html": "/private/tmp/claude-501/-Users-brian-iCode/cc945e5e-15bd-433d-988a-db8855029b53/scratchpad/fabm-charts/out/twoday-method-chart-example.html",
+      "png": "/private/tmp/claude-501/-Users-brian-iCode/cc945e5e-15bd-433d-988a-db8855029b53/scratchpad/fabm-charts/out/twoday-method-chart-example.png",
+      "webp": "/private/tmp/claude-501/-Users-brian-iCode/cc945e5e-15bd-433d-988a-db8855029b53/scratchpad/fabm-charts/out/twoday-method-chart-example.webp",
+      "width": 2080,
+      "height": 1472,
+      "title": "TwoDay Method Chart: One Example Cycle",
+      "accent": "#725e7e",
+      "description": "A single-cycle TwoDay Method chart spanning 28 days, where one daily yes/no secretion observation drives a color-coded day-status row. Rose menstruation covers days 1-4; a navy potentially-fertile phase covers the secretion days plus three look-back days (5, 11, and 17), each shown with a 'y' marker and an \"up-arrow yesterday\" chip; stone infertile days cover 6-8 and 18-28. Day 6 is now the first infertile day, being the second consecutive dry day after bleeding ends, and the look-back is applied symmetrically at both the menstruation end and the ovulation end.",
+      "fixRounds": 1,
+      "residualBlockers": [],
+      "residualMinors": [
+        "accuracy: The chart introduces a menstruation/bleeding-caution rule ('Bleeding hides secretions, so menstrual days are treated with the same caution... day 5 stays fertile because day 4 was a bleeding day') that the page prose (twoday-method.json) never states. The page's only infertile rule is 'no secretions for two consecutive days.' This is NOT a contradiction: the page is silent on bleeding, the chart's handling is standard real TwoDay protocol, and feeding the chart's observation row into the page's own today/yesterday rule reproduces all 28 day classifications exactly. Flagging only because chart and page would be more aligned if the page mentioned bleeding handling. | fix: Optional: add a sentence to twoday-method.json howItWorks noting that bleeding days are treated as potentially fertile because bleeding masks secretions. Not required for the chart to be correct.",
+        "accuracy: The eyebrow label 'CLINICIAN-REVIEWED GUIDE' slightly leads the live page's own status: the page ships an editing notice that it is 'newly published and still being reviewed by our clinical team, so some details may change.' This is a branding/framing nuance outside the method-teaching scope; the method content itself is not affected. | fix: Either soften the eyebrow to match the page's 'in review' state, or clear the page's editing notice once clinical review is final. Cosmetic.",
+        "accuracy: The chart legend defines 'Secretions noted' vs 'None noted' but not that a bleeding day counts as a 'yes' for the following day's yesterday look-back. A reader scanning only the legend and the top rule could be briefly puzzled by day 5 (observation = none noted, yet classified potentially fertile). The body caption fully explains it, so coherence holds. | fix: Optional clarity: a one-line legend note or tooltip that bleeding is treated as a fertile-caution 'yes' for the next day. Not a correctness issue."
+      ]
+    },
+    {
+      "slug": "femm-chart-example",
+      "html": "/private/tmp/claude-501/-Users-brian-iCode/cc945e5e-15bd-433d-988a-db8855029b53/scratchpad/fabm-charts/out/femm-chart-example.html",
+      "png": "/private/tmp/claude-501/-Users-brian-iCode/cc945e5e-15bd-433d-988a-db8855029b53/scratchpad/fabm-charts/out/femm-chart-example.png",
+      "webp": "/private/tmp/claude-501/-Users-brian-iCode/cc945e5e-15bd-433d-988a-db8855029b53/scratchpad/fabm-charts/out/femm-chart-example.webp",
+      "width": 2080,
+      "height": 1476,
+      "title": "FEMM Chart: One Example Cycle",
+      "accent": "#9396C9",
+      "description": "A landscape branded example chart on a warm paper background, titled \"FEMM Chart: One Example Cycle\" in a Cormorant Garamond serif above an \"RRM ACADEMY · CLINICIAN-REVIEWED GUIDE\" eyebrow, with an \"RRM Academy\" wordmark and \"rrmacademy.org/femm/\" in the footer strip. The body is a white rounded card holding a 28-day daily observation log built as three stacked, left-labeled rows. The BLEEDING row shows red bars tapering across days 1-5, then empty faint cells. The MUCUS row (the tall hero row) shows pale-rose \"not charted\" tiles during menstruation (days 1-5), warm-gray dry-day tiles with a small dot (days 6-8), a light-to-deep periwinkle estrogenic-mucus ramp rising across days 9-14, and a deep-periwinkle Peak Day tile on day 15 marked with a white star and a white outline ring, then gray dry tiles for the rest of the cycle. The LH TEST row shows nothing until day 7, seven small hollow \"minus\" negative strips (days 7-13), and one bold periwinkle \"+\" positive surge strip on day 14, then nothing. Day numbers 1-28 run across the top; a mucus-code row (dry, damp, wet, stretch, ES, peak, dry) runs beneath the tiles. A periwinkle \"Peak Day\" pill points down at day 15. Four phase brackets underline the grid: Menstruation (days 1-5, rose), Dry days (6-8, gray), Fertile window (9-16, periwinkle), and Post-ovulatory infertile (17-28, gray), with a small periwinkle pill reading \"LH surge + Peak confirm ovulation\" beneath days 14-15. Below the card sits a one-paragraph teaching caption and a five-item legend (Menstruation, Dry day (infertile), Estrogenic mucus, Peak Day star, LH surge positive test) plus an italic \"Illustrative example, not a real patient chart\" note. No percentages or effectiveness figures appear anywhere.",
+      "fixRounds": 0,
+      "residualBlockers": [],
+      "residualMinors": [
+        "accuracy: Chart labels the post-ovulatory infertile phase as beginning on day 16 (Peak Day +1), which omits the standard FABM/FEMM 3-day post-peak count that a family-planning user would apply before considering the fertile window closed. Not a contradiction with our page (the page teaches no fertile-window-closing count and frames FEMM primarily as a medical-management model, not a contraceptive how-to), and it is consistent with the page's own surge->ovulation timing (LH+ day 14 -> ovulation ~day 15 -> day 16 post-ovulatory). | fix: Optional: if the chart is ever repurposed for family-planning instruction, extend the fertile-window shading ~3 days past Peak Day (through ~day 18) or add a note that infertility is confirmed only after the post-peak count. For an illustrative FEMM-as-health-model graphic, current shading is fine.",
+        "accuracy: Mucus vocabulary and category use differs cosmetically from the page: the chart uses 'damp/wet' where the page body uses 'moist,' and 'ES' appears both as a single day-label (day 14) and as the legend's umbrella category ('Estrogenic mucus') covering the whole blue ramp (days 9-15). Slight labeling redundancy, no methodological conflict. | fix: Optional: align the intermediate-mucus wording with the page ('moist') or clarify that 'ES' in the legend is the category and the day-14 'ES' is one sub-stage. Not required.",
+        "accuracy: Chart text says the positive LH test 'marks the surge that triggers ovulation within about a day,' whereas the page states 'within 24 to 36 hours.' 'About a day' matches the lower bound but slightly understates the 36-hour upper bound. | fix: Optional: change 'within about a day' to 'within about a day or so' or 'within 24-36 hours' to match the page exactly."
+      ]
+    }
+  ],
+  "captions": [
+    {
+      "slug": "creighton-model-chart-example",
+      "alt": "Creighton Model chart example: a 28-day cycle showing daily mucus codes, Peak Day, and the three-day post-Peak count.",
+      "figcaption": "This illustrative example charts one cycle in Creighton Model notation: daily mucus codes, a marked Peak Day, and the three days counted after it. A trained FertilityCare Practitioner teaches you to read your own chart."
+    },
+    {
+      "slug": "billings-ovulation-method-chart-example",
+      "alt": "Billings Ovulation Method chart example showing daily mucus sensation and appearance observations, with Peak Day marked.",
+      "figcaption": "This illustrative example charts one cycle in Billings Ovulation Method notation, recording both the feel and the appearance of mucus each day and marking Peak Day. A trained Billings teacher helps you learn to read your own chart."
+    },
+    {
+      "slug": "sympto-thermal-method-chart-example",
+      "alt": "Sympto-Thermal Method chart example combining a basal body temperature curve with mucus observations to show Peak Day.",
+      "figcaption": "This illustrative example pairs a waking temperature curve with daily mucus observations, the two signs this method combines. A trained instructor teaches you to interpret your own combined chart."
+    },
+    {
+      "slug": "marquette-model-chart-example",
+      "alt": "Marquette Model chart example showing one cycle of hormone monitor readings across Low, High, and Peak fertility levels.",
+      "figcaption": "This illustrative example charts one cycle of electronic hormone monitor readings in Marquette Model notation, moving from Low through High to Peak across the fertile window. A trained Marquette instructor teaches you to interpret your own monitor readings."
+    },
+    {
+      "slug": "boston-cross-check-chart-example",
+      "alt": "Boston Cross-Check chart example showing one cycle charted with temperature, cervical mucus, and hormone monitor readings together.",
+      "figcaption": "This illustrative example charts one cycle three ways at once: temperature, mucus, and hormone monitor readings, the cross-checking approach at the center of this method. A trained instructor teaches you to read your own combined chart."
+    },
+    {
+      "slug": "twoday-method-chart-example",
+      "alt": "TwoDay Method chart example showing one cycle of daily secretion observations marking potentially fertile and infertile days.",
+      "figcaption": "This illustrative example charts one cycle in TwoDay Method notation, where a single daily secretion observation, checked against the day before, marks each day fertile or infertile. A trained instructor teaches you to apply the same check to your own cycle."
+    },
+    {
+      "slug": "femm-chart-example",
+      "alt": "FEMM chart example showing one cycle with daily mucus observations, an LH test result row, and a marked Peak Day.",
+      "figcaption": "This illustrative example charts one cycle in FEMM notation, pairing daily mucus observations with LH test results to mark Peak Day. A trained FEMM instructor teaches you to read and apply your own chart."
+    }
+  ],
+  "failed": []
+}

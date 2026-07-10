@@ -1,0 +1,146 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<title>FEMM Chart: One Example Cycle</title>
+<style>
+  :root{
+    --ink:#2b2733;--muted:#6f6a77;--faint:#928d99;
+    --accent:#725e7e;--femm:#6b6fb0;--rose:#a65e6d;
+    --paper:#f7f5f3;--card:#ffffff;--line:#e8e3ec;--line-soft:#f0ecf2;
+    --gray:#e6e4ea;--gray-line:#d4d1dd;--gray-ink:#8b8792;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{background:var(--paper);font-family:'Inter',sans-serif;-webkit-font-smoothing:antialiased}
+  .fig{width:1040px;background:var(--paper);padding:42px 46px 30px}
+  .eyebrow{font-size:12.5px;font-weight:600;letter-spacing:.14em;text-transform:uppercase;color:var(--accent);margin-bottom:12px}
+  h1{font-family:'Cormorant Garamond',serif;font-weight:600;font-size:46px;line-height:1.02;color:var(--ink);letter-spacing:-.005em}
+  .sub{margin-top:9px;font-size:16.5px;color:var(--muted);max-width:840px;line-height:1.4}
+
+  .chartcard{margin-top:24px;background:var(--card);border:1px solid var(--line);border-radius:16px;padding:28px 30px 22px;box-shadow:0 1px 0 rgba(45,42,50,.02)}
+
+  /* every stacked grid shares this column template so day columns align */
+  .grid{display:grid;grid-template-columns:78px repeat(28,1fr);column-gap:3px}
+
+  /* peak flag row */
+  .peakrow{align-items:end;margin-bottom:2px}
+  .peakflag{display:flex;flex-direction:column;align-items:center;justify-content:flex-end}
+  .peakpill{font-size:12px;font-weight:700;letter-spacing:.02em;color:#fff;background:var(--femm);padding:4px 12px;border-radius:999px;white-space:nowrap;box-shadow:0 1px 3px rgba(107,111,176,.32)}
+  .peakpoint{color:var(--femm);font-size:12px;line-height:.7;margin-top:1px}
+
+  /* main log grid */
+  .log{row-gap:5px;align-items:center}
+  .dnum{grid-row:1;text-align:center;font-size:10px;font-weight:600;color:var(--faint);padding-bottom:2px;font-variant-numeric:tabular-nums}
+
+  .rowlab{font-size:9.5px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;color:var(--gray-ink);text-align:right;padding-right:10px;white-space:nowrap}
+
+  /* bleeding row (row 3) */
+  .blab{grid-row:3}
+  .bcell{grid-row:3;height:20px;border-radius:5px}
+  .b-none{background:#f4f1f4}
+
+  /* mucus row (row 4) hero */
+  .mlab{grid-row:4}
+  .mtile{grid-row:4;height:46px;border-radius:7px;position:relative;display:flex;align-items:center;justify-content:center}
+  .m-peak{box-shadow:0 0 0 3px #fff,0 0 0 5px var(--femm)}
+  .star{color:#fff;font-size:19px;line-height:1}
+  .ddot{width:5px;height:5px;border-radius:999px;background:var(--gray-line);opacity:.85}
+
+  /* LH test row (row 5) */
+  .llab{grid-row:5}
+  .lcell{grid-row:5;display:flex;align-items:center;justify-content:center}
+  .strip{width:74%;height:19px;border-radius:4px;display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;line-height:1}
+  .lh-none{color:var(--gray-line);font-size:11px}
+  .lh-neg{border:1.5px solid var(--gray-line);background:#fbfafc;color:var(--gray-ink)}
+  .lh-pos{background:var(--femm);color:#fff;box-shadow:0 1px 3px rgba(107,111,176,.35)}
+
+  /* mucus code text (row 6) */
+  .code{grid-row:6;text-align:center;font-size:9px;font-weight:600;letter-spacing:.01em;padding-top:4px;line-height:1}
+
+  /* phase brackets (row 7) */
+  .brk{grid-row:7;margin-top:11px;border-top:2px solid var(--line);padding-top:5px;text-align:center;position:relative}
+  .brk span{font-size:10.5px;font-weight:600;letter-spacing:.02em;white-space:nowrap}
+  .brk::before,.brk::after{content:"";position:absolute;top:0;width:2px;height:6px}
+  .brk::before{left:0}.brk::after{right:0}
+  .brk-rose{border-color:var(--rose)}.brk-rose span{color:var(--rose)}
+  .brk-femm{border-color:var(--femm)}.brk-femm span{color:var(--femm)}
+  .brk-gray{border-color:var(--gray-line)}.brk-gray span{color:var(--gray-ink)}
+
+  /* sub caption (row 8) */
+  .cbrk{grid-row:8;margin-top:7px;text-align:center}
+  .cbrk span{font-size:9.5px;font-weight:600;color:var(--femm);letter-spacing:.02em;white-space:nowrap;background:#eef0f8;border:1px solid #d3d6ee;padding:2px 9px;border-radius:999px}
+
+  .teach{margin-top:22px;font-size:13px;line-height:1.5;color:var(--muted);max-width:955px}
+  .teach b{color:var(--ink);font-weight:600}
+
+  .legendrow{margin-top:20px;display:flex;align-items:center;flex-wrap:wrap;gap:16px 22px}
+  .leg{display:flex;align-items:center;gap:8px;font-size:12px;color:var(--ink);font-weight:500}
+  .sw{width:26px;height:18px;border-radius:5px;flex:none;display:flex;align-items:center;justify-content:center}
+  .sw-ramp{background:linear-gradient(90deg,#d5d9ee,#a7abd9,#6b6fb0)}
+  .sw-peak{background:var(--femm)}
+  .sw-peak .star{font-size:12px}
+  .sw-pos{background:var(--femm);color:#fff;font-size:11px;font-weight:700}
+  .illus{margin-left:auto;font-size:11.5px;font-style:italic;color:var(--faint)}
+
+  .foot{margin-top:22px;display:flex;align-items:baseline;justify-content:space-between;border-top:1px solid var(--line);padding-top:15px}
+  .wordmark{font-family:'Cormorant Garamond',serif;font-weight:600;font-size:23px;color:var(--ink);letter-spacing:.005em}
+  .url{font-size:13px;color:var(--muted);font-weight:500}
+</style></head>
+<body>
+  <div class="fig" id="fig">
+    <div class="eyebrow">RRM Academy &middot; Clinician-reviewed guide</div>
+    <h1>FEMM Chart: One Example Cycle</h1>
+    <p class="sub">One cycle logged day by day the way FEMM teaches it: menstrual bleeding, cervical mucus, and a urinary LH test, with the mucus Peak and the LH surge cross-confirming ovulation.</p>
+
+    <div class="chartcard">
+      <div class="grid peakrow">
+        <div class="peakflag" style="grid-column:16"><span class="peakpill">Peak Day</span><span class="peakpoint">&#9662;</span></div>
+      </div>
+      <div class="grid log">
+        <!-- day numbers -->
+        <div class="dnum" style="grid-column:2">1</div><div class="dnum" style="grid-column:3">2</div><div class="dnum" style="grid-column:4">3</div><div class="dnum" style="grid-column:5">4</div><div class="dnum" style="grid-column:6">5</div><div class="dnum" style="grid-column:7">6</div><div class="dnum" style="grid-column:8">7</div><div class="dnum" style="grid-column:9">8</div><div class="dnum" style="grid-column:10">9</div><div class="dnum" style="grid-column:11">10</div><div class="dnum" style="grid-column:12">11</div><div class="dnum" style="grid-column:13">12</div><div class="dnum" style="grid-column:14">13</div><div class="dnum" style="grid-column:15">14</div><div class="dnum" style="grid-column:16">15</div><div class="dnum" style="grid-column:17">16</div><div class="dnum" style="grid-column:18">17</div><div class="dnum" style="grid-column:19">18</div><div class="dnum" style="grid-column:20">19</div><div class="dnum" style="grid-column:21">20</div><div class="dnum" style="grid-column:22">21</div><div class="dnum" style="grid-column:23">22</div><div class="dnum" style="grid-column:24">23</div><div class="dnum" style="grid-column:25">24</div><div class="dnum" style="grid-column:26">25</div><div class="dnum" style="grid-column:27">26</div><div class="dnum" style="grid-column:28">27</div><div class="dnum" style="grid-column:29">28</div>
+
+        <!-- bleeding row -->
+        <div class="rowlab blab" style="grid-column:1">Bleeding</div>
+        <div class="bcell" style="grid-column:2;background:#9e5566"></div><div class="bcell" style="grid-column:3;background:#a2596a"></div><div class="bcell" style="grid-column:4;background:#bd7f8d"></div><div class="bcell" style="grid-column:5;background:#d3a2ac"></div><div class="bcell" style="grid-column:6;background:#e6c6cd"></div><div class="bcell b-none" style="grid-column:7"></div><div class="bcell b-none" style="grid-column:8"></div><div class="bcell b-none" style="grid-column:9"></div><div class="bcell b-none" style="grid-column:10"></div><div class="bcell b-none" style="grid-column:11"></div><div class="bcell b-none" style="grid-column:12"></div><div class="bcell b-none" style="grid-column:13"></div><div class="bcell b-none" style="grid-column:14"></div><div class="bcell b-none" style="grid-column:15"></div><div class="bcell b-none" style="grid-column:16"></div><div class="bcell b-none" style="grid-column:17"></div><div class="bcell b-none" style="grid-column:18"></div><div class="bcell b-none" style="grid-column:19"></div><div class="bcell b-none" style="grid-column:20"></div><div class="bcell b-none" style="grid-column:21"></div><div class="bcell b-none" style="grid-column:22"></div><div class="bcell b-none" style="grid-column:23"></div><div class="bcell b-none" style="grid-column:24"></div><div class="bcell b-none" style="grid-column:25"></div><div class="bcell b-none" style="grid-column:26"></div><div class="bcell b-none" style="grid-column:27"></div><div class="bcell b-none" style="grid-column:28"></div><div class="bcell b-none" style="grid-column:29"></div>
+
+        <!-- mucus row (hero) -->
+        <div class="rowlab mlab" style="grid-column:1">Mucus</div>
+        <div class="mtile" style="grid-column:2;background:#f0dfe3"></div><div class="mtile" style="grid-column:3;background:#f0dfe3"></div><div class="mtile" style="grid-column:4;background:#f0dfe3"></div><div class="mtile" style="grid-column:5;background:#f2e4e7"></div><div class="mtile" style="grid-column:6;background:#f4eaec"></div><div class="mtile" style="grid-column:7;background:#e6e4ea"><span class="ddot"></span></div><div class="mtile" style="grid-column:8;background:#e6e4ea"><span class="ddot"></span></div><div class="mtile" style="grid-column:9;background:#e6e4ea"><span class="ddot"></span></div><div class="mtile" style="grid-column:10;background:#d5d9ee"></div><div class="mtile" style="grid-column:11;background:#bcc1e3"></div><div class="mtile" style="grid-column:12;background:#a7abd9"></div><div class="mtile" style="grid-column:13;background:#9396c9"></div><div class="mtile" style="grid-column:14;background:#7d80bd"></div><div class="mtile" style="grid-column:15;background:#686cb0"></div><div class="mtile m-peak" style="grid-column:16;background:#54579f"><span class="star">&#10022;</span></div><div class="mtile" style="grid-column:17;background:#e6e4ea"><span class="ddot"></span></div><div class="mtile" style="grid-column:18;background:#e6e4ea"><span class="ddot"></span></div><div class="mtile" style="grid-column:19;background:#e6e4ea"><span class="ddot"></span></div><div class="mtile" style="grid-column:20;background:#e6e4ea"><span class="ddot"></span></div><div class="mtile" style="grid-column:21;background:#e6e4ea"><span class="ddot"></span></div><div class="mtile" style="grid-column:22;background:#e6e4ea"><span class="ddot"></span></div><div class="mtile" style="grid-column:23;background:#e6e4ea"><span class="ddot"></span></div><div class="mtile" style="grid-column:24;background:#e6e4ea"><span class="ddot"></span></div><div class="mtile" style="grid-column:25;background:#e6e4ea"><span class="ddot"></span></div><div class="mtile" style="grid-column:26;background:#e6e4ea"><span class="ddot"></span></div><div class="mtile" style="grid-column:27;background:#e6e4ea"><span class="ddot"></span></div><div class="mtile" style="grid-column:28;background:#e6e4ea"><span class="ddot"></span></div><div class="mtile" style="grid-column:29;background:#e6e4ea"><span class="ddot"></span></div>
+
+        <!-- LH test row -->
+        <div class="rowlab llab" style="grid-column:1">LH test</div>
+        <div class="lcell" style="grid-column:2"><span class="lh-none">&middot;</span></div><div class="lcell" style="grid-column:3"><span class="lh-none">&middot;</span></div><div class="lcell" style="grid-column:4"><span class="lh-none">&middot;</span></div><div class="lcell" style="grid-column:5"><span class="lh-none">&middot;</span></div><div class="lcell" style="grid-column:6"><span class="lh-none">&middot;</span></div><div class="lcell" style="grid-column:7"><span class="lh-none">&middot;</span></div><div class="lcell" style="grid-column:8"><span class="strip lh-neg">&minus;</span></div><div class="lcell" style="grid-column:9"><span class="strip lh-neg">&minus;</span></div><div class="lcell" style="grid-column:10"><span class="strip lh-neg">&minus;</span></div><div class="lcell" style="grid-column:11"><span class="strip lh-neg">&minus;</span></div><div class="lcell" style="grid-column:12"><span class="strip lh-neg">&minus;</span></div><div class="lcell" style="grid-column:13"><span class="strip lh-neg">&minus;</span></div><div class="lcell" style="grid-column:14"><span class="strip lh-neg">&minus;</span></div><div class="lcell" style="grid-column:15"><span class="strip lh-pos">+</span></div><div class="lcell" style="grid-column:16"><span class="lh-none">&middot;</span></div><div class="lcell" style="grid-column:17"><span class="lh-none">&middot;</span></div><div class="lcell" style="grid-column:18"><span class="lh-none">&middot;</span></div><div class="lcell" style="grid-column:19"><span class="lh-none">&middot;</span></div><div class="lcell" style="grid-column:20"><span class="lh-none">&middot;</span></div><div class="lcell" style="grid-column:21"><span class="lh-none">&middot;</span></div><div class="lcell" style="grid-column:22"><span class="lh-none">&middot;</span></div><div class="lcell" style="grid-column:23"><span class="lh-none">&middot;</span></div><div class="lcell" style="grid-column:24"><span class="lh-none">&middot;</span></div><div class="lcell" style="grid-column:25"><span class="lh-none">&middot;</span></div><div class="lcell" style="grid-column:26"><span class="lh-none">&middot;</span></div><div class="lcell" style="grid-column:27"><span class="lh-none">&middot;</span></div><div class="lcell" style="grid-column:28"><span class="lh-none">&middot;</span></div><div class="lcell" style="grid-column:29"><span class="lh-none">&middot;</span></div>
+
+        <!-- mucus code text -->
+        <div class="code" style="grid-column:7;color:var(--gray-ink)">dry</div><div class="code" style="grid-column:8;color:var(--gray-ink)">dry</div><div class="code" style="grid-column:9;color:var(--gray-ink)">dry</div><div class="code" style="grid-column:10;color:#5c60a6">damp</div><div class="code" style="grid-column:11;color:#5c60a6">wet</div><div class="code" style="grid-column:12;color:#5c60a6">wet</div><div class="code" style="grid-column:13;color:#5c60a6">stretch</div><div class="code" style="grid-column:14;color:#5c60a6">stretch</div><div class="code" style="grid-column:15;color:#5c60a6">ES</div><div class="code" style="grid-column:16;color:#4a4d93">peak</div><div class="code" style="grid-column:17;color:var(--gray-ink)">dry</div><div class="code" style="grid-column:18;color:var(--gray-ink)">dry</div><div class="code" style="grid-column:19;color:var(--gray-ink)">dry</div><div class="code" style="grid-column:20;color:var(--gray-ink)">dry</div><div class="code" style="grid-column:21;color:var(--gray-ink)">dry</div><div class="code" style="grid-column:22;color:var(--gray-ink)">dry</div><div class="code" style="grid-column:23;color:var(--gray-ink)">dry</div><div class="code" style="grid-column:24;color:var(--gray-ink)">dry</div><div class="code" style="grid-column:25;color:var(--gray-ink)">dry</div><div class="code" style="grid-column:26;color:var(--gray-ink)">dry</div><div class="code" style="grid-column:27;color:var(--gray-ink)">dry</div><div class="code" style="grid-column:28;color:var(--gray-ink)">dry</div><div class="code" style="grid-column:29;color:var(--gray-ink)">dry</div>
+
+        <!-- phase brackets -->
+        <div class="brk brk-rose" style="grid-column:2 / 7"><span>Menstruation</span></div>
+        <div class="brk brk-gray" style="grid-column:7 / 10"><span>Dry days</span></div>
+        <div class="brk brk-femm" style="grid-column:10 / 18"><span>Fertile window</span></div>
+        <div class="brk brk-gray" style="grid-column:18 / 30"><span>Post-ovulatory infertile</span></div>
+
+        <!-- sub caption -->
+        <div class="cbrk" style="grid-column:15 / 18"><span>LH surge + Peak confirm ovulation</span></div>
+      </div>
+    </div>
+
+    <p class="teach">FEMM is a <b>sympto-hormonal</b> method: each day a woman logs her <b>bleeding</b>, her <b>cervical mucus</b> (dry, damp, wet, stretchy, estrogenic), and, once testing begins around cycle day 7, a <b>urinary LH test</b>. Estrogenic mucus opens the fertile window; a positive LH test marks the surge that triggers ovulation within about a day. <b>Peak Day</b> is the last day of clear, stretchy, estrogenic mucus.</p>
+
+    <div class="legendrow">
+      <div class="leg"><span class="sw" style="background:#a2596a"></span>Menstruation</div>
+      <div class="leg"><span class="sw" style="background:var(--gray)"><span class="ddot"></span></span>Dry day (infertile)</div>
+      <div class="leg"><span class="sw sw-ramp"></span>Estrogenic mucus</div>
+      <div class="leg"><span class="sw sw-peak"><span class="star">&#10022;</span></span>Peak Day</div>
+      <div class="leg"><span class="sw sw-pos">+</span>LH surge (positive test)</div>
+      <span class="illus">Illustrative example, not a real patient chart</span>
+    </div>
+
+    <div class="foot">
+      <span class="wordmark">RRM Academy</span>
+      <span class="url">rrmacademy.org/femm/</span>
+    </div>
+  </div>
+</body></html>

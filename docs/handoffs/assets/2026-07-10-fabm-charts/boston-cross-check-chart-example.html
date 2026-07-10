@@ -1,0 +1,180 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<title>Boston Cross-Check Chart: One Example Cycle</title>
+<style>
+  :root{
+    --ink:#2b2733;--muted:#6f6a77;--faint:#928d99;--purple:#725e7e;
+    --accent:#367588;--accent-deep:#274f5d;--accent-mid:#6ba3ae;--accent-soft:#cfe0e4;--accent-bg:#eef5f6;--accent-line:#cfe1e5;
+    --rose:#a65e6d;
+    --paper:#f7f5f3;--card:#ffffff;--line:#e8e3ec;--line-soft:#f0ecf2;
+    --stone:#e9e3dd;--stone-line:#d9d1c8;--stone-ink:#8f867d;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{background:var(--paper);font-family:'Inter',sans-serif;-webkit-font-smoothing:antialiased}
+  .fig{width:1040px;background:var(--paper);padding:40px 46px 28px}
+  .eyebrow{font-size:12.5px;font-weight:600;letter-spacing:.14em;text-transform:uppercase;color:var(--purple);margin-bottom:11px}
+  h1{font-family:'Cormorant Garamond',serif;font-weight:600;font-size:46px;line-height:1.02;color:var(--ink);letter-spacing:-.005em}
+  .sub{margin-top:9px;font-size:16.5px;color:var(--muted);max-width:850px;line-height:1.4}
+
+  .chartcard{margin-top:22px;background:var(--card);border:1px solid var(--line);border-radius:16px;padding:26px 30px 22px;box-shadow:0 1px 0 rgba(45,42,50,.02)}
+
+  .chart{display:grid;grid-template-columns:108px 780px;align-items:center}
+  .lbl{grid-column:1;text-align:right;padding-right:15px;font-size:11.5px;font-weight:600;line-height:1.18;color:var(--faint);letter-spacing:.01em}
+  .lbl b{display:block;color:var(--muted)}
+  .cell{grid-column:2;position:relative}
+  .days{display:grid;grid-template-columns:repeat(28,1fr);width:780px}
+
+  /* peak flag row */
+  .flagrow{height:30px}
+  .peakflag{display:flex;flex-direction:column;align-items:center;justify-content:flex-end;height:100%}
+  .peakpill{font-size:11.5px;font-weight:700;letter-spacing:.02em;color:#fff;background:var(--accent);padding:3px 12px;border-radius:999px;white-space:nowrap;box-shadow:0 1px 3px rgba(54,117,136,.34)}
+  .peakcaret{color:var(--accent);font-size:11px;line-height:.7;margin-top:1px}
+
+  /* day numbers */
+  .dnum{text-align:center;font-size:10px;font-weight:600;color:var(--faint);font-variant-numeric:tabular-nums;padding-bottom:3px}
+  .dnum.hot{color:var(--accent)}
+
+  /* temperature lane */
+  .templane{grid-column:2;width:780px}
+  .templane svg{display:block;width:780px;height:106px}
+  .tempaxis{grid-column:1;text-align:right;padding-right:15px;position:relative;height:106px}
+  .tempaxis span{position:absolute;right:15px;font-size:9.5px;font-weight:600;color:var(--faint);font-variant-numeric:tabular-nums}
+
+  /* mucus lane */
+  .tile{height:40px;border-radius:7px;display:flex;align-items:center;justify-content:center;margin:0 2px;position:relative}
+  .tile.dry{background:var(--stone)}
+  .tile.pk{background:var(--accent-deep);box-shadow:0 0 0 3px #fff,0 0 0 5px var(--accent)}
+  .star{color:#fff;font-size:18px;line-height:1}
+  .ddot{width:5px;height:5px;border-radius:999px;background:#b6ada4;opacity:.75}
+
+  /* monitor lane */
+  .monlane .days{align-items:flex-end;height:48px}
+  .mcell{height:48px;display:flex;align-items:flex-end;justify-content:center;padding:0 2px}
+  .bar{width:100%;max-width:20px;border-radius:4px 4px 2px 2px;position:relative;display:flex;align-items:flex-start;justify-content:center}
+  .bar.lo{background:#bcccd0}
+  .bar.hi{background:var(--accent-mid)}
+  .bar.pk{background:var(--accent)}
+  .mstar{color:#fff;font-size:11px;line-height:1;margin-top:2px}
+
+  /* brackets */
+  .brkrow{margin-top:12px}
+  .brk{border-top:2px solid var(--line);padding-top:5px;text-align:center;position:relative}
+  .brk span{font-size:10.5px;font-weight:600;letter-spacing:.02em;white-space:nowrap}
+  .brk::before,.brk::after{content:"";position:absolute;top:0;width:2px;height:6px}
+  .brk::before{left:0}.brk::after{right:0}
+  .brk-rose{border-color:var(--rose)}.brk-rose span{color:var(--rose)}
+  .brk-accent{border-color:var(--accent)}.brk-accent span{color:var(--accent)}
+  .brk-stone{border-color:var(--stone-line)}.brk-stone span{color:var(--stone-ink)}
+  .brk-rose::before,.brk-rose::after{background:var(--rose)}
+  .brk-accent::before,.brk-accent::after{background:var(--accent)}
+  .brk-stone::before,.brk-stone::after{background:var(--stone-line)}
+
+  .subpillrow{margin-top:8px}
+  .subpill{text-align:center}
+  .subpill span{font-size:9.5px;font-weight:600;color:var(--accent);letter-spacing:.02em;white-space:nowrap;background:var(--accent-bg);border:1px solid var(--accent-line);padding:2px 9px;border-radius:999px}
+
+  .rowgap{height:9px}
+
+  .teach{margin-top:20px;font-size:12.5px;line-height:1.5;color:var(--muted);max-width:940px}
+  .teach b{color:var(--ink);font-weight:600}
+
+  .legendrow{margin-top:16px;display:flex;align-items:center;flex-wrap:wrap;gap:12px 20px}
+  .leg{display:flex;align-items:center;gap:8px;font-size:12px;color:var(--ink);font-weight:500}
+  .sw{width:26px;height:18px;border-radius:5px;flex:none;display:flex;align-items:center;justify-content:center}
+  .sw-ramp{background:linear-gradient(90deg,#cfe0e4,#77aab5,#367588)}
+  .sw-peak{background:var(--accent-deep)}
+  .sw-peak .star{font-size:11px}
+  .sw-temp{background:var(--accent-bg);border:1px solid var(--accent-line);position:relative;overflow:hidden}
+  .sw-temp::after{content:"";position:absolute;left:2px;right:2px;bottom:5px;height:0;border-top:2px solid var(--accent);clip-path:polygon(0 60%,45% 60%,55% 0,100% 0,100% 100%,0 100%)}
+  .sw-mon{background:#fff;display:flex;align-items:flex-end;gap:2px;padding:2px}
+  .sw-mon i{flex:1;border-radius:1px}
+  .sw-mon i:nth-child(1){height:35%;background:#bcccd0}
+  .sw-mon i:nth-child(2){height:65%;background:var(--accent-mid)}
+  .sw-mon i:nth-child(3){height:100%;background:var(--accent)}
+  .illus{margin-left:auto;font-size:11.5px;font-style:italic;color:var(--faint)}
+
+  .foot{margin-top:20px;display:flex;align-items:baseline;justify-content:space-between;border-top:1px solid var(--line);padding-top:14px}
+  .wordmark{font-family:'Cormorant Garamond',serif;font-weight:600;font-size:23px;color:var(--ink);letter-spacing:.005em}
+  .url{font-size:13px;color:var(--muted);font-weight:500}
+</style></head>
+<body>
+  <div class="fig" id="fig">
+    <div class="eyebrow">RRM Academy &middot; Clinician-reviewed guide</div>
+    <h1>Boston Cross-Check Chart: One Example Cycle</h1>
+    <p class="sub">One cycle charted three ways at once: basal body temperature, cervical mucus, and a hormone monitor, stacked on the same day axis so each sign cross-checks the others.</p>
+
+    <div class="chartcard">
+      <div class="chart">
+        <!-- Peak flag row -->
+        <div class="lbl"></div>
+        <div class="cell flagrow"><div class="days"><div class="peakflag" style="grid-column:15"><span class="peakpill">Peak Day</span><span class="peakcaret">&#9662;</span></div></div></div>
+
+        <!-- Day numbers -->
+        <div class="lbl" style="color:var(--faint);font-weight:600">Cycle day</div>
+        <div class="cell"><div class="days"><div class="dnum" style="grid-column:1">1</div><div class="dnum" style="grid-column:2">2</div><div class="dnum" style="grid-column:3">3</div><div class="dnum" style="grid-column:4">4</div><div class="dnum" style="grid-column:5">5</div><div class="dnum" style="grid-column:6">6</div><div class="dnum" style="grid-column:7">7</div><div class="dnum" style="grid-column:8">8</div><div class="dnum" style="grid-column:9">9</div><div class="dnum" style="grid-column:10">10</div><div class="dnum" style="grid-column:11">11</div><div class="dnum" style="grid-column:12">12</div><div class="dnum" style="grid-column:13">13</div><div class="dnum" style="grid-column:14">14</div><div class="dnum" style="grid-column:15">15</div><div class="dnum" style="grid-column:16">16</div><div class="dnum hot" style="grid-column:17">17</div><div class="dnum hot" style="grid-column:18">18</div><div class="dnum hot" style="grid-column:19">19</div><div class="dnum" style="grid-column:20">20</div><div class="dnum" style="grid-column:21">21</div><div class="dnum" style="grid-column:22">22</div><div class="dnum" style="grid-column:23">23</div><div class="dnum" style="grid-column:24">24</div><div class="dnum" style="grid-column:25">25</div><div class="dnum" style="grid-column:26">26</div><div class="dnum" style="grid-column:27">27</div><div class="dnum" style="grid-column:28">28</div></div></div>
+
+        <div class="lbl" style="grid-column:1/-1"></div>
+      </div>
+
+      <div class="chart" style="margin-top:6px">
+        <!-- Temperature lane -->
+        <div class="tempaxis"><span style="top:18.86px">98&deg;</span><span style="top:70.29px">97&deg;</span></div>
+        <div class="templane">
+          <svg viewBox="0 0 780 106" preserveAspectRatio="none" role="img" aria-label="Basal body temperature curve rising after ovulation">
+            <defs><linearGradient id="tg" x1="0" x2="0" y1="0" y2="1">
+              <stop offset="0" stop-color="#367588" stop-opacity="0.16"/>
+              <stop offset="1" stop-color="#367588" stop-opacity="0"/>
+            </linearGradient></defs>
+            <line x1="236.79" y1="63.43" x2="543.21" y2="63.43" stroke="#b9b3bd" stroke-width="1.3" stroke-dasharray="4 4"/>
+            <polygon points="13.93,102 13.93,76.29 41.79,82.71 69.64,89.14 97.5,82.71 125.36,89.14 153.21,76.29 181.07,82.71 208.93,89.14 236.79,82.71 264.64,76.29 292.5,89.14 320.36,82.71 348.21,95.57 376.07,82.71 403.93,89.14 431.79,76.29 459.64,44.14 487.5,37.71 515.36,31.29 543.21,37.71 571.07,24.86 598.93,31.29 626.79,24.86 654.64,37.71 682.5,31.29 710.36,24.86 738.21,37.71 766.07,44.14 766.07,102" fill="url(#tg)"/>
+            <polyline points="13.93,76.29 41.79,82.71 69.64,89.14 97.5,82.71 125.36,89.14 153.21,76.29 181.07,82.71 208.93,89.14 236.79,82.71 264.64,76.29 292.5,89.14 320.36,82.71 348.21,95.57 376.07,82.71 403.93,89.14 431.79,76.29 459.64,44.14 487.5,37.71 515.36,31.29 543.21,37.71 571.07,24.86 598.93,31.29 626.79,24.86 654.64,37.71 682.5,31.29 710.36,24.86 738.21,37.71 766.07,44.14" fill="none" stroke="var(--accent)" stroke-width="2.4" stroke-linejoin="round" stroke-linecap="round" vector-effect="non-scaling-stroke"/>
+            <circle cx="13.93" cy="76.29" r="2.6" fill="#ffffff" stroke="var(--accent)" stroke-width="1.4"/><circle cx="41.79" cy="82.71" r="2.6" fill="#ffffff" stroke="var(--accent)" stroke-width="1.4"/><circle cx="69.64" cy="89.14" r="2.6" fill="#ffffff" stroke="var(--accent)" stroke-width="1.4"/><circle cx="97.5" cy="82.71" r="2.6" fill="#ffffff" stroke="var(--accent)" stroke-width="1.4"/><circle cx="125.36" cy="89.14" r="2.6" fill="#ffffff" stroke="var(--accent)" stroke-width="1.4"/><circle cx="153.21" cy="76.29" r="2.6" fill="#ffffff" stroke="var(--accent)" stroke-width="1.4"/><circle cx="181.07" cy="82.71" r="2.6" fill="#ffffff" stroke="var(--accent)" stroke-width="1.4"/><circle cx="208.93" cy="89.14" r="2.6" fill="#ffffff" stroke="var(--accent)" stroke-width="1.4"/><circle cx="236.79" cy="82.71" r="2.6" fill="#ffffff" stroke="var(--accent)" stroke-width="1.4"/><circle cx="264.64" cy="76.29" r="2.6" fill="#ffffff" stroke="var(--accent)" stroke-width="1.4"/><circle cx="292.5" cy="89.14" r="2.6" fill="#ffffff" stroke="var(--accent)" stroke-width="1.4"/><circle cx="320.36" cy="82.71" r="2.6" fill="#ffffff" stroke="var(--accent)" stroke-width="1.4"/><circle cx="348.21" cy="95.57" r="2.6" fill="#ffffff" stroke="var(--accent)" stroke-width="1.4"/><circle cx="376.07" cy="82.71" r="2.6" fill="#ffffff" stroke="var(--accent)" stroke-width="1.4"/><circle cx="403.93" cy="89.14" r="2.6" fill="#ffffff" stroke="var(--accent)" stroke-width="1.4"/><circle cx="431.79" cy="76.29" r="2.6" fill="#ffffff" stroke="var(--accent)" stroke-width="1.4"/><circle cx="459.64" cy="44.14" r="2.6" fill="#ffffff" stroke="var(--accent)" stroke-width="1.4"/><circle cx="487.5" cy="37.71" r="2.6" fill="#ffffff" stroke="var(--accent)" stroke-width="1.4"/><circle cx="515.36" cy="31.29" r="2.6" fill="#ffffff" stroke="var(--accent)" stroke-width="1.4"/><circle cx="543.21" cy="37.71" r="2.6" fill="#ffffff" stroke="var(--accent)" stroke-width="1.4"/><circle cx="571.07" cy="24.86" r="2.6" fill="#ffffff" stroke="var(--accent)" stroke-width="1.4"/><circle cx="598.93" cy="31.29" r="2.6" fill="#ffffff" stroke="var(--accent)" stroke-width="1.4"/><circle cx="626.79" cy="24.86" r="2.6" fill="#ffffff" stroke="var(--accent)" stroke-width="1.4"/><circle cx="654.64" cy="37.71" r="2.6" fill="#ffffff" stroke="var(--accent)" stroke-width="1.4"/><circle cx="682.5" cy="31.29" r="2.6" fill="#ffffff" stroke="var(--accent)" stroke-width="1.4"/><circle cx="710.36" cy="24.86" r="2.6" fill="#ffffff" stroke="var(--accent)" stroke-width="1.4"/><circle cx="738.21" cy="37.71" r="2.6" fill="#ffffff" stroke="var(--accent)" stroke-width="1.4"/><circle cx="766.07" cy="44.14" r="2.6" fill="#ffffff" stroke="var(--accent)" stroke-width="1.4"/>
+            <circle cx="459.64" cy="44.14" r="5.6" fill="none" stroke="var(--accent)" stroke-width="1.8"/><circle cx="487.5" cy="37.71" r="5.6" fill="none" stroke="var(--accent)" stroke-width="1.8"/><circle cx="515.36" cy="31.29" r="5.6" fill="none" stroke="var(--accent)" stroke-width="1.8"/>
+          </svg>
+        </div>
+      </div>
+
+      <div class="chart" style="margin-top:9px">
+        <!-- Mucus lane -->
+        <div class="lbl"><b>Cervical</b>mucus</div>
+        <div class="cell"><div class="days"><div class="tile mns" style="grid-column:1;background:#9e5566"></div><div class="tile mns" style="grid-column:2;background:#ac6070"></div><div class="tile mns" style="grid-column:3;background:#ac6070"></div><div class="tile mns" style="grid-column:4;background:#d29ba7"></div><div class="tile dry" style="grid-column:5"><span class="ddot"></span></div><div class="tile dry" style="grid-column:6"><span class="ddot"></span></div><div class="tile dry" style="grid-column:7"><span class="ddot"></span></div><div class="tile dry" style="grid-column:8"><span class="ddot"></span></div><div class="tile fert" style="grid-column:9;background:#cfe0e4"></div><div class="tile fert" style="grid-column:10;background:#a9cbd2"></div><div class="tile fert" style="grid-column:11;background:#a9cbd2"></div><div class="tile fert" style="grid-column:12;background:#77aab5"></div><div class="tile fert" style="grid-column:13;background:#55929f"></div><div class="tile fert" style="grid-column:14;background:#367588"></div><div class="tile pk" style="grid-column:15"><span class="star">&#10022;</span></div><div class="tile dry" style="grid-column:16"><span class="ddot"></span></div><div class="tile dry" style="grid-column:17"><span class="ddot"></span></div><div class="tile dry" style="grid-column:18"><span class="ddot"></span></div><div class="tile dry" style="grid-column:19"><span class="ddot"></span></div><div class="tile dry" style="grid-column:20"><span class="ddot"></span></div><div class="tile dry" style="grid-column:21"><span class="ddot"></span></div><div class="tile dry" style="grid-column:22"><span class="ddot"></span></div><div class="tile dry" style="grid-column:23"><span class="ddot"></span></div><div class="tile dry" style="grid-column:24"><span class="ddot"></span></div><div class="tile dry" style="grid-column:25"><span class="ddot"></span></div><div class="tile dry" style="grid-column:26"><span class="ddot"></span></div><div class="tile dry" style="grid-column:27"><span class="ddot"></span></div><div class="tile dry" style="grid-column:28"><span class="ddot"></span></div></div></div>
+      </div>
+
+      <div class="chart monlane" style="margin-top:9px">
+        <!-- Monitor lane -->
+        <div class="lbl"><b>Hormone</b>monitor</div>
+        <div class="cell"><div class="days"><div class="mcell" style="grid-column:1"><div class="bar lo" style="height:30%"></div></div><div class="mcell" style="grid-column:2"><div class="bar lo" style="height:30%"></div></div><div class="mcell" style="grid-column:3"><div class="bar lo" style="height:30%"></div></div><div class="mcell" style="grid-column:4"><div class="bar lo" style="height:30%"></div></div><div class="mcell" style="grid-column:5"><div class="bar lo" style="height:30%"></div></div><div class="mcell" style="grid-column:6"><div class="bar lo" style="height:30%"></div></div><div class="mcell" style="grid-column:7"><div class="bar lo" style="height:30%"></div></div><div class="mcell" style="grid-column:8"><div class="bar lo" style="height:30%"></div></div><div class="mcell" style="grid-column:9"><div class="bar hi" style="height:66%"></div></div><div class="mcell" style="grid-column:10"><div class="bar hi" style="height:66%"></div></div><div class="mcell" style="grid-column:11"><div class="bar hi" style="height:66%"></div></div><div class="mcell" style="grid-column:12"><div class="bar hi" style="height:66%"></div></div><div class="mcell" style="grid-column:13"><div class="bar hi" style="height:66%"></div></div><div class="mcell" style="grid-column:14"><div class="bar pk" style="height:100%"><span class="mstar">&#10022;</span></div></div><div class="mcell" style="grid-column:15"><div class="bar pk" style="height:100%"><span class="mstar">&#10022;</span></div></div><div class="mcell" style="grid-column:16"><div class="bar lo" style="height:30%"></div></div><div class="mcell" style="grid-column:17"><div class="bar lo" style="height:30%"></div></div><div class="mcell" style="grid-column:18"><div class="bar lo" style="height:30%"></div></div><div class="mcell" style="grid-column:19"><div class="bar lo" style="height:30%"></div></div><div class="mcell" style="grid-column:20"><div class="bar lo" style="height:30%"></div></div><div class="mcell" style="grid-column:21"><div class="bar lo" style="height:30%"></div></div><div class="mcell" style="grid-column:22"><div class="bar lo" style="height:30%"></div></div><div class="mcell" style="grid-column:23"><div class="bar lo" style="height:30%"></div></div><div class="mcell" style="grid-column:24"><div class="bar lo" style="height:30%"></div></div><div class="mcell" style="grid-column:25"><div class="bar lo" style="height:30%"></div></div><div class="mcell" style="grid-column:26"><div class="bar lo" style="height:30%"></div></div><div class="mcell" style="grid-column:27"><div class="bar lo" style="height:30%"></div></div><div class="mcell" style="grid-column:28"><div class="bar lo" style="height:30%"></div></div></div></div>
+      </div>
+
+      <div class="chart brkrow">
+        <div class="lbl"></div>
+        <div class="cell"><div class="days"><div class="brk brk-rose" style="grid-column:1 / 5"><span>Menstruation</span></div><div class="brk brk-stone" style="grid-column:5 / 9"><span>Infertile</span></div><div class="brk brk-accent" style="grid-column:9 / 20"><span>Fertile window</span></div><div class="brk brk-stone" style="grid-column:20 / 29"><span>Post-ovulatory infertile</span></div></div></div>
+      </div>
+
+      <div class="chart subpillrow">
+        <div class="lbl"></div>
+        <div class="cell"><div class="days"><div class="subpill" style="grid-column:15 / 20"><span>Peak Day and three high temperatures agree, window closes</span></div></div></div>
+      </div>
+    </div>
+
+    <p class="teach">Each cycle day records three signals. The <b>hormone monitor</b> climbs from low to peak as estrogen and the LH surge build, <b>cervical mucus</b> reaches its most fertile, slippery type on <b>Peak Day</b>, and the <b>basal temperature</b> steps up and holds after ovulation. When the mucus peak and three higher temperatures both confirm, the fertile window closes. One sign can cross-check another when either is unclear.</p>
+
+    <div class="legendrow">
+      <div class="leg"><span class="sw" style="background:var(--rose)"></span>Menstruation</div>
+      <div class="leg"><span class="sw" style="background:var(--stone)"></span>Infertile day</div>
+      <div class="leg"><span class="sw sw-ramp"></span>Fertile-type mucus</div>
+      <div class="leg"><span class="sw sw-peak"><span class="star">&#10022;</span></span>Peak Day</div>
+      <div class="leg"><span class="sw sw-temp"></span>Basal temperature</div>
+      <div class="leg"><span class="sw sw-mon"><i></i><i></i><i></i></span>Monitor: low &middot; high &middot; peak</div>
+      <span class="illus">Illustrative example, not a real patient chart</span>
+    </div>
+
+    <div class="foot">
+      <span class="wordmark">RRM Academy</span>
+      <span class="url">rrmacademy.org/boston-cross-check/</span>
+    </div>
+  </div>
+</body></html>

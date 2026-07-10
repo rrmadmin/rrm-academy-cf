@@ -1,0 +1,221 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<title>Billings Ovulation Method Chart: One Example Cycle</title>
+<style>
+  :root{
+    --ink:#2b2733;--muted:#6f6a77;--faint:#928d99;
+    --accent:#725e7e;--teal:#2b919b;--teal-deep:#1d7a83;--teal-text:#177a83;
+    --rose:#a65e6d;--menses:#9e5566;
+    --paper:#f7f5f3;--card:#ffffff;--line:#e8e3ec;--line-soft:#f0ecf2;
+    --stone:#e7e0d9;--stone-line:#d6cec4;--stone-ink:#8f867d;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{background:var(--paper);font-family:'Inter',sans-serif;-webkit-font-smoothing:antialiased}
+  .fig{width:1040px;background:var(--paper);padding:42px 46px 30px}
+  .eyebrow{font-size:12.5px;font-weight:600;letter-spacing:.14em;text-transform:uppercase;color:var(--accent);margin-bottom:12px}
+  h1{font-family:'Cormorant Garamond',serif;font-weight:600;font-size:46px;line-height:1.02;color:var(--ink);letter-spacing:-.005em}
+  .sub{margin-top:9px;font-size:16.5px;color:var(--muted);max-width:840px;line-height:1.4}
+
+  .chartcard{margin-top:24px;background:var(--card);border:1px solid var(--line);border-radius:16px;padding:28px 30px 22px;box-shadow:0 1px 0 rgba(45,42,50,.02)}
+
+  .grid{display:grid;grid-template-columns:46px repeat(28,1fr);column-gap:3px}
+
+  /* flags */
+  .flags{align-items:end;margin-bottom:3px}
+  .peakflag{display:flex;flex-direction:column;align-items:center;justify-content:flex-end}
+  .peakpill{font-size:12px;font-weight:700;letter-spacing:.02em;color:#fff;background:var(--teal-deep);padding:4px 13px;border-radius:999px;white-space:nowrap;box-shadow:0 1px 3px rgba(29,122,131,.3)}
+  .peakpoint{color:var(--teal-deep);font-size:12px;line-height:.7;margin-top:1px}
+  .chgflag{display:flex;flex-direction:column;align-items:center;justify-content:flex-end}
+  .chgtag{font-size:10px;font-weight:600;letter-spacing:.01em;color:var(--teal-text);background:#eaf5f5;border:1px solid #cfe7e5;padding:3px 9px;border-radius:999px;white-space:nowrap}
+  .chgpoint{color:var(--teal);font-size:11px;line-height:.7;margin-top:1px}
+
+  /* row labels in the gutter column */
+  .rlab{grid-column:1;align-self:center;text-align:right;padding-right:8px;font-size:9.5px;font-weight:700;letter-spacing:.09em;text-transform:uppercase;color:var(--faint)}
+
+  .dnum{text-align:center;font-size:10px;font-weight:600;color:var(--faint);padding-bottom:4px;font-variant-numeric:tabular-nums}
+
+  .tilerow{align-items:center}
+  .tile{height:44px;border-radius:7px;display:flex;align-items:center;justify-content:center;position:relative}
+  .t-peak{box-shadow:0 0 0 3px #fff,0 0 0 5px var(--teal-deep)}
+  .drop{width:14px;height:14px;background:#fff;border-radius:0 50% 50% 50%;transform:rotate(45deg);box-shadow:inset 0 0 0 0 #fff}
+
+  .word{text-align:center;font-size:10px;font-weight:600;letter-spacing:.005em;padding-top:5px;line-height:1;white-space:nowrap}
+  .w-stone{color:var(--stone-ink)}.w-teal{color:var(--teal-text)}.w-peak{color:var(--teal-deep);font-weight:700}
+
+  .approw{align-items:center;margin-top:6px}
+  .mk{display:flex;align-items:center;justify-content:center;height:16px}
+  .m-ring{width:6px;height:6px;border-radius:50%;border:1.5px solid var(--stone-line)}
+  .m-dot{width:6.5px;height:6.5px;border-radius:50%;background:var(--teal)}
+  .m-pair{display:flex;gap:2.5px}
+  .m-pair i{width:5px;height:5px;border-radius:50%;background:#74b9bf;display:block}
+  .m-stretch{display:flex;align-items:center}
+  .m-stretch i{width:4.5px;height:4.5px;border-radius:50%;background:var(--teal);display:block}
+  .m-stretch b{width:9px;height:1.6px;background:var(--teal);display:block}
+
+  .brkrow{margin-top:12px}
+  .brk{grid-row:1;border-top:2px solid var(--line);padding-top:5px;text-align:center;position:relative}
+  .brk span{font-size:10.5px;font-weight:600;letter-spacing:.02em;white-space:nowrap}
+  .brk::before,.brk::after{content:"";position:absolute;top:0;width:2px;height:6px}
+  .brk::before{left:0}.brk::after{right:0}
+  .brk-rose{border-color:var(--rose)}.brk-rose span{color:var(--rose)}
+  .brk-rose::before,.brk-rose::after{background:var(--rose)}
+  .brk-stone{border-color:var(--stone-line)}.brk-stone span{color:var(--stone-ink)}
+  .brk-stone::before,.brk-stone::after{background:var(--stone-line)}
+  .brk-teal{border-color:var(--teal)}.brk-teal span{color:var(--teal-text)}
+  .brk-teal::before,.brk-teal::after{background:var(--teal)}
+
+  .cbrkrow{margin-top:7px}
+  .cbrk{grid-row:1;text-align:center}
+  .cbrk span{font-size:9.5px;font-weight:600;color:var(--teal-text);letter-spacing:.02em;white-space:nowrap;background:#eef6f5;border:1px solid #cfe7e4;padding:2px 9px;border-radius:999px}
+
+  .teach{margin-top:22px;font-size:13px;line-height:1.5;color:var(--muted);max-width:930px}
+  .teach b{color:var(--ink);font-weight:600}
+
+  .legendrow{margin-top:18px;display:flex;align-items:center;flex-wrap:wrap;gap:11px 20px}
+  .leg{display:flex;align-items:center;gap:8px;font-size:12px;color:var(--ink);font-weight:500}
+  .sw{width:26px;height:18px;border-radius:5px;flex:none;display:flex;align-items:center;justify-content:center}
+  .sw-ramp{background:linear-gradient(90deg,#cfe6e9,#5cb0b8,#2b919b)}
+  .sw-peak{background:var(--teal-deep)}
+  .sw-peak .drop{width:9px;height:9px}
+  .illus{margin-left:auto;font-size:11.5px;font-style:italic;color:var(--faint)}
+
+  .applegend{margin-top:11px;display:flex;align-items:center;flex-wrap:wrap;gap:8px 18px;font-size:11.5px;color:var(--muted)}
+  .applegend .aptitle{font-weight:600;color:var(--ink);letter-spacing:.02em}
+  .apitem{display:flex;align-items:center;gap:7px}
+
+  .foot{margin-top:20px;display:flex;align-items:baseline;justify-content:space-between;border-top:1px solid var(--line);padding-top:15px}
+  .wordmark{font-family:'Cormorant Garamond',serif;font-weight:600;font-size:23px;color:var(--ink);letter-spacing:.005em}
+  .url{font-size:13px;color:var(--muted);font-weight:500}
+</style></head>
+<body>
+  <div class="fig" id="fig">
+    <div class="eyebrow">RRM Academy &middot; Clinician-reviewed guide</div>
+    <h1>Billings Ovulation Method Chart: One Example Cycle</h1>
+    <p class="sub">One cycle of daily mucus observations, both the sensation felt at the vulva and the appearance of any mucus, showing the dry days, the fertile build-up, and Peak Day the way this guide teaches the Billings Ovulation Method.</p>
+
+    <div class="chartcard">
+      <!-- flags -->
+      <div class="grid flags">
+        <div class="chgflag" style="grid-column:10"><span class="chgtag">mucus begins</span><span class="chgpoint">&#9662;</span></div>
+        <div class="peakflag" style="grid-column:16"><span class="peakpill">Peak Day</span><span class="peakpoint">&#9662;</span></div>
+      </div>
+
+      <!-- day numbers -->
+      <div class="grid">
+        <div class="dnum" style="grid-column:2">1</div><div class="dnum" style="grid-column:3">2</div><div class="dnum" style="grid-column:4">3</div><div class="dnum" style="grid-column:5">4</div><div class="dnum" style="grid-column:6">5</div><div class="dnum" style="grid-column:7">6</div><div class="dnum" style="grid-column:8">7</div><div class="dnum" style="grid-column:9">8</div><div class="dnum" style="grid-column:10">9</div><div class="dnum" style="grid-column:11">10</div><div class="dnum" style="grid-column:12">11</div><div class="dnum" style="grid-column:13">12</div><div class="dnum" style="grid-column:14">13</div><div class="dnum" style="grid-column:15">14</div><div class="dnum" style="grid-column:16">15</div><div class="dnum" style="grid-column:17">16</div><div class="dnum" style="grid-column:18">17</div><div class="dnum" style="grid-column:19">18</div><div class="dnum" style="grid-column:20">19</div><div class="dnum" style="grid-column:21">20</div><div class="dnum" style="grid-column:22">21</div><div class="dnum" style="grid-column:23">22</div><div class="dnum" style="grid-column:24">23</div><div class="dnum" style="grid-column:25">24</div><div class="dnum" style="grid-column:26">25</div><div class="dnum" style="grid-column:27">26</div><div class="dnum" style="grid-column:28">27</div><div class="dnum" style="grid-column:29">28</div>
+      </div>
+
+      <!-- sensation tiles -->
+      <div class="grid tilerow">
+        <div class="rlab">Feel</div>
+        <div class="tile" style="grid-column:2;background:#9e5566"></div>
+        <div class="tile" style="grid-column:3;background:#ac6070"></div>
+        <div class="tile" style="grid-column:4;background:#ac6070"></div>
+        <div class="tile" style="grid-column:5;background:#cf9aa7"></div>
+        <div class="tile" style="grid-column:6;background:#e7e0d9"></div>
+        <div class="tile" style="grid-column:7;background:#e7e0d9"></div>
+        <div class="tile" style="grid-column:8;background:#e7e0d9"></div>
+        <div class="tile" style="grid-column:9;background:#e7e0d9"></div>
+        <div class="tile" style="grid-column:10;background:#cfe6e9"></div>
+        <div class="tile" style="grid-column:11;background:#b3dade"></div>
+        <div class="tile" style="grid-column:12;background:#86c6cd"></div>
+        <div class="tile" style="grid-column:13;background:#5cb0b8"></div>
+        <div class="tile" style="grid-column:14;background:#37a0a8"></div>
+        <div class="tile" style="grid-column:15;background:#2b919b"></div>
+        <div class="tile t-peak" style="grid-column:16;background:#1d7a83"><span class="drop"></span></div>
+        <div class="tile" style="grid-column:17;background:#9ccfd4"></div>
+        <div class="tile" style="grid-column:18;background:#e7e0d9"></div>
+        <div class="tile" style="grid-column:19;background:#e7e0d9"></div>
+        <div class="tile" style="grid-column:20;background:#e7e0d9"></div>
+        <div class="tile" style="grid-column:21;background:#e7e0d9"></div>
+        <div class="tile" style="grid-column:22;background:#e7e0d9"></div>
+        <div class="tile" style="grid-column:23;background:#e7e0d9"></div>
+        <div class="tile" style="grid-column:24;background:#e7e0d9"></div>
+        <div class="tile" style="grid-column:25;background:#e7e0d9"></div>
+        <div class="tile" style="grid-column:26;background:#e7e0d9"></div>
+        <div class="tile" style="grid-column:27;background:#e7e0d9"></div>
+        <div class="tile" style="grid-column:28;background:#e7e0d9"></div>
+        <div class="tile" style="grid-column:29;background:#e7e0d9"></div>
+      </div>
+
+      <!-- sensation words -->
+      <div class="grid">
+        <div class="word w-stone" style="grid-column:6 / 10">dry</div>
+        <div class="word w-teal" style="grid-column:10 / 12">moist</div>
+        <div class="word w-teal" style="grid-column:12 / 14">wet</div>
+        <div class="word w-teal" style="grid-column:14 / 16">slippery</div>
+        <div class="word w-peak" style="grid-column:16 / 17">peak</div>
+        <div class="word w-teal" style="grid-column:17 / 18">drying</div>
+        <div class="word w-stone" style="grid-column:18 / 30">dry</div>
+      </div>
+
+      <!-- appearance marks -->
+      <div class="grid approw">
+        <div class="rlab">See</div>
+        <div class="mk" style="grid-column:6"><span class="m-ring"></span></div>
+        <div class="mk" style="grid-column:7"><span class="m-ring"></span></div>
+        <div class="mk" style="grid-column:8"><span class="m-ring"></span></div>
+        <div class="mk" style="grid-column:9"><span class="m-ring"></span></div>
+        <div class="mk" style="grid-column:10"><span class="m-dot"></span></div>
+        <div class="mk" style="grid-column:11"><span class="m-dot"></span></div>
+        <div class="mk" style="grid-column:12"><span class="m-pair"><i></i><i></i></span></div>
+        <div class="mk" style="grid-column:13"><span class="m-pair"><i></i><i></i></span></div>
+        <div class="mk" style="grid-column:14"><span class="m-stretch"><i></i><b></b><i></i></span></div>
+        <div class="mk" style="grid-column:15"><span class="m-stretch"><i></i><b></b><i></i></span></div>
+        <div class="mk" style="grid-column:16"><span class="m-stretch"><i></i><b></b><i></i></span></div>
+        <div class="mk" style="grid-column:17"><span class="m-dot"></span></div>
+        <div class="mk" style="grid-column:18"><span class="m-ring"></span></div>
+        <div class="mk" style="grid-column:19"><span class="m-ring"></span></div>
+        <div class="mk" style="grid-column:20"><span class="m-ring"></span></div>
+        <div class="mk" style="grid-column:21"><span class="m-ring"></span></div>
+        <div class="mk" style="grid-column:22"><span class="m-ring"></span></div>
+        <div class="mk" style="grid-column:23"><span class="m-ring"></span></div>
+        <div class="mk" style="grid-column:24"><span class="m-ring"></span></div>
+        <div class="mk" style="grid-column:25"><span class="m-ring"></span></div>
+        <div class="mk" style="grid-column:26"><span class="m-ring"></span></div>
+        <div class="mk" style="grid-column:27"><span class="m-ring"></span></div>
+        <div class="mk" style="grid-column:28"><span class="m-ring"></span></div>
+        <div class="mk" style="grid-column:29"><span class="m-ring"></span></div>
+      </div>
+
+      <!-- phase brackets -->
+      <div class="grid brkrow">
+        <div class="brk brk-rose" style="grid-column:2 / 6"><span>Menstruation</span></div>
+        <div class="brk brk-stone" style="grid-column:6 / 10"><span>Dry, unchanged days</span></div>
+        <div class="brk brk-teal" style="grid-column:10 / 20"><span>Fertile window &middot; mucus build-up</span></div>
+        <div class="brk brk-stone" style="grid-column:20 / 30"><span>Post-Peak infertile</span></div>
+      </div>
+
+      <!-- count sub-bracket -->
+      <div class="grid cbrkrow">
+        <div class="cbrk" style="grid-column:17 / 20"><span>count 1 &middot; 2 &middot; 3 &middot; window closes</span></div>
+      </div>
+    </div>
+
+    <p class="teach">Each day she notes two things: the <b>sensation</b> felt at the vulva (dry, moist, wet, slippery) and the <b>appearance</b> of any mucus (sticky, creamy, clear and stretchy). Early dry or unchanged days give way to a build-up of fertile-type mucus. <b>Peak Day</b> is the last day of the slippery, fertile-type mucus, recognized once the dry days return.</p>
+
+    <div class="legendrow">
+      <div class="leg"><span class="sw" style="background:#a65e6d"></span>Menstruation</div>
+      <div class="leg"><span class="sw" style="background:var(--stone)"></span>Dry day (infertile)</div>
+      <div class="leg"><span class="sw sw-ramp"></span>Fertile-type mucus</div>
+      <div class="leg"><span class="sw sw-peak"><span class="drop"></span></span>Peak Day</div>
+      <span class="illus">Illustrative example, not a real patient chart</span>
+    </div>
+
+    <div class="applegend">
+      <span class="aptitle">Appearance</span>
+      <span class="apitem"><span class="m-ring"></span>nothing seen</span>
+      <span class="apitem"><span class="m-dot"></span>sticky</span>
+      <span class="apitem"><span class="m-pair"><i></i><i></i></span>creamy</span>
+      <span class="apitem"><span class="m-stretch"><i></i><b></b><i></i></span>clear, stretchy</span>
+    </div>
+
+    <div class="foot">
+      <span class="wordmark">RRM Academy</span>
+      <span class="url">rrmacademy.org/billings-ovulation-method/</span>
+    </div>
+  </div>
+</body></html>
