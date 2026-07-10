@@ -119,6 +119,7 @@
       "ci_binding": ".github/workflows/deploy.yml:Build & Deploy (post-merge)",
       "peer_sync_mechanism": "gh-pr-merge",
       "peer_sync_binding": null,
+      "durable_followup": "Beacon-only measurement architecture (Option D, docs/measurement-ssot.md decision log 2026-07-09) RATIFIED by Brian 2026-07-10. Implementation NOT yet authorized -- queued as a gated follow-up run.",
       "held_incomplete_legs": [
         "null-coverage-gate (repo has no coverage tool; 10 behavior-asserting tests added instead: canary/bot/migration-short-circuit source contracts + AE enum-hint assertions)"
       ],
