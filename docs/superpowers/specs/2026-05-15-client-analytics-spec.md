@@ -1,7 +1,22 @@
 # Client Analytics -- Design Spec
 
 Date: 2026-05-15
-Status: PROPOSED (awaiting Brian's review)
+Status: SHIPPED 2026-05-19; Amended 2026-07-09
+
+## 2026-07-09 amendments
+
+Source: the GA4 audit at `~/iCode/.wip/ga4-audit-and-conversion-plan-2026-07-09.md` (GA4 property `526304690`). Corrections applied to this spec:
+
+- The Phase 3 assumption that server-side MP `page_view` "counts hold" after Zaraz removal is FALSIFIED (see the annotations in Current State Audit and Migration/Rollout below). Zaraz removal on 2026-05-19 zeroed collection; a first-party thin beacon (`src/scripts/track.ts` + `track-auto.ts` -> `POST /api/track` -> MP relay `functions/api/_ga4.js`) restored `page_view` on 2026-06-23.
+- New section: "Hard MP limits (permanent constraints of the no-gtag architecture)".
+- New section: "Synthetic and internal traffic policy" (production canary exclusion; the canary fabricated ~2,750 of 2,758 `begin_checkout` events in 30 days and left ~91 open Stripe sessions/day before the 2026-07-09 fix).
+- `eventDataRetention` was TWO_MONTHS; set to 14 months 2026-07-09.
+- Key events pruned from 8 to 3: `purchase`, `sign_up`, `generate_lead` (`ads_conversion_About_Us_1` deleted; `begin_checkout` / `copy_citation` / `video_complete` / `pdf_download` unmarked; `begin_checkout` to be re-marked after 7 clean days).
+- User-scoped custom dims `user_role` / `audience_type` / `cohort_date` / `engagement_tier` were registered 2026-05-15 but no code sent `user_properties`; `user_role` is now stamped centrally in `_ga4.js` for `sign_up` / `signup_from_ask` / `purchase`.
+- `internal_click` removed from the client allowlist (zero call sites); see the allowlist annotation below.
+- New decision record: beacon-only (Option D) RECOMMENDED, PENDING Brian's ratification.
+- Cross-ref: KPI scoreboard cadence is owned by `rrm-academy-internal/plans/2026-06-26-12-month-seo-master-plan.md`, not this spec.
+- The system-of-record map for every measurement question now lives at `docs/measurement-ssot.md`.
 
 ## Goal
 
@@ -9,7 +24,9 @@ Get rich behavior + conversion tracking in GA4 *without* loading any third-party
 
 ## Current State Audit (2026-05-15)
 
-### Server-side via Measurement Protocol (works, keep as-is)
+### Server-side via Measurement Protocol ~~(works, keep as-is)~~
+
+> **FALSIFIED 2026-06-22:** the middleware MP `page_view` did NOT hold after the 2026-05-19 Zaraz removal; collection zeroed. The thin-beacon fix (`src/scripts/track.ts` + `track-auto.ts` -> `POST /api/track` -> `functions/api/_ga4.js`) restored `page_view` on 2026-06-23. Original 2026-05-15 text preserved below unchanged.
 
 | Where | Event | Params |
 |---|---|---|
@@ -203,7 +220,7 @@ Single source of truth: `functions/api/_track-events.js`. Exported `ALLOWED_EVEN
 |---|---|---|---|
 | `cta_click` | `id`, `page` | `position`, `value` | Hero buttons, sticky CTAs, in-content donate prompts |
 | `outbound_click` | `href`, `host` | `label`, `page` | External links (NaPro directory, journal DOIs, social) |
-| `internal_click` | `href`, `page` | `position`, `label` | Important internal nav (article-to-glossary, FAQ-to-pillar) |
+| ~~`internal_click`~~ | `href`, `page` | `position`, `label` | Important internal nav (article-to-glossary, FAQ-to-pillar). **REMOVED 2026-07-09** from the client allowlist: never fired, zero call sites |
 | `scroll_depth` | `depth`, `page` | -- | Fires at 25/50/75/100%, throttled (one per depth per page-view) |
 | `search_submit` | `query_length`, `surface` | `results_count`, `filter` | Pagefind submission. Query *length*, NOT query (PII) |
 | `search_result_click` | `surface`, `result_type`, `rank` | `query_length` | Click within results dropdown |
@@ -215,6 +232,8 @@ Single source of truth: `functions/api/_track-events.js`. Exported `ALLOWED_EVEN
 | `theme_toggle` | `to` | -- | light/dark/eink |
 | `pdf_download` | `slug`, `source` | -- | Guide PDF, library article reprint |
 | `copy_citation` | `surface`, `format` | `slug` | Library citation copy |
+
+> **Allowlist status (2026-07-09):** `internal_click` REMOVED (never fired; zero call sites). `glossary_lookup` and `pdf_download` are wired but near-zero-traffic; `pdf_download` has been live on one page since 2026-07-03.
 
 ### Conversion events (existing server-side, do NOT duplicate client-side)
 
@@ -323,7 +342,7 @@ If traffic grows 100x, add client-side sampling in `track.ts`: `if (Math.random(
 **Phase 3 (after 7-day soak):** Zaraz GA4 disable
 - Disable in CF dashboard
 - Confirm CSP errors clear
-- Confirm GA4 page_view counts hold (server-side MP remains)
+- ~~Confirm GA4 page_view counts hold (server-side MP remains)~~ **FALSIFIED 2026-06-22:** counts did not hold; Zaraz removal on 2026-05-19 zeroed collection. Thin-beacon fix deployed 2026-06-23 restored page_view.
 - Open Questions: Zaraz fully removed?
 
 **Phase 4 (optional, weeks later):** Looker Studio / GA4 explorer dashboard rebuilt around the new event names. Brian's call when he wants to look at the data.
@@ -370,3 +389,36 @@ docs/superpowers/specs/.../client-analytics-spec.md   THIS FILE
 ```
 
 No existing files changed except BaseLayout (1 import) and guard manifest.
+
+## Hard MP limits (permanent constraints of the no-gtag architecture)
+
+Added 2026-07-09. The site is beacon-only (no gtag) since 2026-05-19. GA4 property `526304690` receives everything via the Measurement Protocol relay (`functions/api/_ga4.js`). These limits are permanent under this architecture, not bugs to fix:
+
+| Limit | Effect in GA4 |
+|---|---|
+| `session_start` / `first_visit` / `user_engagement` are reserved MP event names; GA4 silently drops them | `newUsers` = 0 and `engagedSessions` = 0 in all reports, forever |
+| MP cannot set session traffic source | `sessionSource` / `sessionMedium` / `sessionDefaultChannelGroup` are 100 percent "(not set)" / Unassigned |
+
+Compensation layer (use these instead of the dead GA4 natives):
+
+- `entry_platform` / `entry_category` event params, derived from the `entry_ref` / `entry_url` first-touch cookies in `functions/api/_ga4-source.js`
+- The `fp.rrmacademy.org` fingerprint worker (D1 `fp_event` / `fp_visitor` / `fp_visitor_link`) for visitor identity and referrer trails
+- GSC as the traffic source of truth
+- Stripe as the revenue truth (GA4 `purchase` is an indicator only)
+
+Full question-to-system map: `docs/measurement-ssot.md`.
+
+## Synthetic and internal traffic policy
+
+Added 2026-07-09. MP has no automatic bot filtering: anything relayed through `_ga4.js` lands in reports as real traffic. The 2026-07-09 audit found the production canary (`scripts/canary.mjs`) had fabricated ~2,750 of 2,758 `begin_checkout` events in 30 days and was leaving ~91 open Stripe sessions/day.
+
+Policy:
+
+- Probers MUST be excluded from the MP relay.
+- Mechanism: the `X-Canary-Token` header -> `isCanary` flag in `functions/api/create-checkout.js`. On the `isCanary` branch: the GA4 fire is suppressed, the Stripe session is expired, and the session carries `metadata.canary=1`.
+- `/api/track` carries a UA-regex bot drop (the only automated filtering in the pipeline).
+- Any NEW prober must reuse this flag pattern (header -> flag -> suppress GA4 + expire/mark side effects). Do not invent a second exclusion mechanism.
+
+## Decision record: architecture (2026-07-09)
+
+Architecture: RECOMMENDED beacon-only (Option D) with the fingerprint worker + `entry_platform` as the attribution layer; one minimal gtag is the held fallback with an explicit kill criterion. PENDING Brian's explicit ratification (audit decision queue item 2, `~/iCode/.wip/ga4-audit-and-conversion-plan-2026-07-09.md`).

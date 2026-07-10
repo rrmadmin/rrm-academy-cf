@@ -6,9 +6,14 @@
  *   sendGA4Event(env, request, 'purchase', { value: 10.00, currency: 'USD' }).catch(() => {});
  */
 
-import { buildSourceParams, getClientId } from './_ga4-source.js';
+import { buildSourceParams, getClientId, parseCookie } from './_ga4-source.js';
 
 const GA4_ENDPOINT = 'https://www.google-analytics.com/mp/collect';
+
+// Event names for which the MP payload gets a coarse user_properties.user_role
+// stamp. Enum only, no identifiers -- lets GA4 segment registered vs anonymous
+// traffic without carrying PII through Measurement Protocol.
+const REGISTERED_USER_EVENTS = new Set(['sign_up', 'signup_from_ask', 'purchase']);
 
 let warnedMissing = false;
 
@@ -36,6 +41,20 @@ export async function sendGA4Event(env, request, eventName, params = {}, overrid
     if (overrides.client_id != null && overrides.session_id != null) {
       sourceParams = { session_id: overrides.session_id };
       if (overrides.session_number != null) sourceParams.session_number = overrides.session_number;
+      // Entry-source attribution is normally skipped on this branch (see
+      // comment above) because server headers aren't the user's browser
+      // context. But when the caller's own params are missing entry_category/
+      // entry_platform, fall back to the entry_ref/entry_url cookies (same
+      // signal buildSourceParams already reads) rather than shipping the
+      // event with no attribution at all.
+      if (params.entry_category == null || params.entry_platform == null) {
+        const cookies = request.headers.get('Cookie') || '';
+        if (parseCookie(cookies, 'entry_ref') || parseCookie(cookies, 'entry_url')) {
+          const derived = await buildSourceParams(request, clientId);
+          if (params.entry_category == null && derived.entry_category) sourceParams.entry_category = derived.entry_category;
+          if (params.entry_platform == null && derived.entry_platform) sourceParams.entry_platform = derived.entry_platform;
+        }
+      }
     } else {
       sourceParams = await buildSourceParams(request, clientId);
     }
@@ -51,6 +70,9 @@ export async function sendGA4Event(env, request, eventName, params = {}, overrid
         },
       }],
     };
+    if (REGISTERED_USER_EVENTS.has(eventName)) {
+      payload.user_properties = { user_role: { value: 'registered' } };
+    }
 
     const resp = await fetch(
       `${GA4_ENDPOINT}?measurement_id=${env.GA4_MEASUREMENT_ID}&api_secret=${env.GA4_API_SECRET}`,

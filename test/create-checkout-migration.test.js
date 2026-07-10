@@ -203,3 +203,79 @@ describe('create-checkout: canary token constant-time compare', () => {
     );
   });
 });
+
+// getStripeClient() (billing/_shared.js) constructs a real `stripe` npm client
+// with no injection point, and there is no global-fetch Stripe mock harness
+// in this test suite (unlike track-endpoint.test.js's GA4 fetch stub) --
+// so true behavior assertions ("sendGA4Event was NOT called for a canary
+// request", "sessions.expire WAS called") cannot be made without structural
+// work (injectable Stripe client / fetch-transport mock). These tests assert
+// the source-level contract instead, matching this file's established
+// grep-based style for the rest of the migration-handoff logic above.
+describe('create-checkout: canary branch skips GA4 + self-expires the session', () => {
+  it('both begin_checkout waitUntil(sendGA4Event(...)) calls are gated on !isCanary', () => {
+    const matches = [...source.matchAll(/if\s*\(\s*!isCanary\s*\)\s*\{\s*waitUntil\(sendGA4Event\(/g)];
+    assert.equal(
+      matches.length, 2,
+      'Both the payment-mode and subscription-mode begin_checkout GA4 calls must be wrapped in `if (!isCanary) { ... }`'
+    );
+  });
+
+  it('both checkout-session metadata blocks merge canary: "1" without clobbering existing keys', () => {
+    const matches = [...source.matchAll(/\.\.\.\(isCanary\s*&&\s*\{\s*canary:\s*'1'\s*\}\)/g)];
+    assert.equal(
+      matches.length, 2,
+      'Both sessionParams.metadata blocks must spread ...(isCanary && { canary: \'1\' }) onto existing metadata'
+    );
+  });
+
+  it('both checkout-session metadata blocks spread prior metadata before adding canary', () => {
+    // The canary spread must appear inside a metadata object literal that also
+    // spreads prior keys (...sessionParams.metadata or ...migrationMetadata/ga_*
+    // fields) -- i.e. it merges, it does not replace.
+    const metadataBlocks = [...source.matchAll(/metadata\s*=\s*\{([\s\S]*?)\n\s*\};/g)].map((m) => m[1]);
+    const canaryBlocks = metadataBlocks.filter((b) => /canary:\s*'1'/.test(b));
+    assert.equal(canaryBlocks.length, 2, 'Expected exactly 2 metadata object literals containing the canary key');
+    for (const block of canaryBlocks) {
+      assert.ok(
+        /ga_client_id/.test(block),
+        'canary metadata block must sit alongside the existing ga_* attribution keys, not replace them'
+      );
+    }
+  });
+
+  it('both isCanary branches call stripe.checkout.sessions.expire via waitUntil with a log-and-continue catch', () => {
+    const matches = [
+      ...source.matchAll(
+        /if\s*\(\s*isCanary\s*\)\s*\{\s*waitUntil\(stripe\.checkout\.sessions\.expire\(checkoutSession\.id\)\.catch\(err\s*=>\s*\{\s*log\(/g
+      ),
+    ];
+    assert.equal(
+      matches.length, 2,
+      'Both mode branches must waitUntil(stripe.checkout.sessions.expire(checkoutSession.id).catch(err => { log(...) }))'
+    );
+  });
+
+  it('the sessions.expire catch never throws to the client (no rethrow) and does not appear inside the JSON response', () => {
+    assert.ok(
+      !/return\s+json\([^)]*stripe\.checkout\.sessions\.expire/.test(source),
+      'sessions.expire must not be composed into the returned response value'
+    );
+  });
+
+  it('the response value is prepared before the canary expire waitUntil fires, and is what gets returned', () => {
+    const responseBlocks = [
+      ...source.matchAll(
+        /const response = json\(\{ ok: true, url: checkoutSession\.url \}\);\s*\n\s*if \(isCanary\) \{\s*\n\s*waitUntil\(stripe\.checkout\.sessions\.expire/g
+      ),
+    ];
+    assert.equal(
+      responseBlocks.length, 2,
+      'response must be constructed via json(...) before the isCanary expire branch, and the same `response` must be returned'
+    );
+    assert.equal(
+      (source.match(/return response;/g) || []).length, 2,
+      'both mode branches must return the prepared `response` variable'
+    );
+  });
+});
