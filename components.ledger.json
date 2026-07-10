@@ -6,8 +6,15 @@
       "done_at_head": "48c10c747a4e367b3c9058a0b6892c8e95194542",
       "terminal_state": "HELD",
       "held_reason": "review-clean; awaiting human merge to deploy. CI-gated + peer-synced (PR merged) legs deferred to post-merge (deploy-on-merge repo).",
-      "read_contracts": ["newsletter_subscriber.email (canonical lookup)", "user.email"],
-      "write_contracts": ["newsletter_subscriber.email (canonical)", "user.newsletter_opt_in", "_email-validate.js:canonicalizeEmail export"],
+      "read_contracts": [
+        "newsletter_subscriber.email (canonical lookup)",
+        "user.email"
+      ],
+      "write_contracts": [
+        "newsletter_subscriber.email (canonical)",
+        "user.newsletter_opt_in",
+        "_email-validate.js:canonicalizeEmail export"
+      ],
       "stub_debt": [
         "pdf/request.js newsletter_subscriber write -> T1-crm (entangled with contact table)",
         "courses/waitlist.js newsletter_subscriber write -> T1-community (entangled with course_waitlist)"
@@ -27,8 +34,17 @@
       "done_at_head": "31d2f9fed7e9bca75485dbaad8410a9abcc194c6",
       "terminal_state": "HELD",
       "held_reason": "review-clean; awaiting human merge to deploy. CI-gated + peer-synced deferred to post-merge (deploy-on-merge repo).",
-      "read_contracts": ["newsletter_subscriber new-insert path (changes>0)", "env.NEWSLETTER_SECRET (bound secret)", "_ses.js sendEmail/sendRawEmail", "_tracking.js unsubscribeUrl/unsubscribeHeaders"],
-      "write_contracts": ["SES egress: admin notification to administrator@rrmacademy.org", "SES egress: subscriber welcome (RFC-8058 unsubscribe)", "functions/api/newsletter/_signup-emails.js:sendSignupEmails export"],
+      "read_contracts": [
+        "newsletter_subscriber new-insert path (changes>0)",
+        "env.NEWSLETTER_SECRET (bound secret)",
+        "_ses.js sendEmail/sendRawEmail",
+        "_tracking.js unsubscribeUrl/unsubscribeHeaders"
+      ],
+      "write_contracts": [
+        "SES egress: admin notification to administrator@rrmacademy.org",
+        "SES egress: subscriber welcome (RFC-8058 unsubscribe)",
+        "functions/api/newsletter/_signup-emails.js:sendSignupEmails export"
+      ],
       "stub_debt": [],
       "ci_mechanism": "github-actions",
       "ci_binding": ".github/workflows/deploy.yml:Build & Deploy (post-merge)",
@@ -44,9 +60,23 @@
       "done_at_head": "e14291bbbb20b723f6962ca926a7f389e6b09db3",
       "terminal_state": "DEPLOYED-INERT",
       "deployed_note": "endpoint POST /api/newsletter/send-first-email deploys live but is ADMIN_API_SECRET-gated and no-ops until called; the SEND is gated on a dry-run + Brian approval + a one-time 8am ET launchd trigger that fires the curl exactly once (no auto-retry).",
-      "read_contracts": ["posts (latest published, auto-queried)", "newsletter_subscriber (by explicit id, status='active')", "env.ADMIN_API_SECRET", "env.NEWSLETTER_SECRET", "_template.renderEmail", "_tracking.unsubscribeHeaders", "_ses.sendRawEmail"],
-      "write_contracts": ["SES egress: combined first email to explicit recipient ids", "newsletter_send (campaign row)", "newsletter_event (sent, per recipient)"],
-      "stub_debt": ["no cross-call dedup -- one-shot only; mitigated operationally (fire once, no retry, dry-run first)"],
+      "read_contracts": [
+        "posts (latest published, auto-queried)",
+        "newsletter_subscriber (by explicit id, status='active')",
+        "env.ADMIN_API_SECRET",
+        "env.NEWSLETTER_SECRET",
+        "_template.renderEmail",
+        "_tracking.unsubscribeHeaders",
+        "_ses.sendRawEmail"
+      ],
+      "write_contracts": [
+        "SES egress: combined first email to explicit recipient ids",
+        "newsletter_send (campaign row)",
+        "newsletter_event (sent, per recipient)"
+      ],
+      "stub_debt": [
+        "no cross-call dedup -- one-shot only; mitigated operationally (fire once, no retry, dry-run first)"
+      ],
       "ci_mechanism": "github-actions",
       "ci_binding": ".github/workflows/deploy.yml:Build & Deploy",
       "peer_sync_mechanism": "gh-pr-merge",
@@ -56,6 +86,53 @@
         "double-send on retry (gemini+Opus MEDIUM) -> operational: one-shot, fire once, no auto-retry, dry-run first",
         "auth returns 500 not 401 on missing Authorization header (gemini MEDIUM) -> cosmetic; identical to the proven send.js pattern; access still denied"
       ]
+    },
+    {
+      "component": "ga4-hygiene",
+      "done_at_head": "6cb5f462",
+      "terminal_state": "AUTO-DEPLOY-ON-MERGE",
+      "deployed_note": "Deploy-go pre-granted by Brian's explicit '/ehr-component fully complete the all GA4 items' invocation, validated by brian-gate APPROVE 15/15 (contract in session scratchpad, archived in the session report). Push -> claude/* auto-merge -> deploy.yml. Live e2e probes (canary negative + untokened positive control) executed post-merge same day; results recorded in memory ga4-audit-2026-07-09-canary-pollution.",
+      "read_contracts": [
+        "entry_ref/entry_url cookies (attribution)",
+        "X-Canary-Token header -> isCanary (create-checkout.js)",
+        "rawParams entry_category/device_type (AE hints, enum-validated)",
+        "_bot.js BOT_RE shared regex"
+      ],
+      "write_contracts": [
+        "GA4 MP payload: begin_checkout suppressed for canary+bots; page_location structurally sanitized (search/hash/userinfo); user_properties.user_role on sign_up/signup_from_ask only",
+        "Stripe canary sessions: metadata.canary=1 (session + payment_intent_data + subscription_data), immediate expire",
+        "AE worker_events: cold-checkout write gated !isCanary; hint blobs enum-validated",
+        "_track-events.js: internal_click removed, session_number reserved"
+      ],
+      "stub_debt": [
+        "duplicate Stripe customer race + degrade-path skip of findBlockingActiveSubscription when customers.create fails (PRE-EXISTING, payment surface, gemini HIGH x2; needs its own gated run)",
+        "migration handoff lock not exception-safe across acquire-to-create window (PRE-EXISTING; contract forbade shared payment code this run)",
+        "sticky user_role stamp binds to IP+UA-hash client_id on webhook replay (residual bounded after purchase dropped from the stamp set)",
+        "attribution dual-path: create-checkout inline classifySource/extractUtm vs buildSourceParams SSOT divergence incl. email override (PRE-EXISTING, grok MEDIUM; refactor to one SSOT next open)",
+        "unanchored referrer regexes in _ga4-source.js classifySource (bing.com.attacker.com misattributes; PRE-EXISTING)",
+        "track.js hard-503 on missing GA4 secrets kills the AE mirror (behavior encoded in gate AG1; change needs spec+gate amendment together)",
+        "releaseMigrationLock failure logs via raw AE blob only (thread waitUntil into signature next touch)",
+        "AE doubles[0] fillable by any optional param (mirror fidelity only; scope per-event when AE dataset next matters)",
+        "response-envelope drift create-checkout {ok} vs track {error} (PRE-EXISTING convention split)"
+      ],
+      "ci_mechanism": "github-actions",
+      "ci_binding": ".github/workflows/deploy.yml:Build & Deploy (post-merge)",
+      "peer_sync_mechanism": "gh-pr-merge",
+      "peer_sync_binding": null,
+      "held_incomplete_legs": [
+        "null-coverage-gate (repo has no coverage tool; 10 behavior-asserting tests added instead: canary/bot/migration-short-circuit source contracts + AE enum-hint assertions)"
+      ],
+      "arise_adjudicated_preexisting": [
+        "scanner webhook-handler-swallow create-checkout.js:118 (untouched code)",
+        "scanner silent-catch _ga4.js (documented intentional analytics-never-breaks-user pattern)",
+        "check-types 275 vs baseline 258: +17 all pre-existing (figma plugin ts + test files, git-stash verified)"
+      ],
+      "arise_adjudicated_accepted": [
+        "canary expire single-attempt fire-and-forget (secret-gated, unguessable URL, Stripe 24h TTL backstop, canary_expire_error logged; ALSO async-expire race accepted: only the canary process ever holds the URL)",
+        "_ga4.js fallback stamps only entry_category/entry_platform, not full derived UTM set (deliberate minimal stamp; email_type possible future addition)",
+        "_ga4.js buildSourceParams minor crypto overhead on fallback path"
+      ],
+      "review_rounds": "scanner(0 ERR, 5 files) -> tracers r1 gemini+grok (adjudicated) -> adversarial FULL (16 agents, 8 fix-now applied) -> delta review (1 fix-now applied) -> focused verifier (1 LOW defect found+fixed 6cb5f462) -> tracers r2 FRESH-EYES gemini+grok (0 diff-attributable)"
     }
   ]
 }
