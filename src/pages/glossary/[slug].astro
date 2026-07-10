@@ -514,8 +514,13 @@ const RAIL_SECTIONS = [
   // Fire glossary_lookup once on slug-page load. `term` carries the slug;
   // `from_page` is the document.referrer pathname if same-origin (so we can
   // see which pages drive glossary lookups), otherwise omitted.
-  // Uses the global __rrmTrack__ bridge installed by track-auto.ts.
-  (function () {
+  // Uses the global __rrmTrack__ bridge installed by track-auto.ts. This
+  // define:vars script is forced inline and runs synchronously during HTML
+  // parsing -- before BaseLayout's deferred track-auto.ts module script (at
+  // the end of <body>) has executed, so window.__rrmTrack__ isn't defined
+  // yet at that point. Wait for DOMContentLoaded (fires after all deferred
+  // scripts run) so the bridge is guaranteed to exist.
+  document.addEventListener('DOMContentLoaded', function () {
     if (typeof window === 'undefined' || !window.__rrmTrack__) return;
     var fromPage;
     try {
@@ -525,5 +530,5 @@ const RAIL_SECTIONS = [
       }
     } catch (_) { /* opaque referrer */ }
     window.__rrmTrack__('glossary_lookup', fromPage ? { term: termSlug, from_page: fromPage } : { term: termSlug });
-  })();
+  });
 </script>

@@ -382,6 +382,10 @@ git log origin/main --oneline -10 | grep -E "client-analytics-phase[12]"
     <p>Open GA4 → property <code>rrmacademy.org</code> → Reports → Realtime → "Event count by Event name". Should show <code>page_view</code> (constantly), and once you trigger the curl in step 2, <code>cta_click</code> arrives within ~10s.</p>
     <p>If <code>cta_click</code> doesn't show up: GA4 env vars (<code>GA4_MEASUREMENT_ID</code>, <code>GA4_API_SECRET</code>) may not be set in CF Pages. Verify via <code>op read</code> + the admin endpoint's 503 response shape.</p>
   </li>
+  <li>
+    <span class="step-title">Set event data retention to 14 months <span class="step-time">1 min</span> <span class="pill pill--manual">added 2026-07-09</span></span>
+    <p>GA4 (property <code>526304690</code>) &rarr; Admin &rarr; Data collection and modification &rarr; Data retention &rarr; <strong>Event data retention = 14 months</strong> (<code>eventDataRetention: FOURTEEN_MONTHS</code>). This setting was missed by the original runbook and sat at TWO_MONTHS until 2026-07-09; explorations silently truncate to the retention window.</p>
+  </li>
 </ol>
 
 <h2 id="phase3"><span class="phase-pill">Phase 3</span>Zaraz GTM disable + soak</h2>
@@ -515,6 +519,22 @@ Rollback (60s): re-enable the GA4 tool in CF Zaraz dashboard.</code></pre>
   <span class="pill pill--time">~4–6 hrs over the first week</span>
   <span class="pill pill--risk-low">risk: low (dashboard config — no production code touched)</span>
 </div>
+
+<h4>Status ledger (audit of 2026-07-09)</h4>
+<table>
+  <thead>
+    <tr><th>Runbook item</th><th>Status</th><th>Note</th></tr>
+  </thead>
+  <tbody>
+    <tr><td>4.1 Custom dimensions</td><td><span class="pill pill--risk-low">DONE</span></td><td>Registered 2026-05-15. But the user-scoped dims (<code>user_role</code>, <code>audience_type</code>, <code>cohort_date</code>, <code>engagement_tier</code>) had no code sending <code>user_properties</code> until 2026-07-09; <code>user_role</code> is now stamped centrally in <code>functions/api/_ga4.js</code> for <code>sign_up</code> / <code>signup_from_ask</code> / <code>purchase</code>.</td></tr>
+    <tr><td>4.2 Key events (conversions)</td><td><span class="pill pill--risk-low">DONE</span></td><td>8 were marked; pruned 2026-07-09 to <code>purchase</code>, <code>sign_up</code>, <code>generate_lead</code>. <code>begin_checkout</code> to be re-marked after 7 clean (canary-free) days.</td></tr>
+    <tr><td>4.3 Audiences</td><td><span class="pill pill--risk-low">DONE</span></td><td>15 exist in the property.</td></tr>
+    <tr><td>4.4 Twenty funnel explorations</td><td><span class="pill pill--risk-high">NOT BUILT</span></td><td>GA4-UI-only work, never executed.</td></tr>
+    <tr><td>4.5 Path explorations</td><td><span class="pill pill--risk-high">NOT BUILT</span></td><td>GA4-UI-only work, never executed.</td></tr>
+    <tr><td>4.6 Cohort retention</td><td><span class="pill pill--risk-high">NOT BUILT</span></td><td>GA4-UI-only work, never executed.</td></tr>
+    <tr><td>Data retention setting</td><td><span class="pill pill--risk-low">FIXED 2026-07-09</span></td><td>The retention setting was missed by this runbook; <code>eventDataRetention</code> sat at TWO_MONTHS and was set to 14 months on 2026-07-09 (see the new pre-flight step 4).</td></tr>
+  </tbody>
+</table>
 
 <p><strong>Goal:</strong> turn the event stream into useful reports. Register custom dimensions so the spec's 13 personas are queryable, mark conversions so GA4 highlights them, build 13 saved audiences for segmentation, and assemble 20 funnel + 4 path explorations for ongoing analysis.</p>
 
@@ -675,6 +695,14 @@ Rollback (60s): re-enable the GA4 tool in CF Zaraz dashboard.</code></pre>
   <strong>Per CXL (paraphrased):</strong> <em>"People happily tag events for micro actions but then never actually do micro-funnel analysis."</em> This ritual is the difference between an instrumentation project and an analytics practice.
 </div>
 
+<div class="callout callout--warn">
+  <strong>Annotation 2026-07-09 (hard MP limits):</strong> GA4-native <code>newUsers</code>, <code>engagedSessions</code>, and channel metrics (<code>sessionSource</code> / <code>sessionMedium</code> / <code>sessionDefaultChannelGroup</code>) are <strong>permanently empty</strong> under the beacon-only architecture: the reserved MP names <code>session_start</code> / <code>first_visit</code> / <code>user_engagement</code> are silently dropped, and MP cannot set session traffic source. Do not read those columns in this ritual. Read instead: the <code>entry_platform</code> / <code>entry_category</code> event params, the D1 ledgers (fp-worker <code>fp_event</code>, <code>rrm-auth</code> tables, <code>newsletter_event</code>), and GSC for traffic trends. Full map: <code>docs/measurement-ssot.md</code>; spec section "Hard MP limits".
+</div>
+
+<div class="callout">
+  <strong>Email arrivals (note added 2026-07-09):</strong> the no-UTM-in-email rule means the fp-worker campaign report's default <code>campaign=event-broadcast</code> view is empty <strong>by design</strong>, not broken. Email arrivals are measured by taking <code>newsletter_event</code> rows with <code>event = 'clicked'</code> and joining them to <code>fp_event</code> by page path + time window.
+</div>
+
 <p>Calendar block: <strong>15 min, weekly, same day every week</strong> (Brian's pick — Monday morning or Friday wrap). On the appointed time:</p>
 
 <ol class="checklist">
@@ -704,6 +732,16 @@ Rollback (60s): re-enable the GA4 tool in CF Zaraz dashboard.</code></pre>
 </table>
 
 <h2 id="sign-off">7. Sign-off checklist</h2>
+
+<div class="callout callout--danger">
+  <strong>REOPENED 2026-07-09.</strong> The 2026-07-09 audit reopened this sign-off. Pending before re-close:
+  <ul>
+    <li>Retention verified: <code>eventDataRetention</code> = 14 months (pre-flight step 4)</li>
+    <li>Canary excluded from GA4: <code>X-Canary-Token</code> &rarr; <code>isCanary</code> suppression in <code>functions/api/create-checkout.js</code> confirmed live</li>
+    <li>Key events pruned to <code>purchase</code> / <code>sign_up</code> / <code>generate_lead</code> (re-mark <code>begin_checkout</code> after 7 clean days)</li>
+  </ul>
+  Items 4.4 / 4.5 / 4.6 remain NOT BUILT (see the Phase 4 status ledger).
+</div>
 
 <p>Phase 3 + 4 are complete when all of these are true:</p>
 
