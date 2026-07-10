@@ -42,7 +42,16 @@ Rebecca replied with Boston Cross Check's official standard example chart (Read 
 - Caption sentence now: "The fertile window closes on the evening of the fourth day after Peak Day, once the temperature shift confirms."
 Accepted as defensible simplifications (unchanged): no LH/cervix/progesterone rows; sign-based day-9 opening vs their calculated day-8 opening. Our page prose asserts no numeric rules, so no page edits needed. Open: whether to DM Rebecca the corrected chart (Brian's call). Erin (FEMM) has not replied yet.
 
-## Pending step 2: embed + deploy (gated on Brian's go-live after expert review)
+## SCHEDULED: Boston Cross-Check chart go-live 2026-07-12 09:07 ET (Brian's explicit go, 2026-07-10)
+
+Brian: "lets push this particular image to live in two days" = the BCC chart ONLY; the other 6 stay gated. Brian-gated plan APPROVED (15/15, two minors applied). Mechanics:
+- Staged commit `35459b9e300c03a38f2229d48ff81876d39e1d0c` on branch `golive/bcc-chart-20260712` (non-claude, does not auto-merge). Exactly 3 paths: the page .astro (figure + second ImageObject in #how-it-works), `public/images/boston-cross-check/boston-cross-check-chart-example.webp` (sha256 `23257991...b8` = this branch's corrected blob at 78c14b5e), `src/data/boston-cross-check.json` (`modified` -> 2026-07-12; file confirmed in deploy.yml restore-allowlist). css-audit --gate PASS, build 4719 pages, playwright desktop+mobile verified.
+- One-shot launchd job `org.rrmacademy.bcc-chart-golive-once` on the MacBook (wrapper-routed, self-removing) runs `~/iCode/tools/bcc-chart-golive-once/run.py`: re-verifies the pinned SHA, creates `claude/bcc-chart-golive` via GitHub API -> merge.yml auto-merges -> Build & Deploy; verifies merge run success (named abort: never polls deploy if merge fails), waits out ALL deploy runs and judges the LAST (dispatch race), verifies asset 200 image/webp + page HTML (cache-busted), purges CF cache for the 2 URLs (narrow token via op), re-verifies apex, writes `~/iCode/tools/bcc-chart-golive-once/report-2026-07-12.md` + macOS notification.
+- Rollback if ever needed: `git revert -m 1 <merge-sha>` on main.
+- If the MacBook is asleep at 09:07 the job fires at next wake (not guaranteed; acceptable, no exact time was named).
+- After it lands: this branch's remaining payload = the other 6 charts + image sitemap. NOTE for the eventual 6-chart embed: reconcile with the BCC commit already on main (the embed pattern to copy is `35459b9e`'s).
+
+## Pending step 2: embed + deploy for the OTHER 6 charts (gated on Brian's go-live after expert review)
 
 1. Copy the 7 `.webp` to `public/images/<slug>/<slug>-chart-example.webp`.
 2. Embed per page via the `/rrm-page-graphic` skill patterns — two page architectures: data-driven thin pages (billings, marquette, sympto-thermal, twoday, boston-cross-check: `scripts/embed-cards.mjs` string-replace pattern) vs inline pages (creighton-model, femm: hand-edit). Each gets `<figure class="hero-figure">`(second in-content image, below the existing at-a-glance card placement decision: place in the charting/how-it-works section, NOT replacing the existing hero card) + `ImageObject` node added to the schema graph + alt/figcaption from summary.json + width/height attrs + `dateModified` bump.
