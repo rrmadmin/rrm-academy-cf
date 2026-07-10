@@ -79,10 +79,14 @@ export async function sendGA4Event(env, request, eventName, params = {}, overrid
     // otherwise bypass this file's own query-string-stripping default -- strip
     // the query string and hash from whichever page_location won, regardless
     // of source, so no query string ever egresses to google-analytics.com.
+    // Also clear userinfo (username/password) -- URL.search/hash clearing alone
+    // leaves any embedded https://user:pass@host userinfo intact in toString().
     {
       const finalParams = payload.events[0].params;
       try {
         const u = new URL(finalParams.page_location);
+        u.username = '';
+        u.password = '';
         u.search = '';
         u.hash = '';
         finalParams.page_location = u.toString();
