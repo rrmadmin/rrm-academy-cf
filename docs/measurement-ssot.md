@@ -48,7 +48,7 @@ Context: before this fix the production canary (`scripts/canary.mjs`) fabricated
 | 2026-07-09 | `eventDataRetention` changed TWO_MONTHS -> 14 months | DONE |
 | 2026-07-09 | Key-event roster pruned to `purchase`, `sign_up`, `generate_lead` (`ads_conversion_About_Us_1` deleted; `begin_checkout` / `copy_citation` / `video_complete` / `pdf_download` unmarked; `begin_checkout` re-marked after 7 clean days) | DONE |
 | 2026-07-09 | Canary suppression (`X-Canary-Token` -> `isCanary`: GA4 suppressed, Stripe sessions expired) | DONE (this branch) |
-| 2026-07-09 | Architecture: beacon-only (Option D) with fp worker + `entry_platform` as the attribution layer; one minimal gtag held as fallback with an explicit kill criterion | RECOMMENDED, PENDING Brian's ratification (audit decision queue item 2) |
+| 2026-07-09 | Architecture: beacon-only (Option D) with fp worker + `entry_platform` as the attribution layer; one minimal gtag held as fallback with an explicit kill criterion | RATIFIED by Brian 2026-07-10; implementation NOT yet authorized -- queued as a gated follow-up run |
 
 ## Pointers
 
