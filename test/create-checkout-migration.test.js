@@ -203,3 +203,117 @@ describe('create-checkout: canary token constant-time compare', () => {
     );
   });
 });
+
+// getStripeClient() (billing/_shared.js) constructs a real `stripe` npm client
+// with no injection point, and there is no global-fetch Stripe mock harness
+// in this test suite (unlike track-endpoint.test.js's GA4 fetch stub) --
+// so true behavior assertions ("sendGA4Event was NOT called for a canary
+// request", "sessions.expire WAS called") cannot be made without structural
+// work (injectable Stripe client / fetch-transport mock). These tests assert
+// the source-level contract instead, matching this file's established
+// grep-based style for the rest of the migration-handoff logic above.
+describe('create-checkout: canary branch skips GA4 + self-expires the session', () => {
+  it('both begin_checkout waitUntil(sendGA4Event(...)) calls are gated on !isCanary && !isBotRequest(request)', () => {
+    const matches = [
+      ...source.matchAll(/if\s*\(\s*!isCanary\s*&&\s*!isBotRequest\(request\)\s*\)\s*\{\s*waitUntil\(sendGA4Event\(/g),
+    ];
+    assert.equal(
+      matches.length, 2,
+      'Both the payment-mode and subscription-mode begin_checkout GA4 calls must be wrapped in `if (!isCanary && !isBotRequest(request)) { ... }`'
+    );
+  });
+
+  it('imports isBotRequest from ./_bot.js, mirroring track.js', () => {
+    const checkoutSource = readFileSync(new URL('../functions/api/create-checkout.js', import.meta.url), 'utf8');
+    assert.ok(
+      /import\s*\{\s*isBotRequest\s*\}\s*from\s*['"]\.\/_bot\.js['"]/.test(checkoutSource),
+      'create-checkout.js must import isBotRequest from ./_bot.js, matching the import style already used by track.js'
+    );
+  });
+
+  it('all four canary metadata spreads (2 top-level sessionParams.metadata + 2 nested payment_intent_data/subscription_data.metadata) merge canary: "1" without clobbering existing keys', () => {
+    const matches = [...source.matchAll(/\.\.\.\(isCanary\s*&&\s*\{\s*canary:\s*'1'\s*\}\)/g)];
+    assert.equal(
+      matches.length, 4,
+      'sessionParams.metadata (both modes) AND payment_intent_data.metadata / subscription_data.metadata must all spread ...(isCanary && { canary: \'1\' }) onto existing metadata'
+    );
+  });
+
+  it('payment_intent_data.metadata and subscription_data.metadata (nested, per-mode) also carry the canary tag downstream', () => {
+    assert.ok(
+      /payment_intent_data = \{[\s\S]*?metadata: \{ type: 'donation', \.\.\.\(campaign && \{ campaign \}\), \.\.\.\(isCanary && \{ canary: '1' \}\) \}/.test(source),
+      'sessionParams.payment_intent_data.metadata must merge ...(isCanary && { canary: \'1\' }) alongside the existing donation/campaign keys'
+    );
+    assert.ok(
+      /subscription_data = \{[\s\S]*?metadata: \{ tier: effectiveTier, \.\.\.migrationMetadata, \.\.\.\(isCanary && \{ canary: '1' \}\) \}/.test(source),
+      'sessionParams.subscription_data.metadata must merge ...(isCanary && { canary: \'1\' }) alongside the existing tier/migrationMetadata keys'
+    );
+  });
+
+  it('both checkout-session metadata blocks spread prior metadata before adding canary', () => {
+    // The canary spread must appear inside a metadata object literal that also
+    // spreads prior keys (...sessionParams.metadata or ...migrationMetadata/ga_*
+    // fields) -- i.e. it merges, it does not replace.
+    const metadataBlocks = [...source.matchAll(/metadata\s*=\s*\{([\s\S]*?)\n\s*\};/g)].map((m) => m[1]);
+    const canaryBlocks = metadataBlocks.filter((b) => /canary:\s*'1'/.test(b));
+    assert.equal(canaryBlocks.length, 2, 'Expected exactly 2 metadata object literals containing the canary key');
+    for (const block of canaryBlocks) {
+      assert.ok(
+        /ga_client_id/.test(block),
+        'canary metadata block must sit alongside the existing ga_* attribution keys, not replace them'
+      );
+    }
+  });
+
+  it('both isCanary branches call stripe.checkout.sessions.expire via waitUntil with a log-and-continue catch', () => {
+    const matches = [
+      ...source.matchAll(
+        /if\s*\(\s*isCanary\s*\)\s*\{\s*waitUntil\(stripe\.checkout\.sessions\.expire\(checkoutSession\.id\)\.catch\(err\s*=>\s*\{\s*log\(/g
+      ),
+    ];
+    assert.equal(
+      matches.length, 2,
+      'Both mode branches must waitUntil(stripe.checkout.sessions.expire(checkoutSession.id).catch(err => { log(...) }))'
+    );
+  });
+
+  it('the sessions.expire catch never throws to the client (no rethrow) and does not appear inside the JSON response', () => {
+    assert.ok(
+      !/return\s+json\([^)]*stripe\.checkout\.sessions\.expire/.test(source),
+      'sessions.expire must not be composed into the returned response value'
+    );
+  });
+
+  it('the response value is prepared before the canary expire waitUntil fires, and is what gets returned', () => {
+    const responseBlocks = [
+      ...source.matchAll(
+        /const response = json\(\{ ok: true, url: checkoutSession\.url \}\);\s*\n\s*if \(isCanary\) \{\s*\n\s*waitUntil\(stripe\.checkout\.sessions\.expire/g
+      ),
+    ];
+    assert.equal(
+      responseBlocks.length, 2,
+      'response must be constructed via json(...) before the isCanary expire branch, and the same `response` must be returned'
+    );
+    assert.equal(
+      (source.match(/return response;/g) || []).length, 2,
+      'both mode branches must return the prepared `response` variable'
+    );
+  });
+});
+
+describe('create-checkout: canary requests never touch the Wix migration handoff', () => {
+  it('wixLookup short-circuits to null when isCanary, so lookupPendingWixMigration is never called for a canary probe', () => {
+    assert.ok(
+      /const wixLookup = isCanary \? null : await lookupPendingWixMigration\(/.test(source),
+      'wixLookup must resolve to null directly for canary requests instead of calling lookupPendingWixMigration -- ' +
+      'a canary session self-expires immediately, so the completion webhook that releases acquireMigrationHandoffLock() can never arrive'
+    );
+  });
+
+  it('the cold-checkout Analytics Engine write is also gated on !isCanary', () => {
+    assert.ok(
+      /else if\s*\(\s*stucV2\s*&&\s*!isCanary\s*\)\s*\{/.test(source),
+      'the stucV2 cold-checkout writeDataPoint branch must additionally check !isCanary so canary probes never inject synthetic \'anon\' rows into the migration-funnel dataset'
+    );
+  });
+});

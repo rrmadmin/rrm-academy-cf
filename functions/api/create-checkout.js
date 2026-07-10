@@ -18,6 +18,7 @@ import {
 import { log } from './_log.js';
 import { sendGA4Event } from './_ga4.js';
 import { classifySource, extractUtm, getClientId, deriveSessionId } from './_ga4-source.js';
+import { isBotRequest } from './_bot.js';
 import { getStripeClient } from './billing/_shared.js';
 import {
   lookupPendingWixMigration, validateOffAmount, validateFrequency,
@@ -171,7 +172,7 @@ async function handleCheckout(request, env, waitUntil) {
     sessionParams.payment_intent_data = {
       description: 'Donation to RRM Foundation',
       statement_descriptor_suffix: 'DONATION',
-      metadata: { type: 'donation', ...(campaign && { campaign }) },
+      metadata: { type: 'donation', ...(campaign && { campaign }), ...(isCanary && { canary: '1' }) },
     };
 
     if (stripeCustomerId) {
@@ -192,6 +193,7 @@ async function handleCheckout(request, env, waitUntil) {
       ...(entry_category && { ga_entry_category: entry_category }),
       ...(entry_platform && { ga_entry_platform: entry_platform }),
       ...(campaign && { campaign }),
+      ...(isCanary && { canary: '1' }),
     };
 
     if (campaign === 'provider-directory') {
@@ -215,11 +217,19 @@ async function handleCheckout(request, env, waitUntil) {
       log(env, waitUntil, 'billing', 'create_checkout_error', 'error', `stripe checkout: ${err.message}`, 0, 503);
       return json({ ok: false, error: 'Payment service temporarily unavailable. Please try again.' }, 503);
     }
-    waitUntil(sendGA4Event(env, request, 'begin_checkout', {
-      page_location: entry_url || request.headers.get('Referer') || SITE_URL,
-      currency: 'USD', value: cents / 100, items: [{ item_name: 'Donation' }],
-    }).catch(() => {}));
-    return json({ ok: true, url: checkoutSession.url });
+    if (!isCanary && !isBotRequest(request)) {
+      waitUntil(sendGA4Event(env, request, 'begin_checkout', {
+        page_location: entry_url || request.headers.get('Referer') || SITE_URL,
+        currency: 'USD', value: cents / 100, items: [{ item_name: 'Donation' }],
+      }).catch(() => {}));
+    }
+    const response = json({ ok: true, url: checkoutSession.url });
+    if (isCanary) {
+      waitUntil(stripe.checkout.sessions.expire(checkoutSession.id).catch(err => {
+        log(env, waitUntil, 'billing', 'canary_expire_error', 'error', `canary expire: ${err.message}`, 0, 0);
+      }));
+    }
+    return response;
   }
 
   // --- Recurring membership ---
@@ -236,7 +246,11 @@ async function handleCheckout(request, env, waitUntil) {
 
     // --- Layer 3: look up pending Wix subscription (feature-flagged) ---
     const stucV2 = env.STUC_MIGRATION_UX_V2 === 'true';
-    const wixLookup = await lookupPendingWixMigration(db, { wixSubId, userEmail, env });
+    // Canary requests must never touch the Wix migration handoff path: a
+    // canary session self-expires immediately, so the completion webhook that
+    // releases acquireMigrationHandoffLock() below can never arrive, leaving
+    // the real donor's row locked for up to 15 minutes.
+    const wixLookup = isCanary ? null : await lookupPendingWixMigration(db, { wixSubId, userEmail, env });
 
     if (wixLookup && wixSubIdInput) {
       const sessionEmail = (userEmail || '').toLowerCase().trim();
@@ -297,7 +311,7 @@ async function handleCheckout(request, env, waitUntil) {
         wix_subscription_id: wixLookup.wix_subscription_id,
         migration_handoff: 'true',
       };
-    } else if (stucV2) {
+    } else if (stucV2 && !isCanary) {
       env.EVENTS?.writeDataPoint({
         blobs: ['billing', 'stuc-migration', 'cold-checkout', userId || 'anon', wixSubId || ''],
         indexes: ['cold-checkout'],
@@ -369,6 +383,7 @@ async function handleCheckout(request, env, waitUntil) {
       ...(gaCampaign && { ga_campaign: gaCampaign }),
       ...(entry_category && { ga_entry_category: entry_category }),
       ...(entry_platform && { ga_entry_platform: entry_platform }),
+      ...(isCanary && { canary: '1' }),
     };
 
     // Carry migration metadata + tier into subscription_data so webhook can read it.
@@ -376,7 +391,7 @@ async function handleCheckout(request, env, waitUntil) {
     // tierFromPriceOrAmount() short-circuit for all new Stripe-era subscriptions.
     sessionParams.subscription_data = {
       ...(trialEndUnix ? { trial_end: trialEndUnix } : {}),
-      metadata: { tier: effectiveTier, ...migrationMetadata },
+      metadata: { tier: effectiveTier, ...migrationMetadata, ...(isCanary && { canary: '1' }) },
     };
 
     let checkoutSession;
@@ -389,11 +404,19 @@ async function handleCheckout(request, env, waitUntil) {
     }
     const tierValueMap = { member: 9, hero: 19, superhero: 99 };
     const checkoutValue = tierValueMap[effectiveTier] ?? 0;
-    waitUntil(sendGA4Event(env, request, 'begin_checkout', {
-      page_location: entry_url || request.headers.get('Referer') || SITE_URL,
-      currency: 'USD', value: checkoutValue, items: [{ item_name: `STUC ${effectiveTier}` }],
-    }).catch(() => {}));
-    return json({ ok: true, url: checkoutSession.url });
+    if (!isCanary && !isBotRequest(request)) {
+      waitUntil(sendGA4Event(env, request, 'begin_checkout', {
+        page_location: entry_url || request.headers.get('Referer') || SITE_URL,
+        currency: 'USD', value: checkoutValue, items: [{ item_name: `STUC ${effectiveTier}` }],
+      }).catch(() => {}));
+    }
+    const response = json({ ok: true, url: checkoutSession.url });
+    if (isCanary) {
+      waitUntil(stripe.checkout.sessions.expire(checkoutSession.id).catch(err => {
+        log(env, waitUntil, 'billing', 'canary_expire_error', 'error', `canary expire: ${err.message}`, 0, 0);
+      }));
+    }
+    return response;
   }
 
   return json({ ok: false, error: 'Invalid mode — use "payment" or "subscription"' }, 400);

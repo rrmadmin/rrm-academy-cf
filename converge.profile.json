@@ -1,0 +1,66 @@
+{
+  "repo": "/Users/brian/iCode/projects/rrm-academy-cf",
+  "component": "ga4-hygiene",
+  "spine": "Astro 5 static site + CF Pages Functions (functions/api) + D1; first-party analytics relay to GA4 Measurement Protocol",
+  "integration_pattern": "surgical edits to existing analytics relay + checkout endpoint; no new endpoints, no new bindings",
+  "stack_archetype": "cloudflare-pages",
+  "build_cmd": null,
+  "build_cmd_note": "full site build not required for this diff; CI deploy.yml owns the build post-merge",
+  "test": {
+    "cmd": "node --experimental-strip-types --test test/*.test.js test/*.test.mjs tests/gates/*.test.mjs tests/unit/campaign-snapshot.test.mjs tests/unit/campaigns-schema.test.mjs tests/unit/canonical-lockdown.test.mjs tests/unit/supporter-gift.test.mjs tests/unit/fund-thermo.test.mts",
+    "coverage_gate": null,
+    "coverage_note": "repo has no coverage tool; behavior-asserting tests required for changed logic instead; null coverage gate surfaced as HELD-INCOMPLETE leg per gates.md sec 8",
+    "threshold": null,
+    "approved_hash": "be0f21a90935a000"
+  },
+  "repo_gates_cmds": {
+    "lint": { "cmd": "eslint functions/", "approved_hash": "edf9bde9d91b1f4d" },
+    "gates_analytics_check": { "cmd": "node scripts/gates/validate-analytics-pipeline.mjs --quick", "approved_hash": "68db80a28626aa3e" },
+    "gates_payment": { "cmd": "node scripts/gates/validate-payment-pipeline.mjs", "approved_hash": "9747f40613a8876f" },
+    "check_types": { "cmd": "node scripts/check-types.mjs", "approved_hash": "bafed2987b323c9f" },
+    "guard_update": { "cmd": "node scripts/guard.mjs --update", "approved_hash": "63f32d2163767776" }
+  },
+  "arise": {
+    "scope": "changed-files + reverse-deps",
+    "mode": "deep",
+    "rounds_to_zero": 2,
+    "max_rounds": 6,
+    "require_non_claude_tracer": true,
+    "tracer_unavailable_outcome": "HELD(model-diversity-gate-not-met); branch pushed, not merged, no deploy"
+  },
+  "deploy": {
+    "mechanism": "git push origin claude/ga4-hygiene -> GH Actions auto-merge -> .github/workflows/deploy.yml",
+    "approved_hash": null,
+    "reversibility": "prod",
+    "reversibility_note": "CF Pages, no atomic revert; named revert = git revert <commit> && git push (same choreography). Machine check per profile-schema: stack=cloudflare-pages -> always prod -> deploy-go granted in advance by Brian's explicit '/ehr-component fully complete the all GA4 items' invocation, validated by brian-gate APPROVE 15/15 this run.",
+    "sandbox_verified": false,
+    "sandbox_target": null
+  },
+  "deploy_target_exists": true,
+  "e2e_artifact": "negative probe: canary-tokened POST /api/create-checkout returns 200 {ok,url}, NO begin_checkout in GA4 realtime, Stripe session expired within 2 min; positive control: untokened POST produces a GA4 realtime begin_checkout",
+  "revert": "git revert <merge commit> && git push origin main choreography; GA4 config: retention re-settable, key events re-creatable from pre-delete ledger, annotation deletable",
+  "peer_sync": null,
+  "peer_sync_note": "gh-pr-merge mechanism; HEAD==origin/main post-merge is the sync assertion",
+  "ci": ".github/workflows/deploy.yml: Build & Deploy (post-merge; deploy-on-merge repo, CI-gated leg deferred to post-merge per gates.md sec 8)",
+  "repo_gates": ["gates:analytics", "gates:payment", "gates:courses:check", "gates:check", "guard", "check-types", "css-audit:gate", "design-tokens:check"],
+  "budget": { "max_subagents": 20, "max_build_tasks": 8, "max_wall_clock_min": 90 },
+  "codename_fence": false,
+  "codename_fence_note": "rrm-academy-cf is a public real-terminology site; no codename boundary applies",
+  "extra_hard_stops": [
+    "any edit under functions/api/auth/**, functions/api/billing/**, functions/api/stripe-webhook.js, functions/_middleware.js, wrangler.toml, .github/workflows/**, scripts/guard.mjs, scripts/gates/**, hooks/**",
+    "any change to Stripe session CREATION logic, amounts, prices, modes, or rate limiting in create-checkout.js (only the isCanary branch may be touched)",
+    "unattended interactive OAuth"
+  ],
+  "provenance": {
+    "captured_at": "2026-07-09T22:30:00-04:00",
+    "derived_from_head": "27ac01f258b990f4d8db70980bb6d8f809e55c5a",
+    "prose_sources": ["CLAUDE.md (repo)", "package.json scripts", "scripts/canary.mjs header"],
+    "fields": {
+      "test.cmd": "human-confirmed (brian-gate APPROVE 15/15, 2026-07-09)",
+      "repo_gates_cmds": "human-confirmed (brian-gate APPROVE 15/15, 2026-07-09)",
+      "deploy.mechanism": "human-confirmed (brian-gate APPROVE 15/15, 2026-07-09)",
+      "deploy.reversibility": "machine-verified (cloudflare-pages -> prod) + brian-gate",
+      "arise": "human-confirmed (brian-gate APPROVE 15/15, 2026-07-09)"
+    }
+  }
+}
