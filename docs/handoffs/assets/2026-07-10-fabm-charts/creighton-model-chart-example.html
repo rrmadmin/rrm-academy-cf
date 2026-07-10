@@ -1,0 +1,99 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<title>Creighton Model Chart: One Example Cycle</title>
+<style>
+  :root{
+    --ink:#2b2733;--muted:#6f6a77;--faint:#928d99;
+    --accent:#725e7e;--teal:#00837b;--rose:#a65e6d;
+    --paper:#f7f5f3;--card:#ffffff;--line:#e8e3ec;--line-soft:#f0ecf2;
+    --stone:#e9e3dd;--stone-line:#d9d1c8;--stone-ink:#8f867d;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{background:var(--paper);font-family:'Inter',sans-serif;-webkit-font-smoothing:antialiased}
+  .fig{width:1040px;background:var(--paper);padding:42px 46px 30px}
+  .eyebrow{font-size:12.5px;font-weight:600;letter-spacing:.14em;text-transform:uppercase;color:var(--accent);margin-bottom:12px}
+  h1{font-family:'Cormorant Garamond',serif;font-weight:600;font-size:46px;line-height:1.02;color:var(--ink);letter-spacing:-.005em}
+  .sub{margin-top:9px;font-size:16.5px;color:var(--muted);max-width:820px;line-height:1.4}
+
+  .chartcard{margin-top:24px;background:var(--card);border:1px solid var(--line);border-radius:16px;padding:30px 30px 24px;box-shadow:0 1px 0 rgba(45,42,50,.02)}
+
+  .grid{display:grid;grid-template-columns:repeat(28,1fr);column-gap:4px;align-items:end}
+
+  .peakrow{margin-bottom:2px}
+  .peakflag{grid-row:1;display:flex;flex-direction:column;align-items:center;justify-content:flex-end}
+  .peakpill{font-size:12px;font-weight:700;letter-spacing:.02em;color:#fff;background:var(--teal);padding:4px 12px;border-radius:999px;white-space:nowrap;box-shadow:0 1px 3px rgba(0,131,123,.3)}
+  .peakpoint{color:var(--teal);font-size:12px;line-height:.7;margin-top:1px}
+
+  .dnum{grid-row:1;text-align:center;font-size:10px;font-weight:600;color:var(--faint);padding-bottom:4px;font-variant-numeric:tabular-nums}
+
+  .tile{grid-row:2;height:48px;border-radius:7px;position:relative;display:flex;align-items:center;justify-content:center}
+  .t-count{border:2px solid var(--teal)}
+  .t-peak{box-shadow:0 0 0 3px #fff,0 0 0 5px var(--teal)}
+  .star{color:#fff;font-size:19px;line-height:1}
+  .badge{font-family:'Cormorant Garamond',serif;font-weight:700;font-size:24px;color:var(--teal);line-height:1}
+  .ddot{width:5px;height:5px;border-radius:999px;background:#b6ada4;opacity:.75}
+
+  .code{grid-row:3;text-align:center;font-size:9px;font-weight:600;letter-spacing:.01em;padding-top:5px;line-height:1}
+
+  .brk{grid-row:4;margin-top:11px;border-top:2px solid var(--line);padding-top:5px;text-align:center;position:relative}
+  .brk span{font-size:10.5px;font-weight:600;letter-spacing:.02em;white-space:nowrap}
+  .brk::before,.brk::after{content:"";position:absolute;top:0;width:2px;height:6px}
+  .brk::before{left:0}.brk::after{right:0}
+  .brk-rose{border-color:var(--rose)}.brk-rose span{color:var(--rose)}
+  .brk-rose::before,.brk-rose::after{background:var(--rose)}
+  .brk-teal{border-color:var(--teal)}.brk-teal span{color:var(--teal)}
+  .brk-teal::before,.brk-teal::after{background:var(--teal)}
+  .brk-stone{border-color:var(--stone-line)}.brk-stone span{color:var(--stone-ink)}
+  .brk-stone::before,.brk-stone::after{background:var(--stone-line)}
+
+  .cbrk{grid-row:5;margin-top:7px;text-align:center}
+  .cbrk span{font-size:9.5px;font-weight:600;color:var(--teal);letter-spacing:.02em;white-space:nowrap;background:#eff6f5;border:1px solid #cfe7e4;padding:2px 8px;border-radius:999px}
+
+  .teach{margin-top:22px;font-size:13px;line-height:1.5;color:var(--muted);max-width:930px}
+  .teach b{color:var(--ink);font-weight:600}
+
+  .legendrow{margin-top:20px;display:flex;align-items:center;flex-wrap:wrap;gap:16px 22px}
+  .leg{display:flex;align-items:center;gap:8px;font-size:12px;color:var(--ink);font-weight:500}
+  .sw{width:26px;height:18px;border-radius:5px;flex:none;display:flex;align-items:center;justify-content:center}
+  .sw-teal{background:linear-gradient(90deg,#c6e3df,#4fb2aa,#00837b)}
+  .sw-peak{background:var(--teal)}
+  .sw-peak .star{font-size:12px}
+  .sw-count{background:#fff;border:2px solid var(--teal)}
+  .sw-count .badge{font-size:12px}
+  .illus{margin-left:auto;font-size:11.5px;font-style:italic;color:var(--faint)}
+
+  .foot{margin-top:22px;display:flex;align-items:baseline;justify-content:space-between;border-top:1px solid var(--line);padding-top:15px}
+  .wordmark{font-family:'Cormorant Garamond',serif;font-weight:600;font-size:23px;color:var(--ink);letter-spacing:.005em}
+  .url{font-size:13px;color:var(--muted);font-weight:500}
+</style></head>
+<body>
+  <div class="fig" id="fig">
+    <div class="eyebrow">RRM Academy &middot; Clinician-reviewed guide</div>
+    <h1>Creighton Model Chart: One Example Cycle</h1>
+    <p class="sub">A single cycle of cervical-mucus observations recorded day by day, showing Peak Day and the post-Peak count of three the way the Creighton Model teaches it.</p>
+
+    <div class="chartcard">
+      <div class="grid peakrow"><div class="peakflag" style="grid-column:15"><span class="peakpill">Peak Day</span><span class="peakpoint">&#9662;</span></div></div>
+      <div class="grid"><div class="dnum" style="grid-column:1">1</div><div class="dnum" style="grid-column:2">2</div><div class="dnum" style="grid-column:3">3</div><div class="dnum" style="grid-column:4">4</div><div class="dnum" style="grid-column:5">5</div><div class="dnum" style="grid-column:6">6</div><div class="dnum" style="grid-column:7">7</div><div class="dnum" style="grid-column:8">8</div><div class="dnum" style="grid-column:9">9</div><div class="dnum" style="grid-column:10">10</div><div class="dnum" style="grid-column:11">11</div><div class="dnum" style="grid-column:12">12</div><div class="dnum" style="grid-column:13">13</div><div class="dnum" style="grid-column:14">14</div><div class="dnum" style="grid-column:15">15</div><div class="dnum" style="grid-column:16">16</div><div class="dnum" style="grid-column:17">17</div><div class="dnum" style="grid-column:18">18</div><div class="dnum" style="grid-column:19">19</div><div class="dnum" style="grid-column:20">20</div><div class="dnum" style="grid-column:21">21</div><div class="dnum" style="grid-column:22">22</div><div class="dnum" style="grid-column:23">23</div><div class="dnum" style="grid-column:24">24</div><div class="dnum" style="grid-column:25">25</div><div class="dnum" style="grid-column:26">26</div><div class="dnum" style="grid-column:27">27</div><div class="dnum" style="grid-column:28">28</div><div class="tile t-menses" style="grid-column:1;background:#9e5566"></div><div class="tile t-menses" style="grid-column:2;background:#ac6070"></div><div class="tile t-menses" style="grid-column:3;background:#ac6070"></div><div class="tile t-menses" style="grid-column:4;background:#d29ba7"></div><div class="tile t-dry" style="grid-column:5;background:#e9e3dd"><span class="ddot"></span></div><div class="tile t-dry" style="grid-column:6;background:#e9e3dd"><span class="ddot"></span></div><div class="tile t-dry" style="grid-column:7;background:#e9e3dd"><span class="ddot"></span></div><div class="tile t-dry" style="grid-column:8;background:#e9e3dd"><span class="ddot"></span></div><div class="tile t-fertile" style="grid-column:9;background:#c6e3df"></div><div class="tile t-fertile" style="grid-column:10;background:#93cec7"></div><div class="tile t-fertile" style="grid-column:11;background:#93cec7"></div><div class="tile t-fertile" style="grid-column:12;background:#4fb2aa"></div><div class="tile t-fertile" style="grid-column:13;background:#2b9a92"></div><div class="tile t-fertile" style="grid-column:14;background:#0f8980"></div><div class="tile t-peak" style="grid-column:15;background:#00837b"><span class="star">&#10022;</span></div><div class="tile t-count" style="grid-column:16;background:#ffffff"><span class="badge">1</span></div><div class="tile t-count" style="grid-column:17;background:#ffffff"><span class="badge">2</span></div><div class="tile t-count" style="grid-column:18;background:#ffffff"><span class="badge">3</span></div><div class="tile t-postdry" style="grid-column:19;background:#e9e3dd"><span class="ddot"></span></div><div class="tile t-postdry" style="grid-column:20;background:#e9e3dd"><span class="ddot"></span></div><div class="tile t-postdry" style="grid-column:21;background:#e9e3dd"><span class="ddot"></span></div><div class="tile t-postdry" style="grid-column:22;background:#e9e3dd"><span class="ddot"></span></div><div class="tile t-postdry" style="grid-column:23;background:#e9e3dd"><span class="ddot"></span></div><div class="tile t-postdry" style="grid-column:24;background:#e9e3dd"><span class="ddot"></span></div><div class="tile t-postdry" style="grid-column:25;background:#e9e3dd"><span class="ddot"></span></div><div class="tile t-postdry" style="grid-column:26;background:#e9e3dd"><span class="ddot"></span></div><div class="tile t-postdry" style="grid-column:27;background:#e9e3dd"><span class="ddot"></span></div><div class="tile t-postdry" style="grid-column:28;background:#e9e3dd"><span class="ddot"></span></div><div class="code" style="grid-column:1;color:#a65e6d">H</div><div class="code" style="grid-column:2;color:#a65e6d">M</div><div class="code" style="grid-column:3;color:#a65e6d">M</div><div class="code" style="grid-column:4;color:#a65e6d">L</div><div class="code" style="grid-column:5;color:#9a9089">dry</div><div class="code" style="grid-column:6;color:#9a9089">dry</div><div class="code" style="grid-column:7;color:#9a9089">dry</div><div class="code" style="grid-column:8;color:#9a9089">dry</div><div class="code" style="grid-column:9;color:#0e7d74">damp</div><div class="code" style="grid-column:10;color:#0e7d74">wet</div><div class="code" style="grid-column:11;color:#0e7d74">wet</div><div class="code" style="grid-column:12;color:#0e7d74">slip</div><div class="code" style="grid-column:13;color:#0e7d74">slip</div><div class="code" style="grid-column:14;color:#0e7d74">lub</div><div class="code" style="grid-column:15;color:#0e7d74">lub</div><div class="code" style="grid-column:16;color:#9a9089">dry</div><div class="code" style="grid-column:17;color:#9a9089">dry</div><div class="code" style="grid-column:18;color:#9a9089">dry</div><div class="code" style="grid-column:19;color:#9a9089">dry</div><div class="code" style="grid-column:20;color:#9a9089">dry</div><div class="code" style="grid-column:21;color:#9a9089">dry</div><div class="code" style="grid-column:22;color:#9a9089">dry</div><div class="code" style="grid-column:23;color:#9a9089">dry</div><div class="code" style="grid-column:24;color:#9a9089">dry</div><div class="code" style="grid-column:25;color:#9a9089">dry</div><div class="code" style="grid-column:26;color:#9a9089">dry</div><div class="code" style="grid-column:27;color:#9a9089">dry</div><div class="code" style="grid-column:28;color:#9a9089">dry</div><div class="brk brk-rose" style="grid-column:1 / 5"><span>Menstruation</span></div><div class="brk brk-stone" style="grid-column:5 / 9"><span>Dry days</span></div><div class="brk brk-teal" style="grid-column:9 / 19"><span>Fertile window</span></div><div class="brk brk-stone" style="grid-column:19 / 29"><span>Post-Peak infertile</span></div><div class="cbrk" style="grid-column:16 / 19"><span>count of three &middot; window closes</span></div></div>
+    </div>
+
+    <p class="teach">Each day the woman notes a mucus <b>sensation</b> (dry, damp, wet, slippery, lubricative) and records a short code. <b>Peak Day</b> is the last day of the most slippery, fertile-type mucus, recognized once the dry days return. The three days after Peak are counted <b>1, 2, 3</b>.</p>
+
+    <div class="legendrow">
+      <div class="leg"><span class="sw" style="background:#a65e6d"></span>Menstruation</div>
+      <div class="leg"><span class="sw" style="background:var(--stone)"></span>Dry day (infertile)</div>
+      <div class="leg"><span class="sw sw-teal"></span>Fertile-type mucus</div>
+      <div class="leg"><span class="sw sw-peak"><span class="star">&#10022;</span></span>Peak Day</div>
+      <div class="leg"><span class="sw sw-count"><span class="badge">1</span></span>Post-Peak count 1&middot;2&middot;3</div>
+      <span class="illus">Illustrative example, not a real patient chart</span>
+    </div>
+
+    <div class="foot">
+      <span class="wordmark">RRM Academy</span>
+      <span class="url">rrmacademy.org/creighton-model/</span>
+    </div>
+  </div>
+</body></html>
