@@ -34,6 +34,14 @@ Approved texts (Brian's register: bare ask, no greeting, no honorific, no sign-o
 
 Mechanics: claude-in-chrome on Comet, instagram.com/direct/new. Sender = Brian's session (`brwtkr` saved profile). BLOCKED 2026-07-10: IG session expired; password prompt reached, Claude does not authenticate — Brian logs in himself, then resume. After sending: verify both messages render in-thread with image, screenshot as proof.
 
+## Expert review round 1: Rebecca Vavilov (2026-07-10)
+
+Rebecca replied with Boston Cross Check's official standard example chart (Read Your Body app, "Method: Boston Cross Check") and no explicit corrections. Adjudication (opus agent, their reference + our page SSOT + public materials): our drawn window boundary was already correct (closes end of day 19 = evening of the 4th day after Peak Day), but the chart's stated rule was temperature-led and omitted the method's signature post-Peak count. CORRECTED same day in this branch's assets:
+- Added "1 2 3 4" post-Peak counts on the cervical-mucus row (days 16-19) and above the hormone-monitor row (days 16-19).
+- Pill text now: "Fourth day after Peak Day, confirmed by the temperature shift: window closes"
+- Caption sentence now: "The fertile window closes on the evening of the fourth day after Peak Day, once the temperature shift confirms."
+Accepted as defensible simplifications (unchanged): no LH/cervix/progesterone rows; sign-based day-9 opening vs their calculated day-8 opening. Our page prose asserts no numeric rules, so no page edits needed. Open: whether to DM Rebecca the corrected chart (Brian's call). Erin (FEMM) has not replied yet.
+
 ## Pending step 2: embed + deploy (gated on Brian's go-live after expert review)
 
 1. Copy the 7 `.webp` to `public/images/<slug>/<slug>-chart-example.webp`.
