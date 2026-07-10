@@ -136,6 +136,13 @@ export async function onRequestPost(context) {
       }
     }
 
+    // AE-only hints, captured from rawParams BEFORE the reserved-key strip below
+    // removes entry_category/device_type (both are RESERVED_PARAMS -- the
+    // sanitized-params read further down would otherwise always see them as
+    // absent). Never fed into sanitizedParams / GA4 params.
+    const entryCategoryHint = typeof rawParams.entry_category === 'string' ? rawParams.entry_category.slice(0, 64) : '';
+    const deviceTypeHint = typeof rawParams.device_type === 'string' ? rawParams.device_type.slice(0, 64) : '';
+
     // Build sanitized params: drop reserved keys silently, then strip PII keys
     const sanitizedParams = {};
     for (const key of paramKeys) {
@@ -180,11 +187,6 @@ export async function onRequestPost(context) {
 
     // 2. Analytics Engine -- synchronous (returns void, queues internally)
     //    Blobs: [dataset, event, entry_category-hint, device-hint, '']
-    const entryCategory = typeof sanitizedParams.entry_category === 'string'
-      ? sanitizedParams.entry_category : '';
-    const deviceType = typeof sanitizedParams.device_type === 'string'
-      ? sanitizedParams.device_type : '';
-
     const numericCandidates = [
       sanitizedParams.depth,
       sanitizedParams.value,
@@ -196,7 +198,7 @@ export async function onRequestPost(context) {
     // Optional-chained AE write: silently no-ops if binding missing.
     // Pattern matches _log.js / create-checkout.js / ask.js.
     env.EVENTS?.writeDataPoint({
-      blobs: ['track', event, entryCategory, deviceType, ''],
+      blobs: ['track', event, entryCategoryHint, deviceTypeHint, ''],
       doubles: [canonicalNumeric ?? 0],
       indexes: [event],
     });

@@ -341,6 +341,42 @@ describe('POST /api/track -- PII and reserved param stripping', () => {
       assert.equal(res.status, 204);
     } finally { restore(); }
   });
+
+  it('AE writeDataPoint blobs still carry entry_category/device_type hints even though those keys are RESERVED_PARAMS and dropped before the GA4-bound sanitizedParams read', async () => {
+    const { restore } = makeFetchStub();
+    try {
+      const ctx = makeContext({
+        body: {
+          event: 'cta_click',
+          params: { id: 'hero', page: '/', entry_category: 'organic', device_type: 'mobile' },
+        },
+      });
+      const res = await onRequestPost(ctx);
+      assert.equal(res.status, 204);
+      assert.equal(ctx.ae.calls.length, 1);
+      const dp = ctx.ae.calls[0];
+      assert.equal(dp.blobs[2], 'organic', 'entry_category hint must reach the AE write despite being a reserved param');
+      assert.equal(dp.blobs[3], 'mobile', 'device_type hint must reach the AE write despite being a reserved param');
+    } finally { restore(); }
+  });
+
+  it('AE hint blobs are capped at 64 chars and empty when absent/non-string', async () => {
+    const { restore } = makeFetchStub();
+    try {
+      const longValue = 'x'.repeat(90);
+      const ctx = makeContext({
+        body: {
+          event: 'cta_click',
+          params: { id: 'hero', page: '/', entry_category: longValue },
+        },
+      });
+      const res = await onRequestPost(ctx);
+      assert.equal(res.status, 204);
+      const dp = ctx.ae.calls[0];
+      assert.equal(dp.blobs[2].length, 64, 'entry_category hint must be capped at 64 chars');
+      assert.equal(dp.blobs[3], '', 'device_type hint must be empty string when absent');
+    } finally { restore(); }
+  });
 });
 
 describe('OPTIONS /api/track -- CORS preflight', () => {
