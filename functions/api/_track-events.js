@@ -73,9 +73,12 @@ export const PII_VALUE_REGEX = /[\w.+-]+@[\w-]+\.[\w.-]+|\b\d{3}-\d{2}-\d{4}\b|\
 // are dropped silently (not rejected) to prevent accidental override.
 // Note: page_location, page_referrer, engagement_time_msec are NOT reserved -- the
 // client beacon (ga-session.ts) is the authoritative source for those on page_view.
-// session_id and client_id travel via top-level overrides (cid/sid), not params.
+// session_id, client_id, and session_number travel via top-level overrides
+// (cid/sid/sn), not params -- a params.session_number would otherwise spread
+// last in _ga4.js and clobber the validated sn override.
 export const RESERVED_PARAMS = new Set([
   'session_id',
+  'session_number',
   'utm_source',
   'utm_medium',
   'utm_campaign',

@@ -13,7 +13,11 @@ const GA4_ENDPOINT = 'https://www.google-analytics.com/mp/collect';
 // Event names for which the MP payload gets a coarse user_properties.user_role
 // stamp. Enum only, no identifiers -- lets GA4 segment registered vs anonymous
 // traffic without carrying PII through Measurement Protocol.
-const REGISTERED_USER_EVENTS = new Set(['sign_up', 'signup_from_ask', 'purchase']);
+// 'purchase' is deliberately excluded: anonymous no-login checkout is a
+// first-class flow (create-checkout.js supports it explicitly), so stamping
+// user_role='registered' on every purchase would mislabel anonymous donors
+// as registered and invert the segmentation.
+const REGISTERED_USER_EVENTS = new Set(['sign_up', 'signup_from_ask']);
 
 let warnedMissing = false;
 
@@ -58,18 +62,34 @@ export async function sendGA4Event(env, request, eventName, params = {}, overrid
     } else {
       sourceParams = await buildSourceParams(request, clientId);
     }
+    const defaultPageLocation = (() => { try { const u = new URL(request.headers.get('referer') || request.url); u.search = ''; return u.toString(); } catch { return ''; } })();
     const payload = {
       client_id: clientId,
       events: [{
         name: eventName,
         params: {
-          page_location: (() => { try { const u = new URL(request.headers.get('referer') || request.url); u.search = ''; return u.toString(); } catch { return ''; } })(),
+          page_location: defaultPageLocation,
           engagement_time_msec: 1,
           ...sourceParams,
           ...params,
         },
       }],
     };
+    // Caller-supplied page_location (via params) spreads last above and could
+    // otherwise bypass this file's own query-string-stripping default -- strip
+    // the query string and hash from whichever page_location won, regardless
+    // of source, so no query string ever egresses to google-analytics.com.
+    {
+      const finalParams = payload.events[0].params;
+      try {
+        const u = new URL(finalParams.page_location);
+        u.search = '';
+        u.hash = '';
+        finalParams.page_location = u.toString();
+      } catch {
+        finalParams.page_location = defaultPageLocation;
+      }
+    }
     if (REGISTERED_USER_EVENTS.has(eventName)) {
       payload.user_properties = { user_role: { value: 'registered' } };
     }
