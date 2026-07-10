@@ -341,6 +341,58 @@ describe('POST /api/track -- PII and reserved param stripping', () => {
       assert.equal(res.status, 204);
     } finally { restore(); }
   });
+
+  it('AE writeDataPoint blobs carry entry_category/device_type hints when they match the fixed enum, even though those keys are RESERVED_PARAMS and dropped before the GA4-bound sanitizedParams read', async () => {
+    const { restore } = makeFetchStub();
+    try {
+      const ctx = makeContext({
+        body: {
+          event: 'cta_click',
+          params: { id: 'hero', page: '/', entry_category: 'organic', device_type: 'mobile' },
+        },
+      });
+      const res = await onRequestPost(ctx);
+      assert.equal(res.status, 204);
+      assert.equal(ctx.ae.calls.length, 1);
+      const dp = ctx.ae.calls[0];
+      assert.equal(dp.blobs[2], 'organic', 'valid enum entry_category hint must reach the AE write despite being a reserved param');
+      assert.equal(dp.blobs[3], 'mobile', 'valid enum device_type hint must reach the AE write despite being a reserved param');
+    } finally { restore(); }
+  });
+
+  it('AE hint blobs become empty string for any value outside the fixed enum (arbitrary/PII-looking strings, spoofed values, absent)', async () => {
+    const { restore } = makeFetchStub();
+    try {
+      const ctx = makeContext({
+        body: {
+          event: 'cta_click',
+          params: { id: 'hero', page: '/', entry_category: 'brian@rrmacademy.org', device_type: 'iPhone 15 Pro Max' },
+        },
+      });
+      const res = await onRequestPost(ctx);
+      assert.equal(res.status, 204);
+      const dp = ctx.ae.calls[0];
+      assert.equal(dp.blobs[2], '', 'entry_category hint outside the fixed enum (PII-looking value) must become empty string');
+      assert.equal(dp.blobs[3], '', 'device_type hint outside the fixed enum (arbitrary client string) must become empty string');
+    } finally { restore(); }
+  });
+
+  it('AE hint blobs are empty string when entry_category/device_type are absent from params', async () => {
+    const { restore } = makeFetchStub();
+    try {
+      const ctx = makeContext({
+        body: {
+          event: 'cta_click',
+          params: { id: 'hero', page: '/' },
+        },
+      });
+      const res = await onRequestPost(ctx);
+      assert.equal(res.status, 204);
+      const dp = ctx.ae.calls[0];
+      assert.equal(dp.blobs[2], '', 'entry_category hint must be empty string when absent');
+      assert.equal(dp.blobs[3], '', 'device_type hint must be empty string when absent');
+    } finally { restore(); }
+  });
 });
 
 describe('OPTIONS /api/track -- CORS preflight', () => {

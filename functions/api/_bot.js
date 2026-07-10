@@ -21,7 +21,7 @@
 // Fails open: a missing/malformed UA or ASN never blocks a request we can't
 // classify -- only a confident match short-circuits.
 
-const BOT_RE = /bot|crawl|spider|slurp|googlebot|bingbot|bingpreview|baiduspider|sogou|yandex|duckduckbot|googleother|google-notebooklm|gptbot|oai-searchbot|chatgpt-user|claudebot|claude-web|anthropic|perplexitybot|applebot|facebookexternalhit|headlesschrome|phantomjs|python-requests|python-urllib|scrapy|curl\/|wget\/|ahrefsbot|semrushbot|mj12bot|dotbot|bytespider|amazonbot|dataforseo|querit|sebot|archive\.org_bot|ia_archiver/i;
+const BOT_RE = /bot|crawl|spider|slurp|googlebot|bingbot|bingpreview|baiduspider|sogou|yandex|duckduckbot|googleother|google-notebooklm|gptbot|oai-searchbot|chatgpt-user|claudebot|claude-web|anthropic|perplexitybot|applebot|facebookexternalhit|headlesschrome|lighthouse|phantomjs|puppeteer|playwright|python-requests|python-urllib|scrapy|curl\/|wget\/|go-http-client|ahrefsbot|semrushbot|mj12bot|dotbot|bytespider|amazonbot|dataforseo|dataprovider|statuscake|querit|sebot|archive\.org_bot|ia_archiver/i;
 
 export const DATACENTER_ASNS = new Set([
   16509,  // Amazon AWS

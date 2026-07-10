@@ -118,7 +118,7 @@ export async function getClientId(request) {
   return hashArray.map(b => b.toString(16).padStart(2, '0')).join('').slice(0, 16);
 }
 
-function parseCookie(cookieHeader, name) {
+export function parseCookie(cookieHeader, name) {
   if (!cookieHeader) return '';
   const match = cookieHeader.match(new RegExp('(?:^|;\\s*)' + name + '=([^;]*)'));
   if (!match) return '';
