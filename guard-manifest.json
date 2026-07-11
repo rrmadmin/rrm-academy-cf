@@ -87,11 +87,11 @@
       "note": "EmailListVerify SMTP validation"
     },
     "functions/api/survey/submit.js": {
-      "hash": "8d24e2c05fd769b8349825460b3f18d74d5b9fa477755c5879ecea99239df586",
+      "hash": "e72906161135a9de27cd72747f2b412bcd970d4258006f20f9884b164e14a6de",
       "note": "Survey submission + PII pseudonymization"
     },
     "functions/api/survey/request.js": {
-      "hash": "4fa0722a75e23fb94a94a6f821c36c311abd958b8cc5ecaa60908f92928db4fa",
+      "hash": "a9ffca4926d71db8cde3e6ebaa9198404d39741e1464820bc4562643a29456a4",
       "note": "Magic-link token generation"
     },
     "functions/api/newsletter/_mail.js": {
@@ -226,7 +226,7 @@
       "note": "Client analytics endpoint: rate limit + allowlist + PII strip + GA4 MP relay + AE mirror"
     },
     "functions/api/_track-events.js": {
-      "hash": "f517877b5ed1c92e26a962a8f1098d8067b2da0e9686633f55d620a05b7df02a",
+      "hash": "51a87fc4276db78422804a6afc0c56b776daf5a68361d91876be5262730d3325",
       "note": "Allowed events, required params, PII_REGEX, reserved params (security invariants for /api/track)"
     },
     "functions/api/email/events.js": {

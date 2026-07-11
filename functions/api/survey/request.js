@@ -13,6 +13,13 @@ import { validateBody } from '../_validate.js';
 const TOKEN_TTL = 24 * 60 * 60; // 24 hours in seconds
 const RATE_LIMIT_SECONDS = 600;       // 10 minutes between emails to same address
 
+// Optional client GA4 identity override (body.ga = { cid, sid, sn }). Validated
+// exactly as track.js validates its cid/sid/sn overrides -- mirror, don't invent.
+const CID_UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+const CID_FALLBACK_RE = /^[A-Za-z0-9._-]{1,64}$/;
+const SID_MIN = 1;
+const SID_MAX = 9_999_999_999; // epoch seconds; year 2286+
+
 export async function onRequestOptions() {
   return optionsResponse();
 }
@@ -75,6 +82,22 @@ export async function onRequestPost(context) {
     const userorigin = sanitizeMarketingTag(url.searchParams.get('userorigin')) || sanitizeMarketingTag(body.userorigin) || '';
     const utmSource = sanitizeMarketingTag(url.searchParams.get('utm_source')) || sanitizeMarketingTag(body.utm_source) || '';
 
+    // GA4 identity override (body.ga = { cid, sid, sn }), so the take page adopts the
+    // same GA4 user across the email hop and generate_lead lands under that user
+    // instead of an IP+UA fallback client_id. Invalid or absent -- ignore silently,
+    // never reject the request over it.
+    const gaCid = body.ga?.cid;
+    const gaSid = body.ga?.sid;
+    const gaSn = body.ga?.sn;
+    const gaCidValid = typeof gaCid === 'string' && (CID_UUID_RE.test(gaCid) || CID_FALLBACK_RE.test(gaCid));
+    const gaSidValid = typeof gaSid === 'number' && Number.isInteger(gaSid) && gaSid >= SID_MIN && gaSid <= SID_MAX;
+    const gaSnValid = typeof gaSn === 'number' && Number.isInteger(gaSn) && gaSn >= 1 && gaSn <= 999_999;
+    let ga4Overrides;
+    if (gaCidValid && gaSidValid) {
+      ga4Overrides = { client_id: gaCid, session_id: gaSid };
+      if (gaSnValid) ga4Overrides.session_number = gaSn;
+    }
+
     // Store token → email mapping
     await env.SURVEY_TOKENS.put(
       `token:${token}`,
@@ -93,6 +116,7 @@ export async function onRequestPost(context) {
     let surveyUrl = `https://rrmacademy.org/endo-survey/take/?token=${token}`;
     if (userorigin) surveyUrl += `&userorigin=${encodeURIComponent(userorigin)}`;
     if (utmSource) surveyUrl += `&utm_source=${encodeURIComponent(utmSource)}`;
+    if (gaCidValid) surveyUrl += `&cid=${encodeURIComponent(gaCid)}`;
 
     // Send email via SES
     const surveySubject = 'Your Endometriosis Symptom Self-Survey';
@@ -113,7 +137,7 @@ export async function onRequestPost(context) {
       return json({ ok: false, error: 'Failed to send email. Please try again.' }, 502);
     }
 
-    waitUntil(sendGA4Event(env, request, 'generate_lead', { lead_source: 'endo_survey_request' }).catch(() => {}));
+    waitUntil(sendGA4Event(env, request, 'generate_lead', { lead_source: 'endo_survey_request' }, ga4Overrides).catch(() => {}));
 
     return json({ ok: true });
   } catch (err) {
