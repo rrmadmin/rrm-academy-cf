@@ -20,7 +20,8 @@ test('every campaign has required fields with valid types', () => {
     assert.match(c.campaign_key, /^[a-z0-9-]+$/);
     assert.ok(c.campaign_key.length <= 64);
     assert.equal(typeof c.goal_cents, 'number');
-    assert.ok(c.goal_cents > 0, `goal_cents must be positive for ${c.id}`);
+    // goal_cents 0 = no public goal (renders goal-free per spec 3.1); negative is invalid.
+    assert.ok(c.goal_cents >= 0, `goal_cents must be non-negative for ${c.id}`);
     assert.equal(typeof c.cta_href, 'string');
     assert.ok(c.cta_href.length > 0);
     assert.equal(typeof c.headline, 'string');
@@ -31,7 +32,8 @@ test('every campaign has required fields with valid types', () => {
 test('provider-directory campaign exists with canonical goal + cta', () => {
   const pd = campaigns.find((c) => c.id === 'provider-directory');
   assert.ok(pd, 'provider-directory campaign must exist');
-  assert.equal(pd.goal_cents, 1000000);
+  // Public goal removed 2026-07-11 (was 1000000; restore on revert).
+  assert.equal(pd.goal_cents, 0);
   assert.equal(pd.cta_href, '/providers/#give');
   assert.equal(pd.campaign_key, 'provider-directory');
 });
