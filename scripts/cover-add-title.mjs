@@ -74,7 +74,7 @@ for (const t of trims) {
 const maxH = Math.max(...lines.map((l) => l.info.height));
 const advance = Math.round(maxH * parseFloat(arg('leading', '1.06')));
 const lastH = lines[lines.length - 1].info.height;
-const blockBottom = Math.round(S * 0.92);
+const blockBottom = Math.round(S * parseFloat(arg('bottom', '0.92')));
 const blockTop = blockBottom - ((LINES.length - 1) * advance + lastH);
 
 const overlay = `<svg width="${S}" height="${S}" xmlns="http://www.w3.org/2000/svg">
@@ -93,14 +93,16 @@ const overlay = `<svg width="${S}" height="${S}" xmlns="http://www.w3.org/2000/s
 // Optional thin HARD shadow (a small, crisp dark offset -- no blur) to pop the
 // letters off the art. Keep it small; a large offset reads as a doubled title.
 const SHADOW = parseInt(arg('shadow', '0'), 10);
+const ALIGN = arg('align', 'left');
 const composites = [{ input: Buffer.from(overlay), top: 0, left: 0 }];
 for (let i = 0; i < lines.length; i++) {
   const top = blockTop + i * advance;
+  const leftPos = ALIGN === 'center' ? Math.round((S - lines[i].info.width) / 2) : PAD;
   if (SHADOW > 0) {
     const dark = await sharp(lines[i].data).tint('#1a1622').png().toBuffer();
-    composites.push({ input: dark, top: top + SHADOW, left: PAD + SHADOW });
+    composites.push({ input: dark, top: top + SHADOW, left: leftPos + SHADOW });
   }
-  composites.push({ input: lines[i].data, top, left: PAD });
+  composites.push({ input: lines[i].data, top, left: leftPos });
 }
 
 const composed = sharp(IN).resize(S, S, { fit: 'cover' }).composite(composites);
