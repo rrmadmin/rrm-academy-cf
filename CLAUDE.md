@@ -811,6 +811,8 @@ Endo survey splits PII from health data across two systems:
 - **Migration script:** `scripts/migrate-survey-identities.mjs` (one-time, already run)
 - **Design doc:** `docs/plans/2026-03-09-survey-pseudonymization-design.md`
 
+**GA4 funnel tracking (added 2026-07-11):** 6-step funnel, all user-scoped (no health data leaves the client): `page_view` (`/endo-survey/`) → `survey_gate_engage` (email field focus, client) → `generate_lead` (magic link requested, server, key event) → `survey_link_valid` (token validates on take page, client) → `survey_start` (first symptom checked, client) → `survey_complete` (submit succeeds, server, key event). Cross-device stitch: the GA4 `client_id` rides `request.js`'s response body and the magic link itself (`&cid=`) so `generate_lead`/`survey_complete` and the take-page beacon attribute to the same GA4 user across the email hop instead of splitting into IP-fallback users (mirrors track.js's cid/sid/sn override validation, see `_track-events.js`). Report tool: `~/iCode/tools/endo-survey-funnel/funnel.sh [start] [end]` (GA4 Data API `runFunnelReport`, property 526304690). Memory: `endo-survey-ga4-funnel`.
+
 ## Webhook Event Dedup
 
 `webhook_event` table in D1 stores Stripe `event.id` on first processing. `INSERT OR IGNORE` skips duplicates on retries. Dedup record deleted only on 5xx (transient errors), not 4xx (permanent failures). Prevents duplicate welcome emails and account creation.
