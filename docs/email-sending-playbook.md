@@ -8,7 +8,7 @@ Verified via a grounded multi-agent analysis of the live pipeline + Perplexity c
 
 | | Lane A: Relationship | Lane B: Broadcast |
 |---|---|---|
-| **Use for** | Warm, member-facing, low volume: STUC course drops, member notices, personal notes from Naomi | Large lists, public newsletter, campaigns |
+| **Use for** | Warm, member-facing, low volume: STUC course drops, member notices, donor/supporter appeals, personal notes from Naomi | Large COLD lists only (imports, public newsletter). Never warm audiences |
 | **From** | `"Dr. Naomi Whittaker" <community@rrmacademy.org>` (Workspace) | `"Naomi Whittaker" <newsletter@mail.rrmacademy.org>` (SES) |
 | **Sent via** | Google Workspace mail-merge (see below) | `POST /api/newsletter/send` (SES) |
 | **Style** | Personal: short paragraphs, plain text links, no tracking, no button | Marketing template (button, list, footer) |
@@ -19,7 +19,7 @@ Verified via a grounded multi-agent analysis of the live pipeline + Perplexity c
 
 ## Why this works (verified, not folklore)
 
-Gmail's Primary-vs-Promotions decision is driven by **sender identity + per-recipient engagement**, not by the words in the email. Authentication (SPF / DKIM / DMARC) is correctly configured on both `rrmacademy.org` and `mail.rrmacademy.org` and is **not** the lever.
+Gmail's Primary-vs-Promotions decision is driven by **sender identity + per-recipient engagement**, not by the words in the email. **Confirmed by direct experiment 2026-07-11:** identical copy sent to a direct-delivery Gmail landed in Promotions from SES (`newsletter@mail.rrmacademy.org`) even with the one-click `List-Unsubscribe` header stripped and plain personal prose, and landed in **Primary** from a Workspace apex identity. The lane, not the content, decides the tab. Authentication (SPF / DKIM / DMARC) is correctly configured on both `rrmacademy.org` and `mail.rrmacademy.org` and is **not** the lever.
 
 The SES newsletter path fingerprints every message as bulk marketing:
 - **Identity:** `newsletter@` local-part + the `mail.` send-only subdomain, which has *learned* bulk reputation at Gmail because it carries all SES traffic.
@@ -35,7 +35,7 @@ The SES newsletter path fingerprints every message as bulk marketing:
 5. **Drop tracking** (pixel + link redirects) — minor on its own.
 
 ### Placebo (do NOT bother)
-Raising DMARC `pct`, BIMI, renaming the config set, moving the pixel to a first-party host while keeping tracking, or **stripping `List-Unsubscribe`** (keep it — removing it has downside and does not move the tab).
+Raising DMARC `pct`, BIMI, renaming the config set, moving the pixel to a first-party host while keeping tracking, or **stripping `List-Unsubscribe`** (verified 2026-07-11: removing it did NOT move the tab). Policy note (Brian, 2026-07-11): Lane-A relationship sends now omit the one-click header anyway — as a CHURN decision, not a tab tactic ("tons of unsubs because of that damn one-click") — using a reply-based opt-out line instead; honor those replies by hand AND log them to email_log as event='unsubscribed'. Lane B keeps one-click (legally safest at bulk scale). Also superseded: the old no-UTM-in-emails rule — plain first-party UTMs are now wanted for GA4 attribution (memory no-utm-in-emails); click-REDIRECTORS and open pixels stay banned.
 
 ### Caveats
 - Verification can't use Gmail Postmaster Tools (you're far below its ~100-200/day display threshold). Test by sending to two or three personal Gmail accounts and eyeballing the tab.
@@ -53,7 +53,11 @@ Raising DMARC `pct`, BIMI, renaming the config set, moving the pixel to a first-
 
 ## How Lane A is sent: Google Workspace mail-merge
 
-Lane A does not go through any RRM Worker. It is sent from `community@` via a Workspace mail-merge (Apps Script bound to a recipients Sheet). See `scripts/mail-merge/` and the `/stuc-comms` skill. The script sends **one individual message per recipient** (no shared To/CC/BCC), with `community@` as the From via Workspace send-as. Authorize it once in the Virtual Assistant account.
+Lane A does not go through any RRM Worker. Two mechanisms:
+
+1. **Headless (preferred since 2026-07-11):** `community@rrmacademy.org` is a verified send-as alias on the `virtualassistant@` mailbox, so the sanctioned CLI path sends as it with no browser: `gog -a virtualassistant@rrmacademy.org --gmail-no-send gmail drafts create --from community@rrmacademy.org --to <addr> --subject '<s>' --body-file <txt> --body-html-file <html>` then `bash ~/.claude/skills/gmail/scripts/va-send.sh <draftId>` (the wrapper verifies the From against the mailbox's live sendas list). Body: real `<p>` paragraphs via `--body-html-file`, never Markdown-as-plaintext, never `<br><br>`. For multi-recipient drips use the hardened runner template `scripts/workspace-drip-send.sh` (lock, sent-log + email_log dedup, pacing, Telegram failure alerts, orphan-draft cleanup). `hello@rrmacademy.org` ("RRM Academy") is also a verified alias for org-voice sends.
+
+2. **Sheets mail-merge (Apps Script):** the original mechanism — see `scripts/mail-merge/` and the `/stuc-comms` skill. The script sends **one individual message per recipient** (no shared To/CC/BCC), with `community@` as the From via Workspace send-as. Authorize it once in the Virtual Assistant account.
 
 ## Lane B (the existing SES newsletter)
 

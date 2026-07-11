@@ -93,6 +93,8 @@ src/data/posts.json → Astro build → rrmacademy.org/commentary
 
 **Schema:** `posts(id, slug, title, content, excerpt, author, content_pillar, cover_image_url, publish_date, status, word_count, seo_keywords, created_at, updated_at)`. `cover_image_url` is R2-served via `/api/assets/commentary/<slug>.webp` for all new posts.
 
+**`posts.content` is MARKDOWN, never HTML.** The template (`src/pages/commentary/[...slug].astro`, `parseMarkdown()` call) renders it; stored HTML ships as escaped literal tags on the live page (burned 2026-07-10: a post inserted as `<p>`-HTML rendered as one wall of visible tags until re-stored as Markdown). Bold = `**`, headings = `##`, links = `[text](url)`. After any publish/edit, visually verify the RENDERED live page (screenshot), not just HTTP 200 + string greps.
+
 ### FAQ Pipeline
 
 ```
