@@ -7,6 +7,18 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
   canonicalUrl="https://rrmacademy.org/endo-survey/take/"
   noindex
 >
+  <!-- GA4 cross-device stitch: adopt the client_id carried on the magic link BEFORE the
+       deferred analytics beacon mints a fresh one, so the funnel keeps one user across
+       the email hop. Must stay is:inline (runs during parse; beacon modules are deferred). -->
+  <script is:inline>
+    try {
+      var rrmCid = new URLSearchParams(window.location.search).get('cid');
+      if (rrmCid && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(rrmCid)) {
+        localStorage.setItem('rrm_ga_cid', rrmCid);
+      }
+    } catch (e) { /* storage disabled — funnel degrades to per-device users */ }
+  </script>
+
   <!-- Token validation gate — shown before survey loads -->
   <div id="gate-loading" class="survey-gate-screen">
     <div class="container container--narrow" style="text-align:center;padding:var(--space-16) 0;">
@@ -556,6 +568,28 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
     } catch { /* non-critical */ }
   }
 
+  // ── GA4 funnel events (first-party beacon bridge) ──
+  function fireFunnelEvent(event: string) {
+    const send = () => (window as any).__rrmTrack__?.(event, { page: window.location.pathname });
+    if ((window as any).__rrmTrack__) send();
+    else document.addEventListener('DOMContentLoaded', send, { once: true });
+  }
+
+  // GA identity for the server-fired survey_complete (post cid adoption above).
+  function gaIdentity(): { cid: string; sid: number; sn: number } | undefined {
+    try {
+      const cid = localStorage.getItem('rrm_ga_cid');
+      if (!cid || !/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(cid)) return undefined;
+      const ses = JSON.parse(localStorage.getItem('rrm_ga_ses') || '{}');
+      const sid = Number(ses.sid);
+      const sn = Number(ses.sn);
+      if (!Number.isFinite(sid) || sid <= 0 || !Number.isFinite(sn) || sn <= 0) return undefined;
+      return { cid, sid, sn };
+    } catch {
+      return undefined;
+    }
+  }
+
   // ── Token validation ──
   const params = new URLSearchParams(window.location.search);
   const token = params.get('token');
@@ -578,6 +612,7 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
       if (data.valid) {
         if (gateLoading) gateLoading.hidden = true;
         if (surveyContent) surveyContent.hidden = false;
+        fireFunnelEvent('survey_link_valid');
       } else if (data.reason === 'used') {
         showInvalid('This survey link has already been used. Each link can only be used once.');
       } else if (data.reason) {
@@ -599,8 +634,13 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
   }
 
   // ── Tier count updates ──
+  let surveyStarted = false;
   document.querySelectorAll<HTMLInputElement>('.tier-items input[type="checkbox"]').forEach(cb => {
     cb.addEventListener('change', () => {
+      if (!surveyStarted) {
+        surveyStarted = true;
+        fireFunnelEvent('survey_start');
+      }
       const tier = (cb.closest('[data-tier]') as HTMLElement | null)?.dataset.tier;
       if (!tier) return;
       const count = document.querySelectorAll(`[data-tier="${tier}"] input:checked`).length;
@@ -681,6 +721,7 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           token, symptoms, score,
+          ga: gaIdentity(),
           device: {
             viewport_width: window.innerWidth,
             viewport_height: window.innerHeight,

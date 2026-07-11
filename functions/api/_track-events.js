@@ -10,6 +10,7 @@ const SERVER_ONLY_EVENTS = new Set([
   'generate_lead',
   'begin_checkout',
   'purchase',
+  'survey_complete',
 ]);
 
 // Client-facing behavior events that the /api/track endpoint accepts.
@@ -31,6 +32,10 @@ export const ALLOWED_CLIENT_EVENTS = new Set([
   'copy_citation',
   // client foreground-engagement flush (track.ts startEngagementTracking)
   'user_engagement',
+  // endo-survey GA4 funnel (index.astro gate + take.astro survey flow)
+  'survey_gate_engage',
+  'survey_link_valid',
+  'survey_start',
 ]);
 
 // Full allowlist: server-side conversions + client behavior events.
@@ -58,6 +63,9 @@ export const REQUIRED_PARAMS = new Map([
   ['pdf_download',       ['slug', 'source']],
   ['copy_citation',      ['surface', 'format']],
   ['user_engagement',    ['engagement_time_msec']],
+  ['survey_gate_engage', ['page']],
+  ['survey_link_valid',  ['page']],
+  ['survey_start',       ['page']],
 ]);
 
 // Regex for PII param key detection. Keys matching this pattern are stripped
