@@ -688,7 +688,7 @@ This caught two real issues before deploy on the STUC card build (2026-07-02): a
 | `POST /api/survey/submit` | `survey/submit.js` | Consume token, store pseudonymized responses |
 | `POST /api/survey/event` | `survey/event.js` | Survey click beacon (rate-limited) |
 | `GET /api/survey/count` | `survey/count.js` | Public survey-taker counts (edge-cached) |
-| `POST /api/endo-quiz/request` | `endo-quiz/request.js` | Google Ads landing-flow single-step email capture (Turnstile + rate limit); stores pseudonymized symptoms tagged `source='ads'`, fires Google Ads conversion (placeholder action ID) |
+| `POST /api/endo-quiz/request` | `endo-quiz/request.js` | Google Ads landing-flow single-step email capture (Turnstile + rate limit); stores pseudonymized symptoms tagged `source='ads'`, fires Google Ads conversion (live UPLOAD_CLICKS action 7671519551 via Data Manager) |
 | `POST /api/contact/submit` | `contact/submit.js` | Contact form via SES (Turnstile + rate limit) |
 | `POST /api/partners/apply` | `partners/apply.js` | Partner application intake (Turnstile) |
 | `POST /api/pdf/request` | `pdf/request.js` | Email guide-PDF redeem token (Turnstile + 5/15min) |
