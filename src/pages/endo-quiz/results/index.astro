@@ -25,6 +25,11 @@ const PAGE_URL = 'https://rrmacademy.org/endo-quiz/results/';
 
           <div class="rz-why"><p id="result-interp"></p></div>
 
+          <div class="rz-pdf">
+            <button type="button" id="rz-pdf-download" class="btn btn--secondary btn--lg">Download PDF summary</button>
+            <p id="rz-pdf-msg" class="gate-msg" role="status" aria-live="polite"></p>
+          </div>
+
           <section class="ec-gate card" id="ec-gate" aria-labelledby="ec-gate-title">
             <h2 id="ec-gate-title">Get a copy of your results by email</h2>
             <p>We will send your results summary to your inbox along with links to learn more.</p>
@@ -57,7 +62,8 @@ const PAGE_URL = 'https://rrmacademy.org/endo-quiz/results/';
 
   <script>
     // @ts-nocheck
-    import { HANDOFF_KEY, MAX_SCORE, getBand, getBandLabel, getInterpretationText } from '../../../lib/endo-quiz-symptoms.mjs';
+    import { HANDOFF_KEY, MAX_SCORE, TIER1, TIER2, TIER3, getBand, getBandLabel, getInterpretationText } from '../../../lib/endo-quiz-symptoms.mjs';
+    import { generateEndoQuizSummaryPdf } from '../../../lib/endo-quiz-pdf.mjs';
 
     let handoff = null;
     try {
@@ -98,6 +104,28 @@ const PAGE_URL = 'https://rrmacademy.org/endo-quiz/results/';
       }
 
       setupEmailForm(handoff, score, band);
+      setupPdfDownload(handoff);
+    }
+
+    function setupPdfDownload(handoff) {
+      const btn = document.getElementById('rz-pdf-download');
+      if (!btn) return;
+      const msg = document.getElementById('rz-pdf-msg');
+
+      btn.addEventListener('click', async function () {
+        btn.disabled = true;
+        btn.textContent = 'Preparing PDF...';
+        if (msg) msg.textContent = '';
+
+        try {
+          await generateEndoQuizSummaryPdf(handoff, { TIER1: TIER1, TIER2: TIER2, TIER3: TIER3 });
+        } catch (e) {
+          if (msg) msg.textContent = 'We could not generate your PDF. Please try again.';
+        }
+
+        btn.disabled = false;
+        btn.textContent = 'Download PDF summary';
+      });
     }
 
     function setupEmailForm(handoff, score, band) {
@@ -205,6 +233,9 @@ const PAGE_URL = 'https://rrmacademy.org/endo-quiz/results/';
 
     .ec .rz-why { margin-top: var(--space-6); padding: var(--space-5) var(--space-6); background: var(--purple-50); border-left: 3px solid var(--purple-700); border-radius: var(--radius-md); }
     .ec .rz-why p { margin: 0; font-size: var(--text-d5); line-height: var(--leading-ui); color: var(--text-primary); }
+
+    .ec .rz-pdf { margin-top: var(--space-6); text-align: center; }
+    .ec .rz-pdf .gate-msg { text-align: center; }
 
     .ec .ec-gate { margin-top: var(--space-8); padding: var(--space-8); text-align: center; }
     .ec .ec-gate h2 { margin: 0 0 var(--space-2); font-size: 1.375rem; }
