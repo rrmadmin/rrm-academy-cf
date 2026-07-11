@@ -10,6 +10,13 @@ import { json, optionsResponse, checkRateLimit } from '../auth/_shared.js';
 
 const TOKEN_TTL = 24 * 60 * 60; // 24 hours -- match request.js
 
+// Optional client GA4 identity override (body.ga = { cid, sid, sn }). Validated
+// exactly as track.js validates its cid/sid/sn overrides -- mirror, don't invent.
+const CID_UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+const CID_FALLBACK_RE = /^[A-Za-z0-9._-]{1,64}$/;
+const SID_MIN = 1;
+const SID_MAX = 9_999_999_999; // epoch seconds; year 2286+
+
 export async function onRequestOptions() {
   return optionsResponse();
 }
@@ -41,7 +48,7 @@ export async function onRequestPost(context) {
     }
     if (typeof body !== 'object' || body === null || Array.isArray(body)) return json({ ok: false, error: 'Invalid payload' }, 400);
 
-    const { token, symptoms, score, device } = body;
+    const { token, symptoms, score, device, ga } = body;
     if (!token || !symptoms || !score) {
       return json({ ok: false, error: 'Missing required fields' }, 400);
     }
@@ -65,6 +72,21 @@ export async function onRequestPost(context) {
     }
     if (![score.total, score.tier1, score.tier2, score.tier3].every(n => Number.isFinite(n) && n >= 0 && n <= 200)) {
       return json({ ok: false, error: 'score values must be finite non-negative numbers <= 200' }, 400);
+    }
+
+    // Validate optional GA4 identity override (body.ga). Invalid or absent fields
+    // fall back to sendGA4Event's request-derived identity -- never reject the
+    // submission over bad analytics identity.
+    const gaCid = ga?.cid;
+    const gaSid = ga?.sid;
+    const gaSn = ga?.sn;
+    const gaCidValid = typeof gaCid === 'string' && (CID_UUID_RE.test(gaCid) || CID_FALLBACK_RE.test(gaCid));
+    const gaSidValid = typeof gaSid === 'number' && Number.isInteger(gaSid) && gaSid >= SID_MIN && gaSid <= SID_MAX;
+    const gaSnValid = typeof gaSn === 'number' && Number.isInteger(gaSn) && gaSn >= 1 && gaSn <= 999_999;
+    let ga4Overrides;
+    if (gaCidValid && gaSidValid) {
+      ga4Overrides = { client_id: gaCid, session_id: gaSid };
+      if (gaSnValid) ga4Overrides.session_number = gaSn;
     }
 
     // Validate token
@@ -125,6 +147,14 @@ export async function onRequestPost(context) {
       await env.SURVEY_TOKENS.put(`token:${token}`, JSON.stringify(data), { expirationTtl: TOKEN_TTL });
       return json({ ok: false, error: 'Failed to save results. Please try again.' }, 502);
     }
+
+    // The submission is recorded (symptoms INSERT succeeded) -- fire the GA4 funnel
+    // completion event. Only the event name + lead_source travel to GA4, never
+    // score/symptom/tier values or any other health data.
+    waitUntil((ga4Overrides
+      ? sendGA4Event(env, request, 'survey_complete', { lead_source: 'endo_survey' }, ga4Overrides)
+      : sendGA4Event(env, request, 'survey_complete', { lead_source: 'endo_survey' })
+    ).catch(() => {}));
 
     // Link email to the symptom record id in D1 (pseudonymized; rec_id joins rrm-survey-symptoms)
     let identityLinked = false;
