@@ -213,12 +213,27 @@ function buildCohort() {
   );
   const supTag = new Set(supTagRows.map((r) => norm(r.email)).filter(Boolean));
 
+  // Widened 2026-07-11 (review): bounced/complained events were not excluded, so an
+  // address whose bounce exists only as an email_log event (no elv/wix tag) was
+  // re-mailable, taking a repeat reputation hit.
   const unsubRows = d1(
     'rrm-auth',
     `SELECT DISTINCT lower(email) AS email FROM email_log
-     WHERE event = 'unsubscribed' AND email IS NOT NULL AND TRIM(email) != ''`
+     WHERE event IN ('unsubscribed', 'bounced', 'complained')
+       AND email IS NOT NULL AND TRIM(email) != ''`
   );
   const unsub = new Set(unsubRows.map((r) => norm(r.email)).filter(Boolean));
+
+  // Re-run idempotency (added 2026-07-11 review): exclude anyone this campaign
+  // already sent to, so a crash-and-rerun of --send is a no-op for delivered
+  // recipients instead of a full duplicate blast.
+  const sentRows = d1(
+    'rrm-auth',
+    `SELECT DISTINCT lower(email) AS email FROM email_log
+     WHERE event = 'sent' AND source LIKE 'femtech-ab/%'
+       AND email IS NOT NULL AND TRIM(email) != ''`
+  );
+  const alreadySent = new Set(sentRows.map((r) => norm(r.email)).filter(Boolean));
 
   // Apply exclusions against the base cohort (count overlaps relative to base).
   const inBase = (s) => [...s].filter((e) => base.has(e));
@@ -229,9 +244,10 @@ function buildCohort() {
     excl_hard: inBase(hard).length,
     excl_suppression_tag: inBase(supTag).length,
     excl_unsubscribed_log: inBase(unsub).length,
+    excl_already_sent: inBase(alreadySent).length,
   };
 
-  const excluded = new Set([...stuc, ...femtech, ...hard, ...supTag, ...unsub]);
+  const excluded = new Set([...stuc, ...femtech, ...hard, ...supTag, ...unsub, ...alreadySent]);
   const finalList = [...base].filter((e) => !excluded.has(e)).sort();
 
   counts.final = finalList.length;
@@ -389,7 +405,9 @@ function unsubscribeHeaders(unsubUrl) {
 // ---------------------------------------------------------------------------
 
 function logEmail({ event, email, source, detail }) {
-  const esc = (s) => (s == null ? null : String(s).replace(/'/g, "''").slice(0, 500));
+  // Slice BEFORE quote-doubling: slicing after can cut a doubled '' in half,
+  // leaving an unbalanced quote and a SQL syntax error (2026-07-11 review).
+  const esc = (s) => (s == null ? null : String(s).slice(0, 500).replace(/'/g, "''"));
   const detailSql = detail == null ? 'NULL' : `'${esc(detail)}'`;
   const subjectSql = `'${SUBJECT.replace(/'/g, "''")}'`;
   d1(
@@ -505,15 +523,23 @@ async function main() {
             headers: unsubscribeHeaders(unsubUrl),
             configurationSet: CONFIGURATION_SET,
           });
-          logEmail({ event: 'sent', email, source });
-          return { email, variant, ok: true };
         } catch (err) {
-          // On failure, log event='failed' with the same source and continue.
+          // SES delivery itself failed -- the only path that may log 'failed'.
           try {
             logEmail({ event: 'failed', email, source, detail: err.message });
           } catch (_e) { /* best-effort */ }
           return { email, variant, ok: false, error: err.message };
         }
+        // Past this point the email HAS BEEN DELIVERED to SES. A D1 logging
+        // failure must never reclassify it as failed (2026-07-11 review: a
+        // wrangler flake here previously wrote event='failed' for delivered
+        // mail, and a rerun would then double-send).
+        try {
+          logEmail({ event: 'sent', email, source });
+        } catch (logErr) {
+          console.log(`  WARN sent-but-unlogged ${email}: ${logErr.message}`);
+        }
+        return { email, variant, ok: true };
       })
     );
 
