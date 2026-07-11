@@ -107,7 +107,8 @@ async function handleSummary(url, db) {
       SELECT
         COUNT(*) AS total,
         SUM(CASE WHEN category = 'transactional' THEN 1 ELSE 0 END) AS transactional,
-        SUM(CASE WHEN category = 'newsletter'    THEN 1 ELSE 0 END) AS newsletter
+        SUM(CASE WHEN category = 'newsletter'    THEN 1 ELSE 0 END) AS newsletter,
+        SUM(CASE WHEN category = 'campaign'      THEN 1 ELSE 0 END) AS campaign
       FROM email_log
       WHERE event = 'send' AND created_at >= ? AND created_at <= ?
     `).bind(fromTs, toTs).first(),
@@ -116,7 +117,8 @@ async function handleSummary(url, db) {
     db.prepare(`
       SELECT DATE(created_at) AS day,
         SUM(CASE WHEN category = 'transactional' THEN 1 ELSE 0 END) AS transactional,
-        SUM(CASE WHEN category = 'newsletter'    THEN 1 ELSE 0 END) AS newsletter
+        SUM(CASE WHEN category = 'newsletter'    THEN 1 ELSE 0 END) AS newsletter,
+        SUM(CASE WHEN category = 'campaign'      THEN 1 ELSE 0 END) AS campaign
       FROM email_log
       WHERE event = 'send' AND created_at >= ? AND created_at <= ?
       GROUP BY day ORDER BY day ASC
@@ -220,6 +222,7 @@ async function handleSummary(url, db) {
   const sendTotal       = sendsRow?.total         ?? 0;
   const sendTransact    = sendsRow?.transactional  ?? 0;
   const sendNewsletter  = sendsRow?.newsletter     ?? 0;
+  const sendCampaign    = sendsRow?.campaign       ?? 0;
 
   const deliv       = deliverabilityRow?.delivered  ?? 0;
   const delivBounce = deliverabilityRow?.bounced    ?? 0;
@@ -251,6 +254,7 @@ async function handleSummary(url, db) {
         total: sendTotal,
         transactional: sendTransact,
         newsletter: sendNewsletter,
+        campaign: sendCampaign,
         by_day: sendsByDayRows.results ?? [],
         by_source: sendsBySourceRows.results ?? [],
       },
@@ -347,7 +351,7 @@ async function handleLog(url, db) {
 
   // Category / source / email filters
   const rawCategory = url.searchParams.get('category') || '';
-  const category = rawCategory === 'transactional' || rawCategory === 'newsletter' ? rawCategory : null;
+  const category = rawCategory === 'transactional' || rawCategory === 'newsletter' || rawCategory === 'campaign' ? rawCategory : null;
 
   const rawSource = url.searchParams.get('source') || '';
   const source = rawSource.length > 0 && rawSource.length <= 200 ? rawSource : null;
