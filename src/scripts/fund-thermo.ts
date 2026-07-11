@@ -63,6 +63,33 @@ export function applyThermo(els: ThermoEls, view: ThermoView): void {
   }
 }
 
+/**
+ * No-goal variant: fetch /api/fund-progress and show raised + supporters only.
+ * The raised row stays hidden until raised_cents > 0 (no "$0 raised" anti-proof,
+ * matching SupporterTicker's hide-until-gifts behavior). Never throws.
+ */
+export function initFundRaised(root: HTMLElement): void {
+  if (typeof fetch === 'undefined') return;
+  const row = root.querySelector<HTMLElement>('.fund-thermo__head');
+  const raised = root.querySelector<HTMLElement>('.fund-thermo__raised');
+  const supporters = root.querySelector<HTMLElement>('.fund-thermo__meta');
+  if (!row || !raised || !supporters) return;
+  fetch('/api/fund-progress', { credentials: 'omit' })
+    .then((r) => r.json())
+    .then((data) => {
+      const d = data as FundProgress | null;
+      if (!d || typeof d.raised_cents !== 'number' || d.raised_cents <= 0) return;
+      raised.textContent = fmtDollars(d.raised_cents);
+      row.hidden = false;
+      const n = typeof d.supporters === 'number' ? d.supporters : 0;
+      if (n > 0) {
+        supporters.textContent = n === 1 ? '1 supporter so far' : `${n.toLocaleString()} supporters so far`;
+        supporters.hidden = false;
+      }
+    })
+    .catch(() => { /* fail-soft: leave the row hidden */ });
+}
+
 /** Live variant: fetch /api/fund-progress and apply. Never throws; leaves $0/0% on any error. */
 export function initFundThermo(root: HTMLElement, fallbackGoalCents: number): void {
   if (typeof fetch === 'undefined') return;
