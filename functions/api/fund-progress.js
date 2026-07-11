@@ -8,14 +8,18 @@
  * Refunds are netted out via latest_charge.amount_refunded.
  * Result is cached in COMMUNITY_KV for 60 seconds to avoid hammering Stripe.
  * Missing STRIPE_SECRET_KEY -> 503 { error: 'service_unavailable' }.
- * Stripe API error -> 200 fail-soft { raised_cents: 0, goal_cents: 1000000, count: 0, supporters: 0 }
- * so the thermometer still renders.
+ * Stripe API error -> 200 fail-soft { raised_cents: 0, goal_cents: GOAL_CENTS, count: 0, supporters: 0 }
+ * so the response shape still renders.
+ *
+ * GOAL_CENTS is currently unset (0) -- the public $10,000 goal was removed while
+ * keeping all goal machinery intact for one-commit revertibility. Clients treat
+ * goal_cents <= 0 as "no thermometer" and render raised-only.
  */
 import { json, optionsResponse, checkRateLimit } from './auth/_shared.js';
 import { log } from './_log.js';
 import { getStripeClient } from './billing/_shared.js';
 
-const GOAL_CENTS = 1000000;
+const GOAL_CENTS = 0;
 const CAMPAIGN = 'provider-directory';
 const KV_KEY = `fund-progress:${CAMPAIGN}`;
 const KV_TTL = 60;
