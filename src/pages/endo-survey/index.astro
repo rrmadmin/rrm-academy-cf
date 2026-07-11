@@ -120,21 +120,6 @@ const jsonLd = {
           </span>
         </div>
       </div>
-
-      <aside class="survey-hero__stats" aria-label="Endometriosis by the numbers">
-        <figure class="stat">
-          <div class="stat__num">1 in 10</div>
-          <figcaption class="stat__label">women and girls of reproductive age are affected</figcaption>
-        </figure>
-        <figure class="stat">
-          <div class="stat__num">7&ndash;10 yrs</div>
-          <figcaption class="stat__label">the average wait from first symptoms to diagnosis</figcaption>
-        </figure>
-        <figure class="stat">
-          <div class="stat__num">190M</div>
-          <figcaption class="stat__label">people live with endometriosis worldwide</figcaption>
-        </figure>
-      </aside>
     </div>
   </section>
 
@@ -369,12 +354,6 @@ const jsonLd = {
     gap: var(--space-8);
     align-items: center;
   }
-  @media (min-width: 880px) {
-    .survey-hero__grid {
-      grid-template-columns: 1.15fr 0.85fr;
-      gap: var(--space-12);
-    }
-  }
   .survey-hero__lead { min-width: 0; }
   .survey-hero__eyebrow {
     font-family: 'Inter', sans-serif;
@@ -419,39 +398,6 @@ const jsonLd = {
     color: var(--text-secondary);
   }
   .survey-hero__chip svg { color: var(--accent); flex-shrink: 0; }
-
-  /* Editorial stat rail */
-  .survey-hero__stats {
-    display: flex;
-    flex-direction: column;
-    gap: var(--space-5);
-    min-width: 0;
-    padding: var(--space-8);
-    background: var(--bg-card);
-    border: 1px solid var(--border-color);
-    border-radius: var(--radius-lg);
-    box-shadow: var(--shadow-md);
-  }
-  .stat {
-    margin: 0;
-    padding-bottom: var(--space-5);
-    border-bottom: 1px solid var(--border-light);
-  }
-  .stat:last-child { padding-bottom: 0; border-bottom: none; }
-  .stat__num {
-    font-family: var(--font-display);
-    font-size: clamp(2.25rem, 1.6rem + 2vw, 2.875rem);
-    font-weight: 600;
-    line-height: 1;
-    color: var(--accent);
-    letter-spacing: -0.01em;
-  }
-  .stat__label {
-    margin-top: var(--space-2);
-    font-size: 0.9375rem;
-    line-height: 1.5;
-    color: var(--text-secondary);
-  }
 
   /* ── Body ───────────────────────────────────────────────────────── */
   .page-body { padding: var(--space-12) 0; }
