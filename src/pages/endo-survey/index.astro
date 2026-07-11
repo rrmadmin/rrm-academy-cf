@@ -612,6 +612,11 @@ const jsonLd = {
   const sentEmail = document.getElementById('sent-email');
 
   if (form && input && submitBtn && successMsg && errorMsg && errorText && sentEmail) {
+    // Funnel step: first engagement with the email gate (fires once per page view).
+    input.addEventListener('focus', () => {
+      (window as any).__rrmTrack__?.('survey_gate_engage', { page: window.location.pathname });
+    }, { once: true });
+
     form.addEventListener('submit', async (e) => {
       e.preventDefault();
       errorMsg.hidden = true;
@@ -623,11 +628,24 @@ const jsonLd = {
 
       // Carry through tracking params
       const params = new URLSearchParams(window.location.search);
-      const payload: Record<string, string> = { email };
+      const payload: Record<string, unknown> = { email };
       const userorigin = params.get('userorigin');
       const utmSource = params.get('utm_source');
       if (userorigin) payload.userorigin = userorigin;
       if (utmSource) payload.utm_source = utmSource;
+      // GA4 identity: keeps generate_lead on the same GA4 user as the page_view,
+      // and the cid rides the magic link so the email hop keeps one funnel user.
+      try {
+        const cid = localStorage.getItem('rrm_ga_cid');
+        if (cid && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(cid)) {
+          const ses = JSON.parse(localStorage.getItem('rrm_ga_ses') || '{}');
+          const sid = Number(ses.sid);
+          const sn = Number(ses.sn);
+          if (Number.isFinite(sid) && sid > 0 && Number.isFinite(sn) && sn > 0) {
+            payload.ga = { cid, sid, sn };
+          }
+        }
+      } catch { /* storage disabled — funnel degrades to per-device users */ }
 
     try {
       const resp = await fetch('/api/survey/request', {
