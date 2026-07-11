@@ -9,10 +9,9 @@ const pageTitle = 'Help the Next Generation Find Restorative Care';
 const pageDescription = 'Women lose years searching for real care. Your gift to the RRM Foundation builds the verified RRM Care Directory, so the next generation of women and girls finds an RRM-trained clinician on the first try.';
 const canonical = 'https://rrmacademy.org/providers/';
 
-// $10,000 goal. The live thermometer fetches real dollars raised from
-// /api/fund-progress (campaign='provider-directory'); these are the honest
-// server-rendered defaults shown until that fetch resolves.
-const GOAL_CENTS = 1000000;
+// No public dollar goal (removed 2026-07-11; revert this commit to restore the
+// $10,000 thermometer). The panel shows raised-so-far only, fetched live from
+// /api/fund-progress (campaign='provider-directory'), and stays hidden at $0.
 
 const jsonLd = {
   '@context': 'https://schema.org',
@@ -49,22 +48,10 @@ const jsonLd = {
       <section id="give" class="fund-panel card" aria-labelledby="fund-give-heading">
         <h2 id="fund-give-heading" class="sr-only">Donate to the care directory</h2>
 
-        <div
-          class="fund-thermo"
-          id="fund-thermo"
-          role="progressbar"
-          aria-valuemin="0"
-          aria-valuemax={GOAL_CENTS}
-          aria-valuenow="0"
-          data-goal-cents={GOAL_CENTS}
-          aria-label="Raised toward our $10,000 goal"
-        >
-          <div class="fund-thermo__head">
+        <div class="fund-thermo" id="fund-thermo">
+          <div class="fund-thermo__head" hidden>
             <span class="fund-thermo__raised" id="fund-raised">$0</span>
-            <span class="fund-thermo__goal">raised of $10,000 goal</span>
-          </div>
-          <div class="fund-thermo__track">
-            <div class="fund-thermo__fill" id="fund-fill"></div>
+            <span class="fund-thermo__goal">raised so far</span>
           </div>
           <p class="fund-thermo__meta" id="fund-supporters" hidden></p>
         </div>
@@ -95,7 +82,7 @@ const jsonLd = {
 
       <!-- The ask -->
       <section class="fund-section">
-        <p class="fund-ask">You remember the years it took: appointments that went nowhere, answers that were not answers, time you cannot get back. The next generation of women and girls does not have to inherit that. We are raising $10,000 to build and launch the RRM Care Directory, so that when a daughter, a niece, or a young woman you will never meet starts looking for real care, she finds a verified, RRM-trained clinician on the first try. Your gift to the RRM Foundation funds verification, expansion, and the infrastructure that keeps every listing current.</p>
+        <p class="fund-ask">You remember the years it took: appointments that went nowhere, answers that were not answers, time you cannot get back. The next generation of women and girls does not have to inherit that. We are raising the funds to build and launch the RRM Care Directory, so that when a daughter, a niece, or a young woman you will never meet starts looking for real care, she finds a verified, RRM-trained clinician on the first try. Your gift to the RRM Foundation funds verification, expansion, and the infrastructure that keeps every listing current.</p>
       </section>
 
       <!-- Stat band: the cost of the wait -->
@@ -186,12 +173,9 @@ const jsonLd = {
   </div>
 
   <script>
-    import { initFundThermo } from '../../scripts/fund-thermo';
+    import { initFundRaised } from '../../scripts/fund-thermo';
     const root = document.getElementById('fund-thermo');
-    if (root) {
-      const goal = Number(root.dataset.goalCents) || 0;
-      initFundThermo(root, goal);
-    }
+    if (root) initFundRaised(root);
   </script>
 
   <script is:inline>

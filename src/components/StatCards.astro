@@ -24,10 +24,13 @@ interface Props {
   goalCents?: number;
 }
 
-const { variant = 'card', snapshot = null, goalCents = 1000000 } = Astro.props;
+// Default goalCents is 0 (public goal removed 2026-07-11; pass goalCents to
+// restore "toward $X" copy). goalCents <= 0 renders goal-free sublabel copy.
+const { variant = 'card', snapshot = null, goalCents = 0 } = Astro.props;
 
 const goalDollars = Math.max(0, Math.round(goalCents / 100));
 const goalText = '$' + goalDollars.toLocaleString('en-US');
+const raisedSub = goalCents > 0 ? `toward ${goalText}` : 'given so far';
 
 // Server-render values: band reads the snapshot; card starts at 0 and the
 // client script fetches + counts up to the live values.
@@ -50,7 +53,7 @@ const foundingLeftInit = s ? Math.max(0, Math.round(Number(s.founding_left) || 0
       <span class="stat-card__bar" aria-hidden="true"></span>
       <span class="stat-card__pill">Raised</span>
       <div class="stat-card__metric" data-count-to={raisedInit} data-fmt="usd">{'$' + raisedInit.toLocaleString('en-US')}</div>
-      <span class="stat-card__sub">toward {goalText}</span>
+      <span class="stat-card__sub">{raisedSub}</span>
     </div>
 
     <div class="stat-card" data-stat="founding" data-closed={foundingClosedInit ? 'true' : 'false'}>
