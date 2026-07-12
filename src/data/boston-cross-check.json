@@ -1,7 +1,7 @@
 {
   "_comment": "SSOT for /boston-cross-check/ FABM method guide (category:methods). Built 2026-06-16. Effectiveness figures curl-verified vs NCBI; references rebuilt from verified citation metadata (Gianna ref-strings were fabricated). Inline PubMed cites correct.",
   "published": "2026-06-16",
-  "modified": "2026-06-16",
+  "modified": "2026-07-12",
   "keyTakeaways": [
     "Boston Cross-Check combines cervical mucus observation, basal body temperature, and an electronic urinary hormone monitor into a single charting record, giving the user several independent signals to read together rather than relying on one biomarker alone.",
     "No published method-specific effectiveness study exists for Boston Cross-Check. Effectiveness figure cited for it is borrowed from the separate methods whose biomarkers it combines, and those numbers do not transfer automatically to a combined protocol.",
