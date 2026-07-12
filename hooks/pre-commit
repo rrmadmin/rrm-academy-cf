@@ -197,6 +197,21 @@ if git diff --cached --name-only | grep -qE 'src/lib/infographic/|scripts/infogr
   node scripts/gates/validate-infographic-svg.mjs || { echo "infographic SVG gate failed"; exit 1; }
 fi
 
+# --- House lint chain (tools repo): runs on EVERY commit, before the
+#     security-guard early-exit below. Each gate blocks only on its BLOCK tier.
+# Negation-reframe AI tic. Enforces memory feedback-no-negation-reframe-tic.
+# Bypass: --no-verify   Disable: LINT_NEGREFRAME_DISABLE=1
+if [ -x ~/iCode/tools/lint-negation-reframe/precommit.sh ]; then
+  ~/iCode/tools/lint-negation-reframe/precommit.sh || exit $?
+fi
+
+# Canonical entity names (IIRRM/STORRM/CRRM-LLC/NaProTechnology).
+# Enforces memory feedback-canonical-names-and-stats.
+# Bypass: --no-verify   Disable: LINT_CANONICAL_DISABLE=1
+if [ -x ~/iCode/tools/lint-canonical-names/precommit.sh ]; then
+  ~/iCode/tools/lint-canonical-names/precommit.sh || exit $?
+fi
+
 # --- Security guard: only on critical file changes ---
 TRIGGER=0
 for file in $CRITICAL_FILES; do
