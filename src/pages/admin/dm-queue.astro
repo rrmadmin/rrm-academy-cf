@@ -1,0 +1,498 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+---
+<BaseLayout title="DM Queue | Admin" description="Admin approval queue for LLM-drafted Instagram DM and comment replies" noindex={true} bodyClass="admin-page">
+
+  <div class="admin-bar">
+    <div class="container admin-bar__inner">
+      <span class="admin-bar__title">RRM Admin</span>
+      <nav class="admin-bar__nav">
+        <a href="/admin/backlinks/" class="admin-bar__link">Backlinks</a>
+        <a href="/admin/conversions/" class="admin-bar__link">Conversions</a>
+        <a href="/admin/content/" class="admin-bar__link">Content</a>
+        <a href="/admin/email/" class="admin-bar__link">Email</a>
+        <a href="/admin/seo/" class="admin-bar__link">SEO</a>
+        <a href="/admin/revenue/" class="admin-bar__link">Revenue</a>
+        <a href="/admin/enrollments/" class="admin-bar__link">Enrollments</a>
+        <a href="/admin/dm-queue/" class="admin-bar__link admin-bar__link--active">DM Queue</a>
+      </nav>
+      <div class="admin-bar__actions">
+        <a href="/" class="admin-bar__site-link">Return to site</a>
+        <button class="admin-bar__logout" id="logout-btn">Logout</button>
+      </div>
+    </div>
+  </div>
+
+  <section class="en-section">
+    <div class="container">
+
+      <div class="en-header">
+        <h1>DM Queue</h1>
+        <div class="en-controls">
+          <button class="btn btn--primary en-btn" id="refresh-btn">Refresh</button>
+        </div>
+      </div>
+
+      <div class="dmq-banner" id="banner" hidden></div>
+
+      <div class="en-metrics en-metrics--3">
+        <div class="en-card">
+          <span class="en-card__label">Pending</span>
+          <span class="en-card__value" id="s-pending">--</span>
+        </div>
+        <div class="en-card">
+          <span class="en-card__label">Needs human</span>
+          <span class="en-card__value en-card__value--amber" id="s-needs-human">--</span>
+        </div>
+        <div class="en-card">
+          <span class="en-card__label">Hidden (opted out)</span>
+          <span class="en-card__value" id="s-suppressed">--</span>
+        </div>
+      </div>
+      <p class="dmq-suppressed-note" id="suppressed-note"></p>
+
+      <div class="dmq-cards" id="cards-root">
+        <div class="dmq-empty">Loading&hellip;</div>
+      </div>
+
+    </div>
+  </section>
+
+  <div class="dmq-toast" id="toast"></div>
+
+  <script>
+  (function () {
+    type Direction = 'in' | 'out' | 'echo';
+    type Source = 'dm' | 'comment';
+
+    interface DraftMessage {
+      mid: string;
+      direction: Direction;
+      text: string | null;
+      createdAt: string;
+      isAck: boolean;
+    }
+    interface Draft {
+      id: string;
+      threadIgsid: string;
+      source: Source;
+      sourceRef: string | null;
+      tier: string;
+      intent: string | null;
+      draftText: string;
+      finalText: string | null;
+      status: string;
+      windowExpiresAt: string | null;
+      createdAt: string;
+      needsHuman: boolean;
+      lastInboundAt: string | null;
+      recentMessages: DraftMessage[];
+      fromUsername?: string | null;
+      commentText?: string | null;
+    }
+    interface Counts { pending: number; needsHuman: number; suppressed: number; }
+    interface ActionResult { httpStatus: number; ok: boolean; error?: string; }
+
+    const MAX_BYTES = 1000;
+    const URGENT_MS = 4 * 60 * 60 * 1000;
+    const INTENT_LABELS: Record<string, string> = {
+      testimony_share: 'Testimony',
+      faq_mechanical: 'FAQ',
+      general_question: 'Question',
+      policy_insurance_regulation: 'Policy / Insurance',
+      medical_symptom: 'Medical / Symptom',
+      spam: 'Spam',
+    };
+
+    function esc(str: string | null | undefined): string {
+      const d = document.createElement('div'); d.textContent = str || ''; return d.innerHTML;
+    }
+    function num(n: number | null | undefined): string { return (n || 0).toLocaleString(); }
+    function byteLen(s: string): number { return new TextEncoder().encode(s || '').length; }
+
+    function parseDT(iso: string | null | undefined): Date | null {
+      if (!iso) return null;
+      const d = new Date(iso.includes('T') ? iso : iso + 'Z');
+      return isNaN(d.getTime()) ? null : d;
+    }
+    function formatDT(iso: string | null | undefined): string {
+      const d = parseDT(iso);
+      if (!d) return '--';
+      return d.toLocaleString('en-US', { timeZone: 'America/New_York', month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' });
+    }
+    function windowStatus(iso: string | null | undefined): { text: string; expired: boolean; urgent: boolean } {
+      const d = parseDT(iso);
+      if (!d) return { text: 'no window on record', expired: false, urgent: false };
+      const diffMs = d.getTime() - Date.now();
+      if (diffMs <= 0) return { text: 'EXPIRED', expired: true, urgent: true };
+      const totalMin = Math.floor(diffMs / 60000);
+      const h = Math.floor(totalMin / 60);
+      const m = totalMin % 60;
+      return { text: 'window closes in ' + h + 'h ' + m + 'm', expired: false, urgent: diffMs < URGENT_MS };
+    }
+    function intentLabel(intent: string | null): string {
+      if (!intent) return 'Unclassified';
+      return INTENT_LABELS[intent] || intent;
+    }
+    function directionLabel(dir: Direction): string {
+      if (dir === 'in') return 'Them';
+      if (dir === 'echo') return 'You (app)';
+      return 'You';
+    }
+
+    const cardsRoot = document.getElementById('cards-root') as HTMLElement;
+    const sPending = document.getElementById('s-pending') as HTMLElement;
+    const sNeedsHuman = document.getElementById('s-needs-human') as HTMLElement;
+    const sSuppressed = document.getElementById('s-suppressed') as HTMLElement;
+    const suppressedNote = document.getElementById('suppressed-note') as HTMLElement;
+    const bannerEl = document.getElementById('banner') as HTMLElement;
+    const toastEl = document.getElementById('toast') as HTMLElement;
+    const logoutBtn = document.getElementById('logout-btn') as HTMLButtonElement;
+    const refreshBtn = document.getElementById('refresh-btn') as HTMLButtonElement;
+
+    let currentDrafts: Draft[] = [];
+    let toastTimer: number | undefined;
+
+    function showBanner(msg: string): void {
+      bannerEl.textContent = msg;
+      bannerEl.hidden = false;
+    }
+    function showToast(msg: string): void {
+      toastEl.textContent = msg;
+      toastEl.classList.add('dmq-toast--show');
+      if (toastTimer) window.clearTimeout(toastTimer);
+      toastTimer = window.setTimeout(function () { toastEl.classList.remove('dmq-toast--show'); }, 3000);
+    }
+
+    function draftCard(d: Draft): string {
+      const id = esc(d.id);
+      const intentBadge = '<span class="dmq-badge ' + (d.intent === 'medical_symptom' ? 'dmq-badge--danger' : 'dmq-badge--neutral') + '">' +
+        esc(intentLabel(d.intent)) + '</span>';
+      const needsHumanBadge = d.needsHuman ? '<span class="dmq-badge dmq-badge--warn">Needs human</span>' : '';
+      const sourceBadge = d.source === 'comment'
+        ? '<span class="dmq-badge dmq-badge--source">Comment' + (d.fromUsername ? ' &middot; @' + esc(d.fromUsername) : '') + '</span>'
+        : '<span class="dmq-badge dmq-badge--source">DM</span>';
+
+      const commentBlock = d.source === 'comment' && d.commentText
+        ? '<div class="dmq-comment"><span class="dmq-comment__label">Comment:</span> ' + esc(d.commentText) + '</div>'
+        : '';
+
+      const messagesHtml = d.recentMessages.length
+        ? d.recentMessages.map(function (m) {
+            const dirCls = m.direction === 'in' ? 'dmq-msg--in' : 'dmq-msg--out';
+            return '<div class="dmq-msg ' + dirCls + '">' +
+              '<span class="dmq-msg__dir">' + esc(directionLabel(m.direction)) + '</span>' +
+              '<span class="dmq-msg__text">' + esc(m.text || '') + '</span>' +
+              '<span class="dmq-msg__time">' + esc(formatDT(m.createdAt)) + '</span>' +
+              '</div>';
+          }).join('')
+        : '<div class="dmq-msg dmq-msg--empty">No prior messages on record.</div>';
+
+      const initialBytes = byteLen(d.draftText || '');
+
+      return '<div class="dmq-card" data-id="' + id + '" data-expired="0">' +
+        '<div class="dmq-card__head">' +
+          intentBadge + needsHumanBadge + sourceBadge +
+          '<span class="dmq-countdown" data-expires="' + esc(d.windowExpiresAt || '') + '"></span>' +
+        '</div>' +
+        '<div class="dmq-meta-row"><span class="dmq-meta">Received ' + esc(formatDT(d.lastInboundAt || d.createdAt)) + '</span></div>' +
+        commentBlock +
+        '<div class="dmq-thread">' + messagesHtml + '</div>' +
+        '<textarea class="dmq-textarea" rows="4" aria-label="Final reply text">' + esc(d.draftText || '') + '</textarea>' +
+        '<div class="dmq-editor-foot">' +
+          '<span class="dmq-bytecount">' + num(initialBytes) + ' / ' + MAX_BYTES + ' bytes</span>' +
+          '<div class="dmq-actions">' +
+            '<button type="button" class="dmq-btn dmq-btn--reject dmq-reject">Reject</button>' +
+            '<button type="button" class="dmq-btn dmq-btn--approve dmq-approve">Approve &amp; Send</button>' +
+          '</div>' +
+        '</div>' +
+      '</div>';
+    }
+
+    function refreshCardState(card: HTMLElement): void {
+      const ta = card.querySelector('.dmq-textarea') as HTMLTextAreaElement;
+      const counterEl = card.querySelector('.dmq-bytecount') as HTMLElement;
+      const approveBtn = card.querySelector('.dmq-approve') as HTMLButtonElement;
+      const countdownEl = card.querySelector('.dmq-countdown') as HTMLElement;
+
+      const bytes = byteLen(ta.value);
+      const over = bytes > MAX_BYTES;
+      counterEl.textContent = num(bytes) + ' / ' + MAX_BYTES + ' bytes';
+      counterEl.classList.toggle('dmq-bytecount--over', over);
+
+      const status = windowStatus(countdownEl.getAttribute('data-expires'));
+      countdownEl.textContent = status.text;
+      countdownEl.classList.toggle('dmq-countdown--urgent', status.urgent && !status.expired);
+      countdownEl.classList.toggle('dmq-countdown--expired', status.expired);
+      card.setAttribute('data-expired', status.expired ? '1' : '0');
+
+      approveBtn.disabled = over || status.expired;
+    }
+
+    function refreshAllCardStates(): void {
+      cardsRoot.querySelectorAll('.dmq-card').forEach(function (card) { refreshCardState(card as HTMLElement); });
+    }
+
+    function removeCard(card: HTMLElement, id: string): void {
+      card.remove();
+      currentDrafts = currentDrafts.filter(function (d) { return d.id !== id; });
+      if (!currentDrafts.length) {
+        cardsRoot.innerHTML = '<div class="dmq-empty">No pending drafts. Inbox is clear.</div>';
+      }
+    }
+
+    function setCardBusy(card: HTMLElement, busy: boolean): void {
+      card.querySelectorAll('button').forEach(function (b) { (b as HTMLButtonElement).disabled = busy; });
+      card.classList.toggle('dmq-card--busy', busy);
+    }
+
+    async function apiAction(id: string, action: 'approve' | 'reject', finalText?: string): Promise<ActionResult> {
+      const resp = await fetch('/api/admin/dm-queue/' + encodeURIComponent(id), {
+        method: 'POST',
+        credentials: 'include',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(action === 'approve' ? { action: action, finalText: finalText } : { action: action }),
+      });
+      if (resp.status === 401 || resp.status === 403) {
+        window.location.href = '/login/?redirect=/admin/dm-queue/';
+        return { httpStatus: resp.status, ok: false };
+      }
+      const data = await resp.json().catch(function () { return {}; });
+      return { httpStatus: resp.status, ok: !!data.ok, error: data.error };
+    }
+
+    function handleActionError(resp: ActionResult): void {
+      if (resp.httpStatus === 409) {
+        showToast('Someone else already actioned this draft. Refreshing...');
+        load();
+        return;
+      }
+      if (resp.httpStatus === 503 && resp.error === 'worker_not_configured') {
+        showBanner('The DM Agent worker is not deployed yet -- approvals are disabled.');
+        return;
+      }
+      if (resp.httpStatus === 503 && resp.error === 'sends_disabled') {
+        showToast('Kill switch is off -- sends are disabled right now.');
+        return;
+      }
+      alert('Action failed: ' + (resp.error || ('HTTP ' + resp.httpStatus)));
+    }
+
+    async function handleApproveClick(ev: Event): Promise<void> {
+      const btn = ev.currentTarget as HTMLButtonElement;
+      const card = btn.closest('.dmq-card') as HTMLElement;
+      const id = card.getAttribute('data-id') || '';
+      const textarea = card.querySelector('.dmq-textarea') as HTMLTextAreaElement;
+      const finalText = textarea.value;
+      const bytes = byteLen(finalText);
+
+      if (!finalText.trim()) { alert('Message cannot be empty.'); return; }
+      if (bytes > MAX_BYTES) { alert('Message is ' + bytes + ' bytes; the limit is ' + MAX_BYTES + ' bytes.'); return; }
+
+      const preview = finalText.length > 400 ? finalText.slice(0, 400) + '...' : finalText;
+      const confirmed = window.confirm('Send this exact message (' + bytes + ' bytes)?\n\n' + preview);
+      if (!confirmed) return;
+
+      setCardBusy(card, true);
+      try {
+        const resp = await apiAction(id, 'approve', finalText);
+        if (resp.ok) {
+          removeCard(card, id);
+          showToast('Sent.');
+          return;
+        }
+        handleActionError(resp);
+      } catch (e) {
+        alert('Approve failed: ' + (e instanceof Error ? e.message : String(e)));
+      } finally {
+        setCardBusy(card, false);
+      }
+    }
+
+    async function handleRejectClick(ev: Event): Promise<void> {
+      const btn = ev.currentTarget as HTMLButtonElement;
+      const card = btn.closest('.dmq-card') as HTMLElement;
+      const id = card.getAttribute('data-id') || '';
+      if (!window.confirm('Reject this draft? It will not be sent.')) return;
+
+      setCardBusy(card, true);
+      try {
+        const resp = await apiAction(id, 'reject');
+        if (resp.ok) {
+          removeCard(card, id);
+          showToast('Rejected.');
+          return;
+        }
+        handleActionError(resp);
+      } catch (e) {
+        alert('Reject failed: ' + (e instanceof Error ? e.message : String(e)));
+      } finally {
+        setCardBusy(card, false);
+      }
+    }
+
+    function handleTextareaInput(ev: Event): void {
+      const ta = ev.currentTarget as HTMLTextAreaElement;
+      const card = ta.closest('.dmq-card') as HTMLElement;
+      refreshCardState(card);
+    }
+
+    function render(drafts: Draft[], counts: Counts): void {
+      sPending.textContent = num(counts.pending);
+      sNeedsHuman.textContent = num(counts.needsHuman);
+      sSuppressed.textContent = num(counts.suppressed);
+      suppressedNote.textContent = counts.suppressed > 0
+        ? num(counts.suppressed) + ' draft' + (counts.suppressed === 1 ? '' : 's') + ' hidden because the thread opted out.'
+        : '';
+
+      currentDrafts = drafts;
+
+      if (!drafts.length) {
+        cardsRoot.innerHTML = '<div class="dmq-empty">No pending drafts. Inbox is clear.</div>';
+        return;
+      }
+
+      cardsRoot.innerHTML = drafts.map(draftCard).join('');
+
+      cardsRoot.querySelectorAll('.dmq-approve').forEach(function (btn) { btn.addEventListener('click', handleApproveClick as EventListener); });
+      cardsRoot.querySelectorAll('.dmq-reject').forEach(function (btn) { btn.addEventListener('click', handleRejectClick as EventListener); });
+      cardsRoot.querySelectorAll('.dmq-textarea').forEach(function (ta) { ta.addEventListener('input', handleTextareaInput as EventListener); });
+
+      refreshAllCardStates();
+    }
+
+    async function load(): Promise<void> {
+      try {
+        const resp = await fetch('/api/admin/dm-queue', { credentials: 'include' });
+        if (resp.status === 401 || resp.status === 403) {
+          window.location.href = '/login/?redirect=/admin/dm-queue/';
+          return;
+        }
+        const data = await resp.json();
+        if (!resp.ok || !data || data.ok === false) {
+          throw new Error((data && data.error) || ('Request failed (' + resp.status + ')'));
+        }
+        render((data.data && data.data.drafts) || [], (data.data && data.data.counts) || { pending: 0, needsHuman: 0, suppressed: 0 });
+      } catch (e) {
+        cardsRoot.innerHTML = '<div class="dmq-empty dmq-empty--error">' + esc(e instanceof Error ? e.message : String(e)) + '</div>';
+      }
+    }
+
+    logoutBtn.addEventListener('click', async function () {
+      await fetch('/api/auth/logout', { method: 'POST', credentials: 'include' });
+      window.location.href = '/login/';
+    });
+
+    refreshBtn.addEventListener('click', load);
+
+    window.setInterval(refreshAllCardStates, 30000);
+
+    load();
+  })();
+  </script>
+
+</BaseLayout>
+
+<style>
+  :root {
+    --admin-rose-700: #8a606e;
+    --admin-rose-300: #c9a8b2;
+    --admin-bg: #faf8f5;
+    --admin-surface: #ffffff;
+    --admin-border: #d9d3cc;
+    --admin-text: #313131;
+    --admin-text-muted: #636261;
+    --admin-text-faint: #949392;
+  }
+
+  :global(.admin-page) :global(.site-header) { display: none; }
+  :global(.admin-page) :global(footer) { display: none; }
+
+  .admin-bar { background: #3d2a32; color: #f0e5e9; position: sticky; top: 0; z-index: 100; }
+  .admin-bar__inner { display: flex; align-items: center; height: 48px; gap: var(--space-6); }
+  .admin-bar__title { font-family: 'Cormorant Garamond', 'Georgia', serif; font-weight: 600; font-size: 1.25rem; color: var(--admin-rose-300); white-space: nowrap; }
+  .admin-bar__nav {
+    display: flex;
+    gap: var(--space-1);
+  } @media (max-width: 768px) { .admin-bar__nav { display: none; } }
+  .admin-bar__link { font-size: 0.8125rem; font-weight: 400; color: var(--white); text-decoration: none; padding: var(--space-1) var(--space-3); border-radius: var(--radius-sm); transition: color 0.15s, background 0.15s; }
+  .admin-bar__link:hover { color: var(--white); text-decoration: none; }
+  .admin-bar__link--active { color: var(--white); background: var(--white); font-weight: 500; }
+  .admin-bar__actions { display: flex; align-items: center; gap: var(--space-3); margin-left: auto; }
+  .admin-bar__site-link { font-size: 0.8125rem; font-weight: 500; color: var(--admin-rose-300); text-decoration: none; padding: 5px var(--space-4); border: 1px solid var(--admin-rose-300); border-radius: var(--radius-pill); transition: color 0.15s, border-color 0.15s; }
+  .admin-bar__site-link:hover { color: var(--white); border-color: var(--white); text-decoration: none; }
+  .admin-bar__logout { font-size: 0.8125rem; color: var(--white); background: none; border: none; cursor: pointer; padding: var(--space-1) var(--space-2); }
+  .admin-bar__logout:hover { color: var(--white); }
+
+  .en-section { padding: var(--space-8) 0; background: var(--admin-bg); min-height: 80vh; }
+  .en-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: var(--space-6); flex-wrap: wrap; gap: var(--space-3); }
+  .en-header h1 { margin-bottom: 0; color: var(--admin-text); }
+  .en-controls { display: flex; gap: var(--space-3); align-items: center; }
+  .en-btn { background: var(--admin-rose-700); border-color: var(--admin-rose-700); color: var(--white); }
+  .en-btn:hover { background: #764d5e; }
+
+  .en-metrics { display: grid; gap: var(--space-4); margin-bottom: var(--space-2); }
+  .en-metrics--3 { grid-template-columns: repeat(3, 1fr); }
+  @media (max-width: 768px) { .en-metrics--3 { grid-template-columns: repeat(1, 1fr); } }
+
+  .en-card { background: var(--admin-surface); border: 1px solid var(--admin-border); border-radius: var(--radius-md); padding: var(--space-4) var(--space-5); text-align: center; }
+  .en-card__label { display: block; font-size: 0.75rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; color: var(--admin-text-faint); margin-bottom: var(--space-1); }
+  .en-card__value { display: block; font-size: 1.75rem; font-weight: 600; color: var(--admin-text); font-family: 'Inter', sans-serif; }
+  .en-card__value--amber { color: #d97706; }
+
+  .dmq-suppressed-note { font-size: 0.8125rem; color: var(--admin-text-faint); margin: var(--space-2) 0 var(--space-6); }
+
+  .dmq-banner { background: var(--status-warn-bg); color: var(--status-warn-text); border: 1px solid var(--status-warn-border); border-radius: var(--radius-md); padding: var(--space-3) var(--space-4); font-size: 0.875rem; margin-bottom: var(--space-6); }
+
+  .dmq-cards { display: flex; flex-direction: column; gap: var(--space-4); }
+  .dmq-empty { text-align: center; color: var(--admin-text-faint); padding: var(--space-8) var(--space-4); background: var(--admin-surface); border: 1px solid var(--admin-border); border-radius: var(--radius-md); }
+  .dmq-empty--error { color: var(--status-error-text); }
+
+  .dmq-card { background: var(--admin-surface); border: 1px solid var(--admin-border); border-radius: var(--radius-md); padding: var(--space-5); }
+  .dmq-card--busy { opacity: 0.6; }
+
+  .dmq-card__head { display: flex; align-items: center; gap: var(--space-2); flex-wrap: wrap; margin-bottom: var(--space-2); }
+
+  .dmq-badge { display: inline-block; padding: 2px var(--space-2); border-radius: var(--radius-sm); font-size: 0.6875rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.03em; }
+  .dmq-badge--neutral { background: #f0e5e9; color: var(--admin-rose-700); }
+  .dmq-badge--danger { background: var(--status-error-bg); color: var(--status-error-text); }
+  .dmq-badge--warn { background: var(--status-warn-bg); color: var(--status-warn-text); }
+  .dmq-badge--source { background: var(--admin-bg); color: var(--admin-text-muted); border: 1px solid var(--admin-border); text-transform: none; letter-spacing: 0; }
+
+  .dmq-countdown { margin-left: auto; font-size: 0.75rem; font-weight: 600; color: var(--admin-text-muted); white-space: nowrap; }
+  .dmq-countdown--urgent { color: var(--status-warn-text); }
+  .dmq-countdown--expired { color: var(--status-error-text); }
+
+  .dmq-meta-row { margin-bottom: var(--space-3); }
+  .dmq-meta { font-size: 0.75rem; color: var(--admin-text-faint); }
+
+  .dmq-comment { font-size: 0.8125rem; color: var(--admin-text); background: var(--admin-bg); border: 1px solid var(--admin-border); border-radius: var(--radius-sm); padding: var(--space-2) var(--space-3); margin-bottom: var(--space-3); white-space: pre-wrap; }
+  .dmq-comment__label { font-weight: 600; color: var(--admin-text-muted); }
+
+  .dmq-thread { display: flex; flex-direction: column; gap: var(--space-2); margin-bottom: var(--space-3); }
+  .dmq-msg { display: flex; align-items: baseline; gap: var(--space-2); font-size: 0.8125rem; padding: var(--space-2) var(--space-3); border-radius: var(--radius-sm); }
+  .dmq-msg--in { background: var(--admin-bg); border: 1px solid var(--admin-border); }
+  .dmq-msg--out { background: #f0e5e9; border: 1px solid var(--admin-rose-300); }
+  .dmq-msg--empty { color: var(--admin-text-faint); font-style: italic; }
+  .dmq-msg__dir { font-weight: 600; color: var(--admin-rose-700); flex-shrink: 0; }
+  .dmq-msg__text { flex: 1; color: var(--admin-text); white-space: pre-wrap; word-break: break-word; }
+  .dmq-msg__time { font-size: 0.6875rem; color: var(--admin-text-faint); flex-shrink: 0; white-space: nowrap; }
+
+  .dmq-textarea { width: 100%; min-height: 88px; padding: var(--space-3); border: 1px solid var(--admin-border); border-radius: var(--radius-sm); font-family: inherit; font-size: 0.9375rem; color: var(--admin-text); resize: vertical; }
+  .dmq-textarea:focus { border-color: var(--admin-rose-700); box-shadow: 0 0 0 2px rgba(138,96,110,0.15); outline: none; }
+
+  .dmq-editor-foot { display: flex; align-items: center; justify-content: space-between; gap: var(--space-3); margin-top: var(--space-2); flex-wrap: wrap; }
+  .dmq-bytecount { font-size: 0.75rem; color: var(--admin-text-faint); }
+  .dmq-bytecount--over { color: var(--status-error-text); font-weight: 600; }
+
+  .dmq-actions { display: flex; gap: var(--space-2); }
+  .dmq-btn { font-size: 0.8125rem; font-weight: 600; padding: var(--space-2) var(--space-4); border-radius: var(--radius-sm); border: 1px solid transparent; cursor: pointer; }
+  .dmq-btn--approve { background: var(--green-100); color: var(--green-700); border-color: #c8e6c9; }
+  .dmq-btn--approve:hover:not(:disabled) { background: var(--green-700); color: var(--white); }
+  .dmq-btn--reject { background: var(--status-error-bg); color: var(--status-error-text); border-color: #ffcdd2; }
+  .dmq-btn--reject:hover:not(:disabled) { background: var(--status-error-text); color: var(--white); }
+  .dmq-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+  .dmq-toast { position: fixed; bottom: var(--space-6); right: var(--space-6); background: var(--admin-text); color: var(--white); padding: var(--space-3) var(--space-5); border-radius: var(--radius-md); font-size: 0.875rem; opacity: 0; pointer-events: none; transform: translateY(8px); transition: opacity 0.2s, transform 0.2s; z-index: 200; }
+  .dmq-toast--show { opacity: 1; transform: translateY(0); }
+</style>
