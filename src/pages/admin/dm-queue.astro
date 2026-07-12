@@ -408,7 +408,8 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
   :global(.admin-page) :global(.site-header) { display: none; }
   :global(.admin-page) :global(footer) { display: none; }
 
-  .admin-bar { background: #3d2a32; color: #f0e5e9; position: sticky; top: 0; z-index: 100; }
+  .admin-bar { position: sticky; top: 0; z-index: 100; }
+  .admin-page .admin-bar { background: color-mix(in srgb, var(--admin-rose-700) 44%, black); color: color-mix(in srgb, var(--admin-rose-300) 29%, white); }
   .admin-bar__inner { display: flex; align-items: center; height: 48px; gap: var(--space-6); }
   .admin-bar__title { font-family: 'Cormorant Garamond', 'Georgia', serif; font-weight: 600; font-size: 1.25rem; color: var(--admin-rose-300); white-space: nowrap; }
   .admin-bar__nav {
@@ -419,7 +420,8 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
   .admin-bar__link:hover { color: var(--white); text-decoration: none; }
   .admin-bar__link--active { color: var(--white); background: var(--white); font-weight: 500; }
   .admin-bar__actions { display: flex; align-items: center; gap: var(--space-3); margin-left: auto; }
-  .admin-bar__site-link { font-size: 0.8125rem; font-weight: 500; color: var(--admin-rose-300); text-decoration: none; padding: 5px var(--space-4); border: 1px solid var(--admin-rose-300); border-radius: var(--radius-pill); transition: color 0.15s, border-color 0.15s; }
+  .admin-bar__site-link { font-size: 0.8125rem; font-weight: 500; color: var(--admin-rose-300); text-decoration: none; border: 1px solid var(--admin-rose-300); border-radius: var(--radius-pill); transition: color 0.15s, border-color 0.15s; }
+  .admin-page .admin-bar__site-link { padding: var(--space-1) var(--space-4); }
   .admin-bar__site-link:hover { color: var(--white); border-color: var(--white); text-decoration: none; }
   .admin-bar__logout { font-size: 0.8125rem; color: var(--white); background: none; border: none; cursor: pointer; padding: var(--space-1) var(--space-2); }
   .admin-bar__logout:hover { color: var(--white); }
@@ -429,7 +431,7 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
   .en-header h1 { margin-bottom: 0; color: var(--admin-text); }
   .en-controls { display: flex; gap: var(--space-3); align-items: center; }
   .en-btn { background: var(--admin-rose-700); border-color: var(--admin-rose-700); color: var(--white); }
-  .en-btn:hover { background: #764d5e; }
+  .en-btn:hover { background: color-mix(in srgb, var(--admin-rose-700) 84%, black); }
 
   .en-metrics { display: grid; gap: var(--space-4); margin-bottom: var(--space-2); }
   .en-metrics--3 { grid-template-columns: repeat(3, 1fr); }
@@ -438,7 +440,7 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
   .en-card { background: var(--admin-surface); border: 1px solid var(--admin-border); border-radius: var(--radius-md); padding: var(--space-4) var(--space-5); text-align: center; }
   .en-card__label { display: block; font-size: 0.75rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; color: var(--admin-text-faint); margin-bottom: var(--space-1); }
   .en-card__value { display: block; font-size: 1.75rem; font-weight: 600; color: var(--admin-text); font-family: 'Inter', sans-serif; }
-  .en-card__value--amber { color: #d97706; }
+  .admin-page .en-card__value--amber { color: var(--amber-700); }
 
   .dmq-suppressed-note { font-size: 0.8125rem; color: var(--admin-text-faint); margin: var(--space-2) 0 var(--space-6); }
 
@@ -454,7 +456,7 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
   .dmq-card__head { display: flex; align-items: center; gap: var(--space-2); flex-wrap: wrap; margin-bottom: var(--space-2); }
 
   .dmq-badge { display: inline-block; padding: 2px var(--space-2); border-radius: var(--radius-sm); font-size: 0.6875rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.03em; }
-  .dmq-badge--neutral { background: #f0e5e9; color: var(--admin-rose-700); }
+  .dmq-badge--neutral { background: color-mix(in srgb, var(--admin-rose-300) 29%, white); color: var(--admin-rose-700); }
   .dmq-badge--danger { background: var(--status-error-bg); color: var(--status-error-text); }
   .dmq-badge--warn { background: var(--status-warn-bg); color: var(--status-warn-text); }
   .dmq-badge--source { background: var(--admin-bg); color: var(--admin-text-muted); border: 1px solid var(--admin-border); text-transform: none; letter-spacing: 0; }
@@ -472,14 +474,14 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
   .dmq-thread { display: flex; flex-direction: column; gap: var(--space-2); margin-bottom: var(--space-3); }
   .dmq-msg { display: flex; align-items: baseline; gap: var(--space-2); font-size: 0.8125rem; padding: var(--space-2) var(--space-3); border-radius: var(--radius-sm); }
   .dmq-msg--in { background: var(--admin-bg); border: 1px solid var(--admin-border); }
-  .dmq-msg--out { background: #f0e5e9; border: 1px solid var(--admin-rose-300); }
+  .dmq-msg--out { background: color-mix(in srgb, var(--admin-rose-300) 29%, white); border: 1px solid var(--admin-rose-300); }
   .dmq-msg--empty { color: var(--admin-text-faint); font-style: italic; }
   .dmq-msg__dir { font-weight: 600; color: var(--admin-rose-700); flex-shrink: 0; }
   .dmq-msg__text { flex: 1; color: var(--admin-text); white-space: pre-wrap; word-break: break-word; }
   .dmq-msg__time { font-size: 0.6875rem; color: var(--admin-text-faint); flex-shrink: 0; white-space: nowrap; }
 
   .dmq-textarea { width: 100%; min-height: 88px; padding: var(--space-3); border: 1px solid var(--admin-border); border-radius: var(--radius-sm); font-family: inherit; font-size: 0.9375rem; color: var(--admin-text); resize: vertical; }
-  .dmq-textarea:focus { border-color: var(--admin-rose-700); box-shadow: 0 0 0 2px rgba(138,96,110,0.15); outline: none; }
+  .dmq-textarea:focus { border-color: var(--admin-rose-700); box-shadow: 0 0 0 2px var(--focus-ring); outline: none; }
 
   .dmq-editor-foot { display: flex; align-items: center; justify-content: space-between; gap: var(--space-3); margin-top: var(--space-2); flex-wrap: wrap; }
   .dmq-bytecount { font-size: 0.75rem; color: var(--admin-text-faint); }
@@ -487,9 +489,9 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
 
   .dmq-actions { display: flex; gap: var(--space-2); }
   .dmq-btn { font-size: 0.8125rem; font-weight: 600; padding: var(--space-2) var(--space-4); border-radius: var(--radius-sm); border: 1px solid transparent; cursor: pointer; }
-  .dmq-btn--approve { background: var(--green-100); color: var(--green-700); border-color: #c8e6c9; }
+  .dmq-btn--approve { background: var(--green-100); color: var(--green-700); border-color: color-mix(in srgb, var(--green-700) 25%, var(--white)); }
   .dmq-btn--approve:hover:not(:disabled) { background: var(--green-700); color: var(--white); }
-  .dmq-btn--reject { background: var(--status-error-bg); color: var(--status-error-text); border-color: #ffcdd2; }
+  .dmq-btn--reject { background: var(--status-error-bg); color: var(--status-error-text); border-color: color-mix(in srgb, var(--status-error-text) 22%, var(--white)); }
   .dmq-btn--reject:hover:not(:disabled) { background: var(--status-error-text); color: var(--white); }
   .dmq-btn:disabled { opacity: 0.5; cursor: not-allowed; }
 
