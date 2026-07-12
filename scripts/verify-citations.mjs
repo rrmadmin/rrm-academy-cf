@@ -1,3 +1,4 @@
+// Enforces: memory feedback-verify-citation-claim-fidelity (every citation registry-verified before publish).
 /**
  * Citation Verifier v2 for RRM Academy Blog Posts
  *

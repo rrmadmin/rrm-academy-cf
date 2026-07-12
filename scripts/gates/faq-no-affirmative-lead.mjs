@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+// Enforces: memory feedback-no-hard-yes-fertility-faqs (no affirmative-lead answers on fertility FAQs).
 import fs from 'node:fs';
 
 const BANNED_LEADS = /^(Yes|Absolutely|Sure|Definitely|Of course|Certainly|Yeah|Indeed|Affirmative|Correct|Most certainly)\b/i;
