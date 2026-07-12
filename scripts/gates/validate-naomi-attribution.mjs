@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+// Enforces: memory naomi-canonical-bio + lint-identity-g-identity-gate (canonical Naomi attribution; SSOT tools/lint-identity/people.json).
 import fs from 'node:fs';
 
 const ATTR_REGEX = /\b(Naomi|Whit{1,2}aker|MIGS|NFPMC|0000-0003-3706-3112|1881034908|rrm-spotlight-naomi-whittaker)\b/g;
