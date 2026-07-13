@@ -1,0 +1,225 @@
+---
+// DEV preview (noindex, unlinked): metadata treatments for the single-column
+// article list (Brian 2026-07-13). Renders the SAME 4 real articles three ways
+// so the meta line below the title can be chosen by eye. Not a production
+// surface. The chosen variant gets folded into ArticleCard variant="list".
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import { fetchAllArticles, type Article } from '../../lib/airtable';
+import { isCategorySafe } from '../../data/library-topics';
+
+const articles = (await fetchAllArticles())
+  .filter(isCategorySafe)
+  .filter((a: Article) => (a.topics?.length ?? 0) >= 2 && a.shortCitation)
+  .slice(0, 4);
+
+const leaf = (t: string) => t.split('>').pop()?.trim() || t;
+const root = (t: string) => t.split('>')[0]?.trim() || t;
+
+const items = articles.map((a: Article) => {
+  const seen = new Set<string>();
+  const eyebrow = a.topics?.length ? root(a.topics[0]) : 'Research';
+  return {
+    href: `/library/${a.slug}/`,
+    title: a.title,
+    eyebrow,
+    chips: (a.topics ?? [])
+      .map(leaf)
+      .filter((t) => t && t !== eyebrow && !seen.has(t) && (seen.add(t), true))
+      .slice(0, 3),
+    // A: 100% populated, already "First AB et al., YYYY"
+    shortCite: a.shortCitation,
+    // 87% populated; journal (96%) is the fallback
+    journalShort: a.journalAbbv || a.journal || '',
+    year: a.year ? String(a.year) : '',
+    // 89% populated — the actual scan signal
+    snippet: (a.abstract || '')
+      .replace(/^\s*(Background|Objective|Introduction|Purpose)s?:\s*/i, '')
+      .trim(),
+    // current treatment, for the "before" row
+    fullAuthors: (a.authors || '').split(';').map((s) => s.trim()).filter(Boolean).join(', '),
+    volPages: [a.volume, a.pages].filter(Boolean).join(':'),
+    pmid: a.pmid || '',
+    isOA: Boolean(a.isOpenAccess) || a.accessLevel === 'open',
+  };
+});
+
+const VARIANTS = [
+  {
+    id: 'now',
+    name: 'A. Current (what is staged now)',
+    note: 'Full author list (2-line clamp), journal, volume:pages, PMID. 17 names of noise before you learn anything.',
+  },
+  {
+    id: 'cite',
+    name: 'B. Citation line only',
+    note: 'One line: "Schliep KC et al., 2026 · J Gynecol Obstet Hum Reprod". Tightest scan; nothing about what the paper found.',
+  },
+  {
+    id: 'snippet',
+    name: 'C. Citation line + abstract snippet (CHOSEN — shipped 2026-07-13)',
+    note: 'Same one-liner, plus 2 lines of abstract. Trades author noise for the thing that actually makes someone click. This is what ArticleCard variant="list" now renders on browse + topic hubs; A and B are kept here as the rejected comparison.',
+  },
+];
+---
+<BaseLayout title="DEV: Article list metadata" description="Internal design preview." noindex={true}>
+  <div class="alp-page">
+    <div class="alp-container">
+      <header class="alp-head">
+        <p class="alp-head__eyebrow">Dev preview -- not linked</p>
+        <h1>Article meta: three treatments</h1>
+        <p class="alp-head__note">
+          Same 4 real articles, rendered three ways. Field coverage across the
+          library: shortCitation 100%, journalAbbv 87% (journal 96% fallback),
+          abstract 89%, PMID 75%.
+        </p>
+      </header>
+
+      {VARIANTS.map((v) => (
+        <section class="alp-variant">
+          <div class="alp-variant__head">
+            <h2 class="alp-variant__name">{v.name}</h2>
+            <p class="alp-variant__note">{v.note}</p>
+          </div>
+
+          <ol class="alp-list">
+            {items.map((it) => (
+              <li class="alp-item">
+                <div class="alp-item__meta">
+                  <span class="alp-item__eyebrow">{it.eyebrow}</span>
+                  {it.chips.map((c) => <span class="alp-chip">{c}</span>)}
+                  {it.isOA && <span class="alp-oa">Open Access</span>}
+                </div>
+
+                <h3 class="alp-item__title"><a href={it.href}>{it.title}</a></h3>
+
+                {v.id === 'now' && (
+                  <>
+                    <p class="alp-authors">{it.fullAuthors}</p>
+                    <p class="alp-cite">
+                      {[it.journalShort, it.year].filter(Boolean).join(', ')}{it.volPages && `; ${it.volPages}`}
+                      {it.pmid && <span class="alp-pmid">PMID: {it.pmid}</span>}
+                    </p>
+                  </>
+                )}
+
+                {v.id === 'cite' && (
+                  <p class="alp-line">
+                    <span class="alp-line__cite">{it.shortCite}</span>
+                    {it.journalShort && (
+                      <>
+                        <span class="alp-line__sep" aria-hidden="true">·</span>
+                        <span class="alp-line__journal">{it.journalShort}</span>
+                      </>
+                    )}
+                  </p>
+                )}
+
+                {v.id === 'snippet' && (
+                  <>
+                    <p class="alp-line">
+                      <span class="alp-line__cite">{it.shortCite}</span>
+                      {it.journalShort && (
+                        <>
+                          <span class="alp-line__sep" aria-hidden="true">·</span>
+                          <span class="alp-line__journal">{it.journalShort}</span>
+                        </>
+                      )}
+                    </p>
+                    {it.snippet && <p class="alp-snippet">{it.snippet}</p>}
+                  </>
+                )}
+              </li>
+            ))}
+          </ol>
+        </section>
+      ))}
+    </div>
+  </div>
+</BaseLayout>
+
+<style>
+  .alp-page { padding: var(--space-10) 0 var(--space-16); }
+  .alp-container { max-width: 780px; margin: 0 auto; padding: 0 var(--space-4); }
+
+  .alp-head { margin-bottom: var(--space-10); }
+  .alp-head__eyebrow {
+    font-size: 0.6875rem; font-weight: 600; letter-spacing: 0.08em;
+    text-transform: uppercase; color: var(--text-tertiary); margin: 0 0 var(--space-2);
+  }
+  .alp-head h1 { font-size: 1.75rem; margin: 0 0 var(--space-2); }
+  .alp-head__note { font-size: 0.875rem; color: var(--text-secondary); margin: 0; }
+
+  .alp-variant { margin-bottom: var(--space-16); }
+  .alp-variant__head {
+    padding: var(--space-4) var(--space-5);
+    background: var(--purple-50);
+    border-radius: var(--radius-md);
+    margin-bottom: var(--space-4);
+  }
+  .alp-variant__name {
+    font-family: 'Inter', sans-serif;
+    font-size: 0.9375rem; font-weight: 600; margin: 0 0 var(--space-1);
+    color: var(--text-primary);
+  }
+  .alp-variant__note { font-size: 0.8125rem; color: var(--text-secondary); margin: 0; line-height: 1.5; }
+
+  .alp-list { list-style: none; margin: 0; padding: 0; }
+  .alp-item { padding: var(--space-8) 0; border-bottom: 1px solid var(--border-light); }
+  .alp-item:last-child { border-bottom: none; }
+
+  .alp-item__meta {
+    display: flex; align-items: center; flex-wrap: wrap;
+    gap: var(--space-2); margin-bottom: var(--space-4);
+  }
+  .alp-item__eyebrow {
+    font-size: 0.6875rem; font-weight: 600; letter-spacing: 0.1em;
+    text-transform: uppercase; color: var(--accent); margin-right: var(--space-1);
+  }
+  .alp-chip {
+    font-size: 0.6875rem; font-weight: 500; color: var(--neutral-700);
+    background: var(--white); padding: 3px 12px;
+    border-radius: var(--radius-pill); border: 1px solid var(--neutral-200);
+  }
+  .alp-oa {
+    margin-left: auto; font-size: 0.6875rem; font-weight: 600;
+    color: var(--green-700); background: var(--green-100);
+    padding: 2px 10px; border-radius: 12px;
+  }
+
+  .alp-item__title {
+    font-family: 'Cormorant Garamond', 'Georgia', serif;
+    font-size: clamp(1.5rem, 1.25rem + 1.25vw, 2rem);
+    font-weight: 600; line-height: 1.2; margin: 0 0 var(--space-3);
+  }
+  .alp-item__title a { color: var(--text-primary); text-decoration: none; }
+  .alp-item__title a:hover { color: var(--accent); }
+
+  /* A — current */
+  .alp-authors {
+    font-size: 0.875rem; line-height: 1.6; color: var(--text-secondary);
+    margin: 0 0 var(--space-1);
+    display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;
+  }
+  .alp-cite { font-size: 0.8125rem; color: var(--text-tertiary); margin: 0; }
+  .alp-pmid { margin-left: var(--space-3); }
+
+  /* B + C — one-line meta. Journal carries the trust signal, so it gets the
+     italic serif treatment; authors/year stay quiet. */
+  .alp-line {
+    display: flex; align-items: baseline; flex-wrap: wrap; gap: var(--space-2);
+    margin: 0; font-size: 0.875rem; line-height: 1.5;
+  }
+  .alp-line__cite { color: var(--text-secondary); font-weight: 500; }
+  .alp-line__sep { color: var(--neutral-300); }
+  .alp-line__journal {
+    font-family: 'Cormorant Garamond', 'Georgia', serif;
+    font-style: italic; font-size: 1rem; color: var(--text-primary);
+  }
+
+  /* C — abstract snippet */
+  .alp-snippet {
+    margin: var(--space-3) 0 0;
+    font-size: 0.875rem; line-height: 1.65; color: var(--text-secondary);
+    display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;
+  }
+</style>
