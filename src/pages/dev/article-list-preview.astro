@@ -87,7 +87,7 @@ const VARIANTS = [
                 <div class="alp-item__meta">
                   <span class="alp-item__eyebrow">{it.eyebrow}</span>
                   {it.chips.map((c) => <span class="alp-chip">{c}</span>)}
-                  {it.isOA && <span class="alp-oa">Open Access</span>}
+                  {it.isOA && <span class="badge badge--oa alp-oa">Open Access</span>}
                 </div>
 
                 <h3 class="alp-item__title"><a href={it.href}>{it.title}</a></h3>
@@ -177,14 +177,11 @@ const VARIANTS = [
   }
   .alp-chip {
     font-size: 0.6875rem; font-weight: 500; color: var(--neutral-700);
-    background: var(--white); padding: 3px 12px;
+    background: var(--white); padding: var(--space-1) var(--space-3);
     border-radius: var(--radius-pill); border: 1px solid var(--neutral-200);
   }
-  .alp-oa {
-    margin-left: auto; font-size: 0.6875rem; font-weight: 600;
-    color: var(--green-700); background: var(--green-100);
-    padding: 2px 10px; border-radius: 12px;
-  }
+  /* Uses the global .badge--oa; only the placement is local. */
+  .alp-oa { margin-left: auto; }
 
   .alp-item__title {
     font-family: 'Cormorant Garamond', 'Georgia', serif;
