@@ -477,6 +477,7 @@ Rollback: `gh variable set PUBLIC_SHELL_ROUTES --body ""` + redeploy.
 
 **Components:**
 - `src/components/AppShellChrome.astro` — desktop sidebar + middle column. Mobile renders the global Header inside `.app-shell-mobile-header`; the legacy shell mobile UI (bottom nav, hamburger drawer, AppShellSheet pull-up sheet) was DELETED 2026-06-10 after a month permanently `display:none`.
+  - **Sidebar nav groups are collapsible (2026-07-13):** 5 native `<details>`/`<summary>` groups — Guides (methodNav + compareNav + All Guides), Library, Learn, Tools, Community. Every link is server-rendered whether open or closed (SEO-neutral by design — do NOT "simplify" by removing pillar links; that strips sitewide internal links from ~4,300 shell pages). The group containing `currentPath` renders `open` + `data-active`; Guides defaults closed elsewhere, short groups default open; user toggles persist in `localStorage('rrm-shell-nav-groups')` via the inline script after the nav (active group always forced open client-side).
 - `src/components/MaybeShell.astro` — conditional wrapper for shell-on/shell-off without duplicating page body across two ternary branches. Forwards `hasRail` prop and `rail` named slot. Use this on every new wrap target.
 - `src/components/SectionTocChips.astro` — chip-pill "On this page" callout that replaces the sticky internal `.toc` sidebar on shell-enabled guide pages. Pair with `.article-layout--no-toc` modifier.
 - `src/styles/app-shell.css` — grid, tokens, mobile rules.
