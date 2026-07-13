@@ -87,7 +87,7 @@ const jsonLd = {
             <p class="topic-page__empty">No articles found for this topic yet.</p>
           ) : (
             <div class="topic-page__grid">
-              {topicArticles.map(a => <ArticleCard article={a} />)}
+              {topicArticles.map(a => <ArticleCard article={a} variant="list" />)}
             </div>
           )}
         </div>
@@ -112,7 +112,7 @@ const jsonLd = {
           <p class="topic-page__empty">No articles found for this topic yet.</p>
         ) : (
           <div class="topic-page__grid">
-            {topicArticles.map(a => <ArticleCard article={a} />)}
+            {topicArticles.map(a => <ArticleCard article={a} variant="list" />)}
           </div>
         )}
       </div>
@@ -158,17 +158,10 @@ const jsonLd = {
     color: var(--text-tertiary);
     font-variant-numeric: tabular-nums;
   }
+  /* Single-column editorial rows (2026-07-13) — ArticleCard variant="list"
+     owns each row's rhythm + divider; the container sets the reading measure. */
   .topic-page__grid {
-    display: grid;
-    gap: var(--space-5);
-    grid-template-columns: 1fr;
-    align-items: start;
-  }
-  @media (min-width: 640px) {
-    .topic-page__grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-  }
-  @media (min-width: 1024px) {
-    .topic-page__grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+    max-width: var(--max-width-article);
   }
   .topic-page__empty {
     color: var(--text-tertiary);

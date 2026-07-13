@@ -542,7 +542,7 @@ const citationMeta = {
           <h2 class="detail-heading">Related articles</h2>
           <div class="related-grid">
             {related.map(rel => (
-              <ArticleCard article={rel} />
+              <ArticleCard article={rel} variant="list" />
             ))}
           </div>
         </section>
@@ -739,7 +739,7 @@ const citationMeta = {
           <h2 class="detail-heading">Related articles</h2>
           <div class="related-grid">
             {related.map(rel => (
-              <ArticleCard article={rel} />
+              <ArticleCard article={rel} variant="list" />
             ))}
           </div>
         </section>
@@ -1230,15 +1230,17 @@ const citationMeta = {
     padding-top: var(--space-8);
     border-top: 1px solid var(--border-color);
   }
-  .related-grid {
-    display: grid;
-    grid-template-columns: 1fr;
-    gap: var(--space-5);
+  /* Related articles — single-column editorial rows (2026-07-13), matching the
+     browse + topic-hub treatment. Rows are tightened here: this is a supporting
+     rail at the foot of an article, not a browse surface. */
+  .related-grid :global(.article-row) {
+    padding: var(--space-6) 0;
   }
-  @media (min-width: 640px) {
-    .related-grid {
-      grid-template-columns: repeat(2, 1fr);
-    }
+  .related-grid :global(.article-row:first-child) {
+    padding-top: var(--space-2);
+  }
+  .related-grid :global(.article-row__title) {
+    font-size: 1.375rem;
   }
 
   /* Topbar: breadcrumb + save button */
