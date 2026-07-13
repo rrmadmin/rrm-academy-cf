@@ -473,20 +473,33 @@
 .app-shell-nav__account[aria-current="page"] .app-shell-nav__icon {
   color: var(--text-primary);
 }
-/* "Soon" pill — marks a not-yet-live destination (e.g. RRM Providers). */
-.app-shell-nav__pill {
-  flex: 0 0 auto;
-  margin-left: auto;
-  padding: 1px 7px;
-  font-size: 0.625rem;
-  font-weight: 600;
-  letter-spacing: 0.04em;
-  text-transform: uppercase;
-  line-height: 1.5;
+/* Collapsible nav groups: the section is a <details>, the heading a <summary>.
+   Typography matches the old static heading; a chevron signals the affordance. */
+summary.app-shell-nav__heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-2);
+  cursor: pointer;
+  list-style: none;
+  user-select: none;
+  border-radius: var(--radius-sm);
+}
+summary.app-shell-nav__heading::-webkit-details-marker { display: none; }
+summary.app-shell-nav__heading::marker { content: ''; }
+summary.app-shell-nav__heading:hover { color: var(--text-secondary); }
+summary.app-shell-nav__heading:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 3px var(--focus-ring);
+}
+.app-shell-nav__chevron {
+  display: inline-flex;
+  align-items: center;
   color: var(--text-tertiary);
-  background: var(--cream);
-  border: 1px solid var(--border-light);
-  border-radius: var(--radius-pill);
+  transition: transform 0.2s ease;
+}
+details[data-nav-group][open] > summary .app-shell-nav__chevron {
+  transform: rotate(180deg);
 }
 
 /* Auth-aware account row avatar + text (swapped client-side from "Sign in"). */
