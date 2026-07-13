@@ -136,6 +136,28 @@ const inNavGuide = [...methodNav, ...compareNav].some((g) => isCurrentGuide(g.sl
 const inGuides = GUIDES_PATHS.has(currentPath) && !inNavGuide;
 const GUIDE_ITEM_ICON = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>';
 const inGlossary = currentPath === '/glossary' || currentPath === '/glossary/' || currentPath.startsWith('/glossary/');
+// Collapsible nav groups. Native <details>/<summary> keeps every link in the
+// server-rendered HTML whether a group is open or closed (SEO-neutral: the
+// internal link graph is identical), while the sidebar stays scannable.
+// The group containing the current page always renders open (and data-active
+// guards it against a stored collapsed preference client-side). Guides is the
+// longest group so it defaults closed elsewhere; the short groups default
+// open. User toggles persist in localStorage('rrm-shell-nav-groups').
+const navGroupActive = {
+  guides: inNavGuide || inGuides,
+  library: (inLibrary && !inSaved) || inCommentary || inGlossary,
+  learn: inCourses || inFaqs,
+  tools: inAsk || inProviders,
+  community: inCommunity,
+};
+const navGroupOpen = {
+  guides: navGroupActive.guides,
+  library: true,
+  learn: true,
+  tools: true,
+  community: true,
+};
+const NAV_CHEVRON = '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>';
 
 // Pages can render arbitrary HTML in the right rail by setting `hasRail`
 // AND passing `<Fragment slot="rail">…</Fragment>`. When `hasRail` is true,
@@ -215,28 +237,34 @@ const NAV_ICONS: Record<string, string> = {
       <input type="search" name="q" class="app-shell-nav__search-input" placeholder="Search RRM Academy" aria-label="Search RRM Academy" autocomplete="off" />
     </form>
 
-    <div class="app-shell-nav__section">
-      <div class="app-shell-nav__heading">Methods</div>
+    <details class="app-shell-nav__section" data-nav-group="guides" data-active={navGroupActive.guides ? 'true' : undefined} open={navGroupOpen.guides}>
+      <summary class="app-shell-nav__heading">
+        <span>Guides</span>
+        <span class="app-shell-nav__chevron" aria-hidden="true" set:html={NAV_CHEVRON} />
+      </summary>
       {methodNav.map((g) => (
         <a href={`/${g.slug}/`} class="app-shell-nav__link" aria-current={isCurrentGuide(g.slug) ? 'page' : undefined}>
           <span class="app-shell-nav__icon" aria-hidden="true" set:html={NAV_ICONS[`/${g.slug}/`] || GUIDE_ITEM_ICON} />
           <span class="app-shell-nav__label">{g.breadcrumbName}</span>
         </a>
       ))}
-    </div>
-
-    <div class="app-shell-nav__section">
-      <div class="app-shell-nav__heading">Comparisons</div>
       {compareNav.map((g) => (
         <a href={`/${g.slug}/`} class="app-shell-nav__link" aria-current={isCurrentGuide(g.slug) ? 'page' : undefined}>
           <span class="app-shell-nav__icon" aria-hidden="true" set:html={NAV_ICONS[`/${g.slug}/`] || GUIDE_ITEM_ICON} />
           <span class="app-shell-nav__label">{g.breadcrumbName}</span>
         </a>
       ))}
-    </div>
+      <a href="/guides/" class="app-shell-nav__link" aria-current={inGuides ? 'page' : undefined}>
+        <span class="app-shell-nav__icon" aria-hidden="true" set:html={NAV_ICONS['/guides/']} />
+        <span class="app-shell-nav__label">All Guides</span>
+      </a>
+    </details>
 
-    <div class="app-shell-nav__section">
-      <div class="app-shell-nav__heading">Library</div>
+    <details class="app-shell-nav__section" data-nav-group="library" data-active={navGroupActive.library ? 'true' : undefined} open={navGroupOpen.library}>
+      <summary class="app-shell-nav__heading">
+        <span>Library</span>
+        <span class="app-shell-nav__chevron" aria-hidden="true" set:html={NAV_CHEVRON} />
+      </summary>
       <a href="/library/" class="app-shell-nav__link" aria-current={inLibrary && !inSaved ? 'page' : undefined}>
         <span class="app-shell-nav__icon" aria-hidden="true" set:html={NAV_ICONS['/library/']} />
         <span class="app-shell-nav__label">Research Library</span>
@@ -249,34 +277,32 @@ const NAV_ICONS: Record<string, string> = {
         <span class="app-shell-nav__icon" aria-hidden="true" set:html={NAV_ICONS['/glossary/']} />
         <span class="app-shell-nav__label">Glossary</span>
       </a>
-    </div>
+    </details>
 
-    <div class="app-shell-nav__section">
-      <div class="app-shell-nav__heading">Explore</div>
-      <a href="/ask/" class="app-shell-nav__link" aria-current={inAsk ? 'page' : undefined}>
-        <span class="app-shell-nav__icon" aria-hidden="true" set:html={NAV_ICONS['/ask/']} />
-        <span class="app-shell-nav__label">Ask RRM AI</span>
+    <details class="app-shell-nav__section" data-nav-group="learn" data-active={navGroupActive.learn ? 'true' : undefined} open={navGroupOpen.learn}>
+      <summary class="app-shell-nav__heading">
+        <span>Learn</span>
+        <span class="app-shell-nav__chevron" aria-hidden="true" set:html={NAV_CHEVRON} />
+      </summary>
+      <a href="/courses/" class="app-shell-nav__link" aria-current={inCourses ? 'page' : undefined}>
+        <span class="app-shell-nav__icon" aria-hidden="true" set:html={NAV_ICONS['/courses/']} />
+        <span class="app-shell-nav__label">Courses</span>
       </a>
       <a href="/faqs/" class="app-shell-nav__link" aria-current={inFaqs ? 'page' : undefined}>
         <span class="app-shell-nav__icon" aria-hidden="true" set:html={NAV_ICONS['/faqs/']} />
         <span class="app-shell-nav__label">FAQs</span>
       </a>
-      <a href="/guides/" class="app-shell-nav__link" aria-current={inGuides ? 'page' : undefined}>
-        <span class="app-shell-nav__icon" aria-hidden="true" set:html={NAV_ICONS['/guides/']} />
-        <span class="app-shell-nav__label">Guides</span>
-      </a>
-      <a href="/courses/" class="app-shell-nav__link" aria-current={inCourses ? 'page' : undefined}>
-        <span class="app-shell-nav__icon" aria-hidden="true" set:html={NAV_ICONS['/courses/']} />
-        <span class="app-shell-nav__label">Courses</span>
-      </a>
-      <a href="/community/" class="app-shell-nav__link" aria-current={inCommunity ? 'page' : undefined}>
-        <span class="app-shell-nav__icon" aria-hidden="true" set:html={NAV_ICONS['/community/']} />
-        <span class="app-shell-nav__label">Save the Uterus Club</span>
-      </a>
-    </div>
+    </details>
 
-    <div class="app-shell-nav__section">
-      <div class="app-shell-nav__heading">Tools</div>
+    <details class="app-shell-nav__section" data-nav-group="tools" data-active={navGroupActive.tools ? 'true' : undefined} open={navGroupOpen.tools}>
+      <summary class="app-shell-nav__heading">
+        <span>Tools</span>
+        <span class="app-shell-nav__chevron" aria-hidden="true" set:html={NAV_CHEVRON} />
+      </summary>
+      <a href="/ask/" class="app-shell-nav__link" aria-current={inAsk ? 'page' : undefined}>
+        <span class="app-shell-nav__icon" aria-hidden="true" set:html={NAV_ICONS['/ask/']} />
+        <span class="app-shell-nav__label">Ask RRM AI</span>
+      </a>
       <a href="/fertility-awareness-method-quiz/" class="app-shell-nav__link">
         <span class="app-shell-nav__icon" aria-hidden="true" set:html={NAV_ICONS['/fertility-awareness-method-quiz/']} />
         <span class="app-shell-nav__label">Which FABM Quiz</span>
@@ -288,14 +314,51 @@ const NAV_ICONS: Record<string, string> = {
       <a href="/ivf-success-calculator/" class="app-shell-nav__link">
         <span class="app-shell-nav__icon" aria-hidden="true" set:html={NAV_ICONS['/ivf-success-calculator/']} />
         <span class="app-shell-nav__label">IVF Success Calculator</span>
-        <span class="app-shell-nav__pill">Soon</span>
       </a>
       <a href="/providers/" class="app-shell-nav__link" aria-current={inProviders ? 'page' : undefined}>
         <span class="app-shell-nav__icon" aria-hidden="true" set:html={NAV_ICONS['/providers/']} />
         <span class="app-shell-nav__label">RRM Providers</span>
-        <span class="app-shell-nav__pill">Soon</span>
       </a>
-    </div>
+    </details>
+
+    <details class="app-shell-nav__section" data-nav-group="community" data-active={navGroupActive.community ? 'true' : undefined} open={navGroupOpen.community}>
+      <summary class="app-shell-nav__heading">
+        <span>Community</span>
+        <span class="app-shell-nav__chevron" aria-hidden="true" set:html={NAV_CHEVRON} />
+      </summary>
+      <a href="/community/" class="app-shell-nav__link" aria-current={inCommunity ? 'page' : undefined}>
+        <span class="app-shell-nav__icon" aria-hidden="true" set:html={NAV_ICONS['/community/']} />
+        <span class="app-shell-nav__label">Save the Uterus Club</span>
+      </a>
+    </details>
+
+    <script is:inline>
+      // Restore per-user collapse state for sidebar nav groups. The active
+      // group (data-active) always stays open. Persist on toggle.
+      (function () {
+        var KEY = 'rrm-shell-nav-groups';
+        var saved = {};
+        try { saved = JSON.parse(localStorage.getItem(KEY) || '{}') || {}; } catch (e) {}
+        var groups = document.querySelectorAll('details[data-nav-group]');
+        for (var i = 0; i < groups.length; i++) {
+          var d = groups[i];
+          var name = d.getAttribute('data-nav-group');
+          if (d.getAttribute('data-active') === 'true') {
+            d.open = true;
+          } else if (Object.prototype.hasOwnProperty.call(saved, name)) {
+            d.open = !!saved[name];
+          }
+          d.addEventListener('toggle', function (ev) {
+            var el = ev.target;
+            try {
+              var s = JSON.parse(localStorage.getItem(KEY) || '{}') || {};
+              s[el.getAttribute('data-nav-group')] = el.open ? 1 : 0;
+              localStorage.setItem(KEY, JSON.stringify(s));
+            } catch (e) {}
+          });
+        }
+      })();
+    </script>
 
     <div class="app-shell-nav__spacer"></div>
 

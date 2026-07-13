@@ -6,6 +6,15 @@ interface Props {
 }
 const { apa, vancouver, mla } = Astro.props;
 const hasCitations = apa || vancouver || mla;
+
+// Stored citation strings mark italics with markdown asterisks (*Journal*).
+// Render them as real <em> (escaping everything else); strip the asterisks
+// from the copied plain text, where they are not valid citation syntax.
+const escapeHtml = (s: string) =>
+  s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+const citationHtml = (s: string) =>
+  escapeHtml(s).replace(/\*([^*]+)\*/g, '<em>$1</em>');
+const citationText = (s: string) => s.replace(/\*([^*]+)\*/g, '$1');
 ---
 {hasCitations && (
   <div class="citation-tabs" data-citation-tabs>
@@ -37,8 +46,8 @@ const hasCitations = apa || vancouver || mla;
     </div>
     {apa && (
       <div role="tabpanel" class="citation-panel" data-panel="apa">
-        <p>{apa}</p>
-        <button class="citation-copy-btn" data-copy={apa}>
+        <p set:html={citationHtml(apa)} />
+        <button class="citation-copy-btn" data-copy={citationText(apa)}>
           <svg aria-hidden="true" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
           Copy
         </button>
@@ -46,8 +55,8 @@ const hasCitations = apa || vancouver || mla;
     )}
     {vancouver && (
       <div role="tabpanel" class="citation-panel" data-panel="vancouver" hidden={!!apa}>
-        <p>{vancouver}</p>
-        <button class="citation-copy-btn" data-copy={vancouver}>
+        <p set:html={citationHtml(vancouver)} />
+        <button class="citation-copy-btn" data-copy={citationText(vancouver)}>
           <svg aria-hidden="true" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
           Copy
         </button>
@@ -55,8 +64,8 @@ const hasCitations = apa || vancouver || mla;
     )}
     {mla && (
       <div role="tabpanel" class="citation-panel" data-panel="mla" hidden={!!(apa || vancouver)}>
-        <p>{mla}</p>
-        <button class="citation-copy-btn" data-copy={mla}>
+        <p set:html={citationHtml(mla)} />
+        <button class="citation-copy-btn" data-copy={citationText(mla)}>
           <svg aria-hidden="true" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
           Copy
         </button>

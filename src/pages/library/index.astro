@@ -506,12 +506,9 @@ const jsonLd = {
     pointer-events: none;
   }
   .topic-tile__icon svg { width: 100%; height: 100%; display: block; }
-  .topic-tile--p .topic-tile__icon { color: var(--accent); }
-  .topic-tile--r .topic-tile__icon { color: var(--rose-700); }
-  .topic-tile--g .topic-tile__icon { color: var(--sage-700); }
-  .topic-tile--s .topic-tile__icon { color: var(--sand-700); }
-  .topic-tile--y .topic-tile__icon { color: var(--yellow-700); }
-  :global([data-theme="dark"]) .topic-tile--s .topic-tile__icon { color: var(--text-primary); }
+  /* All accent variants share the single brand treatment (2026-07-13): the
+     old rose/sage/sand/yellow per-variant tints read as visual noise against
+     "purple as authority". The base .topic-tile__icon color rule covers all. */
 
   .topic-tile__desc {
     margin: 0;
