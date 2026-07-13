@@ -1859,8 +1859,33 @@ const SHELL_ENABLED = isShellEnabled('community');
     } from '../../lib/stuc-display-floors.ts';
 
     (function () {
-      // Token-based area accent colors (purple brand first; rose is community-semantic only).
-      var AREA_COLORS = ['var(--accent)', 'var(--rose-500)', 'var(--sage-500)', 'var(--green-700)'];
+      // Single muted accent for all area cards/chips (2026-07-13): the old
+      // rose/sage/green cycle read as visual noise against the brand system.
+      // Mirrors AREA_COLORS in community/areas/[...slug].astro.
+      var AREA_COLORS = ['var(--purple-300)'];
+      // Stroke icons (Lucide outline, stroke=currentColor) keyed by area slug.
+      // The D1 `icon` column holds legacy emoji; the renderer ignores it in
+      // favor of this map so community matches the site icon system.
+      // Mirrors AREA_ICONS in community/areas/[...slug].astro.
+      var AREA_ICON_PATHS = {
+        'research': '<path d="M6 18h8"/><path d="M3 22h18"/><path d="M14 22a7 7 0 1 0 0-14h-1"/><path d="M9 14h2"/><path d="M9 12a2 2 0 0 1-2-2V6h6v4a2 2 0 0 1-2 2Z"/><path d="M12 6V3a1 1 0 0 0-1-1H9a1 1 0 0 0-1 1v3"/>',
+        'innovation': '<path d="M15 14c.2-1 .7-1.7 1.5-2.5 1-.9 1.5-2.2 1.5-3.5A6 6 0 0 0 6 8c0 1 .2 2.2 1.5 3.5.7.7 1.3 1.5 1.5 2.5"/><path d="M9 18h6"/><path d="M10 22h4"/>',
+        'patient-advocacy': '<path d="m3 11 18-5v12L3 14v-3z"/><path d="M11.6 16.8a3 3 0 1 1-5.8-1.6"/>',
+        'social-media': '<circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/>',
+        'medical-education': '<path d="M11 2v2"/><path d="M5 2v2"/><path d="M5 3H4a2 2 0 0 0-2 2v4a6 6 0 0 0 12 0V5a2 2 0 0 0-2-2h-1"/><path d="M8 15a6 6 0 0 0 12 0v-3"/><circle cx="20" cy="10" r="2"/>',
+        'fabm-education': '<path d="M3 3v18h18"/><path d="m19 9-5 5-4-4-3 3"/>',
+        'holistic-education': '<path d="M11 20A7 7 0 0 1 9.8 6.1C15.5 5 17 4.48 19 2c1 2 2 4.18 2 8 0 5.5-4.78 10-10 10Z"/><path d="M2 21c0-3 1.85-5.36 5.08-6"/>',
+        'nutrition': '<path d="M12 20.94c1.5 0 2.75 1.06 4 1.06 3 0 6-8 6-12.22A4.91 4.91 0 0 0 17 5c-2.22 0-4 1.44-5 2-1-.56-2.78-2-5-2a4.9 4.9 0 0 0-5 4.78C2 14 5 22 8 22c1.25 0 2.5-1.06 4-1.06Z"/><path d="M10 2c1 .5 2 2 2 5"/>',
+        'practitioner-network': '<path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/>',
+        'community': '<path d="M7 20h10"/><path d="M10 20c5.5-2.5.8-6.4 3-10"/><path d="M9.5 9.4c1.1.8 1.8 2.2 2.3 3.7-2 .4-3.5.4-4.8-.3-1.2-.6-2.3-1.9-3-4.2 2.8-.5 4.4 0 5.5.8z"/><path d="M14.1 6a7 7 0 0 0-1.1 4c1.9-.1 3.3-.6 4.3-1.4 1-1 1.6-2.3 1.7-4.6-2.7.1-4 1-4.9 2z"/>',
+        'fundraising': '<rect width="20" height="12" x="2" y="6" rx="2"/><circle cx="12" cy="12" r="2"/><path d="M6 12h.01"/><path d="M18 12h.01"/>',
+        'sponsorship': '<path d="M6 22V4a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v18Z"/><path d="M6 12H4a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2h2"/><path d="M18 9h2a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2h-2"/><path d="M10 6h4"/><path d="M10 10h4"/><path d="M10 14h4"/><path d="M10 18h4"/>',
+      };
+      var AREA_ICON_FALLBACK = '<path d="M9.937 15.5A2 2 0 0 0 8.5 14.063l-6.135-1.582a.5.5 0 0 1 0-.962L8.5 9.936A2 2 0 0 0 9.937 8.5l1.582-6.135a.5.5 0 0 1 .963 0L14.063 8.5A2 2 0 0 0 15.5 9.937l6.135 1.581a.5.5 0 0 1 0 .964L15.5 14.063a2 2 0 0 0-1.437 1.437l-1.582 6.135a.5.5 0 0 1-.963 0z"/>';
+      function areaIconSvg(area) {
+        var paths = (area && AREA_ICON_PATHS[area.slug]) || AREA_ICON_FALLBACK;
+        return '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' + paths + '</svg>';
+      }
       var STATUS_LABELS = {
         recruiting: 'Recruiting',
         in_progress: 'In progress',
@@ -1917,9 +1942,7 @@ const SHELL_ENABLED = isShellEnabled('community');
         if (!entry) return null;
         var chip = document.createElement('span');
         chip.className = 'hub-chip';
-        chip.style.borderLeftColor = entry.color;
-        var icon = entry.area.icon || '';
-        chip.textContent = (icon ? icon + ' ' : '') + entry.area.name;
+        chip.textContent = entry.area.name;
         return chip;
       }
 
@@ -1937,7 +1960,7 @@ const SHELL_ENABLED = isShellEnabled('community');
           item.className = 'hub-impact-item';
           var ic = document.createElement('span');
           ic.className = 'hub-impact-item__ic';
-          ic.textContent = (entry && entry.area.icon) ? entry.area.icon : '✨';
+          ic.innerHTML = areaIconSvg(entry && entry.area);
           var txt = document.createElement('div');
           var h = document.createElement('div');
           h.className = 'hub-impact-item__h';
@@ -2022,12 +2045,10 @@ const SHELL_ENABLED = isShellEnabled('community');
             var bodyEl = document.createElement('div');
             bodyEl.className = 'hub-area-card__body';
 
-            if (area.icon) {
-              var ic = document.createElement('div');
-              ic.className = 'hub-area-card__ic';
-              ic.textContent = area.icon;
-              bodyEl.appendChild(ic);
-            }
+            var ic = document.createElement('div');
+            ic.className = 'hub-area-card__ic';
+            ic.innerHTML = areaIconSvg(area);
+            bodyEl.appendChild(ic);
 
             var h3 = document.createElement('h3');
             h3.className = 'hub-area-card__h';
@@ -2041,22 +2062,19 @@ const SHELL_ENABLED = isShellEnabled('community');
               bodyEl.appendChild(tag);
             }
 
-            // Owner (or "Owner TBC")
-            var owner = document.createElement('div');
-            owner.className = 'hub-owner';
-            var ava = document.createElement('span');
-            ava.className = 'hub-owner__ava';
+            // Owner row renders only when an area has a lead. Ownerless areas
+            // say nothing (members still get the "Volunteer to lead" control
+            // below) -- a public "Owner TBC" placeholder reads as unfinished.
             if (area.ownerName) {
+              var owner = document.createElement('div');
+              owner.className = 'hub-owner';
+              var ava = document.createElement('span');
+              ava.className = 'hub-owner__ava';
               ava.textContent = initials(area.ownerName);
               owner.appendChild(ava);
               owner.appendChild(document.createTextNode('Led by ' + area.ownerName));
-            } else {
-              owner.classList.add('hub-owner--tbc');
-              ava.textContent = '?';
-              owner.appendChild(ava);
-              owner.appendChild(document.createTextNode('Owner TBC'));
+              bodyEl.appendChild(owner);
             }
-            bodyEl.appendChild(owner);
 
             // Volunteer to lead (members only, ownerless areas) — admin approves
             if (state.isMember && !area.ownerName) {
@@ -2180,8 +2198,7 @@ const SHELL_ENABLED = isShellEnabled('community');
             if (entry) {
               var chip = document.createElement('span');
               chip.className = 'hub-chip';
-              chip.style.borderLeftColor = entry.color;
-              chip.textContent = (entry.area.icon ? entry.area.icon + ' ' : '') + (p.areaName || entry.area.name);
+              chip.textContent = p.areaName || entry.area.name;
               top.appendChild(chip);
             }
             var status = document.createElement('span');
@@ -3386,10 +3403,13 @@ const SHELL_ENABLED = isShellEnabled('community');
     align-items: flex-start;
   }
   .hub-impact-item__ic {
-    font-size: 1.3rem;
-    line-height: 1.1;
+    display: inline-flex;
+    align-items: center;
+    margin-top: 1px;
+    color: var(--purple-200);
     flex: none;
   }
+  .hub-impact-item__ic svg { width: 18px; height: 18px; display: block; }
   .hub-impact-item__h {
     font-weight: 600;
     font-size: 0.9375rem;
@@ -3425,9 +3445,11 @@ const SHELL_ENABLED = isShellEnabled('community');
     flex: 1;
   }
   .hub-area-card__ic {
-    font-size: 1.5rem;
+    display: inline-flex;
+    color: var(--accent);
     margin-bottom: var(--space-2);
   }
+  .hub-area-card__ic svg { width: 20px; height: 20px; display: block; }
   .hub-area-card__h {
     font-family: 'Inter', sans-serif;
     font-weight: 600;
@@ -3657,7 +3679,7 @@ const SHELL_ENABLED = isShellEnabled('community');
   .hub-status--paused { background: var(--neutral-100); color: var(--text-secondary); }
   .hub-status--done { background: var(--green-100); color: var(--green-700); }
 
-  /* ── Area chip (projects + posts); per-chip accent set inline via style.borderLeftColor ── */
+  /* ── Area chip (projects + posts) ── */
   .hub-chip {
     display: inline-flex;
     align-items: center;
@@ -3669,8 +3691,7 @@ const SHELL_ENABLED = isShellEnabled('community');
     background: var(--purple-50);
     color: var(--accent-hover);
     white-space: nowrap;
-    border: 1px solid transparent;
-    border-left: 3px solid var(--accent);
+    border: 1px solid var(--purple-100);
   }
 
   /* ── Area filter pills (member feed) ── */
