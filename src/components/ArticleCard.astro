@@ -5,9 +5,18 @@ interface Props {
   article: Article;
   compact?: boolean;
   basePath?: string;
+  /** Layout variant.
+   *  - 'card' (default) — outlined sheet in a grid (homepage rails, related lists)
+   *  - 'list'  — single-column editorial row: large Cormorant title, category
+   *    eyebrow + leaf chips above it, full author string, journal/PMID citation
+   *    line, hairline divider, no card chrome. Used on browse + topic-hub pages
+   *    (2026-07-13). All Zotero/COinS, access-badge and data-* hooks are shared
+   *    with the card variant — do not fork this into a separate component. */
+  variant?: 'card' | 'list';
 }
 
-const { article, compact = false, basePath = '/library/' } = Astro.props;
+const { article, compact = false, basePath = '/library/', variant = 'card' } = Astro.props;
+const isList = variant === 'list';
 const href = `${basePath}${article.slug}/`;
 const truncLen = compact ? 120 : 200;
 const truncatedAbstract = article.abstract
@@ -59,7 +68,87 @@ function buildCOinS(a: Article): string {
 }
 
 const coinsTitle = buildCOinS(article);
+
+// --- list-variant derived fields ---
+// Topics are stored as hierarchical breadcrumbs ("Endometriosis > Comorbidities
+// > Cardiometabolic Risk"). Eyebrow = top-level category of the first topic;
+// chips = the LEAF of each distinct path (short), deduped, max 3.
+const topicLeaf = (t: string) => t.split('>').pop()?.trim() || t;
+const topicRoot = (t: string) => t.split('>')[0]?.trim() || t;
+const listEyebrow = article.topics?.length ? topicRoot(article.topics[0]) : 'Research';
+const listSeen = new Set<string>();
+const listChips = (article.topics ?? [])
+  .map(topicLeaf)
+  .filter((t) => t && t !== listEyebrow && !listSeen.has(t) && (listSeen.add(t), true))
+  .slice(0, 3);
+// Meta line (treatment C, approved 2026-07-13): "Schliep KC et al., 2026 ·
+// J Gynecol Obstet Hum Reprod" + a 2-line abstract snippet. Rationale: the meta
+// line must answer "should I click this?" — a full author list never does. The
+// journal carries the credibility signal, so it gets the italic serif and the
+// authors/year stay quiet. PMID (75% coverage) and volume:pages are citation
+// apparatus, not scan signals — they live on the detail page. Do not re-add.
+// Coverage: shortCitation 100%, journalAbbv 87% (journal 96% fallback),
+// abstract 89%.
+const listShortCite =
+  article.shortCitation ||
+  [authorsForDisplay, yearStr].filter(Boolean).join(', ');
+const listJournal = article.journalAbbv || article.journal || '';
+// Strip the leading structured-abstract label so the snippet opens on a real
+// sentence. Vocabulary derived from the actual corpus (top labels by frequency:
+// OBJECTIVE 581, BACKGROUND 468, PURPOSE 62, INTRODUCTION 58, STUDY QUESTION 55,
+// CONTEXT 36, IMPORTANCE 28, ...). Matches an optional "X and Y" / "X/Y" compound
+// and a trailing plural, e.g. "BACKGROUND AND OBJECTIVES:", "BACKGROUND/AIMS:".
+// Structured abstracts carry ALL-CAPS section labels throughout ("IMPORTANCE: …
+// OBJECTIVE: … DESIGN: …"), not just at the front, so a leading-only strip leaves
+// "OBJECTIVE:" stranded mid-snippet. Drop every all-caps section label. The label
+// must be ALL-CAPS + colon to match, so ordinary prose and real acronyms
+// ("IVF", "PCOS", "AMH:") in a sentence are untouched.
+const ABSTRACT_LABELS_ANYWHERE = /(^|\s)[A-Z][A-Z][A-Z \/&-]{1,28}:\s*/g;
+const listSnippet = (article.abstract || '')
+  .replace(ABSTRACT_LABELS_ANYWHERE, '$1')
+  .replace(/\s{2,}/g, ' ')
+  .trim();
 ---
+{isList ? (
+<article class="article-row" data-article-card data-slug={article.slug} data-title={article.title || ''}>
+  <span class="Z3988" title={coinsTitle}></span>
+
+  <div class="article-row__meta">
+    <span class="article-row__eyebrow">{listEyebrow}</span>
+    {listChips.map((t) => <span class="article-row__chip">{t}</span>)}
+    {article.accessLevel === 'open' && (
+      <span class="access-badge access-badge--open article-row__access" title={article.oaType ? `${article.oaType} Open Access` : 'Open Access'}>
+        <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 9.9-1"/></svg>
+        Open Access
+      </span>
+    )}
+    {article.accessLevel === 'free' && (
+      <span class="access-badge access-badge--free article-row__access" title="Free to Read (Bronze OA)">
+        <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 9.9-1"/></svg>
+        Free to Read
+      </span>
+    )}
+    {article.accessLevel === 'restricted' && article.isCopyrighted && (
+      <span class="access-badge access-badge--restricted article-row__access" title="Restricted">
+        <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+      </span>
+    )}
+  </div>
+
+  <h3 class="article-row__title">
+    <a href={href} class="article-row__link">{article.title}</a>
+  </h3>
+
+  {(listShortCite || listJournal) && (
+    <p class="article-row__line">
+      {listShortCite && <span class="article-row__cite">{listShortCite}</span>}
+      {listShortCite && listJournal && <span class="article-row__sep" aria-hidden="true">·</span>}
+      {listJournal && <span class="article-row__journal">{listJournal}</span>}
+    </p>
+  )}
+  {listSnippet && <p class="article-row__snippet">{listSnippet}</p>}
+</article>
+) : (
 <article class:list={['article-card', { 'article-card--compact': compact }]} data-article-card data-slug={article.slug} data-title={article.title || ''}>
   <span class="Z3988" title={coinsTitle}></span>
   <a href={href} class="article-card__link">
@@ -104,6 +193,7 @@ const coinsTitle = buildCOinS(article);
     </div>
   )}
 </article>
+)}
 
 <style>
   /* Full card — outlined sheet matching the library homepage Recently Published
@@ -259,5 +349,111 @@ const coinsTitle = buildCOinS(article);
   .article-card--compact .article-card__meta {
     margin-bottom: 0;
     font-size: 0.6875rem;
+  }
+
+  /* ── List variant (variant="list") ──────────────────────────────────────
+     Single-column editorial row: no card chrome, large Cormorant title,
+     category eyebrow + leaf chips above it, full author string, citation
+     line, hairline divider. Parent supplies the column width; the row owns
+     its own vertical rhythm and separator. */
+  .article-row {
+    padding: var(--space-10) 0;
+    border-bottom: 1px solid var(--border-light);
+  }
+  .article-row:last-child {
+    border-bottom: none;
+  }
+
+  .article-row__meta {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: var(--space-2);
+    margin-bottom: var(--space-4);
+  }
+  .article-row__eyebrow {
+    font-size: 0.6875rem;
+    font-weight: 600;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--accent);
+    margin-right: var(--space-1);
+  }
+  .article-row__chip {
+    font-size: 0.6875rem;
+    font-weight: 500;
+    color: var(--neutral-700);
+    background: var(--white);
+    padding: 3px 12px;
+    border-radius: var(--radius-pill);
+    border: 1px solid var(--neutral-200);
+  }
+  .article-row__access {
+    margin-left: auto;
+  }
+
+  .article-row__title {
+    font-family: 'Cormorant Garamond', 'Georgia', serif;
+    font-size: clamp(1.5rem, 1.25rem + 1.25vw, 2rem);
+    font-weight: 600;
+    line-height: 1.2;
+    margin: 0 0 var(--space-3);
+  }
+  .article-row__link {
+    color: var(--text-primary);
+    text-decoration: none;
+    transition: color 0.15s;
+  }
+  .article-row__link:hover {
+    color: var(--accent);
+  }
+  .article-row__link:focus-visible {
+    outline: none;
+    box-shadow: 0 0 0 3px var(--focus-ring);
+    border-radius: var(--radius-sm);
+  }
+
+  /* Meta line: quiet authors/year, journal carries the credibility signal so it
+     gets the italic serif and the primary text colour. */
+  .article-row__line {
+    display: flex;
+    align-items: baseline;
+    flex-wrap: wrap;
+    gap: var(--space-2);
+    margin: 0;
+    font-size: 0.875rem;
+    line-height: 1.5;
+  }
+  .article-row__cite {
+    color: var(--text-secondary);
+    font-weight: 500;
+  }
+  .article-row__sep {
+    color: var(--neutral-300);
+  }
+  .article-row__journal {
+    font-family: 'Cormorant Garamond', 'Georgia', serif;
+    font-style: italic;
+    font-size: 1rem;
+    color: var(--text-primary);
+  }
+  .article-row__snippet {
+    margin: var(--space-3) 0 0;
+    font-size: 0.875rem;
+    line-height: 1.65;
+    color: var(--text-secondary);
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+
+  @media (max-width: 768px) {
+    .article-row {
+      padding: var(--space-8) 0;
+    }
+    .article-row__access {
+      margin-left: 0;
+    }
   }
 </style>

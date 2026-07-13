@@ -70,7 +70,7 @@ for (let i = 1; i <= totalPages; i++) {
 
       <div class="article-list">
         {pageArticles.map(article => (
-          <ArticleCard article={article} />
+          <ArticleCard article={article} variant="list" />
         ))}
       </div>
 
@@ -141,7 +141,7 @@ for (let i = 1; i <= totalPages; i++) {
 
       <div class="article-list">
         {pageArticles.map(article => (
-          <ArticleCard article={article} />
+          <ArticleCard article={article} variant="list" />
         ))}
       </div>
 
@@ -207,18 +207,11 @@ for (let i = 1; i <= totalPages; i++) {
     letter-spacing: -0.01em;
   }
 
-  /* Browse list — two-column card grid replacing the old compact flat list */
+  /* Browse list — single-column editorial rows (2026-07-13). ArticleCard
+     variant="list" owns each row's rhythm + hairline divider; the container
+     only constrains the reading measure. */
   .article-list {
-    display: grid;
-    grid-template-columns: 1fr;
-    gap: var(--space-5);
-  }
-
-  @media (min-width: 768px) {
-    .article-list {
-      grid-template-columns: repeat(2, 1fr);
-      gap: var(--space-6);
-    }
+    max-width: var(--max-width-article);
   }
 
   /* Jump-to-page form inside pagination nav */
