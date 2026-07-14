@@ -340,7 +340,7 @@ export async function handleCheckoutCompleted(db, event, env, request, waitUntil
             `   ${SITE_URL}/community/`,
             '',
             '2. Join the free Uterus Allies group chat on Instagram:',
-            '   https://www.instagram.com/direct/t/7768750249851959/',
+            '   https://ig.me/j/AbbmORXZV3iHcj-H/',
             '',
             '3. Explore the Research Library -- over 3,000 peer-reviewed resources:',
             `   ${SITE_URL}/library/`,
