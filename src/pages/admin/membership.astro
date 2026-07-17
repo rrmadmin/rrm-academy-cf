@@ -191,7 +191,7 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
 
       var deltaEl = document.getElementById('h-delta');
       var basisEl = document.getElementById('h-delta-basis');
-      var d = h.delta_vs_prior_month_cents;
+      var d = h.degraded ? null : h.delta_vs_prior_month_cents;
       if (d == null) {
         deltaEl.textContent = 'Change unavailable this refresh';
         deltaEl.classList.remove('mem-card__value--up', 'mem-card__value--down');
@@ -199,14 +199,14 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
       } else if (d > 0) {
         deltaEl.textContent = 'Up ' + money(d) + ' since last month';
         deltaEl.classList.add('mem-card__value--up');
-        basisEl.textContent = 'vs last month’s membership receipts';
+        basisEl.textContent = "vs last month's membership receipts";
       } else if (d < 0) {
         deltaEl.textContent = 'Down ' + money(-d) + ' since last month';
         deltaEl.classList.add('mem-card__value--down');
-        basisEl.textContent = 'vs last month’s membership receipts';
+        basisEl.textContent = "vs last month's membership receipts";
       } else {
         deltaEl.textContent = 'No change since last month';
-        basisEl.textContent = 'vs last month’s membership receipts';
+        basisEl.textContent = "vs last month's membership receipts";
       }
 
       document.getElementById('mem-banner').hidden = !h.degraded;
@@ -357,7 +357,7 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
     }
 
     function render(d) {
-      document.getElementById('mem-month').textContent = 'Reporting month: ' + esc(d.month);
+      document.getElementById('mem-month').textContent = 'Reporting month: ' + d.month;
       renderHeadline(d.headline);
       renderStuc(d.stuc);
       renderFoundation(d.foundation);
@@ -377,6 +377,9 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
         document.getElementById('mem-meta').textContent = '';
         document.getElementById('mem-banner').hidden = false;
         document.getElementById('mem-banner').textContent = 'Could not load the report right now. Try Refresh in a moment.';
+        ['s-joined', 's-left', 's-watch', 's-paused', 'f-new', 'f-lapsed', 'actions'].forEach(function (id) {
+          document.getElementById(id).innerHTML = '<li class="mem-empty">Could not load.</li>';
+        });
       }
     }
 
@@ -425,11 +428,11 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
   .mem-header h1 { margin-bottom: 0; color: var(--admin-text); }
   .mem-controls { display: flex; gap: var(--space-3); align-items: center; }
   .mem-btn { background: var(--purple-700); border-color: var(--purple-700); color: var(--white); }
-  .mem-btn:hover { background: #5f4d69; }
+  .mem-btn:hover { background: var(--accent-hover); }
 
   .mem-month { font-size: 0.8125rem; color: var(--admin-text-muted); margin-bottom: var(--space-4); }
 
-  .mem-banner { background: #fff3e0; border: 1px solid #e0b98a; color: #7a4a12; border-radius: var(--radius-md); padding: var(--space-3) var(--space-4); margin-bottom: var(--space-6); font-size: 0.875rem; }
+  .mem-banner { background: var(--status-warn-bg); border: 1px solid var(--status-warn-border); color: var(--status-warn-text); border-radius: var(--radius-md); padding: var(--space-3) var(--space-4); margin-bottom: var(--space-6); font-size: 0.875rem; }
 
   .mem-heading { color: var(--admin-text); margin-bottom: var(--space-4); margin-top: var(--space-8); font-size: 1.25rem; }
   .mem-subheading { color: var(--admin-text); margin-bottom: var(--space-2); margin-top: var(--space-5); font-size: 1rem; }
@@ -444,7 +447,7 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
   .mem-card__label { display: block; font-size: 0.75rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; color: var(--admin-text-faint); margin-bottom: var(--space-1); }
   .mem-card__value { display: block; font-size: 1.5rem; font-weight: 600; color: var(--admin-text); }
   .mem-card__value--accent { color: var(--purple-700); }
-  .mem-card__value--up { color: #27ae60; font-size: 1.125rem; }
+  .mem-card__value--up { color: var(--status-success-text); font-size: 1.125rem; }
   .mem-card__value--down { color: var(--status-error-text); font-size: 1.125rem; }
   .mem-card__sub { display: block; font-size: 0.75rem; color: var(--admin-text-faint); margin-top: 2px; }
 
@@ -471,6 +474,7 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
 
 <style is:global>
   .mem-bar { fill: var(--purple-700); }
-  .mem-axis { font-size: 10px; fill: #949392; font-family: inherit; }
+  .mem-axis { font-size: 10px; fill: var(--admin-text-faint); font-family: inherit; }
+  /* no dedicated token for this lighter shade; kept as a literal one step below --admin-text-faint */
   .mem-axis--faint { fill: #b7b3af; }
 </style>
