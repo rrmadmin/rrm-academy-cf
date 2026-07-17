@@ -57,7 +57,7 @@
     "fetch-all:dry": "node src/lib/fetch-data.mjs --dry-run && node src/lib/fetch-blog-data.mjs --dry-run && node src/lib/fetch-faq-data.mjs --dry-run && node src/lib/fetch-courses-data.mjs --dry-run && node src/lib/fetch-partners-data.mjs --dry-run && node src/lib/fetch-glossary-data.mjs --dry-run",
     "verify-citations": "node scripts/verify-citations.mjs",
     "lint": "eslint functions/",
-    "test": "node --experimental-strip-types --test test/*.test.js test/*.test.mjs tests/gates/*.test.mjs tests/unit/campaign-snapshot.test.mjs tests/unit/campaigns-schema.test.mjs tests/unit/canonical-lockdown.test.mjs tests/unit/supporter-gift.test.mjs tests/unit/fund-thermo.test.mts",
+    "test": "node --experimental-strip-types --test test/*.test.js test/*.test.mjs tests/gates/*.test.mjs tests/unit/campaign-snapshot.test.mjs tests/unit/campaigns-schema.test.mjs tests/unit/canonical-lockdown.test.mjs tests/unit/supporter-gift.test.mjs tests/unit/fund-thermo.test.mts tests/unit/membership-metrics.test.mjs",
     "baseline:capture": "bash scripts/baseline/capture-current.sh",
     "baseline:diff": "node scripts/baseline/diff.mjs --report text",
     "baseline:diff:hard": "node scripts/baseline/diff.mjs --gate hard --report text",
