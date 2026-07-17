@@ -1,7 +1,10 @@
 # HANDOFF: Board portal — professionalize /admin/ + board-member access
 
 **From:** 2026-07-16 session (Brian, verbatim ask: "formalize/professionalize shadcn-ize the /admin/ dashboard so the different board members can log in and get access to nonprofit details too")
-**Status:** NOT STARTED. This doc is the brief. Read fully before any code.
+**Status:** NOT STARTED.
+**OWNER: UNCLAIMED.** SINGLE-OWNER RULE (Brian, 2026-07-16): exactly ONE session may build this. Before starting D0 or writing any code, CLAIM it: change this line to `OWNER: <date> <short session tag>` in a solo commit pushed to main. If this line is already claimed, DO NOT touch the admin rebuild in any way — no drafts, no branches, no "just prototyping." Companion memory: `admin-rebuild-ownership`.
+
+**Existing-shell inventory (read before building, do not conflate):** the repo already has a LEFT-SIDEBAR App Shell — `src/components/AppShellChrome.astro` + `MaybeShell.astro`, house-vanilla, with collapsible nav groups (see CLAUDE.md "App Shell" section). It wraps PUBLIC routes only (/library, /guides, /faqs, /account, ...) and is production-INERT behind the `PUBLIC_SHELL_ROUTES` variable. It does NOT cover /admin, and Brian's D1 decision (literal shadcn) governs /admin regardless. Harvest its nav-group semantics if useful; never mix the two shells on one route. (Historical note: a ghost "parallel sidebar commit" scare on 2026-07-16 was just this Jul-13 work surfacing through a stale clone — already investigated, no fleet conflict.)
 **Context that motivates it:** RRMF board restructuring in flight (see `~/iCode/projects/rrm-foundation/governance/2026-07-board-restructuring/`): board becoming Naomi (Chair) + Bailey (Secretary) + Erin Callaghan + Rebecca Vavilov (Treasurer), Brian moving to staff ED. Directors need a professional window into the nonprofit: financials, grants, compliance, governance docs. Treasurer specifically needs oversight surfaces (monthly financial summary).
 
 ## Decisions
