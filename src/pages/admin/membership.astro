@@ -243,11 +243,11 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
         return '<li>' + esc(personLabel(r)) + '</li>';
       });
       renderList('s-watch', s.watchlist, 'Nothing on the watchlist.', function (r) {
-        return '<li><span class="mem-list__name">' + esc(personLabel(r)) + '</span>' +
+        return '<li><span class="mem-list__name">' + esc(personLabel(r)) + ':</span> ' +
           '<span class="mem-list__note">' + esc(r.action) + '</span></li>';
       });
       renderList('s-paused', s.known_paused, 'No one is paused right now.', function (r) {
-        return '<li><span class="mem-list__name">' + esc(r.name) + '</span>' +
+        return '<li><span class="mem-list__name">' + esc(r.name) + ':</span> ' +
           '<span class="mem-list__note">Paused or comped. Do not chase.</span></li>';
       });
     }
@@ -259,11 +259,11 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
       setText('f-ppgf', money(f.ppgf_this_month_cents));
 
       renderList('f-new', f.new_recurring, 'No new recurring donors this month.', function (r) {
-        return '<li><span class="mem-list__name">' + esc(r.display_name || r.email) + '</span>' +
+        return '<li><span class="mem-list__name">' + esc(r.display_name || r.email) + ':</span> ' +
           '<span class="mem-list__note">' + money(r.amount_cents) + ' each month</span></li>';
       });
       renderList('f-lapsed', f.lapsed_recurring, 'No recurring donors need a check right now.', function (r) {
-        return '<li><span class="mem-list__name">' + esc(r.display_name || r.email) + '</span>' +
+        return '<li><span class="mem-list__name">' + esc(r.display_name || r.email) + ':</span> ' +
           '<span class="mem-list__note">No recurring gift in 45+ days</span></li>';
       });
     }
@@ -277,9 +277,21 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
 
     function renderActions(actions) {
       renderList('actions', actions, 'Nothing needs a person right now.', function (r) {
-        return '<li><span class="mem-list__who">' + esc(r.who) + '</span>' +
+        return '<li><span class="mem-list__who">' + esc(r.who) + ':</span> ' +
           '<span class="mem-list__note">' + esc(r.what) + '</span></li>';
       });
+    }
+
+    function formatUpdated(iso) {
+      if (!iso) return 'unknown';
+      var d = new Date(iso);
+      if (isNaN(d.getTime())) return 'unknown';
+      var s = d.toLocaleString('en-US', {
+        timeZone: 'America/New_York',
+        month: 'long', day: 'numeric',
+        hour: 'numeric', minute: '2-digit', hour12: true,
+      });
+      return s + ' Eastern';
     }
 
     function monthLabel(ym) {
@@ -366,7 +378,7 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
       renderChart('chart-stuc', d.trend, 'stuc_cents', 'Membership receipts, last 12 months');
       renderChart('chart-foundation', d.trend, 'foundation_cents', 'Foundation gifts, last 12 months');
       renderChart('chart-academy', d.trend, 'academy_cents', 'Course revenue, last 12 months');
-      document.getElementById('mem-meta').textContent = 'Last updated ' + (d.generated_at || 'unknown');
+      document.getElementById('mem-meta').textContent = 'Last updated ' + formatUpdated(d.generated_at);
     }
 
     async function loadData() {
@@ -418,7 +430,7 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
   .admin-bar__nav { display: flex; gap: var(--space-1); flex-wrap: wrap; } @media (max-width: 768px) { .admin-bar__nav { display: none; } }
   .admin-bar__link { font-size: 0.8125rem; font-weight: 400; color: var(--white); text-decoration: none; padding: var(--space-1) var(--space-3); border-radius: var(--radius-sm); transition: color 0.15s, background 0.15s; }
   .admin-bar__link:hover { color: var(--white); text-decoration: none; }
-  .admin-bar__link--active { color: var(--white); background: var(--white); font-weight: 500; }
+  .admin-bar__link--active { color: var(--admin-bar-bg); background: var(--white); font-weight: 500; }
   .admin-bar__actions { display: flex; align-items: center; gap: var(--space-3); margin-left: auto; }
   .admin-bar__site-link { font-size: 0.8125rem; font-weight: 500; color: var(--admin-rose-300); text-decoration: none; padding: var(--space-1) var(--space-4); border: 1px solid var(--admin-rose-300); border-radius: var(--radius-pill); transition: color 0.15s, border-color 0.15s; }
   .admin-bar__site-link:hover { color: var(--white); border-color: var(--white); text-decoration: none; }
@@ -462,19 +474,24 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
   @media (max-width: 640px) { .mem-cols { grid-template-columns: 1fr; } }
   .mem-panel { min-width: 0; }
 
-  .mem-list { list-style: none; padding: 0; margin: 0; }
-  .mem-list li { padding: var(--space-3) var(--space-4); background: var(--admin-surface); border: 1px solid var(--admin-border); border-radius: var(--radius-md); margin-bottom: var(--space-2); font-size: 0.875rem; color: var(--admin-text); }
-  .mem-list__name, .mem-list__who { display: block; font-weight: 600; color: var(--admin-text); }
-  .mem-list__who { color: var(--purple-700); }
-  .mem-list__note { display: block; font-size: 0.8125rem; color: var(--admin-text-muted); margin-top: 2px; }
-  .mem-empty { color: var(--admin-text-faint); font-style: normal; }
-
   .mem-meta { font-size: 0.75rem; color: var(--admin-text-faint); margin-top: var(--space-6); }
 
   .mem-svg { display: block; }
 </style>
 
 <style is:global>
+  /* These classes only ever land on elements created at runtime by the
+     inline script's innerHTML assignment (renderList / renderChart), so they
+     must be global: Astro's per-page style scoping attribute is applied to
+     the static template at build time and is never present on nodes created
+     later by client-side JS, which would otherwise leave these rules dead. */
+  .mem-list { list-style: none; padding: 0; margin: 0; }
+  .mem-list li { padding: var(--space-3) var(--space-4); background: var(--admin-surface); border: 1px solid var(--admin-border); border-radius: var(--radius-md); margin-bottom: var(--space-2); font-size: 0.875rem; color: var(--admin-text); }
+  .mem-list__name, .mem-list__who { font-weight: 600; color: var(--admin-text); }
+  .mem-list__who { color: var(--purple-700); }
+  .mem-list__note { font-size: 0.8125rem; color: var(--admin-text-muted); }
+  .mem-empty { color: var(--admin-text-faint); font-style: normal; }
+
   .mem-bar { fill: var(--purple-700); }
   .mem-axis { font-size: 0.6875rem; fill: var(--admin-text-faint); font-family: inherit; }
   .mem-axis--faint { fill: var(--neutral-400); }

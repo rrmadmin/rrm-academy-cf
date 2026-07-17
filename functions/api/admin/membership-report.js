@@ -277,7 +277,7 @@ export async function onRequestGet({ request, env }) {
     const stripeJoins = [];
     const stripeLeaves = [];
     const stripeWatch = [];
-    const pausedSet = new Set(KNOWN_PAUSED.map((e) => e.toLowerCase()));
+    const pausedSet = new Set(KNOWN_PAUSED.map((e) => e.email.toLowerCase()));
 
     if (!env.STRIPE_RESTRICTED_KEY) {
       stripeUnavailable = true;
@@ -391,8 +391,8 @@ export async function onRequestGet({ request, env }) {
     ]);
     const knownPaused = [];
     for (const e of KNOWN_PAUSED) {
-      if (presentEmails.has(e.toLowerCase())) {
-        knownPaused.push({ name: e, note: 'Paused / comped (Brian approved).' });
+      if (presentEmails.has(e.email.toLowerCase())) {
+        knownPaused.push({ name: e.name, note: e.note });
       }
     }
 
