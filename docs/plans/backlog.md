@@ -340,3 +340,5 @@ Not started. See `rrm-router/RRM Router PRD/Phase-9-Decommission.md`.
 - Community inline images, inline feed, saved articles sync, quiz responses, dead code cleanup (2026-02-25)
 
 <!-- merge.yml pipeline canary: 2026-06-22 -- validates the hardened auto-merge path (PR #42). Safe to remove. -->
+
+- **Board portal (/board/) + admin professionalization** — HANDOFF ready: `docs/handoffs/2026-07-16-board-portal-handoff.md`. Role-gated director access (financials, grants, compliance, governance docs) + shadcn-quality admin shell via house primitives. Start after 07-24. Two Brian decisions up top (shadcn interpretation, in-app role vs CF Access).
