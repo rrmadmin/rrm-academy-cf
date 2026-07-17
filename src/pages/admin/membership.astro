@@ -1,0 +1,481 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+---
+<BaseLayout title="Membership | Admin" description="Membership and supporter dashboard" noindex={true} bodyClass="admin-page">
+
+  <div class="admin-bar">
+    <div class="container admin-bar__inner">
+      <span class="admin-bar__title">RRM Admin</span>
+      <nav class="admin-bar__nav">
+        <a href="/admin/backlinks/" class="admin-bar__link">Backlinks</a>
+        <a href="/admin/conversions/" class="admin-bar__link">Conversions</a>
+        <a href="/admin/content/" class="admin-bar__link">Content</a>
+        <a href="/admin/email/" class="admin-bar__link">Email</a>
+        <a href="/admin/seo/" class="admin-bar__link">SEO</a>
+        <a href="/admin/revenue/" class="admin-bar__link">Revenue</a>
+        <a href="/admin/enrollments/" class="admin-bar__link">Enrollments</a>
+        <a href="/admin/membership/" class="admin-bar__link admin-bar__link--active">Membership</a>
+      </nav>
+      <div class="admin-bar__actions">
+        <a href="/" class="admin-bar__site-link">Return to site</a>
+        <button class="admin-bar__logout" id="logout-btn">Logout</button>
+      </div>
+    </div>
+  </div>
+
+  <section id="dashboard" class="mem-section">
+    <div class="container">
+
+      <div class="mem-header">
+        <h1>Membership and Supporters</h1>
+        <div class="mem-controls">
+          <button class="btn btn--primary mem-btn" id="refresh-btn">Refresh</button>
+        </div>
+      </div>
+
+      <p class="mem-month" id="mem-month"></p>
+
+      <div class="mem-banner" id="mem-banner" hidden>
+        Some numbers are partial. Stripe data was unavailable this refresh, so totals shown here are partial.
+      </div>
+
+      <!-- Headline tiles -->
+      <div class="mem-metrics mem-metrics--3">
+        <div class="mem-card">
+          <span class="mem-card__label">Total supporters</span>
+          <span class="mem-card__value" id="h-supporters">--</span>
+        </div>
+        <div class="mem-card">
+          <span class="mem-card__label">Recurring monthly</span>
+          <span class="mem-card__value mem-card__value--accent" id="h-recurring">--</span>
+        </div>
+        <div class="mem-card">
+          <span class="mem-card__label">Change</span>
+          <span class="mem-card__value" id="h-delta">--</span>
+          <span class="mem-card__sub" id="h-delta-basis"></span>
+        </div>
+      </div>
+
+      <!-- STUC -->
+      <h2 class="mem-heading">Save the Uterus Club</h2>
+      <div class="mem-metrics mem-metrics--3">
+        <div class="mem-card">
+          <span class="mem-card__label">Members</span>
+          <span class="mem-card__value" id="s-member">--</span>
+        </div>
+        <div class="mem-card">
+          <span class="mem-card__label">Uterus Heroes</span>
+          <span class="mem-card__value" id="s-hero">--</span>
+        </div>
+        <div class="mem-card">
+          <span class="mem-card__label">Super Heroes</span>
+          <span class="mem-card__value" id="s-superhero">--</span>
+        </div>
+      </div>
+      <p class="mem-annotation" id="s-breakdown"></p>
+
+      <div class="mem-chart-wrap">
+        <div class="mem-chart" id="chart-stuc"></div>
+      </div>
+
+      <div class="mem-cols">
+        <div class="mem-panel">
+          <h3 class="mem-subheading">Joined this month</h3>
+          <ul class="mem-list" id="s-joined"><li class="mem-empty">Loading...</li></ul>
+        </div>
+        <div class="mem-panel">
+          <h3 class="mem-subheading">Left this month</h3>
+          <ul class="mem-list" id="s-left"><li class="mem-empty">Loading...</li></ul>
+        </div>
+      </div>
+
+      <h3 class="mem-subheading">Watchlist</h3>
+      <ul class="mem-list mem-list--watch" id="s-watch"><li class="mem-empty">Loading...</li></ul>
+
+      <h3 class="mem-subheading">Paused, do not chase</h3>
+      <ul class="mem-list" id="s-paused"><li class="mem-empty">Loading...</li></ul>
+
+      <!-- Foundation -->
+      <h2 class="mem-heading">RRM Foundation</h2>
+      <div class="mem-metrics mem-metrics--4">
+        <div class="mem-card">
+          <span class="mem-card__label">One-time this month</span>
+          <span class="mem-card__value" id="f-onetime">--</span>
+        </div>
+        <div class="mem-card">
+          <span class="mem-card__label">Recurring this month</span>
+          <span class="mem-card__value" id="f-recurring">--</span>
+        </div>
+        <div class="mem-card">
+          <span class="mem-card__label">Year to date</span>
+          <span class="mem-card__value mem-card__value--accent" id="f-ytd">--</span>
+        </div>
+        <div class="mem-card">
+          <span class="mem-card__label">Through PayPal Giving</span>
+          <span class="mem-card__value" id="f-ppgf">--</span>
+        </div>
+      </div>
+
+      <div class="mem-chart-wrap">
+        <div class="mem-chart" id="chart-foundation"></div>
+      </div>
+
+      <div class="mem-cols">
+        <div class="mem-panel">
+          <h3 class="mem-subheading">New recurring donors</h3>
+          <ul class="mem-list" id="f-new"><li class="mem-empty">Loading...</li></ul>
+        </div>
+        <div class="mem-panel">
+          <h3 class="mem-subheading">Recurring donors to check on</h3>
+          <ul class="mem-list" id="f-lapsed"><li class="mem-empty">Loading...</li></ul>
+        </div>
+      </div>
+
+      <!-- Academy -->
+      <h2 class="mem-heading">RRM Academy courses</h2>
+      <div class="mem-metrics mem-metrics--4">
+        <div class="mem-card">
+          <span class="mem-card__label">Course purchases this month</span>
+          <span class="mem-card__value" id="a-purchases">--</span>
+        </div>
+        <div class="mem-card">
+          <span class="mem-card__label">Course revenue this month</span>
+          <span class="mem-card__value" id="a-revenue">--</span>
+        </div>
+        <div class="mem-card">
+          <span class="mem-card__label">Purchases year to date</span>
+          <span class="mem-card__value" id="a-ytd-purchases">--</span>
+        </div>
+        <div class="mem-card">
+          <span class="mem-card__label">Revenue year to date</span>
+          <span class="mem-card__value mem-card__value--accent" id="a-ytd">--</span>
+        </div>
+      </div>
+
+      <div class="mem-chart-wrap">
+        <div class="mem-chart" id="chart-academy"></div>
+      </div>
+
+      <!-- Actions -->
+      <h2 class="mem-heading">What needs a person</h2>
+      <ul class="mem-list mem-list--actions" id="actions"><li class="mem-empty">Loading...</li></ul>
+
+      <p class="mem-meta" id="mem-meta"></p>
+    </div>
+  </section>
+
+  <script is:inline>
+  (function () {
+    function esc(str) { var d = document.createElement('div'); d.textContent = str == null ? '' : str; return d.innerHTML; }
+    function num(n) { return (n || 0).toLocaleString(); }
+    function money(cents) { return '$' + Math.round((cents || 0) / 100).toLocaleString(); }
+
+    var SVG_NS = 'http://www.w3.org/2000/svg';
+
+    async function apiCall() {
+      var resp = await fetch('/api/admin/membership-report', { credentials: 'include' });
+      if (resp.status === 401 || resp.status === 403) {
+        window.location.href = '/login/?redirect=/admin/membership/';
+        return;
+      }
+      var data = await resp.json();
+      if (!resp.ok) throw new Error((data && data.error) || 'Request failed');
+      return data;
+    }
+
+    function setText(id, text) { document.getElementById(id).textContent = text; }
+
+    function renderHeadline(h) {
+      setText('h-supporters', num(h.total_supporters));
+      setText('h-recurring', money(h.recurring_monthly_cents));
+
+      var deltaEl = document.getElementById('h-delta');
+      var basisEl = document.getElementById('h-delta-basis');
+      var d = h.degraded ? null : h.delta_vs_prior_month_cents;
+      if (d == null) {
+        deltaEl.textContent = 'Change unavailable this refresh';
+        deltaEl.classList.remove('mem-card__value--up', 'mem-card__value--down');
+        basisEl.textContent = '';
+      } else if (d > 0) {
+        deltaEl.textContent = 'Up ' + money(d) + ' since last month';
+        deltaEl.classList.add('mem-card__value--up');
+        basisEl.textContent = "vs last month's membership receipts";
+      } else if (d < 0) {
+        deltaEl.textContent = 'Down ' + money(-d) + ' since last month';
+        deltaEl.classList.add('mem-card__value--down');
+        basisEl.textContent = "vs last month's membership receipts";
+      } else {
+        deltaEl.textContent = 'No change since last month';
+        basisEl.textContent = "vs last month's membership receipts";
+      }
+
+      document.getElementById('mem-banner').hidden = !h.degraded;
+    }
+
+    function personLabel(row) {
+      return row.name || row.display_name || row.email || 'Someone';
+    }
+
+    function renderList(id, rows, emptyText, lineFn) {
+      var el = document.getElementById(id);
+      if (!rows || !rows.length) {
+        el.innerHTML = '<li class="mem-empty">' + esc(emptyText) + '</li>';
+        return;
+      }
+      el.innerHTML = rows.map(lineFn).join('');
+    }
+
+    function renderStuc(s) {
+      setText('s-member', num(s.active_by_tier.member));
+      setText('s-hero', num(s.active_by_tier.hero));
+      setText('s-superhero', num(s.active_by_tier.superhero));
+
+      document.getElementById('s-breakdown').textContent =
+        num(s.wix_count) + ' paying through Wix, ' +
+        num(s.stripe_count) + ' paying through Stripe, ' +
+        num(s.legacy_count) + ' complimentary (legacy), ' +
+        num(s.staff_count) + ' staff (complimentary).';
+
+      renderList('s-joined', s.joined_this_month, 'No one joined this month.', function (r) {
+        return '<li>' + esc(personLabel(r)) + '</li>';
+      });
+      renderList('s-left', s.left_this_month, 'No one left this month.', function (r) {
+        return '<li>' + esc(personLabel(r)) + '</li>';
+      });
+      renderList('s-watch', s.watchlist, 'Nothing on the watchlist.', function (r) {
+        return '<li><span class="mem-list__name">' + esc(personLabel(r)) + '</span>' +
+          '<span class="mem-list__note">' + esc(r.action) + '</span></li>';
+      });
+      renderList('s-paused', s.known_paused, 'No one is paused right now.', function (r) {
+        return '<li><span class="mem-list__name">' + esc(r.name) + '</span>' +
+          '<span class="mem-list__note">Paused or comped. Do not chase.</span></li>';
+      });
+    }
+
+    function renderFoundation(f) {
+      setText('f-onetime', money(f.one_time_this_month_cents));
+      setText('f-recurring', money(f.recurring_this_month_cents));
+      setText('f-ytd', money(f.ytd_cents));
+      setText('f-ppgf', money(f.ppgf_this_month_cents));
+
+      renderList('f-new', f.new_recurring, 'No new recurring donors this month.', function (r) {
+        return '<li><span class="mem-list__name">' + esc(r.display_name || r.email) + '</span>' +
+          '<span class="mem-list__note">' + money(r.amount_cents) + ' each month</span></li>';
+      });
+      renderList('f-lapsed', f.lapsed_recurring, 'No recurring donors need a check right now.', function (r) {
+        return '<li><span class="mem-list__name">' + esc(r.display_name || r.email) + '</span>' +
+          '<span class="mem-list__note">No recurring gift in 45+ days</span></li>';
+      });
+    }
+
+    function renderAcademy(a) {
+      setText('a-purchases', num(a.course_purchases_this_month));
+      setText('a-revenue', money(a.course_revenue_this_month_cents));
+      setText('a-ytd-purchases', num(a.ytd_purchases));
+      setText('a-ytd', money(a.ytd_cents));
+    }
+
+    function renderActions(actions) {
+      renderList('actions', actions, 'Nothing needs a person right now.', function (r) {
+        return '<li><span class="mem-list__who">' + esc(r.who) + '</span>' +
+          '<span class="mem-list__note">' + esc(r.what) + '</span></li>';
+      });
+    }
+
+    function monthLabel(ym) {
+      var parts = String(ym).split('-');
+      var names = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+      var mi = parseInt(parts[1], 10) - 1;
+      return (names[mi] || parts[1] || '') ;
+    }
+
+    function renderChart(id, trend, field, title) {
+      var host = document.getElementById(id);
+      host.innerHTML = '';
+      var caption = document.createElement('div');
+      caption.className = 'mem-chart__title';
+      caption.textContent = title;
+      host.appendChild(caption);
+
+      if (!trend || !trend.length) {
+        var empty = document.createElement('p');
+        empty.className = 'mem-empty';
+        empty.textContent = 'No history yet.';
+        host.appendChild(empty);
+        return;
+      }
+
+      var barW = 34, gap = 10, padTop = 8, chartH = 80, labelH = 34;
+      var w = trend.length * (barW + gap) + gap;
+      var h = padTop + chartH + labelH;
+      var max = 1;
+      trend.forEach(function (t) { max = Math.max(max, t[field] || 0); });
+
+      var svg = document.createElementNS(SVG_NS, 'svg');
+      svg.setAttribute('viewBox', '0 0 ' + w + ' ' + h);
+      svg.setAttribute('width', String(w));
+      svg.setAttribute('height', String(h));
+      svg.setAttribute('role', 'img');
+      svg.setAttribute('class', 'mem-svg');
+
+      trend.forEach(function (t, i) {
+        var val = t[field] || 0;
+        var bh = Math.round((val / max) * chartH);
+        var x = gap + i * (barW + gap);
+        var y = padTop + (chartH - bh);
+
+        var rect = document.createElementNS(SVG_NS, 'rect');
+        rect.setAttribute('x', String(x));
+        rect.setAttribute('y', String(y));
+        rect.setAttribute('width', String(barW));
+        rect.setAttribute('height', String(Math.max(bh, 1)));
+        rect.setAttribute('rx', '3');
+        rect.setAttribute('class', 'mem-bar');
+        var tt = document.createElementNS(SVG_NS, 'title');
+        tt.textContent = monthLabel(t.month) + ' ' + String(t.month).split('-')[0] + ': ' + money(val);
+        rect.appendChild(tt);
+        svg.appendChild(rect);
+
+        var mlabel = document.createElementNS(SVG_NS, 'text');
+        mlabel.setAttribute('x', String(x + barW / 2));
+        mlabel.setAttribute('y', String(padTop + chartH + 14));
+        mlabel.setAttribute('text-anchor', 'middle');
+        mlabel.setAttribute('class', 'mem-axis');
+        mlabel.textContent = monthLabel(t.month);
+        svg.appendChild(mlabel);
+
+        var vlabel = document.createElementNS(SVG_NS, 'text');
+        vlabel.setAttribute('x', String(x + barW / 2));
+        vlabel.setAttribute('y', String(padTop + chartH + 28));
+        vlabel.setAttribute('text-anchor', 'middle');
+        vlabel.setAttribute('class', 'mem-axis mem-axis--faint');
+        vlabel.textContent = money(val);
+        svg.appendChild(vlabel);
+      });
+
+      host.appendChild(svg);
+    }
+
+    function render(d) {
+      document.getElementById('mem-month').textContent = 'Reporting month: ' + d.month;
+      renderHeadline(d.headline);
+      renderStuc(d.stuc);
+      renderFoundation(d.foundation);
+      renderAcademy(d.academy);
+      renderActions(d.actions);
+      renderChart('chart-stuc', d.trend, 'stuc_cents', 'Membership receipts, last 12 months');
+      renderChart('chart-foundation', d.trend, 'foundation_cents', 'Foundation gifts, last 12 months');
+      renderChart('chart-academy', d.trend, 'academy_cents', 'Course revenue, last 12 months');
+      document.getElementById('mem-meta').textContent = 'Last updated ' + (d.generated_at || 'unknown');
+    }
+
+    async function loadData() {
+      try {
+        var data = await apiCall();
+        if (data) render(data);
+      } catch (e) {
+        document.getElementById('mem-meta').textContent = '';
+        document.getElementById('mem-banner').hidden = false;
+        document.getElementById('mem-banner').textContent = 'Could not load the report right now. Try Refresh in a moment.';
+        ['s-joined', 's-left', 's-watch', 's-paused', 'f-new', 'f-lapsed', 'actions'].forEach(function (id) {
+          document.getElementById(id).innerHTML = '<li class="mem-empty">Could not load.</li>';
+        });
+      }
+    }
+
+    document.getElementById('logout-btn').addEventListener('click', async function () {
+      await fetch('/api/auth/logout', { method: 'POST', credentials: 'include' });
+      window.location.href = '/login/';
+    });
+    document.getElementById('refresh-btn').addEventListener('click', loadData);
+
+    loadData();
+  })();
+  </script>
+
+</BaseLayout>
+
+<style>
+  :root {
+    --admin-rose-700: #8a606e;
+    --admin-rose-300: #c9a8b2;
+    --admin-bg: #faf8f5;
+    --admin-surface: #ffffff;
+    --admin-border: #d9d3cc;
+    --admin-text: #313131;
+    --admin-text-muted: #636261;
+    --admin-text-faint: #949392;
+    --admin-bar-bg: #3d2a32;
+    --admin-rose-100: #f0e5e9;
+  }
+
+  :global(.admin-page) :global(.site-header) { display: none; }
+  :global(.admin-page) :global(footer) { display: none; }
+
+  .admin-bar { background: var(--admin-bar-bg); color: var(--admin-rose-100); position: sticky; top: 0; z-index: 100; }
+  .admin-bar__inner { display: flex; align-items: center; height: 48px; gap: var(--space-6); }
+  .admin-bar__title { font-family: 'Cormorant Garamond', 'Georgia', serif; font-weight: 600; font-size: 1.25rem; color: var(--admin-rose-300); white-space: nowrap; }
+  .admin-bar__nav { display: flex; gap: var(--space-1); flex-wrap: wrap; } @media (max-width: 768px) { .admin-bar__nav { display: none; } }
+  .admin-bar__link { font-size: 0.8125rem; font-weight: 400; color: var(--white); text-decoration: none; padding: var(--space-1) var(--space-3); border-radius: var(--radius-sm); transition: color 0.15s, background 0.15s; }
+  .admin-bar__link:hover { color: var(--white); text-decoration: none; }
+  .admin-bar__link--active { color: var(--white); background: var(--white); font-weight: 500; }
+  .admin-bar__actions { display: flex; align-items: center; gap: var(--space-3); margin-left: auto; }
+  .admin-bar__site-link { font-size: 0.8125rem; font-weight: 500; color: var(--admin-rose-300); text-decoration: none; padding: var(--space-1) var(--space-4); border: 1px solid var(--admin-rose-300); border-radius: var(--radius-pill); transition: color 0.15s, border-color 0.15s; }
+  .admin-bar__site-link:hover { color: var(--white); border-color: var(--white); text-decoration: none; }
+  .admin-bar__logout { font-size: 0.8125rem; color: var(--white); background: none; border: none; cursor: pointer; padding: var(--space-1) var(--space-2); }
+  .admin-bar__logout:hover { color: var(--white); }
+
+  .mem-section { padding: var(--space-8) 0; background: var(--admin-bg); min-height: 80vh; }
+  .mem-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: var(--space-3); flex-wrap: wrap; gap: var(--space-3); }
+  .mem-header h1 { margin-bottom: 0; color: var(--admin-text); }
+  .mem-controls { display: flex; gap: var(--space-3); align-items: center; }
+  .mem-btn { background: var(--purple-700); border-color: var(--purple-700); color: var(--white); }
+  .mem-btn:hover { background: var(--accent-hover); }
+
+  .mem-month { font-size: 0.8125rem; color: var(--admin-text-muted); margin-bottom: var(--space-4); }
+
+  .mem-banner { background: var(--status-warn-bg); border: 1px solid var(--status-warn-border); color: var(--status-warn-text); border-radius: var(--radius-md); padding: var(--space-3) var(--space-4); margin-bottom: var(--space-6); font-size: 0.875rem; }
+
+  .mem-heading { color: var(--admin-text); margin-bottom: var(--space-4); margin-top: var(--space-8); font-size: 1.25rem; }
+  .mem-subheading { color: var(--admin-text); margin-bottom: var(--space-2); margin-top: var(--space-5); font-size: 1rem; }
+
+  .mem-metrics { display: grid; gap: var(--space-4); margin-bottom: var(--space-4); }
+  .mem-metrics--3 { grid-template-columns: repeat(3, 1fr); }
+  .mem-metrics--4 { grid-template-columns: repeat(4, 1fr); }
+  @media (max-width: 768px) { .mem-metrics--3 { grid-template-columns: repeat(2, 1fr); } .mem-metrics--4 { grid-template-columns: repeat(2, 1fr); } }
+  @media (max-width: 640px) { .mem-metrics--3, .mem-metrics--4 { grid-template-columns: 1fr; } }
+
+  .mem-card { background: var(--admin-surface); border: 1px solid var(--admin-border); border-radius: var(--radius-md); padding: var(--space-4) var(--space-5); text-align: center; }
+  .mem-card__label { display: block; font-size: 0.75rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; color: var(--admin-text-faint); margin-bottom: var(--space-1); }
+  .mem-card__value { display: block; font-size: 1.5rem; font-weight: 600; color: var(--admin-text); }
+  .mem-card__value--accent { color: var(--purple-700); }
+  .mem-card__value--up { color: var(--status-success-text); font-size: 1.125rem; }
+  .mem-card__value--down { color: var(--status-error-text); font-size: 1.125rem; }
+  .mem-card__sub { display: block; font-size: 0.75rem; color: var(--admin-text-faint); margin-top: 2px; }
+
+  .mem-annotation { font-size: 0.8125rem; color: var(--admin-text-muted); margin-bottom: var(--space-6); }
+
+  .mem-chart-wrap { overflow-x: auto; border: 1px solid var(--admin-border); border-radius: var(--radius-md); background: var(--admin-surface); padding: var(--space-4); margin-bottom: var(--space-6); }
+  .mem-chart__title { font-size: 0.75rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; color: var(--admin-text-faint); margin-bottom: var(--space-3); }
+
+  .mem-cols { display: grid; grid-template-columns: 1fr 1fr; gap: var(--space-6); margin-bottom: var(--space-4); }
+  @media (max-width: 640px) { .mem-cols { grid-template-columns: 1fr; } }
+  .mem-panel { min-width: 0; }
+
+  .mem-list { list-style: none; padding: 0; margin: 0; }
+  .mem-list li { padding: var(--space-3) var(--space-4); background: var(--admin-surface); border: 1px solid var(--admin-border); border-radius: var(--radius-md); margin-bottom: var(--space-2); font-size: 0.875rem; color: var(--admin-text); }
+  .mem-list__name, .mem-list__who { display: block; font-weight: 600; color: var(--admin-text); }
+  .mem-list__who { color: var(--purple-700); }
+  .mem-list__note { display: block; font-size: 0.8125rem; color: var(--admin-text-muted); margin-top: 2px; }
+  .mem-empty { color: var(--admin-text-faint); font-style: normal; }
+
+  .mem-meta { font-size: 0.75rem; color: var(--admin-text-faint); margin-top: var(--space-6); }
+
+  .mem-svg { display: block; }
+</style>
+
+<style is:global>
+  .mem-bar { fill: var(--purple-700); }
+  .mem-axis { font-size: 0.6875rem; fill: var(--admin-text-faint); font-family: inherit; }
+  .mem-axis--faint { fill: var(--neutral-400); }
+</style>

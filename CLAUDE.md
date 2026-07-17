@@ -412,6 +412,7 @@ Validation: `npm run ssot:validate` (schema + cross-ref) and `npm run ssot:smoke
 | `/admin/conversions` | `src/pages/admin/conversions.astro` |
 | `/admin/email` | `src/pages/admin/email.astro` (email observatory) |
 | `/admin/enrollments` | `src/pages/admin/enrollments.astro` |
+| `/admin/membership` | `src/pages/admin/membership.astro` (admin-gated, NOT superadmin) |
 | `/admin/partners` | `src/pages/admin/partners.astro` (partner application management) |
 | `/admin/revenue` | `src/pages/admin/revenue.astro` |
 | `/admin/seo` | `src/pages/admin/seo.astro` |
@@ -716,6 +717,7 @@ Auth is per-endpoint, NOT via the admin middleware (`admin/_middleware.js` only 
 | `GET/POST /api/admin/partners[/(id)]` **[S]** | `admin/partners/index.js`, `[id].js` | List applications; approve/reject/revoke + notification email |
 | `GET /api/admin/revenue` **[S]** | `admin/revenue.js` | MRR/tier/donation report (KV-cached 15m) |
 | `GET /api/admin/enrollments` **[S]** | `admin/enrollments.js` | Enrollment summary + paginated list |
+| `GET /api/admin/membership-report` **[A/B]** | `admin/membership-report.js` | Unified membership/supporter report (admin-or-bearer; ?month ET bucketing; Stripe-degradation to D1; no-store) |
 | `GET /api/admin/content` **[S]** | `admin/content.js` | GA4 content-performance report |
 | `GET /api/admin/conversions` **[S]** | `admin/conversions.js` | GA4 conversion funnels (KV-cached 1h) |
 | `GET /api/admin/email` **[S]** | `admin/email.js` | Email observability (summary/broadcasts/log/cohort views) |
