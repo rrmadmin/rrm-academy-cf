@@ -92,7 +92,7 @@ test('computeLapsed flags >45d gifts, respects grace + KNOWN_PAUSED', () => {
   const flagged = computeLapsed({ giftRows, subStartByEmail: new Map(), nowMs: now });
   const emails = flagged.map(f => f.email).sort();
   assert.deepEqual(emails, ['lapsed@x.com', 'oldnogift@x.com']);
-  assert.ok(KNOWN_PAUSED.includes('vjgbergin@gmail.com'));
+  assert.ok(KNOWN_PAUSED.some((e) => e.email === 'vjgbergin@gmail.com' && e.name === 'Victoria Bergin'));
 });
 
 test('computeLapsed suppresses >45d flag when a newer Stripe sub is within grace', () => {
