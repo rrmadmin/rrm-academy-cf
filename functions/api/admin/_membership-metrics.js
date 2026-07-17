@@ -15,8 +15,11 @@ export const NEW_MEMBER_GRACE_DAYS = 14;
 const DAY_MS = 86_400_000;
 
 // Deliberate, Brian-approved comp/pause (never a dropout). Mirror of the
-// observatory KNOWN_PAUSED allowlist (stuc-label-drift.js).
-export const KNOWN_PAUSED = ['vjgbergin@gmail.com'];
+// observatory KNOWN_PAUSED allowlist (stuc-label-drift.js), extended with a
+// display name so the dashboard never has to render a raw email address.
+export const KNOWN_PAUSED = [
+  { email: 'vjgbergin@gmail.com', name: 'Victoria Bergin', note: 'Paused / comped (Brian approved).' },
+];
 
 export function centsInt(n) {
   const v = Math.round(Number(n));
@@ -149,7 +152,7 @@ export function parseDbTs(value) {
 // giftRows: [{ email, last_gift_at, created_at }]; subStartByEmail: Map(lowerEmail -> epochMs)
 export function computeLapsed({ giftRows, subStartByEmail, nowMs }) {
   const starts = subStartByEmail instanceof Map ? subStartByEmail : new Map();
-  const paused = new Set(KNOWN_PAUSED.map(e => e.toLowerCase()));
+  const paused = new Set(KNOWN_PAUSED.map(e => e.email.toLowerCase()));
   const flagged = [];
   for (const row of giftRows) {
     const email = String(row.email || '').trim();
