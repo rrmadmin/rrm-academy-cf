@@ -105,6 +105,10 @@ const jsonLd = {
           and you are not alone. This confidential assessment helps you put language
           to what you are experiencing and decide on your next step.
         </p>
+        <div class="survey-hero__trust">
+          <img class="survey-hero__avatar" src="/images/authors/naomi-whittaker.webp" width="96" height="96" alt="Dr. Naomi Whittaker, MD, board-certified OBGYN and endometriosis surgeon" loading="eager" decoding="async" />
+          <p class="survey-hero__credential">Created by <strong>Dr. Naomi Whittaker, MD</strong>, a board-certified OBGYN and fellowship-trained endometriosis surgeon.</p>
+        </div>
         <div class="survey-hero__meta">
           <span class="survey-hero__chip">
             <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
@@ -140,7 +144,10 @@ const jsonLd = {
             This is not a diagnosis. But it can give you language for what you are feeling and
             help you walk into your next appointment with a clearer picture.
           </p>
-          <p class="survey-note__sig">Dr. Naomi Whittaker, MD &middot; Board-Certified OBGYN, MIGS, NFPMC, FCI</p>
+          <div class="survey-note__sig">
+            <img class="survey-note__avatar" src="/images/authors/naomi-whittaker.webp" width="80" height="80" alt="Dr. Naomi Whittaker, MD" loading="lazy" decoding="async" />
+            <span class="survey-note__sig-text"><strong>Dr. Naomi Whittaker, MD</strong><br />Board-Certified OBGYN, MIGS, NFPMC, FCI</span>
+          </div>
         </div>
 
         <!-- How it works — connected numbered flow -->
@@ -398,6 +405,29 @@ const jsonLd = {
     color: var(--text-secondary);
   }
   .survey-hero__chip svg { color: var(--accent); flex-shrink: 0; }
+  .survey-hero__trust {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-3);
+    margin-top: var(--space-6);
+    padding: var(--space-2) var(--space-5) var(--space-2) var(--space-2);
+    background: var(--bg-card);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-pill);
+    max-width: 30rem;
+  }
+  .survey-hero__avatar {
+    width: 3.25rem; height: 3.25rem;
+    border-radius: var(--radius-pill);
+    object-fit: cover; flex-shrink: 0;
+    border: 2px solid var(--white);
+    box-shadow: var(--shadow-sm);
+  }
+  .survey-hero__credential {
+    font-size: 0.8125rem; line-height: 1.45;
+    color: var(--text-secondary); margin: 0;
+  }
+  .survey-hero__credential strong { color: var(--text-primary); font-weight: 600; }
 
   /* ── Body ───────────────────────────────────────────────────────── */
   .page-body { padding: var(--space-12) 0; }
@@ -423,13 +453,21 @@ const jsonLd = {
     margin: 0 0 var(--space-4);
   }
   .survey-note__sig {
-    font-size: 0.875rem !important;
-    font-weight: 500;
-    color: var(--text-tertiary) !important;
-    margin-top: var(--space-5) !important;
+    display: flex;
+    align-items: center;
+    gap: var(--space-3);
+    font-size: 0.875rem;
+    color: var(--text-tertiary);
+    margin-top: var(--space-5);
     padding-top: var(--space-4);
     border-top: 1px solid var(--border-light);
   }
+  .survey-note__avatar {
+    width: 2.75rem; height: 2.75rem;
+    border-radius: var(--radius-pill);
+    object-fit: cover; flex-shrink: 0;
+  }
+  .survey-note__sig-text strong { color: var(--text-secondary); font-weight: 600; }
 
   /* How it works — connected numbered flow */
   .survey-how { margin-top: var(--space-10); }
