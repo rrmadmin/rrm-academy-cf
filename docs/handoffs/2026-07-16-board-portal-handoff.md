@@ -4,11 +4,17 @@
 **Status:** NOT STARTED. This doc is the brief. Read fully before any code.
 **Context that motivates it:** RRMF board restructuring in flight (see `~/iCode/projects/rrm-foundation/governance/2026-07-board-restructuring/`): board becoming Naomi (Chair) + Bailey (Secretary) + Erin Callaghan + Rebecca Vavilov (Treasurer), Brian moving to staff ED. Directors need a professional window into the nonprofit: financials, grants, compliance, governance docs. Treasurer specifically needs oversight surfaces (monthly financial summary).
 
-## Two decisions to put to Brian FIRST (do not assume)
+## Decisions
 
-**D1 — what "shadcn-ize" means here.** The house doctrine is vanilla CSS/JS primitives, NO React/Tailwind (STYLE-GUIDE.md + skills/CLAUDE.md; several house primitives ARE literal shadcn ports already: `stats-2`, `area-chart`, watermelon family — see `apply-house-primitives` skill + its `references/catalog.md`).
-- Option A (RECOMMENDED): shadcn-QUALITY, not shadcn-the-library — normalize every /admin/ page onto a shared admin shell (sidebar nav, consistent header, card grid) built from house tokens + the existing shadcn-port primitives. `/admin/email` (Email Observatory) is the exemplar page: stats-2 count-up tiles + area-chart, built via apply-house-primitives.
-- Option B: literal shadcn via Astro React islands on /admin/ only. Breaks house doctrine; needs Brian's explicit override and a written design-system exception. Do not choose silently.
+**D1 — RESOLVED by Brian, 2026-07-16, verbatim:** "basically i hate my admin dashboard. about 50% is dead or not functional and it needs to have a left sidebar like a REAL dashboard. shadcn has some good code to start with."
+- This is the explicit owner override of the house vanilla-primitives doctrine, FOR /admin/ (and /board/) ONLY. Public site stays on the house design system untouched. Do not re-litigate; build with literal shadcn.
+- Starting point: shadcn dashboard blocks (left-sidebar shell: the `sidebar-07` / `dashboard-01` family at ui.shadcn.com/blocks) via Astro React islands (`@astrojs/react`) with Tailwind SCOPED to admin routes.
+- Known CI friction to solve deliberately, not by surprise (memories `rrm-academy-cf-ci-only-gates`, `rrm-academy-local-build-regenerates-files`):
+  1. Tailwind preflight/base must NOT leak into public-site CSS: prefix or selector-scope (e.g. generate under `#admin-root`), or a CSS entry imported only by admin layouts.
+  2. css-audit ratchet + design-token "no phantoms" audit run repo-wide; shadcn CSS variables + utilities will trip baselines. Bump `scripts/css-audit/baseline.json` intentionally in the same PR and document the admin-route exception.
+  3. Bundle isolation: React only on /admin + /board routes (`client:only="react"` or full-page islands); zero React on public pages.
+
+**D0 (NEW, do FIRST) — kill-list audit of the existing 12 pages.** Brian: ~50% dead or not functional. Before any shell work, triage each of backlinks / campaign-report / community / content / conversions / dm-queue / email / enrollments / index / partners / revenue / seo: does the page load, does its API respond, is the data current, does Brian use it? Verdict per page: KEEP (port to new shell) / FIX (small repair, then port) / KILL (delete page + endpoint + nav). Get Brian's 10-minute sign-off on the kill list before building; the rebuild ports only KEEP+FIX pages.
 
 **D2 — where board access lives.**
 - Option A (RECOMMENDED): role-gated section IN the app. D1 `rrm-auth.user` already has a `role` column; sessions already flow via `functions/api/admin/_middleware.js` (best-effort populate; each endpoint enforces). Add role `board`; new section `/board/` (distinct from operational `/admin/`, which stays Brian/admin-only); directors log in with normal accounts.
@@ -16,9 +22,11 @@
 
 ## Recommended scope (phased)
 
-**P0 — auth + shell (one session)**
+**P0 — kill-list audit (D0) + auth + shadcn shell (one session)**
+- Run D0; Brian signs the kill list.
+- Stand up the shadcn left-sidebar shell (nav groups: Dashboard / Content / Community / Revenue / Marketing / Board), topbar, breadcrumbs; React-island architecture with scoped Tailwind per D1.
 - `role='board'` handling: shared `requireRole(context, ['admin','board'])` helper; NEGATIVE TESTS mandatory (anon 401, member 403, board 200, board CANNOT hit admin-only endpoints; IDOR checks per the coder-agent bug patterns).
-- `/board/` layout: shared admin shell (D1 decision applied), nav: Overview · Financials · Grants · Compliance · Documents · Board & Policies.
+- `/board/` layout: same shadcn shell, board-role nav group: Overview · Financials · Grants · Compliance · Documents · Board & Policies.
 - Seed board accounts for the 4 directors (invite flow or manual insert + welcome-password path — reuse existing auth; note the STUC empty-password lockout bug class, memory `stuc-member-access-incidents`: set passwords via the existing reset flow, never empty-hash).
 
 **P1 — content surfaces (1-2 sessions)**
@@ -42,4 +50,4 @@
 ## Pointers
 - Repo CLAUDE.md + STYLE-GUIDE.md (read first, as always) · `src/pages/admin/*.astro` (12 pages today) · `functions/api/admin/_middleware.js` (session populate pattern) · `functions/api/auth/_shared.js` · `/admin/email` = design exemplar · `apply-house-primitives` skill + catalog · reports.rrmacademy.org CF Access pattern (memory `rrm-training-reports-gated-site`) · governance sources: `~/iCode/projects/rrm-foundation/governance/`.
 
-**Estimate:** P0+P1 ≈ 2-3 focused sessions. Start only after 07-23/07-24 grant submissions land.
+**Estimate:** D0 ~half a session; P0+P1 ≈ 3-4 focused sessions (shadcn island infra adds setup). Start only after 07-23/07-24 grant submissions land.
