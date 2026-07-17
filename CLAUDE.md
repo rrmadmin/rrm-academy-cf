@@ -412,6 +412,7 @@ Validation: `npm run ssot:validate` (schema + cross-ref) and `npm run ssot:smoke
 | `/admin/conversions` | `src/pages/admin/conversions.astro` |
 | `/admin/email` | `src/pages/admin/email.astro` (email observatory) |
 | `/admin/enrollments` | `src/pages/admin/enrollments.astro` |
+| `/admin/membership` | `src/pages/admin/membership.astro` (admin-gated, NOT superadmin) |
 | `/admin/partners` | `src/pages/admin/partners.astro` (partner application management) |
 | `/admin/revenue` | `src/pages/admin/revenue.astro` |
 | `/admin/seo` | `src/pages/admin/seo.astro` |
