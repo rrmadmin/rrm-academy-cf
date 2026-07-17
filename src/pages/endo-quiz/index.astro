@@ -19,8 +19,8 @@ const jsonLd = {
       '@type': ['MedicalWebPage', 'WebPage'],
       '@id': `${PAGE_URL}#webpage`,
       url: PAGE_URL,
-      name: 'Endometriosis Symptom Quiz',
-      description: 'A free educational quiz from a 501(c)(3) nonprofit that helps you organize your endometriosis-associated symptoms into a summary you can bring to a healthcare provider.',
+      name: 'Endometriosis Symptom Assessment',
+      description: 'A free educational symptom assessment from a 501(c)(3) nonprofit, created by an endometriosis surgeon, that helps you organize your endometriosis-associated symptoms into a summary you can bring to a healthcare provider.',
       inLanguage: 'en-US',
       isPartOf: { '@id': `${SITE}/#website` },
       about: { '@type': 'MedicalCondition', name: 'Endometriosis' },
@@ -34,8 +34,8 @@ const jsonLd = {
 ---
 
 <BaseLayout
-  title="Free Endometriosis Symptom Quiz"
-  description="A free educational quiz from a 501(c)(3) nonprofit. Learn which of your symptoms are commonly associated with endometriosis and get a summary you can bring to your next appointment."
+  title="Free Endometriosis Symptom Assessment"
+  description="A free educational symptom assessment from a 501(c)(3) nonprofit, created by an endometriosis surgeon. Learn which of your symptoms are commonly associated with endometriosis and get a summary you can bring to your next appointment."
   canonicalUrl={PAGE_URL}
   jsonLd={jsonLd}
   noindex
@@ -44,12 +44,17 @@ const jsonLd = {
     <section class="ec-hero">
       <div class="container ec-hero__inner">
         <p class="ec-eyebrow">Free educational tool &middot; 501(c)(3) nonprofit</p>
-        <h1 class="ec-hero__title">Endometriosis Symptom Quiz</h1>
-        <p class="ec-hero__tagline">Answer a short set of questions about your symptoms and see how your responses compare to patterns commonly associated with endometriosis. It is educational, confidential, and takes about five minutes.</p>
+        <h1 class="ec-hero__title">Your Symptoms Are Real. Let's Put Language to Them.</h1>
+        <p class="ec-hero__tagline">Whether you've been told your pain is normal or you just can't find the words for what you're feeling, this short assessment organizes your symptoms into the patterns doctors look for in endometriosis. Five minutes, and you walk away with something clear to bring to your next appointment.</p>
+        <div class="ec-hero__trust">
+          <img class="ec-hero__avatar" src="/images/authors/naomi-whittaker.webp" width="96" height="96" alt="Dr. Naomi Whittaker, MD, board-certified OBGYN and endometriosis surgeon" loading="eager" decoding="async" />
+          <p class="ec-hero__credential">Created by <strong>Dr. Naomi Whittaker, MD</strong>, a board-certified OBGYN and fellowship-trained endometriosis surgeon.</p>
+        </div>
         <div class="ec-hero__meta">
           <span class="ec-chip"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6L9 17l-5-5"/></svg>Free</span>
           <span class="ec-chip"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>About 5 minutes</span>
           <span class="ec-chip"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>Confidential</span>
+          <span class="ec-chip"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4"/><path d="M12 8h.01"/></svg>Educational, not diagnostic</span>
         </div>
       </div>
     </section>
@@ -57,15 +62,15 @@ const jsonLd = {
     <div class="page-body">
       <div class="container container--narrow">
         <section class="ec-launch card" aria-labelledby="ec-launch-title">
-          <h2 id="ec-launch-title" class="ec-launch__title">See your results in about five minutes</h2>
-          <p class="ec-launch__text">Answer questions about your symptoms, see your results right away, and get a copy sent to your email.</p>
-          <a class="btn btn--primary btn--lg" href="/endo-quiz/start/">Start the free symptom quiz</a>
+          <h2 id="ec-launch-title" class="ec-launch__title">See where your symptoms point in about five minutes</h2>
+          <p class="ec-launch__text">Answer questions about your pain, bleeding, and other symptoms. Get your results immediately, plus a summary you can bring to your next appointment.</p>
+          <a class="btn btn--primary btn--lg" href="/endo-quiz/start/">Start my free symptom assessment</a>
         </section>
 
         <div class="ec-content">
           <section class="ec-block">
-            <h2>What this quiz does</h2>
-            <p>Endometriosis can only be confirmed through surgery. This quiz does not diagnose anything. It organizes your symptoms into a summary based on symptom patterns commonly described in the medical literature, so you can decide whether to bring your results to a healthcare provider for a fuller evaluation.</p>
+            <h2>What this assessment does</h2>
+            <p>Endometriosis can only be confirmed through surgery. This assessment does not diagnose anything. It organizes your symptoms into a summary based on symptom patterns commonly described in the medical literature, so you can decide whether to bring your results to a healthcare provider for a fuller evaluation.</p>
             <p>The questions cover pain, bleeding patterns, bladder and bowel symptoms, and other signs sometimes associated with endometriosis. Your answers stay confidential.</p>
           </section>
 
@@ -80,19 +85,19 @@ const jsonLd = {
 
           <section class="ec-block">
             <h2>Why symptom awareness matters</h2>
-            <p>Many people live with symptoms associated with endometriosis for years before discussing them with a provider experienced in the condition. A structured symptom quiz can help you put language to what you are experiencing and decide whether it is worth a closer look.</p>
+            <p>Many people live with symptoms associated with endometriosis for years before discussing them with a provider experienced in the condition. A structured symptom assessment can help you put language to what you are experiencing and decide whether it is worth a closer look.</p>
             <p>This tool is provided as free education by RRM Academy, a 501(c)(3) nonprofit focused on restorative reproductive medicine education. It does not collect payment, does not offer medical advice, and does not connect you directly with any individual clinician.</p>
           </section>
         </div>
 
         <div class="ec-recap">
-          <h2 class="ec-recap__title">Ready to take the quiz?</h2>
+          <h2 class="ec-recap__title">Ready to begin?</h2>
           <p class="ec-recap__text">Five minutes, completely confidential, no obligation.</p>
-          <a href="/endo-quiz/start/" class="btn btn--primary btn--lg ec-recap__btn">Start the free symptom quiz</a>
+          <a href="/endo-quiz/start/" class="btn btn--primary btn--lg ec-recap__btn">Start my free symptom assessment</a>
           <p class="ec-recap__providers">Already know you want to talk to someone? <a href="/providers/">Find a restorative reproductive medicine provider</a>.</p>
         </div>
 
-        <div class="ec-disclaimer"><p><strong>Medical disclaimer:</strong> This quiz is for educational purposes only and does not constitute medical advice, diagnosis, or treatment. Always consult a qualified healthcare provider. Reviewed by Dr. Naomi Whittaker, MD, Board-Certified OBGYN, for clinical accuracy of the symptom list.</p></div>
+        <div class="ec-disclaimer"><p><strong>Medical disclaimer:</strong> This assessment is for educational purposes only and does not constitute medical advice, diagnosis, or treatment. Always consult a qualified healthcare provider. Reviewed by Dr. Naomi Whittaker, MD, Board-Certified OBGYN, for clinical accuracy of the symptom list.</p></div>
       </div>
     </div>
   </div>
@@ -103,6 +108,10 @@ const jsonLd = {
     .ec .ec-eyebrow { font-family: 'Inter', sans-serif; font-size: 0.75rem; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; color: var(--accent); margin-bottom: var(--space-3); }
     .ec .ec-hero__title { font-size: var(--text-d1); line-height: 1.1; letter-spacing: -0.015em; margin: 0 0 var(--space-4); text-wrap: balance; }
     .ec .ec-hero__tagline { font-size: var(--text-d5); line-height: 1.65; color: var(--text-secondary); max-width: 52ch; margin: 0 auto; text-wrap: pretty; }
+    .ec .ec-hero__trust { display: inline-flex; align-items: center; gap: var(--space-3); margin: var(--space-6) auto 0; padding: var(--space-2) var(--space-5) var(--space-2) var(--space-2); background: var(--bg-card); border: 1px solid var(--border-color); border-radius: var(--radius-pill); max-width: 30rem; text-align: left; }
+    .ec .ec-hero__avatar { width: 3.25rem; height: 3.25rem; border-radius: var(--radius-pill); object-fit: cover; flex-shrink: 0; border: 2px solid var(--white); box-shadow: var(--shadow-sm); }
+    .ec .ec-hero__credential { font-size: var(--text-b4); line-height: 1.45; color: var(--text-secondary); margin: 0; }
+    .ec .ec-hero__credential strong { color: var(--text-primary); font-weight: 600; }
     .ec .ec-hero__meta { margin-top: var(--space-6); display: flex; flex-wrap: wrap; gap: var(--space-3); justify-content: center; }
     .ec .ec-chip { display: inline-flex; align-items: center; gap: var(--space-2); padding: var(--space-1) var(--space-3); background: var(--bg-card); border: 1px solid var(--border-color); border-radius: var(--radius-pill); font-size: 0.8125rem; font-weight: 500; color: var(--text-secondary); }
     .ec .ec-chip svg { color: var(--accent); flex-shrink: 0; }
