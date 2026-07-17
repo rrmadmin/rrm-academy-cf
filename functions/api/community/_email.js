@@ -134,21 +134,85 @@ export async function notifyNewPost(env, db, post, authorName) {
     const rawTitle = post.title || '';
     const eventTitle = rawTitle || 'New Save the Uterus Club event';
     const PREFIX = 'Save the Uterus Club';
-    const alreadyPrefixed = rawTitle.toLowerCase().startsWith(PREFIX.toLowerCase());
-    subject = sanitizeSubject(rawTitle
-      ? (alreadyPrefixed ? rawTitle : `${PREFIX}: ${rawTitle}`)
-      : `New ${PREFIX} event`);
+
+    // Weekday in Eastern time — members must see the live-event day right in the
+    // subject line (hard rule 2026-07-15).
+    let weekday = null;
+    if (post.event_date) {
+      const ed = new Date(post.event_date);
+      if (!isNaN(ed.getTime())) {
+        try {
+          weekday = new Intl.DateTimeFormat('en-US', {
+            timeZone: 'America/New_York',
+            weekday: 'long',
+          }).format(ed);
+        } catch { weekday = null; }
+      }
+    }
+
+    const speaker = post.speaker && typeof post.speaker === 'string' ? post.speaker.trim() : null;
+
+    // Strip a leading "Save the Uterus Club" (+ optional separator) from the title
+    // so the subject prefix never doubles.
+    let titlePortion = rawTitle.trim();
+    if (titlePortion.toLowerCase().startsWith(PREFIX.toLowerCase())) {
+      titlePortion = titlePortion.slice(PREFIX.length).replace(/^[\s:–—-]+/, '').trim();
+    }
+    if (!titlePortion) titlePortion = 'New Save the Uterus Club event';
+
+    const subjectBase = weekday
+      ? `${PREFIX} live event this ${weekday}: ${titlePortion}`
+      : `${PREFIX} live event: ${titlePortion}`;
+    const speakerSuffix = speaker ? ` with ${speaker}` : '';
+    subject = sanitizeSubject(subjectBase + speakerSuffix);
 
     const formattedDate = formatEventDate(post.event_date);
     const dateLine = formattedDate ? `<p>When: ${escapeHtml(formattedDate)}</p>` : '';
     const dateLineText = formattedDate ? `When: ${formattedDate}\n` : '';
 
-    const speaker = post.speaker && typeof post.speaker === 'string' ? post.speaker.trim() : null;
     const speakerLineHtml = speaker ? `<p>With <strong>${escapeHtml(speaker)}</strong></p>` : '';
     const speakerLineText = speaker ? `With ${speaker}\n` : '';
 
+    // Context opener: reads as a personal invitation to the live call.
+    let openerCore;
+    if (weekday) {
+      let dateTimeNoWeekday = null;
+      const ed2 = new Date(post.event_date);
+      if (!isNaN(ed2.getTime())) {
+        try {
+          dateTimeNoWeekday = new Intl.DateTimeFormat('en-US', {
+            timeZone: 'America/New_York',
+            month: 'long',
+            day: 'numeric',
+            hour: 'numeric',
+            minute: '2-digit',
+          }).format(ed2);
+        } catch { dateTimeNoWeekday = null; }
+      }
+      openerCore = dateTimeNoWeekday
+        ? `Our next Save the Uterus Club live call is this ${weekday}, ${dateTimeNoWeekday} Eastern, and you are invited.`
+        : `Our next Save the Uterus Club live call is this ${weekday}, and you are invited.`;
+    } else {
+      openerCore = 'Our next Save the Uterus Club live call is coming up, and you are invited.';
+    }
+    const openerHtml = `<p>${escapeHtml(openerCore)}</p>`;
+    const openerText = `${openerCore}\n\n`;
+
+    // Teaser scrub: keep flyer markdown, Meet links, and the dial-in/PIN line out
+    // of the 250-char preview by construction (not by body-ordering convention).
     const rawBody = post.body && typeof post.body === 'string' ? post.body : '';
-    const plainBody = rawBody.replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim();
+    const scrubbedBody = rawBody
+      .split(/\r?\n/)
+      .filter(line => {
+        if (/meet\.google\.com/i.test(line)) return false;
+        if (/^\s*join google meet/i.test(line)) return false;
+        if (/^\s*Phone:/i.test(line)) return false;
+        return true;
+      })
+      .join('\n')
+      .replace(/!\[[^\]]*\]\([^)]*\)/g, ' ')
+      .replace(/\[([^\]]*)\]\([^)]*\)/g, '$1');
+    const plainBody = scrubbedBody.replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim();
     const bodyPreview = plainBody.length > 0
       ? (plainBody.length > 250 ? plainBody.slice(0, 250) + '…' : plainBody)
       : '';
@@ -161,12 +225,13 @@ export async function notifyNewPost(env, db, post, authorName) {
         : 'Hi,';
       const html = `
     <p>${greeting}</p>
+    ${openerHtml}
     <p><strong>${escapeHtml(eventTitle)}</strong></p>
     ${dateLine}${speakerLineHtml}${bodyPreviewHtml}
     <p>Sign in to the community to view the link and join.</p>
     <p><a href="${link}">View event</a></p>
   `;
-      const text = `${greeting}\n\n${eventTitle}\n${dateLineText}${speakerLineText}${bodyPreviewText}Sign in to the community to view the link and join.\nView: ${link}`;
+      const text = `${greeting}\n\n${openerText}${eventTitle}\n${dateLineText}${speakerLineText}${bodyPreviewText}Sign in to the community to view the link and join.\nView: ${link}`;
       return { html, text };
     };
   } else {
