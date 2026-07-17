@@ -2,7 +2,7 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import {
   monthBoundsET, validateMonthParam, partitionRoster, invoiceDropout,
-  isDunningDropout, parseDbTs, computeLapsed, centsInt, assembleReport,
+  isDunningDropout, parseDbTs, subStartEpochMs, computeLapsed, centsInt, assembleReport,
   KNOWN_PAUSED, LAPSE_MAX_DAYS, NEW_MEMBER_GRACE_DAYS,
 } from '../../functions/api/admin/_membership-metrics.js';
 
@@ -67,6 +67,13 @@ test('isDunningDropout flags past_due and unpaid only', () => {
   assert.equal(isDunningDropout({ status: 'active' }), false);
 });
 
+test('subStartEpochMs: start_date wins over created, seconds -> ms, missing both -> NaN', () => {
+  assert.equal(subStartEpochMs({ start_date: 1751328000, created: 1700000000 }), 1751328000000);
+  assert.equal(subStartEpochMs({ created: 1700000000 }), 1700000000000);
+  assert.ok(Number.isNaN(subStartEpochMs({})));
+  assert.ok(Number.isNaN(subStartEpochMs(undefined)));
+});
+
 test('parseDbTs normalizes ISO and SQLite space formats', () => {
   assert.equal(parseDbTs('2026-07-01T00:00:00.000Z'), Date.parse('2026-07-01T00:00:00.000Z'));
   assert.equal(parseDbTs('2026-07-01 00:00:00'), Date.parse('2026-07-01T00:00:00Z'));
@@ -103,7 +110,11 @@ test('assembleReport emits the full schema with integer cents and partition inva
     rosterRows: [
       { role: 'member', has_stripe: 1, has_legacy: 0, has_wix: 0, tier: 'member', monthly_cents: 900 },
       { role: 'member', has_stripe: 0, has_legacy: 0, has_wix: 1, tier: 'superhero', monthly_cents: 9900 },
-      { role: 'admin', has_stripe: 0, has_legacy: 0, has_wix: 0, tier: null, monthly_cents: 0 },
+      // Staff row with nonzero monthly_cents: must NOT leak into revenue totals.
+      { role: 'admin', has_stripe: 0, has_legacy: 0, has_wix: 0, tier: null, monthly_cents: 9900 },
+      // Legacy (complimentary) row with nonzero monthly_cents: counts in
+      // legacy_count only, never in revenue or active_by_tier.
+      { role: 'member', has_stripe: 0, has_legacy: 1, has_wix: 0, tier: 'member', monthly_cents: 900 },
     ],
     priorRecurringCents: 9900,
     supporterEmails: ['a@x.com', 'A@x.com', 'b@x.com'],
@@ -123,18 +134,25 @@ test('assembleReport emits the full schema with integer cents and partition inva
   }
   // total_supporters dedups lowercased email (a@x.com == A@x.com) -> 2 distinct
   assert.equal(rep.headline.total_supporters, 2);
-  // recurring_monthly_cents = paying branches only (900 + 9900), integer
+  // recurring_monthly_cents = paying branches only (900 + 9900), integer.
+  // The staff row (9900) and legacy row (900) carry nonzero monthly_cents but
+  // must not leak into the total.
   assert.equal(rep.headline.recurring_monthly_cents, 10800);
   assert.ok(Number.isInteger(rep.headline.recurring_monthly_cents));
   assert.equal(rep.headline.delta_vs_prior_month_cents, 10800 - 9900);
   assert.equal(rep.headline.degraded, false);
-  // partition invariant on the response
+  // partition invariant on the response: stripe=1, wix=1, staff=1, legacy=1
   const s = rep.stuc;
-  assert.equal(s.wix_count + s.stripe_count + s.legacy_count + s.staff_count,
-    s.wix_count + s.stripe_count + s.legacy_count + s.staff_count); // structural
+  assert.equal(s.stripe_count, 1);
+  assert.equal(s.wix_count, 1);
   assert.equal(s.staff_count, 1);
+  assert.equal(s.legacy_count, 1);
+  assert.equal(s.wix_count + s.stripe_count + s.legacy_count + s.staff_count, 4);
+  // active_by_tier counts paying branches only: legacy 'member' row excluded
   assert.equal(s.active_by_tier.member, 1);
   assert.equal(s.active_by_tier.superhero, 1);
+  assert.equal(s.active_by_tier.hero, 0);
+  assert.equal(s.monthly_cents, 10800);
   assert.ok(Number.isInteger(s.monthly_cents));
 });
 

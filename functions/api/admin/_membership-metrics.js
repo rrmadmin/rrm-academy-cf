@@ -1,10 +1,10 @@
 /**
- * Shared pure helpers for the membership report. No network, no bindings —
+ * Shared pure helpers for the membership report. No network, no bindings;
  * every function here is unit-testable in isolation (G1). Prefixed with _ so
  * CF Pages does not treat it as a route.
  *
  * Predicates ported from rrm-observatory (separate repo, so duplication with a
- * cross-reference is accepted — do not invent a shared module):
+ * cross-reference is accepted, do not invent a shared module):
  *   - invoiceDropout()  <- src/digest/donors.js invoiceDropout()
  *   - parseDbTs(), subStartEpochMs(), lapse logic, KNOWN_PAUSED
  *                       <- src/daemons/stuc-label-drift.js
@@ -14,7 +14,7 @@ export const LAPSE_MAX_DAYS = 45;
 export const NEW_MEMBER_GRACE_DAYS = 14;
 const DAY_MS = 86_400_000;
 
-// Deliberate, Brian-approved comp/pause — never a dropout. Mirror of the
+// Deliberate, Brian-approved comp/pause (never a dropout). Mirror of the
 // observatory KNOWN_PAUSED allowlist (stuc-label-drift.js).
 export const KNOWN_PAUSED = ['vjgbergin@gmail.com'];
 
