@@ -341,4 +341,4 @@ Not started. See `rrm-router/RRM Router PRD/Phase-9-Decommission.md`.
 
 <!-- merge.yml pipeline canary: 2026-06-22 -- validates the hardened auto-merge path (PR #42). Safe to remove. -->
 
-- **Board portal (/board/) + admin professionalization** — HANDOFF ready: `docs/handoffs/2026-07-16-board-portal-handoff.md`. Role-gated director access (financials, grants, compliance, governance docs) + shadcn-quality admin shell via house primitives. Start after 07-24. Two Brian decisions up top (shadcn interpretation, in-app role vs CF Access).
+- **Admin rebuild (literal shadcn, Brian-decided 07-16) + board portal (/board/)** — HANDOFF: `docs/handoffs/2026-07-16-board-portal-handoff.md`. D0 kill-list audit of the 12 admin pages (~50% dead per Brian) -> shadcn left-sidebar shell (React islands, scoped Tailwind, admin routes only; public site untouched) -> role-gated director surfaces. Start after 07-24. Remaining decision: in-app role vs CF Access.
