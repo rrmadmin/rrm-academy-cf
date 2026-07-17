@@ -44,6 +44,7 @@
     ".site-footer": "standalone functions/ document shells vs site Footer component",
     ".related-grid": "commentary related grid steps to 3 columns on desktop (smaller cards), library stays 2 (wider article cards); deliberate per content type",
     ".admin-bar": "membership.astro tokenizes the raw #3d2a32/#f0e5e9 literal via local --admin-bar-bg/--admin-rose-100 custom properties (same resolved colors); other admin pages still use the literal pending a repo-wide admin-chrome token migration",
-    ".admin-bar__site-link": "membership.astro snaps the 5px padding to var(--space-1) (4px, same visual scale step); other admin pages still use the literal 5px pending the same admin-chrome token migration"
+    ".admin-bar__site-link": "membership.astro snaps the 5px padding to var(--space-1) (4px, same visual scale step); other admin pages still use the literal 5px pending the same admin-chrome token migration",
+    ".admin-bar__link--active": "membership.astro fixes a real white-on-white bug (color:var(--white) on background:var(--white)) by using var(--admin-bar-bg) for text; other admin pages (revenue/enrollments/backlinks/seo/content/etc.) still carry the same latent bug, found during Task 5 G3 review, fix not yet ported to those files"
   }
 }
