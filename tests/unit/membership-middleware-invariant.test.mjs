@@ -11,12 +11,22 @@ test('carve-out lowers exactly /admin/membership to admin', () => {
   assert.match(src, /\/admin\/membership/);
   assert.match(src, /roleAtLeast\(\s*session\.role\s*,\s*requiredRole\s*\)/);
   assert.match(src, /isMembershipPage\s*\?\s*'admin'\s*:\s*'superadmin'/);
+  // Pin the exact isMembershipPage definition -- must not broaden to e.g.
+  // startsWith('/admin') which would flip every other /admin/* page to admin too.
+  assert.match(
+    src,
+    /isMembershipPage\s*=\s*pathnameLower\s*===\s*'\/admin\/membership'\s*\|\|\s*pathnameLower\.startsWith\('\/admin\/membership\/'\)/
+  );
 });
 
 test('every other /admin/* path stays superadmin (default branch intact)', () => {
-  // The default of the ternary must be 'superadmin'; there must be no unguarded
-  // roleAtLeast(..., 'admin') applied to the whole /admin/* block.
-  assert.match(src, /:\s*'superadmin'/);
+  // The ternary's else-branch must be 'superadmin', and there must be exactly
+  // one roleAtLeast(session.role, ...) call in the whole file -- the carve-out's
+  // requiredRole check -- so no other unguarded admin-level check can slip in
+  // beside it for the rest of /admin/*.
+  assert.match(src, /isMembershipPage\s*\?\s*'admin'\s*:\s*'superadmin'/);
+  const roleAtLeastCalls = src.match(/roleAtLeast\(\s*session\.role\s*,/g) || [];
+  assert.equal(roleAtLeastCalls.length, 1);
 });
 
 test('account + community gating preserved (do not regress the existing invariant)', () => {
