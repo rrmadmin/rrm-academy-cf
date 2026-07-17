@@ -354,8 +354,13 @@ export async function onRequest(context) {
       ]));
     }
 
+    // Carve-out (decided 2026-07-17): /admin/membership is Naomi-facing and gates
+    // at admin, NOT superadmin. Every OTHER /admin/* path stays superadmin.
+    const isMembershipPage = pathnameLower === '/admin/membership' || pathnameLower.startsWith('/admin/membership/');
+    const requiredRole = isMembershipPage ? 'admin' : 'superadmin';
+
     // role is already returned by validateSession (via the JOIN on user).
-    if (!roleAtLeast(session.role, 'superadmin')) {
+    if (!roleAtLeast(session.role, requiredRole)) {
       return withSecurityHeaders(new Response('Forbidden', { status: 403 }));
     }
 
