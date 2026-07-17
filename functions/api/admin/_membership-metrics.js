@@ -211,14 +211,20 @@ export function assembleReport(input) {
   const recurring_monthly_cents = centsInt(monthly_cents);
   const degraded = !!stripeUnavailable;
   // A partial headline must never render as a real drop against baseline.
+  // The delta compares current roster MRR to last month's realized membership
+  // receipts (donor_gift kind='membership'), because no historical MRR
+  // snapshot exists to diff against. delta_basis discloses this so renderers
+  // must phrase it as "vs last month's membership receipts", not "vs last
+  // month's MRR". Always present, even when the delta itself is nulled.
   const delta_vs_prior_month_cents = degraded
     ? null
     : recurring_monthly_cents - centsInt(priorRecurringCents);
+  const delta_basis = 'prior_month_membership_receipts';
 
   return {
     generated_at: generatedAt,
     month,
-    headline: { total_supporters, recurring_monthly_cents, delta_vs_prior_month_cents, degraded },
+    headline: { total_supporters, recurring_monthly_cents, delta_vs_prior_month_cents, delta_basis, degraded },
     stuc: {
       active_by_tier,
       monthly_cents: recurring_monthly_cents,

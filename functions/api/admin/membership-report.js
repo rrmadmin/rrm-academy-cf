@@ -25,11 +25,21 @@ import { STUC_MEMBER_WHERE, tierFromPriceOrAmount, tierFromLabel } from '../comm
 import {
   monthBoundsET, validateMonthParam, invoiceDropout, isDunningDropout,
   subStartEpochMs, computeLapsed, centsInt, assembleReport, KNOWN_PAUSED,
+  LAPSE_MAX_DAYS,
 } from './_membership-metrics.js';
 
 const STUC_LABEL = 'Save the Uterus Club \u{1F3F7}\u{FE0F}';
 const MAX_PAGES = 10;
 const STRIPE_STATUSES = ['active', 'past_due', 'unpaid', 'canceled'];
+const DAY_MS = 86_400_000;
+
+// Every response from this endpoint -- success or error -- must carry
+// Cache-Control: no-store (dashboard data must never be served stale from a
+// shared/browser cache). Route every return through this local helper rather
+// than calling json() directly.
+function respond(data, status = 200) {
+  return json(data, status, { 'Cache-Control': 'no-store' });
+}
 
 function normalizeTier(raw) {
   if (raw == null) return 'member';
@@ -45,13 +55,13 @@ async function requireAdminOrBearer(request, env) {
     if (env.ADMIN_API_SECRET && constantTimeEqual(token, env.ADMIN_API_SECRET)) {
       return { user: { role: 'admin', machine: true } };
     }
-    return json({ ok: false, error: 'Not authenticated' }, 401);
+    return respond({ ok: false, error: 'Not authenticated' }, 401);
   }
-  if (!env.DB) return json({ ok: false, error: 'Server misconfigured' }, 500);
+  if (!env.DB) return respond({ ok: false, error: 'Server misconfigured' }, 500);
   const sessionId = getSessionIdFromCookie(request);
   const session = await validateSession(env.DB, sessionId);
-  if (!session) return json({ ok: false, error: 'Not authenticated' }, 401);
-  if (!roleAtLeast(session.role, 'admin')) return json({ ok: false, error: 'Forbidden' }, 403);
+  if (!session) return respond({ ok: false, error: 'Not authenticated' }, 401);
+  if (!roleAtLeast(session.role, 'admin')) return respond({ ok: false, error: 'Forbidden' }, 403);
   return { user: { role: session.role, id: session.userId } };
 }
 
@@ -71,13 +81,13 @@ export async function onRequestGet({ request, env }) {
     const auth = await requireAdminOrBearer(request, env);
     if (auth instanceof Response) return auth;
 
-    if (!env.DB) return json({ ok: false, error: 'Database unavailable' }, 503);
+    if (!env.DB) return respond({ ok: false, error: 'Database unavailable' }, 503);
 
     const url = new URL(request.url);
     const nowMs = Date.now();
     const month = validateMonthParam(url.searchParams.get('month'), nowMs);
     if (!month) {
-      return json({ ok: false, error: 'Invalid month. Use YYYY-MM within the last 24 months.' }, 400);
+      return respond({ ok: false, error: 'Invalid month. Use YYYY-MM within the last 24 months.' }, 400);
     }
 
     const b = monthBoundsET(month);
@@ -176,6 +186,41 @@ export async function onRequestGet({ request, env }) {
          GROUP BY u.id, u.email, u.created_at`
       );
 
+      // New foundation recurring donors: their FIRST-ever qualifying recurring
+      // gift falls inside the reporting month. LIMIT 50 per spec.
+      const newRecurringStmt = db.prepare(
+        `SELECT lower(email) AS email,
+           (SELECT display_name FROM donor_gift d2
+              WHERE d2.email = d.email COLLATE NOCASE AND d2.kind='recurring' AND d2.entity='foundation' AND d2.refunded_at IS NULL
+              ORDER BY d2.occurred_at ASC LIMIT 1) AS display_name,
+           (SELECT amount_cents FROM donor_gift d3
+              WHERE d3.email = d.email COLLATE NOCASE AND d3.kind='recurring' AND d3.entity='foundation' AND d3.refunded_at IS NULL
+              ORDER BY d3.occurred_at ASC LIMIT 1) AS amount_cents
+         FROM donor_gift d
+         WHERE d.kind='recurring' AND d.entity='foundation' AND d.refunded_at IS NULL
+         GROUP BY lower(d.email)
+         HAVING MIN(d.occurred_at) >= ?1 AND MIN(d.occurred_at) < ?2
+         LIMIT 50`
+      ).bind(b.startUtc, b.endUtc);
+
+      // Lapsed foundation recurring donors: at least one qualifying recurring
+      // gift, most recent older than LAPSE_MAX_DAYS as of month end (computed
+      // in JS below -- same 45-day threshold constant as the STUC lapse scan,
+      // ported from rrm-observatory stuc-label-drift.js). Ordered oldest-last-
+      // gift-first so the LIMIT 50 keeps the most urgent candidates.
+      const lapsedRecurringStmt = db.prepare(
+        `SELECT lower(email) AS email,
+           (SELECT display_name FROM donor_gift d2
+              WHERE d2.email = d.email COLLATE NOCASE AND d2.kind='recurring' AND d2.entity='foundation' AND d2.refunded_at IS NULL
+              ORDER BY d2.occurred_at DESC LIMIT 1) AS display_name,
+           MAX(d.occurred_at) AS last_gift_at
+         FROM donor_gift d
+         WHERE d.kind='recurring' AND d.entity='foundation' AND d.refunded_at IS NULL
+         GROUP BY lower(d.email)
+         ORDER BY last_gift_at ASC
+         LIMIT 50`
+      );
+
       const trendStmt = db.prepare(
         `SELECT strftime('%Y-%m', occurred_at) AS ym,
            SUM(CASE WHEN kind='membership' THEN amount_cents ELSE 0 END) AS stuc_cents,
@@ -188,7 +233,7 @@ export async function onRequestGet({ request, env }) {
 
       const res = await runReads(db, [
         rosterStmt, donorEmailsStmt, monthAggStmt, ytdAggStmt, priorAggStmt,
-        wixJoinedStmt, wixLeftStmt, lapseStmt, trendStmt,
+        wixJoinedStmt, wixLeftStmt, lapseStmt, newRecurringStmt, lapsedRecurringStmt, trendStmt,
       ]);
       d1 = {
         roster: res[0]?.results || [],
@@ -199,11 +244,13 @@ export async function onRequestGet({ request, env }) {
         wixJoined: res[5]?.results || [],
         wixLeft: res[6]?.results || [],
         lapse: res[7]?.results || [],
-        trend: res[8]?.results || [],
+        newRecurringRaw: res[8]?.results || [],
+        lapsedRecurringRaw: res[9]?.results || [],
+        trend: res[10]?.results || [],
       };
     } catch (err) {
       log(env, null, 'admin', 'membership_report_d1_error', 'error', err.message, 0, 500);
-      return json({ ok: false, error: 'Database error' }, 500);
+      return respond({ ok: false, error: 'Database error' }, 500);
     }
 
     const rosterRows = d1.roster.map((row) => {
@@ -298,7 +345,7 @@ export async function onRequestGet({ request, env }) {
         }
       } catch (err) {
         stripeUnavailable = true;
-        log(env, null, 'admin', 'membership_report_stripe_unavailable', 'warn', 'stripe list failed', 0, 200);
+        log(env, null, 'admin', 'membership_report_stripe_unavailable', 'warn', err.message, 0, 200);
       }
     }
 
@@ -352,12 +399,30 @@ export async function onRequestGet({ request, env }) {
     const joined = [...d1.wixJoined.map((r) => ({ email: r.email, name: null })), ...stripeJoins];
     const left = [...d1.wixLeft.map((r) => ({ email: r.email, name: null })), ...stripeLeaves];
 
+    const newRecurring = d1.newRecurringRaw.map((r) => ({
+      email: r.email,
+      display_name: r.display_name || null,
+      amount_cents: centsInt(r.amount_cents),
+    }));
+
+    // days_since_last is computed as of the reporting month's end (not
+    // Date.now()), per spec -- the report is describing the state of that
+    // month, not the state right now.
+    const lapsedRecurring = d1.lapsedRecurringRaw
+      .map((r) => {
+        const lastMs = Date.parse(r.last_gift_at);
+        const days = Number.isFinite(lastMs) ? Math.floor((monthEndMs - lastMs) / DAY_MS) : null;
+        return { email: r.email, display_name: r.display_name || null, days_since_last: days };
+      })
+      .filter((r) => r.days_since_last != null && r.days_since_last > LAPSE_MAX_DAYS)
+      .slice(0, 50);
+
     const foundation = {
       one_time_this_month_cents: d1.monthAgg.f_one_time || 0,
       recurring_this_month_cents: d1.monthAgg.f_recurring || 0,
       ytd_cents: (d1.ytdAgg.f_one_time || 0) + (d1.ytdAgg.f_recurring || 0),
-      new_recurring: [],
-      lapsed_recurring: [],
+      new_recurring: newRecurring,
+      lapsed_recurring: lapsedRecurring,
       ppgf_this_month_cents: d1.monthAgg.ppgf || 0,
     };
     const academy = {
@@ -377,8 +442,8 @@ export async function onRequestGet({ request, env }) {
     const actions = [];
     for (const w of watchlist) actions.push({ who: 'Brian', what: w.action });
     if (stripeTruncated) actions.push({ who: 'Brian', what: 'Stripe list truncated, report may be partial.' });
-    for (const _d of foundation.lapsed_recurring) {
-      actions.push({ who: 'Naomi', what: 'Reach out to a lapsed recurring donor.' });
+    for (const donor of foundation.lapsed_recurring) {
+      actions.push({ who: 'Naomi', what: `Reach out to ${donor.display_name || donor.email}, a lapsed recurring donor.` });
     }
 
     const report = assembleReport({
@@ -401,9 +466,9 @@ export async function onRequestGet({ request, env }) {
     log(env, null, 'admin', 'membership_report_ok', 'ok', month, 0, 200,
       [String(rosterRows.length), stripeUnavailable ? 'degraded' : 'full']);
 
-    return json(report, 200, { 'Cache-Control': 'no-store' });
+    return respond(report, 200);
   } catch (err) {
     log(env, null, 'admin', 'membership_report_error', 'error', err.message, 0, 502);
-    return json({ ok: false, error: 'Failed to build membership report' }, 502);
+    return respond({ ok: false, error: 'Failed to build membership report' }, 502);
   }
 }

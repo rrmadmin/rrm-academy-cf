@@ -140,6 +140,7 @@ test('assembleReport emits the full schema with integer cents and partition inva
   assert.equal(rep.headline.recurring_monthly_cents, 10800);
   assert.ok(Number.isInteger(rep.headline.recurring_monthly_cents));
   assert.equal(rep.headline.delta_vs_prior_month_cents, 10800 - 9900);
+  assert.equal(rep.headline.delta_basis, 'prior_month_membership_receipts');
   assert.equal(rep.headline.degraded, false);
   // partition invariant on the response: stripe=1, wix=1, staff=1, legacy=1
   const s = rep.stuc;
@@ -167,5 +168,6 @@ test('assembleReport degrades: stripeUnavailable nulls delta and flags degraded'
   });
   assert.equal(rep.headline.degraded, true);
   assert.equal(rep.headline.delta_vs_prior_month_cents, null);
+  assert.equal(rep.headline.delta_basis, 'prior_month_membership_receipts');
   assert.equal(rep.stuc.stripe_unavailable, true);
 });
