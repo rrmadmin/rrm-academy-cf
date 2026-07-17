@@ -4,6 +4,8 @@
 
 Source of truth: `docs/superpowers/specs/2026-07-17-membership-report-design.md`. Every requirement there maps to a task below (see Self-Review).
 
+Implementer note: Task 2's endpoint code is written by the repo-mandated `coder` agent (Opus/Sonnet tier, per `feedback-code-writing-agents-opus-sonnet`); the orchestrating session dispatches and reviews, it does not hand-write `functions/api/` code.
+
 ## Goal
 
 Ship one membership/supporter picture (STUC memberships + RRMF donations + RRMA course purchases) served two identical ways from a single endpoint: a live admin-gated dashboard at `/admin/membership/` and a plain-language monthly email sent by rrm-observatory on the 1st.
@@ -35,6 +37,8 @@ A new `GET /api/admin/membership-report` (rrm-academy-cf) computes the whole rep
   - **G5** first month's numbers cross-checked against the independent hand computation (baseline: 2026-07 audit — $478/mo confirmed external, Wix $433 + Stripe $45, Clarke excluded, Victoria paused) before Naomi is added to recipients.
   - **G6** Stripe-unreachable path exercised (fault injection): report still 200, `headline.degraded=true`, delta nulled, both surfaces label the headline partial.
   - **Rollout gate**: canary (G4) → hand-check (G5) → add Naomi to recipients.
+- **Global revert posture**: every task's changes are plain git commits (plus two explicitly-scripted config actions in Task 4), revertible via `git revert` + redeploy with no human-only actions; each risk-bearing task below ends with an explicit **Revert:** command block.
+- **Halt sentinels (autonomous runners)**: manual gates are encoded as sentinel files under `.superpowers/sdd/` (repo root). The runner creates the sentinel, STOPS, and may proceed only after Brian deletes the file or explicitly instructs in-session. Naomi is NOT added to recipients while ANY `halt-*.pending` sentinel exists.
 
 ## Grounding notes (verified against live code)
 
@@ -49,7 +53,7 @@ A new `GET /api/admin/membership-report` (rrm-academy-cf) computes the whole rep
 - rrm-observatory `src/notify.js`: `sendNotification(env, subject, html)` — `NOTIFY_TO='administrator@rrmacademy.org'`, `NOTIFY_CC=['agent@whittaker.ai']`, SES v2 `POST /v2/email/outbound-emails` with `Destination:{ToAddresses:[NOTIFY_TO], CcAddresses:NOTIFY_CC}`, 10s abort. `esc()` + inline-styled `<table>` helpers already present.
 - rrm-observatory `src/digest/donors.js`: raw Stripe REST (`fetch('https://api.stripe.com/v1'..., {headers:{Authorization:Bearer STRIPE_RESTRICTED_KEY}})`), `expand[]=data.customer` + `expand[]=data.latest_invoice`; `invoiceDropout(sub)` = latest_invoice object with status `void|uncollectible`, `amount_paid<=0`, skip `subscription_create` at `amount_due==0`.
 - rrm-observatory `src/daemons/stuc-label-drift.js`: `LAPSE_MAX_DAYS=45`, `NEW_MEMBER_GRACE_DAYS=14`, `KNOWN_PAUSED=['vjgbergin@gmail.com']`, `parseDbTs()`, `subStartEpochMs()` (start_date wins over created), lapse query joins `donor_gift g ON g.email=u.email COLLATE NOCASE AND g.source='stripe' AND g.kind='membership' AND g.refunded_at IS NULL`.
-- rrm-observatory deploy (manual, no CI deploy): `node scripts/wave2-scaffold-checks.mjs && node tools/check-manifest-validates.mjs && node tools/check-spec-manifest-parity.mjs && CLOUDFLARE_API_TOKEN=$(op read 'op://Automation/CF - Worker Deploy - account/credential') CLOUDFLARE_ACCOUNT_ID=ecf2c5bc8b5ebd634bcb587b3890910a npx wrangler deploy`; also `bash scripts/wave1-smoke.sh` (28 assertions). The 3 manifest gates only look at daemon REGISTRY rows, not crons — a named-branch cron with no daemon entry is fine (the existing `0 12 * * *` / `0 5 * * *` crons are named-branch, no daemon).
+- rrm-observatory deploy (manual, no CI deploy): `source ~/.zshrc && node scripts/wave2-scaffold-checks.mjs && node tools/check-manifest-validates.mjs && node tools/check-spec-manifest-parity.mjs && CLOUDFLARE_API_TOKEN=$(op read 'op://Automation/CF - Worker Deploy - account/credential') CLOUDFLARE_ACCOUNT_ID=ecf2c5bc8b5ebd634bcb587b3890910a npx wrangler deploy`; also `bash scripts/wave1-smoke.sh` (28 assertions). The 3 manifest gates only look at daemon REGISTRY rows, not crons — a named-branch cron with no daemon entry is fine (the existing `0 12 * * *` / `0 5 * * *` crons are named-branch, no daemon).
 
 ---
 
@@ -507,6 +511,12 @@ git commit -m "Add pure membership-metrics module (month bucketing, roster parti
 Co-Authored-By: Claude Fable 5 <noreply@anthropic.com>"
 ```
 
+**Revert:** plain git revert, no human-only actions:
+```
+git revert --no-edit <task1-sha>
+git push origin claude/membership-report   # auto-merge redeploys
+```
+
 ---
 
 ## Task 2 — `GET /api/admin/membership-report` endpoint (auth dual-path, ?month, Stripe fetch, degradation, no-store)
@@ -693,7 +703,7 @@ test('d1 down -> 500', async () => {
        GROUP BY ym ORDER BY ym
        ```
      - Use `env.DB.batch([...])` for all read statements (batched D1, per CLAUDE.md SQL discipline).
-  7. **Stripe** (try/catch; failure sets `stripeUnavailable = true`, never a 500): if `!env.STRIPE_RESTRICTED_KEY`, treat as unavailable. Instantiate `new Stripe(env.STRIPE_RESTRICTED_KEY, { httpClient: Stripe.createFetchHttpClient(), apiVersion: STRIPE_API_VERSION })`. Fetch active/past_due/unpaid/canceled subs with `expand: ['data.customer','data.latest_invoice']`, `limit: 100`, auto-paginated (mirror revenue.js `for await`). Build:
+  7. **Stripe** (try/catch; failure sets `stripeUnavailable = true`, never a 500): if `!env.STRIPE_RESTRICTED_KEY`, treat as unavailable. Instantiate `new Stripe(env.STRIPE_RESTRICTED_KEY, { httpClient: Stripe.createFetchHttpClient(), apiVersion: STRIPE_API_VERSION })`. Fetch active/past_due/unpaid/canceled subs with `expand: ['data.customer','data.latest_invoice']`, `limit: 100`, auto-paginated (mirror revenue.js `for await`) with a hard `maxPages = 10` cap per status (1000 subs; matches donors.js `stripeListAll` cap — break out of the `for await` after 10 x 100 items so a runaway list cannot blow the <5s budget; if the cap is hit, note it in the watchlist-free `actions` as "Stripe list truncated, report may be partial"). Build:
      - `subStartByEmail` Map (lowered customer email -> newest `subStartEpochMs`, voided-invoice subs excluded) — for the lapse grace check.
      - Stripe roster amounts/tiers (via `tierFromPriceOrAmount`) folded into the paying-branch rows.
      - Watchlist candidates: `invoiceDropout` (kind `voided_invoice`, action "Their most recent payment was voided but the subscription is still open. Cancel it in Stripe."), `isDunningDropout` (kind `past_due`, action "Their card is failing. Recover the payment or cancel in Stripe."), joins (`start_date` in month), leaves (`canceled_at` in month).
@@ -716,6 +726,12 @@ git add functions/api/admin/membership-report.js tests/unit/membership-report-en
 git commit -m "Add GET /api/admin/membership-report (admin-or-bearer, ?month ET bucketing, Stripe degradation, no-store)
 
 Co-Authored-By: Claude Fable 5 <noreply@anthropic.com>"
+```
+
+**Revert:** plain git revert, no human-only actions:
+```
+git revert --no-edit <task2-sha>
+git push origin claude/membership-report   # auto-merge redeploys; endpoint 404s again
 ```
 
 ---
@@ -787,6 +803,17 @@ git commit -m "Middleware carve-out: /admin/membership gates at admin (not super
 Co-Authored-By: Claude Fable 5 <noreply@anthropic.com>"
 ```
 
+**Revert:** restores the fixed `roleAtLeast(session.role, 'superadmin')` check for ALL `/admin/*`, no human-only actions:
+```
+git revert --no-edit <carve-out-sha>
+npm run guard:update    # re-pin the reverted _middleware.js hash in guard-manifest.json
+git add guard-manifest.json && git commit -m "guard:update after middleware carve-out revert
+
+Co-Authored-By: Claude Fable 5 <noreply@anthropic.com>"
+git push origin claude/membership-report   # auto-merge redeploys
+```
+(The Task 3 invariant test will fail after the revert — revert its commit too, or drop the test file in the same revert push.)
+
 ---
 
 ## Task 4 — Naomi account setup + Stripe key binding + G2 verification (manual steps)
@@ -797,6 +824,7 @@ No code changes. Spelled-out manual steps; verify each outcome (success = state 
 
 - [ ] Bind the read-only Stripe restricted key as a NEW Pages secret (never the `sk_live_` checkout key). From the rrm-academy-cf dir:
 ```
+source ~/.zshrc
 op read 'op://Automation/Stripe Restricted Key - rrm-finance-sync/credential' | \
   CLOUDFLARE_ACCOUNT_ID="ecf2c5bc8b5ebd634bcb587b3890910a" npx wrangler pages secret put STRIPE_RESTRICTED_KEY --project-name rrm-academy
 ```
@@ -828,11 +856,27 @@ CLOUDFLARE_ACCOUNT_ID="ecf2c5bc8b5ebd634bcb587b3890910a" npx wrangler d1 execute
   - Anonymous: `GET /admin/membership/` -> redirect to `/login`; `GET /api/admin/membership-report` -> **401**.
   - Anonymous with `Authorization: Bearer $ADMIN_API_SECRET` -> **200**, and the response carries `Cache-Control: no-store`:
     ```
+    source ~/.zshrc
     SECRET=$(op read 'op://Automation/<admin-api-secret-item>/credential')
     curl -sS -D - -o /dev/null https://rrmacademy.org/api/admin/membership-report -H "Authorization: Bearer $SECRET" | grep -i cache-control
     ```
 
 - [ ] Record the G2 results (pass/fail per check) in the plan's Self-Review or a handoff note. No commit (config-only).
+
+- [ ] **HALT sentinel (autonomous runners):** after recording G2 results, create the sentinel and STOP:
+```
+mkdir -p .superpowers/sdd && touch .superpowers/sdd/halt-task4.pending
+```
+  Proceed to Task 5 ONLY after Brian deletes `.superpowers/sdd/halt-task4.pending` (or explicitly instructs in-session).
+
+**Revert:** un-elevate Naomi and unbind the key (only if THIS task added it), no human-only actions:
+```
+source ~/.zshrc
+CLOUDFLARE_ACCOUNT_ID="ecf2c5bc8b5ebd634bcb587b3890910a" npx wrangler d1 execute rrm-auth --remote \
+  --command "UPDATE user SET role='member' WHERE email='<naomi-email>' COLLATE NOCASE AND role='admin'"
+CLOUDFLARE_ACCOUNT_ID="ecf2c5bc8b5ebd634bcb587b3890910a" npx wrangler pages secret delete STRIPE_RESTRICTED_KEY --project-name rrm-academy
+```
+(Skip the secret delete if `STRIPE_RESTRICTED_KEY` predated this task — check the Task 4 secret-list output. Do NOT touch `STRIPE_SECRET_KEY` or `ADMIN_API_SECRET`.)
 
 ---
 
@@ -884,6 +928,12 @@ Co-Authored-By: Claude Fable 5 <noreply@anthropic.com>"
 - The deploy pipeline runs `css-audit --gate`, the security guard, the payment/analytics/courses/fact gates, and the record-count floors — a new page + new endpoint + guarded-file edit must keep all green (guard was updated in Task 3; run `npm run guard` + `npm test` locally before pushing).
 - Verify the deploy CONCLUSION (merge != deployed) and that `/admin/membership/` serves 200 before marking shipped.
 
+**Revert (Task 5):** plain git revert, no human-only actions:
+```
+git revert --no-edit <task5-sha>
+git push origin claude/membership-report   # auto-merge redeploys; page 404s again
+```
+
 ---
 
 ## Task 6 — observatory `notify.js` `{to, cc}` options change
@@ -900,6 +950,14 @@ sendNotification(env, subject, html, opts = {}) -> { sent }
 ```
 
 **Steps**
+
+- [ ] Clone freshness check (the observatory clone may be stale — run BEFORE any edit):
+```
+cd ~/iCode/projects/rrm-observatory && git fetch origin && \
+  test "$(git rev-list --count HEAD..origin/main)" = 0 || { git pull --rebase --autostash; }
+git status --porcelain -- src/index.js src/notify.js wrangler.toml
+```
+  If the `git status` line shows uncommitted edits to `src/index.js`, `src/notify.js`, or `wrangler.toml` from another session: STOP and surface (do not stash over another session's work in these files).
 
 - [ ] Write the failing test `tests/notify.test.mjs`. Since `sendNotification` sends via `aws.fetch`, assert the Destination it builds by intercepting `globalThis.fetch` (aws4fetch calls the global `fetch`). Provide a fake env with AWS creds so it reaches the fetch; capture the JSON body.
 ```js
@@ -993,6 +1051,16 @@ git commit -m "notify.js: add {to,cc} options (default unchanged); lets a report
 Co-Authored-By: Claude Fable 5 <noreply@anthropic.com>"
 ```
 
+**Revert:** plain git revert + gates + manual redeploy, no human-only actions:
+```
+cd ~/iCode/projects/rrm-observatory
+git revert --no-edit <task6-sha>
+source ~/.zshrc && node scripts/wave2-scaffold-checks.mjs && node tools/check-manifest-validates.mjs && node tools/check-spec-manifest-parity.mjs && \
+  CLOUDFLARE_API_TOKEN=$(op read 'op://Automation/CF - Worker Deploy - account/credential') \
+  CLOUDFLARE_ACCOUNT_ID=ecf2c5bc8b5ebd634bcb587b3890910a npx wrangler deploy
+```
+(Default recipients were byte-identical throughout, so the revert is behaviorally inert for all existing callers.)
+
 ---
 
 ## Task 7 — observatory monthly membership branch: cron + `isMonthlyMembership` + email renderer + canary route + failure notice
@@ -1010,6 +1078,14 @@ priorMonthET(nowMs) -> 'YYYY-MM'                                      // Aug 1 s
 ```
 
 **Steps**
+
+- [ ] Clone freshness check (run BEFORE any edit; may be a no-op if Task 6 just ran it in this session):
+```
+cd ~/iCode/projects/rrm-observatory && git fetch origin && \
+  test "$(git rev-list --count HEAD..origin/main)" = 0 || { git pull --rebase --autostash; }
+git status --porcelain -- src/index.js src/notify.js wrangler.toml
+```
+  If uncommitted edits from another session touch `src/index.js`, `src/notify.js`, or `wrangler.toml`: STOP and surface (do not stash over them).
 
 - [ ] Add the cron to `wrangler.toml`. In the `# Crons:` comment block, add a line, and add `"30 12 1 * *"` to the `crons = [...]` array with an inline note:
 ```
@@ -1098,9 +1174,9 @@ export function renderMembershipEmail(r) {
     return `<p style="margin:10px 0 2px;font-family:Arial,Helvetica,sans-serif;font-size:14px;font-weight:bold;">${esc(title)}</p><ul style="margin:0 0 8px;padding-left:20px;font-family:Arial,Helvetica,sans-serif;font-size:13px;">${items}</ul>`;
   };
   parts.push(listSection('Joined this month', s.joined_this_month, x => `${esc(x.name || x.email)} (${esc(x.tier || 'member')})`));
-  parts.push(listSection('Left this month', s.left_this_month, x => `${esc(x.name || x.email)} — ${esc(x.reason || '')}`));
+  parts.push(listSection('Left this month', s.left_this_month, x => `${esc(x.name || x.email)}: ${esc(x.reason || '')}`));
   parts.push(listSection('Needs a look', s.watchlist, x => `${esc(x.name || x.email)}: ${esc(x.action || x.kind)}`));
-  parts.push(listSection('Paused (do not chase)', s.known_paused, x => `${esc(x.name)} — ${esc(x.note || '')}`));
+  parts.push(listSection('Paused (do not chase)', s.known_paused, x => `${esc(x.name)}: ${esc(x.note || '')}`));
 
   // Foundation + Academy
   const f = r.foundation, a = r.academy;
@@ -1204,11 +1280,21 @@ Co-Authored-By: Claude Fable 5 <noreply@anthropic.com>"
 
 **Deploy choreography (rrm-observatory), manual — no CI deploy:**
 ```
+source ~/.zshrc
 node scripts/wave2-scaffold-checks.mjs && node tools/check-manifest-validates.mjs && node tools/check-spec-manifest-parity.mjs && \
   CLOUDFLARE_API_TOKEN=$(op read 'op://Automation/CF - Worker Deploy - account/credential') \
   CLOUDFLARE_ACCOUNT_ID=ecf2c5bc8b5ebd634bcb587b3890910a npx wrangler deploy
 ```
 No new secrets (`ADMIN_API_SECRET` + SES already bound). Verify the cron registered: `npx wrangler deployments list` / CF dashboard Triggers shows `30 12 1 * *`.
+
+**Revert:** plain git revert of the Task 7 commit (index.js + wrangler.toml + membership-report.js) + gates + manual redeploy — the `30 12 1 * *` cron UN-REGISTERS on that next deploy, so the monthly send is fully disarmed; no human-only actions:
+```
+cd ~/iCode/projects/rrm-observatory
+git revert --no-edit <task7-sha>
+source ~/.zshrc && node scripts/wave2-scaffold-checks.mjs && node tools/check-manifest-validates.mjs && node tools/check-spec-manifest-parity.mjs && \
+  CLOUDFLARE_API_TOKEN=$(op read 'op://Automation/CF - Worker Deploy - account/credential') \
+  CLOUDFLARE_ACCOUNT_ID=ecf2c5bc8b5ebd634bcb587b3890910a npx wrangler deploy
+```
 
 ---
 
@@ -1227,11 +1313,18 @@ curl -sS https://rrmacademy.org/api/admin/membership-report -H "Authorization: B
 
 - [ ] **G4 canary:** trigger a canary send to administrator@ only (Naomi NOT yet in `REPORT_TO`), requesting the just-completed month:
 ```
+source ~/.zshrc
 OBS=$(op read 'op://Automation/RRM Observatory API Token/credential')
 curl -sS -X POST -H "Authorization: Bearer $OBS" \
   "https://rrm-observatory.administrator-cloudflare.workers.dev/api/membership-report?month=2026-07"
 ```
   Confirm the email arrived at administrator@rrmacademy.org, with NO agent@whittaker.ai Cc, subject `Membership report -- July 2026`. Brian eyeballs it.
+
+- [ ] **HALT sentinel (G4 eyeball):** in the rrm-academy-cf repo root:
+```
+mkdir -p .superpowers/sdd && touch .superpowers/sdd/halt-task8-canary.pending
+```
+  STOP. Proceed to G5 ONLY after Brian deletes `.superpowers/sdd/halt-task8-canary.pending` (or explicitly instructs in-session).
 
 - [ ] **G5 hand-check:** cross-check the canary's numbers against the independent hand computation. Baseline (2026-07 audit, confirmed external): **$478/mo** = **Wix $433** (24 x $9 + 1 x $19 + 2 x $99 = 216 + 19 + 198) + **Stripe $45** (5 members x $9). **Clarke Kennedy EXCLUDED** (voided-invoice-on-active dropout — must appear in the watchlist as `voided_invoice`, not in `recurring_monthly_cents`). **Victoria Bergin (vjgbergin@gmail.com) PAUSED/comped** (must appear in `known_paused`, never as a dropout, never in counts). Verify:
   - `headline.recurring_monthly_cents === 47800`.
@@ -1241,7 +1334,13 @@ curl -sS -X POST -H "Authorization: Bearer $OBS" \
   - The refund caveat is understood: `refunded_at` is Stripe-stamped only; a Wix/PayPal manual refund can make a hand check differ (spec, accepted).
   If any number disagrees, STOP and reconcile the endpoint before proceeding — do NOT add Naomi.
 
-- [ ] **Only after G5 passes:** add Naomi to `REPORT_TO` in `src/membership-report.js`:
+- [ ] **HALT sentinel (G5 hand-check):** in the rrm-academy-cf repo root:
+```
+touch .superpowers/sdd/halt-task8-handcheck.pending
+```
+  STOP. Naomi is NOT added to recipients while `.superpowers/sdd/halt-task4.pending`, `.superpowers/sdd/halt-task8-canary.pending`, or `.superpowers/sdd/halt-task8-handcheck.pending` exists. Proceed ONLY after Brian deletes this sentinel (or explicitly instructs in-session).
+
+- [ ] **Only after G5 passes AND all halt sentinels are cleared:** add Naomi to `REPORT_TO` in `src/membership-report.js`:
 ```js
 const REPORT_TO = ['administrator@rrmacademy.org', '<naomi-report-email>'];
 ```
@@ -1253,6 +1352,15 @@ git add src/membership-report.js
 git commit -m "Rollout: add Naomi to membership-report recipients after G5 hand-check ($478/mo baseline reconciled)
 
 Co-Authored-By: Claude Fable 5 <noreply@anthropic.com>"
+```
+
+**Revert:** remove Naomi's address from the `REPORT_TO` constant + redeploy (equivalently `git revert` the Task 8 commit), no human-only actions:
+```
+cd ~/iCode/projects/rrm-observatory
+git revert --no-edit <task8-sha>   # REPORT_TO back to ['administrator@rrmacademy.org']
+source ~/.zshrc && node scripts/wave2-scaffold-checks.mjs && node tools/check-manifest-validates.mjs && node tools/check-spec-manifest-parity.mjs && \
+  CLOUDFLARE_API_TOKEN=$(op read 'op://Automation/CF - Worker Deploy - account/credential') \
+  CLOUDFLARE_ACCOUNT_ID=ecf2c5bc8b5ebd634bcb587b3890910a npx wrangler deploy
 ```
 
 - [ ] Final verification (per `feedback-deliverable-ends-with-location`): state that the dashboard is LIVE at `https://rrmacademy.org/admin/membership/` (admin-gated), the endpoint at `/api/admin/membership-report`, and the monthly email is armed for the 1st at 12:30 UTC with To administrator@ + Naomi, no agent@ Cc.
