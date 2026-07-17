@@ -405,12 +405,14 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
     --admin-text: #313131;
     --admin-text-muted: #636261;
     --admin-text-faint: #949392;
+    --admin-bar-bg: #3d2a32;
+    --admin-rose-100: #f0e5e9;
   }
 
   :global(.admin-page) :global(.site-header) { display: none; }
   :global(.admin-page) :global(footer) { display: none; }
 
-  .admin-bar { background: #3d2a32; color: #f0e5e9; position: sticky; top: 0; z-index: 100; }
+  .admin-bar { background: var(--admin-bar-bg); color: var(--admin-rose-100); position: sticky; top: 0; z-index: 100; }
   .admin-bar__inner { display: flex; align-items: center; height: 48px; gap: var(--space-6); }
   .admin-bar__title { font-family: 'Cormorant Garamond', 'Georgia', serif; font-weight: 600; font-size: 1.25rem; color: var(--admin-rose-300); white-space: nowrap; }
   .admin-bar__nav { display: flex; gap: var(--space-1); flex-wrap: wrap; } @media (max-width: 768px) { .admin-bar__nav { display: none; } }
@@ -418,7 +420,7 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
   .admin-bar__link:hover { color: var(--white); text-decoration: none; }
   .admin-bar__link--active { color: var(--white); background: var(--white); font-weight: 500; }
   .admin-bar__actions { display: flex; align-items: center; gap: var(--space-3); margin-left: auto; }
-  .admin-bar__site-link { font-size: 0.8125rem; font-weight: 500; color: var(--admin-rose-300); text-decoration: none; padding: 5px var(--space-4); border: 1px solid var(--admin-rose-300); border-radius: var(--radius-pill); transition: color 0.15s, border-color 0.15s; }
+  .admin-bar__site-link { font-size: 0.8125rem; font-weight: 500; color: var(--admin-rose-300); text-decoration: none; padding: var(--space-1) var(--space-4); border: 1px solid var(--admin-rose-300); border-radius: var(--radius-pill); transition: color 0.15s, border-color 0.15s; }
   .admin-bar__site-link:hover { color: var(--white); border-color: var(--white); text-decoration: none; }
   .admin-bar__logout { font-size: 0.8125rem; color: var(--white); background: none; border: none; cursor: pointer; padding: var(--space-1) var(--space-2); }
   .admin-bar__logout:hover { color: var(--white); }
@@ -441,7 +443,7 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
   .mem-metrics--3 { grid-template-columns: repeat(3, 1fr); }
   .mem-metrics--4 { grid-template-columns: repeat(4, 1fr); }
   @media (max-width: 768px) { .mem-metrics--3 { grid-template-columns: repeat(2, 1fr); } .mem-metrics--4 { grid-template-columns: repeat(2, 1fr); } }
-  @media (max-width: 460px) { .mem-metrics--3, .mem-metrics--4 { grid-template-columns: 1fr; } }
+  @media (max-width: 640px) { .mem-metrics--3, .mem-metrics--4 { grid-template-columns: 1fr; } }
 
   .mem-card { background: var(--admin-surface); border: 1px solid var(--admin-border); border-radius: var(--radius-md); padding: var(--space-4) var(--space-5); text-align: center; }
   .mem-card__label { display: block; font-size: 0.75rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; color: var(--admin-text-faint); margin-bottom: var(--space-1); }
@@ -474,7 +476,6 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
 
 <style is:global>
   .mem-bar { fill: var(--purple-700); }
-  .mem-axis { font-size: 10px; fill: var(--admin-text-faint); font-family: inherit; }
-  /* no dedicated token for this lighter shade; kept as a literal one step below --admin-text-faint */
-  .mem-axis--faint { fill: #b7b3af; }
+  .mem-axis { font-size: 0.6875rem; fill: var(--admin-text-faint); font-family: inherit; }
+  .mem-axis--faint { fill: var(--neutral-400); }
 </style>
