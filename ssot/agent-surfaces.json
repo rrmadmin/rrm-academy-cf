@@ -143,7 +143,7 @@
       {
         "id": "ask",
         "name": "Ask RRM Academy",
-        "description": "Natural-language question answering over the research corpus with citations, for signed-in users at /ask/. Account signup is self-service and free; see /auth.md for the agent registration flow.",
+        "description": "Natural-language question answering over the research corpus with citations, for signed-in users at /ask/. Account signup is self-service and free; see /auth.md for the agent registration flow. A no-auth, no-key sandbox at POST /api/ask/sandbox returns a canned AskResponse-shaped reply (safe, test-only) so clients can validate parsing before authenticating.",
         "tags": [
           "qa",
           "rag",
@@ -182,7 +182,21 @@
         ]
       }
     ],
-    "x-protocols-note": "Interactive tool access is served over MCP at https://mcp.rrmacademy.org. No A2A JSON-RPC endpoint is currently exposed; this card uses the A2A AgentCard schema for discoverability and skill enumeration."
+    "x-protocols-note": "Interactive tool access is served over MCP at https://mcp.rrmacademy.org. No A2A JSON-RPC endpoint is currently exposed; this card uses the A2A AgentCard schema for discoverability and skill enumeration.",
+    "x-sandbox": {
+      "url": "https://rrmacademy.org/api/ask/sandbox",
+      "method": "POST",
+      "auth_required": false,
+      "api_key_required": false,
+      "safe": true,
+      "test_only": true,
+      "description": "No-auth test surface for the /api/ask contract. Returns a canned, deterministic AskResponse-shaped reply with no LLM invocation, no rate limit, and no data mutation. Use it to validate client parsing before integrating with the authenticated /api/ask endpoint. Accept: text/event-stream yields the SSE variant; every response carries X-Sandbox: true."
+    },
+    "x-repository": {
+      "url": "https://github.com/rrmadmin/rrm-academy-cf",
+      "agents_md": "https://github.com/rrmadmin/rrm-academy-cf/blob/main/AGENTS.md",
+      "description": "Public source repository. AGENTS.md at the repo root gives AI coding agents the project overview, key directories, SSOT rules, and build commands."
+    }
   },
   "policies": {
     "non_goals": [

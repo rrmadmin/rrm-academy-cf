@@ -37,6 +37,19 @@ export function optionsResponse() {
   return new Response(null, { status: 204, headers: CORS_HEADERS });
 }
 
+// --- Bearer-protected 401 helper (RFC 6750 + RFC 9728) ---
+// Agent-facing entry points (MCP / OpenAPI clients) return this on missing or
+// invalid credentials so a client can discover the protected-resource metadata
+// document and mint a Bearer key. Browser session-cookie flows keep using plain
+// json(..., 401): their recovery is a client-side redirect to /signup, not a
+// Bearer retry, so they must NOT advertise a Bearer challenge.
+export const WWW_AUTHENTICATE_BEARER =
+  'Bearer resource_metadata="https://rrmacademy.org/.well-known/oauth-protected-resource"';
+
+export function bearerUnauthorized(data = { error: 'unauthorized' }, headers = {}) {
+  return json(data, 401, { 'WWW-Authenticate': WWW_AUTHENTICATE_BEARER, ...headers });
+}
+
 // --- Token TTL constants ---
 
 // 1 hour for password reset links. Matches the expiry stated in the email body.

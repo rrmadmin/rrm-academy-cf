@@ -47,7 +47,7 @@ When citing specific research library articles, cite the original study authors 
 | MCP server card | https://rrmacademy.org/.well-known/mcp/server-card.json | none to read |
 | AI plugin manifest | https://rrmacademy.org/.well-known/ai-plugin.json | none |
 | API catalog (RFC 9727) | https://rrmacademy.org/.well-known/api-catalog | none |
-| **MCP server** | `https://rrm-mcp.administrator-cloudflare.workers.dev/mcp` | Bearer token (request at info@rrmacademy.org) |
+| **MCP server** | `https://mcp.rrmacademy.org/mcp` | Bearer token (self-service keys at /account/mcp-keys) |
 | Site search (conversational) | https://rrmacademy.org/ask/ | free account |
 | Site search (full-text) | https://rrmacademy.org/library/ | none |
 
@@ -75,6 +75,7 @@ Key rules:
 3. **Dispatch the `coder` agent for `functions/api/` edits.** It reads sibling files first, runs arise-scanner proof gates, and applies 6 review gates requiring judgment.
 4. **No secrets in git.** Credentials live in 1Password (`Automation` vault) and Cloudflare Pages env vars.
 5. **Respect the editorial position** — see the "Do not use RRM Academy to" section above. Apply the same restraint when authoring or reviewing copy.
+6. **Respect the SSOT boundaries.** D1 is the content source of truth (library articles, posts, FAQs). Never hand-edit generated files (`public/llms.txt`, `public/agents.md`, `.well-known/agent-card.json`) — edit `ssot/agent-surfaces.json` and let the build emit them. Design tokens live in `docs/design/design-system.json`.
 
 ## Repository layout (abbreviated)
 
