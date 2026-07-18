@@ -21,6 +21,16 @@
       "deprecation_header_spec": "https://www.rfc-editor.org/rfc/rfc8594",
       "minimum_notice_days": 90,
       "changelog": "https://rrmacademy.org/connect/"
+    },
+    "x-sandbox": {
+      "url": "https://rrmacademy.org/api/ask/sandbox",
+      "method": "POST",
+      "auth_required": false,
+      "api_key_required": false,
+      "safe": true,
+      "test_only": true,
+      "description": "No-auth test surface. POST any (or no) body to receive a canned, deterministic AskResponse-shaped reply with no LLM invocation, no rate limit, and no data mutation. Use it to validate client parsing before integrating with the authenticated /api/ask endpoint. Set Accept: text/event-stream for the SSE variant.",
+      "operationId": "ask_sandbox"
     }
   },
   "servers": [
@@ -219,22 +229,29 @@
       "get": {
         "operationId": "list_articles",
         "summary": "List published library articles",
-        "description": "Returns a paginated list of published, non-retracted research articles from the RRM Academy library. Public, unauthenticated. Rate limited to 30 requests per minute per IP. Responses are edge-cached for 1 hour.",
+        "description": "Returns a paginated list of published, non-retracted research articles from the RRM Academy library. Public, unauthenticated. Rate limited to 30 requests per minute per IP. Responses are edge-cached for 1 hour.\n\nTwo interchangeable pagination modes: classic `page`+`limit` (unchanged, still supported), or opaque `cursor`. Each response returns `nextCursor` (null when the list is exhausted); pass it back as `cursor` to fetch the next page. When `cursor` is supplied, `page` and `limit` query params are ignored (the cursor carries the limit). The cursor is an encoded offset over the library's default sort, not a keyset position, so it is stable within a request session but not a durable bookmark across corpus changes.",
         "security": [],
         "parameters": [
           {
             "name": "page",
             "in": "query",
-            "description": "Page number (1-based). Default: 1. Max: 350.",
+            "description": "Page number (1-based). Default: 1. Max: 350. Ignored when `cursor` is supplied.",
             "required": false,
             "schema": { "type": "integer", "minimum": 1, "maximum": 350, "default": 1 }
           },
           {
             "name": "limit",
             "in": "query",
-            "description": "Results per page. Default: 25. Max: 50.",
+            "description": "Results per page. Default: 25. Max: 50. Ignored when `cursor` is supplied.",
             "required": false,
             "schema": { "type": "integer", "minimum": 1, "maximum": 50, "default": 25 }
+          },
+          {
+            "name": "cursor",
+            "in": "query",
+            "description": "Opaque pagination cursor. Pass the `nextCursor` value from a previous response to fetch the next page. Omit for the first page. Base64url-encoded; treat as opaque. Overrides `page`/`limit`.",
+            "required": false,
+            "schema": { "type": "string", "maxLength": 128, "example": "eyJvIjoyNSwibCI6MjV9" }
           }
         ],
         "responses": {
@@ -252,7 +269,7 @@
             }
           },
           "400": {
-            "description": "Invalid pagination parameters or malformed `ids` query.",
+            "description": "Invalid pagination parameters (`invalid_pagination`) or an undecodable/out-of-range `cursor` (`invalid_cursor`).",
             "content": {
               "application/json": {
                 "schema": { "$ref": "#/components/schemas/Error" },
@@ -302,12 +319,14 @@
             "name": "ids",
             "in": "query",
             "required": true,
-            "description": "Comma-separated list of article IDs to fetch (max 50, deduped, order preserved).",
+            "description": "Comma-separated list of article IDs to fetch (max 50, deduped, order preserved). Modeled as a comma-delimited string because this is a GET query param; the pattern enforces the 50-item cap.",
             "schema": {
               "type": "string",
               "pattern": "^[A-Za-z0-9-]+(,[A-Za-z0-9-]+){0,49}$",
               "example": "rec123abc,rec456def,rec789ghi"
-            }
+            },
+            "x-max-items": 50,
+            "x-item-delimiter": ","
           }
         ],
         "responses": {
@@ -374,13 +393,15 @@
           {
             "name": "ids",
             "in": "query",
-            "description": "Comma-separated list of article IDs to bulk-fetch (max 50, deduped, order preserved). Missing IDs returned in not_found[] instead of producing a 404.",
+            "description": "Comma-separated list of article IDs to bulk-fetch (max 50, deduped, order preserved). Missing IDs returned in not_found[] instead of producing a 404. Modeled as a comma-delimited string because this is a GET query param; the pattern enforces the 50-item cap.",
             "required": true,
             "schema": {
               "type": "string",
               "pattern": "^[A-Za-z0-9-]+(,[A-Za-z0-9-]+){0,49}$",
               "example": "rec123abc,rec456def,rec789ghi"
-            }
+            },
+            "x-max-items": 50,
+            "x-item-delimiter": ","
           }
         ],
         "responses": {
@@ -438,8 +459,8 @@
     "/api/ask/sandbox": {
       "post": {
         "operationId": "ask_sandbox",
-        "summary": "Canned sandbox response for integration testing",
-        "description": "Returns a canned response with no LLM invocation, no auth, and no rate limit. Accepts the same JSON shape as /api/ask but ignores the body. Use to validate that your client correctly parses the AskResponse-shaped reply before integrating with the live /api/ask endpoint.",
+        "summary": "No-auth sandbox test surface for /api/ask",
+        "description": "The public, no-auth, no-key test surface for the /api/ask contract. Live at POST https://rrmacademy.org/api/ask/sandbox. Returns a canned, deterministic response with no LLM invocation, no authentication, no rate limit, and no data mutation (safe to call from any client, any number of times). Accepts the same JSON shape as /api/ask but ignores the body. Use it to validate that your client correctly parses the AskResponse-shaped reply before integrating with the authenticated /api/ask endpoint. Set Accept: text/event-stream for the SSE variant. Every response carries the `X-Sandbox: true` header. Also described under `info.x-sandbox`.",
         "security": [],
         "servers": [{ "url": "https://rrmacademy.org" }],
         "requestBody": {
@@ -1168,6 +1189,11 @@
           "limit": { "type": "integer", "example": 25 },
           "total": { "type": "integer", "example": 3467 },
           "total_pages": { "type": "integer", "example": 139 },
+          "nextCursor": {
+            "type": ["string", "null"],
+            "description": "Opaque cursor for the next page, or null when the list is exhausted. Pass back as the `cursor` query param. Present on every response (offset and cursor modes alike).",
+            "example": "eyJvIjo1MCwibCI6MjV9"
+          },
           "results": {
             "type": "array",
             "items": { "$ref": "#/components/schemas/ArticleSummary" }
@@ -1177,19 +1203,21 @@
       "BulkArticleResponse": {
         "type": "object",
         "required": ["results", "not_found", "requested", "returned"],
-        "description": "Returned by GET /api/articles/bulk. Results for found IDs plus a not_found[] list for missing ones.",
+        "description": "Returned by GET /api/articles/bulk and GET /api/bulk. Partial-failure batch response: found IDs are returned in results[]; IDs that did not resolve to a published article are listed in not_found[] rather than failing the whole request. The batch always returns HTTP 200 when the query is well-formed, even if every ID is missing. `requested` = count of unique IDs received (deduped, max 50); `returned` = results.length. requested === returned + not_found.length.",
         "properties": {
           "results": {
             "type": "array",
+            "description": "Successfully resolved articles, in the deduped order of the requested IDs.",
             "items": { "$ref": "#/components/schemas/ArticleSummary" }
           },
           "not_found": {
             "type": "array",
+            "description": "Requested IDs that did not resolve to a published article (partial-failure list).",
             "items": { "type": "string", "description": "Requested ID that did not resolve to a published article" },
             "example": ["rec999missing"]
           },
-          "requested": { "type": "integer", "example": 3 },
-          "returned": { "type": "integer", "example": 2 }
+          "requested": { "type": "integer", "description": "Count of unique IDs received (after dedupe, capped at 50).", "example": 3 },
+          "returned": { "type": "integer", "description": "Count of articles in results[]. Equals requested minus not_found.length.", "example": 2 }
         }
       },
       "HealthStatus": {
