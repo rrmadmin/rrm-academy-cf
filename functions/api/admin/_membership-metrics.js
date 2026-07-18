@@ -179,12 +179,35 @@ export function computeLapsed({ giftRows, subStartByEmail, nowMs }) {
   return flagged;
 }
 
+// --- anticipated renewals (r4 addendum) --------------------------------
+// Date-aware estimate: sum the monthly amount of every active paying sub whose
+// single next renewal is scheduled inside the remainder of the reporting month
+// (window [nowMs, monthEndMs)). Window filtering is done here in JS (not SQL) so
+// this stays a pure, fully unit-testable function. Stripe wins over Wix for a
+// mid-migration email present in both (same precedence as partitionRoster).
+// candidates: [{ email, amount_cents, next_renewal_ms, source }]
+export function anticipatedRenewalsCents({ candidates, nowMs, monthEndMs, excludeEmails }) {
+  const exclude = excludeEmails instanceof Set ? excludeEmails : new Set();
+  const byEmail = new Map();
+  for (const c of candidates || []) {
+    const email = String(c.email || '').trim().toLowerCase();
+    if (!email || exclude.has(email)) continue;
+    const t = c.next_renewal_ms;
+    if (!Number.isFinite(t) || t < nowMs || t >= monthEndMs) continue;
+    if (byEmail.has(email) && c.source !== 'stripe') continue; // do not overwrite Stripe with Wix
+    byEmail.set(email, centsInt(c.amount_cents));
+  }
+  let sum = 0;
+  for (const v of byEmail.values()) sum += v;
+  return sum;
+}
+
 // --- response builder (schema contract) --------------------------------
 export function assembleReport(input) {
   const {
     generatedAt, month, rosterRows, priorRecurringCents, supporterEmails,
     joined, left, watchlist, knownPaused, foundation, academy, actions, trend,
-    stripeUnavailable,
+    stripeUnavailable, mom,
   } = input;
 
   const part = partitionRoster(rosterRows);
@@ -224,10 +247,27 @@ export function assembleReport(input) {
     : recurring_monthly_cents - centsInt(priorRecurringCents);
   const delta_basis = 'prior_month_membership_receipts';
 
+  // Month-over-month (r4): a true like-for-like comparison. Receipts are the
+  // same donor_gift membership series both months (so the numbers are the same
+  // quantity, unlike the legacy delta which compared today's roster MRR against
+  // last month's realized receipts). receipts_anticipated_cents is the
+  // date-aware current-month estimate (collected so far + scheduled renewals
+  // still to land this month); it is null for a completed month. All inputs are
+  // computed by the endpoint (D1 + Stripe) and passed in; this stays pure.
+  const m = mom || {};
+  const headlineMom = {
+    receipts_this_month_cents: centsInt(m.receipts_this_month_cents),
+    receipts_prior_month_cents: centsInt(m.receipts_prior_month_cents),
+    receipts_anticipated_cents: m.receipts_anticipated_cents == null ? null : centsInt(m.receipts_anticipated_cents),
+    supporters_this_month: Math.max(0, Math.round(m.supporters_this_month) || 0),
+    supporters_prior_month: Math.max(0, Math.round(m.supporters_prior_month) || 0),
+    month_in_progress: !!m.month_in_progress,
+  };
+
   return {
     generated_at: generatedAt,
     month,
-    headline: { total_supporters, recurring_monthly_cents, delta_vs_prior_month_cents, delta_basis, degraded },
+    headline: { total_supporters, recurring_monthly_cents, delta_vs_prior_month_cents, delta_basis, mom: headlineMom, degraded },
     stuc: {
       active_by_tier,
       monthly_cents: recurring_monthly_cents,
