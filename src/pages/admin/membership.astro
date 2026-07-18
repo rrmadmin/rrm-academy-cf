@@ -51,8 +51,9 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
         </div>
         <div class="mem-card">
           <span class="mem-card__label">Change</span>
-          <span class="mem-card__value" id="h-delta">--</span>
-          <span class="mem-card__sub" id="h-delta-basis"></span>
+          <span class="mem-card__value mem-card__value--mom" id="h-mom-this">--</span>
+          <span class="mem-card__sub" id="h-mom-prior"></span>
+          <span class="mem-card__sub" id="h-mom-supporters"></span>
         </div>
       </div>
 
@@ -185,31 +186,68 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
 
     function setText(id, text) { document.getElementById(id).textContent = text; }
 
-    function renderHeadline(h) {
+    var FULL_MONTHS = ['January', 'February', 'March', 'April', 'May', 'June',
+      'July', 'August', 'September', 'October', 'November', 'December'];
+    function fullMonth(ym) {
+      var mi = parseInt(String(ym).split('-')[1], 10) - 1;
+      return FULL_MONTHS[mi] || '';
+    }
+    function priorYm(ym) {
+      var parts = String(ym).split('-');
+      var y = parseInt(parts[0], 10);
+      var m = parseInt(parts[1], 10);
+      var pm = m === 1 ? 12 : m - 1;
+      var py = m === 1 ? y - 1 : y;
+      return py + '-' + String(pm).padStart(2, '0');
+    }
+
+    function renderHeadline(h, month) {
       setText('h-supporters', num(h.total_supporters));
       setText('h-recurring', money(h.recurring_monthly_cents));
 
-      var deltaEl = document.getElementById('h-delta');
-      var basisEl = document.getElementById('h-delta-basis');
-      var d = h.degraded ? null : h.delta_vs_prior_month_cents;
-      if (d == null) {
-        deltaEl.textContent = 'Change unavailable this refresh';
-        deltaEl.classList.remove('mem-card__value--up', 'mem-card__value--down');
-        basisEl.textContent = '';
-      } else if (d > 0) {
-        deltaEl.textContent = 'Up ' + money(d) + ' since last month';
-        deltaEl.classList.add('mem-card__value--up');
-        basisEl.textContent = "vs last month's membership receipts";
-      } else if (d < 0) {
-        deltaEl.textContent = 'Down ' + money(-d) + ' since last month';
-        deltaEl.classList.add('mem-card__value--down');
-        basisEl.textContent = "vs last month's membership receipts";
-      } else {
-        deltaEl.textContent = 'No change since last month';
-        basisEl.textContent = "vs last month's membership receipts";
-      }
+      var mom = h.mom || {};
+      var thisName = fullMonth(month);
+      var priorName = fullMonth(priorYm(month));
+      var valEl = document.getElementById('h-mom-this');
+      var priorEl = document.getElementById('h-mom-prior');
+      var supEl = document.getElementById('h-mom-supporters');
 
-      document.getElementById('mem-banner').hidden = !h.degraded;
+      valEl.classList.remove('mem-card__value--up', 'mem-card__value--down');
+
+      // Degraded hides the whole tile behind the partial-data message: a partial
+      // headline must never render as a real month-over-month drop.
+      if (h.degraded) {
+        valEl.textContent = 'Change unavailable this refresh';
+        priorEl.textContent = '';
+        supEl.textContent = '';
+        document.getElementById('mem-banner').hidden = false;
+        return;
+      }
+      document.getElementById('mem-banner').hidden = true;
+
+      var thisCents = mom.receipts_this_month_cents || 0;
+      var priorCents = mom.receipts_prior_month_cents || 0;
+
+      if (mom.month_in_progress) {
+        // In progress: neutral styling only, never an up/down arrow or color.
+        var line = thisName + ' so far: ' + money(thisCents) + ' collected';
+        if (mom.receipts_anticipated_cents != null) {
+          line += ', about ' + money(mom.receipts_anticipated_cents) + ' expected by month end';
+        }
+        valEl.textContent = line;
+      } else {
+        // Completed month: like-for-like, so an arrow + color is honest.
+        var arrow = '';
+        if (thisCents > priorCents) { arrow = '↑ '; valEl.classList.add('mem-card__value--up'); }
+        else if (thisCents < priorCents) { arrow = '↓ '; valEl.classList.add('mem-card__value--down'); }
+        valEl.textContent = arrow + thisName + ': ' + money(thisCents);
+      }
+      priorEl.textContent = priorName + ': ' + money(priorCents);
+
+      var sThis = mom.supporters_this_month || 0;
+      var sPrior = mom.supporters_prior_month || 0;
+      supEl.textContent = 'Supporters: ' + num(sThis) +
+        (mom.month_in_progress ? ' so far vs ' : ' vs ') + num(sPrior) + ' in ' + priorName;
     }
 
     function personLabel(row) {
@@ -370,7 +408,7 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
 
     function render(d) {
       document.getElementById('mem-month').textContent = 'Reporting month: ' + d.month;
-      renderHeadline(d.headline);
+      renderHeadline(d.headline, d.month);
       renderStuc(d.stuc);
       renderFoundation(d.foundation);
       renderAcademy(d.academy);
@@ -461,6 +499,7 @@ import BaseLayout from '../../layouts/BaseLayout.astro';
   .mem-card__label { display: block; font-size: 0.75rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; color: var(--admin-text-faint); margin-bottom: var(--space-1); }
   .mem-card__value { display: block; font-size: 1.5rem; font-weight: 600; color: var(--admin-text); }
   .mem-card__value--accent { color: var(--purple-700); }
+  .mem-card__value--mom { font-size: 1.125rem; }
   .mem-card__value--up { color: var(--status-success-text); font-size: 1.125rem; }
   .mem-card__value--down { color: var(--status-error-text); font-size: 1.125rem; }
   .mem-card__sub { display: block; font-size: 0.75rem; color: var(--admin-text-faint); margin-top: 2px; }

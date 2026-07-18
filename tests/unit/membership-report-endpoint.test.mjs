@@ -52,6 +52,87 @@ test('stripe unreachable -> 200 degraded, delta null', async () => {
   assert.equal(body.headline.degraded, true);
   assert.equal(body.headline.delta_vs_prior_month_cents, null);
   assert.equal(body.stuc.stripe_unavailable, true);
+  // mom is D1-derived, so it survives Stripe degradation as a well-formed block.
+  assert.ok(body.headline.mom);
+  assert.equal(typeof body.headline.mom.month_in_progress, 'boolean');
+  assert.ok(Number.isInteger(body.headline.mom.receipts_this_month_cents));
+});
+
+function etMonthParts(offsetMonths = 0) {
+  const fmt = new Intl.DateTimeFormat('en-US', { timeZone: 'America/New_York', year: 'numeric', month: '2-digit' });
+  const p = {};
+  for (const part of fmt.formatToParts(new Date())) p[part.type] = part.value;
+  let y = Number(p.year), m = Number(p.month) + offsetMonths;
+  while (m < 1) { m += 12; y -= 1; }
+  while (m > 12) { m -= 12; y += 1; }
+  return `${y}-${String(m).padStart(2, '0')}`;
+}
+
+function momMockEnv() {
+  const curYm = etMonthParts(0);
+  const priorYm = etMonthParts(-1);
+  const trendRows = [
+    { ym: priorYm, stuc_cents: 56800, foundation_cents: 0, academy_cents: 0 },
+    { ym: curYm, stuc_cents: 39700, foundation_cents: 0, academy_cents: 0 },
+  ];
+  const momSupporters = [
+    { email: 'donor1@x.com', bucket: 'this' },
+    { email: 'donorp@x.com', bucket: 'prior' },
+    { email: 'donor1@x.com', bucket: 'prior' },
+  ];
+  const roster = [{
+    id: 'u1', email: 'roster@x.com', role: 'member', is_staff: 0,
+    has_legacy: 0, has_stripe: 0, has_wix: 1, wix_tier: 'member', wix_amount_cents: 900,
+  }];
+  const wixAnticipate = [{
+    email: 'roster@x.com', amount_cents: 900,
+    next_renewal: new Date(Date.now() + 2 * 86_400_000).toISOString(),
+  }];
+  const DB = {
+    prepare(sql) {
+      return {
+        bind() { return this; },
+        async all() {
+          if (/frequency='MONTH'/.test(sql)) return { results: wixAnticipate };
+          if (/CASE WHEN occurred_at >= \?2 THEN 'this'/.test(sql)) return { results: momSupporters };
+          if (/strftime\('%Y-%m', occurred_at\) AS ym/.test(sql)) return { results: trendRows };
+          if (/has_stripe/.test(sql)) return { results: roster };
+          return { results: [] };
+        },
+        async first() { return { c: 0 }; },
+      };
+    },
+  };
+  return { DB, ADMIN_API_SECRET: 'secret123', STRIPE_RESTRICTED_KEY: 'rk_test' };
+}
+
+test('mom: current month is in progress, like-for-like receipts, roster union, anticipated present', async () => {
+  globalThis.fetch = async () => new Response(JSON.stringify({ data: [], has_more: false }), { status: 200 });
+  const res = await onRequestGet({ request: req('https://x/api/admin/membership-report', { Authorization: 'Bearer secret123' }), env: momMockEnv() });
+  assert.equal(res.status, 200);
+  const body = await res.json();
+  const mom = body.headline.mom;
+  assert.equal(mom.month_in_progress, true);
+  assert.equal(mom.receipts_this_month_cents, 39700);
+  assert.equal(mom.receipts_prior_month_cents, 56800);
+  // supporters_this_month = distinct donor_gift givers this month UNION paying
+  // roster: {donor1@x.com} + {roster@x.com} = 2.
+  assert.equal(mom.supporters_this_month, 2);
+  assert.equal(mom.supporters_prior_month, 2);
+  // in-progress month carries a date-aware anticipated estimate >= collected.
+  assert.ok(Number.isInteger(mom.receipts_anticipated_cents));
+  assert.ok(mom.receipts_anticipated_cents >= 39700);
+});
+
+test('mom: a completed past month is not in progress and has no anticipated value', async () => {
+  globalThis.fetch = async () => new Response(JSON.stringify({ data: [], has_more: false }), { status: 200 });
+  const priorYm = etMonthParts(-1);
+  const res = await onRequestGet({ request: req(`https://x/api/admin/membership-report?month=${priorYm}`, { Authorization: 'Bearer secret123' }), env: momMockEnv() });
+  assert.equal(res.status, 200);
+  const body = await res.json();
+  assert.equal(body.headline.mom.month_in_progress, false);
+  assert.equal(body.headline.mom.receipts_anticipated_cents, null);
+  assert.equal(body.headline.mom.receipts_this_month_cents, 56800);
 });
 
 test('new_recurring and lapsed_recurring foundation donors land in the right arrays', async () => {
