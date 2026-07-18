@@ -3,7 +3,7 @@
   "info": {
     "title": "RRM Academy Agent API",
     "version": "1.0.0",
-    "description": "Programmatic access to the RRM Academy research library and editorial guardrails, exposed via the Model Context Protocol (MCP). thousands of peer-reviewed articles on restorative reproductive medicine, NaProTechnology, fertility awareness-based methods, endometriosis, PCOS, and related women's health topics. Clinical content curated under the direction of Dr. Naomi Whittaker, MD.",
+    "description": "Programmatic access to the RRM Academy research library and editorial guardrails, exposed via the Model Context Protocol (MCP). thousands of peer-reviewed articles on restorative reproductive medicine, NaProTechnology, fertility awareness-based methods, endometriosis, PCOS, and related women's health topics. Clinical content curated under the direction of Dr. Naomi Whittaker, MD.\n\n## Versioning & deprecation\n\nThis API is unversioned-stable: existing paths and response fields change only additively (new optional fields, new endpoints). A breaking change ships under a new path prefix (for example `/v2/...`) rather than mutating an existing path. Deprecated endpoints continue to work during a wind-down window and are announced via a `Deprecation` response header (RFC 8594) and a `Sunset` header carrying the earliest removal date, with at least 90 days' notice. Changes are also published on the changelog/webhooks page at https://rrmacademy.org/connect/. No uptime or latency SLA is implied.",
     "contact": {
       "name": "RRM Academy",
       "email": "info@rrmacademy.org",
@@ -12,6 +12,15 @@
     "license": {
       "name": "Fair-use citation",
       "url": "https://rrmacademy.org/terms-of-use/"
+    },
+    "x-api-versioning": {
+      "strategy": "unversioned-stable",
+      "compatibility": "additive-only",
+      "breaking_changes": "shipped under a new path prefix (e.g. /v2/...), never by mutating an existing path",
+      "deprecation_headers": ["Deprecation", "Sunset"],
+      "deprecation_header_spec": "https://www.rfc-editor.org/rfc/rfc8594",
+      "minimum_notice_days": 90,
+      "changelog": "https://rrmacademy.org/connect/"
     }
   },
   "servers": [
@@ -768,6 +777,186 @@
           "422": { "$ref": "#/components/responses/IdempotencyMismatch" }
         }
       }
+    },
+    "/api/auth/signup": {
+      "post": {
+        "operationId": "auth_signup",
+        "summary": "Register a new free RRM Academy account",
+        "description": "Creates a user account and sends an email-verification magic link. Free registration; no payment. Public endpoint (no bearer auth). Protected by IP rate limiting (5 attempts / 15 min) and a Cloudflare Turnstile bot check. For anti-enumeration the endpoint returns the same 201 success shape whether or not the email is already registered.",
+        "tags": ["Mutations"],
+        "security": [],
+        "servers": [{ "url": "https://rrmacademy.org" }],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/SignupRequest" }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Account created (or, for an existing email, the anti-enumeration equivalent). Sets session and auth-hint cookies via Set-Cookie. An email-verification link is sent to the address.",
+            "headers": {
+              "Set-Cookie": {
+                "description": "Session and auth-hint cookies.",
+                "schema": { "type": "string" }
+              }
+            },
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/SignupSuccess" }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid JSON, invalid payload, failed field validation, weak or wrong-length password (8-128 chars required), or rejected email (disposable domain / bad MX). May include a `suggestion` for a likely email typo.",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/AuthError" }
+              }
+            }
+          },
+          "403": {
+            "description": "Turnstile bot check failed or verification service misconfigured.",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/AuthError" }
+              }
+            }
+          },
+          "429": {
+            "description": "Too many signup attempts from this IP.",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/AuthError" }
+              }
+            }
+          },
+          "500": {
+            "description": "Unexpected server error.",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/AuthError" }
+              }
+            }
+          },
+          "503": {
+            "description": "Email service temporarily unavailable, or client IP could not be determined.",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/AuthError" }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/auth/verify-email": {
+      "get": {
+        "operationId": "auth_verify_email_get",
+        "summary": "Render the email-verification confirm page",
+        "description": "Side-effect-free confirmation page for the verification magic link (GET does not consume the token, so email scanners and link prefetchers cannot silently verify). Returns an HTML page with a POST form. The `token` is the 32-64 lowercase-hex single-use token from the verification email.",
+        "tags": ["Mutations"],
+        "security": [],
+        "servers": [{ "url": "https://rrmacademy.org" }],
+        "parameters": [
+          {
+            "name": "token",
+            "in": "query",
+            "required": true,
+            "description": "Single-use verification token ([a-f0-9]{32,64}) from the emailed link.",
+            "schema": { "type": "string", "pattern": "^[a-f0-9]{32,64}$" }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Confirm page (HTML) with a form that POSTs the token.",
+            "content": { "text/html": { "schema": { "type": "string" } } }
+          },
+          "400": {
+            "description": "Malformed or missing token (HTML page).",
+            "content": { "text/html": { "schema": { "type": "string" } } }
+          },
+          "410": {
+            "description": "Token expired or already consumed (HTML page).",
+            "content": { "text/html": { "schema": { "type": "string" } } }
+          }
+        }
+      },
+      "post": {
+        "operationId": "auth_verify_email",
+        "summary": "Confirm an email address (consume the verification token)",
+        "description": "Magic-link branch: submit the token as `application/x-www-form-urlencoded` (field `token`). On success the single-use token is consumed, the user is marked verified, a session is minted, and the response is a 303 redirect to /account/ with Set-Cookie. A dormant legacy branch accepts `application/json` `{ \"code\": \"...\" }` with an authenticated session cookie and returns `{ \"ok\": true }`. Rate limited (20 form attempts / 15 min per IP).",
+        "tags": ["Mutations"],
+        "security": [],
+        "servers": [{ "url": "https://rrmacademy.org" }],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/x-www-form-urlencoded": {
+              "schema": {
+                "type": "object",
+                "required": ["token"],
+                "properties": {
+                  "token": { "type": "string", "pattern": "^[a-f0-9]{32,64}$", "description": "Single-use verification token from the emailed link." }
+                }
+              }
+            },
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["code"],
+                "properties": {
+                  "code": { "type": "string", "description": "Legacy typed verification code (dormant fallback; requires an authenticated session)." }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Legacy JSON branch succeeded, or the link was already used.",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/AuthSuccess" }
+              },
+              "text/html": { "schema": { "type": "string" } }
+            }
+          },
+          "303": {
+            "description": "Magic-link branch succeeded: redirect to /account/ with session cookies set.",
+            "headers": {
+              "Location": { "description": "https://rrmacademy.org/account/", "schema": { "type": "string" } },
+              "Set-Cookie": { "description": "Session and auth-hint cookies.", "schema": { "type": "string" } }
+            }
+          },
+          "400": {
+            "description": "Malformed token (HTML) or invalid legacy code/JSON (JSON AuthError).",
+            "content": {
+              "text/html": { "schema": { "type": "string" } },
+              "application/json": { "schema": { "$ref": "#/components/schemas/AuthError" } }
+            }
+          },
+          "401": {
+            "description": "Legacy branch: no authenticated session.",
+            "content": {
+              "application/json": { "schema": { "$ref": "#/components/schemas/AuthError" } }
+            }
+          },
+          "410": {
+            "description": "Verification token expired (HTML page).",
+            "content": { "text/html": { "schema": { "type": "string" } } }
+          },
+          "429": {
+            "description": "Too many verification attempts.",
+            "content": {
+              "text/html": { "schema": { "type": "string" } },
+              "application/json": { "schema": { "$ref": "#/components/schemas/AuthError" } }
+            }
+          }
+        }
+      }
     }
   },
   "components": {
@@ -872,6 +1061,44 @@
           "message": { "type": "string", "description": "Human-readable error detail" }
         },
         "required": ["error"]
+      },
+      "AuthError": {
+        "type": "object",
+        "description": "Auth-endpoint error envelope. `error` carries a human-readable message (not a machine code); `suggestion` appears only on likely email typos.",
+        "properties": {
+          "ok": { "type": "boolean", "enum": [false] },
+          "error": { "type": "string", "description": "Human-readable error message" },
+          "suggestion": { "type": "string", "description": "Suggested corrected email address (typo detection only)" }
+        },
+        "required": ["ok", "error"]
+      },
+      "AuthSuccess": {
+        "type": "object",
+        "properties": {
+          "ok": { "type": "boolean", "enum": [true] }
+        },
+        "required": ["ok"]
+      },
+      "SignupRequest": {
+        "type": "object",
+        "required": ["firstName", "lastName", "email", "password"],
+        "properties": {
+          "firstName": { "type": "string", "minLength": 1, "maxLength": 100 },
+          "lastName": { "type": "string", "minLength": 1, "maxLength": 100 },
+          "email": { "type": "string", "format": "email", "description": "Validated for format, disposable domains, and MX records." },
+          "password": { "type": "string", "minLength": 8, "maxLength": 128, "description": "8-128 characters; common/breached passwords are rejected." },
+          "next": { "type": "string", "maxLength": 200, "description": "Optional post-signup redirect path." },
+          "turnstileToken": { "type": "string", "description": "Cloudflare Turnstile token when the bot check is enforced." }
+        }
+      },
+      "SignupSuccess": {
+        "type": "object",
+        "properties": {
+          "ok": { "type": "boolean", "enum": [true] },
+          "emailVerificationRequired": { "type": "boolean", "enum": [true] },
+          "resendPath": { "type": "string", "description": "Path to request a fresh verification email, e.g. /api/auth/resend-verification." }
+        },
+        "required": ["ok", "emailVerificationRequired"]
       },
       "AskResponse": {
         "type": "object",

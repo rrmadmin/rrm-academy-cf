@@ -93,7 +93,32 @@ export interface TeamMember {
 }
 
 export function getOrganizationJsonLd(): OrgNode {
-  return snapshot.organization as OrgNode;
+  const org = { ...(snapshot.organization as OrgNode) };
+  // contactPoint + address are not yet modeled in ssot/organization.json (the
+  // build-time snapshot omits them). Inject the canonical public support contact
+  // and the on-file mailing address (mirrors the PostalAddress on /contact/) so
+  // every Organization emit — homepage @graph and the BaseLayout default — carries
+  // them. Same single-source pattern as getFoundationJsonLd().
+  if (!org.contactPoint) {
+    org.contactPoint = {
+      '@type': 'ContactPoint',
+      contactType: 'customer support',
+      email: 'administrator@rrmacademy.org',
+      url: 'https://rrmacademy.org/contact/',
+      availableLanguage: 'en',
+    };
+  }
+  if (!org.address) {
+    org.address = {
+      '@type': 'PostalAddress',
+      streetAddress: '3401 Hartzdale Dr, Ste 103B PMB 3518',
+      addressLocality: 'Camp Hill',
+      addressRegion: 'PA',
+      postalCode: '17011',
+      addressCountry: 'US',
+    };
+  }
+  return org;
 }
 
 /**
