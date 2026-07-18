@@ -53,6 +53,14 @@
       {
         "label": "RRM Care Team Guide",
         "path": "/rrm-care-team/"
+      },
+      {
+        "label": "Account",
+        "path": "/account/"
+      },
+      {
+        "label": "MCP API Keys",
+        "path": "/account/mcp-keys/"
       }
     ]
   },
@@ -143,6 +151,21 @@
         ],
         "examples": [
           "What restorative options exist for recurrent miscarriage?"
+        ]
+      },
+      {
+        "id": "account-management",
+        "name": "Account and MCP API keys",
+        "description": "A free RRM Academy account tracks course progress and profile at /account/, and provides self-serve MCP API key generation at /account/mcp-keys/ (create, label, and revoke bearer keys per device). Signup flow: POST /api/auth/signup with firstName, lastName, email, and password (8-128 characters); registration is free and email verification is required before full access. See /connect/ for connector setup.",
+        "tags": [
+          "account",
+          "authentication",
+          "mcp-keys",
+          "signup"
+        ],
+        "examples": [
+          "How do I create an RRM Academy account?",
+          "Where do I generate an MCP API key?"
         ]
       },
       {
