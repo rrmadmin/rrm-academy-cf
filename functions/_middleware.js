@@ -239,6 +239,7 @@ export async function onRequest(context) {
   // redirect is an HTML body with meta refresh + JS fallback.
   if (
     !url.pathname.endsWith('/') &&
+    url.pathname !== '/api' &&
     !url.pathname.startsWith('/api/') &&
     !url.pathname.startsWith('/cdn-cgi/') &&
     url.pathname !== '/health' &&
