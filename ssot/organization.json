@@ -5,7 +5,7 @@
   "types": ["Organization", "EducationalOrganization", "MedicalOrganization"],
   "legal_name": "RRM Academy",
   "founder_refs": [
-    { "@id": "https://rrmacademy.org/about/#naomi-whittaker" }
+    { "@id": "https://rrmacademy.org/#naomi-whittaker" }
   ],
   "same_as": [
     "https://www.instagram.com/rrmacademy",
