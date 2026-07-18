@@ -3,7 +3,7 @@
   "description": "Critical file integrity manifest. Run `npm run guard:update` after intentional changes.",
   "files": {
     "functions/api/auth/_shared.js": {
-      "hash": "245ed24a9c709caf603a6a6406f96ba193f9570790be7cd0df969ebf454ca96e",
+      "hash": "1744e5c6dbbf477398e06efbdb3d757133ecef43082c472347142951af0daf79",
       "note": "CORS, sessions, crypto, rate limiting"
     },
     "functions/api/auth/login.js": {
@@ -123,7 +123,7 @@
       "note": "SYSTEM_PROMPT for /api/ask -- single source of truth"
     },
     "functions/api/ask.js": {
-      "hash": "d37aeb326691a54b23075aba5e01bc77b3e131d5c46aad2c563280b544cf9bca",
+      "hash": "5493ba1049d4f33167a7e2a0d9f4c6dd0ac40a9ec7c1a7c3ab955552e01f1bd9",
       "note": "NLWeb AI Search proxy (auth + rate-limited, billed upstream)"
     },
     "src/components/SearchBar.astro": {
