@@ -3,6 +3,7 @@ import assert from 'node:assert/strict';
 import {
   monthBoundsET, validateMonthParam, partitionRoster, invoiceDropout,
   isDunningDropout, parseDbTs, subStartEpochMs, computeLapsed, centsInt, assembleReport,
+  anticipatedRenewalsCents,
   KNOWN_PAUSED, LAPSE_MAX_DAYS, NEW_MEMBER_GRACE_DAYS,
 } from '../../functions/api/admin/_membership-metrics.js';
 
@@ -126,6 +127,14 @@ test('assembleReport emits the full schema with integer cents and partition inva
     academy: { course_purchases_this_month: 2, course_revenue_this_month_cents: 20000, ytd_purchases: 9, ytd_cents: 90000 },
     actions: [{ text: 'Follow up with C', who: 'Naomi', source: 'watchlist' }],
     trend: [{ month: '2025-08', stuc_cents: 100, foundation_cents: 200, academy_cents: 0 }],
+    mom: {
+      receipts_this_month_cents: 39700,
+      receipts_prior_month_cents: 56800,
+      receipts_anticipated_cents: 48000,
+      supporters_this_month: 39,
+      supporters_prior_month: 41,
+      month_in_progress: true,
+    },
     stripeUnavailable: false,
   });
   // required top-level keys
@@ -155,6 +164,80 @@ test('assembleReport emits the full schema with integer cents and partition inva
   assert.equal(s.active_by_tier.hero, 0);
   assert.equal(s.monthly_cents, 10800);
   assert.ok(Number.isInteger(s.monthly_cents));
+  // Month-over-month block: like-for-like receipts (same series both months),
+  // integer cents, date-aware anticipation, and the in-progress flag.
+  assert.equal(rep.headline.mom.receipts_this_month_cents, 39700);
+  assert.equal(rep.headline.mom.receipts_prior_month_cents, 56800);
+  assert.equal(rep.headline.mom.receipts_anticipated_cents, 48000);
+  assert.equal(rep.headline.mom.supporters_this_month, 39);
+  assert.equal(rep.headline.mom.supporters_prior_month, 41);
+  assert.equal(rep.headline.mom.month_in_progress, true);
+  assert.ok(Number.isInteger(rep.headline.mom.receipts_this_month_cents));
+});
+
+test('assembleReport mom: completed month nulls anticipated and carries month_in_progress false', () => {
+  const rep = assembleReport({
+    generatedAt: '2026-08-01T12:30:00.000Z', month: '2026-07',
+    rosterRows: [], priorRecurringCents: 0, supporterEmails: [], joined: [], left: [],
+    watchlist: [], knownPaused: [],
+    foundation: { one_time_this_month_cents: 0, recurring_this_month_cents: 0, ytd_cents: 0, new_recurring: [], lapsed_recurring: [], ppgf_this_month_cents: 0 },
+    academy: { course_purchases_this_month: 0, course_revenue_this_month_cents: 0, ytd_purchases: 0, ytd_cents: 0 },
+    actions: [], trend: [],
+    mom: {
+      receipts_this_month_cents: 56800,
+      receipts_prior_month_cents: 40600,
+      receipts_anticipated_cents: null,
+      supporters_this_month: 41,
+      supporters_prior_month: 38,
+      month_in_progress: false,
+    },
+    stripeUnavailable: false,
+  });
+  assert.equal(rep.headline.mom.month_in_progress, false);
+  assert.equal(rep.headline.mom.receipts_anticipated_cents, null);
+  assert.equal(rep.headline.mom.receipts_this_month_cents, 56800);
+  assert.equal(rep.headline.mom.supporters_prior_month, 38);
+});
+
+test('anticipatedRenewalsCents: in-window counts once, out-of-window zero, watchlist/paused excluded, stripe wins over wix', () => {
+  const nowMs = Date.parse('2026-07-17T12:00:00Z');
+  const monthEndMs = Date.parse('2026-08-01T04:00:00Z');
+  // in-window renewal, counted once even if listed twice
+  const inWindow = anticipatedRenewalsCents({
+    candidates: [
+      { email: 'a@x.com', amount_cents: 900, next_renewal_ms: Date.parse('2026-07-25T00:00:00Z'), source: 'wix' },
+      { email: 'a@x.com', amount_cents: 900, next_renewal_ms: Date.parse('2026-07-26T00:00:00Z'), source: 'wix' },
+    ],
+    nowMs, monthEndMs, excludeEmails: new Set(),
+  });
+  assert.equal(inWindow, 900);
+  // renewal after month end contributes nothing
+  const outWindow = anticipatedRenewalsCents({
+    candidates: [{ email: 'b@x.com', amount_cents: 4500, next_renewal_ms: Date.parse('2026-08-10T00:00:00Z'), source: 'stripe' }],
+    nowMs, monthEndMs, excludeEmails: new Set(),
+  });
+  assert.equal(outWindow, 0);
+  // a renewal already in the past (before now) contributes nothing
+  const past = anticipatedRenewalsCents({
+    candidates: [{ email: 'c@x.com', amount_cents: 4500, next_renewal_ms: Date.parse('2026-07-01T00:00:00Z'), source: 'wix' }],
+    nowMs, monthEndMs, excludeEmails: new Set(),
+  });
+  assert.equal(past, 0);
+  // watchlist / paused email excluded even though in-window
+  const excluded = anticipatedRenewalsCents({
+    candidates: [{ email: 'watch@x.com', amount_cents: 900, next_renewal_ms: Date.parse('2026-07-25T00:00:00Z'), source: 'stripe' }],
+    nowMs, monthEndMs, excludeEmails: new Set(['watch@x.com']),
+  });
+  assert.equal(excluded, 0);
+  // same email in both sources: Stripe amount wins (mid-migration precedence)
+  const dedup = anticipatedRenewalsCents({
+    candidates: [
+      { email: 'd@x.com', amount_cents: 900, next_renewal_ms: Date.parse('2026-07-20T00:00:00Z'), source: 'wix' },
+      { email: 'd@x.com', amount_cents: 4500, next_renewal_ms: Date.parse('2026-07-21T00:00:00Z'), source: 'stripe' },
+    ],
+    nowMs, monthEndMs, excludeEmails: new Set(),
+  });
+  assert.equal(dedup, 4500);
 });
 
 test('assembleReport degrades: stripeUnavailable nulls delta and flags degraded', () => {
@@ -170,4 +253,8 @@ test('assembleReport degrades: stripeUnavailable nulls delta and flags degraded'
   assert.equal(rep.headline.delta_vs_prior_month_cents, null);
   assert.equal(rep.headline.delta_basis, 'prior_month_membership_receipts');
   assert.equal(rep.stuc.stripe_unavailable, true);
+  // mom is D1-derived, so it is still a well-formed block when degraded.
+  assert.equal(rep.headline.mom.receipts_this_month_cents, 0);
+  assert.equal(rep.headline.mom.receipts_anticipated_cents, null);
+  assert.equal(rep.headline.mom.month_in_progress, false);
 });

@@ -32,6 +32,14 @@ const FIXTURE = {
     recurring_monthly_cents: 312500,
     delta_vs_prior_month_cents: 4200,
     delta_basis: 'prior_month_membership_receipts',
+    mom: {
+      receipts_this_month_cents: 39700,
+      receipts_prior_month_cents: 56800,
+      receipts_anticipated_cents: 48000,
+      supporters_this_month: 39,
+      supporters_prior_month: 41,
+      month_in_progress: true,
+    },
     degraded: false,
   },
   stuc: {
@@ -154,6 +162,14 @@ async function main() {
       pass: chartVisible,
       detail: `visible=${chartVisible}`,
     });
+
+    const momThis = (await page.locator('#h-mom-this').textContent()) || '';
+    const momPrior = (await page.locator('#h-mom-prior').textContent()) || '';
+    const momSup = (await page.locator('#h-mom-supporters').textContent()) || '';
+    console.log('\nRendered Change tile (month_in_progress fixture):');
+    console.log(`  h-mom-this:       "${momThis}"`);
+    console.log(`  h-mom-prior:      "${momPrior}"`);
+    console.log(`  h-mom-supporters: "${momSup}"`);
 
     await page.screenshot({ path: join(OUT_DIR, 'g3-mobile.png') });
 
