@@ -25,7 +25,7 @@ import { STUC_MEMBER_WHERE, tierFromPriceOrAmount, tierFromLabel } from '../comm
 import {
   monthBoundsET, validateMonthParam, invoiceDropout, isDunningDropout,
   subStartEpochMs, computeLapsed, centsInt, assembleReport, KNOWN_PAUSED,
-  LAPSE_MAX_DAYS,
+  LAPSE_MAX_DAYS, parseDbTs, anticipatedRenewalsCents,
 } from './_membership-metrics.js';
 
 const STUC_LABEL = 'Save the Uterus Club \u{1F3F7}\u{FE0F}';
@@ -221,6 +221,28 @@ export async function onRequestGet({ request, env }) {
          LIMIT 50`
       );
 
+      // MoM supporters over the two calendar months in one grouped query.
+      // Distinct lowercase givers with any non-refunded donor_gift activity;
+      // bucketed at the ET month boundary (startUtc) so both sides use the same
+      // ET bounds as the rest of the report.
+      const momSupportersStmt = db.prepare(
+        `SELECT DISTINCT lower(email) AS email,
+           CASE WHEN occurred_at >= ?2 THEN 'this' ELSE 'prior' END AS bucket
+         FROM donor_gift
+         WHERE refunded_at IS NULL AND occurred_at >= ?1 AND occurred_at < ?3`
+      ).bind(b.prevStartUtc, b.startUtc, b.endUtc);
+
+      // Anticipation candidates (r4 addendum): active MONTH-frequency Wix subs.
+      // The renewal window is filtered in JS (anticipatedRenewalsCents) so the
+      // logic stays pure and unit-testable; this query only narrows to the
+      // month-frequency active set and surfaces the next-renewal timestamp.
+      const wixAnticipateStmt = db.prepare(
+        `SELECT email, amount_cents,
+           COALESCE(next_expected_at, datetime(last_order_at,'+31 days')) AS next_renewal
+         FROM wix_subscription
+         WHERE status='active' AND frequency='MONTH'`
+      );
+
       const trendStmt = db.prepare(
         `SELECT strftime('%Y-%m', occurred_at) AS ym,
            SUM(CASE WHEN kind='membership' THEN amount_cents ELSE 0 END) AS stuc_cents,
@@ -234,6 +256,7 @@ export async function onRequestGet({ request, env }) {
       const res = await runReads(db, [
         rosterStmt, donorEmailsStmt, monthAggStmt, ytdAggStmt, priorAggStmt,
         wixJoinedStmt, wixLeftStmt, lapseStmt, newRecurringStmt, lapsedRecurringStmt, trendStmt,
+        momSupportersStmt, wixAnticipateStmt,
       ]);
       d1 = {
         roster: res[0]?.results || [],
@@ -247,6 +270,8 @@ export async function onRequestGet({ request, env }) {
         newRecurringRaw: res[8]?.results || [],
         lapsedRecurringRaw: res[9]?.results || [],
         trend: res[10]?.results || [],
+        momSupporters: res[11]?.results || [],
+        wixAnticipate: res[12]?.results || [],
       };
     } catch (err) {
       log(env, null, 'admin', 'membership_report_d1_error', 'error', err.message, 0, 500);
@@ -277,6 +302,7 @@ export async function onRequestGet({ request, env }) {
     const stripeJoins = [];
     const stripeLeaves = [];
     const stripeWatch = [];
+    const stripeAnticipate = [];
     const pausedSet = new Set(KNOWN_PAUSED.map((e) => e.email.toLowerCase()));
 
     if (!env.STRIPE_RESTRICTED_KEY) {
@@ -317,6 +343,16 @@ export async function onRequestGet({ request, env }) {
                 amount = 0;
               }
               stripeByEmail.set(email, { amount_cents: amount, tier: tierFromPriceOrAmount(sub, env) });
+
+              // Anticipation candidate: active, not paused, not a voided-invoice
+              // dropout. Its next renewal (current_period_end) is window-checked
+              // in anticipatedRenewalsCents. Watchlist/dunning exclusion is
+              // applied via excludeAnticip below.
+              if (!isPaused && !voided) {
+                const renewalMs = Number.isFinite(sub.current_period_end)
+                  ? sub.current_period_end * 1000 : NaN;
+                stripeAnticipate.push({ email, amount_cents: amount, next_renewal_ms: renewalMs, source: 'stripe' });
+              }
             }
 
             if (!isPaused) {
@@ -438,6 +474,75 @@ export async function onRequestGet({ request, env }) {
       academy_cents: centsInt(r.academy_cents),
     }));
 
+    // --- month-over-month (r4): like-for-like receipts + supporters ------
+    const currentMonth = validateMonthParam(null, nowMs);
+    const monthInProgress = month === currentMonth;
+
+    // Prior calendar month as 'YYYY-MM'.
+    const [my, mm] = month.split('-').map(Number);
+    const pMonthNum = mm === 1 ? 12 : mm - 1;
+    const pMonthYear = mm === 1 ? my - 1 : my;
+    const priorMonthStr = `${pMonthYear}-${String(pMonthNum).padStart(2, '0')}`;
+
+    // Receipts reuse the same donor_gift membership series the trend already
+    // bucketed, so both months are the same quantity. The trend buckets by
+    // strftime UTC month while the rest of the report uses ET month bounds;
+    // that UTC-vs-ET edge slop is the known, accepted difference (see
+    // monthBoundsET) and is reused deliberately so both surfaces read one series.
+    const trendStucByYm = new Map(trend.map((t) => [t.month, t.stuc_cents]));
+    const receiptsThisCents = centsInt(trendStucByYm.get(month) || 0);
+    const receiptsPriorCents = centsInt(trendStucByYm.get(priorMonthStr) || 0);
+
+    const momThis = new Set();
+    const momPrior = new Set();
+    for (const r of d1.momSupporters) {
+      const e = String(r.email || '').toLowerCase();
+      if (!e) continue;
+      if (r.bucket === 'this') momThis.add(e); else momPrior.add(e);
+    }
+    // Current month: paying roster members are supporters even before their
+    // gift lands in donor_gift, so union them in. A past month must use its own
+    // snapshot (the roster is as-of now, not as-of then), so only union live.
+    if (monthInProgress) {
+      for (const r of rosterRows) {
+        if (r.has_stripe || r.has_wix) momThis.add(r.emailLower);
+      }
+    }
+
+    // Anticipated (date-aware) current-month revenue: collected so far plus the
+    // scheduled renewals still to land this month. Never anticipate money from
+    // anyone on the watchlist (voided/dunning) or paused. Null for completed
+    // months (no remaining window).
+    let receiptsAnticipatedCents = null;
+    if (monthInProgress) {
+      const excludeAnticip = new Set([
+        ...pausedSet,
+        ...watchlist.map((w) => String(w.email || '').toLowerCase()),
+      ]);
+      const wixAnticipate = (d1.wixAnticipate || []).map((r) => ({
+        email: r.email,
+        amount_cents: r.amount_cents,
+        next_renewal_ms: parseDbTs(r.next_renewal),
+        source: 'wix',
+      }));
+      const extra = anticipatedRenewalsCents({
+        candidates: [...wixAnticipate, ...stripeAnticipate],
+        nowMs,
+        monthEndMs,
+        excludeEmails: excludeAnticip,
+      });
+      receiptsAnticipatedCents = receiptsThisCents + extra;
+    }
+
+    const mom = {
+      receipts_this_month_cents: receiptsThisCents,
+      receipts_prior_month_cents: receiptsPriorCents,
+      receipts_anticipated_cents: receiptsAnticipatedCents,
+      supporters_this_month: momThis.size,
+      supporters_prior_month: momPrior.size,
+      month_in_progress: monthInProgress,
+    };
+
     // --- actions (who inferred: dropout/lapse -> Brian, reach out -> Naomi) ---
     const actions = [];
     for (const w of watchlist) actions.push({ who: 'Brian', what: w.action });
@@ -460,6 +565,7 @@ export async function onRequestGet({ request, env }) {
       academy,
       actions,
       trend,
+      mom,
       stripeUnavailable,
     });
 
