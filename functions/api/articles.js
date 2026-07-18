@@ -32,6 +32,27 @@ function publicJson(data, status = 200, extraHeaders = {}) {
   });
 }
 
+// Opaque cursor = base64url(JSON {o: offset, l: limit}). The upstream
+// rrm-library-worker only accepts limit+offset (no keyset over the sort column
+// is exposed), so this cursor is an ENCODED OFFSET, not a true keyset position.
+// It is documented as such in openapi.json. Offset pagination (page/limit) keeps
+// working unchanged when no cursor is supplied.
+function encodeCursor(offset, limit) {
+  return btoa(JSON.stringify({ o: offset, l: limit }))
+    .replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+}
+
+function decodeCursor(cursor) {
+  if (typeof cursor !== 'string' || cursor.length === 0 || cursor.length > 128) return null;
+  try {
+    const parsed = JSON.parse(atob(cursor.replace(/-/g, '+').replace(/_/g, '/')));
+    if (!Number.isInteger(parsed?.o) || !Number.isInteger(parsed?.l)) return null;
+    return { o: parsed.o, l: parsed.l };
+  } catch {
+    return null;
+  }
+}
+
 export function onRequestOptions() {
   return new Response(null, { status: 204, headers: PUBLIC_CORS });
 }
@@ -62,21 +83,35 @@ export async function onRequestGet(context) {
   }
 
   const url = new URL(request.url);
+  const rawCursor = url.searchParams.get('cursor');
   const rawPage = url.searchParams.get('page') ?? '1';
   const rawLimit = url.searchParams.get('limit') ?? '25';
 
-  const pageNum = Number(rawPage);
-  const limitNum = Number(rawLimit);
-
-  if (
-    !Number.isInteger(pageNum) || !Number.isInteger(limitNum) ||
-    pageNum < 1 || pageNum > 350 ||
-    limitNum < 1 || limitNum > 50
-  ) {
-    return publicJson({ error: 'invalid_pagination' }, 400);
+  let pageNum, limitNum, offset;
+  if (rawCursor !== null) {
+    const decoded = decodeCursor(rawCursor);
+    if (
+      decoded === null ||
+      decoded.o < 0 || decoded.o > 350 * 50 ||
+      decoded.l < 1 || decoded.l > 50
+    ) {
+      return publicJson({ error: 'invalid_cursor' }, 400);
+    }
+    offset = decoded.o;
+    limitNum = decoded.l;
+    pageNum = Math.floor(offset / limitNum) + 1;
+  } else {
+    pageNum = Number(rawPage);
+    limitNum = Number(rawLimit);
+    if (
+      !Number.isInteger(pageNum) || !Number.isInteger(limitNum) ||
+      pageNum < 1 || pageNum > 350 ||
+      limitNum < 1 || limitNum > 50
+    ) {
+      return publicJson({ error: 'invalid_pagination' }, 400);
+    }
+    offset = (pageNum - 1) * limitNum;
   }
-
-  const offset = (pageNum - 1) * limitNum;
 
   const workerParams = new URLSearchParams({
     limit: String(limitNum),
@@ -111,12 +146,22 @@ export async function onRequestGet(context) {
 
   const total_pages = Math.ceil(total / limitNum) || 1;
 
+  // nextCursor is a full-page-gated encoded offset: only emit it when this page
+  // was full AND the upstream signals more (has_more) or the estimated total
+  // still exceeds what we've served. A partial page ends the walk (null).
+  const nextOffset = offset + results.length;
+  const hasMore = results.length === limitNum &&
+    (workerData?.has_more === true || nextOffset < total) &&
+    nextOffset <= 350 * 50;
+  const nextCursor = hasMore ? encodeCursor(nextOffset, limitNum) : null;
+
   const rlHeaders = await getRateLimitHeaders(env, `art:${ip}`, 30, 60);
   return publicJson({
     page: pageNum,
     limit: limitNum,
     total,
     total_pages,
+    nextCursor,
     results,
   }, 200, rlHeaders);
 }

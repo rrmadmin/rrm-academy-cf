@@ -8,7 +8,7 @@
  *  - POST with session, STUC member or staff: 20 requests/day, V2 model
  *  - POST with session + Accept: text/event-stream: SSE-framed response
  */
-import { json, optionsResponse, getSessionIdFromCookie, validateSession, roleAtLeast } from './auth/_shared.js';
+import { json, optionsResponse, getSessionIdFromCookie, validateSession, roleAtLeast, bearerUnauthorized } from './auth/_shared.js';
 import { validateBody } from './_validate.js';
 import { log } from './_log.js';
 import { logSearchQuery, hashIp, extractRequestMeta } from './_search_log.js';
@@ -243,7 +243,7 @@ async function handleAuthedAsk(context, session) {
     'SELECT id, role, blocked FROM user WHERE id = ?'
   ).bind(session.userId).first();
   if (!user) {
-    return json({ error: 'unauthorized' }, 401);
+    return bearerUnauthorized();
   }
   if (user.blocked) {
     return json({ error: 'forbidden' }, 403);
@@ -458,7 +458,7 @@ async function _handlePost(context) {
       user_agent_short,
       referer_path,
     }).catch(() => {}));
-    return json({ error: 'unauthorized' }, 401);
+    return bearerUnauthorized();
   }
   return handleAuthedAsk(context, session);
 }

@@ -58,6 +58,7 @@ The RRM Academy developer portal documents how AI agents and software integrate 
 - [/openapi.json](https://rrmacademy.org/openapi.json) — Raw OpenAPI 3.1 spec (for codegen, Postman, Stoplight, Insomnia).
 - [/webhooks](https://rrmacademy.org/webhooks) — Webhooks status and subscription channels. Outbound webhooks are not currently exposed; RSS + MCP server cover the same surface.
 - [/account/mcp-keys](https://rrmacademy.org/account/mcp-keys) — Personal API key management (generate, label, revoke).
+- [/api/ask/sandbox](https://rrmacademy.org/api/ask/sandbox) — No-auth, no-key sandbox for the /api/ask contract. POST returns a canned AskResponse-shaped reply (safe, test-only) so clients can validate parsing before authenticating.
 
 ## Agent discovery files
 
@@ -77,6 +78,9 @@ The RRM Academy developer portal documents how AI agents and software integrate 
 - [/commentary/rss.xml](https://rrmacademy.org/commentary/rss.xml) — Atom feed for new commentary posts
 - [/sitemap.xml](https://rrmacademy.org/sitemap.xml) — full site map
 - [/index.md](https://rrmacademy.org/index.md) — markdown homepage fallback
+- [/agent-auth.md](https://rrmacademy.org/agent-auth.md) — markdown twin of the API token authentication guide
+- [/connect/index.md](https://rrmacademy.org/connect/index.md) — markdown twin of the MCP connector setup guide
+- [/webhooks.md](https://rrmacademy.org/webhooks.md) — markdown twin of the webhooks / subscription-channels page
 - [AGENTS.md](https://github.com/rrmadmin/rrm-academy-cf/blob/main/AGENTS.md) — AI coding agent instructions
 
 The same MCP discovery files are also served by the connector worker itself:

@@ -176,6 +176,16 @@
   Link: </index.md>; rel="alternate"; type="text/markdown"; title="Markdown"
   Link: </pricing.md>; rel="alternate"; type="text/markdown"; title="Pricing"
 
+# Agent-doc page markdown twins — advertise the .md alternate per RFC 8288.
+/agent-auth/
+  Link: </agent-auth.md>; rel="alternate"; type="text/markdown"; title="Markdown"
+
+/webhooks/
+  Link: </webhooks.md>; rel="alternate"; type="text/markdown"; title="Markdown"
+
+/connect/
+  Link: </connect/index.md>; rel="alternate"; type="text/markdown"; title="Markdown"
+
 # Machine-readable agent files — correct content types
 /llms.txt
   Content-Type: text/plain; charset=utf-8
@@ -200,6 +210,15 @@
   Content-Type: text/markdown; charset=utf-8
 
 /index.md
+  Content-Type: text/markdown; charset=utf-8
+
+/agent-auth.md
+  Content-Type: text/markdown; charset=utf-8
+
+/webhooks.md
+  Content-Type: text/markdown; charset=utf-8
+
+/connect/index.md
   Content-Type: text/markdown; charset=utf-8
 
 # Per-page Markdown source twins (agent-readiness). Static endpoints emit
