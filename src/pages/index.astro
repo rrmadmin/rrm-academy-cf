@@ -218,45 +218,98 @@ const jsonLd = {
   description={`RRM Academy: ${articleCount.toLocaleString()}+ scholarly works, NaProTechnology-grounded courses, and clinical guidance from Dr. Naomi Whittaker, MD, on Restorative Reproductive Medicine for patients and clinicians.`}
   canonicalUrl="https://rrmacademy.org/"
   jsonLd={jsonLd}
-  speakable={['.hp-hero h1', '.hp-hero__subtitle', '.hp-section:first-of-type p:first-of-type']}
+  speakable={['.hr-hero h1', '.hr-hero__subtitle', '.hp-section:first-of-type p:first-of-type']}
   markdownUrl="/index.md"
 >
   <div class="hp">
     <!-- Hero -->
-    <section class="hp-hero" aria-labelledby="hp-hero-h1">
-      <div class="container container--narrow">
-        <p class="hp-hero__descriptor">An education project of Restorative Reproductive Medicine Foundation, Inc.</p>
-        <h1 id="hp-hero-h1">Reclaim Reproductive Health with the Evidence</h1>
-        <p class="hp-hero__subtitle">
-          The online educational home of <strong>Restorative Reproductive Medicine</strong>.
-          Free courses, patient guides, and clinical training to find root causes and restore function, not manage symptoms.
-        </p>
-        <div class="hp-hero__cta">
-          <a href="/what-is-rrm/" class="btn btn--primary btn--lg" data-track-cta="hero-start-learning">
-            Start Learning
-            <svg class="hp-hero__cta-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><path d="M5 12h14M13 5l7 7-7 7"/></svg>
-          </a>
-          <a href="/endo-survey/" class="btn btn--secondary btn--lg" data-track-cta="hero-endo-survey">
-            Take the Endo Self-Assessment
-          </a>
-        </div>
-        <p class="hp-hero__links">
-          <a href="/guides/" class="hp-hero__link" data-track-cta="hero-for-patients">For Patients</a>
-          <span class="hp-hero__link-dot" aria-hidden="true">·</span>
-          <a href="/courses/" class="hp-hero__link" data-track-cta="hero-for-clinicians">For Clinicians</a>
-          <span class="hp-hero__link-dot" aria-hidden="true">·</span>
-          <a href="/donate/" class="hp-hero__link" data-track-cta="hero-donate">Donate</a>
-        </p>
-        <p class="hp-hero__legal">A 501(c)(3) public charity · EIN 93-4594315</p>
-        <p class="hp-hero__updated"><LastUpdated path="/" /></p>
+    <section class="hr-hero" aria-labelledby="hr-hero-h1">
+      <div class="hr-hero__aurora" aria-hidden="true">
+        <span class="hr-hero__aurora-blob hr-hero__aurora-blob--a"></span>
+        <span class="hr-hero__aurora-blob hr-hero__aurora-blob--b"></span>
       </div>
-      <div class="hp-hero__trust">
-        <p class="hp-trust__tagline">Our research library indexes studies from</p>
-        <div class="hp-trust__logos">
-          <span class="hp-trust__logo hp-trust__logo--nejm" role="img" aria-label="The New England Journal of Medicine"></span>
-          <span class="hp-trust__logo hp-trust__logo--jama">JAMA</span>
-          <span class="hp-trust__logo hp-trust__logo--lancet">The Lancet</span>
-          <span class="hp-trust__logo hp-trust__logo--fs">Fertility &amp; Sterility</span>
+      <div class="hr-hero__inner container">
+        <div class="hr-hero__grid">
+
+          <!-- Left: editorial column -->
+          <div class="hr-hero__copy">
+            <p class="hr-hero__descriptor">An education project of Restorative Reproductive Medicine Foundation, Inc.</p>
+            <h1 id="hr-hero-h1">Reclaim Reproductive Health with the <em>Evidence.</em></h1>
+            <p class="hr-hero__subtitle">
+              RRM Academy is the educational home of <strong>Restorative Reproductive Medicine</strong>:
+              free courses, patient guides, and clinical training that find root causes and restore
+              function, not manage symptoms.
+            </p>
+            <div class="hr-hero__cta">
+              <a href="/what-is-rrm/" class="btn btn--primary btn--lg" data-track-cta="hero-start-learning">
+                Start Learning
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><path d="M5 12h14M13 5l7 7-7 7"/></svg>
+              </a>
+              <a href="/endo-survey/" class="btn btn--secondary btn--lg" data-track-cta="hero-endo-survey">
+                Take the Endo Self-Assessment
+              </a>
+            </div>
+            <p class="hr-hero__links">
+              <a href="/guides/" class="hr-hero__link" data-track-cta="hero-for-patients">For Patients</a>
+              <span class="hr-hero__link-dot" aria-hidden="true">·</span>
+              <a href="/courses/" class="hr-hero__link" data-track-cta="hero-for-clinicians">For Clinicians</a>
+              <span class="hr-hero__link-dot" aria-hidden="true">·</span>
+              <a href="/donate/" class="hr-hero__link" data-track-cta="hero-donate">Donate</a>
+            </p>
+            <p class="hr-hero__legal">A 501(c)(3) public charity · EIN 93-4594315</p>
+            <p class="hr-hero__updated"><LastUpdated path="/" /></p>
+          </div>
+
+          <!-- Right: evidence ledger -->
+          <div class="hr-hero__proof">
+            <div class="hr-ledger">
+              <p class="hr-ledger__eyebrow">By the numbers</p>
+              <div class="hr-ledger__row">
+                <span class="hr-ledger__num">{articleCount.toLocaleString()}</span>
+                <span class="hr-ledger__label">scholarly works in the <a href="/library/">Research Library</a></span>
+              </div>
+              <div class="hr-ledger__row">
+                <span class="hr-ledger__num">{liveCourseCount}</span>
+                <span class="hr-ledger__label">expert-led <a href="/courses/">courses</a>, free and paid</span>
+              </div>
+              <div class="hr-ledger__row">
+                <span class="hr-ledger__num">{surveyCountRounded.toLocaleString()}+</span>
+                <span class="hr-ledger__label">women have taken the <a href="/endo-survey/">Endo Self-Survey</a></span>
+              </div>
+            </div>
+
+            <figure class="hr-quote">
+              <blockquote class="hr-quote__text">
+                <p>"My attending told me to do nothing. 'If she's going to miscarry, she's going to miscarry.' That moment broke my heart."</p>
+              </blockquote>
+              <figcaption class="hr-quote__attribution">
+                <img
+                  src="/images/authors/naomi-whittaker.webp"
+                  alt="Dr. Naomi Whittaker, MD"
+                  class="hr-quote__photo"
+                  width="48"
+                  height="48"
+                  loading="lazy"
+                  decoding="async"
+                />
+                <span class="hr-quote__meta">
+                  <span class="hr-quote__name">Dr. Naomi Whittaker, MD</span>
+                  <span class="hr-quote__cred">Board-Certified OBGYN · Founder, RRM Academy</span>
+                </span>
+              </figcaption>
+            </figure>
+          </div>
+        </div>
+
+        <!-- Trust band -->
+        <div class="hr-hero__trust">
+          <p class="hr-trust__tagline">Our research library indexes studies from</p>
+          <div class="hr-trust__logos">
+            <span class="hr-trust__logo hr-trust__logo--nejm" role="img" aria-label="The New England Journal of Medicine"></span>
+            <span class="hr-trust__logo hr-trust__logo--jama">JAMA</span>
+            <span class="hr-trust__logo hr-trust__logo--lancet">The Lancet</span>
+            <span class="hr-trust__logo hr-trust__logo--fs">Fertility &amp; Sterility</span>
+          </div>
         </div>
       </div>
     </section>
@@ -666,21 +719,24 @@ const jsonLd = {
     padding: 0;
   }
 
-  /* Hero */
-  .hp-hero {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
+  /* ═══════════════════════════════════════════
+     HERO — editorial split + evidence ledger (aurora)
+     Prefix: hr-
+     ═══════════════════════════════════════════ */
+
+  .hr-hero {
     position: relative;
     isolation: isolate;
     overflow: hidden;
     background: var(--gradient-hero);
-    padding: var(--space-16) 0 var(--space-10);
     min-height: 85vh;
+    display: flex;
+    flex-direction: column;
+    padding: var(--space-16) 0 var(--space-8);
   }
 
-  /* Monochrome white grain — lifts highlights via screen blend, never darkens the purple floor */
-  .hp-hero::before {
+  /* Same grain treatment as the production hero */
+  .hr-hero::before {
     content: "";
     position: absolute;
     inset: 0;
@@ -690,76 +746,389 @@ const jsonLd = {
     background-size: 220px 220px;
     opacity: var(--gradient-hero-grain-opacity);
     mix-blend-mode: screen;
-    /* Confine grain to the purple wash. Screen-blended white grain pops hardest
-       over dark pixels, so without this it piles up on the dark floor below the
-       gradient (most visible in dark mode). This radial mask mirrors
-       --gradient-hero's 50% 0% fade so the grain disappears exactly where the
-       purple does. */
     -webkit-mask-image: radial-gradient(circle at 50% 0%, var(--white) 0%, var(--white) 33.6%, transparent 60.16%);
     mask-image: radial-gradient(circle at 50% 0%, var(--white) 0%, var(--white) 33.6%, transparent 60.16%);
   }
 
-  .hp-hero > * {
+  .hr-hero__inner {
     position: relative;
     z-index: 2;
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+    width: 100%;
   }
 
-  .hp-hero > .container {
-    margin-top: auto;
-    margin-bottom: auto;
+  /* ── Aurora: slow light drift over the gradient ──
+     Transform-only animation (compositor). Hue matches --gradient-hero
+     (oklch 312.6). Masked to fade out where the gradient itself fades. */
+
+  .hr-hero__aurora {
+    position: absolute;
+    inset: 0;
+    z-index: 1;
+    pointer-events: none;
+    overflow: hidden;
+    -webkit-mask-image: radial-gradient(circle at 50% 0%, var(--white) 0%, var(--white) 33.6%, transparent 60.16%);
+    mask-image: radial-gradient(circle at 50% 0%, var(--white) 0%, var(--white) 33.6%, transparent 60.16%);
   }
 
-  .hp-hero .hp-hero__descriptor {
+  .hr-hero__aurora-blob {
+    position: absolute;
+    border-radius: 50%;
+    will-change: transform;
+  }
+
+  /* Lavender shadow drifting across the wash */
+  .hr-hero__aurora-blob--a {
+    width: 85vmin;
+    height: 85vmin;
+    top: -25%;
+    left: 5%;
+    background: radial-gradient(circle, oklch(69% 0.11 312.6 / 0.62) 0%, oklch(72% 0.10 312.6 / 0) 68%);
+    animation: hr-drift-a 8s ease-in-out infinite alternate;
+  }
+
+  /* Soft light sheen counter-drifting, screen-blended so it only ever lifts */
+  .hr-hero__aurora-blob--b {
+    width: 70vmin;
+    height: 70vmin;
+    top: -15%;
+    right: -5%;
+    background: radial-gradient(circle, oklch(96% 0.035 312.6 / 0.8) 0%, oklch(96% 0.03 312.6 / 0) 65%);
+    mix-blend-mode: screen;
+    animation: hr-drift-b 11s ease-in-out infinite alternate;
+  }
+
+  @keyframes hr-drift-a {
+    from { transform: translate3d(-22%, -10%, 0) scale(0.95); }
+    to   { transform: translate3d(24%, 18%, 0) scale(1.3); }
+  }
+
+  @keyframes hr-drift-b {
+    from { transform: translate3d(22%, 8%, 0) scale(1.2); }
+    to   { transform: translate3d(-26%, 20%, 0) scale(0.85); }
+  }
+
+  [data-theme="dark"] .hr-hero__aurora {
+    opacity: 0.55;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .hr-hero__aurora-blob {
+      animation: none;
+    }
+  }
+
+  .hr-hero__grid {
+    display: grid;
+    grid-template-columns: 1.15fr 0.85fr;
+    gap: var(--space-12);
+    align-items: center;
+    flex: 1;
+    margin: auto 0;
+    width: 100%;
+  }
+
+  /* ── Left column ─────────────────────────── */
+
+  .hr-hero__descriptor {
     font-size: var(--text-b6);
     letter-spacing: 0.1em;
     line-height: var(--leading-ui);
     text-transform: uppercase;
     color: var(--text-tertiary);
-    margin-bottom: var(--space-6);
+    margin: 0 0 var(--space-6);
   }
 
-  .hp-hero h1 {
-    font-size: clamp(2rem, 1.2rem + 3.5vw, 4.5rem);
-    line-height: 1.1;
+  .hr-hero h1 {
+    font-size: clamp(2.25rem, 1.4rem + 3.2vw, 3.5rem);
+    line-height: 1.08;
     letter-spacing: -0.03em;
-    margin-bottom: var(--space-6);
+    margin: 0 0 var(--space-6);
     color: var(--text-primary);
     text-wrap: balance;
   }
 
-  .hp-hero .hp-hero__subtitle {
+  .hr-hero h1 em {
+    font-style: italic;
+    color: var(--accent);
+  }
+
+  .hr-hero__subtitle {
     font-size: 1.125rem;
     line-height: 1.75;
     color: var(--text-secondary);
-    max-width: 60ch;
-    margin-bottom: var(--space-8);
+    max-width: 52ch;
+    margin: 0 0 var(--space-8);
     text-wrap: pretty;
   }
 
-  .hp-hero__nonprofit {
-    font-size: 0.8125rem;
-    letter-spacing: 0.04em;
-    color: var(--text-tertiary);
-    margin-top: var(--space-4);
-    margin-bottom: var(--space-2);
+  .hr-hero__cta {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--space-3);
+    margin: 0 0 var(--space-6);
+  }
+  .hr-hero__cta .btn {
+    text-decoration: none;
   }
 
-  .hp-hero .hp-hero__legal {
+  .hr-hero__links {
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+    flex-wrap: wrap;
+    margin: 0;
+    font-size: 0.8125rem;
+  }
+  .hr-hero__link {
+    color: var(--text-secondary);
+    text-decoration: none;
+    border-bottom: 1px solid transparent;
+    transition: color 0.15s, border-color 0.15s;
+  }
+  .hr-hero__link:hover {
+    color: var(--accent);
+    border-bottom-color: var(--accent);
+    text-decoration: none;
+  }
+  .hr-hero__link-dot {
+    color: var(--text-muted);
+  }
+
+  .hr-hero__legal {
     font-size: var(--text-b5);
     line-height: var(--leading-ui);
     color: var(--text-muted);
-    margin-top: var(--space-10);
-    margin-bottom: 0;
+    margin: var(--space-8) 0 0;
   }
 
-  .hp-hero .hp-hero__updated {
+  .hr-hero__updated {
     font-size: 0.75rem;
     color: var(--text-muted);
     margin-top: var(--space-1);
     margin-bottom: var(--space-5);
   }
-  .hp-hero__updated time {
+  .hr-hero__updated time {
     font-style: normal;
+  }
+
+  /* ── Right column: evidence ledger ───────── */
+
+  .hr-hero__proof {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-4);
+    min-width: 0;
+  }
+
+  .hr-ledger {
+    background: var(--bg-surface);
+    border-radius: var(--radius-md);
+    box-shadow: var(--shadow-md);
+    padding: var(--space-6);
+  }
+
+  .hr-ledger__eyebrow {
+    font-size: var(--text-b6);
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--text-tertiary);
+    margin: 0 0 var(--space-4);
+  }
+
+  .hr-ledger__row {
+    display: flex;
+    align-items: baseline;
+    gap: var(--space-4);
+    padding: var(--space-3) 0;
+    border-top: 1px solid var(--border-light);
+  }
+  .hr-ledger__row:first-of-type {
+    border-top: none;
+    padding-top: 0;
+  }
+  .hr-ledger__row:last-child {
+    padding-bottom: 0;
+  }
+
+  .hr-ledger__num {
+    font-family: 'Cormorant Garamond', 'Georgia', serif;
+    font-size: 2rem;
+    font-weight: 600;
+    line-height: 1;
+    color: var(--accent);
+    min-width: 3.2ch;
+    font-variant-numeric: tabular-nums;
+  }
+
+  .hr-ledger__label {
+    font-size: 0.8125rem;
+    line-height: 1.5;
+    color: var(--text-secondary);
+  }
+  .hr-ledger__label a {
+    color: var(--accent);
+  }
+
+  /* Founder quote card */
+  .hr-quote {
+    margin: 0;
+    background: var(--bg-surface);
+    border-radius: var(--radius-md);
+    box-shadow: var(--shadow-sm);
+    padding: var(--space-5) var(--space-6);
+  }
+
+  .hr-quote__text {
+    margin: 0 0 var(--space-4);
+    padding: 0;
+    border: none;
+  }
+  .hr-quote__text p {
+    font-family: 'Cormorant Garamond', 'Georgia', serif;
+    font-size: 1.125rem;
+    font-style: italic;
+    line-height: 1.55;
+    color: var(--text-primary);
+    margin: 0;
+  }
+
+  .hr-quote__attribution {
+    display: flex;
+    align-items: center;
+    gap: var(--space-3);
+  }
+  .hr-quote__photo {
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    object-fit: cover;
+    flex-shrink: 0;
+  }
+  .hr-quote__meta {
+    display: flex;
+    flex-direction: column;
+    gap: 0.1em;
+    min-width: 0;
+  }
+  .hr-quote__name {
+    font-size: 0.8125rem;
+    font-weight: 600;
+    color: var(--text-primary);
+  }
+  .hr-quote__cred {
+    font-size: 0.75rem;
+    color: var(--text-tertiary);
+    line-height: 1.4;
+  }
+
+  /* ── Trust band ──────────────────────────── */
+
+  .hr-hero__trust {
+    margin-top: var(--space-10);
+    padding-top: var(--space-5);
+    border-top: 1px solid var(--border-light);
+  }
+
+  .hr-trust__tagline {
+    font-size: 0.75rem;
+    color: var(--text-tertiary);
+    margin: 0 0 var(--space-3);
+    letter-spacing: 0.01em;
+    text-align: center;
+  }
+
+  .hr-trust__logos {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: var(--space-3) var(--space-6);
+    flex-wrap: wrap;
+  }
+
+  .hr-trust__logo {
+    color: var(--neutral-400);
+    font-size: 0.875rem;
+    font-weight: 600;
+    letter-spacing: 0.01em;
+    white-space: nowrap;
+    user-select: none;
+    line-height: 1.2;
+  }
+
+  .hr-trust__logo--nejm {
+    display: inline-block;
+    width: 132px;
+    height: 22px;
+    background-color: currentColor;
+    -webkit-mask: url('/images/journal-logos/nejm.webp') no-repeat center / contain;
+    mask: url('/images/journal-logos/nejm.webp') no-repeat center / contain;
+  }
+  .hr-trust__logo--jama {
+    font-family: 'Cormorant Garamond', 'Georgia', serif;
+    font-size: 1.25rem;
+    font-weight: 600;
+  }
+  .hr-trust__logo--lancet {
+    font-family: 'Cormorant Garamond', 'Georgia', serif;
+    font-size: 1.125rem;
+    font-weight: 400;
+  }
+  .hr-trust__logo--fs {
+    font-family: 'Cormorant Garamond', 'Georgia', serif;
+    font-size: 0.8125rem;
+    font-style: italic;
+    font-weight: 400;
+  }
+
+  /* ── Hero mobile ─────────────────────────── */
+
+  @media (max-width: 900px) {
+    .hr-hero {
+      min-height: 0;
+      padding: var(--space-10) 0 var(--space-8);
+    }
+    .hr-hero__grid {
+      grid-template-columns: 1fr;
+      gap: var(--space-8);
+    }
+    .hr-hero h1 {
+      font-size: 2.5rem;
+    }
+    .hr-hero__subtitle {
+      font-size: 0.9375rem;
+    }
+    .hr-hero__cta {
+      flex-direction: column;
+      align-items: stretch;
+    }
+    .hr-hero__cta .btn {
+      width: 100%;
+      justify-content: center;
+    }
+    .hr-hero__updated {
+      display: none;
+    }
+    .hr-ledger__num {
+      font-size: 1.75rem;
+    }
+    .hr-hero__trust {
+      margin-top: var(--space-8);
+    }
+    .hr-trust__logo--nejm {
+      width: 102px;
+      height: 17px;
+    }
+    .hr-trust__logo--jama {
+      font-size: 1rem;
+    }
+    .hr-trust__logo--lancet {
+      font-size: 0.875rem;
+    }
   }
 
   /* Founder credit block in "Built on a Moment" section */
@@ -800,93 +1169,7 @@ const jsonLd = {
     }
   }
 
-  .hp-hero__cta {
-    display: flex;
-    flex-wrap: wrap;
-    justify-content: flex-start;
-    align-items: center;
-    gap: var(--space-3);
-    margin: 0 0 var(--space-6);
-  }
-  .hp-hero__cta .btn {
-    text-decoration: none;
-  }
-  .hp-hero__cta-icon {
-    flex-shrink: 0;
-  }
-  .hp-hero__links {
-    display: flex;
-    align-items: center;
-    justify-content: flex-start;
-    gap: var(--space-2);
-    flex-wrap: wrap;
-    margin-top: 0;
-    font-size: 0.8125rem;
-    color: var(--text-tertiary);
-  }
-  .hp-hero__link {
-    color: var(--text-secondary);
-    text-decoration: none;
-    border-bottom: 1px solid transparent;
-    transition: color 0.15s, border-color 0.15s;
-  }
-  .hp-hero__link:hover {
-    color: var(--accent);
-    border-bottom-color: var(--accent);
-    text-decoration: none;
-  }
-  .hp-hero__link-dot {
-    color: var(--text-muted);
-  }
-
   @media (max-width: 768px) {
-    .hp-hero {
-      min-height: calc(100vh - 56px);
-      padding: var(--space-10) 0 var(--space-8);
-    }
-    .hp-hero .hp-hero__updated {
-      display: none;
-    }
-    .hp-hero .hp-hero__descriptor {
-      margin-bottom: var(--space-4);
-    }
-    .hp-hero h1 {
-      font-size: 2.5rem;
-      margin-bottom: var(--space-6);
-    }
-    .hp-hero .hp-hero__subtitle {
-      font-size: 0.9375rem;
-      margin-bottom: var(--space-8);
-    }
-    .hp-hero__nonprofit {
-      font-size: 0.75rem;
-      margin-bottom: var(--space-5);
-    }
-    .hp-hero__cta {
-      flex-direction: column;
-      align-items: stretch;
-      gap: var(--space-2);
-      margin-bottom: var(--space-6);
-    }
-    .hp-hero .hp-hero__legal {
-      margin-top: var(--space-6);
-      font-size: var(--text-b6);
-    }
-    .hp-hero__cta .btn {
-      width: 100%;
-      justify-content: center;
-    }
-    .hp-hero__links {
-      gap: var(--space-2);
-      font-size: 0.75rem;
-    }
-    .hp-hero__trust {
-      margin-top: auto;
-    }
-    .hp-trust__tagline {
-      font-size: 0.75rem;
-      margin-bottom: var(--space-3);
-    }
     .hp-section .container--narrow {
       padding-top: var(--space-10);
       padding-bottom: var(--space-10);
@@ -906,90 +1189,6 @@ const jsonLd = {
     }
     .hp p {
       margin-bottom: 1em;
-    }
-  }
-
-  /* Trust bar */
-  .hp-hero__trust {
-    width: 100%;
-    padding: 0 var(--space-4);
-    margin-top: auto;
-  }
-
-  .hp-trust__tagline {
-    font-size: 0.8125rem;
-    color: var(--text-secondary);
-    margin-bottom: var(--space-4);
-    letter-spacing: 0.01em;
-    text-align: center;
-  }
-
-  .hp-trust__logos {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: var(--space-3) var(--space-6);
-    flex-wrap: wrap;
-  }
-
-  .hp-trust__logo {
-    color: var(--neutral-400);
-    font-size: 0.875rem;
-    font-weight: 600;
-    letter-spacing: 0.01em;
-    white-space: nowrap;
-    user-select: none;
-    line-height: 1.2;
-  }
-
-  .hp-trust__logo--nejm {
-    display: inline-block;
-    width: 132px;
-    height: 22px;
-    background-color: currentColor;
-    -webkit-mask: url('/images/journal-logos/nejm.webp') no-repeat center / contain;
-    mask: url('/images/journal-logos/nejm.webp') no-repeat center / contain;
-  }
-
-  .hp-trust__logo--jama {
-    font-family: 'Georgia', serif;
-    font-size: 1.25rem;
-    font-weight: 600;
-    letter-spacing: 0.02em;
-  }
-
-  .hp-trust__logo--lancet {
-    font-family: 'Georgia', serif;
-    font-size: 1.125rem;
-    font-weight: 400;
-    letter-spacing: 0.01em;
-  }
-
-
-
-
-
-  .hp-trust__logo--fs {
-    font-family: 'Georgia', serif;
-    font-size: 0.8125rem;
-    font-style: italic;
-    font-weight: 400;
-    letter-spacing: 0.01em;
-  }
-
-  @media (max-width: 768px) {
-    .hp-trust__logos {
-      gap: var(--space-3) var(--space-5);
-    }
-    .hp-trust__logo--nejm {
-      width: 102px;
-      height: 17px;
-    }
-    .hp-trust__logo--jama {
-      font-size: 1rem;
-    }
-    .hp-trust__logo--lancet {
-      font-size: 0.875rem;
     }
   }
 
