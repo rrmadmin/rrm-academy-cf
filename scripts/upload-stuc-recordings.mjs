@@ -42,6 +42,7 @@ const COURSES = [
   { id: 'aip-diet-inflammation', mp4FileId: '13-lXiw45KsetUAkwT49zbPYkRP8AAqgh', transcriptDocId: '1Cz62CvFzrO6Hjp1u8NZ9sD38zRfTTxP3Ja9H3dYTp0Y' },
   { id: 'functional-lab-testing-napro', mp4FileId: null, transcriptDocId: '1ln6g4BFS7s4AkrbPYxUMWtsflUIMiFrdcN5j9_lkbMg' },
   { id: 'medical-trauma-endometriosis', mp4FileId: '13MY00aza5PiQ_gDcMu7z1hIX4Egm__Au', transcriptDocId: '1Z_z_ilhUsyh7qHkYxLYysB1rsuMu5Dy0XDmt30zlYoc' },
+  { id: 'breaking-up-with-ivf', mp4FileId: '1j6RGArBJ8znYqgatyFbFESc4tuGMtel_', transcriptDocId: '1XJu5sSXeVTyNVGT9TQSIA8hILk6WIOZLUGG_hwCGZYY' },
 ];
 
 const TMP = '/tmp';
