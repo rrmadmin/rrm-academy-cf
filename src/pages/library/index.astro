@@ -184,12 +184,14 @@ const jsonLd = {
     {recent.length > 0 && (
     <section class="section" data-pagefind-ignore="all" aria-labelledby="recent-heading">
       <div class="container">
-        <div class="section-header">
-          <h2 id="recent-heading" class="section-label">Recently published</h2>
-          <a href="/library/page/1/" class="link-arrow">View all &rarr;</a>
-        </div>
-        <div class="recent-list">
-          {recent.map(a => <ArticleCard article={a} variant="list" />)}
+        <div class="recent-wrap">
+          <div class="section-header">
+            <h2 id="recent-heading" class="section-label">Recently published</h2>
+            <a href="/library/page/1/" class="link-arrow">View all &rarr;</a>
+          </div>
+          <div class="recent-list">
+            {recent.map(a => <ArticleCard article={a} variant="list" />)}
+          </div>
         </div>
       </div>
     </section>
@@ -533,6 +535,13 @@ const jsonLd = {
      topic hubs via ArticleCard variant="list" (2026-07-13). The rows own their
      rhythm + hairline dividers; this container only sets the reading measure.
      The old bespoke .recent-card grid was retired here — do not reintroduce it. */
+  /* Center the reading column (heading + rows together) within the page-width
+     container, so it sits under the centered topic atlas rather than pinned
+     left (2026-07-18). */
+  .recent-wrap {
+    max-width: var(--max-width-article);
+    margin-inline: auto;
+  }
   .recent-list {
     max-width: var(--max-width-article);
   }
