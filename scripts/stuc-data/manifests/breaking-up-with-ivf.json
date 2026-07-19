@@ -1,0 +1,198 @@
+{
+  "courseId": "breaking-up-with-ivf",
+  "sourceUid": "f4f90716395f9672bc88e79445953522",
+  "sourceDuration": 5461,
+  "approved": true,
+  "speaker": "Dr. Jennifer Mercier, ND, PhD, Founder of Mercier Therapy, Midwife",
+  "host": "Save the Uterus Club; Dr. Naomi Whittaker hosting/reviewing (NOT co-presenter)",
+  "contentStart": 811,
+  "contentEnd": 5450,
+  "trimmedChitChat": {
+    "startTrimmed": "00:00:00-00:13:31 — pre-roll, tech/audio checks, small talk, attendee personal chatter (00:10:18-00:11:01), cuterus-mascot origin story with embedded tech hiccup. Kept from 00:13:31: topic intro, club description, superheroes mention, full guest introduction.",
+    "endTrimmed": "01:30:50-01:31:01 — closing goodbyes only (good night everyone, God bless, take care, bye-bye)",
+    "removedInterior": "01:14:22-01:19:13 (4462-4753) — member-specific Q&A: both doctors respond to a member's disclosed personal diagnoses. REMOVED per Brian 2026-07-18 (personal-medical-advice risk; Save the Uterus Club is not free medical advice)."
+  },
+  "lessons": [
+    {
+      "order": 1,
+      "sectionId": "breaking-up-with-ivf-welcome-meet-mercier",
+      "stepId": "breaking-up-with-ivf-welcome-meet-mercier-1",
+      "title": "Welcome to the Club & Meet Dr. Jennifer Mercier",
+      "startTimeSeconds": 811,
+      "endTimeSeconds": 918,
+      "durationSeconds": 107,
+      "topicSummary": "Dr. Whittaker introduces the evening's topic, describes the Save the Uterus Club and its superhero member-ambassadors, and formally introduces guest speaker Dr. Jennifer Mercier, ND, PhD, midwife and founder of Mercier Therapy."
+    },
+    {
+      "order": 2,
+      "sectionId": "breaking-up-with-ivf-rei-clinic-intro",
+      "stepId": "breaking-up-with-ivf-rei-clinic-intro-1",
+      "title": "Inside the REI Clinic: A Front-Line Introduction",
+      "startTimeSeconds": 918,
+      "endTimeSeconds": 1128,
+      "durationSeconds": 210,
+      "topicSummary": "Dr. Mercier opens with her professional path, working at large reproductive endocrinology and IVF clinics and performing ultrasounds, semen analyses, IUIs, biopsies, and IVF monitoring. She describes her own early stage 4 endometriosis, her rejection of Lupron, and how patients were run on rigid medication calendars with little teaching or understanding of what they were undergoing."
+    },
+    {
+      "order": 3,
+      "sectionId": "breaking-up-with-ivf-retrieval-icsi-handling",
+      "stepId": "breaking-up-with-ivf-retrieval-icsi-handling-1",
+      "title": "Egg Retrieval, ICSI, and Embryo Handling",
+      "startTimeSeconds": 1128,
+      "endTimeSeconds": 1480,
+      "durationSeconds": 352,
+      "topicSummary": "Dr. Mercier walks through super-ovulation and transvaginal egg retrieval, anesthesia norms across countries, and the embryologist counting eggs. She explains ICSI (forcing sperm into egg) and the natural-selection questions it raises, then embryo development to blastocyst, fresh versus frozen transfer, exogenous progesterone, embryo banking, single-embryo transfer, twinning and selective reduction, and the limits of PGT-A genetic testing."
+    },
+    {
+      "order": 4,
+      "sectionId": "breaking-up-with-ivf-plastics-success-rates",
+      "stepId": "breaking-up-with-ivf-plastics-success-rates-1",
+      "title": "Plastic Exposure and IVF Success Statistics",
+      "startTimeSeconds": 1480,
+      "endTimeSeconds": 1754,
+      "durationSeconds": 274,
+      "topicSummary": "Dr. Mercier notes the pervasive use of plastic throughout collection, injection, retrieval, and ICSI and the unknowns for primitive gametes. She cites an average live-birth rate she puts around 23.5% for ages 35-43 that she says has not improved over time, and highlights the absence of any official registry tracking IVF-born babies or the millions of frozen embryos in storage."
+    },
+    {
+      "order": 5,
+      "sectionId": "breaking-up-with-ivf-medical-tourism-trafficking",
+      "stepId": "breaking-up-with-ivf-medical-tourism-trafficking-1",
+      "title": "Medical Tourism and the Embryo Trafficking Problem",
+      "startTimeSeconds": 1754,
+      "endTimeSeconds": 1972,
+      "durationSeconds": 218,
+      "topicSummary": "Dr. Mercier examines overseas IVF pursued for lower cost, the rule against importing embryos into the U.S., and her account of leftover embryos abroad being placed into surrogates rather than discarded. Dr. Whittaker adds that clinics may not fully disclose how many eggs or embryos were created, underscoring the lack of transparency and regulation."
+    },
+    {
+      "order": 6,
+      "sectionId": "breaking-up-with-ivf-male-factor-pregnancy-risks",
+      "stepId": "breaking-up-with-ivf-male-factor-pregnancy-risks-1",
+      "title": "Male Factor, Lifestyle, and IVF Pregnancy Risks",
+      "startTimeSeconds": 1972,
+      "endTimeSeconds": 2255,
+      "durationSeconds": 283,
+      "topicSummary": "Dr. Mercier discusses when IVF is genuinely indicated, poor sperm morphology, and lifestyle drivers such as THC and smoking, arguing that addressing root causes in the couple is often skipped. The conversation turns to postpartum SSRIs and to the elevated pregnancy complications reported with IVF (preeclampsia, hypertensive disorders, postpartum hemorrhage, placental abnormalities) and the lack of long-term data."
+    },
+    {
+      "order": 7,
+      "sectionId": "breaking-up-with-ivf-clinical-risk-ohss",
+      "stepId": "breaking-up-with-ivf-clinical-risk-ohss-1",
+      "title": "Clinical Risk: OHSS, BMI, and a Fatal Case",
+      "startTimeSeconds": 2255,
+      "endTimeSeconds": 2453,
+      "durationSeconds": 198,
+      "topicSummary": "Dr. Mercier recounts retrieval-related bleeding, ovarian hyperstimulation syndrome with ascites, and BMI being overlooked as a risk factor, including a case that ended in maternal cardiac arrest and death after transfer. She and Dr. Whittaker question the professional discernment applied to high-risk and repeated cycles."
+    },
+    {
+      "order": 8,
+      "sectionId": "breaking-up-with-ivf-informed-consent-gaps",
+      "stepId": "breaking-up-with-ivf-informed-consent-gaps-1",
+      "title": "Informed Consent Gaps and Self-Regulation",
+      "startTimeSeconds": 2453,
+      "endTimeSeconds": 2610,
+      "durationSeconds": 157,
+      "topicSummary": "Dr. Whittaker explains that few IVF clinics report outcomes to a self-regulated database and that retrieval-related deaths are not captured in national morbidity and mortality statistics. They critique how OHSS is presented as a rare, reassuring statistic and question whether patients truly understand the physical risks they consent to."
+    },
+    {
+      "order": 9,
+      "sectionId": "breaking-up-with-ivf-stimulation-donor-exploitation",
+      "stepId": "breaking-up-with-ivf-stimulation-donor-exploitation-1",
+      "title": "Ovarian Stimulation, Egg Quality, and Donor Exploitation",
+      "startTimeSeconds": 2610,
+      "endTimeSeconds": 2758,
+      "durationSeconds": 148,
+      "topicSummary": "Dr. Mercier describes the very high estradiol levels of a stimulated cycle, immature and post-mature eggs, and how a large egg count often yields far fewer usable embryos. She raises concerns about long-term consequences for exploited egg donors, and Dr. Whittaker notes that a comparable share of couples conceive naturally without IVF."
+    },
+    {
+      "order": 10,
+      "sectionId": "breaking-up-with-ivf-consolidation-diagnostic-gaps",
+      "stepId": "breaking-up-with-ivf-consolidation-diagnostic-gaps-1",
+      "title": "Industry Consolidation and Diagnostic Gaps",
+      "startTimeSeconds": 2758,
+      "endTimeSeconds": 2958,
+      "durationSeconds": 200,
+      "topicSummary": "Dr. Mercier describes large conglomerates acquiring smaller fertility practices and patients feeling like a number, and how she serves as a liaison through her Shared Journey Fertility Program and Mercier Therapy sessions. She stresses basic diagnostic evaluation, citing commonly missed prolactin and full thyroid testing."
+    },
+    {
+      "order": 11,
+      "sectionId": "breaking-up-with-ivf-fellowship-bridging-gap",
+      "stepId": "breaking-up-with-ivf-fellowship-bridging-gap-1",
+      "title": "Education, Fellowship, and Bridging the Gap",
+      "startTimeSeconds": 2958,
+      "endTimeSeconds": 3150,
+      "durationSeconds": 192,
+      "topicSummary": "Dr. Mercier explains the need for a full thyroid workup and describes her fellowship program for licensed providers and select allied professionals. She and Dr. Whittaker discuss the value of fertility-care support roles, occupying 'the middle' between OBGYN and REI, and the extra training each pursued to practice restorative reproductive medicine."
+    },
+    {
+      "order": 12,
+      "sectionId": "breaking-up-with-ivf-precycle-counseling-embryos",
+      "stepId": "breaking-up-with-ivf-precycle-counseling-embryos-1",
+      "title": "Pre-Cycle Counseling and Embryo Disposition",
+      "startTimeSeconds": 3150,
+      "endTimeSeconds": 3345,
+      "durationSeconds": 195,
+      "topicSummary": "Dr. Whittaker and Dr. Mercier discuss how few couples are prepared for downstream decisions about extra embryos, natural fertilization versus ICSI, and disposition choices. They argue these moral and practical considerations belong in the informed-consent conversation before treatment rather than after."
+    },
+    {
+      "order": 13,
+      "sectionId": "breaking-up-with-ivf-iui-vs-timed-intercourse",
+      "stepId": "breaking-up-with-ivf-iui-vs-timed-intercourse-1",
+      "title": "IUI Versus Timed Intercourse",
+      "startTimeSeconds": 3345,
+      "endTimeSeconds": 3584,
+      "durationSeconds": 239,
+      "topicSummary": "Drawing on a front-line IUI experience, the speakers argue there is little data showing IUI outperforms timed intercourse and that it functions largely as a billable procedure. They describe clinic resistance to supporting monitoring or FSH-and-trigger with timed intercourse when it falls outside standard protocols."
+    },
+    {
+      "order": 14,
+      "sectionId": "breaking-up-with-ivf-fsh-trigger-protocols",
+      "stepId": "breaking-up-with-ivf-fsh-trigger-protocols-1",
+      "title": "FSH/Trigger Protocols and Mini-Dose hCG",
+      "startTimeSeconds": 3584,
+      "endTimeSeconds": 3878,
+      "durationSeconds": 294,
+      "topicSummary": "Dr. Mercier shares her own conception using injectable FSH, an hCG trigger, and timed intercourse, and how consolidated clinics increasingly decline lower-intervention options. They discuss the need for ultrasound monitoring to avoid OHSS, Dr. Whittaker's mini-dose hCG approach, and rising drug cost and supply problems."
+    },
+    {
+      "order": 15,
+      "sectionId": "breaking-up-with-ivf-male-protocols-international",
+      "stepId": "breaking-up-with-ivf-male-protocols-international-1",
+      "title": "Male Fertility Protocols and International Variation",
+      "startTimeSeconds": 3878,
+      "endTimeSeconds": 4104,
+      "durationSeconds": 226,
+      "topicSummary": "The speakers cover male infertility protocols: how exogenous testosterone suppresses sperm production, stopping it for at least three months, and using hCG, Clomid, or enclomiphene via compounding pharmacies. They then note how U.S. practice relies more heavily on hyperstimulation and reference an investigative clip on unregulated embryo handling abroad."
+    },
+    {
+      "order": 16,
+      "sectionId": "breaking-up-with-ivf-egg-freezing-podcast",
+      "stepId": "breaking-up-with-ivf-egg-freezing-podcast-1",
+      "title": "Egg Freezing Risks and the Conceiving Miracles Podcast",
+      "startTimeSeconds": 4104,
+      "endTimeSeconds": 4462,
+      "durationSeconds": 358,
+      "topicSummary": "Dr. Whittaker and Dr. Mercier raise concerns about egg-freezing marketing, poor thaw outcomes, and risks such as reduced ovarian reserve, scar tissue, and endometriosis flare, arguing it is not an insurance policy and that its 'experimental' label was lifted for vitrification survival rather than proven safety. The lesson closes with mutual appreciation and Dr. Mercier introducing her upcoming Conceiving Miracles podcast."
+    },
+    {
+      "order": 17,
+      "sectionId": "breaking-up-with-ivf-patient-advocacy-surgeon",
+      "stepId": "breaking-up-with-ivf-patient-advocacy-surgeon-1",
+      "title": "Patient Advocacy and Fertility-Friendly Care",
+      "startTimeSeconds": 4753,
+      "endTimeSeconds": 5054,
+      "durationSeconds": 301,
+      "topicSummary": "Dr. Whittaker encourages patients to be their own advocate, to protect themselves, and to recognize infertility as a legitimate medical condition rather than a personal failing. She and Dr. Mercier stress choosing fertility-friendly, trusted providers and note how standard OBGYN training biases toward organ removal rather than fertility preservation, motivating the shift to restorative reproductive medicine."
+    },
+    {
+      "order": 18,
+      "sectionId": "breaking-up-with-ivf-podcast-reflections-resources",
+      "stepId": "breaking-up-with-ivf-podcast-reflections-resources-1",
+      "title": "Podcast Storytelling, Reflections, and Resources",
+      "startTimeSeconds": 5054,
+      "endTimeSeconds": 5450,
+      "durationSeconds": 396,
+      "topicSummary": "Dr. Mercier describes her podcast's aim to share a well-rounded range of women's fertility journeys, reinforcing that patients are not defective. Closing member reflections touch on the international-IVF discussion and social media's role in spreading credible restorative reproductive medicine, and Dr. Mercier shares how to find her, her Instagram, and free access to her first documentary."
+    }
+  ],
+  "notes": "DRAFT — approved:false. 18 lessons. Chain 811->918->1128->1480->1754->1972->2255->2453->2610->2758->2958->3150->3345->3584->3878->4104->4462 | INTENTIONAL GAP 4462-4753 (member-specific Q&A removed per Brian 2026-07-18: both doctors respond to a member's disclosed personal diagnoses; personal-medical-advice risk) | 4753->5054->5450. Boundaries set from the VERBATIM transcript, dual-verified per boundary (14/19 adjusted 4-32s onto clean sentence breaks), plus a dedicated intro/tail mapping pass 2026-07-18. contentStart 811 (00:13:31) = topic intro + club description + superheroes mention (~00:14:10) + full guest introduction (00:14:24-00:15:17), per Brian: include Jennifer's intro and the superheroes mention. Excluded: attendee personal chatter 00:10:18-00:11:01 and cuterus origin story with tech hiccup 00:11:37-00:12:35. contentEnd 5450 (01:30:50) = just before goodbyes. KEPT-WITH-FLAG: attendee closing testimonial 5193-5370 inside lesson 18 (her stated age + a relative's IVF story; a reflection, NOT an advice exchange; drop by sub-cutting lesson 18 into 5054-5193 + 5370-5450 if Brian wants it out). sourceUid/sourceDuration from stream-uids.json (upload complete 2026-07-18, readyToStream)."
+}
