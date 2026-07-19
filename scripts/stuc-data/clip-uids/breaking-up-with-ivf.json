@@ -1,0 +1,200 @@
+{
+  "breaking-up-with-ivf-welcome-meet-mercier-1": {
+    "clipUid": "f81fae8c9a85114673b00d998602e7ab",
+    "sourceUid": "f4f90716395f9672bc88e79445953522",
+    "startTimeSeconds": 811,
+    "endTimeSeconds": 918,
+    "durationSeconds": 107,
+    "title": "Welcome to the Club & Meet Dr. Jennifer Mercier",
+    "sectionId": "breaking-up-with-ivf-welcome-meet-mercier",
+    "order": 1,
+    "name": "breaking-up-with-ivf-breaking-up-with-ivf-welcome-meet-mercier-1.mp4"
+  },
+  "breaking-up-with-ivf-rei-clinic-intro-1": {
+    "clipUid": "9c58686b5a06bed8d26da4073c891d36",
+    "sourceUid": "f4f90716395f9672bc88e79445953522",
+    "startTimeSeconds": 918,
+    "endTimeSeconds": 1128,
+    "durationSeconds": 210,
+    "title": "Inside the REI Clinic: A Front-Line Introduction",
+    "sectionId": "breaking-up-with-ivf-rei-clinic-intro",
+    "order": 2,
+    "name": "breaking-up-with-ivf-breaking-up-with-ivf-rei-clinic-intro-1.mp4"
+  },
+  "breaking-up-with-ivf-retrieval-icsi-handling-1": {
+    "clipUid": "836956a1b19020752446a59e124e055f",
+    "sourceUid": "f4f90716395f9672bc88e79445953522",
+    "startTimeSeconds": 1128,
+    "endTimeSeconds": 1480,
+    "durationSeconds": 352,
+    "title": "Egg Retrieval, ICSI, and Embryo Handling",
+    "sectionId": "breaking-up-with-ivf-retrieval-icsi-handling",
+    "order": 3,
+    "name": "breaking-up-with-ivf-breaking-up-with-ivf-retrieval-icsi-handling-1.mp4"
+  },
+  "breaking-up-with-ivf-plastics-success-rates-1": {
+    "clipUid": "2bd2f10761b07483c610308a5a3becbc",
+    "sourceUid": "f4f90716395f9672bc88e79445953522",
+    "startTimeSeconds": 1480,
+    "endTimeSeconds": 1754,
+    "durationSeconds": 274,
+    "title": "Plastic Exposure and IVF Success Statistics",
+    "sectionId": "breaking-up-with-ivf-plastics-success-rates",
+    "order": 4,
+    "name": "breaking-up-with-ivf-breaking-up-with-ivf-plastics-success-rates-1.mp4"
+  },
+  "breaking-up-with-ivf-medical-tourism-trafficking-1": {
+    "clipUid": "729c0dc6eb7970d6d9edf8167ce31ef8",
+    "sourceUid": "f4f90716395f9672bc88e79445953522",
+    "startTimeSeconds": 1754,
+    "endTimeSeconds": 1972,
+    "durationSeconds": 218,
+    "title": "Medical Tourism and the Embryo Trafficking Problem",
+    "sectionId": "breaking-up-with-ivf-medical-tourism-trafficking",
+    "order": 5,
+    "name": "breaking-up-with-ivf-breaking-up-with-ivf-medical-tourism-trafficking-1.mp4"
+  },
+  "breaking-up-with-ivf-male-factor-pregnancy-risks-1": {
+    "clipUid": "113728371cb03bc12ab69f7117e2fa05",
+    "sourceUid": "f4f90716395f9672bc88e79445953522",
+    "startTimeSeconds": 1972,
+    "endTimeSeconds": 2255,
+    "durationSeconds": 283,
+    "title": "Male Factor, Lifestyle, and IVF Pregnancy Risks",
+    "sectionId": "breaking-up-with-ivf-male-factor-pregnancy-risks",
+    "order": 6,
+    "name": "breaking-up-with-ivf-breaking-up-with-ivf-male-factor-pregnancy-risks-1.mp4"
+  },
+  "breaking-up-with-ivf-clinical-risk-ohss-1": {
+    "clipUid": "cb31b651188d2c1f79d19d41484f0c17",
+    "sourceUid": "f4f90716395f9672bc88e79445953522",
+    "startTimeSeconds": 2255,
+    "endTimeSeconds": 2453,
+    "durationSeconds": 198,
+    "title": "Clinical Risk: OHSS, BMI, and a Fatal Case",
+    "sectionId": "breaking-up-with-ivf-clinical-risk-ohss",
+    "order": 7,
+    "name": "breaking-up-with-ivf-breaking-up-with-ivf-clinical-risk-ohss-1.mp4"
+  },
+  "breaking-up-with-ivf-informed-consent-gaps-1": {
+    "clipUid": "51494e73684ea8c21f2ad21ca79db673",
+    "sourceUid": "f4f90716395f9672bc88e79445953522",
+    "startTimeSeconds": 2453,
+    "endTimeSeconds": 2610,
+    "durationSeconds": 157,
+    "title": "Informed Consent Gaps and Self-Regulation",
+    "sectionId": "breaking-up-with-ivf-informed-consent-gaps",
+    "order": 8,
+    "name": "breaking-up-with-ivf-breaking-up-with-ivf-informed-consent-gaps-1.mp4"
+  },
+  "breaking-up-with-ivf-stimulation-donor-exploitation-1": {
+    "clipUid": "bf2e4797d38725aa5b9cba5d89508b57",
+    "sourceUid": "f4f90716395f9672bc88e79445953522",
+    "startTimeSeconds": 2610,
+    "endTimeSeconds": 2758,
+    "durationSeconds": 148,
+    "title": "Ovarian Stimulation, Egg Quality, and Donor Exploitation",
+    "sectionId": "breaking-up-with-ivf-stimulation-donor-exploitation",
+    "order": 9,
+    "name": "breaking-up-with-ivf-breaking-up-with-ivf-stimulation-donor-exploitation-1.mp4"
+  },
+  "breaking-up-with-ivf-consolidation-diagnostic-gaps-1": {
+    "clipUid": "1967dbe06fcd3137206d56250b7ad655",
+    "sourceUid": "f4f90716395f9672bc88e79445953522",
+    "startTimeSeconds": 2758,
+    "endTimeSeconds": 2958,
+    "durationSeconds": 200,
+    "title": "Industry Consolidation and Diagnostic Gaps",
+    "sectionId": "breaking-up-with-ivf-consolidation-diagnostic-gaps",
+    "order": 10,
+    "name": "breaking-up-with-ivf-breaking-up-with-ivf-consolidation-diagnostic-gaps-1.mp4"
+  },
+  "breaking-up-with-ivf-fellowship-bridging-gap-1": {
+    "clipUid": "acd1cde55aa9a03bf381ac1d549dea93",
+    "sourceUid": "f4f90716395f9672bc88e79445953522",
+    "startTimeSeconds": 2958,
+    "endTimeSeconds": 3150,
+    "durationSeconds": 192,
+    "title": "Education, Fellowship, and Bridging the Gap",
+    "sectionId": "breaking-up-with-ivf-fellowship-bridging-gap",
+    "order": 11,
+    "name": "breaking-up-with-ivf-breaking-up-with-ivf-fellowship-bridging-gap-1.mp4"
+  },
+  "breaking-up-with-ivf-precycle-counseling-embryos-1": {
+    "clipUid": "77fd59c5755fd25e141b0824de6fcf55",
+    "sourceUid": "f4f90716395f9672bc88e79445953522",
+    "startTimeSeconds": 3150,
+    "endTimeSeconds": 3345,
+    "durationSeconds": 195,
+    "title": "Pre-Cycle Counseling and Embryo Disposition",
+    "sectionId": "breaking-up-with-ivf-precycle-counseling-embryos",
+    "order": 12,
+    "name": "breaking-up-with-ivf-breaking-up-with-ivf-precycle-counseling-embryos-1.mp4"
+  },
+  "breaking-up-with-ivf-iui-vs-timed-intercourse-1": {
+    "clipUid": "06d3a144bb2b90a9d1bbe2581b631718",
+    "sourceUid": "f4f90716395f9672bc88e79445953522",
+    "startTimeSeconds": 3345,
+    "endTimeSeconds": 3584,
+    "durationSeconds": 239,
+    "title": "IUI Versus Timed Intercourse",
+    "sectionId": "breaking-up-with-ivf-iui-vs-timed-intercourse",
+    "order": 13,
+    "name": "breaking-up-with-ivf-breaking-up-with-ivf-iui-vs-timed-intercourse-1.mp4"
+  },
+  "breaking-up-with-ivf-fsh-trigger-protocols-1": {
+    "clipUid": "a682c516dd1033944335eb27f84f8106",
+    "sourceUid": "f4f90716395f9672bc88e79445953522",
+    "startTimeSeconds": 3584,
+    "endTimeSeconds": 3878,
+    "durationSeconds": 294,
+    "title": "FSH/Trigger Protocols and Mini-Dose hCG",
+    "sectionId": "breaking-up-with-ivf-fsh-trigger-protocols",
+    "order": 14,
+    "name": "breaking-up-with-ivf-breaking-up-with-ivf-fsh-trigger-protocols-1.mp4"
+  },
+  "breaking-up-with-ivf-male-protocols-international-1": {
+    "clipUid": "ecdde91167e6effcaab6b199ef1af267",
+    "sourceUid": "f4f90716395f9672bc88e79445953522",
+    "startTimeSeconds": 3878,
+    "endTimeSeconds": 4104,
+    "durationSeconds": 226,
+    "title": "Male Fertility Protocols and International Variation",
+    "sectionId": "breaking-up-with-ivf-male-protocols-international",
+    "order": 15,
+    "name": "breaking-up-with-ivf-breaking-up-with-ivf-male-protocols-international-1.mp4"
+  },
+  "breaking-up-with-ivf-egg-freezing-podcast-1": {
+    "clipUid": "a2fd880f9667708e34cc25cf505dc276",
+    "sourceUid": "f4f90716395f9672bc88e79445953522",
+    "startTimeSeconds": 4104,
+    "endTimeSeconds": 4462,
+    "durationSeconds": 358,
+    "title": "Egg Freezing Risks and the Conceiving Miracles Podcast",
+    "sectionId": "breaking-up-with-ivf-egg-freezing-podcast",
+    "order": 16,
+    "name": "breaking-up-with-ivf-breaking-up-with-ivf-egg-freezing-podcast-1.mp4"
+  },
+  "breaking-up-with-ivf-patient-advocacy-surgeon-1": {
+    "clipUid": "4f052b79b700efef19181516369a57b4",
+    "sourceUid": "f4f90716395f9672bc88e79445953522",
+    "startTimeSeconds": 4753,
+    "endTimeSeconds": 5054,
+    "durationSeconds": 301,
+    "title": "Patient Advocacy and Fertility-Friendly Care",
+    "sectionId": "breaking-up-with-ivf-patient-advocacy-surgeon",
+    "order": 17,
+    "name": "breaking-up-with-ivf-breaking-up-with-ivf-patient-advocacy-surgeon-1.mp4"
+  },
+  "breaking-up-with-ivf-podcast-reflections-resources-1": {
+    "clipUid": "40846ba31ee8cebed60f3342d2de4b9b",
+    "sourceUid": "f4f90716395f9672bc88e79445953522",
+    "startTimeSeconds": 5054,
+    "endTimeSeconds": 5450,
+    "durationSeconds": 396,
+    "title": "Podcast Storytelling, Reflections, and Resources",
+    "sectionId": "breaking-up-with-ivf-podcast-reflections-resources",
+    "order": 18,
+    "name": "breaking-up-with-ivf-breaking-up-with-ivf-podcast-reflections-resources-1.mp4"
+  }
+}
