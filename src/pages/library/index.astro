@@ -192,6 +192,11 @@ const jsonLd = {
           <div class="recent-list">
             {recent.map(a => <ArticleCard article={a} variant="list" />)}
           </div>
+          <p class="recent-all">
+            <a href="/library/page/1/" class="btn btn--secondary btn--sm">
+              Browse all {articles.length.toLocaleString()} articles &rarr;
+            </a>
+          </p>
         </div>
       </div>
     </section>
@@ -541,6 +546,13 @@ const jsonLd = {
   .recent-wrap {
     max-width: var(--max-width-article);
     margin-inline: auto;
+  }
+  /* Bottom "continue" affordance: after the 6-item preview, a clear path into
+     the full paginated browse (mirrors the atlas's "Browse all N topics" tail
+     link, 2026-07-18). Centered under the reading column. */
+  .recent-all {
+    margin: var(--space-8) 0 0;
+    text-align: center;
   }
   .recent-list {
     max-width: var(--max-width-article);
