@@ -306,13 +306,13 @@ const jsonLd = {
           <p class="hr-trust__tagline">Our research library indexes studies from</p>
           <div class="hr-trust__logos">
             <span class="hr-trust__logo hr-trust__logo--nejm" role="img" aria-label="The New England Journal of Medicine"></span>
-            <span class="hr-trust__logo hr-trust__logo--jama">JAMA</span>
+            <span class="hr-trust__logo hr-trust__logo--jama" role="img" aria-label="JAMA"></span>
             <span class="hr-trust__logo hr-trust__logo--lancet" role="img" aria-label="The Lancet"></span>
-            <span class="hr-trust__logo hr-trust__logo--fs">Fertility &amp; Sterility</span>
+            <span class="hr-trust__logo hr-trust__logo--fs" role="img" aria-label="Fertility and Sterility"></span>
             <span class="hr-trust__logo hr-trust__logo--og">Obstetrics &amp; Gynecology</span>
-            <span class="hr-trust__logo hr-trust__logo--ajog">AJOG</span>
-            <span class="hr-trust__logo hr-trust__logo--humrep">Human Reproduction</span>
-            <span class="hr-trust__logo hr-trust__logo--jcem">JCEM</span>
+            <span class="hr-trust__logo hr-trust__logo--ajog" role="img" aria-label="American Journal of Obstetrics and Gynecology"></span>
+            <span class="hr-trust__logo hr-trust__logo--humrep" role="img" aria-label="Human Reproduction"></span>
+            <span class="hr-trust__logo hr-trust__logo--jcem" role="img" aria-label="The Journal of Clinical Endocrinology and Metabolism"></span>
           </div>
         </div>
       </div>
@@ -1072,26 +1072,56 @@ const jsonLd = {
     -webkit-mask: url('/images/journal-logos/nejm.webp') no-repeat center / contain;
     mask: url('/images/journal-logos/nejm.webp') no-repeat center / contain;
   }
-  .hr-trust__logo--jama,
-  .hr-trust__logo--ajog,
-  .hr-trust__logo--jcem {
-    font-family: 'Cormorant Garamond', 'Georgia', serif;
-    font-size: 1.25rem;
-    font-weight: 600;
-  }
-  .hr-trust__logo--og,
-  .hr-trust__logo--humrep {
+  .hr-trust__logo--og {
     font-family: 'Cormorant Garamond', 'Georgia', serif;
     font-size: 1.125rem;
     font-weight: 400;
   }
-  .hr-trust__logo--lancet {
+  /* Masked authentic wordmarks (same treatment as --nejm) */
+  .hr-trust__logo--jama,
+  .hr-trust__logo--lancet,
+  .hr-trust__logo--fs,
+  .hr-trust__logo--ajog,
+  .hr-trust__logo--humrep,
+  .hr-trust__logo--jcem {
     display: inline-block;
+    background-color: currentColor;
+  }
+  .hr-trust__logo--jama {
+    width: 58px;
+    height: 16px;
+    -webkit-mask: url('/images/journal-logos/jama.webp') no-repeat center / contain;
+    mask: url('/images/journal-logos/jama.webp') no-repeat center / contain;
+  }
+  .hr-trust__logo--lancet {
     width: 137px;
     height: 15px;
-    background-color: currentColor;
     -webkit-mask: url('/images/journal-logos/lancet.webp') no-repeat center / contain;
     mask: url('/images/journal-logos/lancet.webp') no-repeat center / contain;
+  }
+  .hr-trust__logo--fs {
+    width: 58px;
+    height: 24px;
+    -webkit-mask: url('/images/journal-logos/fertility-sterility.webp') no-repeat center / contain;
+    mask: url('/images/journal-logos/fertility-sterility.webp') no-repeat center / contain;
+  }
+  .hr-trust__logo--ajog {
+    width: 92px;
+    height: 24px;
+    -webkit-mask: url('/images/journal-logos/ajog.webp') no-repeat center / contain;
+    mask: url('/images/journal-logos/ajog.webp') no-repeat center / contain;
+  }
+  .hr-trust__logo--humrep {
+    width: 130px;
+    height: 13px;
+    -webkit-mask: url('/images/journal-logos/human-reproduction.webp') no-repeat center / contain;
+    mask: url('/images/journal-logos/human-reproduction.webp') no-repeat center / contain;
+  }
+  .hr-trust__logo--jcem {
+    width: 109px;
+    height: 22px;
+    -webkit-mask: url('/images/journal-logos/jcem.webp') no-repeat center / contain;
+    mask: url('/images/journal-logos/jcem.webp') no-repeat center / contain;
   }
   .hr-trust__logo--fs {
     font-family: 'Cormorant Garamond', 'Georgia', serif;
@@ -1138,18 +1168,32 @@ const jsonLd = {
       width: 102px;
       height: 17px;
     }
-    .hr-trust__logo--jama,
-    .hr-trust__logo--ajog,
-    .hr-trust__logo--jcem {
-      font-size: 1rem;
-    }
-    .hr-trust__logo--og,
-    .hr-trust__logo--humrep {
+    .hr-trust__logo--og {
       font-size: 0.875rem;
+    }
+    .hr-trust__logo--jama {
+      width: 46px;
+      height: 13px;
     }
     .hr-trust__logo--lancet {
       width: 110px;
       height: 12px;
+    }
+    .hr-trust__logo--fs {
+      width: 46px;
+      height: 19px;
+    }
+    .hr-trust__logo--ajog {
+      width: 72px;
+      height: 19px;
+    }
+    .hr-trust__logo--humrep {
+      width: 100px;
+      height: 10px;
+    }
+    .hr-trust__logo--jcem {
+      width: 85px;
+      height: 17px;
     }
   }
 
