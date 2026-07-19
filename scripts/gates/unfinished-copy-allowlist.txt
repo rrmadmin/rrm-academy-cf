@@ -1,0 +1,5 @@
+# unfinished-copy-allowlist.txt
+# One unique substring per line. A file containing any listed substring is
+# skipped by scripts/gates/validate-no-unfinished-copy.mjs. Use for legitimate
+# matches (e.g. a genuine editorial note that is intentional, or a component
+# that renders user-supplied text that happens to match).
