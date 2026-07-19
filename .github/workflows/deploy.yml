@@ -553,6 +553,27 @@ jobs:
         # Runs post-build because the answer HTML only exists in dist output.
         run: npm run gates:faq-lead
 
+      - name: Validate abstract snippets (always)
+        # ArticleCard list-variant snippets must not leak structured-abstract
+        # section labels (OBJECTIVE:/Background:/Results:). Guards the shared
+        # src/lib/abstract-snippet.mjs stripper against data drift or a broken
+        # regex. Born 2026-07-19 after the stripper regressed twice in one
+        # session (all-caps-only; leading-only). Runs on fetched articles.json.
+        run: npm run gates:abstract-snippets
+
+      - name: Validate commentary post bodies are Markdown (always)
+        # posts.content must be Markdown, never block HTML. Born 2026-07-19 after
+        # the 2026-07-10 burn where an HTML-pasted post rendered as a wall of
+        # literal tags. Runs on the fetched posts.json.
+        run: npm run gates:post-markdown
+
+      - name: Validate no unfinished-state copy (always)
+        # No accidental "actively edited" / "Owner TBC" / lorem / visible TODO /
+        # stale "Soon" pill in shipped page+component markup (no-status-confessions
+        # rule). "Coming Soon" (a designed product state) is intentionally allowed.
+        # Born 2026-07-19. Allowlist: scripts/gates/unfinished-copy-allowlist.txt.
+        run: npm run gates:unfinished-copy
+
       - name: Validate glossary spoke pages (full rebuild only)
         # Spoke directory only refreshes on full rebuild (getStaticPaths re-runs
         # against in-memory glossary.json, but dispatched single-record updates

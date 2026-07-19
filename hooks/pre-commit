@@ -212,6 +212,35 @@ if [ -x ~/iCode/tools/lint-canonical-names/precommit.sh ]; then
   ~/iCode/tools/lint-canonical-names/precommit.sh || exit $?
 fi
 
+# --- Abstract-snippet leak guard: staged ArticleCard or the shared stripper ---
+# Snippets must not leak structured-abstract labels. Runs against committed
+# src/data/articles.json. Bypass: --no-verify
+if echo "$STAGED" | grep -qE '^src/components/ArticleCard\.astro$|^src/lib/abstract-snippet\.mjs$|^scripts/gates/validate-abstract-snippets\.mjs$'; then
+  node scripts/gates/validate-abstract-snippets.mjs || {
+    echo "Commit blocked by abstract-snippet leak guard (a section label survives in a snippet)."
+    exit 1
+  }
+fi
+
+# --- Post-body Markdown guard: staged posts.json ---
+# Commentary bodies must be Markdown, never block HTML (2026-07-10 burn).
+if echo "$STAGED" | grep -qE '^src/data/posts\.json$|^scripts/gates/validate-post-markdown\.mjs$'; then
+  node scripts/gates/validate-post-markdown.mjs || {
+    echo "Commit blocked by post-markdown guard (a post body contains block HTML)."
+    exit 1
+  }
+fi
+
+# --- Unfinished-state copy guard: any staged page/component ---
+# No accidental "actively edited"/"Owner TBC"/lorem/visible TODO/stale Soon pill.
+# "Coming Soon" is allowed. Allowlist: scripts/gates/unfinished-copy-allowlist.txt
+if echo "$STAGED" | grep -qE '^src/(pages|components)/.*\.astro$|^scripts/gates/(validate-no-unfinished-copy\.mjs|unfinished-copy-allowlist\.txt)$'; then
+  node scripts/gates/validate-no-unfinished-copy.mjs || {
+    echo "Commit blocked by unfinished-copy guard (status-confession/placeholder in shipped markup)."
+    exit 1
+  }
+fi
+
 # --- Security guard: only on critical file changes ---
 TRIGGER=0
 for file in $CRITICAL_FILES; do

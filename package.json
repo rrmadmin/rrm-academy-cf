@@ -87,7 +87,10 @@
     "gates:email-verify": "node scripts/gates/validate-email-verification.mjs",
     "gates:infographic": "node scripts/gates/validate-infographic-svg.mjs",
     "gates:email-trickle": "node scripts/gates/validate-email-trickle.mjs",
-    "gates:faq-lead": "node scripts/gates/faq-no-affirmative-lead.mjs --dir=dist --guides-registry=ssot/guides.json"
+    "gates:faq-lead": "node scripts/gates/faq-no-affirmative-lead.mjs --dir=dist --guides-registry=ssot/guides.json",
+    "gates:abstract-snippets": "node scripts/gates/validate-abstract-snippets.mjs",
+    "gates:post-markdown": "node scripts/gates/validate-post-markdown.mjs",
+    "gates:unfinished-copy": "node scripts/gates/validate-no-unfinished-copy.mjs"
   },
   "dependencies": {
     "@astrojs/sitemap": "^3.7.3",
