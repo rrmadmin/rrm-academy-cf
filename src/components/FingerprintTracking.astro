@@ -52,6 +52,9 @@
           );
         }
       } catch (e) {
+        // Navigation aborts and offline states are expected noise, not errors --
+        // skip the beacon when the page is hidden (unloading) or offline.
+        if (document.visibilityState === 'hidden' || navigator.onLine === false) return;
         navigator.sendBeacon?.(
           `https://${fpHost}/metrics/client-error`,
           JSON.stringify({ phase: 'network', msg: String(e && e.message || e), ts: Date.now() }),
