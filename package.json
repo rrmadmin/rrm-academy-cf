@@ -96,7 +96,7 @@
     "@astrojs/sitemap": "^3.7.3",
     "@fontsource/cormorant-garamond": "^5.2.11",
     "@fontsource/inter": "^5.2.8",
-    "@lucide/astro": "^1.23.0",
+    "@lucide/astro": "^1.25.0",
     "astro": "^6.4.8",
     "aws4fetch": "^1.0.20",
     "jspdf": "^4.2.0",
