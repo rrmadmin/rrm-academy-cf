@@ -1,11 +1,14 @@
 ---
 import { fetchAllPosts } from '../lib/blog';
 import FingerprintTracking from '../components/FingerprintTracking.astro';
+import articles from '../data/articles.json';
 import '../styles/fonts.css';
 import '../styles/global.css';
 
 const posts = await fetchAllPosts();
 const INITIAL_BATCH = 15;
+// Auto-computed at build time from the live library data -- never hardcode this count.
+const articleCountLabel = `${(Math.floor(articles.length / 100) * 100).toLocaleString('en-US')}+`;
 ---
 <!DOCTYPE html>
 <html lang="en" data-theme="light">
@@ -73,8 +76,19 @@ const INITIAL_BATCH = 15;
     <!-- Visit website CTA -->
     <a href="/" class="cta-button">Visit The Website</a>
 
-    <!-- Research Library CTA -->
-    <a href="/library/" class="cta-button cta-button--secondary">Research Library: 3,000+ Articles</a>
+    <!-- Research Library CTA (count auto-computed from articles.json at build) -->
+    <a href="/library/" class="cta-button cta-button--secondary">Research Library: {articleCountLabel} Articles</a>
+
+    <!-- Save the Uterus Club card -->
+    <a href="/save-the-uterus-club/" class="featured-card">
+      <div class="featured-card__text">
+        <h2 class="featured-card__title">Save the Uterus Club</h2>
+        <p class="featured-card__desc">Our member community with Dr. Whittaker: live calls, member courses, and events.</p>
+      </div>
+      <div class="featured-card__image">
+        <img src="/images/save-the-uterus-club/cuterus-wave.webp" alt="The Cuterus, the Save the Uterus Club's crocheted uterus mascot, waving" width="64" height="64" loading="lazy" decoding="async" />
+      </div>
+    </a>
 
     <!-- Blog post image grid -->
     <div class="post-grid" data-initial-batch={INITIAL_BATCH}>
@@ -244,6 +258,11 @@ const INITIAL_BATCH = 15;
     justify-content: center;
     background: var(--cream);
     border-radius: var(--radius-md);
+  }
+  .featured-card__image img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
   }
 
   /* ── CTA buttons ── */
