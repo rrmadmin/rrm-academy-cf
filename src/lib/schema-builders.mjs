@@ -151,30 +151,40 @@ export function cleanAffiliationNameLib(raw) {
 }
 
 export function dedupeAuthorRecordsLib(records) {
+  // Pass 1: collapse by ORCID. When multiple records share an ORCID, keep the
+  // one with the richest affiliation data, but remember each survivor's
+  // first-occurrence index so dedup can't reorder authors away from
+  // published order.
   const byOrcid = new Map();
   const noOrcid = [];
-  for (const r of records) {
+  records.forEach((r, index) => {
     if (r.orcid) {
       const prev = byOrcid.get(r.orcid);
-      if (!prev) { byOrcid.set(r.orcid, r); continue; }
-      const prevScore = (prev.primary_ror_id ? 2 : 0) + (prev.primary_institution_name ? 1 : 0);
+      if (!prev) { byOrcid.set(r.orcid, { record: r, index }); return; }
+      const prevScore = (prev.record.primary_ror_id ? 2 : 0) + (prev.record.primary_institution_name ? 1 : 0);
       const nextScore = (r.primary_ror_id ? 2 : 0) + (r.primary_institution_name ? 1 : 0);
-      if (nextScore > prevScore) byOrcid.set(r.orcid, r);
+      if (nextScore > prevScore) byOrcid.set(r.orcid, { record: r, index: prev.index });
     } else {
-      noOrcid.push(r);
+      noOrcid.push({ record: r, index });
     }
-  }
-  const orcidNameKeys = new Set([...byOrcid.values()].map((r) => nameKeyLib(r.full_name || r.name)));
+  });
+  // Pass 2: among no-ORCID entries, drop any whose nameKey is already covered
+  // by an ORCID-bearing record (legacy duplicate of an enriched author).
+  const orcidNameKeys = new Set([...byOrcid.values()].map(({ record }) => nameKeyLib(record.full_name || record.name)));
   const seenNoOrcidKey = new Set();
   const keptNoOrcid = [];
-  for (const r of noOrcid) {
-    const key = nameKeyLib(r.full_name || r.name);
+  for (const entry of noOrcid) {
+    const key = nameKeyLib(entry.record.full_name || entry.record.name);
     if (key && orcidNameKeys.has(key)) continue;
     if (key && seenNoOrcidKey.has(key)) continue;
     if (key) seenNoOrcidKey.add(key);
-    keptNoOrcid.push(r);
+    keptNoOrcid.push(entry);
   }
-  return [...byOrcid.values(), ...keptNoOrcid];
+  // Emit survivors in first-occurrence order of the original array (not
+  // ORCID-first) so the JSON-LD author[] matches published author order.
+  return [...byOrcid.values(), ...keptNoOrcid]
+    .sort((a, b) => a.index - b.index)
+    .map(({ record }) => record);
 }
 
 export function personFromRecordLib(rec) {
