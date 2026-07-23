@@ -87,6 +87,10 @@ const STATIC_PAGES = {
     title: 'Guides',
     description: 'In-depth guides on restorative reproductive medicine, NaProTechnology, and fertility awareness.',
   },
+  developers: {
+    title: 'Developers',
+    description: 'Free public API for AI agents and developers: quickstart, self-service API keys, OpenAPI 3.1 docs, and a no-auth sandbox endpoint.',
+  },
   'terms-of-use': {
     title: 'Terms of Use',
     description: 'Terms of Use for the RRM Academy website.',

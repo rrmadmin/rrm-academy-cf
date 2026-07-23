@@ -1,0 +1,47 @@
+# OAuth Protected Resource Metadata
+
+Markdown twin of https://rrmacademy.org/.well-known/oauth-protected-resource
+
+RFC 9728 protected resource metadata for the RRM Academy MCP server. Describes
+the self-service Bearer token flow: create a free account, generate a key at
+/account/mcp-keys, and authenticate against the MCP server and OpenAPI
+endpoints.
+
+```json
+{
+  "resource": "https://rrmacademy.org",
+  "authorization_servers": [
+    "https://rrmacademy.org"
+  ],
+  "scopes_supported": [
+    "mcp:read",
+    "mcp:invoke",
+    "library:read",
+    "faq:read"
+  ],
+  "bearer_methods_supported": [
+    "header"
+  ],
+  "resource_name": "RRM Academy",
+  "resource_documentation": "https://rrmacademy.org/openapi.json",
+  "resource_policy_uri": "https://rrmacademy.org/terms-of-use/",
+  "resource_tos_uri": "https://rrmacademy.org/terms-of-use/",
+  "x-mcp-server": "https://mcp.rrmacademy.org/mcp",
+  "x-access-model": "self-service",
+  "x-access-instructions": "Sign in (or create a free account) at https://rrmacademy.org/account/mcp-keys to generate a personal Bearer API key. MCP tool discovery (initialize, tools/list) is unauthenticated per spec; tools/call requires the Bearer token in the Authorization header.",
+  "x-auth-flow": [
+    "Step 1: Create a free RRM Academy account at https://rrmacademy.org/signup (or sign in if you already have one).",
+    "Step 2: Visit https://rrmacademy.org/account/mcp-keys.",
+    "Step 3: Click 'Generate new key', label it (e.g. 'Claude Desktop', 'Perplexity'), copy the displayed token. The token is shown once.",
+    "Step 4: Configure your MCP client with server URL https://mcp.rrmacademy.org/mcp and Authorization: Bearer <token>.",
+    "Step 5: tools/list and initialize work without auth so clients can enumerate capabilities; tools/call requires the Bearer token.",
+    "Step 6: Revoke or rotate keys at any time from the same page; revocation takes effect immediately."
+  ],
+  "x-streaming": true,
+  "x-streaming-transports": ["streamable-http", "text/event-stream"],
+  "x-connect-page": "https://rrmacademy.org/connect",
+  "x-contact": "info@rrmacademy.org"
+}
+```
+
+Source: https://rrmacademy.org/.well-known/oauth-protected-resource
