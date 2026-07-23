@@ -1,0 +1,51 @@
+# API Catalog
+
+Markdown twin of https://rrmacademy.org/.well-known/api-catalog
+
+RFC 9264 Linkset describing the OpenAPI spec, llms.txt documentation, and the
+two MCP servers (apex + library) that make up the RRM Academy Agent API.
+
+```json
+{
+  "linkset": [
+    {
+      "anchor": "https://rrmacademy.org",
+      "service-desc": [
+        {
+          "href": "https://rrmacademy.org/openapi.json",
+          "type": "application/vnd.oai.openapi+json;version=3.1",
+          "title": "RRM Academy Agent API (OpenAPI 3.1)"
+        }
+      ],
+      "service-doc": [
+        {
+          "href": "https://rrmacademy.org/llms.txt",
+          "type": "text/plain",
+          "title": "RRM Academy llms.txt"
+        },
+        {
+          "href": "https://rrmacademy.org/llms-full.txt",
+          "type": "text/plain",
+          "title": "RRM Academy llms-full.txt"
+        }
+      ],
+      "item": [
+        {
+          "href": "https://mcp.rrmacademy.org/mcp",
+          "type": "application/json",
+          "title": "RRM Academy MCP Server (apex -- high-level RAG, semantic search, editorial guardrails)",
+          "profile": "https://modelcontextprotocol.io/specification/2024-11-05"
+        },
+        {
+          "href": "https://mcp-library.rrmacademy.org/mcp",
+          "type": "application/json",
+          "title": "RRM Academy Library MCP Server (low-level read-only structured access to the research library)",
+          "profile": "https://modelcontextprotocol.io/specification/2024-11-05"
+        }
+      ]
+    }
+  ]
+}
+```
+
+Source: https://rrmacademy.org/.well-known/api-catalog

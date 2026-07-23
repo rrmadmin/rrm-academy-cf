@@ -245,6 +245,12 @@
 /.well-known/api-catalog
   Content-Type: application/linkset+json; charset=utf-8
 
+/.well-known/api-catalog.md
+  Content-Type: text/markdown; charset=utf-8
+
+/.well-known/oauth-protected-resource.md
+  Content-Type: text/markdown; charset=utf-8
+
 /.well-known/ai-plugin.json
   Content-Type: application/json; charset=utf-8
 

@@ -116,3 +116,16 @@ Single PR per wave. `git revert <merge-sha>` on either wave is safe — no schem
 - `rrm-library-worker` gets `/mcp` JSON-RPC handler. Tools: `library_status` (read-only stats), `library_search_full` (return full-text where R2-cached), `library_get_article` (by id/slug/pmid/doi).
 - `rrm-academy-cf` updates `.well-known/mcp.json` + `agent-card.json` to declare both surfaces and `openapi.json` `servers:` to list `library.rrmacademy.org` alongside `mcp.rrmacademy.org`.
 - `scripts/agent-discovery-check.mjs` may need a new invariant for "≥2 MCP surfaces declared." Audit during Wave 2.
+
+## Addendum: 2026-07-22 batch (scan 76/100, grade B)
+
+orank rescan flagged 7 residual gaps. Fixes shipped in this batch (branch `claude/orank-gaps`):
+
+1. **Developer portal /developers (6 pts)** — new hub page `src/pages/developers/index.astro` (Quickstart, API keys via /account/mcp-keys/, Documentation link grid, Sandbox = the real `POST /api/ask/sandbox` no-auth endpoint, Rate limits) + static twin `public/developers.md`. Router: `/developers` + `/developers.md` added to `ASTRO_ROUTES` and `MARKDOWN_MAP` (rrm-router).
+2. **API docs linked from homepage (3 pts)** — single "Developers" link in the footer bottom legal row. Deliberately NOT the full dev row Brian reverted in d3e04314; the /openapi link that previously satisfied this check was lost in a homepage redesign.
+3. **Homepage JSON-LD (2 pts)** — `SoftwareApplication` node (`#software`, full name/description) + `Service` node (`#service`) appended to the homepage @graph. The Service node also closes the schema-breadth warning (1 pt). No AggregateRating: no real review data exists.
+4. **NLWeb schemamap (1 pt)** — root cause: `public/schemamap.xml` 404'd in production because `ssot-postbuild.mjs` only emits when `~/iCode/tools/site-ssot` exists. New `scripts/emit-schemamap-fallback.mjs` (compact feed map, same root element/namespace as the full tool) runs in the CI-fallback branch and hard-fails the build on error. `Schemamap:` directive re-added to robots.txt (history: added 4baea664 05-05, pulled e412583e 05-15 with Content-Signal over the Lighthouse validity nit; Content-Signal was re-added 06-05 as "cosmetic" — same precedent). Follow-up: check PSI Best Practices after deploy.
+5. **Markdown fallback (1 pt)** — static twins `public/.well-known/api-catalog.md` + `oauth-protected-resource.md`, with `text/markdown` blocks in `_headers`.
+6. **skills.sh (2 pts)** — public mirror repo github.com/rrmadmin/rrm-academy-skills (3 skills copied verbatim from `/.well-known/agent-skills/`), seeded with one `npx skills add` install. Revert: `gh repo delete rrmadmin/rrm-academy-skills --yes`.
+
+Verification: local `npm run build` green with postbuild fallback firing; Playwright desktop/393x852/dark screenshots of /developers; router smoke tests 134/134.

@@ -188,6 +188,7 @@
 |-------|------|
 | `/404` | `src/pages/404.astro` |
 | `/500` | `src/pages/500.astro` |
+| `/developers` | `src/pages/developers/index.astro` (developer portal hub: quickstart, API keys, docs, sandbox) |
 | `/webhooks` | `src/pages/webhooks.astro` (webhook status + subscription channels for AI agents/devs) |
 | `/openapi` | `src/pages/openapi.astro` (OpenAPI 3.1 reference, build-time imports `public/openapi.json`) |
 | `/connect` | `src/pages/connect/index.astro` (MCP setup guide + developer section) |
