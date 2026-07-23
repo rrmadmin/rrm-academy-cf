@@ -7,8 +7,11 @@
  *
  * CI fallback: when ../../tools/site-ssot/ or ../../tools/standards-gate/
  * isn't present (the tools live at ~/iCode/tools/* on Brian's local machine
- * but aren't vendored into this repo), skip that step gracefully so the
- * deploy can proceed. Mirrors the same pattern used in scripts/ssot-prebuild.mjs.
+ * but aren't vendored into this repo), the standards-gate step skips
+ * gracefully. The schemamap step instead runs scripts/emit-schemamap-fallback.mjs
+ * so public/schemamap.xml (and dist/schemamap.xml) still exist in CI --
+ * a compact feed map rather than the full per-page JSON-LD inventory.
+ * Mirrors the same pattern used in scripts/ssot-prebuild.mjs.
  *
  * Restore full behavior by vendoring tools/site-ssot/ + tools/standards-gate/
  * into the repo or publishing them as npm packages.
@@ -26,7 +29,16 @@ const STANDARDS_GATE_ROOT = resolve(PROJECT_ROOT, '../../tools/standards-gate');
 
 const schemamap = resolve(SITE_SSOT_ROOT, 'bin/ssot-schemamap.mjs');
 if (!existsSync(schemamap)) {
-  console.warn(`[ssot-postbuild] WARN: ssot-schemamap.mjs not found at ${schemamap} — skipped (CI fallback)`);
+  console.warn(`[ssot-postbuild] WARN: ssot-schemamap.mjs not found at ${schemamap}, running fallback (CI fallback)`);
+  const fallback = resolve(__dirname, 'emit-schemamap-fallback.mjs');
+  const res = spawnSync('node', [fallback], {
+    stdio: 'inherit',
+    env: process.env,
+  });
+  if (res.status !== 0) {
+    console.error(`[ssot-postbuild] FATAL: emit-schemamap-fallback exited ${res.status}`);
+    process.exit(res.status || 1);
+  }
 } else {
   console.log('[ssot-postbuild] emitting schemamap.xml');
   const res = spawnSync('node', [schemamap, '--project', PROJECT_ROOT], {

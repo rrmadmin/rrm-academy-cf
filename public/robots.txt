@@ -108,6 +108,15 @@ Disallow: /
 
 Sitemap: https://rrmacademy.org/sitemap-index.xml
 
+# --- NLWeb Schema Feeds (schemamap.xml) --------------------------------------
+# Same history as the Content-Signal directive above: added 2026-05-05,
+# removed 2026-05-15 over the same Lighthouse robots.txt validator nit (it only
+# understands the 1994 spec and flags unknown directives), which the ecosystem
+# has since accepted as cosmetic. Re-added now that schemamap.xml serves 200
+# (was 404ing in production because the postbuild generator only ran on
+# Brian's machine; scripts/emit-schemamap-fallback.mjs closes that gap in CI).
+Schemamap: https://rrmacademy.org/schemamap.xml
+
 # NLWeb Schema Feed: library-feed.jsonl is advertised via HTTP Link headers on /
 # (see public/_headers). Not listed here because feed URLs are not valid robots
 # directives and Lighthouse flagged the non-standard line.
