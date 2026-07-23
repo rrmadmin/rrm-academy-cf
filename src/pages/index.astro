@@ -201,6 +201,47 @@ const breadcrumbNode = {
   ],
 };
 
+const softwareNode = {
+  '@type': 'SoftwareApplication',
+  '@id': 'https://rrmacademy.org/#software',
+  name: 'RRM Academy Platform',
+  description:
+    'The RRM Academy platform pairs an evidence-based education program and a searchable research library with a free Model Context Protocol connector that gives AI assistants like Claude, ChatGPT, and Perplexity direct access to that library, editorial guardrails, and verified clinical statistics.',
+  url: 'https://rrmacademy.org/',
+  applicationCategory: 'EducationalApplication',
+  operatingSystem: 'Web',
+  offers: {
+    '@type': 'Offer',
+    price: '0',
+    priceCurrency: 'USD',
+  },
+  publisher: { '@id': 'https://rrmacademy.org/#organization' },
+  provider: { '@id': 'https://rrmacademy.org/#organization' },
+  softwareHelp: { '@id': 'https://rrmacademy.org/developers/' },
+  documentation: 'https://rrmacademy.org/developers/',
+};
+
+const serviceNode = {
+  '@type': 'Service',
+  '@id': 'https://rrmacademy.org/#service',
+  name: 'Restorative Reproductive Medicine Education',
+  description:
+    'Evidence-based education, research library access, and courses on Restorative Reproductive Medicine for clinicians, researchers, and patients.',
+  serviceType: 'Medical education',
+  provider: { '@id': 'https://rrmacademy.org/#organization' },
+  url: 'https://rrmacademy.org/',
+  audience: [
+    { '@type': 'Audience', audienceType: 'Clinicians' },
+    { '@type': 'Audience', audienceType: 'Researchers' },
+    { '@type': 'Audience', audienceType: 'Patients' },
+  ],
+  offers: {
+    '@type': 'Offer',
+    price: '0',
+    priceCurrency: 'USD',
+  },
+};
+
 const jsonLd = {
   '@context': 'https://schema.org',
   '@graph': [
@@ -210,6 +251,8 @@ const jsonLd = {
     faqNode,
     breadcrumbNode,
     quotationNode,
+    softwareNode,
+    serviceNode,
   ],
 };
 ---

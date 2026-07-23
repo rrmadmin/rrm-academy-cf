@@ -1,0 +1,327 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import LastUpdated from '../../components/LastUpdated.astro';
+import pageDates from '../../data/page-dates.json';
+
+const PAGE_PATH = '/developers/';
+const LAST_MODIFIED = (pageDates.dates as Record<string, string>)[PAGE_PATH] || '2026-07-22';
+
+const pageSchema = {
+  '@context': 'https://schema.org',
+  '@graph': [
+    {
+      '@type': 'WebPage',
+      '@id': 'https://rrmacademy.org/developers/',
+      name: 'Developers - RRM Academy Developer Portal',
+      headline: 'RRM Academy developer portal: free public API for AI agents and developers',
+      description:
+        'Developer portal for the RRM Academy public API. Quickstart, self-service API keys, OpenAPI 3.1 documentation, machine-readable surfaces, and a no-auth sandbox endpoint. Free.',
+      url: 'https://rrmacademy.org/developers/',
+      publisher: {
+        '@type': 'EducationalOrganization',
+        '@id': 'https://rrmacademy.org/#organization',
+        name: 'RRM Academy',
+      },
+      datePublished: '2026-07-22',
+      dateModified: LAST_MODIFIED,
+    },
+    {
+      '@type': 'BreadcrumbList',
+      itemListElement: [
+        { '@type': 'ListItem', position: 1, name: 'Home', item: 'https://rrmacademy.org/' },
+        { '@type': 'ListItem', position: 2, name: 'Developers', item: 'https://rrmacademy.org/developers/' },
+      ],
+    },
+  ],
+};
+---
+<BaseLayout
+  title="Developers - RRM Academy API, Docs, and Sandbox"
+  description="The RRM Academy developer portal: free public API for AI agents and developers. Quickstart, self-service API keys, OpenAPI 3.1 docs, machine-readable surfaces, and a no-auth sandbox endpoint."
+  canonicalUrl="https://rrmacademy.org/developers/"
+  jsonLd={pageSchema}
+  markdownUrl="/developers.md"
+  lastModified={LAST_MODIFIED}
+>
+  <article class="page-wrapper">
+    <div class="container container--narrow connect-page">
+
+      <header class="connect-hero">
+        <span class="connect-eyebrow">Developer Portal</span>
+        <h1>Developers</h1>
+        <p class="connect-lede">
+          RRM Academy runs a free, public API surface for AI agents and developers: a research library search, a grounded question-answering endpoint, OpenAPI 3.1 documentation, machine-readable discovery files, and a no-auth sandbox for integration testing.
+        </p>
+      </header>
+
+      <!-- ── Quickstart ── -->
+      <section class="connect-section">
+        <h2>Quickstart</h2>
+        <p>Three steps from zero to your first authenticated call. Everything below is self-service and free.</p>
+
+        <ol class="connect-steps">
+          <li>
+            <strong>Step 1: Create a free account.</strong> Visit <a href="/signup/">/signup</a>. Email and password, or sign in with Google. Free for clinicians, researchers, and developers.
+          </li>
+          <li>
+            <strong>Step 2: Generate an API key.</strong> Once signed in, open <a href="/account/mcp-keys/">/account/mcp-keys</a> and click <strong>Generate new key</strong>. Copy the token immediately, it is shown only once. Use it as an HTTP <code>Authorization: Bearer YOUR_API_KEY</code> header.
+          </li>
+          <li>
+            <strong>Step 3: Make your first request.</strong> No key is needed to reach the liveness probe. Confirm connectivity first, then call an authenticated endpoint.
+          </li>
+        </ol>
+
+        <p>The unauthenticated health check returns the literal string <code>ok</code>:</p>
+        <pre class="connect-code"><code>{`curl https://rrmacademy.org/health
+# ok`}</code></pre>
+
+        <p>An authenticated search call against the MCP server:</p>
+        <pre class="connect-code"><code>{`curl -X POST https://mcp.rrmacademy.org/mcp \\
+  -H "Authorization: Bearer YOUR_API_KEY" \\
+  -H "Content-Type: application/json" \\
+  -H "Accept: application/json, text/event-stream" \\
+  -d '{
+    "jsonrpc": "2.0", "id": 1, "method": "tools/call",
+    "params": {
+      "name": "search",
+      "arguments": { "query": "endometriosis excision outcomes" }
+    }
+  }'`}</code></pre>
+      </section>
+
+      <!-- ── API keys ── -->
+      <section class="connect-section">
+        <h2>API keys</h2>
+        <p>Keys are self-service. Issue and revoke them yourself at <a href="/account/mcp-keys/">/account/mcp-keys</a>. There is no approval step and no support ticket.</p>
+        <ul class="connect-tools">
+          <li><strong>Auth model</strong> - Bearer token in the HTTP <code>Authorization</code> header. Free with any RRM Academy account.</li>
+          <li><strong>Issuance</strong> - Self-service at <a href="/account/mcp-keys/">/account/mcp-keys</a>. Label each key for where you use it.</li>
+          <li><strong>Rotation</strong> - Generate or revoke any time. Revocation is immediate; other keys keep working.</li>
+        </ul>
+        <p>The full authentication flow, scopes, and code samples for curl, Python, and Node.js are in the <a href="/agent-auth/">agent auth guide</a>.</p>
+      </section>
+
+      <!-- ── Documentation ── -->
+      <section class="connect-section">
+        <h2>Documentation</h2>
+        <p>The API is documented for both humans and machines. Every surface below is public and stable.</p>
+
+        <div class="connect-dev-grid">
+          <a href="/openapi/" class="connect-dev-link">
+            <strong>OpenAPI 3.1 reference →</strong>
+            <span>Rendered API documentation: endpoints, request and response schemas, auth, and error codes.</span>
+          </a>
+          <a href="/openapi.json" class="connect-dev-link">
+            <strong>openapi.json →</strong>
+            <span>Raw OpenAPI 3.1 spec. Load it into your client generator or API tooling.</span>
+          </a>
+          <a href="/agent-auth/" class="connect-dev-link">
+            <strong>Agent auth guide →</strong>
+            <span>Step-by-step Bearer token authentication with curl, Python, and Node.js samples.</span>
+          </a>
+          <a href="/webhooks/" class="connect-dev-link">
+            <strong>Webhooks and channels →</strong>
+            <span>Subscription channels for content updates: library and commentary RSS, and MCP polling.</span>
+          </a>
+          <a href="/connect/" class="connect-dev-link">
+            <strong>MCP connector →</strong>
+            <span>Per-client setup guide for Claude, ChatGPT, and Perplexity, plus connection details.</span>
+          </a>
+          <a href="/llms.txt" class="connect-dev-link">
+            <strong>Machine-readable surfaces →</strong>
+            <span>Site index for AI crawlers. See also the files listed below.</span>
+          </a>
+        </div>
+
+        <ul class="connect-links">
+          <li><a href="/llms.txt">/llms.txt</a> and <a href="/llms-full.txt">/llms-full.txt</a> - site index and expanded corpus for AI crawlers.</li>
+          <li><a href="/agents.md">/agents.md</a> - agent instructions in markdown.</li>
+          <li><a href="/pricing.md">/pricing.md</a> - pricing summary in markdown.</li>
+          <li><a href="/library-feed.jsonl">/library-feed.jsonl</a> - structured JSONL feed of every published library article.</li>
+          <li><a href="/.well-known/api-catalog">/.well-known/api-catalog</a> - RFC 9727 catalog pointing at every API surface.</li>
+        </ul>
+      </section>
+
+      <!-- ── Sandbox ── -->
+      <section class="connect-section">
+        <h2>Sandbox</h2>
+        <p>
+          The API includes a no-auth sandbox endpoint for the question-answering contract at <code>POST /api/ask/sandbox</code>. It returns a canned, deterministic response with no authentication, no rate limit, no LLM invocation, and no data mutation, so it is safe to call from any client any number of times. It accepts the same JSON shape as <code>/api/ask</code> but ignores the request body. Use it to validate that your client correctly parses the answer shape before you integrate with the authenticated endpoint.
+        </p>
+        <pre class="connect-code"><code>{`curl -X POST https://rrmacademy.org/api/ask/sandbox \\
+  -H "Content-Type: application/json" \\
+  -d '{ "message": "test" }'
+
+# {
+#   "sandbox": true,
+#   "answer": "Sandbox response. ...",
+#   "citations": [ ... ]
+# }`}</code></pre>
+        <p>Every sandbox response carries an <code>X-Sandbox: true</code> header. Set <code>Accept: text/event-stream</code> for the Server-Sent Events variant, which emits the same payload followed by a <code>[DONE]</code> event. The sandbox is also described under <code>info.x-sandbox</code> in the <a href="/openapi.json">OpenAPI spec</a>.</p>
+      </section>
+
+      <!-- ── Rate limits ── -->
+      <section class="connect-section">
+        <h2>Rate limits</h2>
+        <p>Authenticated API responses carry standard rate-limit headers so your client can pace itself without guessing:</p>
+        <ul class="connect-tools">
+          <li><strong>RateLimit-Limit</strong> - requests allowed in the current window.</li>
+          <li><strong>RateLimit-Remaining</strong> - requests left in the current window.</li>
+          <li><strong>RateLimit-Reset</strong> - seconds until the window resets.</li>
+        </ul>
+        <p>A <code>429</code> response means you have hit the limit. Back off and retry with exponential jitter. The no-auth sandbox is not rate limited.</p>
+      </section>
+
+      <!-- ── Related ── -->
+      <section class="connect-section">
+        <h2>Related developer pages</h2>
+        <ul class="connect-links">
+          <li><a href="/agent-auth/">/agent-auth</a> - Step-by-step API token authentication guide.</li>
+          <li><a href="/openapi/">/openapi</a> - API documentation (OpenAPI 3.1).</li>
+          <li><a href="/webhooks/">/webhooks</a> - Webhooks and subscription channels.</li>
+          <li><a href="/connect/">/connect</a> - Per-client MCP setup guide.</li>
+          <li>Questions: <a href="mailto:info@rrmacademy.org">info@rrmacademy.org</a></li>
+        </ul>
+      </section>
+
+      <LastUpdated date={LAST_MODIFIED} />
+    </div>
+  </article>
+
+  <style>
+    .connect-page { padding-bottom: var(--space-12); }
+
+    .connect-hero {
+      margin-bottom: var(--space-10);
+      padding-bottom: var(--space-8);
+      border-bottom: 1px solid var(--border-color);
+    }
+    .connect-eyebrow {
+      display: inline-block;
+      font-size: 0.6875rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.14em;
+      color: var(--accent);
+      margin-bottom: var(--space-4);
+    }
+    .connect-hero h1 {
+      font-family: var(--font-display);
+      font-weight: 600;
+      line-height: 1.1;
+      margin: 0 0 var(--space-5);
+    }
+    .connect-lede {
+      font-family: var(--font-display);
+      font-style: italic;
+      font-size: 1.25rem;
+      line-height: 1.5;
+      color: var(--text-secondary);
+      max-width: 36rem;
+      margin: 0;
+    }
+
+    .connect-section { margin-bottom: var(--space-10); }
+    .connect-section h2 {
+      font-family: var(--font-display);
+      font-size: 1.5rem;
+      margin: 0 0 var(--space-4);
+    }
+    .connect-section > p {
+      color: var(--text-secondary);
+      line-height: 1.7;
+      margin-bottom: var(--space-4);
+    }
+    .connect-section code {
+      font-family: "SF Mono", Menlo, monospace;
+      font-size: 0.8125rem;
+      background: var(--purple-50);
+      color: var(--purple-900);
+      padding: 1px 6px;
+      border-radius: var(--radius-sm);
+    }
+
+    .connect-steps {
+      margin: var(--space-4) 0 var(--space-4);
+      padding-left: var(--space-6);
+      color: var(--text-secondary);
+      line-height: 1.7;
+    }
+    .connect-steps li { margin-bottom: var(--space-4); }
+    .connect-steps code {
+      font-family: "SF Mono", Menlo, monospace;
+      font-size: 0.8125rem;
+      background: var(--purple-50);
+      color: var(--purple-900);
+      padding: 1px 6px;
+      border-radius: var(--radius-sm);
+    }
+    .connect-steps strong { color: var(--text-primary); }
+
+    .connect-tools { list-style: none; padding: 0; margin: 0 0 var(--space-4); }
+    .connect-tools li {
+      padding: var(--space-3) 0;
+      border-bottom: 1px solid var(--border-light);
+      color: var(--text-secondary);
+      line-height: 1.6;
+    }
+    .connect-tools li:last-child { border-bottom: none; }
+    .connect-tools strong {
+      color: var(--text-primary);
+      font-weight: 600;
+    }
+
+    .connect-links { padding-left: var(--space-5); line-height: 1.8; }
+    .connect-links a { color: var(--accent); }
+
+    .connect-dev-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(15rem, 1fr));
+      gap: var(--space-3);
+      margin: var(--space-4) 0 var(--space-6);
+    }
+    .connect-dev-link {
+      display: flex;
+      flex-direction: column;
+      gap: var(--space-2);
+      padding: var(--space-4) var(--space-5);
+      background: var(--bg-surface);
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius-md);
+      text-decoration: none;
+      color: inherit;
+      transition: border-color 0.15s, transform 0.15s;
+    }
+    .connect-dev-link:hover {
+      border-color: var(--accent);
+      transform: translateY(-1px);
+    }
+    .connect-dev-link strong {
+      font-family: var(--font-display);
+      font-size: 1rem;
+      color: var(--accent);
+      font-weight: 600;
+    }
+    .connect-dev-link span {
+      font-size: 0.875rem;
+      color: var(--text-secondary);
+      line-height: 1.5;
+    }
+    .connect-code {
+      background: #1a1a1a;
+      color: #f5f5f5;
+      padding: var(--space-4) var(--space-5);
+      border-radius: var(--radius-md);
+      overflow-x: auto;
+      font-size: 0.8125rem;
+      line-height: 1.6;
+      margin: 0 0 var(--space-4);
+    }
+    .connect-code code {
+      font-family: "SF Mono", Menlo, monospace;
+      background: transparent;
+      color: inherit;
+      padding: 0;
+    }
+  </style>
+</BaseLayout>
