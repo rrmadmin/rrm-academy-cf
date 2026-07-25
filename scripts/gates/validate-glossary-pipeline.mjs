@@ -389,12 +389,102 @@ if (!JSON_MODE) {
   if (ONLY_GATE)  console.log(`${YELLOW}Mode: --gate ${ONLY_GATE} only${RESET}`);
 }
 
+// ---------- Gate G6: Local artifact freshness (network) -------------------
+// src/data/glossary.json is a GITIGNORED build artifact. CI regenerates it at deploy
+// time, so production is always correct, but a developer's or an agent's local copy
+// rots silently and nothing says so. On 2026-07-24 a local copy was 2 months old,
+// 33 terms and 191 references behind D1, and was read as current during a review.
+//
+// Live truth is read credential-free from the production pillar's DefinedTermSet
+// JSON-LD, which emits exactly one DefinedTerm per published term.
+const GLOSSARY_JSON_PATH = join(PROJECT_ROOT, 'src/data/glossary.json');
+const LIVE_PILLAR_URL    = 'https://rrmacademy.org/glossary/';
+const STALE_DAYS         = 14;
+
+async function gateG6() {
+  const results = [];
+
+  if (!existsSync(GLOSSARY_JSON_PATH)) {
+    return [warn('src/data/glossary.json absent locally - CI regenerates it at build time. '
+               + 'Run `npm run fetch-glossary` before reading it for anything.')];
+  }
+
+  let local;
+  try {
+    local = JSON.parse(readFileSync(GLOSSARY_JSON_PATH, 'utf-8'));
+  } catch (err) {
+    return [fail(`src/data/glossary.json is unparseable: ${err.message}`)];
+  }
+
+  const localTerms = local._counts?.terms ?? local.terms?.length ?? 0;
+  const localRefs  = local._counts?.references ?? local.references?.length ?? 0;
+  const stamp      = local._generatedAt || local.generatedAt;
+
+  if (!local._WARNING) {
+    results.push(warn('glossary.json predates the self-warning header (written by '
+                    + 'src/lib/fetch-glossary-data.mjs). Refresh to pick it up: npm run fetch-glossary'));
+  }
+
+  if (stamp) {
+    const ageDays = (Date.now() - Date.parse(stamp)) / 86400000;
+    if (Number.isFinite(ageDays) && ageDays > STALE_DAYS) {
+      results.push(fail(`glossary.json was generated ${Math.floor(ageDays)} days ago (${stamp}). `
+                      + `Anything read from it may be wrong. Refresh: npm run fetch-glossary`));
+    } else if (Number.isFinite(ageDays)) {
+      results.push(pass(`glossary.json age ${Math.floor(ageDays)}d (threshold ${STALE_DAYS}d)`));
+    }
+  } else {
+    results.push(warn('glossary.json carries no generatedAt stamp; cannot age-check it'));
+  }
+
+  if (QUICK_MODE) {
+    results.push(warn('--quick: skipped the live count comparison (network). Run without --quick '
+                    + 'to compare against production.'));
+    return results;
+  }
+
+  let html;
+  try {
+    const res = await fetch(LIVE_PILLAR_URL, {
+      headers: { 'User-Agent': 'rrm-glossary-gate/1.0' },
+      signal: AbortSignal.timeout(30000),
+    });
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    html = await res.text();
+  } catch (err) {
+    results.push(warn(`could not reach ${LIVE_PILLAR_URL} (${err.message}); freshness not compared. `
+                    + 'This is a WARN, not a failure, so the gate still runs offline.'));
+    return results;
+  }
+
+  const liveTerms = (html.match(/"@type"\s*:\s*"DefinedTerm"/g) || []).length;
+  if (!liveTerms) {
+    results.push(warn('live pillar returned no DefinedTerm JSON-LD entries; skipping comparison '
+                    + '(the schema shape may have changed - update G6 if so)'));
+    return results;
+  }
+
+  const drift = liveTerms - localTerms;
+  if (drift === 0) {
+    results.push(pass(`term count matches live (${liveTerms})`));
+  } else {
+    results.push(fail(`local glossary.json has ${localTerms} terms but production has ${liveTerms} `
+                    + `(${drift > 0 ? drift + ' missing locally' : Math.abs(drift) + ' extra locally'}). `
+                    + `Refresh: npm run fetch-glossary`));
+  }
+  results.push(pass(`local references: ${localRefs} (no credential-free live ref count available; `
+                  + `term drift above is the load-bearing signal)`));
+
+  return results;
+}
+
 const gateSpecs = [
   { id: 'G1', name: 'Status Filter Agreement',          fn: gateG1 },
   { id: 'G2', name: 'Shared Render Path Enforcement',   fn: gateG2 },
   { id: 'G3', name: 'Rewriter Anchor Coverage',         fn: gateG3 },
   { id: 'G4', name: 'Heading Level Contract',           fn: gateG4 },
   { id: 'G5', name: 'Schema @id Consistency',           fn: gateG5 },
+  { id: 'G6', name: 'Local Artifact Freshness',         fn: gateG6 },
 ];
 
 let totalFailures = 0;
@@ -407,7 +497,7 @@ for (const { id, name, fn } of gateSpecs) {
 
   let items;
   try {
-    items = fn();
+    items = await fn();   // await is a no-op for the synchronous static gates (G1-G5)
     if (!Array.isArray(items)) items = [items];
   } catch (err) {
     items = [{ ok: false, msg: `Gate runner error: ${err.message}` }];
