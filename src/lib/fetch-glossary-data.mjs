@@ -29,8 +29,24 @@ const GLOSSARY_URL = 'https://rrmacademy.org/api/glossary/terms';
 
 function writeAtomic(payload) {
   mkdirSync(dirname(OUTPUT_PATH), { recursive: true });
+  // Self-warning header. This file is gitignored, so a developer's or an agent's local
+  // copy silently rots while CI keeps rebuilding a correct one at deploy time. On
+  // 2026-07-24 a local copy was 2 months old, 33 terms and 191 refs behind D1, and was
+  // read as current. These leading keys are the first thing any reader or grep sees.
+  // Keep them FIRST in the object; JSON.stringify preserves insertion order.
+  const stamped = {
+    _WARNING: 'GENERATED BUILD ARTIFACT, NOT SOURCE OF TRUTH. Gitignored, so your local copy may be badly stale. SSOT is D1 rrm-auth (glossary_term / glossary_reference / glossary_abbreviation). Refresh with: npm run fetch-glossary',
+    _generatedAt: new Date().toISOString(),
+    _counts: {
+      terms: payload.terms?.length ?? 0,
+      references: payload.references?.length ?? 0,
+      abbreviations: payload.abbreviations?.length ?? 0,
+    },
+    _freshnessCheck: 'npm run gates:glossary   (gate G6 compares these counts against live)',
+    ...payload,
+  };
   const tmpPath = OUTPUT_PATH + '.tmp';
-  writeFileSync(tmpPath, JSON.stringify(payload, null, 2));
+  writeFileSync(tmpPath, JSON.stringify(stamped, null, 2));
   renameSync(tmpPath, OUTPUT_PATH);
 }
 
