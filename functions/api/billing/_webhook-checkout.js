@@ -23,6 +23,82 @@ import { notifyAdminEnrollment } from '../courses/_notify-admin.js';
 import { recordDonorGift, giftFromCheckoutSession } from './_donor-gift.js';
 import { readSupporterConsent, deriveDisplayName, recordSupporterGift } from './_supporter-gift.js';
 import { countCampaignGifts } from './_campaign-count.js';
+import { sendTracked } from '../newsletter/_mail.js';
+
+// Monthly tier price fallback, used only when session.amount_total is 0 or missing
+// (Stripe has not billed the first invoice yet). Mirrors stucTierCentsFallback in the
+// GA4 subscription branch below and tierValueMap in create-checkout.js
+// (member $9, hero $19, superhero $99).
+const STUC_TIER_MONTHLY_CENTS = { member: 900, hero: 1900, superhero: 9900 };
+
+/**
+ * Wix-migration handoff discriminator. create-checkout.js sets
+ * metadata.migration_handoff='true' together with metadata.wix_subscription_id on every
+ * migration checkout; the wix_subscription_id shape check mirrors the isMigrationDonor
+ * test used by the membership email branch below. Migration handoffs send their own
+ * admin emails (billing/migration-metadata, billing/migration-handoff) and are existing
+ * donors moving payment rails, not new members.
+ */
+export function isMigrationHandoffSession(session) {
+  const meta = session?.metadata || {};
+  if (meta.migration_handoff === 'true') return true;
+  return typeof meta.wix_subscription_id === 'string' &&
+    /^wxs_[a-z0-9_-]+$/i.test(meta.wix_subscription_id);
+}
+
+/**
+ * Build the admin notification for a completed one-time donation.
+ * `gift` is the mapped donor_gift record from giftFromCheckoutSession, so the email
+ * and the CRM row always agree on what counts as a donation.
+ */
+export function buildDonationAdminNotice(session, gift) {
+  const campaign = typeof session.metadata?.campaign === 'string'
+    ? session.metadata.campaign.trim().slice(0, 60)
+    : '';
+  const amount = (gift.amountCents / 100).toFixed(2);
+  const donorName = String(gift.displayName || '').slice(0, 200);
+  const donorEmail = String(gift.email || '').slice(0, 320);
+  const subject = `New donation: $${amount} - ${donorName || donorEmail || '(unknown)'}` +
+    (campaign ? ` [${campaign}]` : '');
+  const text = [
+    'New one-time donation',
+    '',
+    `Amount:         $${amount}`,
+    `Donor name:     ${donorName || '(not set)'}`,
+    `Donor email:    ${donorEmail || '(not set)'}`,
+    ...(campaign ? [`Campaign:       ${campaign}`] : []),
+    `Payment intent: ${gift.sourceId}`,
+    `Timestamp:      ${gift.occurredAt}`,
+  ].join('\n');
+  return { subject, text };
+}
+
+/**
+ * Build the admin notification for a new STUC member (Stripe subscription checkout).
+ * Renewals never fire checkout.session.completed, so every session reaching this
+ * builder is a first subscription for that checkout.
+ */
+export function buildStucAdminNotice(session, tier, tierLabel) {
+  const email = (session.customer_details?.email || session.customer_email || '')
+    .toLowerCase().trim().replace(/[\r\n]/g, '');
+  const name = (session.customer_details?.name || '').slice(0, 200);
+  const totalCents = Number(session.amount_total);
+  const cents = (Number.isFinite(totalCents) && totalCents > 0)
+    ? totalCents
+    : (STUC_TIER_MONTHLY_CENTS[tier] || 0);
+  const amount = (cents / 100).toFixed(2);
+  const subject = `New STUC member: ${name || email || '(unknown)'} - ${tierLabel} ($${amount}/mo)`;
+  const text = [
+    'New Save the Uterus Club member',
+    '',
+    `Member name:  ${name || '(not set)'}`,
+    `Member email: ${email || '(not set)'}`,
+    `Tier:         ${tierLabel}`,
+    `Amount:       $${amount}/mo`,
+    `Timestamp:    ${new Date().toISOString()}`,
+  ].join('\n');
+  return { subject, text };
+}
 
 /**
  * @param {D1Database} db
@@ -358,6 +434,23 @@ export async function handleCheckoutCompleted(db, event, env, request, waitUntil
       log(env, waitUntil, 'billing', 'membership_email_skipped', 'skipped', `${email} ${tierLabel} (SES not configured)`);
     }
 
+    // Admin notify: new STUC member. Wix-migration handoffs are deliberately skipped --
+    // the migration paths below send their own admin emails and a migrating donor is not
+    // a new member. Fire-and-forget so a mail failure never changes the webhook result.
+    if (!isMigrationHandoffSession(session)) {
+      const memberNotice = buildStucAdminNotice(session, tier, tierLabel);
+      waitUntil(sendTracked(env, waitUntil, {
+        from: 'RRM Academy <accounts@mail.rrmacademy.org>',
+        to: 'administrator@rrmacademy.org',
+        subject: memberNotice.subject,
+        text: memberNotice.text,
+      }, {
+        category: 'transactional',
+        source: 'billing/stuc-admin-notify',
+        component: 'stuc_admin_notify',
+      }).catch(() => {}));
+    }
+
     // Metadata-first migration handoff (INV-3, INV-9)
     // When create-checkout (Phase 3.1) sets session.metadata.wix_subscription_id, we know
     // EXACTLY which Wix sub to migrate -- no email guessing required. Defense against
@@ -654,6 +747,23 @@ Manually set migration_status='stripe_active' and stripe_subscription_id to the 
       // Never fail the webhook over CRM mirroring; the daily daemon sweep self-heals.
       log(env, waitUntil, 'billing', 'donor_gift_record', 'error', err.message);
     }
+  }
+
+  // Admin notify: one-time donation. Gated on the same donorGift mapping used for the
+  // CRM row above, so the email and donor_gift never disagree on what counts as a
+  // donation. Fire-and-forget so a mail failure never changes the webhook result.
+  if (donorGift) {
+    const donationNotice = buildDonationAdminNotice(session, donorGift);
+    waitUntil(sendTracked(env, waitUntil, {
+      from: 'RRM Academy <accounts@mail.rrmacademy.org>',
+      to: 'administrator@rrmacademy.org',
+      subject: donationNotice.subject,
+      text: donationNotice.text,
+    }, {
+      category: 'transactional',
+      source: 'billing/donation-admin-notify',
+      component: 'donation_admin_notify',
+    }).catch(() => {}));
   }
 
   // Supporter recognition: persist a row for consented provider-directory gifts.
