@@ -30,6 +30,22 @@ import { isUntouched } from './lib/coverage-helpers.mjs';
 const ROOT = resolve(import.meta.dirname, '..', '..');
 const OUT = resolve(ROOT, 'scripts', 'quality', 'coverage-census.json');
 
+/**
+ * The armed PRODUCT-CODE line-coverage floor, in percent.
+ *
+ * RULE: arm at the MEASURED floor rounded DOWN, and only ever move it UP.
+ * Never set a number that is red on arrival, and never lower it to make a
+ * branch pass. Every change here must record the measurement it came from and
+ * be proven to bite (one point above the new floor exits 1, the floor exits 0).
+ *
+ * History:
+ *   20  2026-07-28  armed at the first full-surface measurement, 20.65%.
+ *   25  2026-07-28  raised after the tranche-1 coverage drive (survey path,
+ *                   Stripe checkout webhook executed instead of grepped, four
+ *                   dead gate tests wired, FABM quiz engine). Measured 25.30%.
+ */
+const ARMED_FLOOR_PCT = 25;
+
 const argv = process.argv.slice(2);
 const covDirIdx = argv.indexOf('--coverage-dir');
 const COV_DIR = covDirIdx !== -1 ? resolve(argv[covDirIdx + 1]) : resolve(ROOT, 'reports', 'quality', 'coverage');
@@ -89,6 +105,7 @@ const byCategory = {};
 for (const cat of Object.keys(CATEGORIES)) {
   byCategory[cat] = agg(files.filter(f => f.category === cat));
 }
+const surveyAgg = agg(files.filter(f => f.file.startsWith('functions/api/survey/')));
 const product = files.filter(f => f.category === 'PRODUCT-CODE');
 const productAgg = agg(product);
 const fullAgg = agg(files);
@@ -151,7 +168,7 @@ const census = {
   _gate: {
     scope: 'PRODUCT-CODE',
     metric: 'c8 line coverage with --all (every surface file in the denominator)',
-    floor_lines_pct: 20,
+    floor_lines_pct: ARMED_FLOOR_PCT,
     ratchet_rule: 'The floor may only move UP. Arm at the measured floor rounded down; never arm a number that is red on arrival. Raise it after a coverage drive lands, by editing this value to the new measured floor rounded down.',
   },
   _measured: {
@@ -165,11 +182,11 @@ const census = {
     highest_stakes_slice: {
       slice: 'national survey intake/submit path (functions/api/survey/)',
       files: files.filter(f => f.file.startsWith('functions/api/survey/')).map(f => `${f.file} ${f.covered}/${f.lines} (${f.pct}%)`),
-      state: 'ZERO tests import any survey endpoint. request.js (magic-link mint + PII split), submit.js (pseudonymized symptom write + token rollback) are entirely uncovered.',
+      state: `${surveyAgg.covered}/${surveyAgg.lines} lines (${surveyAgg.pct}%). Executed suites: test/survey-request.test.js, test/survey-submit.test.js, test/survey-endpoints.test.js. The two load-bearing invariants are asserted by running the handlers against SEPARATE fake databases: identity (email + rec_id) lands only in SURVEY_DB while symptoms land only in SURVEY_SYMPTOMS_DB with no address in the SQL or any bound value; and a failed symptom write deletes the D1 token claim and restores the original KV token record so the participant can resubmit.`,
     },
   },
   _followup_estimate_hours: {
-    'PRODUCT-CODE functions/api (survey path FIRST)': '6-8h for the survey slice alone (mock-env harness per the test-cf-functions recipe); 100-140h to bring the remaining ~140 absent endpoint files to ~80% lines',
+    'PRODUCT-CODE functions/api (survey path + Stripe webhook cluster DONE)': 'survey/ is at 100% and the billing webhook cluster is executed rather than grepped (test/_json-module-hook.mjs made the module graph importable). Remaining: ~135 endpoint files still absent from any test, 95-130h to ~80% lines. Next worst by CRAP: functions/api/billing/_webhook-subscription.js and functions/api/create-checkout.js',
     'PRODUCT-CODE scripts (gates, guards, fact pipeline, build chain)': '35-50h; start with guard.mjs + verify-citations.mjs + the fact-pipeline promote/extract pair (top CRAP offenders), pure-logic extraction first',
     'PRODUCT-CODE src/lib + src/scripts + src/integrations': '18-25h; fetchers have a dry-run mode that makes them testable without live endpoints',
     'CONTENT-TEMPLATE / E2E-DRIVER / ONE-OFF / GENERATED': '0h by design — wrong instrument; correctness held by builds, deploy-guard floors, and live runs',
