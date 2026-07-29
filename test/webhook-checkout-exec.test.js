@@ -16,6 +16,7 @@ import { describe, it, before, after } from 'node:test';
 import assert from 'node:assert/strict';
 import './_json-module-hook.mjs';
 import { mockRequest, mockEnv, mockDB, mockWaitUntil, parseResponse, stubExternalFetch, stripeRoutes, drainWaitUntil } from './_helpers.js';
+import { sqliteD1, insertUser } from './_d1-sqlite.mjs';
 
 const checkout = await import('../functions/api/billing/_webhook-checkout.js');
 const { handleCheckoutCompleted, handleCheckoutExpired, buildDonationAdminNotice, buildStucAdminNotice, isMigrationHandoffSession } = checkout;
@@ -220,7 +221,11 @@ describe('_webhook-checkout -- account linkage', () => {
     const heal = stmts(ctx, 'UPDATE user SET stripe_customer_id = COALESCE')[0];
     assert.ok(heal, 'the losing writer must link by email in one atomic UPDATE');
     assert.deepEqual(heal.bound, ['cus_test_1', 'buyer@example.com', 'cus_test_1']);
-    assert.ok(heal.sql.includes('COLLATE NOCASE'));
+    // The case-insensitivity of this UPDATE is NOT asserted here. It used to be,
+    // as `heal.sql.includes('COLLATE NOCASE')` -- a string check that passes for
+    // a query that has the words in a comment, and that cannot fail for the
+    // reason its name gives. It is asserted by running the statement against a
+    // real SQLite engine in the executed race test at the bottom of this file.
   });
 
   it('alerts the administrator when a concurrent race orphans a Stripe customer', async () => {
@@ -908,5 +913,83 @@ describe('_webhook-checkout -- supporter sequence via the list fallback', () => 
       assert.ok(row);
       assert.equal(row.bound[3], 2, 'only succeeded gifts for THIS campaign count');
     } finally { stub.restore(); }
+  });
+});
+
+// ------------------------------------------- executed concurrent-race link ---
+
+/**
+ * The concurrent-account-creation heal path (_webhook-checkout.js around the
+ * `INSERT OR IGNORE INTO user` / `UPDATE user SET stripe_customer_id = COALESCE`
+ * pair), run against a REAL SQLite database loaded with the committed schema.
+ *
+ * Reaching this branch needs the SELECT to miss and the INSERT to conflict --
+ * i.e. a competing writer landing in between. mockDB can be told to answer
+ * `changes: 0`, but it cannot enforce `idx_user_email_nocase`, so under mockDB
+ * the conflict is asserted rather than caused, and the follow-up UPDATE's
+ * collation is unobservable. Here the index does the rejecting and the UPDATE
+ * either finds the winner's row or does not.
+ */
+describe('_webhook-checkout -- concurrent account creation, executed', () => {
+  function raceCtx(storedEmail) {
+    let planted = false;
+    const db = sqliteD1({
+      interleave({ sql, db: raw }) {
+        if (planted || !sql.includes('INSERT OR IGNORE INTO user')) return;
+        planted = true;
+        // The winning isolate creates the account first, storing the address in
+        // a DIFFERENT case than the one this checkout normalized to.
+        insertUser(raw, { id: 'usr_winner', email: storedEmail, hashed_password: '' });
+      },
+    });
+    const env = mockEnv({ DB: db, STRIPE_SECRET_KEY: 'sk_test_x' });
+    return {
+      db, env,
+      waitUntil: mockWaitUntil(),
+      request: mockRequest('POST', { url: 'https://rrmacademy.org/api/stripe-webhook', headers: { 'CF-Connecting-IP': '203.0.113.9' } }),
+      event: evt(session()),
+      plantedRef: () => planted,
+    };
+  }
+
+  it('links the Stripe customer onto the winner\'s row even when the stored address differs in case', async () => {
+    const ctx = raceCtx('BUYER@Example.com');
+    await run(ctx);
+
+    assert.ok(ctx.plantedRef(), 'the competing writer never fired -- the race was not reproduced');
+    const users = ctx.db._sqlite.prepare('SELECT id, email, stripe_customer_id FROM user').all();
+    assert.equal(users.length, 1, `the unique NOCASE index must reject the duplicate insert: ${JSON.stringify(users)}`);
+    assert.equal(users[0].id, 'usr_winner');
+    assert.equal(users[0].email, 'BUYER@Example.com', 'the winner\'s stored address must not be rewritten');
+    assert.equal(
+      users[0].stripe_customer_id, 'cus_test_1',
+      'the paying customer was orphaned: the account exists but has no Stripe id, so their next login sees no membership'
+    );
+    assert.equal(mailTo(ctx, 'Orphaned Stripe customer'), undefined, 'a successful link must not alert the administrator');
+  });
+
+  it('alerts instead of clobbering when the winner is already linked to a different customer', async () => {
+    let planted = false;
+    const db = sqliteD1({
+      interleave({ sql, db: raw }) {
+        if (planted || !sql.includes('INSERT OR IGNORE INTO user')) return;
+        planted = true;
+        insertUser(raw, { id: 'usr_winner', email: 'Buyer@Example.com', hashed_password: '', stripe_customer_id: 'cus_OTHER' });
+      },
+    });
+    const ctx = {
+      db, env: mockEnv({ DB: db, STRIPE_SECRET_KEY: 'sk_test_x' }),
+      waitUntil: mockWaitUntil(),
+      request: mockRequest('POST', { url: 'https://rrmacademy.org/api/stripe-webhook', headers: { 'CF-Connecting-IP': '203.0.113.9' } }),
+      event: evt(session()),
+    };
+    await run(ctx);
+
+    assert.ok(planted);
+    const row = ctx.db._sqlite.prepare('SELECT stripe_customer_id FROM user WHERE id = ?').get('usr_winner');
+    assert.equal(row.stripe_customer_id, 'cus_OTHER', 'COALESCE must never overwrite an existing link');
+    const alert = mailTo(ctx, 'Orphaned Stripe customer');
+    assert.ok(alert, 'an unlinkable customer must be surfaced, not swallowed');
+    assert.match(alert.body.Content.Simple.Body.Text.Data, /Orphaned customer: cus_test_1/);
   });
 });
