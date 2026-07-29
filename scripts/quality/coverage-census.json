@@ -11,7 +11,7 @@
  "_gate": {
   "scope": "PRODUCT-CODE",
   "metric": "c8 line coverage with --all (every surface file in the denominator)",
-  "floor_lines_pct": 26,
+  "floor_lines_pct": 28,
   "ratchet_rule": "The floor may only move UP. Arm at the measured floor rounded down; never arm a number that is red on arrival. Raise it after a coverage drive lands, by editing this value to the new measured floor rounded down."
  },
  "_measured": {
@@ -19,22 +19,22 @@
   "instrument": "node scripts/quality/coverage.mjs (c8 --all over the full surface; full npm-test suite)",
   "full_surface": {
    "files": 420,
-   "lines": 80694,
-   "covered": 16978,
-   "pct": 21.04
+   "lines": 80712,
+   "covered": 18381,
+   "pct": 22.77
   },
   "by_category": {
    "PRODUCT-CODE": {
     "files": 333,
-    "lines": 64611,
-    "covered": 16978,
-    "pct": 26.28
+    "lines": 64629,
+    "covered": 18300,
+    "pct": 28.32
    },
    "CONTENT-TEMPLATE": {
     "files": 8,
     "lines": 606,
-    "covered": 0,
-    "pct": 0
+    "covered": 81,
+    "pct": 13.37
    },
    "E2E-DRIVER": {
     "files": 35,
@@ -57,12 +57,12 @@
   },
   "product_code": {
    "files": 333,
-   "lines": 64611,
-   "covered": 16978,
-   "pct": 26.28
+   "lines": 64629,
+   "covered": 18300,
+   "pct": 28.32
   },
-  "files_absent_from_default_report": 325,
-  "files_present_in_default_report": 95,
+  "files_absent_from_default_report": 316,
+  "files_present_in_default_report": 104,
   "highest_stakes_slice": {
    "slice": "national survey intake/submit path (functions/api/survey/)",
    "files": [
@@ -76,7 +76,8 @@
   }
  },
  "_followup_estimate_hours": {
-  "PRODUCT-CODE functions/api (survey path + Stripe webhook cluster + identity path DONE)": "survey/ is at 100%; the billing webhook cluster is executed rather than grepped (test/_json-module-hook.mjs made the module graph importable); and as of tranche 2 the identity path (auth login/signup, community membership gate + roster, admin membership-report, donor rollups, webhook dedup) runs against a real SQLite engine loaded with the committed schema (test/_d1-sqlite.mjs) instead of a substring-matching mock. Remaining: ~130 endpoint files still absent from any test, 90-125h to ~80% lines. Next worst by CRAP: functions/api/billing/_webhook-subscription.js and functions/api/create-checkout.js",
+  "PRODUCT-CODE functions/api (survey path + Stripe webhook cluster + identity path + training analytics + FABM quiz API DONE)": "survey/ is at 100%; the billing webhook cluster is executed rather than grepped (test/_json-module-hook.mjs made the module graph importable); tranche 2 put the identity path (auth login/signup, community membership gate + roster, admin membership-report, donor rollups, webhook dedup) on a real SQLite engine loaded with the committed schema (test/_d1-sqlite.mjs); and tranche 3 did the same for the five PRODUCT surfaces that were sitting under a green repo-wide floor -- training analytics (courses/progress.js 100%, admin/enrollments.js 96.7%), the FABM quiz API (quiz/request.js, quiz/event.js, courses/quiz.js, courses/_quiz-content.js all 100%, on a SURVEY_DB harness built from the committed rrm-survey migrations), and library/deploy-record.js 100%. Remaining: ~120 endpoint files still absent from any test, 85-115h to ~80% lines. Next worst by CRAP: functions/api/billing/_webhook-subscription.js and functions/api/create-checkout.js",
+  "PRODUCT-CODE known gap: scripts/build-library-feed.mjs (0%, 75 lines)": "The last zero in the library render surface. Its input and output paths are derived from import.meta.url (PROJECT_ROOT = the repo), not from cwd or argv, so it cannot be pointed at a fixture: running it under test either reads the real 32MB gitignored src/data/articles.json and rewrites public/library-feed.jsonl, or -- on a clean CI checkout where that file does not exist -- takes the existsSync early-exit and covers nothing. Covering it needs a production change (inject the two paths), which was judged out of scope for a test-only tranche. Sibling scripts/gates/verify-library-curation.mjs reads CWD-relative and is at 100% without any production change.",
   "PRODUCT-CODE scripts (gates, guards, fact pipeline, build chain)": "35-50h; start with guard.mjs + verify-citations.mjs + the fact-pipeline promote/extract pair (top CRAP offenders), pure-logic extraction first",
   "PRODUCT-CODE src/lib + src/scripts + src/integrations": "18-25h; fetchers have a dry-run mode that makes them testable without live endpoints",
   "CONTENT-TEMPLATE / E2E-DRIVER / ONE-OFF / GENERATED": "0h by design — wrong instrument; correctness held by builds, deploy-guard floors, and live runs"
@@ -169,14 +170,6 @@
    "cc": 66,
    "coverage": 0,
    "crap": 4422
-  },
-  {
-   "file": "functions/api/courses/quiz.js",
-   "fn": "handleQuizSubmit",
-   "line": 109,
-   "cc": 62,
-   "coverage": 0,
-   "crap": 3906
   },
   {
    "file": "functions/api/admin/community/areas.js",
@@ -299,14 +292,6 @@
    "crap": 2450
   },
   {
-   "file": "functions/api/quiz/request.js",
-   "fn": "onRequestPost",
-   "line": 70,
-   "cc": 49,
-   "coverage": 0,
-   "crap": 2450
-  },
-  {
    "file": "functions/api/admin/search-queries.js",
    "fn": "onRequestGet",
    "line": 26,
@@ -321,6 +306,22 @@
    "cc": 45,
    "coverage": 0,
    "crap": 2070
+  },
+  {
+   "file": "scripts/guard.mjs",
+   "fn": "checkInvariants",
+   "line": 104,
+   "cc": 45,
+   "coverage": 0,
+   "crap": 2070
+  },
+  {
+   "file": "functions/api/admin/community/impact.js",
+   "fn": "onRequestPut",
+   "line": 107,
+   "cc": 44,
+   "coverage": 0,
+   "crap": 1980
   }
  ],
  "crap_top_files": [
@@ -409,12 +410,6 @@
    "fns": 31
   },
   {
-   "file": "functions/api/courses/quiz.js",
-   "worst": 3906,
-   "total": 4202,
-   "fns": 5
-  },
-  {
    "file": "scripts/verify-citations.mjs",
    "worst": 812,
    "total": 3792,
@@ -443,6 +438,12 @@
    "worst": 2756,
    "total": 3152,
    "fns": 3
+  },
+  {
+   "file": "functions/api/newsletter/send.js",
+   "worst": 3080,
+   "total": 3130,
+   "fns": 5
   }
  ],
  "files": [
@@ -488,8 +489,8 @@
    "reason": "CF Pages Function (routed endpoint, middleware, or _-prefixed shared helper). Deployed on every push; defects ship directly to users.",
    "present": true,
    "lines": 123,
-   "covered": 115,
-   "pct": 93.49
+   "covered": 118,
+   "pct": 95.93
   },
   {
    "file": "functions/api/_endpoint-template.js",
@@ -531,10 +532,10 @@
    "file": "functions/api/_google-ads.js",
    "category": "PRODUCT-CODE",
    "reason": "CF Pages Function (routed endpoint, middleware, or _-prefixed shared helper). Deployed on every push; defects ship directly to users.",
-   "present": false,
+   "present": true,
    "lines": 147,
-   "covered": 0,
-   "pct": 0
+   "covered": 58,
+   "pct": 39.45
   },
   {
    "file": "functions/api/_guide-pdfs.js",
@@ -864,10 +865,10 @@
    "file": "functions/api/admin/enrollments.js",
    "category": "PRODUCT-CODE",
    "reason": "CF Pages Function (routed endpoint, middleware, or _-prefixed shared helper). Deployed on every push; defects ship directly to users.",
-   "present": false,
+   "present": true,
    "lines": 152,
-   "covered": 0,
-   "pct": 0
+   "covered": 150,
+   "pct": 98.68
   },
   {
    "file": "functions/api/admin/faqs/[id].js",
@@ -1118,8 +1119,8 @@
    "reason": "CF Pages Function (routed endpoint, middleware, or _-prefixed shared helper). Deployed on every push; defects ship directly to users.",
    "present": true,
    "lines": 334,
-   "covered": 284,
-   "pct": 85.02
+   "covered": 286,
+   "pct": 85.62
   },
   {
    "file": "functions/api/auth/_shared.js",
@@ -1127,8 +1128,8 @@
    "reason": "CF Pages Function (routed endpoint, middleware, or _-prefixed shared helper). Deployed on every push; defects ship directly to users.",
    "present": true,
    "lines": 585,
-   "covered": 440,
-   "pct": 75.21
+   "covered": 478,
+   "pct": 81.7
   },
   {
    "file": "functions/api/auth/change-password.js",
@@ -1658,8 +1659,8 @@
    "reason": "CF Pages Function (routed endpoint, middleware, or _-prefixed shared helper). Deployed on every push; defects ship directly to users.",
    "present": true,
    "lines": 130,
-   "covered": 58,
-   "pct": 44.61
+   "covered": 121,
+   "pct": 93.07
   },
   {
    "file": "functions/api/courses/affiliate-click.js",
@@ -1701,19 +1702,19 @@
    "file": "functions/api/courses/progress.js",
    "category": "PRODUCT-CODE",
    "reason": "CF Pages Function (routed endpoint, middleware, or _-prefixed shared helper). Deployed on every push; defects ship directly to users.",
-   "present": false,
-   "lines": 209,
-   "covered": 0,
-   "pct": 0
+   "present": true,
+   "lines": 214,
+   "covered": 214,
+   "pct": 100
   },
   {
    "file": "functions/api/courses/quiz.js",
    "category": "PRODUCT-CODE",
    "reason": "CF Pages Function (routed endpoint, middleware, or _-prefixed shared helper). Deployed on every push; defects ship directly to users.",
-   "present": false,
+   "present": true,
    "lines": 276,
-   "covered": 0,
-   "pct": 0
+   "covered": 276,
+   "pct": 100
   },
   {
    "file": "functions/api/courses/rendition.js",
@@ -1809,10 +1810,10 @@
    "file": "functions/api/library/deploy-record.js",
    "category": "PRODUCT-CODE",
    "reason": "CF Pages Function (routed endpoint, middleware, or _-prefixed shared helper). Deployed on every push; defects ship directly to users.",
-   "present": false,
+   "present": true,
    "lines": 107,
-   "covered": 0,
-   "pct": 0
+   "covered": 107,
+   "pct": 100
   },
   {
    "file": "functions/api/newsletter/_mail.js",
@@ -1971,19 +1972,19 @@
    "file": "functions/api/quiz/event.js",
    "category": "PRODUCT-CODE",
    "reason": "CF Pages Function (routed endpoint, middleware, or _-prefixed shared helper). Deployed on every push; defects ship directly to users.",
-   "present": false,
+   "present": true,
    "lines": 104,
-   "covered": 0,
-   "pct": 0
+   "covered": 104,
+   "pct": 100
   },
   {
    "file": "functions/api/quiz/request.js",
    "category": "PRODUCT-CODE",
    "reason": "CF Pages Function (routed endpoint, middleware, or _-prefixed shared helper). Deployed on every push; defects ship directly to users.",
-   "present": false,
+   "present": true,
    "lines": 259,
-   "covered": 0,
-   "pct": 0
+   "covered": 259,
+   "pct": 100
   },
   {
    "file": "functions/api/saved.js",
@@ -2808,10 +2809,10 @@
    "file": "scripts/gates/verify-library-curation.mjs",
    "category": "PRODUCT-CODE",
    "reason": "Deterministic CI/pre-commit proof gate; it decides whether deploys are allowed and must itself be trustworthy.",
-   "present": false,
+   "present": true,
    "lines": 48,
-   "covered": 0,
-   "pct": 0
+   "covered": 48,
+   "pct": 100
   },
   {
    "file": "scripts/gen-image.mjs",
@@ -3313,7 +3314,7 @@
    "category": "PRODUCT-CODE",
    "reason": "The quality instrument itself (coverage/CRAP/mutation/census). A measurement tool that is wrong is worse than no tool; its pure logic is unit-testable.",
    "present": false,
-   "lines": 232,
+   "lines": 245,
    "covered": 0,
    "pct": 0
   },
@@ -3681,10 +3682,10 @@
    "file": "src/data/library-topics.ts",
    "category": "CONTENT-TEMPLATE",
    "reason": "Typed data constant (library browse taxonomy) imported only by Astro templates. No branches to cover; drift is caught by the build + deploy-guard data floors.",
-   "present": false,
+   "present": true,
    "lines": 90,
-   "covered": 0,
-   "pct": 0
+   "covered": 81,
+   "pct": 90
   },
   {
    "file": "src/integrations/agent-md-surfaces.mjs",

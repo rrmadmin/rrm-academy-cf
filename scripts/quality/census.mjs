@@ -48,8 +48,20 @@ const OUT = resolve(ROOT, 'scripts', 'quality', 'coverage-census.json');
  *                   report, donor rollups and the webhook dedup envelope, all
  *                   executed against a real SQLite engine loaded with the
  *                   committed schema -- test/_d1-sqlite.mjs). Measured 26.28%.
+ *   28  2026-07-29  raised after the tranche-3 drive, which targeted five
+ *                   PRODUCT surfaces that sat below this repo-wide floor while
+ *                   the gate itself was green: training analytics (0 -> 98.6%),
+ *                   the library render surface (0 -> 67.4%), the FABM quiz API
+ *                   (3.5 -> 100%), and the course-platform enrolment/quiz path.
+ *                   Measured 28.32%.
+ *
+ * A REPO-WIDE FLOOR CAN HIDE A PRODUCT AT ZERO. That is what tranche 3 found:
+ * this number was green at 26 while five separate product surfaces measured
+ * 0-18%. The floor is a ratchet on the aggregate, not evidence that any
+ * particular surface is tested. Read the per-product view
+ * (tools/coverage-portfolio/status.mjs) before concluding a product is covered.
  */
-const ARMED_FLOOR_PCT = 26;
+const ARMED_FLOOR_PCT = 28;
 
 const argv = process.argv.slice(2);
 const covDirIdx = argv.indexOf('--coverage-dir');
@@ -191,7 +203,8 @@ const census = {
     },
   },
   _followup_estimate_hours: {
-    'PRODUCT-CODE functions/api (survey path + Stripe webhook cluster + identity path DONE)': 'survey/ is at 100%; the billing webhook cluster is executed rather than grepped (test/_json-module-hook.mjs made the module graph importable); and as of tranche 2 the identity path (auth login/signup, community membership gate + roster, admin membership-report, donor rollups, webhook dedup) runs against a real SQLite engine loaded with the committed schema (test/_d1-sqlite.mjs) instead of a substring-matching mock. Remaining: ~130 endpoint files still absent from any test, 90-125h to ~80% lines. Next worst by CRAP: functions/api/billing/_webhook-subscription.js and functions/api/create-checkout.js',
+    'PRODUCT-CODE functions/api (survey path + Stripe webhook cluster + identity path + training analytics + FABM quiz API DONE)': 'survey/ is at 100%; the billing webhook cluster is executed rather than grepped (test/_json-module-hook.mjs made the module graph importable); tranche 2 put the identity path (auth login/signup, community membership gate + roster, admin membership-report, donor rollups, webhook dedup) on a real SQLite engine loaded with the committed schema (test/_d1-sqlite.mjs); and tranche 3 did the same for the five PRODUCT surfaces that were sitting under a green repo-wide floor -- training analytics (courses/progress.js 100%, admin/enrollments.js 96.7%), the FABM quiz API (quiz/request.js, quiz/event.js, courses/quiz.js, courses/_quiz-content.js all 100%, on a SURVEY_DB harness built from the committed rrm-survey migrations), and library/deploy-record.js 100%. Remaining: ~120 endpoint files still absent from any test, 85-115h to ~80% lines. Next worst by CRAP: functions/api/billing/_webhook-subscription.js and functions/api/create-checkout.js',
+    'PRODUCT-CODE known gap: scripts/build-library-feed.mjs (0%, 75 lines)': 'The last zero in the library render surface. Its input and output paths are derived from import.meta.url (PROJECT_ROOT = the repo), not from cwd or argv, so it cannot be pointed at a fixture: running it under test either reads the real 32MB gitignored src/data/articles.json and rewrites public/library-feed.jsonl, or -- on a clean CI checkout where that file does not exist -- takes the existsSync early-exit and covers nothing. Covering it needs a production change (inject the two paths), which was judged out of scope for a test-only tranche. Sibling scripts/gates/verify-library-curation.mjs reads CWD-relative and is at 100% without any production change.',
     'PRODUCT-CODE scripts (gates, guards, fact pipeline, build chain)': '35-50h; start with guard.mjs + verify-citations.mjs + the fact-pipeline promote/extract pair (top CRAP offenders), pure-logic extraction first',
     'PRODUCT-CODE src/lib + src/scripts + src/integrations': '18-25h; fetchers have a dry-run mode that makes them testable without live endpoints',
     'CONTENT-TEMPLATE / E2E-DRIVER / ONE-OFF / GENERATED': '0h by design — wrong instrument; correctness held by builds, deploy-guard floors, and live runs',
