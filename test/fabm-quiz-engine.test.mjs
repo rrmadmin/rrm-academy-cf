@@ -268,20 +268,39 @@ describe('fabm-quiz-engine -- answer encoding', () => {
   });
 
   it('rejects malformed codes instead of producing a partial answer map', () => {
+    // Every case here must be rejected by the property in its own label and by
+    // nothing else, so each one is built from a code that is otherwise VALID.
+    // A hand-typed literal like '1234567890' is rejected by the option-index
+    // check long before the length check, which would let a length guard
+    // loosened to `<` pass this test with an over-long code accepted.
+    const valid = encodeAnswers(COMBOS[0]);
+    assert.equal(valid.length, QUESTIONS.length);
+    assert.ok(decodeAnswers(valid), 'the base code must decode, or the negatives below prove nothing');
+
     assert.equal(decodeAnswers(null), null);
     assert.equal(decodeAnswers(12345), null);
     assert.equal(decodeAnswers(''), null);
-    assert.equal(decodeAnswers('12345678'), null, 'too short');
-    assert.equal(decodeAnswers('1234567890'), null, 'too long');
-    assert.equal(decodeAnswers('12345678a'), null, 'non-digit');
-    assert.equal(decodeAnswers('1234-6789'.slice(0, 9)), null, 'punctuation');
+    assert.equal(decodeAnswers(valid.slice(0, -1)), null, 'one digit too short');
+    assert.equal(decodeAnswers(valid + '0'), null, 'one digit too long');
+    assert.equal(decodeAnswers(valid.slice(0, -1) + 'a'), null, 'non-digit');
+    assert.equal(decodeAnswers(valid.slice(0, -1) + '-'), null, 'punctuation');
   });
 
-  it('rejects an out-of-range option index for a question', () => {
-    // Question 3 (postpartum) has 2 options, so index 2 is out of range.
+  it('rejects the first out-of-range option index for every question', () => {
+    // The boundary is idx === options.length. Tampering with a far-out digit
+    // like '9' never tries it, so a check loosened from `>=` to `>` survives.
     const valid = encodeAnswers(COMBOS[0]);
-    const tampered = valid.slice(0, 2) + '9' + valid.slice(3);
-    assert.equal(decodeAnswers(tampered), null);
+    for (let i = 0; i < QUESTIONS.length; i++) {
+      const boundary = QUESTIONS[i].options.length;
+      assert.ok(boundary <= 9, `question ${i} has too many options to express as one digit`);
+      const tampered = valid.slice(0, i) + String(boundary) + valid.slice(i + 1);
+      let decoded;
+      assert.doesNotThrow(
+        () => { decoded = decodeAnswers(tampered); },
+        `question ${i}: index ${boundary} must be refused, not dereferenced off the end of options`
+      );
+      assert.equal(decoded, null, `question ${i}: index ${boundary} is one past the last option and must not decode`);
+    }
   });
 
   it('accepts every in-range index for every question position', () => {

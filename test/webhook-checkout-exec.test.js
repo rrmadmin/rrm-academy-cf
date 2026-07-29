@@ -304,10 +304,30 @@ describe('_webhook-checkout -- course purchase', () => {
 
   it('resolves an anonymous course buyer by address', async () => {
     const ctx = ctxFor(session({ metadata: { type: 'course', courseId: 'test-course-basic' } }), {
-      dbMap: { 'SELECT id FROM user WHERE email': { first: { id: 'usr_99' } }, ...enrollOk },
+      dbMap: { 'SELECT id FROM user WHERE email': { stored: 'buyer@example.com', first: { id: 'usr_99' } }, ...enrollOk },
     });
     assert.equal(await run(ctx), null);
     const enroll = ctx.db._calls.find(c => c.sql.includes('INSERT INTO enrollment'));
+    assert.equal(enroll.bound[1], 'usr_99');
+  });
+
+  it('enrolls an anonymous buyer whose stored address differs only in case', async () => {
+    // The account was created with the address as the person typed it; Stripe
+    // sends whatever they typed at checkout, and the handler lowercases before
+    // binding. Only COLLATE NOCASE bridges the two. Drop it from the lookup and
+    // a paying student silently gets no enrollment and a 500.
+    const ctx = ctxFor(
+      session({
+        customer_details: { email: 'Buyer@Example.COM', name: 'Ada Lovelace' },
+        metadata: { type: 'course', courseId: 'test-course-basic' },
+      }),
+      { dbMap: { 'SELECT id FROM user WHERE email': { stored: 'Buyer@Example.COM', first: { id: 'usr_99' } }, ...enrollOk } }
+    );
+    assert.equal(await run(ctx), null, 'a case-mismatched stored address must still resolve to the account');
+    const lookup = ctx.db._calls.find(c => c.sql.includes('SELECT id FROM user WHERE email'));
+    assert.deepEqual(lookup.bound, ['buyer@example.com'], 'the handler binds the lowercased address');
+    const enroll = ctx.db._calls.find(c => c.sql.includes('INSERT INTO enrollment'));
+    assert.ok(enroll, 'the buyer must be enrolled, not answered 500');
     assert.equal(enroll.bound[1], 'usr_99');
   });
 

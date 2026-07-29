@@ -67,16 +67,14 @@ describe('billing invariants -- endpoints outside the executed surface', () => {
     assert.ok(source.includes('pending membership checkout'), 'the incomplete message must be user-readable');
   });
 
-  it('billing/status never presents a terminal subscription as current', () => {
-    // REASON EXECUTION CANNOT PIN THIS HERE: same as above -- status.js reads
-    // subscription state straight from the Stripe API on every request.
-    const source = read('../functions/api/billing/status.js');
-    assert.ok(source.includes('displayable'), 'a displayable status set must exist');
-    assert.ok(!source.includes('|| subscriptions.data[0]'), 'must not fall back to data[0] (shows canceled as current)');
-    for (const status of ['active', 'trialing', 'past_due', 'incomplete']) {
-      assert.ok(source.includes(`'${status}'`), `displayable set should include '${status}'`);
-    }
-  });
+  // MOVED 2026-07-28: 'billing/status never presents a terminal subscription as
+  // current' lived here and asserted that the strings 'displayable', 'active',
+  // 'trialing', 'past_due' and 'incomplete' appeared in status.js. All five
+  // survive a rewrite that hands a canceled subscription to the account page,
+  // so the test could not fail for the reason its name gave. The stated reason
+  // -- "status.js reads subscription state straight from the Stripe API" -- was
+  // wrong: stubExternalFetch already answers the Stripe API. The invariant is
+  // now asserted on the response in test/billing-status.test.js.
 
   it('create-checkout refuses a live deploy whose tier price IDs are unconfigured', () => {
     // REASON EXECUTION CANNOT PIN THIS HERE: create-checkout's body is Stripe
