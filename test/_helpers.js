@@ -39,12 +39,73 @@ export function mockRequest(method, { body, headers = {}, url = 'https://rrmacad
 }
 
 /**
+ * Reads the collating sequence SQLite would use for each bound parameter.
+ *
+ * SQLite applies a `COLLATE NOCASE` suffix to the ONE comparison it trails, so
+ * this scopes it the same way: a placeholder is case-insensitive only when
+ * `COLLATE NOCASE` immediately follows it (an intervening `ESCAPE '<literal>'`
+ * from a LIKE comparison is skipped). Everything else is BINARY, i.e. SQLite's
+ * default, i.e. case-SENSITIVE.
+ *
+ * Numbered placeholders (`?2`) bind by their number; bare `?` bind by order of
+ * appearance, exactly as D1 does.
+ *
+ * @param {string} sql
+ * @returns {Array<'nocase'|'binary'>} collation per zero-based binding index
+ */
+export function bindingCollations(sql) {
+  const collations = [];
+  let ordinal = 0;
+  for (const match of sql.matchAll(/\?(\d*)/g)) {
+    const index = match[1] ? Number(match[1]) - 1 : ordinal;
+    ordinal += 1;
+    const trailing = sql.slice(match.index + match[0].length).replace(/^\s*ESCAPE\s+'(?:[^']|'')*'/i, '');
+    collations[index] = /^\s*COLLATE\s+NOCASE\b/i.test(trailing) ? 'nocase' : 'binary';
+  }
+  return collations;
+}
+
+/**
+ * Decides whether a canned row is visible to this statement.
+ *
+ * With no `stored` in the spec the row is unconditionally visible (the original
+ * behaviour). With `stored` present, each stored value is compared against the
+ * bound value using the collation the STATEMENT ITSELF declares -- so dropping
+ * `COLLATE NOCASE` from a query turns a case-mismatched lookup into a miss,
+ * which is what makes a case-sensitivity assertion able to fail.
+ */
+function rowVisible(sql, bindings, spec) {
+  if (!spec || spec.stored === undefined) return true;
+  const stored = Array.isArray(spec.stored) ? spec.stored : [spec.stored];
+  const collations = bindingCollations(sql);
+  return stored.every((value, i) => {
+    if (value === undefined || value === null) return true; // wildcard slot
+    const bound = bindings[i];
+    if (bound === undefined || bound === null) return false;
+    return collations[i] === 'nocase'
+      ? String(bound).toLowerCase() === String(value).toLowerCase()
+      : String(bound) === String(value);
+  });
+}
+
+/**
  * Creates a D1-like mock database.
  * @param {object} queryMap - Keys are SQL substrings, values are { first, all, run } return data.
  *   - first: value returned by .first() — use null to simulate no row found
  *   - all: value returned by .all() — defaults to { results: [] }
  *   - run: value returned by .run() — defaults to { success: true }
  *   - throws: if truthy, .first()/.all()/.run() will throw with this message
+ *   - stored: the value(s) the mocked row actually HOLDS, positionally against
+ *     the statement's bindings (null/undefined = wildcard, single value = one
+ *     binding). The canned first/all/run is returned only when every bound
+ *     value matches its stored counterpart under the collation the statement
+ *     declares -- case-insensitively only where the query says COLLATE NOCASE,
+ *     case-sensitively otherwise. On a miss the mock answers the way D1 does:
+ *     first -> null, all -> no results, run -> 0 changes.
+ *
+ *     Without `stored` the mock hands back the canned row whatever was bound,
+ *     which silently makes every "this lookup is case-insensitive" assertion
+ *     vacuous. Use `stored` on any lookup whose collation matters.
  *
  * The mock tracks every prepare() call in _calls for assertion inspection.
  * Each _calls entry: { sql, bound, method }
@@ -71,18 +132,21 @@ export function mockDB(queryMap = {}) {
         _calls.push({ sql: this._sql, bound: this._bindings, method: 'first' });
         const spec = findMatch(this._sql);
         if (spec?.throws) throw new Error(spec.throws);
+        if (!rowVisible(this._sql, this._bindings, spec)) return null;
         return spec?.first !== undefined ? spec.first : null;
       },
       async all() {
         _calls.push({ sql: this._sql, bound: this._bindings, method: 'all' });
         const spec = findMatch(this._sql);
         if (spec?.throws) throw new Error(spec.throws);
+        if (!rowVisible(this._sql, this._bindings, spec)) return { results: [] };
         return spec?.all !== undefined ? spec.all : { results: [] };
       },
       async run() {
         _calls.push({ sql: this._sql, bound: this._bindings, method: 'run' });
         const spec = findMatch(this._sql);
         if (spec?.throws) throw new Error(spec.throws);
+        if (!rowVisible(this._sql, this._bindings, spec)) return { success: true, meta: { changes: 0 } };
         return spec?.run !== undefined ? spec.run : { success: true, meta: { changes: 1 } };
       },
     };
@@ -100,6 +164,10 @@ export function mockDB(queryMap = {}) {
         _calls.push({ sql: stmt._sql, bound: stmt._bindings, method: 'run(batch)' });
         const spec = findMatch(stmt._sql);
         if (spec?.throws) throw new Error(spec.throws);
+        if (!rowVisible(stmt._sql, stmt._bindings, spec)) {
+          results.push({ success: true, meta: { changes: 0 } });
+          continue;
+        }
         results.push(spec?.run !== undefined ? spec.run : { success: true });
       }
       return results;

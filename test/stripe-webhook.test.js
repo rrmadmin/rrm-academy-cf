@@ -144,6 +144,32 @@ function makeCtx({ db = webhookDb(), env: envOverrides = {}, request } = {}) {
 const sqlOf = (db) => db._calls.map(c => c.sql);
 const ran = (db, needle) => db._calls.filter(c => c.sql.includes(needle));
 
+/**
+ * The in-flight TTL in functions/api/billing/_shared.js. Not exported (it is an
+ * internal tuning constant), so the boundary test restates it here; if the two
+ * ever diverge the boundary assertions below fail loudly rather than silently
+ * testing the wrong second.
+ */
+const INFLIGHT_TTL_SECONDS = 60;
+
+/**
+ * Runs `fn` with Date.now() pinned, so `nowSec() - processed_at` is EXACTLY the
+ * age the fixture asks for. Without this a boundary test is a race: the real
+ * clock can tick between building the row and the handler reading it, turning an
+ * age of 60 into 61 and letting an off-by-one in the reclaim comparison survive
+ * whenever the run straddles a second.
+ */
+async function atFrozenClock(fn) {
+  const realNow = Date.now;
+  const frozen = realNow();
+  Date.now = () => frozen;
+  try {
+    return await fn(Math.floor(frozen / 1000));
+  } finally {
+    Date.now = realNow;
+  }
+}
+
 // ------------------------------------------------------------- config -----
 
 describe('stripe-webhook -- configuration', () => {
@@ -352,6 +378,29 @@ describe('stripe-webhook -- idempotent replay (two-phase dedup)', () => {
     assert.equal(ran(db, 'INSERT OR IGNORE INTO webhook_event').length, 2, 'the row is re-inserted before reprocessing');
     assert.equal(ran(db, 'UPDATE enrollment SET revoked_at').length, 1, 'the handler must actually re-run');
     assert.ok(db._rows.get(evt.id).completed_at);
+  });
+
+  it('reclaims at exactly the in-flight TTL and holds the second before it', async () => {
+    // 5s and 300s (the ages used above and below) sit far either side of the
+    // 60s boundary, so they pass whether the comparison is `>=` or `>`. Only
+    // the boundary second itself separates the two, and getting it wrong means
+    // a crashed attempt is answered `in-flight` forever: Stripe retries at the
+    // same age each time and the event is never re-driven.
+    await atFrozenClock(async (now) => {
+      const held = event('charge.refunded', { id: 'ch_ttl_a', refunded: false });
+      const heldDb = webhookDb({ rows: new Map([[held.id, { completed_at: null, processed_at: now - (INFLIGHT_TTL_SECONDS - 1) }]]) });
+      const heldRes = await parseResponse(await onRequestPost(makeCtx({ db: heldDb, request: signedRequest(held) })));
+      assert.equal(heldRes.status, 500, `age ${INFLIGHT_TTL_SECONDS - 1}s is still in flight`);
+      assert.deepEqual(heldRes.body, { ok: false, error: 'in-flight' });
+      assert.equal(ran(heldDb, 'processed_at <= ?').length, 0, 'one second early must not reclaim');
+
+      const due = event('charge.refunded', { id: 'ch_ttl_b', refunded: true, payment_intent: 'pi_ttl', amount_refunded: 4900 });
+      const dueDb = webhookDb({ rows: new Map([[due.id, { completed_at: null, processed_at: now - INFLIGHT_TTL_SECONDS }]]) });
+      const dueRes = await parseResponse(await onRequestPost(makeCtx({ db: dueDb, request: signedRequest(due) })));
+      assert.equal(dueRes.status, 200, `age ${INFLIGHT_TTL_SECONDS}s is exactly the TTL and must reclaim`);
+      assert.equal(ran(dueDb, 'processed_at <= ?').length, 1, 'the boundary row must be reclaimed with the guarded DELETE');
+      assert.equal(ran(dueDb, 'UPDATE enrollment SET revoked_at').length, 1, 'and the handler must actually re-run');
+    });
   });
 
   it('backs off with an in-flight 500 when it loses the reclaim race on the DELETE', async () => {
