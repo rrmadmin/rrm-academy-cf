@@ -29,10 +29,15 @@ export async function onRequestGet({ request, env, waitUntil }) {
     const url = new URL(request.url);
     const courseId = url.searchParams.get('courseId');
 
+    // `await` is load-bearing, not style: returning the promise un-awaited hands
+    // the rejection PAST this try/catch, so a D1 error became an unhandled
+    // rejection -- the Pages runtime's own 500 HTML page, no JSON error shape,
+    // and no progress_error event in Analytics Engine. onRequestPatch below
+    // already awaits its helper; this was the divergent one.
     if (courseId) {
-      return getDetailedProgress(db, session.userId, courseId);
+      return await getDetailedProgress(db, session.userId, courseId);
     }
-    return getProgressSummary(db, session.userId);
+    return await getProgressSummary(db, session.userId);
   } catch (err) {
     log(env, waitUntil, 'courses', 'progress_error', 'error', `GET: ${err.message}`, 0, 500);
     return json({ ok: false, error: 'Internal error' }, 500);
