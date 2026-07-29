@@ -286,6 +286,50 @@ describe('fabm-quiz-engine -- answer encoding', () => {
     assert.equal(decodeAnswers(valid.slice(0, -1) + '-'), null, 'punctuation');
   });
 
+  it('refuses each character immediately outside the digit range without throwing', () => {
+    // The two boundaries are `ch < 48` and `ch > 57`, and a code comes straight
+    // off a URL query string, so both are reachable by anyone. '/' is charCode
+    // 47 and ':' is 58 -- the exact characters a check loosened to `< 47` or
+    // `> 58` would wave through.
+    //
+    // They are NOT symmetric, and saying so is the point: '/' yields idx === -1
+    // and `opts[-1].v` throws a TypeError out of a pure decoder, so the low
+    // bound is the only thing standing between a tampered URL and an error page
+    // instead of a quiz. ':' yields idx === 10, which the downstream
+    // `idx >= opts.length` check already refuses (no question has more than 9
+    // options), so the upper bound is defence in depth and loosening it to
+    // `> 58` is behaviourally equivalent today. This test still pins ':' so the
+    // day someone adds a tenth option it fails here rather than in production.
+    const valid = encodeAnswers(COMBOS[0]);
+    for (const [ch, code] of [['/', 47], ['0', 48], ['9', 57], [':', 58]]) {
+      assert.equal(ch.charCodeAt(0), code, 'charCode assumption for this boundary is wrong');
+    }
+    for (const ch of ['/', ':']) {
+      for (let i = 0; i < QUESTIONS.length; i++) {
+        const tampered = valid.slice(0, i) + ch + valid.slice(i + 1);
+        let decoded;
+        assert.doesNotThrow(
+          () => { decoded = decodeAnswers(tampered); },
+          `'${ch}' at position ${i} must be refused, not dereferenced off the end of options`
+        );
+        assert.equal(decoded, null, `'${ch}' at position ${i} is not a digit and must not decode`);
+      }
+    }
+  });
+
+  it('accepts the digit characters on the inside of both boundaries', () => {
+    // The complement of the test above: '0' (48) and '9' (57) are legal
+    // characters, so a range tightened to `< 49` or `> 56` fails here rather
+    // than quietly rejecting valid codes.
+    assert.ok(decodeAnswers('0'.repeat(QUESTIONS.length)), "'0' must decode -- it is the first option of every question");
+    const nine = '9'.repeat(QUESTIONS.length);
+    assert.equal(
+      decodeAnswers(nine), null,
+      "'9' is a legal digit but out of option range, so it must be refused by the RANGE check"
+    );
+    assert.doesNotThrow(() => decodeAnswers(nine), "'9' must be refused, not dereferenced");
+  });
+
   it('rejects the first out-of-range option index for every question', () => {
     // The boundary is idx === options.length. Tampering with a far-out digit
     // like '9' never tries it, so a check loosened from `>=` to `>` survives.

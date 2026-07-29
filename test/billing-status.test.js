@@ -63,7 +63,7 @@ async function getStatus(subscriptions, { charges = [] } = {}) {
         url: 'https://rrmacademy.org/api/billing/status',
         headers: { Cookie: 'session=sess_plaintext', 'CF-Connecting-IP': randomIp() },
       }),
-      env: mockEnv({ DB: db, STRIPE_SECRET_KEY: 'sk_test_x', STRIPE_PRICE_MEMBER: 'price_member' }),
+      env: mockEnv({ DB: db, STRIPE_SECRET_KEY: 'sk_test_x', STRIPE_PRICE_MEMBER: 'price_member', STRIPE_PRICE_HERO: 'price_hero' }),
       waitUntil: mockWaitUntil(),
     });
     return await parseResponse(response);
@@ -99,6 +99,32 @@ describe('billing/status -- which subscription the account page is shown', () =>
       const parsed = await getStatus([sub(status)]);
       assert.equal(parsed.body.subscription?.status, status, `${status} must be displayed, not swallowed`);
     }
+  });
+
+  it('shows the NEWEST of two live subscriptions, not the oldest', async () => {
+    // Stripe lists newest-first. A member who upgraded mid-cycle can briefly
+    // hold two live subscriptions -- the new hero one and the old member one
+    // Stripe has not finished tearing down. Scanning for the FIRST displayable
+    // match shows the one they are actually paying; taking the LAST match shows
+    // the superseded tier and the wrong renewal date on the account page.
+    const parsed = await getStatus([
+      sub('active', {
+        id: 'sub_new', current_period_end: FAR_FUTURE,
+        items: { data: [{ price: { id: 'price_hero', nickname: 'hero' } }] },
+      }),
+      sub('past_due', {
+        id: 'sub_old', current_period_end: FAR_FUTURE - 20 * 24 * 3600,
+        items: { data: [{ price: { id: 'price_member', nickname: 'member' } }] },
+      }),
+    ]);
+
+    assert.equal(parsed.status, 200);
+    assert.equal(parsed.body.subscription?.status, 'active', 'the superseded subscription was shown as current');
+    assert.equal(parsed.body.subscription.tier, 'hero', 'the account page would show the old tier');
+    assert.equal(
+      parsed.body.subscription.currentPeriodEnd, FAR_FUTURE,
+      'the renewal date must come from the subscription actually renewing'
+    );
   });
 
   it('reports no subscription at all when Stripe returns an empty list', async () => {

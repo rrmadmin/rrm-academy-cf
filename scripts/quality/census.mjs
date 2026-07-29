@@ -43,8 +43,13 @@ const OUT = resolve(ROOT, 'scripts', 'quality', 'coverage-census.json');
  *   25  2026-07-28  raised after the tranche-1 coverage drive (survey path,
  *                   Stripe checkout webhook executed instead of grepped, four
  *                   dead gate tests wired, FABM quiz engine). Measured 25.30%.
+ *   26  2026-07-29  raised after the tranche-2 drive (auth login/signup,
+ *                   community membership gate + roster, admin membership
+ *                   report, donor rollups and the webhook dedup envelope, all
+ *                   executed against a real SQLite engine loaded with the
+ *                   committed schema -- test/_d1-sqlite.mjs). Measured 26.28%.
  */
-const ARMED_FLOOR_PCT = 25;
+const ARMED_FLOOR_PCT = 26;
 
 const argv = process.argv.slice(2);
 const covDirIdx = argv.indexOf('--coverage-dir');
@@ -186,7 +191,7 @@ const census = {
     },
   },
   _followup_estimate_hours: {
-    'PRODUCT-CODE functions/api (survey path + Stripe webhook cluster DONE)': 'survey/ is at 100% and the billing webhook cluster is executed rather than grepped (test/_json-module-hook.mjs made the module graph importable). Remaining: ~135 endpoint files still absent from any test, 95-130h to ~80% lines. Next worst by CRAP: functions/api/billing/_webhook-subscription.js and functions/api/create-checkout.js',
+    'PRODUCT-CODE functions/api (survey path + Stripe webhook cluster + identity path DONE)': 'survey/ is at 100%; the billing webhook cluster is executed rather than grepped (test/_json-module-hook.mjs made the module graph importable); and as of tranche 2 the identity path (auth login/signup, community membership gate + roster, admin membership-report, donor rollups, webhook dedup) runs against a real SQLite engine loaded with the committed schema (test/_d1-sqlite.mjs) instead of a substring-matching mock. Remaining: ~130 endpoint files still absent from any test, 90-125h to ~80% lines. Next worst by CRAP: functions/api/billing/_webhook-subscription.js and functions/api/create-checkout.js',
     'PRODUCT-CODE scripts (gates, guards, fact pipeline, build chain)': '35-50h; start with guard.mjs + verify-citations.mjs + the fact-pipeline promote/extract pair (top CRAP offenders), pure-logic extraction first',
     'PRODUCT-CODE src/lib + src/scripts + src/integrations': '18-25h; fetchers have a dry-run mode that makes them testable without live endpoints',
     'CONTENT-TEMPLATE / E2E-DRIVER / ONE-OFF / GENERATED': '0h by design — wrong instrument; correctness held by builds, deploy-guard floors, and live runs',
