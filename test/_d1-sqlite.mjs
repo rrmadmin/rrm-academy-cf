@@ -39,6 +39,10 @@
  *     that the real race window is what the test says it is.
  *  4. Anything outside the database: Stripe, SES, KV, Turnstile. Those still
  *     come from _helpers.js.
+ *  5. Foreign keys are deliberately DISABLED to match D1 (see newDb() below), so
+ *     nothing here proves a referential-integrity guarantee. Orphan rows are
+ *     writable, exactly as they are in production; the explicit child-cleanup
+ *     discipline the endpoints follow is what actually holds that line.
  */
 import { DatabaseSync } from 'node:sqlite';
 import { readFileSync } from 'node:fs';
@@ -64,10 +68,47 @@ const SCHEMA_PATH = new URL('../schema.sql', import.meta.url);
  * "duplicate column name", which the loader swallows for ALTER ... ADD COLUMN
  * only). Prune them then.
  */
-const POST_SNAPSHOT_MIGRATIONS = [
+export const POST_SNAPSHOT_MIGRATIONS = [
   '2026-05-27-community-post-speaker.sql',
   '2026-06-20-email-verification-token.sql',
 ];
+
+/**
+ * The other half of the same decision: every migration file that is NOT
+ * replayed, with the written reason it is not.
+ *
+ * Why both halves are declared instead of just the replay list: a replay list
+ * on its own is silent about a migration nobody has looked at. A NEW rrm-auth
+ * migration would land, no entry anywhere, and the harness would keep building
+ * a schema that is missing the column the deployed code writes to -- the exact
+ * shape of the signup 500 above, rediscovered by whoever happens to touch that
+ * endpoint next.
+ *
+ * test/schema-migration-replay.test.mjs holds the invariant: every `.sql` file
+ * under scripts/migrations/ appears in EXACTLY ONE of these two structures. Add
+ * a migration and the suite fails by name until you decide which it is, so the
+ * next person is told rather than surprised.
+ *
+ * @type {Record<string, string>} filename -> reason it is not replayed
+ */
+export const MIGRATIONS_NOT_REPLAYED = {
+  '2026-05-19-word-count-rrm-auth.sql':
+    'Targets rrm-auth but predates the 2026-05-27 snapshot, so glossary_term.word_count and its index are already inside schema.sql. Replaying would be a duplicate-column no-op.',
+  '2026-05-19-word-count-rrm-library.sql':
+    'Targets the rrm-library database, not rrm-auth. schema.sql mirrors rrm-auth only; the library schema lives in projects/rrm-cli/schema/d1-library.sql.',
+  '2026-06-01-google-id-unique.sql':
+    'Targets rrm-auth. Applied to production, but its UNIQUE index on user(google_id) is already present in schema.sql (see idx_user_google_id_unique). Replaying is a no-op guarded by IF NOT EXISTS.',
+  '2026-06-13-quiz-result.sql':
+    'Targets the rrm-survey database (binding SURVEY_DB), not rrm-auth. Loaded separately by test/_survey-sqlite.mjs, which builds the SURVEY_DB harness from these files.',
+  '2026-06-26-survey-symptoms.sql':
+    'Targets the rrm-survey-symptoms database (binding SURVEY_SYMPTOMS_DB), not rrm-auth.',
+  '2026-06-28-email-event.sql':
+    'Targets rrm-auth but its own header reads "STATUS: DRAFT / HELD. Do NOT apply." Never applied to production, so replaying it would make the harness schema AHEAD of live and hide a missing-column failure instead of reproducing it.',
+  '2026-07-02-quiz-events-and-rules-version.sql':
+    'Targets the rrm-survey database (binding SURVEY_DB), not rrm-auth. Loaded by test/_survey-sqlite.mjs alongside the quiz_result migration.',
+  'ai-search-docs.sql':
+    'Targets rrm-auth, applied 2026-04-28, well before the snapshot. The ai_search_docs table was subsequently DROPPED (see the schema.sql comment block); replaying it would resurrect a retired table.',
+};
 
 function buildSchemaSql() {
   let sql = readFileSync(SCHEMA_PATH, 'utf8');
@@ -84,15 +125,15 @@ const SCHEMA_SQL = buildSchemaSql();
  * ALTER TABLE ADD COLUMN raises once schema.sql catches up with a replayed
  * migration. Every other DDL error is a real problem and is rethrown.
  */
-function applySchema(db) {
+function applySchema(db, schemaSql = SCHEMA_SQL) {
   try {
-    db.exec(SCHEMA_SQL);
+    db.exec(schemaSql);
     return;
   } catch {
     // Fall through to statement-at-a-time so the duplicate-column case can be
     // isolated instead of aborting the whole file.
   }
-  for (const raw of SCHEMA_SQL.split(/;\s*(?:\r?\n|$)/)) {
+  for (const raw of schemaSql.split(/;\s*(?:\r?\n|$)/)) {
     const stmt = raw.trim();
     if (!stmt || /^--/.test(stmt) && !/\n/.test(stmt)) continue;
     try {
@@ -102,6 +143,22 @@ function applySchema(db) {
       throw new Error(`schema load failed on:\n${stmt.slice(0, 200)}\n${err.message}`);
     }
   }
+}
+
+/**
+ * A database configured the way D1 configures one.
+ *
+ * node:sqlite turns foreign-key enforcement ON by default; D1 does NOT run
+ * `PRAGMA foreign_keys = ON` per connection, which is why every ON DELETE
+ * CASCADE in schema.sql is decorative and why the endpoints do explicit child
+ * cleanup in db.batch() (CLAUDE.md, SQL discipline). Leaving enforcement on
+ * would make this harness STRICTER than production: an orphan row that D1
+ * accepts every day would be un-writable here, so a handler's behaviour on
+ * orphan data could not be tested at all, and a missing explicit-cleanup bug
+ * would be masked by an engine constraint production does not have.
+ */
+function newDb() {
+  return new DatabaseSync(':memory:', { enableForeignKeyConstraints: false });
 }
 
 /** D1 accepts booleans and rejects undefined; node:sqlite rejects both. */
@@ -128,7 +185,7 @@ function plain(row) {
  * @returns {'BINARY'|'NOCASE'|'RTRIM'}
  */
 export function schemaCollation(table, column) {
-  const db = new DatabaseSync(':memory:');
+  const db = newDb();
   applySchema(db);
   const rows = db.prepare(`SELECT name, "notnull" FROM pragma_table_info(?)`).all(table);
   if (!rows.some((r) => r.name === column)) {
@@ -155,11 +212,16 @@ export function schemaCollation(table, column) {
  * @param {(call: {sql: string, bindings: any[], db: DatabaseSync}) => void} [opts.interleave]
  *   - called immediately BEFORE each statement executes. Use it to simulate a
  *   concurrent writer landing between two statements of the handler under test.
+ * @param {string} [opts.schemaSql] - DDL to load INSTEAD of the rrm-auth
+ *   snapshot. Only for a binding that is not rrm-auth: SURVEY_DB (rrm-survey)
+ *   has no committed snapshot at all, so test/_survey-sqlite.mjs composes its
+ *   DDL from the committed migration files and passes it here. Defaults to the
+ *   rrm-auth snapshot plus POST_SNAPSHOT_MIGRATIONS.
  * @returns D1-like { prepare, batch, _calls, _sqlite, close }
  */
-export function sqliteD1({ seed, interleave } = {}) {
-  const sqlite = new DatabaseSync(':memory:');
-  applySchema(sqlite);
+export function sqliteD1({ seed, interleave, schemaSql } = {}) {
+  const sqlite = newDb();
+  applySchema(sqlite, schemaSql);
   if (seed) seed(sqlite);
 
   const _calls = [];
