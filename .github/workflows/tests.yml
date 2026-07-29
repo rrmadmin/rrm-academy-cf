@@ -41,3 +41,14 @@ jobs:
 
       - name: Unit tests
         run: npm test
+
+      # The coverage floor was enforced by hand until 2026-07-29, which meant raising it did not
+      # actually block anything: a deploy that regressed coverage sailed through. The floor only
+      # ratchets up (scripts/quality/census.mjs ARMED_FLOOR_PCT carries its history), so this step
+      # is green on arrival by construction and fails only on a real regression.
+      #
+      # It also fails when the census drifts from the file tree in either direction, which is the
+      # check that stops a new file being silently absent from the denominator. An absent file
+      # reads as "not a gap" and is how whole surfaces stayed invisible here for months.
+      - name: Coverage floor + census
+        run: npm run quality:coverage
