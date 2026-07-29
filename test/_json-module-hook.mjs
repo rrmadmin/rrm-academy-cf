@@ -60,11 +60,87 @@ export const COURSE_FIXTURE = [
       { id: 'sec-2', title: 'Section Two', steps: [{ id: 'step-2', title: 'Step Two', type: 'video' }] },
     ],
   },
+  // ---------------------------------------------------------------------------
+  // Added for the courses/progress + courses/quiz suites. Field NAMES here are
+  // the ones the live build artifact actually uses (`accessType`,
+  // `settings.stepOrder`, `hasCertificate`, `certificateQuizId`, `isAffiliate`,
+  // `waitlistUrl`) -- verified against src/data/courses.json, where
+  // neofertility-med-training carries settings.stepOrder='fixed' and
+  // masterclass-endo-surgery carries hasCertificate + certificateQuizId.
+  //
+  // NOTE the two entries above use `access_type` (snake), which no consumer in
+  // functions/ reads. Left as-is so this change stays additive; the two courses
+  // below are the ones whose field names are load-bearing.
+  {
+    id: 'test-course-fixed',
+    slug: 'test-course-fixed',
+    title: 'Test Course: Fixed Order',
+    status: 'published',
+    accessType: 'members',
+    hasCertificate: true,
+    certificateQuizId: 'fx-step-3',
+    settings: { stepOrder: 'fixed' },
+    sections: [
+      {
+        id: 'fx-sec-1',
+        title: 'Fixed Section',
+        steps: [
+          { id: 'fx-step-1', title: 'Lesson One', type: 'video' },
+          { id: 'fx-step-2', title: 'Feedback', type: 'quiz' },
+          { id: 'fx-step-3', title: 'Certificate Quiz', type: 'quiz' },
+        ],
+      },
+    ],
+  },
+  {
+    id: 'test-course-affiliate',
+    slug: 'test-course-affiliate',
+    title: 'Test Course: Affiliate',
+    status: 'published',
+    accessType: 'public',
+    isAffiliate: true,
+    waitlistUrl: 'https://example.invalid/waitlist',
+    sections: [
+      { id: 'af-sec-1', title: 'Affiliate Section', steps: [{ id: 'af-step-1', title: 'Intro', type: 'video' }] },
+    ],
+  },
 ];
+
+/**
+ * Static quiz content, the FALLBACK arm of getQuizContent() (D1 step_rendition
+ * is read first). Shapes mirror the real src/data/quizzes.json: a scored `quiz`
+ * with correctIndex per question, and a `questionnaire` carrying one of each
+ * declared question type so every validation branch in courses/quiz.js has
+ * something to run against.
+ */
+export const QUIZ_FIXTURE = {
+  'fx-step-3': {
+    type: 'quiz',
+    title: 'Certificate Quiz',
+    description: 'Scored, 80 to pass.',
+    passingScore: 80,
+    questions: [
+      { id: 'q1', text: 'First?', options: ['a', 'b', 'c'], correctIndex: 1 },
+      { id: 'q2', text: 'Second?', options: ['a', 'b'], correctIndex: 0 },
+    ],
+  },
+  'fx-step-2': {
+    type: 'questionnaire',
+    title: 'Feedback',
+    description: 'Not scored.',
+    questions: [
+      { id: 'fq1', text: 'How useful?', type: 'likert', scale: { min: 1, max: 5, labels: ['low', 'high'] } },
+      { id: 'fq2', text: 'Which topics?', type: 'multiselect', options: ['endo', 'pcos', 'charting'] },
+      { id: 'fq3', text: 'Anything else?', type: 'freetext' },
+      { id: 'fq4', text: 'Untyped legacy question' },
+    ],
+  },
+  'fx-step-empty': { type: 'quiz', title: 'Not written yet', questions: [] },
+};
 
 const FIXTURES = new Map([
   ['src/data/courses.json', COURSE_FIXTURE],
-  ['src/data/quizzes.json', {}],
+  ['src/data/quizzes.json', QUIZ_FIXTURE],
   ['src/data/og-index.json', {}],
 ]);
 
