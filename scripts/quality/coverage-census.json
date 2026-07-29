@@ -11,7 +11,7 @@
  "_gate": {
   "scope": "PRODUCT-CODE",
   "metric": "c8 line coverage with --all (every surface file in the denominator)",
-  "floor_lines_pct": 25,
+  "floor_lines_pct": 26,
   "ratchet_rule": "The floor may only move UP. Arm at the measured floor rounded down; never arm a number that is red on arrival. Raise it after a coverage drive lands, by editing this value to the new measured floor rounded down."
  },
  "_measured": {
@@ -19,16 +19,16 @@
   "instrument": "node scripts/quality/coverage.mjs (c8 --all over the full surface; full npm-test suite)",
   "full_surface": {
    "files": 420,
-   "lines": 80689,
-   "covered": 16573,
-   "pct": 20.54
+   "lines": 80694,
+   "covered": 16978,
+   "pct": 21.04
   },
   "by_category": {
    "PRODUCT-CODE": {
     "files": 333,
-    "lines": 64606,
-    "covered": 16573,
-    "pct": 25.65
+    "lines": 64611,
+    "covered": 16978,
+    "pct": 26.28
    },
    "CONTENT-TEMPLATE": {
     "files": 8,
@@ -57,12 +57,12 @@
   },
   "product_code": {
    "files": 333,
-   "lines": 64606,
-   "covered": 16573,
-   "pct": 25.65
+   "lines": 64611,
+   "covered": 16978,
+   "pct": 26.28
   },
-  "files_absent_from_default_report": 327,
-  "files_present_in_default_report": 93,
+  "files_absent_from_default_report": 325,
+  "files_present_in_default_report": 95,
   "highest_stakes_slice": {
    "slice": "national survey intake/submit path (functions/api/survey/)",
    "files": [
@@ -76,7 +76,7 @@
   }
  },
  "_followup_estimate_hours": {
-  "PRODUCT-CODE functions/api (survey path + Stripe webhook cluster DONE)": "survey/ is at 100% and the billing webhook cluster is executed rather than grepped (test/_json-module-hook.mjs made the module graph importable). Remaining: ~135 endpoint files still absent from any test, 95-130h to ~80% lines. Next worst by CRAP: functions/api/billing/_webhook-subscription.js and functions/api/create-checkout.js",
+  "PRODUCT-CODE functions/api (survey path + Stripe webhook cluster + identity path DONE)": "survey/ is at 100%; the billing webhook cluster is executed rather than grepped (test/_json-module-hook.mjs made the module graph importable); and as of tranche 2 the identity path (auth login/signup, community membership gate + roster, admin membership-report, donor rollups, webhook dedup) runs against a real SQLite engine loaded with the committed schema (test/_d1-sqlite.mjs) instead of a substring-matching mock. Remaining: ~130 endpoint files still absent from any test, 90-125h to ~80% lines. Next worst by CRAP: functions/api/billing/_webhook-subscription.js and functions/api/create-checkout.js",
   "PRODUCT-CODE scripts (gates, guards, fact pipeline, build chain)": "35-50h; start with guard.mjs + verify-citations.mjs + the fact-pipeline promote/extract pair (top CRAP offenders), pure-logic extraction first",
   "PRODUCT-CODE src/lib + src/scripts + src/integrations": "18-25h; fetchers have a dry-run mode that makes them testable without live endpoints",
   "CONTENT-TEMPLATE / E2E-DRIVER / ONE-OFF / GENERATED": "0h by design — wrong instrument; correctness held by builds, deploy-guard floors, and live runs"
@@ -488,8 +488,8 @@
    "reason": "CF Pages Function (routed endpoint, middleware, or _-prefixed shared helper). Deployed on every push; defects ship directly to users.",
    "present": true,
    "lines": 123,
-   "covered": 109,
-   "pct": 88.61
+   "covered": 115,
+   "pct": 93.49
   },
   {
    "file": "functions/api/_endpoint-template.js",
@@ -965,8 +965,8 @@
    "reason": "CF Pages Function (routed endpoint, middleware, or _-prefixed shared helper). Deployed on every push; defects ship directly to users.",
    "present": true,
    "lines": 580,
-   "covered": 500,
-   "pct": 86.2
+   "covered": 503,
+   "pct": 86.72
   },
   {
    "file": "functions/api/admin/partners/[id].js",
@@ -1127,8 +1127,8 @@
    "reason": "CF Pages Function (routed endpoint, middleware, or _-prefixed shared helper). Deployed on every push; defects ship directly to users.",
    "present": true,
    "lines": 585,
-   "covered": 436,
-   "pct": 74.52
+   "covered": 440,
+   "pct": 75.21
   },
   {
    "file": "functions/api/auth/change-password.js",
@@ -1172,8 +1172,8 @@
    "reason": "CF Pages Function (routed endpoint, middleware, or _-prefixed shared helper). Deployed on every push; defects ship directly to users.",
    "present": true,
    "lines": 177,
-   "covered": 81,
-   "pct": 45.76
+   "covered": 122,
+   "pct": 68.92
   },
   {
    "file": "functions/api/auth/logout.js",
@@ -1226,8 +1226,8 @@
    "reason": "CF Pages Function (routed endpoint, middleware, or _-prefixed shared helper). Deployed on every push; defects ship directly to users.",
    "present": true,
    "lines": 283,
-   "covered": 151,
-   "pct": 53.35
+   "covered": 193,
+   "pct": 68.19
   },
   {
    "file": "functions/api/auth/verify-email.js",
@@ -1359,10 +1359,10 @@
    "file": "functions/api/billing/status.js",
    "category": "PRODUCT-CODE",
    "reason": "CF Pages Function (routed endpoint, middleware, or _-prefixed shared helper). Deployed on every push; defects ship directly to users.",
-   "present": false,
+   "present": true,
    "lines": 240,
-   "covered": 0,
-   "pct": 0
+   "covered": 183,
+   "pct": 76.25
   },
   {
    "file": "functions/api/billing/supporter-badge.js",
@@ -1415,8 +1415,8 @@
    "reason": "CF Pages Function (routed endpoint, middleware, or _-prefixed shared helper). Deployed on every push; defects ship directly to users.",
    "present": true,
    "lines": 277,
-   "covered": 136,
-   "pct": 49.09
+   "covered": 193,
+   "pct": 69.67
   },
   {
    "file": "functions/api/community/areas.js",
@@ -1494,10 +1494,10 @@
    "file": "functions/api/community/members.js",
    "category": "PRODUCT-CODE",
    "reason": "CF Pages Function (routed endpoint, middleware, or _-prefixed shared helper). Deployed on every push; defects ship directly to users.",
-   "present": false,
+   "present": true,
    "lines": 85,
-   "covered": 0,
-   "pct": 0
+   "covered": 69,
+   "pct": 81.17
   },
   {
    "file": "functions/api/community/memberships.js",
@@ -3313,7 +3313,7 @@
    "category": "PRODUCT-CODE",
    "reason": "The quality instrument itself (coverage/CRAP/mutation/census). A measurement tool that is wrong is worse than no tool; its pure logic is unit-testable.",
    "present": false,
-   "lines": 227,
+   "lines": 232,
    "covered": 0,
    "pct": 0
   },
