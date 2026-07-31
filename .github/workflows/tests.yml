@@ -1,8 +1,16 @@
 name: Tests
 
 # Runs the unit suite and the PRODUCT-CODE coverage floor gate
-# (npm run quality:coverage). This is the ONLY workflow that runs that gate --
-# grep quality:coverage across .github/workflows if you doubt it.
+# (npm run quality:coverage). This workflow covers pushes to main and every PR.
+#
+# It is NO LONGER the only workflow running that gate. merge.yml runs it too, as
+# of 2026-07-31, because the claude/** auto-merge path opens no pull request and
+# so never triggered the pull_request job below -- the repo's one fully
+# autonomous route to production was the one route with no coverage floor.
+# merge.yml runs it twice: on the branch tip (fast-fail) and again on the merge
+# commit before the push to main. Between the two workflows the gate now covers
+# every path that can modify main. Still deliberately NOT in deploy.yml, for the
+# reasons given below.
 #
 # Origin (2026-07-05): closed a gap where deploy.yml's push trigger path-filters
 # to site-affecting files, so a push to main touching ONLY test files or scripts
