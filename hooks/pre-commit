@@ -133,6 +133,23 @@ if echo "$STAGED" | grep -qE '^scripts/migrate-courses-to-d1\.sql$|^functions/ap
   fi
 fi
 
+# --- SQL column/table existence gate: any staged JS that can hold SQL ---
+#     Every static SQL string is PREPAREd against an in-memory SQLite built from
+#     schema.sql + the replayed migrations. SQLite resolves column names at
+#     prepare time, so a statement naming a column that does not exist is a hard
+#     throw on every call -- exactly the admin course DELETE 500 (step_progress
+#     has no `id`). Runs the FULL scan: it is in-memory and takes ~0.3s.
+if echo "$STAGED" | grep -qE '^(functions/.*\.(js|mjs)|scripts/.*\.(js|mjs)|src/lib/.*\.(js|mjs)|schema\.sql|scripts/migrations/.*\.sql|migrations/.*\.sql)$'; then
+  node scripts/gates/validate-sql-columns.mjs
+  if [ $? -ne 0 ]; then
+    echo ""
+    echo "Commit blocked by SQL column/table existence gate."
+    echo "A static SQL string names a column or table that does not exist -- it will throw at PREPARE on every call."
+    echo "Fix the identifier above, or bypass with --no-verify."
+    exit 1
+  fi
+fi
+
 # --- Share button gates: any staged change to ArticleHero or the slug page ---
 #     SB1: navigator.share is primary branch. SB2: .catch() on writeText.
 #     SB3: aria-label="Share". SB4: .action-label visible in .copied state.
