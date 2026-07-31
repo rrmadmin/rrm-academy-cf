@@ -19,15 +19,15 @@
   "instrument": "node scripts/quality/coverage.mjs (c8 --all over the full surface; full npm-test suite)",
   "full_surface": {
    "files": 421,
-   "lines": 80788,
-   "covered": 18826,
+   "lines": 80796,
+   "covered": 18827,
    "pct": 23.3
   },
   "by_category": {
    "PRODUCT-CODE": {
     "files": 334,
-    "lines": 64705,
-    "covered": 18745,
+    "lines": 64713,
+    "covered": 18746,
     "pct": 28.97
    },
    "CONTENT-TEMPLATE": {
@@ -57,8 +57,8 @@
   },
   "product_code": {
    "files": 334,
-   "lines": 64705,
-   "covered": 18745,
+   "lines": 64713,
+   "covered": 18746,
    "pct": 28.97
   },
   "files_at_zero_in_full_report": 313,
@@ -1046,8 +1046,8 @@
    "category": "PRODUCT-CODE",
    "reason": "CF Pages Function (routed endpoint, middleware, or _-prefixed shared helper). Deployed on every push; defects ship directly to users.",
    "present": true,
-   "lines": 175,
-   "covered": 175,
+   "lines": 176,
+   "covered": 176,
    "pct": 100
   },
   {
@@ -3323,7 +3323,7 @@
    "category": "PRODUCT-CODE",
    "reason": "The quality instrument itself (coverage/CRAP/mutation/census). A measurement tool that is wrong is worse than no tool; its pure logic is unit-testable.",
    "present": false,
-   "lines": 268,
+   "lines": 275,
    "covered": 0,
    "pct": 0
   },
