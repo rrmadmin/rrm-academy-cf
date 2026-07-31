@@ -18,17 +18,17 @@
   "date": "2026-07-31",
   "instrument": "node scripts/quality/coverage.mjs (c8 --all over the full surface; full npm-test suite)",
   "full_surface": {
-   "files": 420,
-   "lines": 80723,
-   "covered": 19425,
-   "pct": 24.06
+   "files": 421,
+   "lines": 80787,
+   "covered": 19349,
+   "pct": 23.95
   },
   "by_category": {
    "PRODUCT-CODE": {
-    "files": 333,
-    "lines": 64640,
-    "covered": 19344,
-    "pct": 29.93
+    "files": 334,
+    "lines": 64704,
+    "covered": 19268,
+    "pct": 29.78
    },
    "CONTENT-TEMPLATE": {
     "files": 8,
@@ -56,13 +56,13 @@
    }
   },
   "product_code": {
-   "files": 333,
-   "lines": 64640,
-   "covered": 19344,
-   "pct": 29.93
+   "files": 334,
+   "lines": 64704,
+   "covered": 19268,
+   "pct": 29.78
   },
-  "files_absent_from_default_report": 309,
-  "files_present_in_default_report": 111,
+  "files_absent_from_default_report": 311,
+  "files_present_in_default_report": 110,
   "highest_stakes_slice": {
    "slice": "national survey intake/submit path (functions/api/survey/)",
    "files": [
@@ -660,8 +660,8 @@
    "reason": "CF Pages Function (routed endpoint, middleware, or _-prefixed shared helper). Deployed on every push; defects ship directly to users.",
    "present": true,
    "lines": 43,
-   "covered": 41,
-   "pct": 95.34
+   "covered": 43,
+   "pct": 100
   },
   {
    "file": "functions/api/admin/backlinks.js",
@@ -1128,8 +1128,8 @@
    "reason": "CF Pages Function (routed endpoint, middleware, or _-prefixed shared helper). Deployed on every push; defects ship directly to users.",
    "present": true,
    "lines": 585,
-   "covered": 478,
-   "pct": 81.7
+   "covered": 481,
+   "pct": 82.22
   },
   {
    "file": "functions/api/auth/change-password.js",
@@ -1753,6 +1753,15 @@
    "pct": 0
   },
   {
+   "file": "functions/api/endo-quiz/download.js",
+   "category": "PRODUCT-CODE",
+   "reason": "CF Pages Function (routed endpoint, middleware, or _-prefixed shared helper). Deployed on every push; defects ship directly to users.",
+   "present": false,
+   "lines": 45,
+   "covered": 0,
+   "pct": 0
+  },
+  {
    "file": "functions/api/endo-quiz/request.js",
    "category": "PRODUCT-CODE",
    "reason": "CF Pages Function (routed endpoint, middleware, or _-prefixed shared helper). Deployed on every push; defects ship directly to users.",
@@ -2233,10 +2242,10 @@
    "file": "scripts/audit-glossary-links.mjs",
    "category": "PRODUCT-CODE",
    "reason": "Local deterministic analysis of glossary.json link classes; unit-tested (glossary-link-classifier.test.js), 80% covered today.",
-   "present": true,
+   "present": false,
    "lines": 101,
-   "covered": 81,
-   "pct": 80.19
+   "covered": 0,
+   "pct": 0
   },
   {
    "file": "scripts/audit-textbook-fact-coverage.mjs",
@@ -3314,7 +3323,7 @@
    "category": "PRODUCT-CODE",
    "reason": "The quality instrument itself (coverage/CRAP/mutation/census). A measurement tool that is wrong is worse than no tool; its pure logic is unit-testable.",
    "present": false,
-   "lines": 256,
+   "lines": 275,
    "covered": 0,
    "pct": 0
   },
