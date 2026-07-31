@@ -21,6 +21,20 @@
  * A redaction change that turns this file red is not a tuning problem. It is
  * the same defect that got the last attempt rejected.
  *
+ * IT HAPPENED AGAIN, ON A NARROWER SHAPE
+ * --------------------------------------
+ * The second attempt shipped a four-digit floor behind strong labels, and
+ * "Video Call 2026" -- a label followed by a bare year -- scrubbed to the empty
+ * string as a TITLE, exactly as "Teams-Based Care in RRM" had. A four-digit PIN
+ * and a four-digit year are the same shape, so the floor moved above both rather
+ * than a rule being invented to tell them apart; see MIN_DIGITS_STRONG_LABEL.
+ * Two blocks below hold the result, and both iterate the label vocabulary
+ * IMPORTED FROM THE MODULE rather than a copy of it, so a label added later is
+ * covered without a second edit:
+ *
+ *   "a four-digit year behind a label is a year, not a PIN"
+ *   "nothing required may be emptied: the direct attack on all three fields"
+ *
  * THE RULE THIS FILE PINS
  * -----------------------
  * A LABEL ALONE IS NOT A CREDENTIAL. The scrubber may only remove a label when
@@ -40,6 +54,9 @@
 import { describe, it } from 'node:test';
 import assert from 'node:assert/strict';
 import { renderEvent, eventDb, getEvent, sinks } from './_event-page-fixtures.mjs';
+import {
+  STRONG_LABEL_PHRASES, WEAK_LABEL_PHRASES, ROOM_CODE_LABEL_PHRASES,
+} from '../functions/events/[slug].js';
 
 /**
  * Sentences that contain a redaction LABEL but no credential value. Each one is
@@ -68,6 +85,22 @@ const MUST_NOT_REDACT = [
   { id: 'MN-16', text: 'Access code words like these are discussed, never printed.', keep: 'Access code words like these' },
   { id: 'MN-17', text: 'A video call is not a substitute for an exam.', keep: 'A video call is not a substitute' },
   { id: 'MN-18', text: 'Cycle day 3 labs, day 21 progesterone, 5 mg twice daily.', keep: 'day 21 progesterone, 5 mg twice daily' },
+
+  // --- the bare-year casualty, and the hyphenated-word casualty ------------
+  // MN-19 is the verified failure this round: a STRONG label followed by a bare
+  // four-digit year. It scrubbed to the empty string as a title, which then
+  // published a heading derived from a blank. It is asserted as the whole title
+  // deliberately, because that is the shape that broke.
+  { id: 'MN-19', text: 'Video Call 2026', keep: 'Video Call 2026' },
+  { id: 'MN-20', text: 'Video Call 2026-2027 spans two academic years.', keep: 'Video Call 2026-2027' },
+  { id: 'MN-21', text: 'Join Call 1999 was the first of the retrospective series.', keep: 'Join Call 1999' },
+  // The hyphenated-word casualty the bare-room-code rule could have caused.
+  // "follicle-stimulating hormone" is named in the brief; "two-week-old" is the
+  // harder case, because it IS the 3-4-3 room-code shape and must still survive
+  // when no conferencing label stands in front of it.
+  { id: 'MN-22', text: 'Serum follicle-stimulating hormone is drawn on cycle day 3.', keep: 'follicle-stimulating hormone' },
+  { id: 'MN-23', text: 'The two-week-old sample was re-run before the chart review.', keep: 'two-week-old' },
+  { id: 'MN-24', text: 'Add-back therapy with norethindrone acetate is discussed.', keep: 'Add-back therapy' },
 ];
 
 describe('the scrubber must not eat clinical prose (a label alone is not a credential)', () => {
@@ -86,6 +119,127 @@ describe('the scrubber must not eat clinical prose (a label alone is not a crede
         `${id} was over-redacted out of the JSON-LD description`);
     });
   }
+});
+
+/**
+ * A BARE YEAR AFTER EVERY LABEL IN THE VOCABULARY.
+ *
+ * The vocabularies are imported from the module rather than transcribed here, so
+ * a label added to STRONG_JOIN_LABELS tomorrow is covered by this fixture the
+ * moment it is added. Transcribing the list is how the file that is supposed to
+ * catch over-redaction stops covering the labels that cause it.
+ *
+ * Both the title sink and the body sink, because the title is the one that broke:
+ * an emptied body is visible, an emptied title publishes a wrong <h1> silently.
+ * Both the bare form ("Video Call 2026") and the colon form ("Video Call: 2026"),
+ * because a colon is how an author writes a subtitle and is NOT evidence of a
+ * credential.
+ */
+function yearFixtures(phrase) {
+  return [`${phrase} 2026`, `${phrase}: 2026`, `${phrase} 1999-2000`];
+}
+
+describe('a four-digit year behind a label is a year, not a PIN', () => {
+  for (const phrase of STRONG_LABEL_PHRASES) {
+    it(`STRONG label "${phrase}" does not claim the year behind it`, async () => {
+      for (const text of yearFixtures(phrase)) {
+        const asTitle = await renderEvent({ viewer: 'anonymous', post: { title: text, content: 'T.\n\nB.' } });
+        assert.equal(asTitle.h1, text, `"${text}" was rewritten in <h1>`);
+        assert.equal(asTitle.ogTitle, `${text} | Save the Uterus Club`, `"${text}" was rewritten in og:title`);
+        assert.equal(asTitle.jsonLd?.name, text, `"${text}" was rewritten in the JSON-LD name`);
+
+        const asBody = await renderEvent({ viewer: 'anonymous', post: { content: `Title chunk.\n\n${text}` } });
+        assert.ok((asBody.body ?? '').includes(text), `"${text}" was over-redacted out of the body`);
+        assert.ok((asBody.ogDescription ?? '').includes(text), `"${text}" was over-redacted out of og:description`);
+      }
+    });
+  }
+
+  for (const phrase of WEAK_LABEL_PHRASES) {
+    it(`WEAK label "${phrase}" does not claim the year behind it`, async () => {
+      for (const text of yearFixtures(phrase)) {
+        const r = await renderEvent({ viewer: 'anonymous', post: { title: text, content: `Title chunk.\n\n${text}` } });
+        assert.equal(r.h1, text, `"${text}" was rewritten in <h1>`);
+        assert.ok((r.body ?? '').includes(text), `"${text}" was over-redacted out of the body`);
+      }
+    });
+  }
+
+  it('a five-digit run behind a strong label IS still redacted, so the floor moved by one and not by three', async () => {
+    // The counterweight to the whole block above. Raising the strong floor to
+    // five is only defensible if five still redacts; a floor that quietly became
+    // "never redact a labelled number" would pass every assertion above.
+    const r = await renderEvent({
+      viewer: 'anonymous',
+      post: { content: 'Title chunk.\n\nPasscode: 44715\n\nClosing paragraph, kept.' },
+    });
+    assert.ok(!r.html.includes('44715'), 'a five-digit passcode leaked; the digit floor is not where it claims to be');
+    assert.ok((r.body ?? '').includes('Closing paragraph, kept.'));
+  });
+});
+
+/**
+ * A GOOGLE MEET ROOM CODE IS REDACTED ONLY BEHIND A CONFERENCING LABEL.
+ *
+ * The rule that closes "Google Meet: abc-defg-hij" is one hyphen-shape away from
+ * a rule that deletes hyphenated clinical vocabulary, so the shape is pinned in
+ * both directions: the code goes when a conferencing label names it, and an
+ * ordinary hyphenated term stays whether or not it happens to be 3-4-3.
+ */
+describe('the bare room-code rule must not become a rule about hyphenated words', () => {
+  const HYPHENATED_PROSE = [
+    'follicle-stimulating hormone',
+    'luteinizing-hormone surge',
+    'add-back therapy',
+    'two-week-old sample',
+    'first-line-of-care pathway',
+    'day-three-day protocols',
+  ];
+
+  for (const phrase of HYPHENATED_PROSE) {
+    it(`keeps "${phrase}" when no conferencing label precedes it`, async () => {
+      const text = `We reviewed ${phrase} in the second half of the call.`;
+      const r = await renderEvent({ viewer: 'anonymous', post: { title: text, content: `Title chunk.\n\n${text}` } });
+      assert.ok((r.body ?? '').includes(phrase), `"${phrase}" was deleted from the body`);
+      assert.ok((r.h1 ?? '').includes(phrase), `"${phrase}" was deleted from <h1>`);
+      assert.ok((r.ogDescription ?? '').includes(phrase), `"${phrase}" was deleted from og:description`);
+    });
+  }
+
+  it('keeps a 3-4-3 hyphenated term even directly behind a NON-conferencing label', async () => {
+    // "Room" and "call" are weak labels, and weak labels never earn a room-code
+    // redaction. This is the case that separates "only after a strong
+    // conferencing label" from "after anything in the vocabulary".
+    for (const text of ['Room: two-week-old samples only', 'We will call the two-week-old cohort first']) {
+      const r = await renderEvent({ viewer: 'anonymous', post: { content: `Title chunk.\n\n${text}` } });
+      assert.ok((r.body ?? '').includes('two-week-old'), `"${text}" lost its hyphenated term`);
+    }
+  });
+
+  it('keeps the label itself when the value behind it is NOT the room-code shape', async () => {
+    // The label alone is not a credential here either: "Meeting code" followed
+    // by prose is prose.
+    const r = await renderEvent({
+      viewer: 'anonymous',
+      post: { content: 'Title chunk.\n\nMeeting code of conduct is published on the members page.' },
+    });
+    assert.ok((r.body ?? '').includes('Meeting code of conduct is published'),
+      `the label was deleted with no credential behind it: ${JSON.stringify(r.body)}`);
+  });
+
+  it('every conferencing label in the vocabulary DOES take a real room code with it', async () => {
+    // The positive half, iterated over the same exported list, so a label added
+    // to ROOM_CODE_LABELS is proved to work rather than assumed to.
+    for (const phrase of ROOM_CODE_LABEL_PHRASES) {
+      const r = await renderEvent({
+        viewer: 'anonymous',
+        post: { content: `Title chunk.\n\n${phrase}: xyz-abcd-efg\n\nClosing paragraph, kept.` },
+      });
+      assert.ok(!r.html.includes('xyz-abcd-efg'), `"${phrase}" did not take the room code with it`);
+      assert.ok((r.body ?? '').includes('Closing paragraph, kept.'),
+        `"${phrase}" ate the surrounding prose, which is over-redaction, not redaction`);
+    }
+  });
 });
 
 describe('the three newly-scrubbed channels must survive an innocent value', () => {
@@ -235,6 +389,151 @@ describe('nothing structurally required may become empty as a RESULT of scrubbin
     assert.equal(r.flyerSrc, null, 'no flyer element should be emitted rather than an empty one');
     assert.equal(r.ogImage, 'https://rrmacademy.org/og/save-the-uterus-club.png?v=8');
     assert.ok(!r.html.includes('img-aaaa-bbb'));
+  });
+});
+
+/**
+ * NO FIELD MAY EVER BE EMPTIED BY SCRUBBING.
+ *
+ * The block above proves it for a title. This one attacks the requirement
+ * directly and for all three required fields at once: it feeds inputs whose
+ * ONLY purpose is to make the scrubber return the empty string, and asserts that
+ * every required sink is still non-empty and still carries no credential.
+ *
+ * WHY THE LAST RESORT IS A CONSTANT AND NOT THE UNSCRUBBED ORIGINAL
+ * ----------------------------------------------------------------
+ * "Fall back to what was there before scrubbing" is the obvious guard and it is
+ * the wrong one here, because of what it would be falling back TO. There is no
+ * input on which scrubbing empties one of these fields innocently: reaching
+ * blank requires the whole field to have matched a credential rule, so the
+ * unscrubbed original IS the credential. Every case below is asserted twice for
+ * that reason -- non-empty, AND the credential absent -- so a future change that
+ * satisfies "never empty" by republishing the original turns this file red
+ * rather than green.
+ */
+describe('nothing required may be emptied: the direct attack on all three fields', () => {
+  const ALL_CREDENTIAL_CONTENT =
+    'PIN: 998877665\n\nMeet link: https://meet.google.com/emp-aaaa-bbb\n\nDial-in: +1 555-060-1111';
+  const CREDENTIAL_NEEDLES = ['998877665', 'emp-aaaa-bbb', 'meet.google.com', '555-060-1111', 'emp-cccc-ddd'];
+
+  /** Every sink that is structurally required to carry something. */
+  function requiredSinks(r) {
+    return [
+      ['<h1>', r.h1],
+      ['<title>', r.docTitle],
+      ['og:title', r.ogTitle],
+      ['og:image:alt', /<meta property="og:image:alt" content="([^"]*)">/.exec(r.html)?.[1]],
+      ['JSON-LD name', r.jsonLd?.name],
+      ['meta description', r.metaDescription],
+      ['og:description', r.ogDescription],
+      ['twitter:description', r.twitterDescription],
+      ['JSON-LD description', r.jsonLd?.description],
+      ['og:image', r.ogImage],
+      ['twitter:image', /<meta name="twitter:image" content="([^"]*)">/.exec(r.html)?.[1]],
+      ['JSON-LD image', r.jsonLd?.image],
+    ];
+  }
+
+  function assertNothingEmptyAndNothingLeaked(r, label) {
+    assert.equal(r.response.status, 200, `${label} did not render`);
+    for (const [field, value] of requiredSinks(r)) {
+      assert.ok(value != null && String(value).trim().length > 0,
+        `${label}: ${field} was published empty (${JSON.stringify(value)})`);
+    }
+    for (const needle of CREDENTIAL_NEEDLES) {
+      assert.ok(!r.html.includes(needle),
+        `${label}: the guard filled ${JSON.stringify(needle)} back in; a non-empty fallback must not be the credential`);
+    }
+  }
+
+  it('TITLE: every title that scrubs to nothing still publishes a heading, from a safe source', async () => {
+    for (const title of [
+      'PIN: 998877665',
+      '**PIN: 998877665**',
+      '- Meet link: https://meet.google.com/emp-aaaa-bbb',
+      'https://meet.google.com/emp-aaaa-bbb',
+      'Google Meet: emp-aaaa-bbb',
+      'Dial-in: +1 555-060-1111',
+      '   ',
+      '',
+    ]) {
+      const r = await renderEvent({
+        viewer: 'anonymous',
+        post: { title, content: 'Fallback Chunk Title\n\nBody prose kept.' },
+      });
+      assertNothingEmptyAndNothingLeaked(r, `title ${JSON.stringify(title)}`);
+      assert.equal(r.h1, 'Fallback Chunk Title',
+        `title ${JSON.stringify(title)} did not fall through to the scrubbed first content chunk`);
+    }
+  });
+
+  it('DESCRIPTION: content that scrubs to nothing still publishes a description', async () => {
+    for (const content of [ALL_CREDENTIAL_CONTENT, '   ', '\n\n\n', null]) {
+      const r = await renderEvent({ viewer: 'anonymous', post: { title: 'A Real Title', content } });
+      assertNothingEmptyAndNothingLeaked(r, `content ${JSON.stringify(content)}`);
+      assert.equal(r.ogDescription, 'Live members-only call from Save the Uterus Club.');
+      assert.equal(r.metaDescription, 'Live members-only call from Save the Uterus Club.');
+      assert.equal(r.jsonLd.description, 'Live members-only call from Save the Uterus Club.');
+      assert.equal(r.h1, 'A Real Title');
+    }
+  });
+
+  it('IMAGE: a src that is the room, blank, or whitespace still publishes an og:image', async () => {
+    for (const og_image_url of ['https://meet.google.com/emp-cccc-ddd', '   ', '', null]) {
+      const r = await renderEvent({
+        viewer: 'anonymous',
+        post: { og_image_url, content: 'A Real Title\n\nBody prose kept.' },
+      });
+      assertNothingEmptyAndNothingLeaked(r, `og_image_url ${JSON.stringify(og_image_url)}`);
+      assert.equal(r.ogImage, 'https://rrmacademy.org/og/save-the-uterus-club.png?v=8');
+      // A whitespace src must be treated as ABSENT, never absolutised into a
+      // relative URL pointing at the site root with spaces in it.
+      assert.equal(r.flyerSrc, null, `og_image_url ${JSON.stringify(og_image_url)} emitted a broken <img>`);
+    }
+  });
+
+  it('ALL THREE AT ONCE: the maximal emptying input still publishes a complete page', async () => {
+    const r = await renderEvent({
+      viewer: 'anonymous',
+      post: {
+        title: 'PIN: 998877665',
+        speaker: 'Dial-in: +1 555-060-1111',
+        og_image_url: 'https://meet.google.com/emp-cccc-ddd',
+        content: ALL_CREDENTIAL_CONTENT,
+      },
+    });
+    assertNothingEmptyAndNothingLeaked(r, 'the maximal emptying input');
+    assert.equal(r.h1, 'Save the Uterus Club Event', 'the title fell through to the constant, as designed');
+    assert.equal(r.ogDescription, 'Live members-only call from Save the Uterus Club.');
+    assert.equal(r.ogImage, 'https://rrmacademy.org/og/save-the-uterus-club.png?v=8');
+    // The speaker is NOT a required field: an omitted row is correct, an empty
+    // one is not.
+    assert.equal(r.speakerRow, null);
+    assert.equal('performer' in r.jsonLd, false);
+  });
+
+  it('the .ics carries the same non-empty guarantee, including for a whitespace-only title', async () => {
+    for (const [title, expected] of [
+      ['   ', 'SUMMARY:Fallback Chunk Title'],
+      ['PIN: 998877665', 'SUMMARY:Fallback Chunk Title'],
+    ]) {
+      const db = await eventDb({
+        viewer: 'anonymous',
+        post: { title, content: 'Fallback Chunk Title\n\nBody prose.' },
+      });
+      try {
+        const ics = await (await getEvent(db, { query: '?add=ics' })).text();
+        assert.ok(ics.includes(expected), `title ${JSON.stringify(title)} produced: ${/SUMMARY:.*/.exec(ics)?.[0]}`);
+        assert.ok(!ics.includes('998877665'));
+      } finally { db.close(); }
+    }
+
+    const bare = await eventDb({ viewer: 'anonymous', post: { title: '   ', content: '   ' } });
+    try {
+      const ics = await (await getEvent(bare, { query: '?add=ics' })).text();
+      assert.ok(ics.includes('SUMMARY:Save the Uterus Club event'),
+        `an all-whitespace row produced: ${/SUMMARY:.*/.exec(ics)?.[0]}`);
+    } finally { bare.close(); }
   });
 });
 

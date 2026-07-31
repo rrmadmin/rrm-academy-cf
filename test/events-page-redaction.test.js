@@ -34,11 +34,13 @@
  * THE RULE THE SCRUBBER NOW FOLLOWS
  * ---------------------------------
  * A LABEL ALONE IS NOT A CREDENTIAL. A label is removed only when followed by a
- * CREDENTIAL-SHAPED VALUE -- a URL, a tel: URI, or a digit run long enough to
- * be a PIN or a phone number. Image srcs are judged on the parsed HOST only,
- * never on a path or a filename. Cases below are written against that rule, so
- * a case that asserts "X is redacted" should also make clear WHICH half of the
- * rule earned the redaction.
+ * CREDENTIAL-SHAPED VALUE -- a URL, a tel: URI, a digit run long enough to be a
+ * PIN or a phone number and not readable as a date or a year, or (behind a
+ * compound conferencing label only) a bare 3-4-3 Google Meet room code. Image
+ * srcs are judged on the parsed HOST only, never on a path or a filename, and
+ * every host comparison runs on a hostname normalised ONCE. Cases below are
+ * written against that rule, so a case that asserts "X is redacted" should also
+ * make clear WHICH half of the rule earned the redaction.
  *
  * WHY EACH SINK IS ASSERTED SEPARATELY
  * ------------------------------------
@@ -79,14 +81,17 @@
  *   summarize() returns `chunks` on both of its return paths, and renderHtml's
  *   single call site always passes memberSummary.
  *
- *   isConferencingHost's `hostname || ''` / `pathname || ''`, and
- *   redactLabelledCredential's `.match(/\d/g) || []`. A hostname and a pathname
- *   always come from a successfully-constructed URL, and the digit count is
- *   only reached on a match that the NUM_VALUE alternative produced, which
- *   cannot be digit-free.
+ *   normalizeHost's `hostname || ''`, isConferencingHost's `pathname || ''`,
+ *   redactLabelledCredential's `.match(/\d/g) || []` and isDateOrYearShaped's
+ *   `if (!groups)`. A hostname and a pathname always come from a
+ *   successfully-constructed URL, and the digit count and the digit groups are
+ *   only reached on a match the NUM_VALUE alternative produced, which cannot be
+ *   digit-free.
  *
  * They are left in place: they are cheap, and several would become live the
  * moment renderHtml, buildICS or the scrubber gained a second call site.
+ * normalizeHost's in particular exists to make the guard total for the FUTURE
+ * host rules the whole point of centralising it is to serve.
  */
 import { describe, it } from 'node:test';
 import assert from 'node:assert/strict';
@@ -305,6 +310,30 @@ const FIXED_LEAKS = [
   // --- was class 4: the literal host string -----------------------------
   { id: 'EV-H1', by: 'g.co/meet is a Meet room; the host rule parses the URL', line: 'Join at https://g.co/meet/rrm-weekly-call today.', needle: 'rrm-weekly-call' },
   { id: 'EV-H2', by: 'zero-width characters are stripped before matching', line: 'Join at https://meet.goo​gle.com/zwj-aaaa-bbb today.', needle: 'zwj-aaaa-bbb' },
+
+  // --- was class 5: a trailing root dot on the host ---------------------
+  // "meet.google.com." is the same host as "meet.google.com" -- a fully-
+  // qualified name, resolvable, joinable -- and it matched neither `host ===
+  // known` nor `host.endsWith('.' + known)`. One typed dot published the room.
+  // Closed by normalizing the hostname ONCE, before any comparison runs, so
+  // every host rule inherits it rather than each remembering.
+  { id: 'EV-H3', by: 'the parsed hostname is normalised, so a trailing root dot is the same host', line: 'Join at https://meet.google.com./dot-aaaa-bbb today.', needle: 'dot-aaaa-bbb' },
+  { id: 'EV-H4', by: 'the same dot on a scheme-less bare host', line: 'The room is meet.google.com./dot-cccc-ddd all week.', needle: 'dot-cccc-ddd' },
+  { id: 'EV-H5', by: 'the same dot on a non-Google conferencing host', line: 'Join https://zoom.us./j/8899123456 now.', needle: '8899123456' },
+  { id: 'EV-H6', by: 'the same dot on a SUBDOMAIN of a conferencing host', line: 'Join https://us02web.zoom.us./j/8899123457 now.', needle: '8899123457' },
+  { id: 'EV-H7', by: 'the same dot on the g.co/meet shortener', line: 'Join at https://g.co./meet/dot-weekly-call today.', needle: 'dot-weekly-call' },
+
+  // --- was class 6: the room code with the URL peeled off ---------------
+  // A Google Meet room code is 3-4-3 letters. Behind a label that names a
+  // meeting room it is unambiguous -- it is the joining credential itself,
+  // just without the https://meet.google.com/ wrapped around it.
+  { id: 'EV-B1', by: 'strong conferencing label "Google Meet" + a bare 3-4-3 room code', line: 'Google Meet: abc-defg-hij', needle: 'abc-defg-hij' },
+  { id: 'EV-B2', by: 'strong conferencing label "Meeting code" + a bare room code', line: 'Meeting code: bcd-efgh-ijk', needle: 'bcd-efgh-ijk' },
+  { id: 'EV-B3', by: 'strong conferencing label "Meet link" + a bare room code', line: 'Meet link: cde-fghi-jkl', needle: 'cde-fghi-jkl' },
+  { id: 'EV-B4', by: 'strong conferencing label "Room code" + a bare room code', line: 'Room code: def-ghij-klm', needle: 'def-ghij-klm' },
+  { id: 'EV-B5', by: 'the same code with no colon, and with markdown decoration', line: '- Google Meet efg-hijk-lmn', needle: 'efg-hijk-lmn' },
+  { id: 'EV-B6', by: 'the same code uppercased', line: 'Meeting code: FGH-IJKL-MNO', needle: 'FGH-IJKL-MNO' },
+  { id: 'EV-B7', by: 'the same code on the line below its label', line: 'Meeting code:\nghi-jklm-nop', needle: 'ghi-jklm-nop' },
 ];
 
 describe('the leak hunt, closed: each of these used to reach every public sink', () => {
@@ -578,6 +607,41 @@ describe('conferencing hosts are matched on the parsed hostname', () => {
     assert.match(r.body ?? '', /not-a-url/, 'an unparseable token was silently deleted');
   });
 
+  it('normalises exactly ONE trailing root dot, and no more', async () => {
+    // The rule is deliberate rather than "strip all trailing dots".
+    // "meet.google.com." is a fully-qualified name and resolves;
+    // "meet.google.com.." has an empty DNS label, is not a resolvable name and
+    // therefore is not a working credential. Collapsing it would mean inventing
+    // a host the author did not write. Asserted so the boundary is a decision on
+    // the record rather than an accident of slice(0, -1).
+    const one = await renderEvent({
+      viewer: 'anonymous',
+      post: { content: contentAround('Join at https://meet.google.com./one-dott-abc today.') },
+    });
+    assert.deepEqual(leakingSinks(one, 'one-dott-abc'), [], 'a single trailing dot defeated the host rule');
+
+    const two = await renderEvent({
+      viewer: 'anonymous',
+      post: { content: contentAround('Join at https://meet.google.com../two-dott-abc today.') },
+    });
+    assert.deepEqual(
+      leakingSinks(two, 'two-dott-abc'),
+      ['rendered body', 'og:description', 'twitter:description', 'meta description', 'schema.org JSON-LD'],
+      'two trailing dots were collapsed; that host does not resolve and stripping it is guesswork'
+    );
+  });
+
+  it('an ordinary host with a trailing dot is NOT deleted', async () => {
+    // The normalisation runs for every host, so it has to be proved harmless on
+    // the ones that are not conferencing hosts.
+    const r = await renderEvent({
+      viewer: 'anonymous',
+      post: { content: contentAround('Read https://rrmacademy.org./library/endometriosis for context.') },
+    });
+    assert.match(r.body ?? '', /library\/endometriosis/,
+      'an innocent fully-qualified host was deleted by the trailing-dot normalisation');
+  });
+
   it('a date sitting behind a label is not mistaken for a PIN', async () => {
     const r = await renderEvent({
       viewer: 'anonymous',
@@ -701,6 +765,28 @@ const RESIDUAL_LEAKS = [
     line: 'The pin is four four five five nine one.',
     needle: 'four four five five nine one',
   },
+  {
+    id: 'EV-R7',
+    why: 'a bare FOUR-digit run behind a strong label',
+    cost: 'a four-digit PIN and a four-digit year are the same shape, and the labels '
+      + 'that carry either are the same labels. At a four-digit floor the title '
+      + '"Video Call 2026" scrubbed to the empty string, which is the failure that '
+      + 'got the first attempt at this fix rejected, on a required field. Meet '
+      + 'issues nine-digit PINs, Zoom six, Teams nine and Webex nine to eleven, so '
+      + 'a floor of five gives up no real credential coverage; under-redacting a '
+      + 'four-digit PIN is recoverable and deleting a talk title is not',
+    line: 'PIN: 4471',
+    needle: '4471',
+  },
+  {
+    id: 'EV-R8',
+    why: 'a digit run behind a label whose every group reads as a plausible year',
+    cost: 'this is the rule that keeps "Video Call 2026-2027" and "Meeting 2026 - '
+      + '2027" alive. Closing it means deciding that a four-digit run inside '
+      + '1900-2099 is a PIN, which is exactly the trade EV-R7 rejects',
+    line: 'PIN: 2026 1999',
+    needle: '2026 1999',
+  },
 ];
 
 describe('residual leaks -- documented, not silently accepted', () => {
@@ -742,6 +828,13 @@ describe('scrubJoinInfo is linear in input length', () => {
     'digit runs with no labels': '1234 5678 9012 3456 7890 ',
     'a label followed by separators': 'PIN:::::::::::::::::::::::::::::::::: ',
     'every line a credential': 'PIN: 998877665\nMeet link: https://meet.google.com/aaa-bbbb-ccc\nDial-in: +1 555-010-1111\n',
+    // The three rules added after the first review, each on the input shaped to
+    // work its matcher hardest.
+    'hyphenated words with no label': 'follicle-stimulating hormone add-back therapy two-week-old sample ',
+    'conferencing labels with no code': 'Google Meet meeting code room code access code meet link join code ',
+    'bare room codes behind labels': 'Meeting code: abc-defg-hij\nGoogle Meet: bcd-efgh-ijk\n',
+    'hosts with trailing dots': 'https://meet.google.com./aaa-bbbb-ccc https://example.com./a ',
+    'years behind labels': 'Video Call 2026 Passcode 1999 Join Call 2026-2027 PIN 2026 ',
   };
 
   function build(unit, n) {

@@ -59,17 +59,66 @@ function escapeHtml(s) {
  * "room", "call", "zoom", "teams", "dial" or "phone". Those words are ordinary
  * in reproductive-medicine copy -- "room temperature storage", "Teams-Based
  * Care in RRM", "Zoom fatigue in telehealth", "we will call you". A label is
- * removed only when it is FOLLOWED BY A CREDENTIAL-SHAPED VALUE: a URL, a tel:
- * URI, or a run of at least six digits that is not a date. Requiring the value
- * is what separates a credential from prose, and it is also what keeps every
- * matcher below anchored and linear. test/events-page-over-redaction.test.js
- * pins that half of the contract and must stay green.
+ * removed only when it is FOLLOWED BY A CREDENTIAL-SHAPED VALUE:
+ *
+ *   - a URL or a tel: URI, behind any label;
+ *   - a digit run over the label's floor that does not read as a date or a year
+ *     (five digits behind a strong label, six behind a weak one);
+ *   - a bare Google Meet room code, 3-4-3 letters, and ONLY behind a compound
+ *     label that names a meeting room.
+ *
+ * Requiring the value is what separates a credential from prose, and it is also
+ * what keeps every matcher below anchored and linear.
+ * test/events-page-over-redaction.test.js pins that half of the contract and
+ * must stay green.
  *
  * IMAGE URLS ARE JUDGED ON THE HOST, NEVER THE PATH
  * -------------------------------------------------
  * A filename is not prose. "endo-call-2026.jpg" contains the word "call" and is
  * a legitimate flyer. An <img> whose src resolves to meet.google.com is the
  * room itself. Only the parsed hostname decides.
+ *
+ * NO REQUIRED FIELD MAY BE EMPTIED BY SCRUBBING
+ * ---------------------------------------------
+ * The title, the description and the image are structurally required: the page
+ * has an <h1>, an og:title, a meta description and an og:image whatever the row
+ * contains. Scrubbing can remove all of a field, so each of the three ends in a
+ * fallback chain that CANNOT return blank -- see safeTitle(), firstNonEmpty()
+ * and the flyer resolution in renderHtml().
+ *
+ * The last resort of each chain is a constant, NOT the unscrubbed original. That
+ * is deliberate and it is the one place this file refuses the obvious guard.
+ * There is no input on which scrubbing empties a field for an innocent reason:
+ * the only way to reach blank is for the whole field to have matched a
+ * credential rule, so "fall back to what was there before" is a fallback
+ * straight onto the credential the scrubber just removed. The over-redaction
+ * suite pins that ("the fallback is a real one, not the credential leaking back
+ * in"). Non-empty is achieved with a safe SECOND SOURCE instead -- the scrubbed
+ * first content chunk for the title, the generic line for the description, the
+ * branded card for the image.
+ *
+ * RESIDUAL GAPS, ENUMERATED
+ * -------------------------
+ * Each is asserted positively in test/events-page-redaction.test.js (EV-R*) and
+ * test/events-page-adversarial.test.js (EV-X*), so closing one turns a test red
+ * rather than passing unnoticed:
+ *
+ *   EV-R1  a BLANK LINE between the label and the value ("PIN:\n\n445590").
+ *          Letting the separator span a paragraph break would let a label at the
+ *          end of one paragraph claim a number at the start of the next.
+ *   EV-R2  a conferencing host outside CONFERENCING_HOSTS, with no strong label
+ *          in front of it.
+ *   EV-R3  a label word outside the vocabulary.
+ *   EV-R4  a bare digit run with no label at all (redacting those eats ORCIDs,
+ *          PMIDs, NCT numbers and EINs).
+ *   EV-R5  a weak label under the weak digit floor ("Room: 4821").
+ *   EV-R6  a credential spelled out in words.
+ *   EV-R7  a bare FOUR-digit run behind a strong label ("PIN: 4471"). See
+ *          MIN_DIGITS_STRONG_LABEL for why the floor sits above it.
+ *   EV-R8  a digit run behind a label whose every group reads as a plausible
+ *          year ("PIN: 2026 1999"). See isDateOrYearShaped().
+ *   EV-X4b markdown emphasis inside the host.
+ *   EV-X7a a Cyrillic homoglyph inside the host.
  *
  * COST
  * ----
@@ -97,8 +146,29 @@ const CONFERENCING_HOSTS = [
   'teams.live.com', 'webex.com', 'meet.jit.si', 'whereby.com', 'chime.aws',
 ];
 
-function isConferencingHost(hostname, pathname) {
+/**
+ * ONE canonical form for a hostname, computed BEFORE any host rule compares
+ * anything, so every present and future rule inherits it instead of each
+ * comparison having to remember.
+ *
+ * A fully-qualified domain name may carry a trailing root dot:
+ * "meet.google.com." and "meet.google.com" address the same host, resolve the
+ * same way, and a browser will happily join the room through either. It matched
+ * neither `host === known` nor `host.endsWith('.' + known)`, so a single typed
+ * dot published the room. This is the same defect class the library worker's
+ * SSRF gate was just fixed for, and the fix is the same one: normalise once.
+ *
+ * Exactly ONE dot is stripped. Two or more leave an empty DNS label, which is
+ * not a resolvable name and therefore not a working credential; collapsing them
+ * would be inventing a host the author did not write.
+ */
+function normalizeHost(hostname) {
   const host = String(hostname || '').toLowerCase();
+  return host.endsWith('.') ? host.slice(0, -1) : host;
+}
+
+function isConferencingHost(hostname, pathname) {
+  const host = normalizeHost(hostname);
   // g.co is Google's generic shortener; only its /meet space is a Meet room.
   if ((host === 'g.co' || host === 'www.g.co') && /^\/meet(?:\/|$)/i.test(pathname || '')) return true;
   return CONFERENCING_HOSTS.some((known) => host === known || host.endsWith('.' + known));
@@ -142,6 +212,16 @@ const WEAK_JOIN_LABELS = [
 const JOIN_LABELS = [...STRONG_JOIN_LABELS, ...WEAK_JOIN_LABELS];
 const IS_STRONG_LABEL_RE = new RegExp(`^(?:${STRONG_JOIN_LABELS.join('|')})$`, 'i');
 
+/**
+ * The two tiers as plain typeable phrases, exported so the anti-over-redaction
+ * suite iterates the REAL vocabulary rather than a transcribed copy of it. A
+ * label added above is therefore covered by the "a bare year after every strong
+ * label survives" fixture the moment it is added, with no second edit.
+ */
+const asPhrase = (source) => source.replace(/\\s\+/g, ' ');
+export const STRONG_LABEL_PHRASES = STRONG_JOIN_LABELS.map(asPhrase);
+export const WEAK_LABEL_PHRASES = WEAK_JOIN_LABELS.map(asPhrase);
+
 /** Everything up to whitespace or a closing delimiter. One character class. */
 const URL_TAIL = '[^\\s<>"\'\\)\\]]';
 const URL_VALUE = `(?:https?:\\/\\/|www\\.)${URL_TAIL}+`;
@@ -183,26 +263,127 @@ const URL_WRAP_TAIL = `(?:${CODE_WRAP}|${HOST_WRAP})?`;
 const LABEL_QUALIFIER = '(?:\\s+(?:number|code|id|link|url|details|info))?';
 const LABELLED_CREDENTIAL_RE = new RegExp(
   `\\b(${JOIN_LABELS.join('|')})${LABEL_QUALIFIER}\\b${SEP}`
-  + `(?:${URL_VALUE}${WRAP_TAIL}|${TEL_VALUE}|${NUM_VALUE})`,
+  + `((?:${URL_VALUE}${WRAP_TAIL}|${TEL_VALUE}|${NUM_VALUE}))`,
   'gi'
 );
 /** Any URL token. The replacer keeps it unless its HOST serves meeting rooms. */
 const URL_TOKEN_RE = new RegExp(`${URL_VALUE}${URL_WRAP_TAIL}`, 'gi');
-/** A scheme-less conferencing host WITH a path, i.e. carrying a room code. */
+
+/** Only `.` needs escaping in the current host list; the rest is future-proofing. */
+const escapeForRegex = (s) => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+
+/**
+ * A scheme-less conferencing host WITH a path, i.e. carrying a room code.
+ *
+ * Built FROM CONFERENCING_HOSTS rather than transcribed beside it, so the list
+ * cannot drift into two lists that disagree, and `\.?` is the same one-trailing-
+ * dot tolerance normalizeHost() applies on the parsed-URL path -- "meet.google
+ * .com./abc" has no scheme for URL() to parse, so this is where it is caught.
+ */
 const BARE_HOST_RE = new RegExp(
-  `(?:meet\\.google\\.com|tel\\.meet|g\\.co\\/meet|zoom\\.us|teams\\.microsoft\\.com`
-  + `|teams\\.live\\.com|webex\\.com|meet\\.jit\\.si|whereby\\.com|chime\\.aws)`
-  + `\\/${URL_TAIL}+${WRAP_TAIL}`,
+  `(?:${[...CONFERENCING_HOSTS, 'g.co/meet'].map(escapeForRegex).join('|')})`
+  + `\\.?\\/${URL_TAIL}+${WRAP_TAIL}`,
+  'gi'
+);
+
+/**
+ * A GOOGLE MEET ROOM CODE, bare: three letters, four letters, three letters,
+ * hyphen-separated. It is the joining credential itself with the URL peeled off,
+ * and "Google Meet: abc-defg-hij" is as much a room as the full link is.
+ *
+ * Two conditions, both required, and the pair is what keeps this from becoming a
+ * rule that deletes hyphenated clinical vocabulary:
+ *
+ *   1. A STRONG CONFERENCING label in front. Not the general label vocabulary --
+ *      these are compound phrases that name a meeting room and nothing else. A
+ *      bare "room" or "meet" is an ordinary English word and is NOT here.
+ *   2. The value matches the room-code shape exactly. "follicle-stimulating
+ *      hormone" is 8-11 letters in two groups; "add-back therapy" is 3-4 in two.
+ *      Neither is 3-4-3, and neither follows a conferencing label.
+ *
+ * Nothing about a hyphenated lowercase word is suspicious on its own, and this
+ * rule never sees one that is not behind a label naming a meeting room.
+ */
+const ROOM_CODE_LABELS = [
+  'google\\s+meet\\s+link', 'google\\s+meet\\s+code', 'google\\s+meet',
+  'meeting\\s+code', 'meeting\\s+link', 'meeting\\s+url', 'meeting\\s+id', 'meeting\\s+room',
+  'meet\\s+link', 'meet\\s+url', 'meet\\s+code', 'meet\\s+id',
+  'room\\s+code', 'room\\s+id',
+  'conference\\s+code', 'conference\\s+id', 'conference\\s+room',
+  'join\\s+code', 'join\\s+link', 'join\\s+url',
+  'video\\s+call\\s+code', 'video\\s+link',
+  'access\\s+code', 'passcode', 'pass\\s+code',
+];
+export const ROOM_CODE_LABEL_PHRASES = ROOM_CODE_LABELS.map(asPhrase);
+const ROOM_CODE_VALUE = '[a-z]{3}-[a-z]{4}-[a-z]{3}';
+const LABELLED_ROOM_CODE_RE = new RegExp(
+  `\\b(?:${ROOM_CODE_LABELS.join('|')})${LABEL_QUALIFIER}\\b${SEP}(?:${ROOM_CODE_VALUE})\\b`,
   'gi'
 );
 
 /**
  * Digit floors. Below the floor a run is a dose ("200 mg"), a cycle day, a room
  * number or a year, not a credential.
+ *
+ * WHY THE STRONG FLOOR IS FIVE AND NOT FOUR
+ * -----------------------------------------
+ * A four-digit PIN and a four-digit year are the same shape, so shape alone
+ * cannot separate them, and the labels that would carry either are the same
+ * labels: "Video Call", "Join Call", "Conference Line", "Access Code" all head
+ * ordinary event titles. At a floor of four, the title "Video Call 2026" scrubbed
+ * to the empty string -- the exact failure that got the first attempt at this fix
+ * rejected, on the one field that is structurally required.
+ *
+ * Three separators were considered and rejected as the PRIMARY test:
+ *   - a plausible year range (1900-2099) still deletes "Video Call 1080p" and
+ *     any four-digit count, and it is a guess about the number, not about the
+ *     author's intent;
+ *   - the presence of a colon separates nothing, because titles take colons
+ *     ("Video Call: 2026 Series") and credentials are written without them
+ *     ("PIN 4471");
+ *   - label strength does not help, because every label affected is already
+ *     strong.
+ *
+ * What decides it instead is the cost of being wrong in each direction, and what
+ * a real credential actually looks like. Google Meet dial-in PINs are nine
+ * digits or more, Zoom passcodes six, Teams conference IDs nine, Webex access
+ * codes nine to eleven. The platforms this scrubber exists to defend do not
+ * issue four-digit credentials, so the floor gives up essentially no real
+ * coverage. Under-redacting a four-digit PIN is recoverable -- the room can be
+ * regenerated. Deleting a clinician's talk title is not: the page publishes with
+ * a wrong <h1> and nothing reports it. The residual is EV-R7.
+ *
+ * A run at or above the floor is still kept when it reads as a date or a year
+ * range; see isDateOrYearShaped.
  */
-const MIN_DIGITS_STRONG_LABEL = 4;
+const MIN_DIGITS_STRONG_LABEL = 5;
 const MIN_DIGITS_WEAK_LABEL = 6;
 const DATE_SHAPED_RE = /\d{4}-\d{1,2}-\d{1,2}|\d{1,2}[-.]\d{1,2}[-.]\d{4}/;
+/** 1900-2099. Narrow on purpose: 3005 is a number, 2026 is a year. */
+const PLAUSIBLE_YEAR_RE = /^(?:19|20)\d{2}$/;
+
+/**
+ * Whether a value behind a label reads as a date or a year rather than as a
+ * credential. Judged on the VALUE, never on the whole match, so a label can
+ * never contribute a digit to the decision.
+ *
+ * Two shapes qualify. A conventional date ("2026-07-31", "31.07.2026"), which is
+ * what DATE_SHAPED_RE has always covered. And a run whose EVERY digit group is a
+ * plausible year, which is what a year range is: "Video Call 2026-2027" and
+ * "Meeting 2026 - 2027" are eight digits behind a strong label and neither is a
+ * credential. Requiring every group to be a year is what keeps a phone number
+ * out: "+1 555-010-2026" has groups "1", "555", "010" that no year test accepts.
+ *
+ * The residual is EV-R8: a credential whose every group happens to read as a
+ * year ("PIN: 2026 1999") is kept. Closing it means deciding a four-digit run in
+ * 1900-2099 is a PIN, which is the trade rejected above.
+ */
+function isDateOrYearShaped(value) {
+  const groups = String(value).match(/\d+/g);
+  if (!groups) return false;
+  if (groups.every((g) => PLAUSIBLE_YEAR_RE.test(g))) return true;
+  return groups.join('').length <= 8 && DATE_SHAPED_RE.test(value);
+}
 
 /**
  * Blanks a matched span, preserving the line breaks INSIDE it so surrounding
@@ -212,15 +393,21 @@ function blankSpan(match) {
   return match.replace(/[^\n]+/g, REDACTED_MARK);
 }
 
-function redactLabelledCredential(match, label) {
+function redactLabelledCredential(match, label, value) {
   // A label plus a URL or a tel: URI is a credential, full stop.
-  if (/https?:\/\/|www\.|tel:/i.test(match)) return blankSpan(match);
+  //
+  // Tested on the VALUE, never on the whole match. Tested on the match, the
+  // label "tel" supplied the "tel:" itself through its own separator, so every
+  // value behind a "Tel:" label was redacted unconditionally and the weak digit
+  // floor never ran -- "Tel: 2026" scrubbed to the empty string. Found by the
+  // bare-year fixture below; the same shape as the finding that prompted it.
+  if (/^(?:https?:\/\/|www\.|tel:)/i.test(value)) return blankSpan(match);
   // A label plus digits is one only if the digits could be a PIN or a phone
   // number, and only if they are not simply a date sitting behind the label.
-  const digits = (match.match(/\d/g) || []).length;
+  const digits = (value.match(/\d/g) || []).length;
   const floor = IS_STRONG_LABEL_RE.test(label) ? MIN_DIGITS_STRONG_LABEL : MIN_DIGITS_WEAK_LABEL;
   if (digits < floor) return match;
-  if (digits <= 8 && DATE_SHAPED_RE.test(match)) return match;
+  if (isDateOrYearShaped(value)) return match;
   return blankSpan(match);
 }
 
@@ -256,6 +443,7 @@ export function scrubJoinInfo(text) {
   if (!text) return text;
   let out = String(text).replace(ZERO_WIDTH_RE, '');
   out = out.replace(LABELLED_CREDENTIAL_RE, redactLabelledCredential);
+  out = out.replace(LABELLED_ROOM_CODE_RE, blankSpan);
   out = out.replace(URL_TOKEN_RE, redactConferencingUrl);
   out = out.replace(BARE_HOST_RE, blankSpan);
   out = tidyRedactedLines(out);
@@ -263,6 +451,27 @@ export function scrubJoinInfo(text) {
   out = out.replace(/\n{3,}/g, '\n\n').trim();
   return out;
 }
+
+/**
+ * The first candidate that is present and is not merely whitespace, trimmed.
+ *
+ * This is the single mechanism behind "no required field may be emptied by
+ * scrubbing". Every required sink runs its sources through here, so the guard is
+ * one function with one behaviour rather than three `||` chains that each have
+ * to remember that `'   '` is truthy. Returns '' only when every candidate is
+ * blank, and every call site ends its list with a non-empty constant.
+ */
+function firstNonEmpty(...candidates) {
+  for (const candidate of candidates) {
+    const value = candidate == null ? '' : String(candidate).trim();
+    if (value) return value;
+  }
+  return '';
+}
+
+/** The last resorts. Each is the terminal element of a fallback chain above. */
+const FALLBACK_DESCRIPTION = 'Live members-only call from Save the Uterus Club.';
+const FALLBACK_OG_IMAGE = SITE_ORIGIN + '/og/save-the-uterus-club.png?v=8';
 
 /** An <img> src is a credential only when its HOST serves meeting rooms. */
 function isCredentialImageUrl(src) {
@@ -322,14 +531,15 @@ function scrubSpeaker(value) {
  * og:image:alt, the JSON-LD name, the .ics SUMMARY and the Google Calendar
  * text= parameter. Scrubbing can empty it, so it falls back to the scrubbed
  * first content chunk and then to a constant. It never returns blank, and it
- * never falls back to the unscrubbed column it just cleaned.
+ * never falls back to the unscrubbed column it just cleaned -- see the
+ * "NO REQUIRED FIELD MAY BE EMPTIED" note at the top of this file for why the
+ * unscrubbed original is the one fallback that is not available here.
+ *
+ * `fallback` is supplied by the caller rather than baked in because the page and
+ * the .ics differ in one letter of casing, and both are pinned by tests.
  */
 function safeTitle(rawTitle, summaryTitle, fallback) {
-  const scrubbed = (scrubJoinInfo(rawTitle) || '').trim();
-  if (scrubbed) return scrubbed;
-  const fromContent = (summaryTitle || '').trim();
-  if (fromContent) return fromContent;
-  return fallback;
+  return firstNonEmpty(scrubJoinInfo(rawTitle), summaryTitle, fallback);
 }
 
 // Render a body chunk with markdown link support: [label](url) -> <a>.
@@ -507,13 +717,20 @@ function buildICS({ uid, title, startMs, endMs, description, location, url }) {
 
 function renderHtml({ event, summary, speaker, visitor, cta, canonical, memberSummary }) {
   const title = safeTitle(event.title, summary.title, 'Save the Uterus Club Event');
-  // summary.description is already scrubbed of Meet URL / dial / PIN.
-  const description = (summary.description || `Live members-only call from Save the Uterus Club.`).slice(0, 300);
+  // summary.description is already scrubbed of Meet URL / dial / PIN. A
+  // description that scrubs away entirely takes the generic line rather than
+  // publishing an empty meta description and og:description.
+  const description = firstNonEmpty(summary.description, FALLBACK_DESCRIPTION).slice(0, 300);
   const fullTitle = `${title} | Save the Uterus Club`;
   // og_image_url is judged on its HOST, not its filename: a flyer called
   // "endo-call-2026.jpg" is a flyer; a src on meet.google.com is the room.
-  const flyerSrc = (isCredentialImageUrl(event.og_image_url) ? null : event.og_image_url) || summary.firstImage;
-  const ogImage = abs(flyerSrc) || (SITE_ORIGIN + '/og/save-the-uterus-club.png?v=8');
+  // A src that is blank or whitespace is absent, not a relative URL to "   ".
+  const columnImage = firstNonEmpty(event.og_image_url);
+  const flyerSrc = firstNonEmpty(
+    isCredentialImageUrl(columnImage) ? '' : columnImage,
+    summary.firstImage
+  ) || null;
+  const ogImage = abs(flyerSrc) || FALLBACK_OG_IMAGE;
   const startMs = Date.parse(event.event_date);
   const endMs = Number.isFinite(startMs) ? startMs + 60 * 60 * 1000 : null;
   const startISO = Number.isFinite(startMs) ? new Date(startMs).toISOString() : event.event_date;
