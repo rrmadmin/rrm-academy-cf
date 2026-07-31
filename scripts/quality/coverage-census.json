@@ -18,17 +18,17 @@
   "date": "2026-07-31",
   "instrument": "node scripts/quality/coverage.mjs (c8 --all over the full surface; full npm-test suite)",
   "full_surface": {
-   "files": 421,
-   "lines": 81432,
-   "covered": 29987,
-   "pct": 36.82
+   "files": 422,
+   "lines": 82252,
+   "covered": 30742,
+   "pct": 37.38
   },
   "by_category": {
    "PRODUCT-CODE": {
-    "files": 333,
-    "lines": 60147,
-    "covered": 24704,
-    "pct": 41.07
+    "files": 334,
+    "lines": 60928,
+    "covered": 25459,
+    "pct": 41.79
    },
    "CONTENT-TEMPLATE": {
     "files": 8,
@@ -50,19 +50,19 @@
    },
    "ONE-OFF": {
     "files": 44,
-    "lines": 7151,
+    "lines": 7190,
     "covered": 0,
     "pct": 0
    }
   },
   "product_code": {
-   "files": 333,
-   "lines": 60147,
-   "covered": 24704,
-   "pct": 41.07
+   "files": 334,
+   "lines": 60928,
+   "covered": 25459,
+   "pct": 41.79
   },
   "files_at_zero_in_full_report": 260,
-  "files_executed_in_full_report": 161,
+  "files_executed_in_full_report": 162,
   "highest_stakes_slice": {
    "slice": "national survey system (functions/api/survey/ + functions/api/endo-quiz/)",
    "files": [
@@ -2825,6 +2825,15 @@
    "pct": 0
   },
   {
+   "file": "scripts/gates/validate-sql-columns.mjs",
+   "category": "PRODUCT-CODE",
+   "reason": "Deterministic CI/pre-commit proof gate; it decides whether deploys are allowed and must itself be trustworthy.",
+   "present": true,
+   "lines": 781,
+   "covered": 755,
+   "pct": 96.67
+  },
+  {
    "file": "scripts/gates/verify-library-curation.mjs",
    "category": "PRODUCT-CODE",
    "reason": "Deterministic CI/pre-commit proof gate; it decides whether deploys are allowed and must itself be trustworthy.",
@@ -2883,7 +2892,7 @@
    "category": "ONE-OFF",
    "reason": "One-shot AEO slug-rename campaign across glossary tables; record of a finished rename.",
    "present": false,
-   "lines": 480,
+   "lines": 519,
    "covered": 0,
    "pct": 0
   },

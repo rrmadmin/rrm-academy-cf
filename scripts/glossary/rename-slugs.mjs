@@ -6,7 +6,9 @@
 //   2. UPDATE glossary_abbreviation SET term_slug = <new> WHERE term_slug = <old>
 //   3. UPDATE glossary_term.body_html anywhere it cross-references the old slug
 //      (`href="#<old>"`, `href="/glossary/<old>/"`, `href="/glossary/<old>"`)
-//   4. UPDATE posts.content / faq.answer / course_step.content_md likewise
+//   4. UPDATE posts.content and the three faq answer columns (basic_answer,
+//      schema_answer, published_answer) likewise. Course lesson bodies are a
+//      declared gap -- see COURSE_CONTENT_NOT_SCANNED.
 //   5. Emit router redirect lines to add to rrm-router/src/index.js REDIRECTS
 //
 // Modes:
@@ -53,6 +55,47 @@ const RENAMES = [
   { old: 'nk-cells',                    new: 'natural-killer-cells' },
   { old: 'restorative-as-a-principle',  new: 'restorative-principle' },
 ];
+
+/**
+ * The faq table stores its answer in three columns, not one. schema.sql:
+ *   basic_answer TEXT, schema_answer TEXT, published_answer TEXT
+ * A slug rewrite has to touch every one of them, because any can hold the link
+ * and which one is populated varies by FAQ.
+ */
+const FAQ_ANSWER_COLUMNS = ['basic_answer', 'schema_answer', 'published_answer'];
+
+/**
+ * Course lesson bodies are a KNOWN GAP in this script, declared rather than
+ * faked. It used to scan and rewrite `course_step.content_md`. That column has
+ * never existed: no committed DDL in this repo ever declared it, and live
+ * rrm-auth's course_step is (id, section_id, course_id, title, type,
+ * stream_uid, duration_seconds, sort_order, attachments_json, status,
+ * created_at, updated_at). Both statements threw "no such column: content_md",
+ * were swallowed as a WARN, and rewrote nothing on every run this script has
+ * ever had. They are removed rather than repointed.
+ *
+ * Repointing is NOT a mechanical rename and is deliberately left undone. Lesson
+ * bodies now live in step_rendition.content_json (migration 028, 2026-06-06),
+ * which is a JSON document, not markdown. A textual REPLACE over JSON would
+ * silently half-work: the `href="/glossary/<slug>"` variant appears in the raw
+ * column as `/glossary/<slug>\"` because JSON escapes the quote, so the second
+ * REPLACE would never match while the first one did. Rewriting links there
+ * needs parse-rewrite-reserialise, which is a different job from this script.
+ *
+ * Current exposure, measured on live rrm-auth 2026-07-31: step_rendition holds
+ * 4 rows and NONE of them contains a "/glossary/" link, so nothing is stale
+ * today. Re-check before the next rename:
+ *   SELECT COUNT(*) FROM step_rendition WHERE content_json LIKE '%/glossary/%';
+ */
+const COURSE_CONTENT_NOT_SCANNED = [
+  '',
+  'NOTE: course lesson bodies are NOT scanned or rewritten by this script.',
+  '      Lesson content lives in step_rendition.content_json (JSON, not markdown);',
+  '      rewriting links inside it needs a JSON-aware pass, not SQL REPLACE.',
+  '      Verify manually before/after a rename:',
+  "        SELECT COUNT(*) FROM step_rendition WHERE content_json LIKE '%/glossary/%';",
+  '',
+].join('\n');
 
 const args = process.argv.slice(2);
 const APPLY = args.includes('--apply');
@@ -113,9 +156,19 @@ function findCrossRefs() {
       }
     }
 
-    // faq.answer
+    // faq answers. There is no `faq.answer` column and never has been: the
+    // answer is stored in THREE columns (basic_answer / schema_answer /
+    // published_answer, see schema.sql). The old single-column query threw
+    // "no such column: answer" on every rename, was swallowed by the catch
+    // below as a WARN, and left faqs = [] -- so no FAQ cross-reference has
+    // ever been rewritten by this script. All three are scanned because any of
+    // them can hold a link; on 2026-07-31 only published_answer did (5 rows).
+    // The three column names are written out LITERALLY rather than joined from
+    // FAQ_ANSWER_COLUMNS so that a static SQL checker can see them and prove
+    // they exist. Behind an interpolation they would be invisible, which is
+    // how this bug survived.
     try {
-      const fq = d1Query('rrm-auth', `SELECT id, slug FROM faq WHERE answer LIKE '%/glossary/${r.old}/%' OR answer LIKE '%/glossary/${r.old}"%'`);
+      const fq = d1Query('rrm-auth', `SELECT id, slug FROM faq WHERE basic_answer LIKE '%/glossary/${r.old}/%' OR basic_answer LIKE '%/glossary/${r.old}"%' OR schema_answer LIKE '%/glossary/${r.old}/%' OR schema_answer LIKE '%/glossary/${r.old}"%' OR published_answer LIKE '%/glossary/${r.old}/%' OR published_answer LIKE '%/glossary/${r.old}"%'`);
       found[r.old].faqs = fq;
     } catch (e) {
       const msg = (e?.message || '').toLowerCase();
@@ -127,20 +180,10 @@ function findCrossRefs() {
       }
     }
 
-    // course_step.content_md
-    try {
-      const cs = d1Query('rrm-auth', `SELECT id FROM course_step WHERE content_md LIKE '%/glossary/${r.old}/%' OR content_md LIKE '%/glossary/${r.old}"%'`);
-      found[r.old].course_steps = cs;
-    } catch (e) {
-      const msg = (e?.message || '').toLowerCase();
-      if (msg.includes('no such table')) {
-        // Table genuinely missing in this D1 -- safe to skip
-      } else {
-        console.warn(`  WARN: course_step cross-ref scan for ${r.old} failed: ${e?.message?.slice(0, 200)}`);
-        console.warn(`        Cross-refs in course_steps may be missed. Re-run after diagnosing.`);
-      }
-    }
+    // Course step bodies are NOT scanned. See COURSE_CONTENT_NOT_SCANNED.
+    found[r.old].course_steps = [];
   }
+  if (RENAMES.length) console.warn(COURSE_CONTENT_NOT_SCANNED);
   return found;
 }
 
@@ -188,23 +231,19 @@ function buildPlan(crossRefs) {
       });
     }
 
-    // 5. faq cross-refs
+    // 5. faq cross-refs. Rewrites all three answer columns in one statement.
+    //    REPLACE(NULL, ...) is NULL, so a variant that is not populated stays
+    //    NULL rather than becoming an empty string. Column names literal, for
+    //    the same reason as the scan above: a checker has to be able to see them.
     for (const f of crossRefs[r.old].faqs) {
       plan.d1_updates.push({
         db: 'rrm-auth',
-        label: `faq[${f.slug}].answer: replace /glossary/${r.old}/ -> ${r.new}`,
-        sql: `UPDATE faq SET answer = REPLACE(REPLACE(answer, '/glossary/${r.old}/', '/glossary/${r.new}/'), '/glossary/${r.old}"', '/glossary/${r.new}"'), updated_at = datetime('now') WHERE id = '${f.id}'`,
+        label: `faq[${f.slug}] ${FAQ_ANSWER_COLUMNS.join('/')}: replace /glossary/${r.old}/ -> ${r.new}`,
+        sql: `UPDATE faq SET basic_answer = REPLACE(REPLACE(basic_answer, '/glossary/${r.old}/', '/glossary/${r.new}/'), '/glossary/${r.old}"', '/glossary/${r.new}"'), schema_answer = REPLACE(REPLACE(schema_answer, '/glossary/${r.old}/', '/glossary/${r.new}/'), '/glossary/${r.old}"', '/glossary/${r.new}"'), published_answer = REPLACE(REPLACE(published_answer, '/glossary/${r.old}/', '/glossary/${r.new}/'), '/glossary/${r.old}"', '/glossary/${r.new}"'), updated_at = datetime('now') WHERE id = '${f.id}'`,
       });
     }
 
-    // 6. course_step cross-refs
-    for (const cs of crossRefs[r.old].course_steps) {
-      plan.d1_updates.push({
-        db: 'rrm-auth',
-        label: `course_step[${cs.id}].content_md: replace /glossary/${r.old}/ -> ${r.new}`,
-        sql: `UPDATE course_step SET content_md = REPLACE(REPLACE(content_md, '/glossary/${r.old}/', '/glossary/${r.new}/'), '/glossary/${r.old}"', '/glossary/${r.new}"'), updated_at = datetime('now') WHERE id = '${cs.id}'`,
-      });
-    }
+    // 6. course lesson bodies: intentionally absent. See COURSE_CONTENT_NOT_SCANNED.
 
     // 7. router redirect
     plan.router_redirects.push({
@@ -220,7 +259,7 @@ function buildPlan(crossRefs) {
       glossary_term: crossRefs[r.old].glossary_term.length,
       posts: crossRefs[r.old].posts.length,
       faqs: crossRefs[r.old].faqs.length,
-      course_steps: crossRefs[r.old].course_steps.length,
+      course_steps: 0, // not scanned; see COURSE_CONTENT_NOT_SCANNED
     };
   }
 
@@ -354,9 +393,9 @@ async function main() {
 
   console.log('\nCross-reference inventory:');
   for (const [oldSlug, counts] of Object.entries(plan.cross_ref_summary)) {
-    const total = counts.glossary_term + counts.posts + counts.faqs + counts.course_steps;
+    const total = counts.glossary_term + counts.posts + counts.faqs;
     if (total > 0) {
-      console.log(`  ${oldSlug}: glossary=${counts.glossary_term}  posts=${counts.posts}  faqs=${counts.faqs}  course_steps=${counts.course_steps}`);
+      console.log(`  ${oldSlug}: glossary=${counts.glossary_term}  posts=${counts.posts}  faqs=${counts.faqs}  course_steps=not-scanned`);
     } else {
       console.log(`  ${oldSlug}: (no cross-refs)`);
     }
