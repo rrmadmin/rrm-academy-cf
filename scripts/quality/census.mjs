@@ -54,29 +54,70 @@ const OUT = resolve(ROOT, 'scripts', 'quality', 'coverage-census.json');
  *                   the library render surface (0 -> 67.4%), the FABM quiz API
  *                   (3.5 -> 100%), and the course-platform enrolment/quiz path.
  *                   Measured 28.32%.
- *   28.9 2026-07-31 raised after the tranche-4 public-read drive: the public
- *                   glossary build surface (functions/api/glossary/terms.js),
- *                   /api/articles, /api/articles/bulk and the shared
- *                   _map-article.js mapper, all 0 -> 100% lines. FIRST
- *                   NON-INTEGER FLOOR: this drive moved the aggregate
- *                   28.19 -> 28.99, a real +0.80pp that the integer scale
- *                   cannot express (28.99 rounds down to the incumbent 28,
- *                   which would record the drive as no gain at all). One
- *                   decimal, still rounded DOWN, still green on arrival.
+ *   28  2026-07-31  UNCHANGED after the tranche-4 drive, which closed three
+ *                   product rows to 100% (training analytics, national survey
+ *                   system, research library render surface). Measured 28.92%,
+ *                   up from 28.17% on the same clean checkout. Rounded DOWN
+ *                   that is still 28, and arming 29 would be red on arrival by
+ *                   0.08 points (51 more covered lines), so the ratchet does
+ *                   not advance on this tranche. Recorded rather than skipped:
+ *                   a measurement that moved without moving the armed integer
+ *                   is still the evidence the next raise is argued from.
+ *   29  2026-07-31  raised after the tranche-4 glossary-admin drive. All six
+ *                   CF Pages Functions behind rrmacademy.org/glossary/ admin
+ *                   CRUD went 0 -> 100% lines: terms/index.js, terms/[id].js,
+ *                   refs/index.js, refs/[refnum].js, abbreviations/index.js,
+ *                   abbreviations/[abbr].js. 367 tests against a real SQLite
+ *                   engine loaded with the committed schema
+ *                   (test/_d1-sqlite.mjs), because the load-bearing behaviour
+ *                   is decided by the database: NOCASE primary keys and unique
+ *                   slugs turning duplicates into 409s, COALESCE(MAX(..))+1
+ *                   auto-numbering, and the abbreviation unlink that runs on a
+ *                   BINARY column under an explicit COLLATE. Measured 29.93%
+ *                   (19344/64640) on the branch before it was merged with main.
+ *                   Re-measured 29.78% (19268/64704) after merging main and
+ *                   adding the session/authorization guard pins; still rounds
+ *                   down to 29, so the floor does not move. The two numbers
+ *                   differ for two reasons, both accounted for below.
+ *   29  2026-07-31  UNCHANGED after the tranche-4 public-read drive: the
+ *                   public glossary build surface
+ *                   (functions/api/glossary/terms.js), /api/articles,
+ *                   /api/articles/bulk and the shared _map-article.js mapper,
+ *                   all 0 -> 100% lines. On its own branch this drive moved
+ *                   the aggregate 28.19 -> 28.99 (28.97 after merging main),
+ *                   a real +0.80pp, and it armed 28.9 to record a gain the
+ *                   integer scale cannot express. MERGED, THAT NUMBER DOES
+ *                   NOT APPLY: the glossary-admin tranche had already raised
+ *                   the floor to 29 and the merged tree measures well above
+ *                   it, so arming 28.9 here would move the ratchet DOWN. The
+ *                   floor stays 29 at this commit and is armed at the final
+ *                   merged measurement in the commit that closes the tranche.
+ *                   What IS adopted from this drive is the one-decimal scale
+ *                   itself, which that closing floor uses.
  *
- *                   Re-measured 28.97% after merging main, which had landed
- *                   functions/api/endo-quiz/download.js (45 PRODUCT-CODE
- *                   lines, no tests) WITHOUT regenerating this census -- so
- *                   main was red on its own gate until this merge fixed the
- *                   drift. 28.97 still rounds DOWN to 28.9, so the armed
- *                   number is unchanged and green.
+ *                   Its warning is kept because it generalizes: a change that
+ *                   ADDS product files without tests can push the aggregate
+ *                   under the floor even though no test was deleted. That is
+ *                   the ratchet working, not a bug -- fix it by testing the
+ *                   new surface, never by lowering this. The specific case it
+ *                   cited, endo-quiz/download.js landing uncovered and leaving
+ *                   main red on its own gate, was resolved by the tranche-4
+ *                   closes drive, which covered that file and regenerated the
+ *                   census; main is green as of this merge.
  *
- *                   That episode is exactly the thin-headroom failure this
- *                   floor was expected to catch (~0.07pp, ~45 lines): a change
- *                   that ADDS product files without tests can push the
- *                   aggregate under the floor even though no test was deleted.
- *                   That is the ratchet working, not a bug -- fix it by
- *                   testing the new surface, never by lowering this.
+ * MEASURE IN A CLEAN CHECKOUT, THE WAY CI DOES.
+ * `src/data/glossary.json` is GITIGNORED and is never present in CI (the
+ * workflow runs `npm ci` then `npm test`; there is no fetch-all step). The
+ * audit-glossary-links smoke test in test/glossary-link-classifier.test.js
+ * skips itself when that file is missing, and scripts/audit-glossary-links.mjs
+ * then measures 0/101 instead of 81/101. So a measurement taken in a working
+ * copy that has fetched data reads ~0.12 points HIGHER than the number the
+ * gate actually sees. Regenerate the census from a clean checkout, or the
+ * committed snapshot records coverage CI cannot reproduce.
+ *   with fetched glossary.json:    19349/64704 = 29.90%
+ *   clean checkout (what CI sees): 19268/64704 = 29.78%   <- the census below
+ * The rest is main's functions/api/endo-quiz/download.js (789d734d), which
+ * added 45 uncovered lines to the denominator, against +5 covered here.
  *
  * A REPO-WIDE FLOOR CAN HIDE A PRODUCT AT ZERO. That is what tranche 3 found:
  * this number was green at 26 while five separate product surfaces measured
@@ -84,7 +125,7 @@ const OUT = resolve(ROOT, 'scripts', 'quality', 'coverage-census.json');
  * particular surface is tested. Read the per-product view
  * (tools/coverage-portfolio/status.mjs) before concluding a product is covered.
  */
-const ARMED_FLOOR_PCT = 28.9;
+const ARMED_FLOOR_PCT = 29;
 
 const argv = process.argv.slice(2);
 const covDirIdx = argv.indexOf('--coverage-dir');
@@ -145,7 +186,13 @@ const byCategory = {};
 for (const cat of Object.keys(CATEGORIES)) {
   byCategory[cat] = agg(files.filter(f => f.category === cat));
 }
-const surveyAgg = agg(files.filter(f => f.file.startsWith('functions/api/survey/')));
+// The national survey system product is BOTH prefixes: the organic
+// /endo-survey/ flow under survey/ and the Google Ads landing flow under
+// endo-quiz/. Reporting only survey/ read 100% on 2026-07-29 while
+// endo-quiz/request.js sat at 0/224 inside the same product.
+const SURVEY_PRODUCT_PREFIXES = ['functions/api/survey/', 'functions/api/endo-quiz/'];
+const inSurveyProduct = (f) => SURVEY_PRODUCT_PREFIXES.some(p => f.file.startsWith(p));
+const surveyAgg = agg(files.filter(inSurveyProduct));
 const product = files.filter(f => f.category === 'PRODUCT-CODE');
 const productAgg = agg(product);
 const fullAgg = agg(files);
@@ -227,14 +274,22 @@ const census = {
     files_at_zero_in_full_report: files.filter(f => !f.present).length,
     files_executed_in_full_report: files.filter(f => f.present).length,
     highest_stakes_slice: {
-      slice: 'national survey intake/submit path (functions/api/survey/)',
-      files: files.filter(f => f.file.startsWith('functions/api/survey/')).map(f => `${f.file} ${f.covered}/${f.lines} (${f.pct}%)`),
-      state: `${surveyAgg.covered}/${surveyAgg.lines} lines (${surveyAgg.pct}%). Executed suites: test/survey-request.test.js, test/survey-submit.test.js, test/survey-endpoints.test.js. The two load-bearing invariants are asserted by running the handlers against SEPARATE fake databases: identity (email + rec_id) lands only in SURVEY_DB while symptoms land only in SURVEY_SYMPTOMS_DB with no address in the SQL or any bound value; and a failed symptom write deletes the D1 token claim and restores the original KV token record so the participant can resubmit.`,
+      slice: 'national survey system (functions/api/survey/ + functions/api/endo-quiz/)',
+      files: files.filter(inSurveyProduct).map(f => `${f.file} ${f.covered}/${f.lines} (${f.pct}%)`),
+      state: `${surveyAgg.covered}/${surveyAgg.lines} lines (${surveyAgg.pct}%). Executed suites: test/survey-request.test.js, test/survey-submit.test.js, test/survey-endpoints.test.js, test/endo-quiz-request.test.js, test/endo-quiz-download.test.js. The two load-bearing invariants are asserted by running the handlers against SEPARATE databases: identity (email + rec_id) lands only in SURVEY_DB while symptoms land only in SURVEY_SYMPTOMS_DB with no address in the SQL or any bound value; and a failed symptom write deletes the D1 token claim and restores the original KV token record so the participant can resubmit. The endo-quiz (Google Ads) half runs on real SQLite engines built from the committed rrm-survey-symptoms migration, and asserts the same split plus the asymmetry either side of it: a failed symptom write is a 500 with no identity row, a failed identity write still counts the submission and alerts an administrator by rec_id.`,
     },
   },
+  _line_exclusions: [
+    {
+      file: 'functions/api/admin/enrollments.js',
+      lines: 'the `if (!env.DB) return 503 Database unavailable` guard',
+      mechanism: 'c8 ignore start/stop in the source, next to the same explanation',
+      reason: 'UNREACHABLE, and kept as defence in depth rather than deleted. onRequestGet calls requireSuperAdmin(request, env.DB) first, and functions/api/auth/_shared.js answers `if (!db) return 500 Server misconfigured` before doing anything else, so control cannot arrive at the 503 with a falsy env.DB. Proven by execution in test/admin-enrollments.test.js ("500s when the DB binding is absent"), which asserts the 500 the endpoint actually produces; a test asserting 503 would have been asserting a response this endpoint cannot return, and reaching it would have required an env object that lies about its own bindings. Delete the ignore hints, not the guard, if requireSuperAdmin ever stops checking its db argument.',
+    },
+  ],
   _followup_estimate_hours: {
-    'PRODUCT-CODE functions/api (survey path + Stripe webhook cluster + identity path + training analytics + FABM quiz API DONE)': 'survey/ is at 100%; the billing webhook cluster is executed rather than grepped (test/_json-module-hook.mjs made the module graph importable); tranche 2 put the identity path (auth login/signup, community membership gate + roster, admin membership-report, donor rollups, webhook dedup) on a real SQLite engine loaded with the committed schema (test/_d1-sqlite.mjs); and tranche 3 did the same for the five PRODUCT surfaces that were sitting under a green repo-wide floor -- training analytics (courses/progress.js 100%, admin/enrollments.js 96.7%), the FABM quiz API (quiz/request.js, quiz/event.js, courses/quiz.js, courses/_quiz-content.js all 100%, on a SURVEY_DB harness built from the committed rrm-survey migrations), and library/deploy-record.js 100%. Remaining: ~120 endpoint files still absent from any test, 85-115h to ~80% lines. Next worst by CRAP: functions/api/billing/_webhook-subscription.js and functions/api/create-checkout.js',
-    'PRODUCT-CODE known gap: scripts/build-library-feed.mjs (0%, 75 lines)': 'The last zero in the library render surface. Its input and output paths are derived from import.meta.url (PROJECT_ROOT = the repo), not from cwd or argv, so it cannot be pointed at a fixture: running it under test either reads the real 32MB gitignored src/data/articles.json and rewrites public/library-feed.jsonl, or -- on a clean CI checkout where that file does not exist -- takes the existsSync early-exit and covers nothing. Covering it needs a production change (inject the two paths), which was judged out of scope for a test-only tranche. Sibling scripts/gates/verify-library-curation.mjs reads CWD-relative and is at 100% without any production change.',
+    'PRODUCT-CODE functions/api (survey path + Stripe webhook cluster + identity path + training analytics + FABM quiz API + endo-quiz DONE)': 'survey/ is at 100%; the billing webhook cluster is executed rather than grepped (test/_json-module-hook.mjs made the module graph importable); tranche 2 put the identity path (auth login/signup, community membership gate + roster, admin membership-report, donor rollups, webhook dedup) on a real SQLite engine loaded with the committed schema (test/_d1-sqlite.mjs); tranche 3 did the same for the five PRODUCT surfaces that were sitting under a green repo-wide floor -- training analytics (courses/progress.js 100%, admin/enrollments.js 96.7%), the FABM quiz API (quiz/request.js, quiz/event.js, courses/quiz.js, courses/_quiz-content.js all 100%, on a SURVEY_DB harness built from the committed rrm-survey migrations), and library/deploy-record.js 100%; and tranche 4 closed the endo-quiz half of the national survey system (request.js 0 -> 100% and download.js 0 -> 100%, on separate SURVEY_DB and SURVEY_SYMPTOMS_DB engines) plus the last two lines of admin/enrollments.js. Remaining: ~120 endpoint files still absent from any test, 85-115h to ~80% lines. Next worst by CRAP: functions/api/billing/_webhook-subscription.js and functions/api/create-checkout.js',
+    'PRODUCT-CODE CLOSED in tranche 4: scripts/build-library-feed.mjs (was 0%, 75 lines)': 'Was the last zero in the library render surface, and was recorded here as not coverable as written: both paths were resolved at module scope from import.meta.url, so importing it read the real 32MB gitignored src/data/articles.json and rewrote public/library-feed.jsonl, and on a clean CI checkout it took the existsSync early-exit and covered nothing. Closed 2026-07-31 by the smallest production change that removes the obstacle -- buildLibraryFeed({articlesPath, outPath, logger}) defaulting to the same two constants, main() for the CLI -- verified by rebuilding the real 4053-record feed and diffing it byte for byte against what main produced (identical, sha256 0edf193c193bafa9297abff7567ccf52fd22265ce1c639d0fbe0e795fd0fb4ae). Now 154/154 lines, 100% branches, with the CLI entry exercised as a real subprocess.',
     'PRODUCT-CODE scripts (gates, guards, fact pipeline, build chain)': '35-50h; start with guard.mjs + verify-citations.mjs + the fact-pipeline promote/extract pair (top CRAP offenders), pure-logic extraction first',
     'PRODUCT-CODE src/lib + src/scripts + src/integrations': '18-25h; fetchers have a dry-run mode that makes them testable without live endpoints',
     'CONTENT-TEMPLATE / E2E-DRIVER / ONE-OFF / GENERATED': '0h by design — wrong instrument; correctness held by builds, deploy-guard floors, and live runs',
