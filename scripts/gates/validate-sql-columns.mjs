@@ -45,7 +45,9 @@
  *  1. SQL that is not a static string: assembled across variables, or a
  *     template literal whose interpolation lands somewhere `?` cannot stand
  *     (a table name, a column list, an ORDER BY). Those are SKIPPED WITH A
- *     NAMED REASON and counted. `--verbose` lists every one.
+ *     NAMED REASON and counted. `--verbose` lists every one. Strings above
+ *     MAX_SQL_LEN are never shape-tested at all; they are skipped as
+ *     `oversized` so the drop is a counted line rather than an invisible one.
  *  2. Databases other than rrm-auth. schema.sql mirrors rrm-auth only, so
  *     statements attributed to rrm-library / rrm-survey / rrm-survey-symptoms /
  *     rrm-analytics are skipped by name, not silently.
@@ -66,8 +68,10 @@
  * Gates:
  *   SQ1  The composed schema loaded: sentinel tables present, table-count floor.
  *   SQ2  Every attributed, preparable statement PREPAREs against rrm-auth.
- *        A "no such column" / "no such table" is a FAILURE. Anything else is a
- *        counted skip.
+ *        The four identifier-resolution errors SQLite raises at prepare time -
+ *        "no such column", "no such table", "table X has no column named Y"
+ *        (the INSERT/REPLACE column-list wording) and "ambiguous column name" -
+ *        are FAILURES. Anything else is a counted skip. See FINDING_PATTERNS.
  *   SQ3  Coverage meta-assertion: prepared-statement count >= floor, and the
  *        skip breakdown is reported.
  *
@@ -143,10 +147,27 @@ export const MIN_TABLES = 75;
 
 /**
  * Floor on statements actually PREPARED (not skipped) in a full-repo run.
- * Measured 2026-07-31: 668. Armed below the measurement, as the house ratchet
- * rule requires; raise it after a run that legitimately increases coverage.
+ *
+ * Measured 2026-07-31: 777 prepared out of 861 SQL strings seen, across 153
+ * contributing files. (An earlier revision of this comment said 668; that
+ * number was wrong, and since the comment is the whole justification for the
+ * floor, it made the floor look far tighter than it was.)
+ *
+ * HEADROOM. This is an anti-vacuity assertion: its only job is to notice that
+ * the extractor or the attribution quietly stopped covering things. A floor of
+ * 600 against a real 777 tolerated a 177-statement, 23% silent collapse before
+ * saying a word, which is most of a broken extractor. 750 leaves 27 statements
+ * of slack. That is sized off the measured distribution, not a round number:
+ * the single most SQL-dense file in the repo contributes 24 prepared statements
+ * (scripts/fix-crm-typo-emails.mjs), so deleting the heaviest file in one PR
+ * still clears the floor, while every extractor/attribution regression this
+ * gate is meant to catch drops statements by the dozen or the hundred and trips
+ * immediately.
+ *
+ * Ratchet: raise it after any run that legitimately increases coverage. Never
+ * lower it to make a red run green - a drop is the finding.
  */
-export const MIN_PREPARED = 600;
+export const MIN_PREPARED = 750;
 
 /**
  * Splits SQL into statements, respecting `--` line comments, `/* *\/` block
@@ -267,8 +288,29 @@ const SQL_SHAPES = [
   /^\s*WITH\b[\s\S]*\bAS\s*\(/i,
 ];
 
+/**
+ * Ceiling on the string length this gate will shape-test. Nothing in the repo
+ * needs 20k characters of SQL; what actually lives up there is embedded binary.
+ * Exactly one oversized string exists in the tree as of 2026-07-31: the
+ * 91,727-char base64 JPEG in functions/og/_cuterus-image.js.
+ *
+ * The limit stays, but the drop is now RECORDED as an `oversized` skip.
+ * Silently discarding input is the exact failure mode this gate is built to
+ * refuse: an uncounted skip is indistinguishable from a check that passed.
+ *
+ * The count is 0 today, and that is not a contradiction. _cuterus-image.js
+ * contains no SELECT/INSERT/UPDATE/DELETE/REPLACE/WITH token anywhere, so
+ * scan()'s file-level prefilter never opens it and the string never reaches
+ * extraction. The prefilter is a sound absence proof - every SQL statement this
+ * gate recognises must contain one of those keywords - so it is not the same
+ * kind of silent drop. The skip record covers the reachable case: an oversized
+ * string sharing a file with real SQL, where today the gate would have dropped
+ * it with nothing written down.
+ */
+export const MAX_SQL_LEN = 20000;
+
 export function looksLikeSql(text) {
-  if (text.length > 20000) return false;
+  if (text.length > MAX_SQL_LEN) return false;
   const bare = stripComments(text);
   return SQL_SHAPES.some((re) => re.test(bare));
 }
@@ -420,7 +462,24 @@ export function extractSql(src, relPath) {
     if (consumed.has(n)) return;
     const isConcat = n.type === 'BinaryExpression' && n.operator === '+';
     const sql = isConcat ? foldConcat(n) : nodeToSql(n);
-    if (!sql || !looksLikeSql(sql.text)) return;
+    if (!sql) return;
+    // Over the shape-test ceiling: emit a statement carrying `oversized` so
+    // scan() turns it into a counted skip. The text is truncated so --verbose
+    // and --json stay readable; nothing downstream parses it.
+    if (sql.text.length > MAX_SQL_LEN) {
+      if (isConcat) walk(n, (child) => consumed.add(child));
+      statements.push({
+        file: relPath,
+        line: n.loc.start.line,
+        text: `${sql.text.slice(0, 120)}...`,
+        interpolations: sql.interpolations,
+        receiver: null,
+        explicitDb: null,
+        oversized: sql.text.length,
+      });
+      return;
+    }
+    if (!looksLikeSql(sql.text)) return;
     if (isConcat) walk(n, (child) => consumed.add(child));
     statements.push({
       file: relPath,
@@ -521,12 +580,82 @@ export function substituteInterpolations(text) {
   return text.split(INTERP).join('?');
 }
 
-const MISSING_RE = /no such (column|table)\s*:\s*([^\s]+)/i;
+/**
+ * SQLite's identifier-resolution failures, in the exact wordings it emits.
+ * Each one is a HARD THROW AT PREPARE TIME: the statement can never run, so
+ * every instance is a guaranteed 500 on its first caller. That, not the
+ * wording, is what makes them findings rather than skips.
+ *
+ * Getting this list complete matters more than it looks. SQLite does not use
+ * one phrase. An INSERT or REPLACE with an explicit column list reports
+ * "table enrollment has no column named bogus" - it names neither "no such
+ * column" nor "no such table" - so the original single-pattern MISSING_RE
+ * downgraded it to an unpreparable skip. The gate caught the defect on SELECT,
+ * UPDATE and DELETE and missed it on INSERT: a hole precisely where writes
+ * happen, and precisely the shape of the step_progress bug that motivated the
+ * gate. Verified against node:sqlite 2026-07-31:
+ *
+ *   SELECT bogus FROM enrollment                     -> no such column: bogus
+ *   UPDATE enrollment SET bogus = ?                  -> no such column: bogus
+ *   DELETE FROM enrollment WHERE bogus = ?           -> no such column: bogus
+ *   ... ON CONFLICT DO UPDATE SET bogus = ?          -> no such column: bogus
+ *   INSERT INTO enrollment (bogus) VALUES (?)        -> table enrollment has no column named bogus
+ *   REPLACE INTO enrollment (bogus) VALUES (?)       -> table enrollment has no column named bogus
+ *   SELECT 1 FROM nope                               -> no such table: nope
+ *   SELECT user_id FROM enrollment JOIN step_progress ON ...
+ *                                                    -> ambiguous column name: user_id
+ *
+ * `table` is filled in only where SQLite hands it to us (the INSERT wording);
+ * the others do not name a table and it stays null rather than being guessed.
+ *
+ * DELIBERATELY NOT PROMOTED: "N values for M columns" (INSERT arity). It is a
+ * real prepare-time throw, but `?` substitution collapses a spread placeholder
+ * list into a single `?`, so it fires on correct code - two live instances in
+ * scripts/migrate-courses-to-d1.mjs. Promoting it would trade a true-negative
+ * hole for false positives on working code. It stays a counted skip.
+ */
+export const FINDING_PATTERNS = [
+  {
+    // "no such column: x" / "no such table: main.x"
+    re: /no such (column|table)\s*:\s*(\S+)/i,
+    read: (m) => ({ kind: m[1].toLowerCase(), identifier: m[2], table: null }),
+  },
+  {
+    // INSERT/REPLACE with an explicit column list.
+    re: /table\s+(\S+)\s+has no column named\s+(\S+)/i,
+    read: (m) => ({ kind: 'column', identifier: m[2], table: m[1] }),
+  },
+  {
+    // A JOIN naming a column that resolves in more than one of its tables.
+    re: /ambiguous column name\s*:\s*(\S+)/i,
+    read: (m) => ({ kind: 'ambiguous-column', identifier: m[1], table: null }),
+  },
+];
+
+/** Trims the punctuation SQLite sometimes trails on an identifier. */
+function cleanIdent(s) {
+  return String(s).replace(/[.,;:'"`)]+$/, '');
+}
+
+/**
+ * One line of human-readable finding text, shared by the console report, the
+ * JSON output and the tests so they can never describe a finding differently.
+ * Names the table whenever SQLite told us which one.
+ */
+export function describeFinding(f) {
+  if (f.kind === 'ambiguous-column') {
+    return `ambiguous column name: ${f.identifier}${f.table ? ` (table ${f.table})` : ''} - resolves in more than one table of this statement`;
+  }
+  if (f.kind === 'column' && f.table) {
+    return `no such column: ${f.identifier} (table ${f.table} has no column named ${f.identifier})`;
+  }
+  return `no such ${f.kind}: ${f.identifier}`;
+}
 
 /**
  * PREPAREs one statement. Returns
- *   { status: 'checked' }                       - it prepared
- *   { status: 'finding', kind, identifier, message }
+ *   { status: 'checked' }                              - it prepared
+ *   { status: 'finding', kind, identifier, table, message }
  *   { status: 'skipped', reason }
  */
 export function checkStatement(db, stmt) {
@@ -539,9 +668,11 @@ export function checkStatement(db, stmt) {
     return { status: 'checked' };
   } catch (err) {
     const message = String(err.message || err);
-    const m = MISSING_RE.exec(message);
-    if (m) {
-      return { status: 'finding', kind: m[1].toLowerCase(), identifier: m[2].replace(/[.;]$/, ''), message };
+    for (const pattern of FINDING_PATTERNS) {
+      const m = pattern.re.exec(message);
+      if (!m) continue;
+      const { kind, identifier, table } = pattern.read(m);
+      return { status: 'finding', kind, identifier: cleanIdent(identifier), table: table ? cleanIdent(table) : null, message };
     }
     if (stmt.interpolations > 0) {
       return { status: 'skipped', reason: `interpolated (unpreparable after placeholder substitution: ${message})` };
@@ -623,6 +754,10 @@ export function scan({ root = PROJECT_ROOT, quick = false, files = null } = {}) 
 
     for (const stmt of statements) {
       statementsSeen++;
+      if (stmt.oversized) {
+        skips.push({ ...stmt, reason: `oversized (${stmt.oversized}-char string, above the ${MAX_SQL_LEN}-char limit; never shape-tested for SQL)` });
+        continue;
+      }
       const target = attributeDatabase(stmt, ctx);
       if (!target.db) {
         skips.push({ ...stmt, reason: target.reason });
@@ -640,6 +775,7 @@ export function scan({ root = PROJECT_ROOT, quick = false, files = null } = {}) 
         line: stmt.line,
         kind: result.kind,
         identifier: result.identifier,
+        table: result.table,
         message: result.message,
         sql: displaySql(stmt.text).slice(0, 200),
       });
@@ -689,7 +825,7 @@ export function runGates(result, { quick = false } = {}) {
     sq2.push(pass(`${result.checked} statement(s) prepared against ${AUTH_DB}; 0 named a nonexistent column or table`));
   } else {
     for (const f of result.findings) {
-      sq2.push(fail(`${f.file}:${f.line} no such ${f.kind}: ${f.identifier}\n${f.sql}`));
+      sq2.push(fail(`${f.file}:${f.line} ${describeFinding(f)}\n${f.sql}`));
     }
   }
   gates.push({ id: 'SQ2', name: `Every static ${AUTH_DB} statement PREPAREs`, items: sq2 });
