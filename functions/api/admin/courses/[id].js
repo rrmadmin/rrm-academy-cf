@@ -361,7 +361,12 @@ export async function onRequestDelete(context) {
       { results: waitlistRows },
     ] = await Promise.all([
       env.DB.prepare('SELECT id FROM enrollment WHERE course_id = ? LIMIT 1').bind(id).all(),
-      env.DB.prepare('SELECT id FROM step_progress WHERE course_id = ? LIMIT 1').bind(id).all(),
+      // step_progress has no `id` column: its primary key is the composite
+      // (user_id, course_id, step_id). Selecting `id` here made SQLite reject
+      // the statement at prepare time, which rejected the whole Promise.all
+      // and sent EVERY course DELETE into the outer catch as a 500 -- the
+      // reference guard below never ran and no course could be deleted at all.
+      env.DB.prepare('SELECT user_id FROM step_progress WHERE course_id = ? LIMIT 1').bind(id).all(),
       env.DB.prepare('SELECT id FROM quiz_response WHERE course_id = ? LIMIT 1').bind(id).all(),
       env.DB.prepare('SELECT id FROM lesson_comment WHERE course_id = ? LIMIT 1').bind(id).all(),
       env.DB.prepare('SELECT user_id FROM affiliate_clicks WHERE course_id = ? LIMIT 1').bind(id).all(),

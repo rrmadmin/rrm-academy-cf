@@ -83,6 +83,7 @@ export const POST_SNAPSHOT_MIGRATIONS = [
   '2026-05-27-community-post-speaker.sql',
   '2026-06-20-email-verification-token.sql',
   '2026-06-28-email-event.sql',
+  '2026-07-01-course-topics-json.sql',
 ];
 
 /**
