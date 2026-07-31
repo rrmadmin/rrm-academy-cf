@@ -111,6 +111,7 @@ const PAGE_URL = 'https://rrmacademy.org/endo-quiz/results/';
       const btn = document.getElementById('rz-pdf-download');
       if (!btn) return;
       const msg = document.getElementById('rz-pdf-msg');
+      let conversionSent = false;
 
       btn.addEventListener('click', async function () {
         btn.disabled = true;
@@ -119,6 +120,14 @@ const PAGE_URL = 'https://rrmacademy.org/endo-quiz/results/';
 
         try {
           await generateEndoQuizSummaryPdf(handoff, { TIER1: TIER1, TIER2: TIER2, TIER3: TIER3 });
+          // Taking the summary is a completed action for ad-recruited visitors, most of
+          // whom never reach the email gate below. Fires only after the PDF actually
+          // generates. The endpoint no-ops without a gclid cookie, and the conversion
+          // action is ONE_PER_CLICK, so a repeat click cannot double-count.
+          if (!conversionSent) {
+            conversionSent = true;
+            fetch('/api/endo-quiz/download', { method: 'POST', keepalive: true }).catch(function () {});
+          }
         } catch (e) {
           if (msg) msg.textContent = 'We could not generate your PDF. Please try again.';
         }
