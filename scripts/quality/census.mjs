@@ -434,6 +434,35 @@ const OUT = resolve(ROOT, 'scripts', 'quality', 'coverage-census.json');
  *                   and must never be re-armed, because every one of them was
  *                   measured over a denominator that counted 5202 generated
  *                   lines as covered.
+ * 37.3 2026-07-31  RAISED by the admin course-structure drive: the nested
+ *                   section/step/rendition/attachment tree under
+ *                   /api/admin/courses/<id>. Six files, 1646 lines, all to
+ *                   100% lines. Three of them (steps.js, sections.js,
+ *                   attachments.js) were ABSENT from the report entirely --
+ *                   never imported by any test, which reads as 0 but is not
+ *                   the same thing.
+ *
+ *                   Engine-backed, because the load-bearing claims here are
+ *                   database claims: COALESCE(MAX(sort_order),-1)+1 appending
+ *                   without a gap, PRIMARY KEY conflicts becoming 409s, the
+ *                   ON CONFLICT(step_id, format) upsert actually conflicting,
+ *                   and json_insert/json_group_array rewriting attachments_json
+ *                   in place. A substring-matching mock returns whatever it was
+ *                   handed and proves none of it.
+ *
+ *                   Two findings are pinned as tests rather than argued: the
+ *                   reorder endpoints accept a DUPLICATED id (order.length
+ *                   still equals the section's step count, so both guards
+ *                   pass) and leave two rows sharing a sort_order; and a
+ *                   section DELETE that is refused by the TOCTOU guard has
+ *                   already deleted the unreferenced steps in the same batch.
+ *
+ *                   Measured 37.39% on a clean checkout of this branch, with
+ *                   the gitignored src/data/*.json absent, the way CI
+ *                   measures. Rounded DOWN on the one-decimal scale. This
+ *                   entry is itself measured: census.mjs is PRODUCT-CODE at 0%
+ *                   covered, so the lines above enlarge the denominator they
+ *                   report on.
  *
  * MEASURE IN A CLEAN CHECKOUT, THE WAY CI DOES.
  * `src/data/glossary.json` is GITIGNORED and is never present in CI (the
@@ -455,7 +484,7 @@ const OUT = resolve(ROOT, 'scripts', 'quality', 'coverage-census.json');
  * particular surface is tested. Read the per-product view
  * (tools/coverage-portfolio/status.mjs) before concluding a product is covered.
  */
-const ARMED_FLOOR_PCT = 35.4;
+const ARMED_FLOOR_PCT = 37.3;
 
 const argv = process.argv.slice(2);
 const covDirIdx = argv.indexOf('--coverage-dir');
