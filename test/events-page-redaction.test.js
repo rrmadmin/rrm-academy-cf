@@ -9,20 +9,36 @@
  * WHY THE REDACTION IS THE POINT
  * ------------------------------
  * The page's own header states the requirement: joining info "MUST NOT appear
- * in body, og:description, or JSON-LD". It is enforced by ELEVEN regexes over
- * free text a human typed into an admin form. Regex-allowlist redaction is
- * silent on any format its author did not anticipate: nothing throws, nothing
- * logs, the page renders 200, and the credential is simply there. So this suite
- * does two separate jobs, and keeps them separate on purpose:
+ * in body, og:description, or JSON-LD". It is enforced by a denylist over free
+ * text a human typed into an admin form. Denylist redaction is silent on any
+ * format its author did not anticipate: nothing throws, nothing logs, the page
+ * renders 200, and the credential is simply there. So this suite does two
+ * separate jobs, and keeps them separate on purpose:
  *
- *   1. PROVE each pattern redacts what it claims (describe block A). Each case
- *      is shaped so ONLY the pattern under test can match it, so deleting that
- *      one regex turns exactly one test red.
- *   2. HUNT for formats the patterns miss (describe block B), and report what
- *      is found HONESTLY. The leak assertions below assert that the credential
- *      IS present, because that is what the deployed code does today. They are
+ *   1. PROVE the scrubber redacts what it claims (describe blocks A and A2).
+ *   2. HUNT for formats it still misses (describe block B), and report what is
+ *      found HONESTLY. The leak assertions there assert that the credential IS
+ *      present, because that is what the deployed code does today. They are
  *      findings written as executable evidence, not endorsements. Each one says
  *      in its failure message what to do when it goes green.
+ *
+ * THE OTHER HALF OF THE CONTRACT LIVES IN ANOTHER FILE
+ * ----------------------------------------------------
+ * Every assertion here pushes in one direction: redact more. Pushed alone it
+ * produces a scrubber that deletes clinical prose, which is exactly how the
+ * first attempt at widening this redaction was rejected -- it scrubbed the talk
+ * title "Teams-Based Care in RRM" to the empty string. The counterweight is
+ * test/events-page-over-redaction.test.js, and a change to the scrubber is only
+ * finished when BOTH files are green.
+ *
+ * THE RULE THE SCRUBBER NOW FOLLOWS
+ * ---------------------------------
+ * A LABEL ALONE IS NOT A CREDENTIAL. A label is removed only when followed by a
+ * CREDENTIAL-SHAPED VALUE -- a URL, a tel: URI, or a digit run long enough to
+ * be a PIN or a phone number. Image srcs are judged on the parsed HOST only,
+ * never on a path or a filename. Cases below are written against that rule, so
+ * a case that asserts "X is redacted" should also make clear WHICH half of the
+ * rule earned the redaction.
  *
  * WHY EACH SINK IS ASSERTED SEPARATELY
  * ------------------------------------
@@ -39,33 +55,38 @@
  * real `session` table, resolved by the canonical requireMember(). Stubbing it
  * would produce 100% coverage of a gate nobody tested. See _event-page-fixtures.mjs.
  *
- * COVERAGE, AND THE FOUR BRANCHES THAT ARE NOT REACHABLE FROM onRequestGet
- * ------------------------------------------------------------------------
- * Both files reach 100% lines / 100% statements / 100% functions. Four DEFENSIVE
- * branches remain uncovered, and each is unreachable through the module's only
- * entry point rather than merely untested. The claim is not an argument: each
- * fallback was replaced by `throw` and this whole file re-run; all tests still
- * passed, so none of the four fires. The static reason in each case:
+ * COVERAGE, AND THE DEFENSIVE BRANCHES NOT REACHABLE FROM onRequestGet
+ * --------------------------------------------------------------------
+ * Both files reach 100% lines / 100% statements / 100% functions across this
+ * file plus events-page-over-redaction.test.js. A handful of DEFENSIVE branches
+ * remain uncovered, and each is unreachable through the module's only entry
+ * point rather than merely untested:
  *
- *   [slug].js:20   escapeHtml's `s == null` guard. All 22 call sites pass either
- *                  a locally-computed string (title/description/canonical/ogImage,
- *                  each with its own `||` fallback) or a value already guarded by
- *                  a truthiness test in the same expression (speaker, cta.note,
- *                  cta.secondaryLabel, the flyer src, gcalUrl).
- *   [slug].js:220-223  buildGoogleCalUrl's `title || ...`, `details || ''`,
- *                  `location || ''`. Its single call site (line 265) passes
- *                  `title` (already defaulted), `calDescription` (a template
- *                  literal with a constant prefix) and `eventsUrl` (a template
- *                  literal on SITE_ORIGIN) -- none can be falsy.
- *   [slug].js:227  icsEscape's `s == null` ternary. Its six call sites are all
- *                  inside buildICS, whose single call site (line 578) supplies
- *                  seven non-null values, `title` via its own `||` fallback.
- *   [slug].js:307  `.chunks || []` and the `memberSummary` falsy arm. summarize()
- *                  returns `chunks` on both of its return paths, and renderHtml's
- *                  single call site (line 599) always passes memberSummary.
+ *   escapeHtml's `s == null` guard. Every call site passes either a
+ *   locally-computed string (title/description/canonical/ogImage, each with its
+ *   own `||` fallback) or a value already guarded by a truthiness test in the
+ *   same expression (speaker, cta.note, cta.secondaryLabel, the flyer src).
  *
- * They are left in place: they are cheap, and the first three would become live
- * the moment renderHtml or buildICS gained a second call site.
+ *   buildGoogleCalUrl's `title || ...`, `details || ''`, `location || ''`. Its
+ *   single call site passes `title` (already defaulted through safeTitle),
+ *   `calDescription` and `eventsUrl` (template literals with constant
+ *   prefixes) -- none can be falsy.
+ *
+ *   icsEscape's `s == null` ternary. Its six call sites are all inside
+ *   buildICS, whose single call site supplies seven non-null values.
+ *
+ *   `.chunks || []` and the `memberSummary` falsy arm in renderHtml.
+ *   summarize() returns `chunks` on both of its return paths, and renderHtml's
+ *   single call site always passes memberSummary.
+ *
+ *   isConferencingHost's `hostname || ''` / `pathname || ''`, and
+ *   redactLabelledCredential's `.match(/\d/g) || []`. A hostname and a pathname
+ *   always come from a successfully-constructed URL, and the digit count is
+ *   only reached on a match that the NUM_VALUE alternative produced, which
+ *   cannot be digit-free.
+ *
+ * They are left in place: they are cheap, and several would become live the
+ * moment renderHtml, buildICS or the scrubber gained a second call site.
  */
 import { describe, it } from 'node:test';
 import assert from 'node:assert/strict';
@@ -74,6 +95,7 @@ import {
   FUTURE_DATE, PAST_DATE, SESSION_COOKIE,
 } from './_event-page-fixtures.mjs';
 import { TRACKING_HEAD, TRACKING_BODY } from '../functions/events/_tracking.js';
+import { scrubJoinInfo } from '../functions/events/[slug].js';
 import { readFileSync } from 'node:fs';
 
 /**
@@ -92,18 +114,18 @@ function leakingSinks(s, needle) {
 }
 
 // =====================================================================
-// A. The eleven patterns: prove each redacts what it claims
+// A. The original label + host vocabulary: prove each still redacts
 // =====================================================================
 
 /**
- * JOIN_INFO_PATTERNS has nine entries; scrubJoinInfo then runs two further
- * inline .replace() calls for "leftover bare meet URLs" -- eleven redactions in
- * total. Each case below is written so no OTHER pattern can claim it:
- *   - the label cases use a host that is not meet.google.com / tel.meet, so
- *     patterns 7, 8, 10 and 11 cannot fire;
- *   - the host cases carry no scheme, so patterns 10 and 11 cannot fire;
- *   - no label case reuses another label's keyword.
- * Deleting any single regex from the source therefore reddens exactly one test.
+ * These are the shapes the ORIGINAL nine-regex scrubber covered. They are kept
+ * verbatim so the rewrite is provably a superset of what shipped, not a
+ * replacement that traded one set of misses for another.
+ *
+ * Each case is written so no other rule can claim it:
+ *   - the label cases use a host that is not a conferencing host, so the
+ *     host rules cannot fire and only the label+value rule can;
+ *   - the host cases carry no label, so only the host rules can fire.
  */
 const PATTERN_CASES = [
   { n: 1, name: 'Meet link:', line: 'Meet link: https://video.example/room-p1a', needle: 'room-p1a' },
@@ -122,9 +144,9 @@ const PATTERN_CASES = [
   { n: 9, name: 'tel: URI at line start', line: 'tel:+15550105555', needle: '15550105555' },
 ];
 
-describe('scrubJoinInfo -- pattern by pattern, on a page a non-member is looking at', () => {
+describe('scrubJoinInfo -- shape by shape, on a page a non-member is looking at', () => {
   for (const { n, name, line, needle } of PATTERN_CASES) {
-    it(`pattern ${n} redacts "${name}" from every sink`, async () => {
+    it(`shape ${n} redacts "${name}" from every sink`, async () => {
       const rendered = await renderEvent({
         viewer: 'anonymous',
         post: { content: contentAround(line) },
@@ -133,7 +155,7 @@ describe('scrubJoinInfo -- pattern by pattern, on a page a non-member is looking
       assert.equal(rendered.response.status, 200);
       assert.deepEqual(
         leakingSinks(rendered, needle), [],
-        `pattern ${n} ("${name}") did not redact ${JSON.stringify(needle)}; `
+        `shape ${n} ("${name}") did not redact ${JSON.stringify(needle)}; `
         + 'a member-only joining credential reached a public page'
       );
       // Not-present is only meaningful if the page rendered prose at all.
@@ -224,131 +246,186 @@ describe('scrubJoinInfo -- pattern by pattern, on a page a non-member is looking
     }
   });
 
-  it('patterns 10 and 11 are unreachable: 7 and 8 delete the whole line first', async () => {
-    // scrubJoinInfo's two trailing .replace() calls say they "catch any leftover
-    // bare meet URLs that weren't on their own line". They cannot: patterns 7
-    // and 8 (`^.*meet\.google\.com.*$` / `^.*tel\.meet.*$`, /gim) already delete
-    // EVERY line containing those hosts, so no leftover exists to catch. The
-    // observable fingerprint is that the surrounding sentence disappears too --
-    // if pattern 10 were doing the work, only the URL would be gone.
+  it('removes the URL SPAN, not the whole line it sits on', async () => {
+    // This is the behaviour change the rewrite makes most visible. The old
+    // `^.*meet\.google\.com.*$` deleted every line containing the host, taking
+    // the author's sentence with it; a reader saw a hole where an explanation
+    // should be. The span-scoped rules leave the sentence and remove the URL.
     const meet = await renderEvent({
       viewer: 'anonymous',
       post: { content: 'Title chunk.\n\nWe will use https://meet.google.com/qqq-wwww-eee for this session.' },
     });
-    assert.equal(meet.body, null,
-      'pattern 7 no longer removes the whole line; if only the URL is gone, pattern 10 is now live '
-      + 'and this test should be rewritten rather than deleted');
+    assert.equal(meet.body, '<p>We will use  for this session.</p>',
+      'the surrounding sentence should survive with only the URL removed');
+    assert.deepEqual(leakingSinks(meet, 'qqq-wwww-eee'), []);
 
     const tel = await renderEvent({
       viewer: 'anonymous',
-      post: { content: 'Title chunk.\n\nCall https://tel.meet/rrr-tttt-yyy to join by voice.' },
+      // Deliberately label-free ("use", not "call"), so the host rule is what
+      // fires and the assertion is about the span, not about the label rule.
+      post: { content: 'Title chunk.\n\nPlease use https://tel.meet/rrr-tttt-yyy to join by voice.' },
     });
-    assert.equal(tel.body, null, 'pattern 8 no longer removes the whole line');
+    assert.equal(tel.body, '<p>Please use  to join by voice.</p>');
+    assert.deepEqual(leakingSinks(tel, 'rrr-tttt-yyy'), []);
   });
 });
 
 // =====================================================================
-// B. The leak hunt -- findings, written as executable evidence
+// A2. The findings that WERE leaks, now closed
 // =====================================================================
 
 /**
- * Every case below reached a PUBLIC sink on a page an anonymous visitor sees.
- * They are grouped by the shape of the miss so the fix can be reasoned about as
- * classes rather than as a list of one-off regexes.
- *
- * These assertions are deliberately positive ("it leaked"). When the redaction
- * is fixed they go red, which is the point: the fixer is told, by name, which
- * finding they closed, and moves the case up into block A.
+ * Every case below used to reach all five PUBLIC sinks on a page an anonymous
+ * visitor sees. Each was written as a positive "it leaked" assertion against
+ * the deployed code, and each has been flipped here now that it is closed. The
+ * finding id is kept so the history stays traceable, and `by` names WHICH half
+ * of the label-plus-value rule earns the redaction -- because a case that is
+ * redacted for the wrong reason is a case that will over-redact later.
  */
-const KNOWN_LEAKS = [
-  // --- class 1: labels no pattern covers -------------------------------
-  { id: 'EV-L1', why: 'label "Meeting link:" is not in the allowlist', line: 'Meeting link: https://video.example/leak-mtglink', needle: 'leak-mtglink' },
-  { id: 'EV-L2', why: 'label "Video call:" is not in the allowlist', line: 'Video call: https://video.example/leak-videocall', needle: 'leak-videocall' },
-  { id: 'EV-L3', why: 'label "Zoom:" is not in the allowlist', line: 'Zoom: https://zoom.example/j/leak-zoom', needle: 'leak-zoom' },
-  { id: 'EV-L4', why: 'label "Teams:" is not in the allowlist', line: 'Teams: https://teams.example/l/leak-teams', needle: 'leak-teams' },
-  { id: 'EV-L5', why: 'label "Join here:" is not in the allowlist', line: 'Join here: https://video.example/leak-joinhere', needle: 'leak-joinhere' },
-  { id: 'EV-L6', why: 'label "Conference line:" is not in the allowlist', line: 'Conference line: +1 555-020-1111', needle: '555-020-1111' },
-  { id: 'EV-L7', why: 'label "Room:" is not in the allowlist', line: 'Room: 555 020 2222', needle: '555 020 2222' },
-  { id: 'EV-L8', why: 'PIN synonym "Passcode:" is not in the allowlist', line: 'Passcode: 987654', needle: '987654' },
-  { id: 'EV-L9', why: 'PIN synonym "Access code:" is not in the allowlist', line: 'Access code: 987655', needle: '987655' },
-  { id: 'EV-L10', why: 'PIN synonym "Meeting ID:" is not in the allowlist', line: 'Meeting ID: 987 6543 210', needle: '987 6543 210' },
+const FIXED_LEAKS = [
+  // --- was class 1: labels no pattern covered ---------------------------
+  { id: 'EV-L1', by: 'label "Meeting link" + a URL', line: 'Meeting link: https://video.example/leak-mtglink', needle: 'leak-mtglink' },
+  { id: 'EV-L2', by: 'label "Video call" + a URL', line: 'Video call: https://video.example/leak-videocall', needle: 'leak-videocall' },
+  { id: 'EV-L3', by: 'label "Zoom" + a URL', line: 'Zoom: https://zoom.example/j/leak-zoom', needle: 'leak-zoom' },
+  { id: 'EV-L4', by: 'label "Teams" + a URL', line: 'Teams: https://teams.example/l/leak-teams', needle: 'leak-teams' },
+  { id: 'EV-L5', by: 'label "Join here" + a URL', line: 'Join here: https://video.example/leak-joinhere', needle: 'leak-joinhere' },
+  { id: 'EV-L6', by: 'label "Conference line" + 11 digits', line: 'Conference line: +1 555-020-1111', needle: '555-020-1111' },
+  { id: 'EV-L7', by: 'weak label "Room" + 10 digits, over the weak floor', line: 'Room: 555 020 2222', needle: '555 020 2222' },
+  { id: 'EV-L8', by: 'strong label "Passcode" + 6 digits', line: 'Passcode: 987654', needle: '987654' },
+  { id: 'EV-L9', by: 'strong label "Access code" + 6 digits', line: 'Access code: 987655', needle: '987655' },
+  { id: 'EV-L10', by: 'strong label "Meeting ID" + 10 digits', line: 'Meeting ID: 987 6543 210', needle: '987 6543 210' },
 
-  // --- class 2: the ^ anchor ------------------------------------------
-  { id: 'EV-A1', why: 'an allowlisted label mid-line escapes the ^ anchor', line: 'Everything you need follows. PIN: 445566', needle: '445566' },
-  { id: 'EV-A2', why: 'a tel: URI mid-sentence escapes the ^ anchor', line: 'You can dial tel:+15550207777 from any phone.', needle: '15550207777' },
+  // --- was class 2: the ^ anchor ---------------------------------------
+  { id: 'EV-A1', by: 'the label rule is no longer line-anchored', line: 'Everything you need follows. PIN: 445566', needle: '445566' },
+  { id: 'EV-A2', by: 'label "dial" + a tel: URI, mid-sentence', line: 'You can dial tel:+15550207777 from any phone.', needle: '15550207777' },
 
-  // --- class 3: an unlabelled number ------------------------------------
-  { id: 'EV-N1', why: 'a bare dial-in number carries no label to match', line: 'Call 5550208888 to join by voice.', needle: '5550208888' },
+  // --- was class 3: an unlabelled number --------------------------------
+  { id: 'EV-N1', by: 'weak label "Call" + 10 digits', line: 'Call 5550208888 to join by voice.', needle: '5550208888' },
 
-  // --- class 4: the literal host string ---------------------------------
-  { id: 'EV-H1', why: 'a Google Meet nickname link is on a different host (g.co)', line: 'Join at https://g.co/meet/rrm-weekly-call today.', needle: 'rrm-weekly-call' },
-  { id: 'EV-H2', why: 'a zero-width space inside the host defeats the literal match', line: 'Join at https://meet.goo​gle.com/zwj-aaaa-bbb today.', needle: 'zwj-aaaa-bbb' },
+  // --- was class 4: the literal host string -----------------------------
+  { id: 'EV-H1', by: 'g.co/meet is a Meet room; the host rule parses the URL', line: 'Join at https://g.co/meet/rrm-weekly-call today.', needle: 'rrm-weekly-call' },
+  { id: 'EV-H2', by: 'zero-width characters are stripped before matching', line: 'Join at https://meet.goo​gle.com/zwj-aaaa-bbb today.', needle: 'zwj-aaaa-bbb' },
 ];
 
-describe('scrubJoinInfo -- the leak hunt (each of these is a production finding)', () => {
-  for (const { id, why, line, needle } of KNOWN_LEAKS) {
-    it(`LEAKS ${id}: ${why}`, async () => {
+describe('the leak hunt, closed: each of these used to reach every public sink', () => {
+  for (const { id, by, line, needle } of FIXED_LEAKS) {
+    it(`${id} is redacted (${by})`, async () => {
       const rendered = await renderEvent({
         viewer: 'anonymous',
         post: { content: contentAround(line) },
       });
-      const leaked = leakingSinks(rendered, needle);
-      assert.deepEqual(
-        leaked,
-        ['rendered body', 'og:description', 'twitter:description', 'meta description', 'schema.org JSON-LD'],
-        `${id} no longer reaches every public sink. If ${JSON.stringify(needle)} is now redacted, `
-        + 'the finding is FIXED: delete this case and add it to PATTERN_CASES in block A instead.'
-      );
+      assert.equal(rendered.response.status, 200);
+      assert.deepEqual(leakingSinks(rendered, needle), [],
+        `${id} regressed: ${JSON.stringify(needle)} reached a public sink again`);
+      // Absence proves nothing on a page that rendered nothing.
+      assert.match(rendered.body ?? '', /Closing paragraph, kept\./,
+        `${id}: the surrounding prose vanished, so this is over-redaction, not redaction`);
+      assert.match(rendered.ogDescription ?? '', /Closing paragraph, kept\./);
     });
   }
 
-  it('LEAKS EV-W1: a Meet URL broken across a soft line wrap leaks its tail', async () => {
-    // Pattern 7 deletes only the line the host appears on. The remainder of a
-    // wrapped URL survives on the next line, which is the second half of a
-    // meeting code.
+  it('EV-W1 is redacted: a Meet URL broken across a soft line wrap loses its tail too', async () => {
+    // The old rule deleted only the LINE the host appeared on, so the second
+    // half of a wrapped meeting code survived on the next line. The wrap tail is
+    // consumed only when the URL ended mid-token (on "-" or "/") and the next
+    // line opens with a hyphenated code fragment, so an ordinary following
+    // sentence is never eaten -- see the control below.
     const rendered = await renderEvent({
       viewer: 'anonymous',
       post: { content: contentAround('Join https://meet.google.com/wrp-\naaaa-bbb before 6pm.') },
     });
-    assert.deepEqual(leakingSinks(rendered, 'aaaa-bbb'),
-      ['rendered body', 'og:description', 'twitter:description', 'meta description', 'schema.org JSON-LD'],
-      'EV-W1 no longer leaks the wrapped tail; move this case into block A');
-    assert.deepEqual(leakingSinks(rendered, 'wrp-'), [],
-      'the leading fragment is on the deleted line and should still be gone');
+    assert.deepEqual(leakingSinks(rendered, 'aaaa-bbb'), [], 'EV-W1 regressed: the wrapped tail leaked');
+    assert.deepEqual(leakingSinks(rendered, 'wrp-'), []);
+    assert.match(rendered.body ?? '', /before 6pm\./, 'the rest of the sentence was eaten with the tail');
+    assert.match(rendered.body ?? '', /Closing paragraph, kept\./);
   });
 
-  it('LEAKS EV-T1: community_post.title is never scrubbed at all', async () => {
-    // scrubJoinInfo only ever sees `content`. The title column is rendered
-    // verbatim into <h1>, <title>, og:title and JSON-LD `name`, for every tier.
+  it('the wrap tail does not swallow the next line when it is ordinary prose', async () => {
+    const rendered = await renderEvent({
+      viewer: 'anonymous',
+      post: { content: contentAround('Join https://meet.google.com/wrap-none/\nSee you there on Tuesday.') },
+    });
+    assert.deepEqual(leakingSinks(rendered, 'wrap-none'), []);
+    assert.match(rendered.body ?? '', /See you there on Tuesday\./,
+      'the following sentence was consumed as if it were a wrapped URL tail');
+  });
+
+  it('EV-T1 is redacted: community_post.title is scrubbed, with a non-empty fallback', async () => {
+    // The title column reaches <h1>, <title>, og:title, og:image:alt, JSON-LD
+    // name, the .ics SUMMARY and the gcal text= parameter, for every tier.
     const rendered = await renderEvent({
       viewer: 'anonymous',
       post: { title: 'Weekly Call PIN: 313131', content: 'Title chunk.\n\nBody text.' },
     });
-    assert.match(rendered.h1 ?? '', /PIN: 313131/, 'EV-T1 fixed in <h1>; move this case into block A');
-    assert.match(rendered.ogTitle ?? '', /PIN: 313131/, 'EV-T1 fixed in og:title');
-    assert.match(rendered.docTitle ?? '', /PIN: 313131/, 'EV-T1 fixed in <title>');
-    assert.equal(rendered.jsonLd.name, 'Weekly Call PIN: 313131', 'EV-T1 fixed in JSON-LD name');
+    for (const [field, value] of [['<h1>', rendered.h1], ['og:title', rendered.ogTitle],
+      ['<title>', rendered.docTitle], ['JSON-LD name', rendered.jsonLd.name]]) {
+      assert.ok(!String(value ?? '').includes('313131'), `EV-T1 regressed in ${field}`);
+      assert.ok(String(value ?? '').trim().length > 0, `${field} was published empty`);
+    }
+    // The label went with its value; the human-meaningful part of the title stayed.
+    assert.equal(rendered.h1, 'Weekly Call');
+    assert.ok(!rendered.html.includes('313131'), 'the credential survived somewhere else in the document');
   });
 
-  it('LEAKS EV-S1: the Speaker line is read from UNSCRUBBED content and re-emitted', async () => {
-    // extractSpeaker() runs against event.content directly, not against the
-    // scrubbed summary, so whatever trails "Speaker:" is reproduced in the meta
-    // row, in JSON-LD performer.name, and in the .ics DESCRIPTION.
+  it('EV-T1 also covers the .ics SUMMARY and the Google Calendar text= parameter', async () => {
     const db = await eventDb({
       viewer: 'anonymous',
-      post: { content: 'Title chunk.\n\nSpeaker: Dr Ada, dial 555-020-9999\n\nBody text.' },
+      post: { title: 'Weekly Call PIN: 313132', content: 'Title chunk.\n\nBody text.' },
     });
     try {
       const html = await (await getEvent(db)).text();
       const s = sinks(html);
-      assert.match(s.speakerRow ?? '', /555-020-9999/, 'EV-S1 fixed in the meta row');
-      assert.match(s.jsonLd.performer.name, /555-020-9999/, 'EV-S1 fixed in JSON-LD performer');
-
+      assert.ok(!decodeURIComponent(s.gcalHref.replace(/&amp;/g, '&')).includes('313132'),
+        'the credential reached the Google Calendar template');
       const ics = await (await getEvent(db, { query: '?add=ics' })).text();
-      assert.match(ics, /555-020-9999/, 'EV-S1 fixed in the .ics export');
+      assert.ok(!ics.includes('313132'), 'the credential reached the .ics SUMMARY');
+      assert.ok(ics.includes('SUMMARY:Weekly Call'), `the .ics title was emptied instead: ${/SUMMARY:.*/.exec(ics)?.[0]}`);
     } finally {
       db.close();
     }
+  });
+
+  it('EV-S1 is redacted: BOTH speaker arms are scrubbed', async () => {
+    // extractSpeaker() used to run against event.content directly, and the
+    // other arm of `event.speaker || extractSpeaker(content)` was the raw
+    // column. Both reach the meta row, JSON-LD performer.name and the .ics.
+    const fromContent = await eventDb({
+      viewer: 'anonymous',
+      post: { content: 'Title chunk.\n\nSpeaker: Dr Ada, dial 555-020-9999\n\nBody text.' },
+    });
+    try {
+      const s = sinks(await (await getEvent(fromContent)).text());
+      assert.equal(s.speakerRow, 'Dr Ada', 'EV-S1 regressed in the meta row');
+      assert.equal(s.jsonLd.performer.name, 'Dr Ada', 'EV-S1 regressed in JSON-LD performer');
+      const ics = await (await getEvent(fromContent, { query: '?add=ics' })).text();
+      assert.ok(!ics.includes('555-020-9999'), 'EV-S1 regressed in the .ics export');
+      assert.ok(ics.includes('with Dr Ada.'), 'the speaker was emptied rather than scrubbed');
+    } finally {
+      fromContent.close();
+    }
+
+    const fromColumn = await eventDb({
+      viewer: 'anonymous',
+      post: { speaker: 'Dr Ada, PIN 445599', content: 'Title chunk.\n\nBody text.' },
+    });
+    try {
+      const s = sinks(await (await getEvent(fromColumn)).text());
+      assert.equal(s.speakerRow, 'Dr Ada', 'the speaker COLUMN arm is still unscrubbed');
+      const ics = await (await getEvent(fromColumn, { query: '?add=ics' })).text();
+      assert.ok(!ics.includes('445599'));
+    } finally {
+      fromColumn.close();
+    }
+  });
+
+  it('a speaker that scrubs away entirely omits the row rather than rendering an empty one', async () => {
+    const r = await renderEvent({
+      viewer: 'anonymous',
+      post: { speaker: 'PIN: 445588', content: 'Title chunk.\n\nBody text.' },
+    });
+    assert.equal(r.speakerRow, null, 'an empty "Speaker:" row was published');
+    assert.equal('performer' in r.jsonLd, false);
+    assert.ok(!r.html.includes('445588'));
   });
 
   it('does NOT leak through the .ics export body, which is built without content', async () => {
@@ -391,6 +468,323 @@ describe('scrubJoinInfo -- the leak hunt (each of these is a production finding)
     });
     assert.equal(lf.ogDescription, 'Second paragraph with the real detail. Third paragraph.',
       'the LF control must render, or EV-C1 is not about line endings at all');
+  });
+});
+
+// =====================================================================
+// B1. The shapes that used to escape the ^ anchor
+// =====================================================================
+
+/**
+ * The old patterns all began `^\s*label`. Anything before the label on the line
+ * defeated them, and markdown puts something before the label constantly. Each
+ * case here is the SAME credential wearing a different hat.
+ */
+const ANCHOR_ESCAPES = [
+  { name: 'unordered list item', line: '- PIN: 445561' , needle: '445561' },
+  { name: 'bold emphasis', line: '**PIN:** 445562', needle: '445562' },
+  { name: 'ordered list item', line: '1. PIN: 445563', needle: '445563' },
+  { name: 'blockquote', line: '> PIN: 445564', needle: '445564' },
+  { name: 'nested list item', line: '  - Passcode: 445565', needle: '445565' },
+  { name: 'mid-sentence', line: 'Everything you need follows. PIN: 445566 See you Tuesday.', needle: '445566' },
+];
+
+const SEPARATOR_FORMS = [
+  { name: 'em dash', line: 'PIN — 445571', needle: '445571' },
+  { name: 'en dash', line: 'PIN – 445572', needle: '445572' },
+  { name: 'equals', line: 'Passcode = 445573', needle: '445573' },
+  { name: 'full-width colon', line: 'PIN：445574', needle: '445574' },
+  { name: 'pipe', line: 'Zoom | https://zoom.us/j/4455750000', needle: '4455750000' },
+  { name: 'hash', line: 'Meeting ID # 445576', needle: '445576' },
+  { name: 'no separator at all', line: 'Zoom https://zoom.us/j/4455770000', needle: '4455770000' },
+];
+
+describe('the ^ anchor is gone: decoration, position and separator no longer matter', () => {
+  for (const { name, line, needle } of [...ANCHOR_ESCAPES, ...SEPARATOR_FORMS]) {
+    it(`redacts a credential behind ${name}`, async () => {
+      const rendered = await renderEvent({ viewer: 'anonymous', post: { content: contentAround(line) } });
+      assert.deepEqual(leakingSinks(rendered, needle), [], `${name} still escapes redaction`);
+      assert.match(rendered.body ?? '', /Closing paragraph, kept\./, 'positive control');
+    });
+  }
+
+  it('redacts the multi-line form, where the label is on one line and the value on the next', async () => {
+    // The old patterns deleted the LABEL line and left the credential sitting
+    // alone underneath it, which is worse than not matching at all.
+    const rendered = await renderEvent({
+      viewer: 'anonymous',
+      post: { content: contentAround('Dial-in number below.\nPIN:\n445580') },
+    });
+    assert.deepEqual(leakingSinks(rendered, '445580'), [],
+      'the value on the following line survived the label being removed');
+    assert.match(rendered.body ?? '', /Closing paragraph, kept\./);
+  });
+
+  it('redacts the multi-line form through markdown decoration on the second line', async () => {
+    const rendered = await renderEvent({
+      viewer: 'anonymous',
+      post: { content: contentAround('Passcode:\n> 445581') },
+    });
+    assert.deepEqual(leakingSinks(rendered, '445581'), []);
+    assert.match(rendered.body ?? '', /Closing paragraph, kept\./);
+  });
+});
+
+// =====================================================================
+// B2. Conferencing hosts, matched on the parsed host
+// =====================================================================
+
+describe('conferencing hosts are matched on the parsed hostname', () => {
+  const HOSTS = [
+    { name: 'zoom subdomain, with scheme', line: 'Join https://us02web.zoom.us/j/hst-8899001 now.', needle: 'hst-8899001' },
+    { name: 'zoom, www form', line: 'Join www.zoom.us/j/hst-8899002 now.', needle: 'hst-8899002' },
+    { name: 'Teams meetup-join', line: 'Use https://teams.microsoft.com/l/meetup-join/hst-8899003 now.', needle: 'hst-8899003' },
+    { name: 'Teams consumer', line: 'Use https://teams.live.com/meet/hst-8899004 now.', needle: 'hst-8899004' },
+    { name: 'Webex subdomain', line: 'Use https://rrm.webex.com/join/hst-8899005 now.', needle: 'hst-8899005' },
+    { name: 'Jitsi', line: 'Use https://meet.jit.si/hst-8899006 now.', needle: 'hst-8899006' },
+    { name: 'Whereby', line: 'Use https://whereby.com/hst-8899007 now.', needle: 'hst-8899007' },
+    { name: 'Chime', line: 'Use https://chime.aws/hst-8899008 now.', needle: 'hst-8899008' },
+    { name: 'bare host with a room path', line: 'The room is meet.google.com/hst-8899009 all week.', needle: 'hst-8899009' },
+  ];
+
+  for (const { name, line, needle } of HOSTS) {
+    it(`redacts a room on ${name}`, async () => {
+      const rendered = await renderEvent({ viewer: 'anonymous', post: { content: contentAround(line) } });
+      assert.deepEqual(leakingSinks(rendered, needle), [], `${name} was not recognised`);
+      assert.match(rendered.body ?? '', /Closing paragraph, kept\./, 'positive control');
+    });
+  }
+
+  it('leaves a URL alone when it merely CONTAINS a conferencing host as a substring', async () => {
+    // The host test parses the URL rather than searching the string, so a
+    // hostile-looking-but-innocent path cannot be confused for a room, and an
+    // RRM Academy link that happens to mention one is not deleted.
+    const r = await renderEvent({
+      viewer: 'anonymous',
+      post: { content: contentAround('Read https://rrmacademy.org/library/why-meet-google-com-links-leak for context.') },
+    });
+    assert.match(r.body ?? '', /why-meet-google-com-links-leak/,
+      'a legitimate library URL was deleted for containing a host-like path');
+  });
+
+  it('leaves an unparseable URL token alone rather than throwing on the request path', async () => {
+    // The URL rule constructs a URL to read its host. A token that matches the
+    // token shape but does not parse must not take the page down with it.
+    const r = await renderEvent({
+      viewer: 'anonymous',
+      post: { content: contentAround('A malformed link https://[not-a-url sits here.') },
+    });
+    assert.equal(r.response.status, 200);
+    assert.match(r.body ?? '', /not-a-url/, 'an unparseable token was silently deleted');
+  });
+
+  it('a date sitting behind a label is not mistaken for a PIN', async () => {
+    const r = await renderEvent({
+      viewer: 'anonymous',
+      post: { content: contentAround('The call 2026-07-31 is the one to attend.') },
+    });
+    assert.match(r.body ?? '', /2026-07-31/, 'a date was redacted as if it were a credential');
+  });
+});
+
+// =====================================================================
+// B3. Image srcs, judged on the HOST and never on the filename
+// =====================================================================
+
+describe('a markdown image whose src is the meeting room', () => {
+  it('never reaches og:image, twitter:image, JSON-LD image or the rendered flyer', async () => {
+    // summarize() captures firstImage during the ![...](...) strip, BEFORE the
+    // scrubber runs, so an image src was a fourth channel straight to four
+    // public sinks.
+    const r = await renderEvent({
+      viewer: 'anonymous',
+      post: { og_image_url: null, content: 'T.\n\n![join here](https://meet.google.com/img-cccc-ddd)\n\nBody.' },
+    });
+    assert.ok(!r.html.includes('img-cccc-ddd'), 'the Meet room was published as an image');
+    assert.equal(r.flyerSrc, null);
+    assert.equal(r.ogImage, 'https://rrmacademy.org/og/save-the-uterus-club.png?v=8');
+    assert.equal(r.jsonLd.image, 'https://rrmacademy.org/og/save-the-uterus-club.png?v=8');
+  });
+
+  it('falls through to the NEXT image rather than losing the flyer entirely', async () => {
+    const r = await renderEvent({
+      viewer: 'anonymous',
+      post: {
+        og_image_url: null,
+        content: 'T.\n\n![room](https://meet.google.com/img-eeee-fff) ![flyer](https://cdn.example/endo-call-2026.jpg)\n\nBody.',
+      },
+    });
+    assert.equal(r.flyerSrc, 'https://cdn.example/endo-call-2026.jpg');
+    assert.ok(!r.html.includes('img-eeee-fff'));
+  });
+
+  it('a MEMBER does not get the meeting room served as an <img> either', async () => {
+    // The flyer and og:image are built from the scrubbed summary for every
+    // tier. Members reach the room through the Join Call button.
+    const r = await renderEvent({
+      viewer: 'member',
+      post: { og_image_url: 'https://meet.google.com/img-gggg-hhh', content: 'T.\n\nB.' },
+    });
+    assert.ok(!r.html.includes('img-gggg-hhh'));
+  });
+
+  it('an image src that does not parse is kept, not dropped', async () => {
+    const r = await renderEvent({
+      viewer: 'anonymous',
+      post: { og_image_url: null, content: 'T.\n\n![f](https://[not-a-url)\n\nBody.' },
+    });
+    assert.equal(r.response.status, 200);
+    assert.match(r.flyerSrc ?? '', /not-a-url/, 'an unparseable src was treated as a credential');
+  });
+});
+
+// =====================================================================
+// B4. Residual leaks, kept honest
+// =====================================================================
+
+/**
+ * A denylist over free text is best-effort by construction. These cases still
+ * reach every public sink, and each is here because closing it would have cost
+ * more clinical prose than it saved -- which is precisely the trade the first
+ * attempt at this fix got wrong.
+ *
+ * These assertions are deliberately positive ("it leaked"). If one goes red,
+ * the residual is closed: flip it into the block above and say which rule did
+ * it. Do NOT close one by loosening the label-plus-value rule.
+ */
+const RESIDUAL_LEAKS = [
+  {
+    id: 'EV-R1',
+    why: 'a blank line between the label and the value',
+    cost: 'the separator would have to span paragraph breaks, which lets a label '
+      + 'at the end of one paragraph claim a number at the start of the next',
+    line: 'PIN:\n\n445590',
+    needle: '445590',
+  },
+  {
+    id: 'EV-R2',
+    why: 'a conferencing host outside CONFERENCING_HOSTS',
+    cost: 'the alternative is redacting every URL on the page, which deletes the '
+      + 'library and registration links these posts exist to carry',
+    line: 'Join at https://gotomeeting.example/j/res-abc-123 today.',
+    needle: 'res-abc-123',
+  },
+  {
+    id: 'EV-R3',
+    why: 'a label word outside the vocabulary',
+    cost: 'the vocabulary can only grow by guessing, and every ordinary English '
+      + 'word added to it is a new way to delete a talk title',
+    line: 'Bridge: https://video.example/res-xyz-789',
+    needle: 'res-xyz-789',
+  },
+  {
+    id: 'EV-R4',
+    why: 'a bare digit run with no label at all',
+    cost: 'redacting unlabelled digit runs would eat ORCIDs (0000-0003-3706-3112), '
+      + 'PMIDs, NCT numbers and EINs, all of which are ordinary RRM Academy copy',
+    line: 'The number is 5550209999.',
+    needle: '5550209999',
+  },
+  {
+    id: 'EV-R5',
+    why: 'a weak label with a digit run below the weak floor',
+    cost: 'lowering the weak floor redacts doses, cycle days and room numbers; '
+      + '"Room: 4821" is indistinguishable from "Room 4821 on the second floor"',
+    line: 'Room: 4821',
+    needle: '4821',
+  },
+  {
+    id: 'EV-R6',
+    why: 'a credential spelled out in words',
+    cost: 'no denylist over free text can reach this, and nothing short of not '
+      + 'putting credentials in free text will',
+    line: 'The pin is four four five five nine one.',
+    needle: 'four four five five nine one',
+  },
+];
+
+describe('residual leaks -- documented, not silently accepted', () => {
+  for (const { id, why, cost, line, needle } of RESIDUAL_LEAKS) {
+    it(`LEAKS ${id}: ${why}`, async () => {
+      const rendered = await renderEvent({ viewer: 'anonymous', post: { content: contentAround(line) } });
+      assert.deepEqual(
+        leakingSinks(rendered, needle),
+        ['rendered body', 'og:description', 'twitter:description', 'meta description', 'schema.org JSON-LD'],
+        `${id} no longer reaches every public sink. If ${JSON.stringify(needle)} is now redacted, `
+        + `the residual is CLOSED: move this case into the block above. It was left open because: ${cost}.`
+      );
+    });
+  }
+});
+
+// =====================================================================
+// B5. Cost: the scrubber runs on an unauthenticated, crawled page
+// =====================================================================
+
+describe('scrubJoinInfo is linear in input length', () => {
+  /**
+   * The previous attempt at this fix was rejected for being super-linear on
+   * ORDINARY PROSE containing no credential, no label and no host. /events/
+   * <slug> is anonymous-reachable and crawled, so a super-linear matcher is a
+   * denial-of-service primitive any visitor can aim at it.
+   *
+   * The ceiling below is deliberately loose -- measured cost is ~4-14 ns/char,
+   * so 100k characters lands around 0.4-1.5 ms and this allows 400x that. It is
+   * not a performance benchmark; it is a shape guard. Anything quadratic on
+   * 100k characters takes seconds to minutes and cannot squeeze under it, and
+   * nothing linear can approach it even on a loaded CI box.
+   */
+  const CEILING_MS = 400;
+
+  const SHAPES = {
+    'ordinary prose': 'Restorative reproductive medicine treats the underlying cause rather than bypassing it. ',
+    'label words with no values': 'room call zoom teams dial phone meet tel pin webex telephone ',
+    'digit runs with no labels': '1234 5678 9012 3456 7890 ',
+    'a label followed by separators': 'PIN:::::::::::::::::::::::::::::::::: ',
+    'every line a credential': 'PIN: 998877665\nMeet link: https://meet.google.com/aaa-bbbb-ccc\nDial-in: +1 555-010-1111\n',
+  };
+
+  function build(unit, n) {
+    let s = '';
+    while (s.length < n) s += unit;
+    return s.slice(0, n);
+  }
+
+  for (const [name, unit] of Object.entries(SHAPES)) {
+    it(`stays flat per character on ${name}`, () => {
+      const timings = [1000, 10000, 100000].map((n) => {
+        const input = build(unit, n);
+        scrubJoinInfo(input); // warm
+        const t0 = process.hrtime.bigint();
+        scrubJoinInfo(input);
+        return { n, ms: Number(process.hrtime.bigint() - t0) / 1e6 };
+      });
+      for (const { n, ms } of timings) {
+        assert.ok(ms < CEILING_MS,
+          `${name} at ${n} chars took ${ms.toFixed(1)}ms, over the ${CEILING_MS}ms shape ceiling; `
+          + 'the matcher has gone super-linear on a public, crawled endpoint');
+      }
+    });
+  }
+
+  it('a single adversarial span does not blow up either', () => {
+    // Each of these is one match attempt over a 100k-character run: a greedy
+    // class with nothing after it, the classic quadratic backtracking shape if
+    // the value pattern were written with a second quantifier behind it.
+    const ADVERSARIAL = {
+      'one label, one 100k digit run': 'PIN: ' + '1'.repeat(100000),
+      'one label, one 100k space run': 'PIN:' + ' '.repeat(100000) + 'x',
+      'one 100k URL token': 'Join https://meet.google.com/' + 'a'.repeat(100000),
+      'one 100k unbroken word': 'a'.repeat(100000),
+      'one 100k dotted host-like run': 'a.'.repeat(50000),
+    };
+    for (const [name, input] of Object.entries(ADVERSARIAL)) {
+      scrubJoinInfo(input); // warm
+      const t0 = process.hrtime.bigint();
+      scrubJoinInfo(input);
+      const ms = Number(process.hrtime.bigint() - t0) / 1e6;
+      assert.ok(ms < CEILING_MS, `${name} took ${ms.toFixed(1)}ms, over the ${CEILING_MS}ms shape ceiling`);
+    }
   });
 });
 

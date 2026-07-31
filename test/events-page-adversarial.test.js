@@ -4,27 +4,33 @@
  * than with it.
  *
  * That suite proved each of scrubJoinInfo()'s patterns redacts what it claims,
- * and reported sixteen formats that slip past. This file is the independent
+ * and reported sixteen formats that slipped past. This file is the independent
  * attack on the same code: formats devised without reference to the pattern
  * list, and -- more importantly -- SINKS THAT SUITE NEVER LOOKED AT.
  *
- * The finding that matters most is EV-X0. redactionSinks() audits five strings:
- * the rendered body, og:description, twitter:description, the meta description
- * and the JSON-LD. og:image, twitter:image, the JSON-LD `image` field and the
- * rendered flyer <img src> are not among them, and summarize() captures
- * firstImage from the markdown BEFORE scrubJoinInfo() runs. So a markdown IMAGE
- * whose src is the Meet room publishes the live joining URL in four places, and
- * every assertion in the existing suite passes while it does.
+ * The finding that mattered most was EV-X0. redactionSinks() audits five
+ * strings: the rendered body, og:description, twitter:description, the meta
+ * description and the JSON-LD. og:image, twitter:image, the JSON-LD `image`
+ * field and the rendered flyer <img src> are not among them, and summarize()
+ * captures firstImage from the markdown BEFORE scrubJoinInfo() runs. So a
+ * markdown IMAGE whose src was the Meet room published the live joining URL in
+ * four places while every assertion in the existing suite passed.
  *
  * HOW TO READ THE ASSERTIONS
  * -------------------------
- * Same convention as the suite it extends: a case named "LEAKS ..." asserts the
- * credential IS present, because that is what the deployed code does today.
- * When the redaction is fixed the case goes red and names the finding that was
- * closed. Nothing here changes production code; the fix is a product decision.
+ * Most of the cases below have been CLOSED and are now asserted in the
+ * direction they always should have been: the credential must be absent. Two
+ * remain open, at the bottom, still asserted positively ("it leaked") because
+ * that is what the deployed code does and pretending otherwise is how this
+ * class of bug survives. Each open case says what closing it would have cost.
  *
- * No live exposure was found. All nineteen event rows in production were
- * checked against these formats and none contains one. These are latent.
+ * The redaction now works on a label-plus-value rule -- see the header of
+ * functions/events/[slug].js -- and the anti-over-redaction half of the
+ * contract lives in test/events-page-over-redaction.test.js. A case here that
+ * goes green by deleting prose is not a case that passed.
+ *
+ * No live exposure was ever found. All nineteen event rows in production were
+ * checked against these formats and none contained one. These were latent.
  *
  * WHAT IS NOT A FINDING
  * ---------------------
@@ -61,11 +67,12 @@ function assertPageAlive(r) {
 // =====================================================================
 
 describe('the flyer channel -- summarize() captures firstImage BEFORE scrubJoinInfo runs', () => {
-  it('LEAKS EV-X0: a markdown IMAGE whose src is the Meet room publishes it in og:image, twitter:image, JSON-LD image and the flyer', async () => {
+  it('EV-X0 is closed: a markdown IMAGE on a conferencing host reaches none of those four sinks', async () => {
     // One "!" apart from the fully-redacted form asserted in the control below.
-    // summarize() pulls the src out in the ![...](...) replace, records it as
-    // firstImage, and returns it alongside the scrubbed text; renderHtml then
-    // uses it for ogImage without ever passing it through scrubJoinInfo.
+    // summarize() pulls the src out in the ![...](...) replace and records it as
+    // firstImage, so the fix has to live at the capture, not in the scrubber:
+    // the src is judged on its parsed HOST before it is allowed to become
+    // firstImage at all.
     const r = await renderEvent({
       viewer: 'anonymous',
       post: { content: 'Title chunk.\n\n![Join the call](https://meet.google.com/img-aaaa-bbb)\n\nSee you there.' },
@@ -73,22 +80,33 @@ describe('the flyer channel -- summarize() captures firstImage BEFORE scrubJoinI
 
     assert.equal(r.response.status, 200);
     const twitterImage = /<meta name="twitter:image" content="([^"]*)">/.exec(r.html)?.[1] ?? '';
+    const BRANDED = 'https://rrmacademy.org/og/save-the-uterus-club.png?v=8';
 
-    assert.equal(r.ogImage, 'https://meet.google.com/img-aaaa-bbb',
-      'EV-X0 fixed in og:image -- move this case into the proven-redacted block');
-    assert.equal(twitterImage, 'https://meet.google.com/img-aaaa-bbb', 'EV-X0 fixed in twitter:image');
-    assert.equal(r.jsonLd.image, 'https://meet.google.com/img-aaaa-bbb', 'EV-X0 fixed in JSON-LD image');
-    assert.equal(r.flyerSrc, 'https://meet.google.com/img-aaaa-bbb', 'EV-X0 fixed in the rendered flyer src');
+    assert.equal(r.ogImage, BRANDED, 'EV-X0 regressed in og:image');
+    assert.equal(twitterImage, BRANDED, 'EV-X0 regressed in twitter:image');
+    assert.equal(r.jsonLd.image, BRANDED, 'EV-X0 regressed in JSON-LD image');
+    assert.equal(r.flyerSrc, null, 'EV-X0 regressed in the rendered flyer src');
+    assert.ok(!r.html.includes('img-aaaa-bbb'), 'the room reached the document somewhere else');
 
-    // Four of the five audited sinks are clean. The JSON-LD is not, but only
-    // incidentally: redactionSinks() reads the whole element as one string, and
-    // the URL is in there as `image`, not as anything the redaction reasoned
-    // about. No existing case feeds a markdown image, so nothing catches it.
-    assert.deepEqual(leakingSinks(r, 'img-aaaa-bbb'), ['schema.org JSON-LD'],
-      'the prose sinks were never the problem here; EV-X0 is about the image field and og:image');
-    assert.ok(!appearsIn(r.ogDescription ?? '', 'img-aaaa-bbb'));
-    assert.ok(!appearsIn(r.body ?? '', 'img-aaaa-bbb'));
-    assert.match(r.body ?? '', /See you there\./);
+    assert.deepEqual(leakingSinks(r, 'img-aaaa-bbb'), []);
+    assert.match(r.body ?? '', /See you there\./, 'positive control: the prose must survive');
+  });
+
+  it('judges an image on its HOST, never on its filename', async () => {
+    // The rule that keeps EV-X0's fix from becoming an over-redaction: these
+    // filenames all contain a redaction label as an English word.
+    for (const src of [
+      'https://cdn.example/endo-call-2026.jpg',
+      'https://cdn.example/zoom-in-on-the-ultrasound.png',
+      'https://cdn.example/teams/room-101/pin-board.webp',
+    ]) {
+      const r = await renderEvent({
+        viewer: 'anonymous',
+        post: { og_image_url: null, content: `Title chunk.\n\n![flyer](${src})\n\nSee you there.` },
+      });
+      assert.equal(r.flyerSrc, src, `a legitimate flyer was dropped: ${src}`);
+      assert.equal(r.ogImage, src);
+    }
   });
 
   it('the same URL as a markdown LINK is fully redacted -- the control that makes EV-X0 a one-character defect', async () => {
@@ -129,11 +147,24 @@ describe('the flyer channel -- summarize() captures firstImage BEFORE scrubJoinI
 // =====================================================================
 
 /**
- * Every case reaches all five audited sinks on a page an anonymous visitor
- * sees. Grouped by the mechanism that defeats the pattern, because the fix is
- * one decision per class, not one regex per line.
+ * Every case here USED to reach all five audited sinks on a page an anonymous
+ * visitor sees. Grouped by the mechanism that defeated the old patterns,
+ * because the fix was one decision per class, not one regex per line:
+ *
+ *   EV-X1  the ^ anchor  -> the label rule is no longer line-anchored.
+ *   EV-X2  extra words   -> a label may carry a qualifier (number/code/id/...).
+ *   EV-X3  split lines   -> the separator may cross exactly one line break.
+ *   EV-X4  split host    -> a URL wrapped mid-host is rejoined before parsing.
+ *   EV-X5  invisibles    -> zero-width and format characters are stripped, and
+ *                           removing the anchor made most of the class moot.
+ *   EV-X6  separators    -> the separator is a character class, not ":".
+ *   EV-X7  host spoofing -> the host comes from parsing the URL, not from a
+ *                           substring search, so percent-encoding is resolved.
+ *
+ * Two members of these classes are NOT closed and are asserted separately at
+ * the bottom of this file, still in the positive direction.
  */
-const NEW_LEAKS = [
+const CLOSED_LEAKS = [
   // --- EV-X1: markdown decoration before an ALLOWLISTED label ----------
   // `^\s*pin\s*:` requires the label to be the first non-space thing on the
   // line. A bullet, a number, a blockquote marker or bold emphasis is not \s.
@@ -164,11 +195,9 @@ const NEW_LEAKS = [
   { id: 'EV-X3c', why: 'a Meet link label on its own line: the URL survives unlabelled', line: 'Meet link:\nhttps://video.example/room-x3c', needle: 'room-x3c' },
 
   // --- EV-X4: the HOST broken across a soft wrap -----------------------
-  // Distinct from the wrapped-tail case already reported: breaking inside the
-  // host means NO pattern fires at all, so the entire room code survives on an
-  // otherwise intact line.
-  { id: 'EV-X4a', why: 'the meet.google.com host itself split across a wrap: no pattern fires at all', line: 'Join at https://meet.\ngoogle.com/hst-aaaa-bbb before 6pm.', needle: 'hst-aaaa-bbb' },
-  { id: 'EV-X4b', why: 'markdown emphasis inside the host breaks the literal match', line: 'Join at meet.**google**.com/bld-aaaa-bbb today.', needle: 'bld-aaaa-bbb' },
+  // Distinct from the wrapped-tail case: breaking inside the host meant NO
+  // pattern fired at all, so the entire room code survived on an intact line.
+  { id: 'EV-X4a', why: 'the meet.google.com host itself split across a wrap', line: 'Join at https://meet.\ngoogle.com/hst-aaaa-bbb before 6pm.', needle: 'hst-aaaa-bbb' },
 
   // --- EV-X5: an invisible character that is NOT \s --------------------
   // `\s` covers NBSP and the BOM (proven by the controls below), but not the
@@ -186,48 +215,56 @@ const NEW_LEAKS = [
   { id: 'EV-X6e', why: 'an en dash instead of a colon after an allowlisted label', line: 'Dial-in \u2013 +1 555-044-1111', needle: '555-044-1111' },
 
   // --- EV-X7: the host as something other than the literal string ------
-  { id: 'EV-X7a', why: 'a Cyrillic homoglyph inside the host defeats the literal match', line: 'Join at https://meet.googl\u0435.com/cyr-aaaa-bbb today.', needle: 'cyr-aaaa-bbb' },
-  { id: 'EV-X7b', why: 'percent-encoded dots inside the host defeat the literal match', line: 'Join at https://meet%2Egoogle%2Ecom/pct-aaaa-bbb today.', needle: 'pct-aaaa-bbb' },
+  { id: 'EV-X7b', why: 'percent-encoded dots inside the host', line: 'Join at https://meet%2Egoogle%2Ecom/pct-aaaa-bbb today.', needle: 'pct-aaaa-bbb' },
 ];
 
-describe('scrubJoinInfo -- an independent leak hunt (formats the first pass did not try)', () => {
-  for (const { id, why, line, needle } of NEW_LEAKS) {
-    it(`LEAKS ${id}: ${why}`, async () => {
+describe('the independent leak hunt, closed', () => {
+  for (const { id, why, line, needle } of CLOSED_LEAKS) {
+    it(`${id} is redacted: ${why}`, async () => {
       const r = await renderEvent({ viewer: 'anonymous', post: { content: contentAround(line) } });
       assert.equal(r.response.status, 200);
       assert.deepEqual(
-        leakingSinks(r, needle), ALL_FIVE,
-        `${id} no longer reaches every public sink. If ${JSON.stringify(needle)} is now redacted, `
-        + 'the finding is FIXED: delete this case and add it to PATTERN_CASES in events-page-redaction.test.js.'
+        leakingSinks(r, needle), [],
+        `${id} regressed: ${JSON.stringify(needle)} reached a public sink again`
       );
       assertPageAlive(r);
     });
   }
 
-  it('EV-X3 leaves the credential with its own label stripped off, which is the worst shape available', async () => {
-    // Named separately because the ID list above only proves presence. What
-    // makes EV-X3 worse than the rest is WHAT survives: a reviewer skimming the
-    // published page sees a bare number, not a line that says "PIN".
+  it('EV-X3 no longer leaves a bare credential with its own label stripped off', async () => {
+    // The old behaviour was the worst shape available: the pattern deleted the
+    // LABEL line and left the naked PIN behind, so a reviewer skimming the
+    // published page saw a number with nothing marking it as a credential. The
+    // separator now crosses one line break, so the value goes with the label.
     const r = await renderEvent({
       viewer: 'anonymous',
       post: { content: contentAround('PIN:\n445580') },
     });
-    // "Opening paragraph, kept." is chunk 0, which renderHtml treats as the
-    // title and drops from the body, so the body starts at the surviving PIN.
-    assert.equal(r.body, '<p>445580</p>\n<p>Closing paragraph, kept.</p>',
-      'the PIN label should be gone and the bare PIN left behind; if this changed, re-read EV-X3');
-    assert.equal(r.ogDescription, '445580 Closing paragraph, kept.',
-      'the unlabelled PIN is the first thing a link preview shows');
-    assert.ok(!(r.body ?? '').includes('PIN:'), 'the label itself was correctly removed, which is the trap');
+    assert.equal(r.body, '<p>Closing paragraph, kept.</p>',
+      'the whole label-and-value pair should be gone, leaving the surrounding prose');
+    assert.equal(r.ogDescription, 'Closing paragraph, kept.');
+    assert.ok(!r.html.includes('445580'));
   });
 
-  it('EV-X4a leaves the WHOLE room code, unlike the wrapped-tail case: the sentence survives intact', async () => {
+  it('EV-X4a: the sentence around a host-wrapped URL survives, only the URL goes', async () => {
     const r = await renderEvent({
       viewer: 'anonymous',
       post: { content: contentAround('Join at https://meet.\ngoogle.com/hst-aaaa-bbb before 6pm.') },
     });
-    assert.match(r.body ?? '', /Join at https:\/\/meet\.\ngoogle\.com\/hst-aaaa-bbb before 6pm\./,
-      'nothing was removed at all, because no pattern matched');
+    assert.deepEqual(leakingSinks(r, 'hst-aaaa-bbb'), []);
+    assert.match(r.body ?? '', /Join at/, 'the sentence opening was eaten with the URL');
+    assert.match(r.body ?? '', /before 6pm\./, 'the sentence ending was eaten with the URL');
+  });
+
+  it('the host-wrap rejoin does not touch a URL whose rejoined host is innocent', async () => {
+    // The rejoin is safe to be greedy about precisely because the replacer puts
+    // the token back untouched when the resulting host is not a meeting host.
+    const r = await renderEvent({
+      viewer: 'anonymous',
+      post: { content: contentAround('See https://rrmacademy.\norg/library/endometriosis for the evidence.') },
+    });
+    assert.match(r.body ?? '', /rrmacademy/, 'an innocent wrapped URL was deleted');
+    assert.match(r.body ?? '', /library\/endometriosis/);
   });
 
   it('U+00A0 and U+FEFF before the same label ARE redacted: the EV-X5 class is about \\s, not about invisibility', async () => {
@@ -245,29 +282,31 @@ describe('scrubJoinInfo -- an independent leak hunt (formats the first pass did 
 // EV-X8, EV-X9. Channels around the scrubber, not through it
 // =====================================================================
 
-describe('the channels scrubJoinInfo is not on the path of', () => {
-  it('LEAKS EV-X8: the community_post.speaker COLUMN is never scrubbed either', async () => {
-    // The already-reported speaker finding is about a "Speaker:" line inside
-    // content. This is the other arm of `event.speaker || extractSpeaker(...)`:
-    // the column short-circuits extraction entirely, and nothing on that path
-    // has ever seen scrubJoinInfo.
+describe('the channels scrubJoinInfo was not on the path of', () => {
+  it('EV-X8 is closed: the community_post.speaker COLUMN is scrubbed too', async () => {
+    // The other speaker finding is about a "Speaker:" line inside content. This
+    // is the other arm of `event.speaker || extractSpeaker(...)`: the column
+    // short-circuits extraction entirely, so scrubbing only the content arm
+    // would have left this one wide open.
     const db = await eventDb({
       viewer: 'anonymous',
       post: { speaker: 'Dr Ada (PIN 660011)', content: 'Title chunk.\n\nBody text.' },
     });
     try {
       const s = sinks(await (await getEvent(db)).text());
-      assert.match(s.speakerRow ?? '', /660011/, 'EV-X8 fixed in the speaker meta row');
-      assert.match(s.jsonLd.performer.name, /660011/, 'EV-X8 fixed in JSON-LD performer.name');
+      assert.ok(!/660011/.test(s.speakerRow ?? ''), 'EV-X8 regressed in the speaker meta row');
+      assert.ok(!/660011/.test(s.jsonLd.performer.name), 'EV-X8 regressed in JSON-LD performer.name');
       const ics = await (await getEvent(db, { query: '?add=ics' })).text();
-      assert.match(ics, /660011/, 'EV-X8 fixed in the .ics export');
+      assert.ok(!/660011/.test(ics), 'EV-X8 regressed in the .ics export');
+      // ...and the speaker is still a usable name, not an empty string.
+      assert.match(s.speakerRow ?? '', /Dr Ada/, 'the speaker was emptied rather than scrubbed');
     } finally { db.close(); }
   });
 
-  it('LEAKS EV-X9: the speaker and the title also reach the Google Calendar href and the .ics SUMMARY', async () => {
-    // Two sinks nobody has named yet. calDescription interpolates the speaker
-    // and buildICS interpolates the title, and both are handed to visitors of
-    // every tier including anonymous.
+  it('EV-X9 is closed: the Google Calendar href and the .ics SUMMARY are clean too', async () => {
+    // Two sinks the first pass never named. calDescription interpolates the
+    // speaker and buildICS interpolates the title, and both are handed to
+    // visitors of every tier including anonymous.
     const db = await eventDb({
       viewer: 'anonymous',
       post: { title: 'Weekly Call PIN: 313131', content: 'Title chunk.\n\nSpeaker: Dr Ada, dial 555-020-9999\n\nBody.' },
@@ -275,22 +314,70 @@ describe('the channels scrubJoinInfo is not on the path of', () => {
     try {
       const s = sinks(await (await getEvent(db)).text());
       const gcal = decodeURIComponent((s.gcalHref ?? '').replace(/&amp;/g, '&'));
-      assert.match(gcal, /555-020-9999/, 'EV-X9 fixed: the speaker no longer reaches the gcal details');
-      assert.match(gcal, /313131/, 'EV-X9 fixed: the title no longer reaches the gcal text');
+      assert.ok(!/555-020-9999/.test(gcal), 'EV-X9 regressed: the speaker reached the gcal details');
+      assert.ok(!/313131/.test(gcal), 'EV-X9 regressed: the title reached the gcal text');
+      assert.match(gcal, /text=Weekly Call&/, 'the gcal title was emptied rather than scrubbed');
 
       const ics = await (await getEvent(db, { query: '?add=ics' })).text();
-      assert.match(ics, /SUMMARY:Weekly Call PIN: 313131/, 'EV-X9 fixed: the title no longer reaches the .ics SUMMARY');
+      assert.ok(!/313131/.test(ics), 'EV-X9 regressed: the title reached the .ics SUMMARY');
+      assert.ok(ics.includes('SUMMARY:Weekly Call'), 'the .ics title was emptied rather than scrubbed');
     } finally { db.close(); }
   });
 
-  it('the title also reaches og:image:alt, a fifth place the unscrubbed title lands', async () => {
+  it('og:image:alt, the fifth place the title lands, is clean and non-empty', async () => {
     const r = await renderEvent({
       viewer: 'anonymous',
       post: { title: 'Weekly Call PIN: 313132', content: 'Title chunk.\n\nBody.' },
     });
     const alt = /<meta property="og:image:alt" content="([^"]*)">/.exec(r.html)?.[1] ?? '';
-    assert.match(alt, /PIN: 313132/, 'the unscrubbed title no longer reaches og:image:alt');
+    assert.ok(!/313132/.test(alt), 'the credential reached og:image:alt');
+    assert.equal(alt, 'Weekly Call', 'og:image:alt was emptied rather than scrubbed');
   });
+});
+
+// =====================================================================
+// The two cases from this pass that are STILL OPEN
+// =====================================================================
+
+/**
+ * Both survive because closing them costs more than they are worth, and the
+ * cost is paid in clinical prose. They are asserted positively on purpose. If
+ * one goes red the residual is closed: move it into CLOSED_LEAKS and say which
+ * rule did it -- but not by loosening the label-plus-value rule.
+ */
+const OPEN_RESIDUALS = [
+  {
+    id: 'EV-X4b',
+    why: 'markdown emphasis inside the host (meet.**google**.com)',
+    cost: 'the host would have to be matched against a copy with markdown stripped, '
+      + 'and every character removed from that copy shifts the offsets used to '
+      + 'redact the original -- the mapping is where this class of bug is born',
+    line: 'Join at meet.**google**.com/bld-aaaa-bbb today.',
+    needle: 'bld-aaaa-bbb',
+  },
+  {
+    id: 'EV-X7a',
+    why: 'a Cyrillic homoglyph inside the host (googlе.com with U+0435)',
+    cost: 'this needs a confusables table, not a denylist; the URL parses to a '
+      + 'genuinely different host and no amount of host-list tuning reaches it',
+    line: 'Join at https://meet.googlе.com/cyr-aaaa-bbb today.',
+    needle: 'cyr-aaaa-bbb',
+  },
+];
+
+describe('open residuals from the adversarial pass', () => {
+  for (const { id, why, cost, line, needle } of OPEN_RESIDUALS) {
+    it(`LEAKS ${id}: ${why}`, async () => {
+      const r = await renderEvent({ viewer: 'anonymous', post: { content: contentAround(line) } });
+      assert.equal(r.response.status, 200);
+      assert.deepEqual(
+        leakingSinks(r, needle), ALL_FIVE,
+        `${id} no longer reaches every public sink. If ${JSON.stringify(needle)} is now redacted, `
+        + `the residual is CLOSED: move it into CLOSED_LEAKS. It was left open because: ${cost}.`
+      );
+      assertPageAlive(r);
+    });
+  }
 });
 
 // =====================================================================

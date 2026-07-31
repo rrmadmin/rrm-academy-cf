@@ -26,41 +26,265 @@ function escapeHtml(s) {
     .replace(/'/g, '&#39;');
 }
 
-// Strip any line that exposes joining credentials (Meet URL, dial-in, PIN).
-// Members get the Meet link via the "Join Call" button (sourced from event_link);
-// joining info MUST NOT appear in body, og:description, or JSON-LD.
-const JOIN_INFO_PATTERNS = [
-  /^\s*(?:google\s+meet|meet)\s*link\s*:.*$/im,
-  /^\s*join\s+(?:via\s+)?google\s+meet\s*:.*$/im,
-  /^\s*join\s+(?:the\s+)?call\s*:.*$/im,
-  /^\s*dial(?:-?in)?\s*:.*$/im,
-  /^\s*phone\s*:.*$/im,
-  /^\s*pin\s*:.*$/im,
-  /^.*meet\.google\.com.*$/im,
-  /^.*tel\.meet.*$/im,
-  /^\s*tel:.*$/im,
+/* ===========================================================================
+ * JOINING-CREDENTIAL REDACTION
+ * ===========================================================================
+ *
+ * WHAT THIS DEFENDS AGAINST
+ * -------------------------
+ * A STUC event is authored by hand in an admin form. Anything an author types
+ * into `title`, `content` or `speaker` is published on /events/<slug>, which is
+ * anonymous-reachable, crawled and link-previewed. The one thing that must not
+ * be published is the joining credential for the members-only call: the Meet /
+ * Zoom / Teams room URL, the dial-in number, the PIN or passcode. Members get
+ * the room a different way -- the "Join Call" button, sourced from the
+ * `event_link` column, which never passes through here.
+ *
+ * WHAT THIS CANNOT DEFEND AGAINST, STATED PLAINLY
+ * -----------------------------------------------
+ * This is a DENYLIST over free text, and a denylist over free text is
+ * best-effort by construction. It matches a fixed vocabulary of labels and a
+ * fixed set of conferencing hosts. An author who invents a phrasing outside
+ * that vocabulary, spells a credential out in words ("the pin is nine nine
+ * eight..."), splits it across a blank line, or hosts the call somewhere not in
+ * CONFERENCING_HOSTS, will publish it. Nothing throws and nothing logs when
+ * that happens. The structural fix is to stop free text from carrying
+ * credentials at all -- the `event_link` column already models the room
+ * properly -- and this function is the mitigation until then, not a guarantee.
+ * Known residual gaps are enumerated in test/events-page-redaction.test.js.
+ *
+ * THE RULE, AND WHY IT IS THE RULE
+ * --------------------------------
+ * A LABEL ALONE IS NOT A CREDENTIAL. Nothing is removed for containing the word
+ * "room", "call", "zoom", "teams", "dial" or "phone". Those words are ordinary
+ * in reproductive-medicine copy -- "room temperature storage", "Teams-Based
+ * Care in RRM", "Zoom fatigue in telehealth", "we will call you". A label is
+ * removed only when it is FOLLOWED BY A CREDENTIAL-SHAPED VALUE: a URL, a tel:
+ * URI, or a run of at least six digits that is not a date. Requiring the value
+ * is what separates a credential from prose, and it is also what keeps every
+ * matcher below anchored and linear. test/events-page-over-redaction.test.js
+ * pins that half of the contract and must stay green.
+ *
+ * IMAGE URLS ARE JUDGED ON THE HOST, NEVER THE PATH
+ * -------------------------------------------------
+ * A filename is not prose. "endo-call-2026.jpg" contains the word "call" and is
+ * a legitimate flyer. An <img> whose src resolves to meet.google.com is the
+ * room itself. Only the parsed hostname decides.
+ *
+ * COST
+ * ----
+ * Every pass is a single global regex over the input with no nested quantifier
+ * and no overlapping alternation, so the work is linear in input length. That
+ * matters more here than in most places: this page is unauthenticated and
+ * crawled, so a super-linear matcher is a denial-of-service primitive that any
+ * visitor can aim at it.
+ */
+
+/** Marks a span the scrubber removed, so line cleanup stays scoped to it. */
+const REDACTED_MARK = '\u0000';
+
+/**
+ * Zero-width and BOM characters, removed before matching. A credential pasted
+ * out of a rich-text editor can carry one INSIDE a hostname
+ * ("meet.goo<ZWSP>gle.com"), which defeats any literal host match. They are
+ * invisible, so dropping them changes nothing a reader sees.
+ */
+const ZERO_WIDTH_RE = /[\u00AD\u200B-\u200F\u2060\uFEFF]/g;
+
+/** Hosts that serve a meeting room. Matched on hostname, exact or subdomain. */
+const CONFERENCING_HOSTS = [
+  'meet.google.com', 'tel.meet', 'zoom.us', 'teams.microsoft.com',
+  'teams.live.com', 'webex.com', 'meet.jit.si', 'whereby.com', 'chime.aws',
 ];
 
-function scrubJoinInfo(text) {
-  if (!text) return text;
-  let out = text;
-  for (const re of JOIN_INFO_PATTERNS) {
-    out = out.replace(new RegExp(re.source, 'gim'), '');
+function isConferencingHost(hostname, pathname) {
+  const host = String(hostname || '').toLowerCase();
+  // g.co is Google's generic shortener; only its /meet space is a Meet room.
+  if ((host === 'g.co' || host === 'www.g.co') && /^\/meet(?:\/|$)/i.test(pathname || '')) return true;
+  return CONFERENCING_HOSTS.some((known) => host === known || host.endsWith('.' + known));
+}
+
+/**
+ * The label vocabulary, in two tiers, because the tiers earn different trust.
+ *
+ * STRONG labels are compound or technical: "Meeting ID", "Passcode", "Dial-in".
+ * They essentially never precede a number in clinical prose, so a short digit
+ * run behind one is still a credential -- a five-digit PIN is a real PIN.
+ *
+ * WEAK labels are ordinary English words that happen to also name a product or
+ * a channel: "room", "call", "zoom", "teams", "phone", "meet". They appear
+ * constantly in reproductive-medicine copy, so a digit run behind one must be
+ * long enough to be a phone number or a PIN before anything is removed. This is
+ * the distinction whose absence made the previous attempt delete a clinician
+ * talk titled "Teams-Based Care in RRM".
+ *
+ * Longest form first inside each tier, and STRONG before WEAK overall, so
+ * "dial-in" is not consumed by "dial" nor "phone number" by "phone".
+ */
+const STRONG_JOIN_LABELS = [
+  'google\\s+meet\\s+link', 'google\\s+meet',
+  'meeting\\s+link', 'meeting\\s+url', 'meeting\\s+id', 'meeting\\s+number',
+  'meet\\s+link', 'meet\\s+url',
+  'video\\s+call', 'video\\s+link',
+  'join\\s+here', 'join\\s+link', 'join\\s+url', 'join\\s+the\\s+call', 'join\\s+call',
+  'conference\\s+line', 'conference\\s+bridge', 'conference\\s+id',
+  'access\\s+code', 'passcode', 'pass\\s+code', 'pin\\s+code',
+  'phone\\s+number',
+  'dial-in', 'dial\\s+in', 'dialin',
+  'call-in', 'call\\s+in', 'callin',
+  // "PIN" is strong despite being a common verb: the verb never takes a number
+  // ("pin the reading list"), and a five-digit PIN is still a PIN.
+  'pin',
+];
+const WEAK_JOIN_LABELS = [
+  'telephone', 'webex', 'zoom', 'teams', 'room', 'phone', 'call', 'meet', 'dial', 'tel',
+];
+const JOIN_LABELS = [...STRONG_JOIN_LABELS, ...WEAK_JOIN_LABELS];
+const IS_STRONG_LABEL_RE = new RegExp(`^(?:${STRONG_JOIN_LABELS.join('|')})$`, 'i');
+
+/** Everything up to whitespace or a closing delimiter. One character class. */
+const URL_TAIL = '[^\\s<>"\'\\)\\]]';
+const URL_VALUE = `(?:https?:\\/\\/|www\\.)${URL_TAIL}+`;
+const TEL_VALUE = 'tel:\\+?\\d[\\d \\t().-]*';
+/** Phone/PIN shaped. Deliberately excludes line breaks; validated in the replacer. */
+const NUM_VALUE = '\\+?\\d[\\d \\t().-]*\\d';
+
+/**
+ * Label-to-value separator: punctuation and horizontal whitespace, optionally
+ * crossing exactly ONE line break so the form where an author puts the label on
+ * one line and the credential on the next is caught. Two flat character classes
+ * either side of a mandatory break -- one backtracking chain each, no nesting.
+ */
+const SEP = '[ \\t:\uFF1A=>|#*_~\\-\u2013\u2014]*(?:\\r?\\n[ \\t>*_\\-]*)?';
+
+/**
+ * A URL broken across a soft line wrap, in the middle of the meeting CODE. Only
+ * consumed when the token above ended mid-token (on a hyphen or a slash) AND
+ * the next line starts with a hyphenated code fragment, so an ordinary
+ * following sentence is never eaten.
+ */
+const CODE_WRAP = '(?<=[-\\/])\\r?\\n[a-z0-9]+-[a-z0-9-]*[a-z0-9]';
+const WRAP_TAIL = `(?:${CODE_WRAP})?`;
+
+/**
+ * The same wrap, broken in the middle of the HOST ("https://meet.<newline>
+ * google.com/abc"). Safe to be greedier here than in the label rule: this tail
+ * is only used by URL_TOKEN_RE, whose replacer re-parses the joined token and
+ * puts it back untouched when the resulting host is not a conferencing host.
+ */
+const HOST_WRAP = `(?<=\\.)\\r?\\n[a-z0-9-]+\\.[a-z]{2,}(?:\\/${URL_TAIL}*)?`;
+const URL_WRAP_TAIL = `(?:${CODE_WRAP}|${HOST_WRAP})?`;
+
+/**
+ * A label immediately followed by something credential-shaped. Group 1 is the
+ * BASE label, so an optional qualifier ("Dial-in NUMBER", "PIN CODE") widens
+ * what matches without changing how much the label is trusted.
+ */
+const LABEL_QUALIFIER = '(?:\\s+(?:number|code|id|link|url|details|info))?';
+const LABELLED_CREDENTIAL_RE = new RegExp(
+  `\\b(${JOIN_LABELS.join('|')})${LABEL_QUALIFIER}\\b${SEP}`
+  + `(?:${URL_VALUE}${WRAP_TAIL}|${TEL_VALUE}|${NUM_VALUE})`,
+  'gi'
+);
+/** Any URL token. The replacer keeps it unless its HOST serves meeting rooms. */
+const URL_TOKEN_RE = new RegExp(`${URL_VALUE}${URL_WRAP_TAIL}`, 'gi');
+/** A scheme-less conferencing host WITH a path, i.e. carrying a room code. */
+const BARE_HOST_RE = new RegExp(
+  `(?:meet\\.google\\.com|tel\\.meet|g\\.co\\/meet|zoom\\.us|teams\\.microsoft\\.com`
+  + `|teams\\.live\\.com|webex\\.com|meet\\.jit\\.si|whereby\\.com|chime\\.aws)`
+  + `\\/${URL_TAIL}+${WRAP_TAIL}`,
+  'gi'
+);
+
+/**
+ * Digit floors. Below the floor a run is a dose ("200 mg"), a cycle day, a room
+ * number or a year, not a credential.
+ */
+const MIN_DIGITS_STRONG_LABEL = 4;
+const MIN_DIGITS_WEAK_LABEL = 6;
+const DATE_SHAPED_RE = /\d{4}-\d{1,2}-\d{1,2}|\d{1,2}[-.]\d{1,2}[-.]\d{4}/;
+
+/**
+ * Blanks a matched span, preserving the line breaks INSIDE it so surrounding
+ * markdown keeps its shape, and marking each line it touched.
+ */
+function blankSpan(match) {
+  return match.replace(/[^\n]+/g, REDACTED_MARK);
+}
+
+function redactLabelledCredential(match, label) {
+  // A label plus a URL or a tel: URI is a credential, full stop.
+  if (/https?:\/\/|www\.|tel:/i.test(match)) return blankSpan(match);
+  // A label plus digits is one only if the digits could be a PIN or a phone
+  // number, and only if they are not simply a date sitting behind the label.
+  const digits = (match.match(/\d/g) || []).length;
+  const floor = IS_STRONG_LABEL_RE.test(label) ? MIN_DIGITS_STRONG_LABEL : MIN_DIGITS_WEAK_LABEL;
+  if (digits < floor) return match;
+  if (digits <= 8 && DATE_SHAPED_RE.test(match)) return match;
+  return blankSpan(match);
+}
+
+function redactConferencingUrl(match) {
+  let parsed;
+  try {
+    parsed = new URL(/^www\./i.test(match) ? 'https://' + match : match);
+  } catch {
+    return match;
   }
-  // Catch any leftover bare meet URLs that weren't on their own line.
-  out = out.replace(/https?:\/\/meet\.google\.com\/[A-Za-z0-9?=&-]+/gi, '');
-  out = out.replace(/https?:\/\/tel\.meet\/[A-Za-z0-9?=&-]+/gi, '');
+  return isConferencingHost(parsed.hostname, parsed.pathname) ? blankSpan(match) : match;
+}
+
+/**
+ * A line the scrubber touched whose remainder is nothing but markdown
+ * decoration ("- ", "**", "> ", "1. ") is blanked, because the decoration was
+ * only ever holding the credential. Lines the scrubber did NOT touch are
+ * returned byte-for-byte: there is no document-wide whitespace tidy here, so
+ * nested list indentation and indented code blocks survive intact.
+ */
+const DECORATION_ONLY_RE = /^[\s*_>#+\-\u2013\u2014=|.:;,()[\]\d]*$/;
+
+function tidyRedactedLines(text) {
+  if (!text.includes(REDACTED_MARK)) return text;
+  return text.split('\n').map((line) => {
+    if (!line.includes(REDACTED_MARK)) return line;
+    const rest = line.split(REDACTED_MARK).join('');
+    return DECORATION_ONLY_RE.test(rest) ? '' : rest;
+  }).join('\n');
+}
+
+export function scrubJoinInfo(text) {
+  if (!text) return text;
+  let out = String(text).replace(ZERO_WIDTH_RE, '');
+  out = out.replace(LABELLED_CREDENTIAL_RE, redactLabelledCredential);
+  out = out.replace(URL_TOKEN_RE, redactConferencingUrl);
+  out = out.replace(BARE_HOST_RE, blankSpan);
+  out = tidyRedactedLines(out);
   // Collapse blank lines created by removals.
   out = out.replace(/\n{3,}/g, '\n\n').trim();
   return out;
+}
+
+/** An <img> src is a credential only when its HOST serves meeting rooms. */
+function isCredentialImageUrl(src) {
+  if (!src) return false;
+  try {
+    const parsed = new URL(String(src).trim(), SITE_ORIGIN);
+    return isConferencingHost(parsed.hostname, parsed.pathname);
+  } catch {
+    return false;
+  }
 }
 
 // Strip markdown image embeds, scrub join info, return chunked safe content.
 function summarize(content, { scrub = true } = {}) {
   if (!content) return { title: '', description: '', firstImage: null, chunks: [] };
   let firstImage = null;
-  const noImages = content.replace(/!\[([^\]]*)\]\(([^)]+)\)/g, (_m, _alt, src) => {
-    if (!firstImage) firstImage = src;
+  const noImages = String(content).replace(/!\[([^\]]*)\]\(([^)]+)\)/g, (_m, _alt, src) => {
+    // firstImage becomes og:image, twitter:image, the JSON-LD image and the
+    // rendered flyer, and it is captured HERE, before scrubJoinInfo ever runs.
+    // A markdown image whose src is the Meet room would otherwise publish the
+    // joining URL to all four.
+    if (!firstImage && !(scrub && isCredentialImageUrl(src))) firstImage = src;
     return '';
   });
   const cleaned = scrub ? scrubJoinInfo(noImages) : noImages;
@@ -73,6 +297,39 @@ function summarize(content, { scrub = true } = {}) {
 function extractSpeaker(content) {
   const m = (content || '').match(/^\s*Speaker:\s*(.+?)\s*$/m);
   return m ? m[1].trim() : null;
+}
+
+/**
+ * The speaker reaches the meta row, the JSON-LD performer and the .ics
+ * DESCRIPTION -- all shared, cacheable surfaces -- for every tier. Both arms of
+ * `event.speaker || extractSpeaker(content)` go through here.
+ */
+function scrubSpeaker(value) {
+  if (!value) return null;
+  const cleaned = scrubJoinInfo(value)
+    // A speaker is one short line, so it is worth tidying the punctuation the
+    // removal left behind: "Dr Ada (PIN 660011)" should read "Dr Ada", not
+    // "Dr Ada ()". Scoped to this field; body prose is never reflowed.
+    .replace(/[([{]\s*[)\]}]/g, '')
+    .replace(/[ \t]{2,}/g, ' ')
+    .replace(/[\s,;:.\-\u2013\u2014]+$/, '')
+    .trim();
+  return cleaned || null;
+}
+
+/**
+ * The title is a REQUIRED field: it is the <h1>, the <title>, og:title,
+ * og:image:alt, the JSON-LD name, the .ics SUMMARY and the Google Calendar
+ * text= parameter. Scrubbing can empty it, so it falls back to the scrubbed
+ * first content chunk and then to a constant. It never returns blank, and it
+ * never falls back to the unscrubbed column it just cleaned.
+ */
+function safeTitle(rawTitle, summaryTitle, fallback) {
+  const scrubbed = (scrubJoinInfo(rawTitle) || '').trim();
+  if (scrubbed) return scrubbed;
+  const fromContent = (summaryTitle || '').trim();
+  if (fromContent) return fromContent;
+  return fallback;
 }
 
 // Render a body chunk with markdown link support: [label](url) -> <a>.
@@ -249,11 +506,14 @@ function buildICS({ uid, title, startMs, endMs, description, location, url }) {
 }
 
 function renderHtml({ event, summary, speaker, visitor, cta, canonical, memberSummary }) {
-  const title = event.title || summary.title || 'Save the Uterus Club Event';
+  const title = safeTitle(event.title, summary.title, 'Save the Uterus Club Event');
   // summary.description is already scrubbed of Meet URL / dial / PIN.
   const description = (summary.description || `Live members-only call from Save the Uterus Club.`).slice(0, 300);
   const fullTitle = `${title} | Save the Uterus Club`;
-  const ogImage = abs(event.og_image_url || summary.firstImage) || (SITE_ORIGIN + '/og/save-the-uterus-club.png?v=8');
+  // og_image_url is judged on its HOST, not its filename: a flyer called
+  // "endo-call-2026.jpg" is a flyer; a src on meet.google.com is the room.
+  const flyerSrc = (isCredentialImageUrl(event.og_image_url) ? null : event.og_image_url) || summary.firstImage;
+  const ogImage = abs(flyerSrc) || (SITE_ORIGIN + '/og/save-the-uterus-club.png?v=8');
   const startMs = Date.parse(event.event_date);
   const endMs = Number.isFinite(startMs) ? startMs + 60 * 60 * 1000 : null;
   const startISO = Number.isFinite(startMs) ? new Date(startMs).toISOString() : event.event_date;
@@ -502,7 +762,7 @@ ${TRACKING_HEAD}
     ${speaker ? `<span class="meta__row">Speaker: ${escapeHtml(speaker)}</span>` : ''}
   </div>
 
-  ${event.og_image_url || summary.firstImage ? `<img class="flyer" src="${escapeHtml(abs(event.og_image_url || summary.firstImage))}" alt="${escapeHtml(title)}" loading="eager" fetchpriority="high">` : ''}
+  ${flyerSrc ? `<img class="flyer" src="${escapeHtml(abs(flyerSrc))}" alt="${escapeHtml(title)}" loading="eager" fetchpriority="high">` : ''}
 
   ${bodyChunks.length ? `<div class="body">${bodyChunks.map(c => `<p>${renderBodyChunk(c)}</p>`).join('\n')}</div>` : ''}
 
@@ -565,7 +825,10 @@ export async function onRequestGet({ request, params, env }) {
   // memberSummary: full content (used only for member/staff body rendering).
   const summary = summarize(event.content, { scrub: true });
   const memberSummary = summarize(event.content, { scrub: false });
-  const speaker = event.speaker || extractSpeaker(event.content);
+  // BOTH arms are scrubbed. extractSpeaker used to read RAW content, and the
+  // other arm was the raw `speaker` column, so a credential typed after a
+  // speaker name reached the meta row, JSON-LD performer.name and the .ics.
+  const speaker = scrubSpeaker(event.speaker) || scrubSpeaker(extractSpeaker(scrubJoinInfo(event.content)));
 
   // Calendar download: /events/<slug>/?add=ics -> .ics (tier-agnostic; no Meet link).
   // Lightweight path -- skips visitor classification (no Stripe/KV) entirely.
@@ -577,7 +840,7 @@ export async function onRequestGet({ request, params, env }) {
     const desc = `Save the Uterus Club live call${speaker ? ` with ${speaker}` : ''}. Join live inside Save the Uterus Club: ${evUrl}`;
     const ics = buildICS({
       uid: `stuc-${event.slug || event.id}@rrmacademy.org`,
-      title: event.title || 'Save the Uterus Club event',
+      title: safeTitle(event.title, summary.title, 'Save the Uterus Club event'),
       startMs: sMs, endMs: eMs, description: desc, location: evUrl, url: evUrl,
     });
     const fname = (event.slug || 'event').replace(/[^a-z0-9-]/gi, '') || 'event';
