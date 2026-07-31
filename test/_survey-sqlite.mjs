@@ -1,6 +1,7 @@
 /**
- * A D1-shaped SURVEY_DB (rrm-survey) backed by a REAL SQLite engine, built from
- * the COMMITTED migration files rather than a hand-written table definition.
+ * D1-shaped SURVEY_DB (rrm-survey) and SURVEY_SYMPTOMS_DB (rrm-survey-symptoms)
+ * bindings backed by a REAL SQLite engine, built from the COMMITTED migration
+ * files rather than a hand-written table definition.
  *
  * WHY THIS EXISTS
  * ---------------
@@ -68,10 +69,39 @@ CREATE TABLE IF NOT EXISTS email_log (
 );
 `;
 
+/**
+ * The identity half of the pseudonymization split. rrm-survey has no committed
+ * migration file for this table: it was created by a wrangler command written
+ * out in docs/plans/2026-03-09-survey-pseudonymization-plan.md (Step 3) and
+ * repeated verbatim in the matching design doc, so that command is the closest
+ * thing to a committed artifact and this is a transcription of it.
+ *
+ * Two columns here are load-bearing for the endpoints that write it:
+ *   - airtable_record_id is UNIQUE, so a replayed rec_id is a constraint error
+ *     rather than a duplicate identity row;
+ *   - email is NOT NULL and NOT unique, because one person can retake a survey.
+ * Under mockDB neither of those exists, so an INSERT that dropped a column or
+ * reused a rec_id would look identical to a clean write.
+ *
+ * Caveat, same shape as EMAIL_LOG_MIRRORED_FROM_RRM_AUTH below: this is a doc
+ * transcription, not a mirror of live rrm-survey. If someone ALTERed the live
+ * table, these tests stay green over the old shape.
+ */
+const SURVEY_IDENTITIES_FROM_PSEUDONYMIZATION_PLAN = `
+CREATE TABLE IF NOT EXISTS survey_identities (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  email TEXT NOT NULL,
+  airtable_record_id TEXT NOT NULL UNIQUE,
+  source TEXT NOT NULL DEFAULT 'endo-survey-v1',
+  created_at TEXT NOT NULL DEFAULT (datetime('now'))
+);
+CREATE INDEX IF NOT EXISTS idx_survey_identities_email ON survey_identities(email);
+`;
+
 export const SURVEY_SCHEMA_SQL =
   SURVEY_MIGRATIONS
     .map((name) => readFileSync(new URL(`../scripts/migrations/${name}`, import.meta.url), 'utf8'))
-    .join('\n') + EMAIL_LOG_MIRRORED_FROM_RRM_AUTH;
+    .join('\n') + EMAIL_LOG_MIRRORED_FROM_RRM_AUTH + SURVEY_IDENTITIES_FROM_PSEUDONYMIZATION_PLAN;
 
 /**
  * @param {object} [opts]
@@ -80,4 +110,30 @@ export const SURVEY_SCHEMA_SQL =
  */
 export function surveyD1({ seed } = {}) {
   return sqliteD1({ seed, schemaSql: SURVEY_SCHEMA_SQL });
+}
+
+/**
+ * The symptom half of the split: a SEPARATE database (binding
+ * SURVEY_SYMPTOMS_DB, D1 rrm-survey-symptoms) that must never hold an address.
+ * Unlike survey_identities this one HAS a committed migration, so its DDL is
+ * read from the file rather than transcribed.
+ *
+ * Building it as its own engine is the point. A single shared fake cannot fail
+ * when an email is written to the wrong store, because both tables would exist
+ * in the same database; two engines make "the address is not in the symptom
+ * store" a fact about the store rather than about the assertion.
+ */
+export const SYMPTOMS_MIGRATIONS = ['2026-06-26-survey-symptoms.sql'];
+
+export const SYMPTOMS_SCHEMA_SQL = SYMPTOMS_MIGRATIONS
+  .map((name) => readFileSync(new URL(`../scripts/migrations/${name}`, import.meta.url), 'utf8'))
+  .join('\n');
+
+/**
+ * @param {object} [opts]
+ * @param {(db: import('node:sqlite').DatabaseSync) => void} [opts.seed]
+ * @returns D1-like binding suitable for env.SURVEY_SYMPTOMS_DB
+ */
+export function symptomsD1({ seed } = {}) {
+  return sqliteD1({ seed, schemaSql: SYMPTOMS_SCHEMA_SQL });
 }
