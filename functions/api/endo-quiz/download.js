@@ -1,3 +1,6 @@
+// CI-gate firing probe (2026-07-31). Throwaway comment on a functions/ file,
+// pushed on a scratch branch to observe whether the coverage floor actually runs
+// on a product-code-only change. This branch and its PR are deleted afterwards.
 /**
  * POST /api/endo-quiz/download
  * Server-side hook for the results page's "Download PDF summary" button
