@@ -19,16 +19,16 @@
   "instrument": "node scripts/quality/coverage.mjs (c8 --all over the full surface; full npm-test suite)",
   "full_surface": {
    "files": 421,
-   "lines": 80899,
-   "covered": 19867,
-   "pct": 24.56
+   "lines": 80940,
+   "covered": 20394,
+   "pct": 25.2
   },
   "by_category": {
    "PRODUCT-CODE": {
     "files": 334,
-    "lines": 64816,
-    "covered": 19786,
-    "pct": 30.53
+    "lines": 64857,
+    "covered": 20313,
+    "pct": 31.32
    },
    "CONTENT-TEMPLATE": {
     "files": 8,
@@ -57,12 +57,12 @@
   },
   "product_code": {
    "files": 334,
-   "lines": 64816,
-   "covered": 19786,
-   "pct": 30.53
+   "lines": 64857,
+   "covered": 20313,
+   "pct": 31.32
   },
-  "files_absent_from_default_report": 308,
-  "files_present_in_default_report": 113,
+  "files_at_zero_in_full_report": 303,
+  "files_executed_in_full_report": 118,
   "highest_stakes_slice": {
    "slice": "national survey system (functions/api/survey/ + functions/api/endo-quiz/)",
    "files": [
@@ -578,19 +578,19 @@
    "file": "functions/api/_map-article.js",
    "category": "PRODUCT-CODE",
    "reason": "CF Pages Function (routed endpoint, middleware, or _-prefixed shared helper). Deployed on every push; defects ship directly to users.",
-   "present": false,
+   "present": true,
    "lines": 19,
-   "covered": 0,
-   "pct": 0
+   "covered": 19,
+   "pct": 100
   },
   {
    "file": "functions/api/_ratelimit-headers.js",
    "category": "PRODUCT-CODE",
    "reason": "CF Pages Function (routed endpoint, middleware, or _-prefixed shared helper). Deployed on every push; defects ship directly to users.",
-   "present": false,
+   "present": true,
    "lines": 44,
-   "covered": 0,
-   "pct": 0
+   "covered": 32,
+   "pct": 72.72
   },
   {
    "file": "functions/api/_search_log.js",
@@ -1055,19 +1055,19 @@
    "file": "functions/api/articles.js",
    "category": "PRODUCT-CODE",
    "reason": "CF Pages Function (routed endpoint, middleware, or _-prefixed shared helper). Deployed on every push; defects ship directly to users.",
-   "present": false,
-   "lines": 167,
-   "covered": 0,
-   "pct": 0
+   "present": true,
+   "lines": 176,
+   "covered": 176,
+   "pct": 100
   },
   {
    "file": "functions/api/articles/bulk.js",
    "category": "PRODUCT-CODE",
    "reason": "CF Pages Function (routed endpoint, middleware, or _-prefixed shared helper). Deployed on every push; defects ship directly to users.",
-   "present": false,
+   "present": true,
    "lines": 105,
-   "covered": 0,
-   "pct": 0
+   "covered": 105,
+   "pct": 100
   },
   {
    "file": "functions/api/ask.js",
@@ -1811,10 +1811,10 @@
    "file": "functions/api/glossary/terms.js",
    "category": "PRODUCT-CODE",
    "reason": "CF Pages Function (routed endpoint, middleware, or _-prefixed shared helper). Deployed on every push; defects ship directly to users.",
-   "present": false,
+   "present": true,
    "lines": 195,
-   "covered": 0,
-   "pct": 0
+   "covered": 195,
+   "pct": 100
   },
   {
    "file": "functions/api/index.js",
@@ -3333,7 +3333,7 @@
    "category": "PRODUCT-CODE",
    "reason": "The quality instrument itself (coverage/CRAP/mutation/census). A measurement tool that is wrong is worse than no tool; its pure logic is unit-testable.",
    "present": false,
-   "lines": 298,
+   "lines": 330,
    "covered": 0,
    "pct": 0
   },
