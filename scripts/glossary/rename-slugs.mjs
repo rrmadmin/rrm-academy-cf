@@ -6,8 +6,9 @@
 //   2. UPDATE glossary_abbreviation SET term_slug = <new> WHERE term_slug = <old>
 //   3. UPDATE glossary_term.body_html anywhere it cross-references the old slug
 //      (`href="#<old>"`, `href="/glossary/<old>/"`, `href="/glossary/<old>"`)
-//   4. UPDATE posts.content, the three faq answer columns (basic_answer,
-//      schema_answer, published_answer) and course_step.content_md likewise
+//   4. UPDATE posts.content and the three faq answer columns (basic_answer,
+//      schema_answer, published_answer) likewise. Course lesson bodies are a
+//      declared gap -- see COURSE_CONTENT_NOT_SCANNED.
 //   5. Emit router redirect lines to add to rrm-router/src/index.js REDIRECTS
 //
 // Modes:
@@ -62,6 +63,39 @@ const RENAMES = [
  * and which one is populated varies by FAQ.
  */
 const FAQ_ANSWER_COLUMNS = ['basic_answer', 'schema_answer', 'published_answer'];
+
+/**
+ * Course lesson bodies are a KNOWN GAP in this script, declared rather than
+ * faked. It used to scan and rewrite `course_step.content_md`. That column has
+ * never existed: no committed DDL in this repo ever declared it, and live
+ * rrm-auth's course_step is (id, section_id, course_id, title, type,
+ * stream_uid, duration_seconds, sort_order, attachments_json, status,
+ * created_at, updated_at). Both statements threw "no such column: content_md",
+ * were swallowed as a WARN, and rewrote nothing on every run this script has
+ * ever had. They are removed rather than repointed.
+ *
+ * Repointing is NOT a mechanical rename and is deliberately left undone. Lesson
+ * bodies now live in step_rendition.content_json (migration 028, 2026-06-06),
+ * which is a JSON document, not markdown. A textual REPLACE over JSON would
+ * silently half-work: the `href="/glossary/<slug>"` variant appears in the raw
+ * column as `/glossary/<slug>\"` because JSON escapes the quote, so the second
+ * REPLACE would never match while the first one did. Rewriting links there
+ * needs parse-rewrite-reserialise, which is a different job from this script.
+ *
+ * Current exposure, measured on live rrm-auth 2026-07-31: step_rendition holds
+ * 4 rows and NONE of them contains a "/glossary/" link, so nothing is stale
+ * today. Re-check before the next rename:
+ *   SELECT COUNT(*) FROM step_rendition WHERE content_json LIKE '%/glossary/%';
+ */
+const COURSE_CONTENT_NOT_SCANNED = [
+  '',
+  'NOTE: course lesson bodies are NOT scanned or rewritten by this script.',
+  '      Lesson content lives in step_rendition.content_json (JSON, not markdown);',
+  '      rewriting links inside it needs a JSON-aware pass, not SQL REPLACE.',
+  '      Verify manually before/after a rename:',
+  "        SELECT COUNT(*) FROM step_rendition WHERE content_json LIKE '%/glossary/%';",
+  '',
+].join('\n');
 
 const args = process.argv.slice(2);
 const APPLY = args.includes('--apply');
@@ -146,20 +180,10 @@ function findCrossRefs() {
       }
     }
 
-    // course_step.content_md
-    try {
-      const cs = d1Query('rrm-auth', `SELECT id FROM course_step WHERE content_md LIKE '%/glossary/${r.old}/%' OR content_md LIKE '%/glossary/${r.old}"%'`);
-      found[r.old].course_steps = cs;
-    } catch (e) {
-      const msg = (e?.message || '').toLowerCase();
-      if (msg.includes('no such table')) {
-        // Table genuinely missing in this D1 -- safe to skip
-      } else {
-        console.warn(`  WARN: course_step cross-ref scan for ${r.old} failed: ${e?.message?.slice(0, 200)}`);
-        console.warn(`        Cross-refs in course_steps may be missed. Re-run after diagnosing.`);
-      }
-    }
+    // Course step bodies are NOT scanned. See COURSE_CONTENT_NOT_SCANNED.
+    found[r.old].course_steps = [];
   }
+  if (RENAMES.length) console.warn(COURSE_CONTENT_NOT_SCANNED);
   return found;
 }
 
@@ -219,14 +243,7 @@ function buildPlan(crossRefs) {
       });
     }
 
-    // 6. course_step cross-refs
-    for (const cs of crossRefs[r.old].course_steps) {
-      plan.d1_updates.push({
-        db: 'rrm-auth',
-        label: `course_step[${cs.id}].content_md: replace /glossary/${r.old}/ -> ${r.new}`,
-        sql: `UPDATE course_step SET content_md = REPLACE(REPLACE(content_md, '/glossary/${r.old}/', '/glossary/${r.new}/'), '/glossary/${r.old}"', '/glossary/${r.new}"'), updated_at = datetime('now') WHERE id = '${cs.id}'`,
-      });
-    }
+    // 6. course lesson bodies: intentionally absent. See COURSE_CONTENT_NOT_SCANNED.
 
     // 7. router redirect
     plan.router_redirects.push({
@@ -242,7 +259,7 @@ function buildPlan(crossRefs) {
       glossary_term: crossRefs[r.old].glossary_term.length,
       posts: crossRefs[r.old].posts.length,
       faqs: crossRefs[r.old].faqs.length,
-      course_steps: crossRefs[r.old].course_steps.length,
+      course_steps: 0, // not scanned; see COURSE_CONTENT_NOT_SCANNED
     };
   }
 
@@ -376,9 +393,9 @@ async function main() {
 
   console.log('\nCross-reference inventory:');
   for (const [oldSlug, counts] of Object.entries(plan.cross_ref_summary)) {
-    const total = counts.glossary_term + counts.posts + counts.faqs + counts.course_steps;
+    const total = counts.glossary_term + counts.posts + counts.faqs;
     if (total > 0) {
-      console.log(`  ${oldSlug}: glossary=${counts.glossary_term}  posts=${counts.posts}  faqs=${counts.faqs}  course_steps=${counts.course_steps}`);
+      console.log(`  ${oldSlug}: glossary=${counts.glossary_term}  posts=${counts.posts}  faqs=${counts.faqs}  course_steps=not-scanned`);
     } else {
       console.log(`  ${oldSlug}: (no cross-refs)`);
     }
