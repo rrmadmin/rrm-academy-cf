@@ -1,0 +1,29 @@
+-- course.topics_json -- backs the topic filter toolbar on /courses/.
+--
+-- WHY THIS FILE EXISTS AT ALL, WRITTEN AFTER THE FACT (2026-07-31)
+-- The column was added to live rrm-auth on 2026-07-01 by a hand-run
+-- `ALTER TABLE course ADD COLUMN topics_json TEXT`, with no migration file
+-- committed alongside it. The committed course schema
+-- (scripts/migrate-courses-to-d1.sql) was updated and the courses schema gate
+-- CS2 confirms the column against live D1, so production has carried it since
+-- that day -- but scripts/migrations/ never learned about it.
+--
+-- That gap is exactly the case test/schema-migration-replay.test.mjs names as
+-- the one it cannot catch: "If someone changes a column IN PLACE on live
+-- without writing a migration file, there is no file to notice and this test
+-- stays green." The cost landed on the test harness: schema.sql is a
+-- 2026-05-27 snapshot, so test/_d1-sqlite.mjs built a `course` table with no
+-- topics_json, and POST /api/admin/courses -- whose INSERT names the column --
+-- could not be executed against the harness at all. Writing the ALTER down and
+-- replaying it puts the harness back level with production.
+--
+-- Idempotent by convention, not by syntax: SQLite has no
+-- `ADD COLUMN IF NOT EXISTS`, and the harness loader swallows the resulting
+-- "duplicate column name" for ALTER ... ADD COLUMN only. Applying this to live
+-- rrm-auth a second time is a no-op error, not damage.
+--
+-- Shape: a plain JSON array of strings, same as faqs_json / includes_json. No
+-- CHECK constraint; validity is enforced in the write path by validateTopics()
+-- in functions/api/admin/courses/_shared.js (max 20 entries, 60 chars each,
+-- no '|', nothing normalizing to the reserved sentinel "all").
+ALTER TABLE course ADD COLUMN topics_json TEXT;
