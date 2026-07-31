@@ -616,17 +616,17 @@ describe('PUT admin/community/projects -- ownership reassignment', () => {
     assert.deepEqual(memberships(db, P), [{ user_id: MEMBER.id, role: 'owner' }]);
   });
 
-  it('PINS A DEFECT: reassignment leaves the previous owner holding project_membership.role = owner', async () => {
-    // Identical to the areas.js finding, in the twin file: the handler upserts
-    // the NEW owner's membership and never demotes the old one. Two rows claim
-    // ownership, and GET /api/community/memberships reports both.
+  it('reassignment demotes the previous owner -- exactly one project_membership holds owner', async () => {
+    // The twin of the areas.js fix, kept in step with it: the handler demotes
+    // the old owner to 'member' in the same batch that promotes the new one.
+    // Two rows claiming ownership was the defect.
     await parseResponse(await put({ db, body: { id: P, owner_user_id: MEMBER.id } }));
     await parseResponse(await put({ db, body: { id: P, owner_user_id: ADMIN.id } }));
     assert.equal(row(db, P).owner_user_id, ADMIN.id);
     assert.deepEqual(memberships(db, P), [
       { user_id: ADMIN.id, role: 'owner' },
-      { user_id: MEMBER.id, role: 'owner' },
-    ], 'two owner memberships is the CURRENT behaviour; one would mean the demote landed');
+      { user_id: MEMBER.id, role: 'member' },
+    ], 'the previous owner still holds role=owner -- the demote did not land');
   });
 
   it('PINS A DEFECT: releasing ownership to null leaves the ex-owner membership at role owner', async () => {
@@ -637,11 +637,21 @@ describe('PUT admin/community/projects -- ownership reassignment', () => {
       'CURRENT behaviour: an ownerless project still carries an owner membership row');
   });
 
-  it('PINS A DEFECT: a 404 update that carries an owner still writes a membership for the missing project', async () => {
+  it('a 404 update that carries an owner writes NOTHING for the missing project', async () => {
     const { status } = await parseResponse(await put({ db, body: { id: 'p_missing', owner_user_id: MEMBER.id } }));
     assert.equal(status, 404);
+    assert.deepEqual(memberships(db, 'p_missing'), [],
+      'a 404 response left an orphan project_membership row behind');
+  });
+
+  it('a 404 update does not touch a pre-existing orphan membership either', async () => {
+    // The demote carries the same EXISTS gate as the insert, so a request the
+    // handler is about to answer 404 cannot quietly rewrite leftover rows.
+    insertProjectMembership(db._sqlite, { userId: MEMBER.id, projectId: 'p_missing', role: 'owner' });
+    const { status } = await parseResponse(await put({ db, body: { id: 'p_missing', owner_user_id: ADMIN.id } }));
+    assert.equal(status, 404);
     assert.deepEqual(memberships(db, 'p_missing'), [{ user_id: MEMBER.id, role: 'owner' }],
-      'CURRENT behaviour: a 404 response leaves an orphan project_membership row behind');
+      'a 404 response rewrote membership rows for a project that does not exist');
   });
 });
 
