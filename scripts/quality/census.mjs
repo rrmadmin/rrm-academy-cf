@@ -145,6 +145,35 @@ const OUT = resolve(ROOT, 'scripts', 'quality', 'coverage-census.json');
  *                   PRODUCT-CODE at 0% covered, so every comment line added
  *                   here enlarges the denominator it reports.
  *
+ * 34.8 2026-07-31  RAISED by the tranche-5 community-administration drive. The
+ *                  four admin CRUD endpoints behind the STUC Action Areas hub
+ *                  went 0 -> 100% lines, branches and functions:
+ *                  admin/community/{projects,areas,impact,ownership}.js, 1135
+ *                  lines that no test had ever imported. Measured 34.82%
+ *                  (22596/64887) on a clean checkout, up from 32.43%
+ *                  (21042/64887) on the same checkout before the drive.
+ *
+ *                  The gain is larger than the 1135 lines targeted because
+ *                  the tests call the CONSUMERS rather than asserting on the
+ *                  admin handlers' own return values: community/areas.js,
+ *                  community/projects.js, community/memberships.js,
+ *                  community/areas/{join,leave,volunteer}.js and the real
+ *                  requireMember gate all execute as a side effect of proving
+ *                  that an ownership grant is actually conferred.
+ *
+ *                  THE HARNESS WAS BLIND TO THIS ENTIRE SUBSYSTEM. schema.sql
+ *                  contains no action_area, project, area_membership,
+ *                  project_membership, impact_entry or area_ownership_request,
+ *                  and community_post has no area_id: those objects were
+ *                  created by migrations/025 and /027, which live in the
+ *                  REPO-ROOT migrations/ directory, not scripts/migrations/.
+ *                  test/schema-migration-replay.test.mjs partitions
+ *                  scripts/migrations/ only, so a root migration is named by
+ *                  neither half of its partition, and _d1-sqlite.mjs resolves
+ *                  POST_SNAPSHOT_MIGRATIONS against scripts/migrations/, so it
+ *                  cannot list one. test/_community-schema.mjs composes the
+ *                  missing DDL on top of the snapshot; see its header.
+ *
  * MEASURE IN A CLEAN CHECKOUT, THE WAY CI DOES.
  * `src/data/glossary.json` is GITIGNORED and is never present in CI (the
  * workflow runs `npm ci` then `npm test`; there is no fetch-all step). The
@@ -165,7 +194,7 @@ const OUT = resolve(ROOT, 'scripts', 'quality', 'coverage-census.json');
  * particular surface is tested. Read the per-product view
  * (tools/coverage-portfolio/status.mjs) before concluding a product is covered.
  */
-const ARMED_FLOOR_PCT = 32.4;
+const ARMED_FLOOR_PCT = 34.8;
 
 const argv = process.argv.slice(2);
 const covDirIdx = argv.indexOf('--coverage-dir');
