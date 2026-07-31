@@ -145,6 +145,30 @@ const OUT = resolve(ROOT, 'scripts', 'quality', 'coverage-census.json');
  *                   PRODUCT-CODE at 0% covered, so every comment line added
  *                   here enlarges the denominator it reports.
  *
+ * 34.7 2026-07-31  RAISED by the tranche-5 community-content drive. The
+ *                  member-authored content core went 0 -> 100% lines:
+ *                  community/posts.js (747 lines, the largest
+ *                  never-executed file in the repo), community/comments.js
+ *                  (324) and community/reactions.js (110). 272 tests against
+ *                  a real SQLite engine loaded with the committed schema
+ *                  (test/_d1-sqlite.mjs), because every load-bearing decision
+ *                  on this surface is the database's: pinned-first ordering
+ *                  under a created_at cursor, the UNIQUE NOCASE slug index,
+ *                  meta.changes driving the reaction toggle, and the
+ *                  order-dependent six-statement delete batch.
+ *                  Measured 34.80% (22580/64887) on a CLEAN checkout, up from
+ *                  32.43% on the same denominator. Rounded DOWN on the
+ *                  one-decimal scale the true 34.7989% is 34.7, not 34.8, so
+ *                  34.7 is what is armed; 34.8 was verified RED (exit 1) and
+ *                  34.7 GREEN (exit 0) on this branch.
+ *
+ *                  Measured on a branch, and per the tranche-4 note above a
+ *                  branch floor is not comparable with a sibling's. It is
+ *                  safe to arm anyway because this branch adds no product
+ *                  file: the denominator is byte-identical to main's 64887,
+ *                  and merged coverage sets are cumulative, so merged main
+ *                  can only measure higher.
+ *
  * MEASURE IN A CLEAN CHECKOUT, THE WAY CI DOES.
  * `src/data/glossary.json` is GITIGNORED and is never present in CI (the
  * workflow runs `npm ci` then `npm test`; there is no fetch-all step). The
@@ -165,7 +189,7 @@ const OUT = resolve(ROOT, 'scripts', 'quality', 'coverage-census.json');
  * particular surface is tested. Read the per-product view
  * (tools/coverage-portfolio/status.mjs) before concluding a product is covered.
  */
-const ARMED_FLOOR_PCT = 32.4;
+const ARMED_FLOOR_PCT = 34.7;
 
 const argv = process.argv.slice(2);
 const covDirIdx = argv.indexOf('--coverage-dir');
