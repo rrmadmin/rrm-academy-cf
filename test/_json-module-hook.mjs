@@ -104,6 +104,173 @@ export const COURSE_FIXTURE = [
       { id: 'af-sec-1', title: 'Affiliate Section', steps: [{ id: 'af-step-1', title: 'Intro', type: 'video' }] },
     ],
   },
+  // ---------------------------------------------------------------------------
+  // Added for the learner-path suites (courses/enroll, courses/certificate,
+  // courses/waitlist, courses/_shared). Every entry below exists to put ONE
+  // catalogue predicate at its boundary, because the predicates in
+  // functions/api/courses/_shared.js and enroll.js branch on catalogue shape
+  // rather than on database state:
+  //   isFree / stripePriceId / priceCents -> the free-vs-Stripe fork in enroll.js
+  //   comingSoon x accessType             -> the members exemption from the
+  //                                          coming-soon block (enroll.js:78)
+  //   isAffiliate x waitlistUrl           -> isWaitlistCourse(), which is the
+  //                                          ONLY eligibility gate the waitlist
+  //                                          endpoint has; all four corners of
+  //                                          that pair are represented
+  //   hasCertificate x certificateQuizId  -> the two arms of the certificate
+  //                                          quiz-score requirement
+  //   includes                            -> getIncludedCourseIds(), including
+  //                                          an unresolvable slug so the
+  //                                          .filter(Boolean) arm is real
+  // Ids and slugs are fixture-owned and never appear in production data.
+  {
+    id: 'test-course-free',
+    slug: 'test-course-free',
+    title: 'Test Course: Free',
+    status: 'published',
+    accessType: 'public',
+    isFree: true,
+    priceCents: 0,
+    sections: [
+      { id: 'fr-sec-1', title: 'Free Section', steps: [{ id: 'fr-step-1', title: 'Only Step', type: 'video' }] },
+    ],
+  },
+  {
+    id: 'test-course-paid',
+    slug: 'test-course-paid',
+    title: 'Test Course: Paid',
+    status: 'published',
+    accessType: 'public',
+    isFree: false,
+    priceCents: 4900,
+    stripePriceId: 'price_test_paid',
+    sections: [
+      { id: 'pd-sec-1', title: 'Paid Section', steps: [{ id: 'pd-step-1', title: 'Only Step', type: 'video' }] },
+    ],
+  },
+  {
+    // Paid, but with no priceCents, so the begin_checkout GA4 payload takes its
+    // no-value arm. Same slug family as test-course-paid on purpose.
+    id: 'test-course-paid-nofigure',
+    slug: 'test-course-paid-nofigure',
+    title: 'Test Course: Paid Without Price Figure',
+    status: 'published',
+    accessType: 'public',
+    isFree: false,
+    stripePriceId: 'price_test_nofigure',
+    sections: [
+      { id: 'pn-sec-1', title: 'Section', steps: [{ id: 'pn-step-1', title: 'Only Step', type: 'video' }] },
+    ],
+  },
+  {
+    id: 'test-course-free-bundle',
+    slug: 'test-course-free-bundle',
+    title: 'Test Course: Free Bundle',
+    status: 'published',
+    accessType: 'public',
+    isFree: true,
+    includes: ['test-course-free', 'slug-that-does-not-resolve'],
+    sections: [
+      { id: 'fb-sec-1', title: 'Bundle Section', steps: [{ id: 'fb-step-1', title: 'Only Step', type: 'video' }] },
+    ],
+  },
+  {
+    id: 'test-course-soon',
+    slug: 'test-course-soon',
+    title: 'Test Course: Coming Soon',
+    status: 'published',
+    accessType: 'public',
+    isFree: true,
+    comingSoon: true,
+    sections: [
+      { id: 'cs-sec-1', title: 'Section', steps: [{ id: 'cs-step-1', title: 'Only Step', type: 'video' }] },
+    ],
+  },
+  {
+    // comingSoon AND members: the members exemption means this one is NOT
+    // blocked by the coming-soon gate, it falls through to requireMember().
+    id: 'test-course-soon-members',
+    slug: 'test-course-soon-members',
+    title: 'Test Course: Coming Soon For Members',
+    status: 'published',
+    accessType: 'members',
+    isFree: true,
+    comingSoon: true,
+    sections: [
+      { id: 'sm-sec-1', title: 'Section', steps: [{ id: 'sm-step-1', title: 'Only Step', type: 'video' }] },
+    ],
+  },
+  {
+    id: 'test-course-members-free',
+    slug: 'test-course-members-free',
+    title: 'Test Course: Members',
+    status: 'published',
+    accessType: 'members',
+    isFree: true,
+    sections: [
+      { id: 'mb-sec-1', title: 'Section', steps: [{ id: 'mb-step-1', title: 'Only Step', type: 'video' }] },
+    ],
+  },
+  {
+    id: 'test-course-cert',
+    slug: 'test-course-cert',
+    title: 'Test Course: Certificated',
+    status: 'published',
+    accessType: 'public',
+    isFree: true,
+    hasCertificate: true,
+    certificateQuizId: 'ct-step-2',
+    instructors: [{ name: 'Dr. Fixture Instructor' }],
+    sections: [
+      {
+        id: 'ct-sec-1',
+        title: 'Certificated Section',
+        steps: [
+          { id: 'ct-step-1', title: 'Lesson', type: 'video' },
+          { id: 'ct-step-2', title: 'Final Quiz', type: 'quiz' },
+        ],
+      },
+    ],
+  },
+  {
+    // hasCertificate with NO certificateQuizId: the quiz-score requirement is
+    // skipped entirely, so completion alone issues.
+    id: 'test-course-cert-noquiz',
+    slug: 'test-course-cert-noquiz',
+    title: 'Test Course: Certificated Without Quiz',
+    status: 'published',
+    accessType: 'public',
+    isFree: true,
+    hasCertificate: true,
+    sections: [
+      { id: 'cn-sec-1', title: 'Section', steps: [{ id: 'cn-step-1', title: 'Only Step', type: 'video' }] },
+    ],
+  },
+  {
+    // Affiliate WITHOUT waitlistUrl: isWaitlistCourse() must be false.
+    id: 'test-course-affiliate-open',
+    slug: 'test-course-affiliate-open',
+    title: 'Test Course: Affiliate Without Waitlist',
+    status: 'published',
+    accessType: 'public',
+    isAffiliate: true,
+    sections: [
+      { id: 'ao-sec-1', title: 'Section', steps: [{ id: 'ao-step-1', title: 'Intro', type: 'video' }] },
+    ],
+  },
+  {
+    // waitlistUrl WITHOUT isAffiliate: isWaitlistCourse() must also be false.
+    id: 'test-course-waitlisturl-only',
+    slug: 'test-course-waitlisturl-only',
+    title: 'Test Course: Waitlist URL Only',
+    status: 'published',
+    accessType: 'public',
+    isFree: true,
+    waitlistUrl: 'https://example.invalid/not-a-waitlist-course',
+    sections: [
+      { id: 'wo-sec-1', title: 'Section', steps: [{ id: 'wo-step-1', title: 'Intro', type: 'video' }] },
+    ],
+  },
 ];
 
 /**
