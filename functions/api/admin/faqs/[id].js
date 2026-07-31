@@ -16,16 +16,6 @@ export function onRequestOptions() {
   return optionsResponse();
 }
 
-function groupById(rows, key) {
-  const map = {};
-  for (const row of rows) {
-    const k = row[key];
-    if (!map[k]) map[k] = [];
-    map[k].push(row);
-  }
-  return map;
-}
-
 function mapRow(r, refs, resources) {
   return {
     id: r.id,
