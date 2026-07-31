@@ -19,16 +19,16 @@
   "instrument": "node scripts/quality/coverage.mjs (c8 --all over the full surface; full npm-test suite)",
   "full_surface": {
    "files": 421,
-   "lines": 80940,
-   "covered": 20394,
-   "pct": 25.2
+   "lines": 80953,
+   "covered": 21123,
+   "pct": 26.09
   },
   "by_category": {
    "PRODUCT-CODE": {
     "files": 334,
-    "lines": 64857,
-    "covered": 20313,
-    "pct": 31.32
+    "lines": 64870,
+    "covered": 21042,
+    "pct": 32.44
    },
    "CONTENT-TEMPLATE": {
     "files": 8,
@@ -57,12 +57,12 @@
   },
   "product_code": {
    "files": 334,
-   "lines": 64857,
-   "covered": 20313,
-   "pct": 31.32
+   "lines": 64870,
+   "covered": 21042,
+   "pct": 32.44
   },
-  "files_at_zero_in_full_report": 303,
-  "files_executed_in_full_report": 118,
+  "files_at_zero_in_full_report": 298,
+  "files_executed_in_full_report": 123,
   "highest_stakes_slice": {
    "slice": "national survey system (functions/api/survey/ + functions/api/endo-quiz/)",
    "files": [
@@ -553,8 +553,8 @@
    "reason": "CF Pages Function (routed endpoint, middleware, or _-prefixed shared helper). Deployed on every push; defects ship directly to users.",
    "present": false,
    "lines": 24,
-   "covered": 0,
-   "pct": 0
+   "covered": 24,
+   "pct": 100
   },
   {
    "file": "functions/api/_idempotency.js",
@@ -885,27 +885,27 @@
    "category": "PRODUCT-CODE",
    "reason": "CF Pages Function (routed endpoint, middleware, or _-prefixed shared helper). Deployed on every push; defects ship directly to users.",
    "present": true,
-   "lines": 258,
-   "covered": 166,
-   "pct": 64.34
+   "lines": 248,
+   "covered": 248,
+   "pct": 100
   },
   {
    "file": "functions/api/admin/faqs/[id]/library-refs.js",
    "category": "PRODUCT-CODE",
    "reason": "CF Pages Function (routed endpoint, middleware, or _-prefixed shared helper). Deployed on every push; defects ship directly to users.",
-   "present": false,
+   "present": true,
    "lines": 94,
-   "covered": 0,
-   "pct": 0
+   "covered": 94,
+   "pct": 100
   },
   {
    "file": "functions/api/admin/faqs/[id]/resources.js",
    "category": "PRODUCT-CODE",
    "reason": "CF Pages Function (routed endpoint, middleware, or _-prefixed shared helper). Deployed on every push; defects ship directly to users.",
-   "present": false,
+   "present": true,
    "lines": 100,
-   "covered": 0,
-   "pct": 0
+   "covered": 100,
+   "pct": 100
   },
   {
    "file": "functions/api/admin/faqs/index.js",
@@ -913,8 +913,8 @@
    "reason": "CF Pages Function (routed endpoint, middleware, or _-prefixed shared helper). Deployed on every push; defects ship directly to users.",
    "present": true,
    "lines": 179,
-   "covered": 107,
-   "pct": 59.77
+   "covered": 179,
+   "pct": 100
   },
   {
    "file": "functions/api/admin/glossary/abbreviations/[abbr].js",
@@ -1138,8 +1138,8 @@
    "reason": "CF Pages Function (routed endpoint, middleware, or _-prefixed shared helper). Deployed on every push; defects ship directly to users.",
    "present": true,
    "lines": 585,
-   "covered": 481,
-   "pct": 82.22
+   "covered": 488,
+   "pct": 83.41
   },
   {
    "file": "functions/api/auth/change-password.js",
@@ -1388,10 +1388,10 @@
    "file": "functions/api/blog/posts.js",
    "category": "PRODUCT-CODE",
    "reason": "CF Pages Function (routed endpoint, middleware, or _-prefixed shared helper). Deployed on every push; defects ship directly to users.",
-   "present": false,
+   "present": true,
    "lines": 119,
-   "covered": 0,
-   "pct": 0
+   "covered": 119,
+   "pct": 100
   },
   {
    "file": "functions/api/bulk.js",
@@ -1786,8 +1786,8 @@
    "reason": "CF Pages Function (routed endpoint, middleware, or _-prefixed shared helper). Deployed on every push; defects ship directly to users.",
    "present": true,
    "lines": 114,
-   "covered": 105,
-   "pct": 92.1
+   "covered": 114,
+   "pct": 100
   },
   {
    "file": "functions/api/fund-progress.js",
@@ -1973,19 +1973,19 @@
    "file": "functions/api/pdf/redeem.js",
    "category": "PRODUCT-CODE",
    "reason": "CF Pages Function (routed endpoint, middleware, or _-prefixed shared helper). Deployed on every push; defects ship directly to users.",
-   "present": false,
+   "present": true,
    "lines": 86,
-   "covered": 0,
-   "pct": 0
+   "covered": 86,
+   "pct": 100
   },
   {
    "file": "functions/api/pdf/request.js",
    "category": "PRODUCT-CODE",
    "reason": "CF Pages Function (routed endpoint, middleware, or _-prefixed shared helper). Deployed on every push; defects ship directly to users.",
-   "present": false,
+   "present": true,
    "lines": 133,
-   "covered": 0,
-   "pct": 0
+   "covered": 133,
+   "pct": 100
   },
   {
    "file": "functions/api/quiz/event.js",
@@ -3333,7 +3333,7 @@
    "category": "PRODUCT-CODE",
    "reason": "The quality instrument itself (coverage/CRAP/mutation/census). A measurement tool that is wrong is worse than no tool; its pure logic is unit-testable.",
    "present": false,
-   "lines": 330,
+   "lines": 353,
    "covered": 0,
    "pct": 0
   },
@@ -3937,8 +3937,8 @@
    "reason": "Build-time data fetcher / shared logic. Feeds every deploy (fetch-all -> src/data -> astro build); silent failure here is a data-loss deploy.",
    "present": true,
    "lines": 41,
-   "covered": 38,
-   "pct": 92.68
+   "covered": 41,
+   "pct": 100
   },
   {
    "file": "src/lib/infographic/samples.mjs",

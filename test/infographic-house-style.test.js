@@ -100,3 +100,40 @@ describe('ratio template uses figures, not dots', () => {
     assert.ok(svg.includes(MAN), 'ratio honours the icon');
   });
 });
+
+describe('houseStyleErrors -- the "is this even an SVG" guard', () => {
+  // This guard is what stops the gate from silently PASSING a non-render.
+  // Every later check is a substring test, and a `.includes()` on a non-string
+  // would throw while an empty string would satisfy "no dash, no font attr" and
+  // come back clean, i.e. an empty file would be reported as house-style valid.
+  it('rejects a string that is not an SVG document, and reports nothing else', () => {
+    const errors = houseStyleErrors('<html><body>not a render</body></html>');
+    assert.deepEqual(errors, ['not an SVG string'], 'returns early with the single error');
+  });
+
+  it('rejects the empty string rather than passing it as clean', () => {
+    assert.deepEqual(houseStyleErrors(''), ['not an SVG string']);
+  });
+
+  for (const [label, value] of [
+    ['undefined', undefined],
+    ['null', null],
+    ['a number', 42],
+    ['a Buffer-like object', { toString: () => '<svg' }],
+    ['an array', ['<svg']],
+  ]) {
+    it(`rejects ${label} without throwing`, () => {
+      assert.deepEqual(houseStyleErrors(value), ['not an SVG string']);
+    });
+  }
+
+  it('rejects leading whitespace before the <svg root', () => {
+    // startsWith is strict; a pretty-printed file with a leading newline is not
+    // something svgShell ever emits, so it is correctly refused.
+    assert.deepEqual(houseStyleErrors('  <svg></svg>'), ['not an SVG string']);
+  });
+
+  it('applies the guard under branded:true as well', () => {
+    assert.deepEqual(houseStyleErrors('nope', { branded: true }), ['not an SVG string']);
+  });
+});

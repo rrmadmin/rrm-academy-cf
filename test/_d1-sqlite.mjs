@@ -56,9 +56,20 @@ const SCHEMA_PATH = new URL('../schema.sql', import.meta.url);
  *
  * Membership rule: an entry belongs here only if (a) its target database is
  * rrm-auth and (b) it has actually been applied to production. Migrations
- * targeting rrm-survey / rrm-library / rrm-survey-symptoms do not belong, and
- * neither does 2026-06-28-email-event.sql, which its own header marks
- * "DRAFT / HELD. Do NOT apply."
+ * targeting rrm-survey / rrm-library / rrm-survey-symptoms do not belong.
+ *
+ * A FILE HEADER IS NOT A DEPLOYMENT RECORD. Membership turns on what live
+ * rrm-auth actually contains, which is settled by querying it:
+ *   wrangler d1 execute rrm-auth --remote \
+ *     --command "SELECT name FROM pragma_table_info('email_log')"
+ * 2026-06-28-email-event.sql sat in the exclusion list on the strength of its
+ * own "DRAFT / HELD. Do NOT apply" header. That header is stale: the live
+ * query on 2026-07-31 returns email_log columns id, event, email, category,
+ * source, subject, detail, send_id, ses_message_id, the email_event table
+ * exists, and email_log holds 1728 rows with 937 written since 2026-06-28.
+ * The migration is applied. Excluding it left the harness BEHIND production,
+ * so insertEmailLog()'s eight-column INSERT failed in tests only and read as a
+ * production outage that was never happening.
  *
  * Discovered the hard way: without the token column, POST /api/auth/signup 500s
  * on its INSERT INTO email_verification -- a green suite over a stale schema
@@ -71,6 +82,7 @@ const SCHEMA_PATH = new URL('../schema.sql', import.meta.url);
 export const POST_SNAPSHOT_MIGRATIONS = [
   '2026-05-27-community-post-speaker.sql',
   '2026-06-20-email-verification-token.sql',
+  '2026-06-28-email-event.sql',
 ];
 
 /**
@@ -102,8 +114,6 @@ export const MIGRATIONS_NOT_REPLAYED = {
     'Targets the rrm-survey database (binding SURVEY_DB), not rrm-auth. Loaded separately by test/_survey-sqlite.mjs, which builds the SURVEY_DB harness from these files.',
   '2026-06-26-survey-symptoms.sql':
     'Targets the rrm-survey-symptoms database (binding SURVEY_SYMPTOMS_DB), not rrm-auth. Loaded separately by test/_survey-sqlite.mjs symptomsD1(), which builds the SURVEY_SYMPTOMS_DB harness from this file.',
-  '2026-06-28-email-event.sql':
-    'Targets rrm-auth but its own header reads "STATUS: DRAFT / HELD. Do NOT apply." Never applied to production, so replaying it would make the harness schema AHEAD of live and hide a missing-column failure instead of reproducing it.',
   '2026-07-02-quiz-events-and-rules-version.sql':
     'Targets the rrm-survey database (binding SURVEY_DB), not rrm-auth. Loaded by test/_survey-sqlite.mjs alongside the quiz_result migration.',
   'ai-search-docs.sql':

@@ -104,6 +104,29 @@ const OUT = resolve(ROOT, 'scripts', 'quality', 'coverage-census.json');
  *                   main red on its own gate, was resolved by the tranche-4
  *                   closes drive, which covered that file and regenerated the
  *                   census; main is green as of this merge.
+ *   29  2026-07-31  UNCHANGED after the tranche-4 PDF/blog/FAQ drive: the
+ *                   guide-PDF magic-link mint and redeem path, the blog build
+ *                   feed, and the whole FAQ admin surface plus its public
+ *                   read. Ten files to 100% lines, five of which were absent
+ *                   from the default report entirely rather than merely low.
+ *                   Measured 29.30% on its own branch. Merged it does not set
+ *                   the floor, because the floor is already 29 and the merged
+ *                   tree measures far above it; the closing commit arms the
+ *                   final number.
+ *
+ *                   This drive also corrected test/_d1-sqlite.mjs. The
+ *                   harness had excluded 2026-06-28-email-event.sql from
+ *                   replay on the strength of the migration's own
+ *                   "STATUS: DRAFT / HELD. Do NOT apply" header, recording
+ *                   that it was "never applied to production". Querying live
+ *                   rrm-auth settles it the other way: email_log carries
+ *                   ses_message_id, the email_event table exists, and
+ *                   email_log holds 1728 rows with 937 written since
+ *                   2026-06-28. The migration IS applied. A FILE HEADER IS
+ *                   NOT A DEPLOYMENT RECORD, and excluding it left the
+ *                   harness behind production, which made an eight-column
+ *                   insertEmailLog() INSERT fail in tests only and read as a
+ *                   production email outage that was never happening.
  *
  * MEASURE IN A CLEAN CHECKOUT, THE WAY CI DOES.
  * `src/data/glossary.json` is GITIGNORED and is never present in CI (the
