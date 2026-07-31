@@ -56,13 +56,13 @@ const OUT = resolve(ROOT, 'scripts', 'quality', 'coverage-census.json');
  *                   Measured 28.32%.
  *   28  2026-07-31  UNCHANGED after the tranche-4 drive, which closed three
  *                   product rows to 100% (training analytics, national survey
- *                   system, research library render surface). Measured 28.93%,
+ *                   system, research library render surface). Measured 28.92%,
  *                   up from 28.17% on the same clean checkout. Rounded DOWN
  *                   that is still 28, and arming 29 would be red on arrival by
- *                   0.07 points, so the ratchet does not advance on this
- *                   tranche. Recorded rather than skipped: a measurement that
- *                   moved without moving the armed integer is still the
- *                   evidence the next raise is argued from.
+ *                   0.08 points (51 more covered lines), so the ratchet does
+ *                   not advance on this tranche. Recorded rather than skipped:
+ *                   a measurement that moved without moving the armed integer
+ *                   is still the evidence the next raise is argued from.
  *
  * A REPO-WIDE FLOOR CAN HIDE A PRODUCT AT ZERO. That is what tranche 3 found:
  * this number was green at 26 while five separate product surfaces measured
