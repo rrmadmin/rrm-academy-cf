@@ -523,6 +523,19 @@ jobs:
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
         run: npm run gates:courses
 
+      - name: Validate SQL column/table existence gates (always)
+        # SQ1-SQ3. Builds rrm-auth in an in-memory node:sqlite from schema.sql
+        # plus the migrations test/_d1-sqlite.mjs replays, then PREPAREs every
+        # static SQL string under functions/, scripts/ and src/lib against it.
+        # SQLite resolves column names at PREPARE time, so a statement naming a
+        # column that does not exist throws on EVERY call regardless of matching
+        # rows. Born 2026-07-31: functions/api/admin/courses/[id].js probed its
+        # delete reference guard with `SELECT id FROM step_progress`, but that
+        # table's key is the composite (user_id, course_id, step_id). Inside a
+        # Promise.all, so every admin course delete returned 500 and the whole
+        # reference guard below it had never run. Static, in-memory, no network.
+        run: npm run gates:sql
+
       - name: Validate share button gates (always)
         # SB1-SB4 static gates: navigator.share primary branch, .catch() on
         # writeText, aria-label="Share", .action-label visible in .copied state.
