@@ -144,6 +144,97 @@ const OUT = resolve(ROOT, 'scripts', 'quality', 'coverage-census.json');
  *                   part of what is measured: census.mjs is itself
  *                   PRODUCT-CODE at 0% covered, so every comment line added
  *                   here enlarges the denominator it reports.
+ * 33.4 2026-07-31  RAISED by the tranche-5 moderation drive. The STUC
+ *                   moderation surface -- community/flags.js, ban.js and
+ *                   unban.js -- went from ABSENT-FROM-THE-REPORT (never
+ *                   imported by any test, which reads as 0 but is not the
+ *                   same thing) to 100% lines on all three, exercised against
+ *                   a real SQLite engine loaded with the committed schema.
+ *                   Measured 33.46% (21713/64887) on a clean checkout of this
+ *                   branch, rounded DOWN on the one-decimal scale.
+ *
+ *                   The endpoints were picked because a canned mock cannot
+ *                   test them at all: "the ban bites" is a claim about a row
+ *                   written by ban.js and re-read much later by a DIFFERENT
+ *                   query inside requireMember, and the flag duplicate/upsert
+ *                   path is decided by the UNIQUE index in schema.sql. The
+ *                   ban refusal is asserted through the real requireMember and
+ *                   through two real endpoints, never a stub.
+ *
+ * 26.5 2026-07-31  LOWERED, AND THE OLD NUMBER WAS WRONG RATHER THAN THE
+ *                   COVERAGE HAVING REGRESSED. This is the one move the ratchet
+ *                   rule does not cover, so it is spelled out. Not one test was
+ *                   deleted and not one line stopped being covered; the
+ *                   DENOMINATOR was corrected.
+ *
+ *                   functions/api/auth/_disposable-domains.js is an
+ *                   auto-generated Set of 5197 disposable-email domains, 5202
+ *                   lines of string literals with no functions and no branches.
+ *                   It was classified PRODUCT-CODE by the catch-all
+ *                   /^functions\// rule and scored 5202/5202 = 100% for the sole
+ *                   reason that _email-validate.js imports it. At 5202 lines it
+ *                   was 8.02% of the entire 64887-line PRODUCT-CODE denominator,
+ *                   ALL of it counted as covered, contributing nothing to the
+ *                   question this metric exists to answer. It has been
+ *                   reclassified GENERATED (see the override in
+ *                   lib/census-rules.mjs for the full written justification).
+ *
+ *                   BECAUSE THOSE LINES COUNTED AS COVERED, REMOVING THEM FROM
+ *                   BOTH SIDES LOWERS THE HEADLINE: 21042/64887 = 32.43%
+ *                   becomes 15840/59685 = 26.54%, a drop of 5.89 points. Every
+ *                   PRODUCT-CODE percentage this program has reported was
+ *                   inflated by roughly that much, including the 32.4 the floor
+ *                   was armed against and the four tranche floors above. The old
+ *                   headline is NOT preserved: a floor defended by a padded
+ *                   denominator protects nothing, and re-arming at 32.4 over the
+ *                   corrected denominator would demand 19358 covered lines the
+ *                   suite has never had.
+ *
+ *                   Armed at 26.5, the corrected measurement rounded DOWN. The
+ *                   ratchet still only moves up FROM HERE; this entry is the
+ *                   record of the one-time correction it moves up from.
+ *
+ *                   THE MECHANISM USED HERE IS ALSO AN ATTACK ON THE METRIC.
+ *                   Reclassifying a file out of PRODUCT-CODE raises the
+ *                   percentage whenever the file is worse-covered than the
+ *                   average, with no test written. That is exactly the lever
+ *                   this entry pulls, which is why it was only acceptable in the
+ *                   direction that COST coverage. A reclassification that
+ *                   shrinks the denominator and RAISES the number deserves the
+ *                   same scrutiny as lowering the floor; see the PR that landed
+ *                   this for the guard suggested to make that visible.
+ *
+ *                   Swept for siblings at the same time: no other generated or
+ *                   vendored data table is sitting in the PRODUCT-CODE
+ *                   denominator counted covered by a bare import.
+ *                   src/lib/infographic/wordmark.mjs is generated but is 11
+ *                   lines and exports a real exercised function;
+ *                   scripts/ssot-postbuild.mjs matched a grep for "vendored"
+ *                   only in prose about a CI fallback and sits at 0%, so it
+ *                   inflates nothing.
+ *
+ * 27.6 2026-07-31  EVENTS AND LEARNING COLLABORATIVES TRANCHE, LANE 1 OF 6
+ *                   (moderation: flags, ban, unban). RE-ARMED ON THE CORRECTED
+ *                   DENOMINATOR, which is why this reads 27.6 and not the 33.4
+ *                   the lane branch itself armed.
+ *
+ *                   Every lane in this tranche was branched, measured and armed
+ *                   BEFORE the 26.5 correction above landed, so each one carries
+ *                   a floor computed over the padded 64887-line denominator:
+ *                   33.4 here, and 34.7 / 34.8 / others on the sibling lanes.
+ *                   Those numbers are not reachable over the corrected 59754-line
+ *                   denominator and re-arming at them would leave the gate red on
+ *                   arrival, which the ratchet rule forbids. Each lane is
+ *                   therefore re-armed at ITS OWN post-merge measurement rounded
+ *                   DOWN as it lands. The ratchet is intact: it moves up from
+ *                   26.5 with every lane, it just moves up from the honest
+ *                   baseline rather than the inflated one.
+ *
+ *                   Measured 27.63% (16511/59754) on the merge commit, in a
+ *                   clean checkout with the gitignored src/data/*.json absent,
+ *                   the way CI measures. See the note directly below: with those
+ *                   data files present the same tree reads 27.77%, so the census
+ *                   is regenerated without them.
  *
  * 34.7 2026-07-31  RAISED by the tranche-5 community-content drive. The
  *                  member-authored content core went 0 -> 100% lines:
@@ -169,6 +260,21 @@ const OUT = resolve(ROOT, 'scripts', 'quality', 'coverage-census.json');
  *                  and merged coverage sets are cumulative, so merged main
  *                  can only measure higher.
  *
+ * 29.7 2026-07-31  TRANCHE LANE 2 OF 6 (posts, comments, reactions).
+ *                   Re-armed on the corrected denominator: the lane branch
+ *                   armed 34.7, measured over the padded 64887-line
+ *                   PRODUCT-CODE denominator before #110 reclassified the 5202
+ *                   generated lines of _disposable-domains.js out of it. That
+ *                   number is not reachable over the corrected denominator, so
+ *                   arming it would leave the gate red on arrival, which the
+ *                   ratchet rule forbids. See the 27.6 entry above for the full
+ *                   statement of how this tranche re-arms.
+ *
+ *                   Measured 29.73% (17784/59816) on the merge commit, in a
+ *                   clean checkout with the gitignored src/data/*.json absent,
+ *                   the way CI measures. The ratchet moved UP: 27.6 on
+ *                   main before this merge, 29.7 after it.
+ *
  * MEASURE IN A CLEAN CHECKOUT, THE WAY CI DOES.
  * `src/data/glossary.json` is GITIGNORED and is never present in CI (the
  * workflow runs `npm ci` then `npm test`; there is no fetch-all step). The
@@ -189,7 +295,7 @@ const OUT = resolve(ROOT, 'scripts', 'quality', 'coverage-census.json');
  * particular surface is tested. Read the per-product view
  * (tools/coverage-portfolio/status.mjs) before concluding a product is covered.
  */
-const ARMED_FLOOR_PCT = 34.7;
+const ARMED_FLOOR_PCT = 29.7;
 
 const argv = process.argv.slice(2);
 const covDirIdx = argv.indexOf('--coverage-dir');
