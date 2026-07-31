@@ -1,26 +1,57 @@
 name: Tests
 
-# Closes a CI gap found in the 2026-07-05 hardening audit: deploy.yml's push
-# trigger path-filters to site-affecting files, so a push to main touching ONLY
-# test files or scripts ran no CI at all. This workflow runs the unit suite for
-# exactly that complement. PR-side coverage already exists (merge.yml gates
-# claude/** merges; deploy.yml runs npm test on every deploy).
+# Runs the unit suite and the PRODUCT-CODE coverage floor gate
+# (npm run quality:coverage). This is the ONLY workflow that runs that gate --
+# grep quality:coverage across .github/workflows if you doubt it.
+#
+# Origin (2026-07-05): closed a gap where deploy.yml's push trigger path-filters
+# to site-affecting files, so a push to main touching ONLY test files or scripts
+# ran no CI at all. This workflow covered exactly that complement.
+#
+# NO PATH FILTER, deliberately (2026-07-31). Adding the coverage floor to a
+# workflow filtered to test/**, tests/**, scripts/** INVERTED the gate: the
+# product-code paths (src/**, functions/**, ...) belong to deploy.yml, and
+# deploy.yml does not run quality:coverage. So a push that added untested code
+# under functions/ deployed to production with the floor never evaluated, while
+# a push touching only test files was gated. Commit 789d734d is the proof: it
+# added functions/api/endo-quiz/download.js, 45 uncovered PRODUCT-CODE lines,
+# touching only functions/ and src/, one commit after the floor was armed. This
+# workflow did not fire, and the file stayed absent from the committed census --
+# exactly the failure the floor was installed to prevent.
+#
+# A path allowlist is the wrong shape for THIS gate. Its denominator is the whole
+# first-party surface (census-rules.mjs SURFACE_ROOTS: functions/**, scripts/**,
+# src/lib, src/scripts, src/integrations, src/pages/*.ts, src/data/*.ts), and
+# package.json alone changes which tests run. Every allowlist is a fresh hole in
+# the shape of whatever nobody thought of. The job costs under a minute, so it
+# runs on everything instead.
+#
+# The gate is intentionally NOT added to deploy.yml. deploy.yml also fires on
+# repository_dispatch (single article/FAQ/glossary publish) and workflow_dispatch,
+# so a coverage regression there would block content publishing that did not cause
+# it, put a new failure mode on the publish path, and lengthen a queue that is
+# serialized on one concurrency group -- and it still would not gate pull requests,
+# since deploy.yml has no pull_request trigger. Catch it at PR time; alarm on main.
 
 on:
   push:
     branches:
       - main
-    paths:
-      - 'test/**'
-      - 'tests/**'
-      - 'scripts/**'
+  # No path filter here either, for the reason build-verify.yml documents: a
+  # path-filtered PR trigger never reports on non-matching PRs, which stalls a
+  # required status check forever on "Expected". Always reporting means this job
+  # can be made a required check.
+  pull_request:
 
 permissions:
   contents: read
 
 concurrency:
   group: tests-${{ github.ref }}
-  cancel-in-progress: true
+  # Supersede in-flight PR runs (a new push to the PR moots the old verdict), but
+  # never cancel a main run: a cancelled run leaves that commit on main with no
+  # coverage verdict at all, which is the silence this workflow exists to end.
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 jobs:
   unit:
