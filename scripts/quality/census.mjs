@@ -365,6 +365,52 @@ const OUT = resolve(ROOT, 'scripts', 'quality', 'coverage-census.json');
  *                   clean checkout with the gitignored src/data/*.json absent,
  *                   the way CI measures. The ratchet moved UP: 31.4 on
  *                   main before this merge, 33.2 after it.
+ * 33.7 2026-07-31  RAISED by the tranche-5 events-and-learning-collaboratives
+ *                   notification/unfurl/upload lane. Three CF Pages Functions
+ *                   behind the STUC community, all three ABSENT from the
+ *                   report before this branch rather than at zero:
+ *                   community/_email.js 398 lines 0 -> 100,
+ *                   community/unfurl.js 362 lines 0 -> 99.44,
+ *                   community/upload.js 79 lines 0 -> 100. 221 tests, run
+ *                   against the real SQLite harness for every membership and
+ *                   roster decision, because STUC_MEMBER_WHERE is what picks
+ *                   the recipients and a canned mock would only replay the
+ *                   fixture. Measured 33.72% (21883/64887) in a clean
+ *                   checkout, rounded DOWN on the one-decimal scale.
+ *
+ *                   unfurl.js stops short of 100 on purpose. Its
+ *                   isUnfurlableUrl re-parses inside a try/catch, and neither
+ *                   call site can supply a string that fails: onRequestGet has
+ *                   already run new URL(raw) before calling it, and the
+ *                   redirect site passes new URL(location, base).toString(),
+ *                   which is always re-parseable. The over-2048 guard returns
+ *                   before the try, so a giant Location cannot reach it
+ *                   either. Two dead defensive lines, left uncovered and
+ *                   named rather than reached by a faked path.
+ *
+ *                   Bite proven both ways on this branch.
+ *
+ * 34.1 2026-07-31  TRANCHE LANE 5 OF 6 (notification email, unfurl SSRF,
+ *                   upload).
+ *                   Re-armed on the corrected denominator: the lane branch
+ *                   armed 33.7, measured over the padded 64887-line
+ *                   PRODUCT-CODE denominator before #110 reclassified the 5202
+ *                   generated lines of _disposable-domains.js out of it. See
+ *                   the 27.6 entry above for the full statement of how this
+ *                   tranche re-arms. The lane's substantive finding is
+ *                   untouched by the re-arm and is kept in the entry directly
+ *                   above: unfurl.js stops at 99.44 because two defensive
+ *                   lines in isUnfurlableUrl cannot be reached from either
+ *                   call site, named rather than faked.
+ *
+ *                   Measured 34.1974% (20501/59949) on the merge commit, in a
+ *                   clean checkout with the gitignored src/data/*.json absent,
+ *                   the way CI measures. The ratchet moved UP: 33.2 on
+ *                   main before this merge, 34.1 after it. Note the rounding: the raw
+ *                   ratio is 34.1974%, which c8 PRINTS as 34.20% but which
+ *                   rounds DOWN on the one-decimal scale to 34.1. Arming the
+ *                   printed 34.2 was verified RED (exit 1) on this tree before
+ *                   34.1 was armed, so the displayed number is not the number.
  *
  * MEASURE IN A CLEAN CHECKOUT, THE WAY CI DOES.
  * `src/data/glossary.json` is GITIGNORED and is never present in CI (the
@@ -386,7 +432,7 @@ const OUT = resolve(ROOT, 'scripts', 'quality', 'coverage-census.json');
  * particular surface is tested. Read the per-product view
  * (tools/coverage-portfolio/status.mjs) before concluding a product is covered.
  */
-const ARMED_FLOOR_PCT = 33.2;
+const ARMED_FLOOR_PCT = 34.1;
 
 const argv = process.argv.slice(2);
 const covDirIdx = argv.indexOf('--coverage-dir');
