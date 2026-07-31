@@ -26,9 +26,92 @@ function escapeHtml(s) {
     .replace(/'/g, '&#39;');
 }
 
+/* ===========================================================================
+ * JOINING-CREDENTIAL REDACTION -- SCOPE, AND THE RESIDUAL IT LEAVES OPEN
+ * ===========================================================================
+ *
+ * WHAT IS DEFENDED
+ * ----------------
+ * A STUC event is typed by hand into an admin form. Whatever an author puts in
+ * `title`, `content` or `speaker` is published on /events/<slug>, which is
+ * anonymous-reachable, crawled and link-previewed. The one thing that must not
+ * be published is the joining credential for the members-only call. Members get
+ * the room from the "Join Call" button, sourced from the `event_link` column,
+ * which never passes through the scrubber.
+ *
+ * WHAT THIS PASS CHANGED, AND WHAT IT DELIBERATELY DID NOT
+ * -------------------------------------------------------
+ * Three earlier attempts widened JOIN_INFO_PATTERNS -- more label words, digit
+ * runs behind a label, bare meeting-room codes -- and all three were rejected in
+ * review for the SAME reason: they destroyed legitimate content. The verified
+ * casualties are on record, and each one is now a regression fixture in
+ * test/events-page-over-redaction.test.js that must survive:
+ *
+ *   "Teams-Based Care in RRM"              scrubbed to the empty string
+ *   "Video Call 2026"                      scrubbed to the empty string
+ *   "Video call 2026-07-31 18:00 Eastern"  scrubbed to ":00 Eastern"
+ *   "Room 1201-1204 fellowship intensive"  scrubbed to "fellowship intensive"
+ *   "follicle-stimulating hormone"         deleted behind a conferencing label
+ *   "two-week-old"                         deleted behind a conferencing label
+ *   "endo-call-2026.jpg"                   a legitimate flyer, dropped
+ *
+ * A denylist over free prose, applied to fields that must never be destroyed, is
+ * the wrong instrument, and three rounds of evidence say so. The label
+ * vocabulary was therefore NOT widened. JOIN_INFO_PATTERNS below is byte-for-
+ * byte what has been in production, and every rule added by this pass matches a
+ * HOST or a URL, never English:
+ *
+ *   1. the IMAGE channel, judged on the parsed HOSTNAME alone;
+ *   2. one canonical host form, so a trailing root dot cannot defeat a compare;
+ *   3. the TITLE and SPEAKER channels, routed through the SAME unmodified
+ *      patterns that already run on the body.
+ *
+ * A hostname is not English, so (1) and (2) have no over-redaction failure mode
+ * by construction. (3) adds no new matcher at all; it only puts two previously
+ * unscrubbed fields on the path of matchers that have been in production for
+ * their whole life and have never been accused of eating prose.
+ *
+ * THE ONE COST (3) DOES CARRY, NAMED RATHER THAN HIDDEN
+ * ----------------------------------------------------
+ * A title or a speaker that INNOCENTLY matches one of the existing patterns is
+ * now replaced instead of published: "Why we left meet.google.com" and
+ * "Phone: a history of telemedicine" both fall through to the first content
+ * chunk. That is the same treatment the body has always given the same strings,
+ * it is bounded by a vocabulary of nine line-anchored patterns rather than by
+ * free-text guessing, and the fallback is a real second source rather than a
+ * blank. It is pinned as an accepted cost in
+ * test/events-page-over-redaction.test.js so it is a decision on the record and
+ * not a surprise. If a real event ever needs one of those titles, the fix is to
+ * put the title in the column and the host in prose, not to widen anything.
+ *
+ * THE RESIDUAL, STATED PLAINLY
+ * ----------------------------
+ * Because the label vocabulary was not widened, A CREDENTIAL WRITTEN BEHIND AN
+ * UNRECOGNISED LABEL IN PROSE IS STILL PUBLISHED TO NON-MEMBERS. "Passcode:
+ * 987654", "Meeting ID: 987 6543 210", "Conference line: +1 555-020-1111" and a
+ * bare "PIN: 445566" sitting mid-sentence rather than at the start of a line all
+ * reach the rendered body, og:description, twitter:description, the meta
+ * description and the JSON-LD. Nothing throws and nothing logs when that
+ * happens. These are enumerated as executable evidence -- EV-L*, EV-A*, EV-N*,
+ * EV-H*, EV-W1 in test/events-page-redaction.test.js and EV-X* in
+ * test/events-page-adversarial.test.js -- so closing one turns a test red rather
+ * than passing unnoticed.
+ *
+ * THE MITIGATION IS OPERATIONAL, NOT A REGEX
+ * ------------------------------------------
+ * Joining information belongs in the structured `event_link` column, which is
+ * already correctly gated by membership and never rendered to a non-member. It
+ * does not belong typed into the description, the title or the speaker field.
+ * That is the durable fix: stop free text from carrying credentials at all. The
+ * scrubber is the mitigation until then, and it is best-effort by construction.
+ * The next attempt to widen it over prose should read the casualty list above
+ * first.
+ */
+
 // Strip any line that exposes joining credentials (Meet URL, dial-in, PIN).
 // Members get the Meet link via the "Join Call" button (sourced from event_link);
 // joining info MUST NOT appear in body, og:description, or JSON-LD.
+// UNCHANGED by the host/image pass -- see the scope note above.
 const JOIN_INFO_PATTERNS = [
   /^\s*(?:google\s+meet|meet)\s*link\s*:.*$/im,
   /^\s*join\s+(?:via\s+)?google\s+meet\s*:.*$/im,
@@ -55,12 +138,130 @@ function scrubJoinInfo(text) {
   return out;
 }
 
+/** Hosts that serve a meeting room. Matched on hostname, exact or subdomain. */
+const CONFERENCING_HOSTS = [
+  'meet.google.com', 'tel.meet', 'zoom.us', 'teams.microsoft.com',
+  'teams.live.com', 'webex.com', 'meet.jit.si', 'whereby.com', 'chime.aws',
+];
+
+/**
+ * ONE canonical form for a hostname, computed BEFORE any host rule compares
+ * anything, so every present and future host rule inherits it instead of each
+ * comparison having to remember.
+ *
+ * A fully-qualified domain name may carry a trailing root dot:
+ * "meet.google.com." and "meet.google.com" address the same host, resolve the
+ * same way, and a browser joins the room through either. The dot survives
+ * URL.hostname, so it matched neither `host === known` nor
+ * `host.endsWith('.' + known)` -- one typed character published the room. Same
+ * defect class, and same fix, as the library worker's SSRF gate.
+ *
+ * Exactly ONE dot is stripped. Two or more leave an empty DNS label, which is
+ * not a resolvable name and therefore not a working credential; collapsing them
+ * would be inventing a host the author did not write.
+ */
+function normalizeHost(hostname) {
+  const host = String(hostname || '').toLowerCase();
+  return host.endsWith('.') ? host.slice(0, -1) : host;
+}
+
+function isConferencingHost(hostname, pathname) {
+  const host = normalizeHost(hostname);
+  // g.co is Google's GENERAL shortener, so the whole host cannot be condemned;
+  // only its /meet space is a room. The path is consulted here to match LESS,
+  // never more -- it is the one narrowing exception to "the host decides".
+  if ((host === 'g.co' || host === 'www.g.co') && /^\/meet(?:\/|$)/i.test(pathname || '')) return true;
+  return CONFERENCING_HOSTS.some((known) => host === known || host.endsWith('.' + known));
+}
+
+/**
+ * An <img> src is a credential only when its HOST serves meeting rooms.
+ *
+ * THE PATH AND THE FILENAME ARE NEVER CONSULTED. A filename is not prose:
+ * "endo-call-2026.jpg" contains the word "call" and is a legitimate flyer, and
+ * dropping it was one of the casualties that got the previous attempt rejected.
+ * A src that resolves to meet.google.com is the room itself. Relative srcs
+ * resolve against SITE_ORIGIN, so "/images/meet-the-team-2026.png" is judged on
+ * rrmacademy.org and survives.
+ *
+ * A src that does not parse is NOT a credential. Failing closed here would mean
+ * dropping an author's image on the strength of a typo, and an unparseable URL
+ * is not a room anyone can join -- no resolver answers it and no browser follows
+ * it. It is rendered escaped like any other src, and the fallback chain in
+ * renderHtml() still guarantees og:image is non-empty.
+ */
+function isCredentialImageUrl(src) {
+  if (!src) return false;
+  try {
+    const parsed = new URL(String(src).trim(), SITE_ORIGIN);
+    return isConferencingHost(parsed.hostname, parsed.pathname);
+  } catch {
+    return false;
+  }
+}
+
+/**
+ * The first candidate that is present and is not merely whitespace, trimmed.
+ *
+ * This is the single mechanism behind "no required field may be emptied by
+ * scrubbing", so the guard is one function with one behaviour rather than three
+ * `||` chains that each have to remember that `'   '` is truthy. Returns '' only
+ * when every candidate is blank, and every call site ends its list with a
+ * non-empty constant.
+ */
+function firstNonEmpty(...candidates) {
+  for (const candidate of candidates) {
+    const value = candidate == null ? '' : String(candidate).trim();
+    if (value) return value;
+  }
+  return '';
+}
+
+/** The last resorts. Each is the terminal element of a fallback chain below. */
+const FALLBACK_DESCRIPTION = 'Live members-only call from Save the Uterus Club.';
+const FALLBACK_OG_IMAGE = SITE_ORIGIN + '/og/save-the-uterus-club.png?v=8';
+
+/**
+ * The title is REQUIRED: it is the <h1>, the <title>, og:title, og:image:alt,
+ * the JSON-LD name, the .ics SUMMARY and the Google Calendar text= parameter.
+ * Scrubbing it can empty it, so it falls back to the scrubbed first content
+ * chunk and then to a constant.
+ *
+ * The last resort is a constant and NOT the unscrubbed column. That is
+ * deliberate: there is no input on which scrubbing empties this field for an
+ * innocent reason, because reaching blank requires the whole title to have
+ * matched a credential rule -- so "fall back to what was there before" would
+ * fall back onto the credential just removed.
+ *
+ * `fallback` is supplied by the caller rather than baked in because the page and
+ * the .ics differ in one letter of casing, and both are pinned by tests.
+ */
+function safeTitle(rawTitle, summaryTitle, fallback) {
+  return firstNonEmpty(scrubJoinInfo(rawTitle), summaryTitle, fallback);
+}
+
+/**
+ * The speaker reaches the meta row, the JSON-LD performer, the Google Calendar
+ * details and the .ics DESCRIPTION -- all shared, cacheable, tier-agnostic
+ * surfaces. Both arms of `event.speaker || extractSpeaker(content)` go through
+ * the SAME unmodified patterns the body already runs. Not a required field: an
+ * omitted row is correct where an empty one is not, hence null rather than ''.
+ */
+function scrubSpeaker(value) {
+  if (!value) return null;
+  return scrubJoinInfo(value).trim() || null;
+}
+
 // Strip markdown image embeds, scrub join info, return chunked safe content.
 function summarize(content, { scrub = true } = {}) {
   if (!content) return { title: '', description: '', firstImage: null, chunks: [] };
   let firstImage = null;
-  const noImages = content.replace(/!\[([^\]]*)\]\(([^)]+)\)/g, (_m, _alt, src) => {
-    if (!firstImage) firstImage = src;
+  const noImages = String(content).replace(/!\[([^\]]*)\]\(([^)]+)\)/g, (_m, _alt, src) => {
+    // firstImage becomes og:image, twitter:image, the JSON-LD image and the
+    // rendered flyer, and it is captured HERE, before scrubJoinInfo ever runs.
+    // The markdown LINK form of the same URL is already fully redacted, so a
+    // markdown IMAGE whose src is the room was one "!" away from safe.
+    if (!firstImage && !(scrub && isCredentialImageUrl(src))) firstImage = src;
     return '';
   });
   const cleaned = scrub ? scrubJoinInfo(noImages) : noImages;
@@ -249,11 +450,20 @@ function buildICS({ uid, title, startMs, endMs, description, location, url }) {
 }
 
 function renderHtml({ event, summary, speaker, visitor, cta, canonical, memberSummary }) {
-  const title = event.title || summary.title || 'Save the Uterus Club Event';
-  // summary.description is already scrubbed of Meet URL / dial / PIN.
-  const description = (summary.description || `Live members-only call from Save the Uterus Club.`).slice(0, 300);
+  const title = safeTitle(event.title, summary.title, 'Save the Uterus Club Event');
+  // summary.description is already scrubbed of Meet URL / dial / PIN. A
+  // description that scrubs away entirely takes the generic line rather than
+  // publishing an empty meta description and og:description.
+  const description = firstNonEmpty(summary.description, FALLBACK_DESCRIPTION).slice(0, 300);
   const fullTitle = `${title} | Save the Uterus Club`;
-  const ogImage = abs(event.og_image_url || summary.firstImage) || (SITE_ORIGIN + '/og/save-the-uterus-club.png?v=8');
+  // og_image_url is judged on its HOST, not its filename. A src that is blank or
+  // whitespace is ABSENT, not a relative URL to "   ".
+  const columnImage = firstNonEmpty(event.og_image_url);
+  const flyerSrc = firstNonEmpty(
+    isCredentialImageUrl(columnImage) ? '' : columnImage,
+    summary.firstImage
+  ) || null;
+  const ogImage = abs(flyerSrc) || FALLBACK_OG_IMAGE;
   const startMs = Date.parse(event.event_date);
   const endMs = Number.isFinite(startMs) ? startMs + 60 * 60 * 1000 : null;
   const startISO = Number.isFinite(startMs) ? new Date(startMs).toISOString() : event.event_date;
@@ -502,7 +712,7 @@ ${TRACKING_HEAD}
     ${speaker ? `<span class="meta__row">Speaker: ${escapeHtml(speaker)}</span>` : ''}
   </div>
 
-  ${event.og_image_url || summary.firstImage ? `<img class="flyer" src="${escapeHtml(abs(event.og_image_url || summary.firstImage))}" alt="${escapeHtml(title)}" loading="eager" fetchpriority="high">` : ''}
+  ${flyerSrc ? `<img class="flyer" src="${escapeHtml(abs(flyerSrc))}" alt="${escapeHtml(title)}" loading="eager" fetchpriority="high">` : ''}
 
   ${bodyChunks.length ? `<div class="body">${bodyChunks.map(c => `<p>${renderBodyChunk(c)}</p>`).join('\n')}</div>` : ''}
 
@@ -565,7 +775,11 @@ export async function onRequestGet({ request, params, env }) {
   // memberSummary: full content (used only for member/staff body rendering).
   const summary = summarize(event.content, { scrub: true });
   const memberSummary = summarize(event.content, { scrub: false });
-  const speaker = event.speaker || extractSpeaker(event.content);
+  // BOTH arms are scrubbed. extractSpeaker used to read RAW content, and the
+  // other arm was the raw `speaker` column, so a Meet URL typed beside a speaker
+  // name reached the meta row, JSON-LD performer.name, the gcal details and the
+  // .ics -- none of which the body scrubbing ever touched.
+  const speaker = scrubSpeaker(event.speaker) || scrubSpeaker(extractSpeaker(scrubJoinInfo(event.content)));
 
   // Calendar download: /events/<slug>/?add=ics -> .ics (tier-agnostic; no Meet link).
   // Lightweight path -- skips visitor classification (no Stripe/KV) entirely.
@@ -577,7 +791,10 @@ export async function onRequestGet({ request, params, env }) {
     const desc = `Save the Uterus Club live call${speaker ? ` with ${speaker}` : ''}. Join live inside Save the Uterus Club: ${evUrl}`;
     const ics = buildICS({
       uid: `stuc-${event.slug || event.id}@rrmacademy.org`,
-      title: event.title || 'Save the Uterus Club event',
+      // Same fallback chain as the <h1>: a title that scrubs to nothing needs
+      // the same non-empty second source in both places, or the page says one
+      // thing and the calendar entry another.
+      title: safeTitle(event.title, summary.title, 'Save the Uterus Club event'),
       startMs: sMs, endMs: eMs, description: desc, location: evUrl, url: evUrl,
     });
     const fname = (event.slug || 'event').replace(/[^a-z0-9-]/gi, '') || 'event';
