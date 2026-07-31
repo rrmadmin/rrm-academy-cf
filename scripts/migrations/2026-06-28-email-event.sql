@@ -1,7 +1,21 @@
 -- Email Observability: SES event store + correlation key
 -- DB: rrm-auth   | Spec: docs/superpowers/specs/2026-06-27-email-observability-system-design.md
--- STATUS: DRAFT / HELD. Do NOT apply until Brian gives deploy go.
--- Apply (remote): wrangler d1 execute rrm-auth --remote --file scripts/migrations/2026-06-28-email-event.sql
+-- STATUS: APPLIED to live rrm-auth. Corrected 2026-07-31.
+--   This header claimed draft/held status, and told the reader to withhold the
+--   migration, long after it had in fact been applied. A stale header is worse
+--   than no header: test/_d1-sqlite.mjs excluded this file from its replay list
+--   on the strength of it, so the test harness had no email_log.ses_message_id
+--   while production did. insertEmailLog() swallowed the resulting error, the
+--   audit row vanished in TESTS ONLY, and that read as a month-long production
+--   outage that was never happening.
+--   Evidence it is applied (live rrm-auth, 2026-07-31): email_log columns are
+--   id, event, email, category, source, subject, detail, send_id,
+--   ses_message_id; the email_event table exists; email_log holds 1728 rows,
+--   937 of them written since 2026-06-28.
+--   A FILE HEADER IS NOT A DEPLOYMENT RECORD. Settle applied-vs-held by
+--   querying live, and keep npm run gates:schema-drift green, which is what now
+--   compares this repo's schema mirror against live in both directions.
+-- Applied (remote) with: wrangler d1 execute rrm-auth --remote --file scripts/migrations/2026-06-28-email-event.sql
 
 -- 1. Correlation key on the existing send-audit log so SES events can join back to a send.
 --    email_log today stores only our own send_id; SES events key on the SES MessageId.
