@@ -144,6 +144,227 @@ const OUT = resolve(ROOT, 'scripts', 'quality', 'coverage-census.json');
  *                   part of what is measured: census.mjs is itself
  *                   PRODUCT-CODE at 0% covered, so every comment line added
  *                   here enlarges the denominator it reports.
+ * 33.4 2026-07-31  RAISED by the tranche-5 moderation drive. The STUC
+ *                   moderation surface -- community/flags.js, ban.js and
+ *                   unban.js -- went from ABSENT-FROM-THE-REPORT (never
+ *                   imported by any test, which reads as 0 but is not the
+ *                   same thing) to 100% lines on all three, exercised against
+ *                   a real SQLite engine loaded with the committed schema.
+ *                   Measured 33.46% (21713/64887) on a clean checkout of this
+ *                   branch, rounded DOWN on the one-decimal scale.
+ *
+ *                   The endpoints were picked because a canned mock cannot
+ *                   test them at all: "the ban bites" is a claim about a row
+ *                   written by ban.js and re-read much later by a DIFFERENT
+ *                   query inside requireMember, and the flag duplicate/upsert
+ *                   path is decided by the UNIQUE index in schema.sql. The
+ *                   ban refusal is asserted through the real requireMember and
+ *                   through two real endpoints, never a stub.
+ *
+ * 26.5 2026-07-31  LOWERED, AND THE OLD NUMBER WAS WRONG RATHER THAN THE
+ *                   COVERAGE HAVING REGRESSED. This is the one move the ratchet
+ *                   rule does not cover, so it is spelled out. Not one test was
+ *                   deleted and not one line stopped being covered; the
+ *                   DENOMINATOR was corrected.
+ *
+ *                   functions/api/auth/_disposable-domains.js is an
+ *                   auto-generated Set of 5197 disposable-email domains, 5202
+ *                   lines of string literals with no functions and no branches.
+ *                   It was classified PRODUCT-CODE by the catch-all
+ *                   /^functions\// rule and scored 5202/5202 = 100% for the sole
+ *                   reason that _email-validate.js imports it. At 5202 lines it
+ *                   was 8.02% of the entire 64887-line PRODUCT-CODE denominator,
+ *                   ALL of it counted as covered, contributing nothing to the
+ *                   question this metric exists to answer. It has been
+ *                   reclassified GENERATED (see the override in
+ *                   lib/census-rules.mjs for the full written justification).
+ *
+ *                   BECAUSE THOSE LINES COUNTED AS COVERED, REMOVING THEM FROM
+ *                   BOTH SIDES LOWERS THE HEADLINE: 21042/64887 = 32.43%
+ *                   becomes 15840/59685 = 26.54%, a drop of 5.89 points. Every
+ *                   PRODUCT-CODE percentage this program has reported was
+ *                   inflated by roughly that much, including the 32.4 the floor
+ *                   was armed against and the four tranche floors above. The old
+ *                   headline is NOT preserved: a floor defended by a padded
+ *                   denominator protects nothing, and re-arming at 32.4 over the
+ *                   corrected denominator would demand 19358 covered lines the
+ *                   suite has never had.
+ *
+ *                   Armed at 26.5, the corrected measurement rounded DOWN. The
+ *                   ratchet still only moves up FROM HERE; this entry is the
+ *                   record of the one-time correction it moves up from.
+ *
+ *                   THE MECHANISM USED HERE IS ALSO AN ATTACK ON THE METRIC.
+ *                   Reclassifying a file out of PRODUCT-CODE raises the
+ *                   percentage whenever the file is worse-covered than the
+ *                   average, with no test written. That is exactly the lever
+ *                   this entry pulls, which is why it was only acceptable in the
+ *                   direction that COST coverage. A reclassification that
+ *                   shrinks the denominator and RAISES the number deserves the
+ *                   same scrutiny as lowering the floor; see the PR that landed
+ *                   this for the guard suggested to make that visible.
+ *
+ *                   Swept for siblings at the same time: no other generated or
+ *                   vendored data table is sitting in the PRODUCT-CODE
+ *                   denominator counted covered by a bare import.
+ *                   src/lib/infographic/wordmark.mjs is generated but is 11
+ *                   lines and exports a real exercised function;
+ *                   scripts/ssot-postbuild.mjs matched a grep for "vendored"
+ *                   only in prose about a CI fallback and sits at 0%, so it
+ *                   inflates nothing.
+ *
+ * 27.6 2026-07-31  EVENTS AND LEARNING COLLABORATIVES TRANCHE, LANE 1 OF 6
+ *                   (moderation: flags, ban, unban). RE-ARMED ON THE CORRECTED
+ *                   DENOMINATOR, which is why this reads 27.6 and not the 33.4
+ *                   the lane branch itself armed.
+ *
+ *                   Every lane in this tranche was branched, measured and armed
+ *                   BEFORE the 26.5 correction above landed, so each one carries
+ *                   a floor computed over the padded 64887-line denominator:
+ *                   33.4 here, and 34.7 / 34.8 / others on the sibling lanes.
+ *                   Those numbers are not reachable over the corrected 59754-line
+ *                   denominator and re-arming at them would leave the gate red on
+ *                   arrival, which the ratchet rule forbids. Each lane is
+ *                   therefore re-armed at ITS OWN post-merge measurement rounded
+ *                   DOWN as it lands. The ratchet is intact: it moves up from
+ *                   26.5 with every lane, it just moves up from the honest
+ *                   baseline rather than the inflated one.
+ *
+ *                   Measured 27.63% (16511/59754) on the merge commit, in a
+ *                   clean checkout with the gitignored src/data/*.json absent,
+ *                   the way CI measures. See the note directly below: with those
+ *                   data files present the same tree reads 27.77%, so the census
+ *                   is regenerated without them.
+ *
+ * 34.7 2026-07-31  RAISED by the tranche-5 community-content drive. The
+ *                  member-authored content core went 0 -> 100% lines:
+ *                  community/posts.js (747 lines, the largest
+ *                  never-executed file in the repo), community/comments.js
+ *                  (324) and community/reactions.js (110). 272 tests against
+ *                  a real SQLite engine loaded with the committed schema
+ *                  (test/_d1-sqlite.mjs), because every load-bearing decision
+ *                  on this surface is the database's: pinned-first ordering
+ *                  under a created_at cursor, the UNIQUE NOCASE slug index,
+ *                  meta.changes driving the reaction toggle, and the
+ *                  order-dependent six-statement delete batch.
+ *                  Measured 34.80% (22580/64887) on a CLEAN checkout, up from
+ *                  32.43% on the same denominator. Rounded DOWN on the
+ *                  one-decimal scale the true 34.7989% is 34.7, not 34.8, so
+ *                  34.7 is what is armed; 34.8 was verified RED (exit 1) and
+ *                  34.7 GREEN (exit 0) on this branch.
+ *
+ *                  Measured on a branch, and per the tranche-4 note above a
+ *                  branch floor is not comparable with a sibling's. It is
+ *                  safe to arm anyway because this branch adds no product
+ *                  file: the denominator is byte-identical to main's 64887,
+ *                  and merged coverage sets are cumulative, so merged main
+ *                  can only measure higher.
+ *
+ * 29.7 2026-07-31  TRANCHE LANE 2 OF 6 (posts, comments, reactions).
+ *                   Re-armed on the corrected denominator: the lane branch
+ *                   armed 34.7, measured over the padded 64887-line
+ *                   PRODUCT-CODE denominator before #110 reclassified the 5202
+ *                   generated lines of _disposable-domains.js out of it. That
+ *                   number is not reachable over the corrected denominator, so
+ *                   arming it would leave the gate red on arrival, which the
+ *                   ratchet rule forbids. See the 27.6 entry above for the full
+ *                   statement of how this tranche re-arms.
+ *
+ *                   Measured 29.73% (17784/59816) on the merge commit, in a
+ *                   clean checkout with the gitignored src/data/*.json absent,
+ *                   the way CI measures. The ratchet moved UP: 27.6 on
+ *                   main before this merge, 29.7 after it.
+ *
+ * 34.1 2026-07-31  RAISED on the tranche-5 EVENTS-AND-LEARNING-COLLABORATIVES
+ *                   membership lane (quality/coverage-ev-membership). The STUC
+ *                   community membership gate and its join/leave surface: all
+ *                   fourteen files to 100% lines and 100% functions, 1364/1364,
+ *                   thirteen of which were sitting at zero.
+ *
+ *                   Measured 34.11% (22146/64920) against a 32.4 floor, in a
+ *                   clean checkout with no fetched src/data/glossary.json, so
+ *                   the number is the one CI reproduces. Rounded DOWN to 34.1
+ *                   and bite-proven both ways on this branch.
+ *
+ *                   THIS IS A BRANCH FLOOR, NOT A TRANCHE FLOOR. The other
+ *                   tranche-5 lanes measure their own surfaces against the same
+ *                   denominator, so their numbers and this one are not
+ *                   comparable and taking the max at merge would under-arm the
+ *                   ratchet exactly as the tranche-4 entry above records.
+ *                   Re-measure on merged main and arm THAT number.
+ *
+ *                   THE ONE THING THIS DRIVE HAD TO ADD TO THE HARNESS, and
+ *                   why: the action-areas tables (action_area, project,
+ *                   area_membership, project_membership, impact_entry,
+ *                   area_ownership_request, community_post.area_id) are in
+ *                   NEITHER schema.sql NOR the POST_SNAPSHOT_MIGRATIONS replay
+ *                   list. Their DDL lives in the ROOT migrations/ directory
+ *                   (025, 027), which the replay list does not read and
+ *                   test/schema-migration-replay.test.mjs does not scan, and
+ *                   025's own header records its pre-apply check running
+ *                   against live rrm-auth on 2026-05-29, two days AFTER the
+ *                   schema.sql snapshot. So the default harness cannot even
+ *                   PREPARE a statement on this product. test/_community-sqlite.mjs
+ *                   composes the snapshot with those two files; _d1-sqlite.mjs
+ *                   gained one line, `export const SCHEMA_SQL`, so it could.
+ *
+ * 31.4 2026-07-31  TRANCHE LANE 3 OF 6 (the requireMember gate and the
+ *                   join/leave surface, 14 files to 100%).
+ *                   Re-armed on the corrected denominator: the lane branch
+ *                   armed 34.1, measured over the padded 64887-line
+ *                   PRODUCT-CODE denominator before #110 reclassified the 5202
+ *                   generated lines of _disposable-domains.js out of it. See
+ *                   the 27.6 entry above for the full statement of how this
+ *                   tranche re-arms.
+ *
+ *                   Measured 31.42% (18807/59863) on the merge commit, in a
+ *                   clean checkout with the gitignored src/data/*.json absent,
+ *                   the way CI measures. The ratchet moved UP: 29.7 on
+ *                   main before this merge, 31.4 after it.
+ *
+ * 34.8 2026-07-31  RAISED by the tranche-5 community-administration drive. The
+ *                  four admin CRUD endpoints behind the STUC Action Areas hub
+ *                  went 0 -> 100% lines, branches and functions:
+ *                  admin/community/{projects,areas,impact,ownership}.js, 1135
+ *                  lines that no test had ever imported. Measured 34.82%
+ *                  (22596/64887) on a clean checkout, up from 32.43%
+ *                  (21042/64887) on the same checkout before the drive.
+ *
+ *                  The gain is larger than the 1135 lines targeted because
+ *                  the tests call the CONSUMERS rather than asserting on the
+ *                  admin handlers' own return values: community/areas.js,
+ *                  community/projects.js, community/memberships.js,
+ *                  community/areas/{join,leave,volunteer}.js and the real
+ *                  requireMember gate all execute as a side effect of proving
+ *                  that an ownership grant is actually conferred.
+ *
+ *                  THE HARNESS WAS BLIND TO THIS ENTIRE SUBSYSTEM. schema.sql
+ *                  contains no action_area, project, area_membership,
+ *                  project_membership, impact_entry or area_ownership_request,
+ *                  and community_post has no area_id: those objects were
+ *                  created by migrations/025 and /027, which live in the
+ *                  REPO-ROOT migrations/ directory, not scripts/migrations/.
+ *                  test/schema-migration-replay.test.mjs partitions
+ *                  scripts/migrations/ only, so a root migration is named by
+ *                  neither half of its partition, and _d1-sqlite.mjs resolves
+ *                  POST_SNAPSHOT_MIGRATIONS against scripts/migrations/, so it
+ *                  cannot list one. test/_community-schema.mjs composes the
+ *                  missing DDL on top of the snapshot; see its header.
+ *
+ * 33.2 2026-07-31  TRANCHE LANE 4 OF 6 (community administration CRUD).
+ *                   Re-armed on the corrected denominator: the lane branch
+ *                   armed 34.8, measured over the padded 64887-line
+ *                   PRODUCT-CODE denominator before #110 reclassified the 5202
+ *                   generated lines of _disposable-domains.js out of it. The
+ *                   lane's own PR body anticipated exactly this, noting the
+ *                   floor was armed at that branch's isolated measurement and
+ *                   that the true post-merge floor would have to be set by
+ *                   whoever sequenced the tranche. See the 27.6 entry above.
+ *
+ *                   Measured 33.29% (19942/59907) on the merge commit, in a
+ *                   clean checkout with the gitignored src/data/*.json absent,
+ *                   the way CI measures. The ratchet moved UP: 31.4 on
+ *                   main before this merge, 33.2 after it.
  * 33.7 2026-07-31  RAISED by the tranche-5 events-and-learning-collaboratives
  *                   notification/unfurl/upload lane. Three CF Pages Functions
  *                   behind the STUC community, all three ABSENT from the
@@ -169,6 +390,28 @@ const OUT = resolve(ROOT, 'scripts', 'quality', 'coverage-census.json');
  *
  *                   Bite proven both ways on this branch.
  *
+ * 34.1 2026-07-31  TRANCHE LANE 5 OF 6 (notification email, unfurl SSRF,
+ *                   upload).
+ *                   Re-armed on the corrected denominator: the lane branch
+ *                   armed 33.7, measured over the padded 64887-line
+ *                   PRODUCT-CODE denominator before #110 reclassified the 5202
+ *                   generated lines of _disposable-domains.js out of it. See
+ *                   the 27.6 entry above for the full statement of how this
+ *                   tranche re-arms. The lane's substantive finding is
+ *                   untouched by the re-arm and is kept in the entry directly
+ *                   above: unfurl.js stops at 99.44 because two defensive
+ *                   lines in isUnfurlableUrl cannot be reached from either
+ *                   call site, named rather than faked.
+ *
+ *                   Measured 34.1974% (20501/59949) on the merge commit, in a
+ *                   clean checkout with the gitignored src/data/*.json absent,
+ *                   the way CI measures. The ratchet moved UP: 33.2 on
+ *                   main before this merge, 34.1 after it. Note the rounding: the raw
+ *                   ratio is 34.1974%, which c8 PRINTS as 34.20% but which
+ *                   rounds DOWN on the one-decimal scale to 34.1. Arming the
+ *                   printed 34.2 was verified RED (exit 1) on this tree before
+ *                   34.1 was armed, so the displayed number is not the number.
+ *
  * MEASURE IN A CLEAN CHECKOUT, THE WAY CI DOES.
  * `src/data/glossary.json` is GITIGNORED and is never present in CI (the
  * workflow runs `npm ci` then `npm test`; there is no fetch-all step). The
@@ -189,7 +432,7 @@ const OUT = resolve(ROOT, 'scripts', 'quality', 'coverage-census.json');
  * particular surface is tested. Read the per-product view
  * (tools/coverage-portfolio/status.mjs) before concluding a product is covered.
  */
-const ARMED_FLOOR_PCT = 33.7;
+const ARMED_FLOOR_PCT = 34.1;
 
 const argv = process.argv.slice(2);
 const covDirIdx = argv.indexOf('--coverage-dir');
