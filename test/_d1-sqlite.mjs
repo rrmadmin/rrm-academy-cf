@@ -128,7 +128,15 @@ function buildSchemaSql() {
   return sql;
 }
 
-const SCHEMA_SQL = buildSchemaSql();
+/**
+ * The rrm-auth DDL this harness loads by default: the committed snapshot plus
+ * POST_SNAPSHOT_MIGRATIONS. Exported so a harness for a surface whose tables
+ * live OUTSIDE scripts/migrations/ can build on it rather than beside it -- see
+ * test/_community-sqlite.mjs, whose action_area tables were created by
+ * migrations/025 and 027 in the ROOT migrations/ directory and are therefore
+ * absent from both the snapshot and the replay list.
+ */
+export const SCHEMA_SQL = buildSchemaSql();
 
 /**
  * Executes the schema, tolerating ONLY the "already added" error an
