@@ -697,6 +697,34 @@ The gate **parses both sides and compares value-sets** — it does NOT diff DDL 
 
 **When you add an `access_type`/`status`/step-`type` value**: update BOTH the `VALID_*` Set in every `functions/api/admin/courses/*.js` AND the `CHECK(...)` in `scripts/migrate-courses-to-d1.sql`, then apply the schema change to live D1 (recreate the table — SQLite cannot `ALTER` a CHECK). Run `npm run gates:courses` to confirm all three agree.
 
+## SQL Column/Table Existence Proof Gates
+
+`scripts/gates/validate-sql-columns.mjs` builds the rrm-auth schema in an in-memory `node:sqlite` database and **PREPAREs every static SQL string** in `functions/`, `scripts/` and `src/lib/` against it. SQLite resolves identifiers at prepare time, so SQLite itself answers "does this column exist" — the gate inherits the engine's answer instead of regex-guessing at SQL.
+
+**The incident (2026-07-31).** `functions/api/admin/courses/[id].js` probed its delete reference guard with `SELECT id FROM step_progress WHERE course_id = ? LIMIT 1`. `step_progress` has no `id` column — its primary key is the composite `(user_id, course_id, step_id)`. The statement threw on EVERY call, matching rows or not, and it sat inside a `Promise.all`, so the rejection propagated and **every admin course delete returned 500**. Confirmed against live D1: `SELECT id` returns `no such column: id` while `SELECT user_id` succeeds. No course could be deleted through the admin API, and the six-table reference guard, the certificate-quiz refusal, the section/step/rendition cleanup and the R2 purge sitting below that probe had never executed once. It shipped and nothing caught it. The class is worth a gate precisely because it is not subtle — a guaranteed hard throw at prepare time, so every instance is a live 500 waiting for its first caller — and because it is mechanically detectable, which most defect classes are not.
+
+**Schema source.** `schema.sql` is a 2026-05-27 snapshot; the truth about a column is that snapshot PLUS the migrations `test/_d1-sqlite.mjs` replays. The gate **imports** `COMMUNITY_SCHEMA_SQL` from the test harness rather than re-listing them, so the gate and the suite can never disagree. On top it loads `EXTRA_DDL`: root `migrations/031-supporter-recognition.sql`, `scripts/migrations/ai-search-docs.sql` (live, despite the harness comment saying it was dropped), and `scripts/gates/sql-columns-live-tables.sql` — a live-mirror of tables that exist in production and have DDL **nowhere** in the repo (the five `dm_*` queue tables, `legacy_thinkific_order`, `wix_notify_ledger`).
+
+| Gate | What it prevents |
+|------|------------------|
+| **SQ1** Schema loaded | 22 sentinel tables must exist and the composed table count must clear a floor. Without it a partial DDL load would turn every statement into "no such table", or worse, into a skip. |
+| **SQ2** Every statement PREPAREs | A `no such column` / `no such table` from any static SQL string attributed to rrm-auth is a FAILURE. This is the gate. |
+| **SQ3** Coverage meta-assertion | Fails if the count of statements actually PREPARED drops below a floor (600; measured 777). A broken extractor cannot report success by skipping everything. Also always prints the skip breakdown by reason. |
+
+**What it does NOT cover — read before trusting a green run.** ~90% of SQL strings are prepared; the rest are skipped **with a named reason**, never silently, and `--verbose` lists every one. Skips are: `other-database` (rrm-library / rrm-survey / rrm-survey-symptoms / rrm-analytics — `schema.sql` mirrors rrm-auth only), `interpolated` (a `${}` that lands where a `?` placeholder cannot stand: a table name, a column list, a dynamic ORDER BY), `ambiguous-database` (a script that talks to two databases), `no-database-identified` (a SQL-emitting script that names no database). Placeholder substitution can hide an identifier inside an interpolation (a miss) but can never invent one (never a false positive). **Write column names as literal text, not as an interpolated list, or the gate cannot see them.** The gate is also only as current as the files it composes: `retrieval_docs` and `retrieval_state` are in `schema.sql` but NOT live, so a statement against them passes here and would fail in production.
+
+**Commands**:
+- `npm run gates:sql` — full repo scan (in-memory, ~0.3s, no network)
+- `npm run gates:sql:check` — `--quick`, `functions/` only
+- `node scripts/gates/validate-sql-columns.mjs --verbose` — list every skipped statement and why
+- `node scripts/gates/validate-sql-columns.mjs --json` / `--gate SQ2` — machine-readable / single gate
+
+**Auto-fires**:
+- Pre-commit (`hooks/pre-commit`) on any staged `functions/**`, `scripts/**` or `src/lib/**` `.js`/`.mjs`, or any staged `schema.sql` / `migrations/*.sql`. Runs the FULL scan, not `--quick`; it is in-memory and fast.
+- CI deploy workflow step "Validate SQL column/table existence gates" on every deploy.
+
+**When you add a table to live D1**: if its DDL is not in `schema.sql` or a committed migration, add it to `scripts/gates/sql-columns-live-tables.sql` **with its provenance line**, or the first statement that touches it fails the gate. That failure is the feature — it is what stopped an adversarial verifier's recommendation to delete `functions/api/admin/dm-queue.js` as "querying five nonexistent tables". The tables were live; the mirror was stale, exactly as with `email_log.ses_message_id`.
+
 ## Citation Integrity
 
 **Never insert academic citations from model knowledge.** Hallucinated PMIDs, DOIs, and references are an existential threat to a medical education site.
