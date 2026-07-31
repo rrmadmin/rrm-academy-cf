@@ -454,8 +454,39 @@ const OUT = resolve(ROOT, 'scripts', 'quality', 'coverage-census.json');
  * 0-18%. The floor is a ratchet on the aggregate, not evidence that any
  * particular surface is tested. Read the per-product view
  * (tools/coverage-portfolio/status.mjs) before concluding a product is covered.
+ *
+ * TRANCHE 5, LANE "social-keys" (2026-07-31). Four course-platform files that
+ * no test had ever imported went 0 -> 100% lines and 100% branches:
+ *   functions/api/courses/comments.js          317 lines
+ *   functions/api/account/mcp-keys/index.js    125 lines
+ *   functions/api/account/mcp-keys/[id].js      63 lines
+ *   functions/api/courses/affiliate-click.js    49 lines
+ * All four were `present: false` -- ABSENT from the c8 report, not merely low
+ * -- so their 554 lines were pure denominator. Tests run against a real SQLite
+ * engine loaded with the committed schema (test/_d1-sqlite.mjs), because the
+ * load-bearing behaviour is decided by the database: the enrollment lookup's
+ * `revoked_at IS NULL`, the per-account scoping of the MCP key list and its
+ * revocation (the IDOR case), the UNIQUE index on mcp_api_key.key_hash that
+ * turns a collision into a 409, and affiliate_clicks'
+ * UNIQUE(user_id, course_id, click_date) that makes a replayed click a no-op.
+ * The credential assertions read the stored row back and recompute SHA-256
+ * over the plaintext the endpoint handed out, so "stored hashed" and "not
+ * recoverable after mint" are properties of the write, not of the response
+ * shape. 17 mutants (ownership checks deleted, moderation bar lowered,
+ * plaintext stored instead of the hash, key_hash added to the read projection,
+ * revocation unscoped) all turned the suite red.
+ *
+ *   36.3  2026-07-31  +554 covered lines, exactly the lane's line count, over
+ *                     the 35.4093% (21237/59976) this branch started from.
+ *                     Measured on a clean checkout with the gitignored
+ *                     src/data/*.json absent, the way CI measures. Armed at
+ *                     the measurement rounded DOWN on the one-decimal scale;
+ *                     proven to bite (36.4 exits 1, 36.3 exits 0). NOTE the
+ *                     denominator moves with this comment: census.mjs is
+ *                     itself PRODUCT-CODE and never imported by the suite, so
+ *                     c8 --all counts every line of it, comments included.
  */
-const ARMED_FLOOR_PCT = 35.4;
+const ARMED_FLOOR_PCT = 36.3;
 
 const argv = process.argv.slice(2);
 const covDirIdx = argv.indexOf('--coverage-dir');
