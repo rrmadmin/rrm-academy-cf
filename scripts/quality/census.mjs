@@ -144,6 +144,30 @@ const OUT = resolve(ROOT, 'scripts', 'quality', 'coverage-census.json');
  *                   part of what is measured: census.mjs is itself
  *                   PRODUCT-CODE at 0% covered, so every comment line added
  *                   here enlarges the denominator it reports.
+ * 33.7 2026-07-31  RAISED by the tranche-5 events-and-learning-collaboratives
+ *                   notification/unfurl/upload lane. Three CF Pages Functions
+ *                   behind the STUC community, all three ABSENT from the
+ *                   report before this branch rather than at zero:
+ *                   community/_email.js 398 lines 0 -> 100,
+ *                   community/unfurl.js 362 lines 0 -> 99.44,
+ *                   community/upload.js 79 lines 0 -> 100. 221 tests, run
+ *                   against the real SQLite harness for every membership and
+ *                   roster decision, because STUC_MEMBER_WHERE is what picks
+ *                   the recipients and a canned mock would only replay the
+ *                   fixture. Measured 33.72% (21883/64887) in a clean
+ *                   checkout, rounded DOWN on the one-decimal scale.
+ *
+ *                   unfurl.js stops short of 100 on purpose. Its
+ *                   isUnfurlableUrl re-parses inside a try/catch, and neither
+ *                   call site can supply a string that fails: onRequestGet has
+ *                   already run new URL(raw) before calling it, and the
+ *                   redirect site passes new URL(location, base).toString(),
+ *                   which is always re-parseable. The over-2048 guard returns
+ *                   before the try, so a giant Location cannot reach it
+ *                   either. Two dead defensive lines, left uncovered and
+ *                   named rather than reached by a faked path.
+ *
+ *                   Bite proven both ways on this branch.
  *
  * MEASURE IN A CLEAN CHECKOUT, THE WAY CI DOES.
  * `src/data/glossary.json` is GITIGNORED and is never present in CI (the
@@ -165,7 +189,7 @@ const OUT = resolve(ROOT, 'scripts', 'quality', 'coverage-census.json');
  * particular surface is tested. Read the per-product view
  * (tools/coverage-portfolio/status.mjs) before concluding a product is covered.
  */
-const ARMED_FLOOR_PCT = 32.4;
+const ARMED_FLOOR_PCT = 33.7;
 
 const argv = process.argv.slice(2);
 const covDirIdx = argv.indexOf('--coverage-dir');
