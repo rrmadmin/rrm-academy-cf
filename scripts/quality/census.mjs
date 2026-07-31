@@ -54,6 +54,20 @@ const OUT = resolve(ROOT, 'scripts', 'quality', 'coverage-census.json');
  *                   the library render surface (0 -> 67.4%), the FABM quiz API
  *                   (3.5 -> 100%), and the course-platform enrolment/quiz path.
  *                   Measured 28.32%.
+ *   28.9 2026-07-31 raised after the tranche-4 public-read drive: the public
+ *                   glossary build surface (functions/api/glossary/terms.js),
+ *                   /api/articles, /api/articles/bulk and the shared
+ *                   _map-article.js mapper, all 0 -> 100% lines. Measured
+ *                   28.99%. FIRST NON-INTEGER FLOOR: this drive moved the
+ *                   aggregate 28.19 -> 28.99, a real +0.80pp that the integer
+ *                   scale cannot express (28.99 rounds down to the incumbent
+ *                   28, which would record the drive as no gain at all). One
+ *                   decimal, still rounded DOWN, still green on arrival.
+ *                   Headroom is thin by construction (~0.09pp, ~58 lines): a
+ *                   later change that ADDS product files without tests can
+ *                   push the aggregate under this floor even though no test
+ *                   was deleted. That is the ratchet working, not a bug -- fix
+ *                   it by testing the new surface, never by lowering this.
  *
  * A REPO-WIDE FLOOR CAN HIDE A PRODUCT AT ZERO. That is what tranche 3 found:
  * this number was green at 26 while five separate product surfaces measured
@@ -61,7 +75,7 @@ const OUT = resolve(ROOT, 'scripts', 'quality', 'coverage-census.json');
  * particular surface is tested. Read the per-product view
  * (tools/coverage-portfolio/status.mjs) before concluding a product is covered.
  */
-const ARMED_FLOOR_PCT = 28;
+const ARMED_FLOOR_PCT = 28.9;
 
 const argv = process.argv.slice(2);
 const covDirIdx = argv.indexOf('--coverage-dir');
