@@ -144,6 +144,22 @@ const OUT = resolve(ROOT, 'scripts', 'quality', 'coverage-census.json');
  *                   part of what is measured: census.mjs is itself
  *                   PRODUCT-CODE at 0% covered, so every comment line added
  *                   here enlarges the denominator it reports.
+ * 33.4 2026-07-31  RAISED by the tranche-5 moderation drive. The STUC
+ *                   moderation surface -- community/flags.js, ban.js and
+ *                   unban.js -- went from ABSENT-FROM-THE-REPORT (never
+ *                   imported by any test, which reads as 0 but is not the
+ *                   same thing) to 100% lines on all three, exercised against
+ *                   a real SQLite engine loaded with the committed schema.
+ *                   Measured 33.46% (21713/64887) on a clean checkout of this
+ *                   branch, rounded DOWN on the one-decimal scale.
+ *
+ *                   The endpoints were picked because a canned mock cannot
+ *                   test them at all: "the ban bites" is a claim about a row
+ *                   written by ban.js and re-read much later by a DIFFERENT
+ *                   query inside requireMember, and the flag duplicate/upsert
+ *                   path is decided by the UNIQUE index in schema.sql. The
+ *                   ban refusal is asserted through the real requireMember and
+ *                   through two real endpoints, never a stub.
  *
  * 26.5 2026-07-31  LOWERED, AND THE OLD NUMBER WAS WRONG RATHER THAN THE
  *                   COVERAGE HAVING REGRESSED. This is the one move the ratchet
@@ -197,6 +213,29 @@ const OUT = resolve(ROOT, 'scripts', 'quality', 'coverage-census.json');
  *                   only in prose about a CI fallback and sits at 0%, so it
  *                   inflates nothing.
  *
+ * 27.6 2026-07-31  EVENTS AND LEARNING COLLABORATIVES TRANCHE, LANE 1 OF 6
+ *                   (moderation: flags, ban, unban). RE-ARMED ON THE CORRECTED
+ *                   DENOMINATOR, which is why this reads 27.6 and not the 33.4
+ *                   the lane branch itself armed.
+ *
+ *                   Every lane in this tranche was branched, measured and armed
+ *                   BEFORE the 26.5 correction above landed, so each one carries
+ *                   a floor computed over the padded 64887-line denominator:
+ *                   33.4 here, and 34.7 / 34.8 / others on the sibling lanes.
+ *                   Those numbers are not reachable over the corrected 59754-line
+ *                   denominator and re-arming at them would leave the gate red on
+ *                   arrival, which the ratchet rule forbids. Each lane is
+ *                   therefore re-armed at ITS OWN post-merge measurement rounded
+ *                   DOWN as it lands. The ratchet is intact: it moves up from
+ *                   26.5 with every lane, it just moves up from the honest
+ *                   baseline rather than the inflated one.
+ *
+ *                   Measured 27.63% (16511/59754) on the merge commit, in a
+ *                   clean checkout with the gitignored src/data/*.json absent,
+ *                   the way CI measures. See the note directly below: with those
+ *                   data files present the same tree reads 27.77%, so the census
+ *                   is regenerated without them.
+ *
  * MEASURE IN A CLEAN CHECKOUT, THE WAY CI DOES.
  * `src/data/glossary.json` is GITIGNORED and is never present in CI (the
  * workflow runs `npm ci` then `npm test`; there is no fetch-all step). The
@@ -217,7 +256,7 @@ const OUT = resolve(ROOT, 'scripts', 'quality', 'coverage-census.json');
  * particular surface is tested. Read the per-product view
  * (tools/coverage-portfolio/status.mjs) before concluding a product is covered.
  */
-const ARMED_FLOOR_PCT = 26.5;
+const ARMED_FLOOR_PCT = 27.6;
 
 const argv = process.argv.slice(2);
 const covDirIdx = argv.indexOf('--coverage-dir');
