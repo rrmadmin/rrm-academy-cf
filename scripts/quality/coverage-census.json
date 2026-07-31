@@ -11,7 +11,7 @@
  "_gate": {
   "scope": "PRODUCT-CODE",
   "metric": "c8 line coverage with --all (every surface file in the denominator)",
-  "floor_lines_pct": 35.4,
+  "floor_lines_pct": 37.3,
   "ratchet_rule": "The floor may only move UP. Arm at the measured floor rounded down; never arm a number that is red on arrival. Raise it after a coverage drive lands, by editing this value to the new measured floor rounded down."
  },
  "_measured": {
@@ -19,16 +19,16 @@
   "instrument": "node scripts/quality/coverage.mjs (c8 --all over the full surface; full npm-test suite)",
   "full_surface": {
    "files": 421,
-   "lines": 81261,
-   "covered": 26520,
-   "pct": 32.64
+   "lines": 81290,
+   "covered": 27723,
+   "pct": 34.1
   },
   "by_category": {
    "PRODUCT-CODE": {
     "files": 333,
-    "lines": 59976,
-    "covered": 21237,
-    "pct": 35.41
+    "lines": 60005,
+    "covered": 22440,
+    "pct": 37.4
    },
    "CONTENT-TEMPLATE": {
     "files": 8,
@@ -57,12 +57,12 @@
   },
   "product_code": {
    "files": 333,
-   "lines": 59976,
-   "covered": 21237,
-   "pct": 35.41
+   "lines": 60005,
+   "covered": 22440,
+   "pct": 37.4
   },
-  "files_at_zero_in_full_report": 272,
-  "files_executed_in_full_report": 149,
+  "files_at_zero_in_full_report": 269,
+  "files_executed_in_full_report": 152,
   "highest_stakes_slice": {
    "slice": "national survey system (functions/api/survey/ + functions/api/endo-quiz/)",
    "files": [
@@ -142,14 +142,6 @@
    "crap": 5700
   },
   {
-   "file": "functions/api/admin/courses/[id]/steps/[stepId].js",
-   "fn": "onRequestPut",
-   "line": 83,
-   "cc": 69,
-   "coverage": 0.01,
-   "crap": 4754
-  },
-  {
    "file": "functions/api/auth/google-callback.js",
    "fn": "onRequestGet",
    "line": 176,
@@ -212,14 +204,6 @@
    "cc": 52,
    "coverage": 0,
    "crap": 2756
-  },
-  {
-   "file": "functions/api/admin/courses/[id]/steps.js",
-   "fn": "onRequestPost",
-   "line": 48,
-   "cc": 51,
-   "coverage": 0,
-   "crap": 2652
   },
   {
    "file": "functions/api/admin/email.js",
@@ -318,17 +302,33 @@
    "crap": 1056
   },
   {
-   "file": "functions/api/admin/courses/[id]/attachments.js",
-   "fn": "onRequestDelete",
-   "line": 137,
+   "file": "functions/api/admin/wix-migration-email.js",
+   "fn": "onRequestPost",
+   "line": 35,
    "cc": 32,
    "coverage": 0,
    "crap": 1056
   },
   {
-   "file": "functions/api/admin/wix-migration-email.js",
-   "fn": "onRequestPost",
-   "line": 35,
+   "file": "functions/api/admin/wix-migration-status.js",
+   "fn": "onRequestGet",
+   "line": 18,
+   "cc": 32,
+   "coverage": 0,
+   "crap": 1056
+  },
+  {
+   "file": "functions/api/ask.js",
+   "fn": "handleAuthedAsk",
+   "line": 238,
+   "cc": 32,
+   "coverage": 0,
+   "crap": 1056
+  },
+  {
+   "file": "scripts/extract-article-facts.mjs",
+   "fn": "<anonymous>",
+   "line": 379,
    "cc": 32,
    "coverage": 0,
    "crap": 1056
@@ -372,12 +372,6 @@
    "fns": 6
   },
   {
-   "file": "functions/api/admin/courses/[id]/steps/[stepId].js",
-   "worst": 4754,
-   "total": 5357,
-   "fns": 6
-  },
-  {
    "file": "functions/api/admin/email.js",
    "worst": 2450,
    "total": 5108,
@@ -406,12 +400,6 @@
    "worst": 812,
    "total": 3792,
    "fns": 23
-  },
-  {
-   "file": "functions/api/admin/courses/[id]/steps.js",
-   "worst": 2652,
-   "total": 3596,
-   "fns": 4
   },
   {
    "file": "functions/api/partners/apply.js",
@@ -454,6 +442,18 @@
    "worst": 2070,
    "total": 2936,
    "fns": 11
+  },
+  {
+   "file": "functions/api/admin/search-queries.js",
+   "worst": 2352,
+   "total": 2352,
+   "fns": 1
+  },
+  {
+   "file": "functions/api/saved.js",
+   "worst": 1980,
+   "total": 2210,
+   "fns": 3
   }
  ],
  "files": [
@@ -767,19 +767,19 @@
    "file": "functions/api/admin/courses/[id]/attachments.js",
    "category": "PRODUCT-CODE",
    "reason": "CF Pages Function (routed endpoint, middleware, or _-prefixed shared helper). Deployed on every push; defects ship directly to users.",
-   "present": false,
+   "present": true,
    "lines": 232,
-   "covered": 0,
-   "pct": 0
+   "covered": 232,
+   "pct": 100
   },
   {
    "file": "functions/api/admin/courses/[id]/sections.js",
    "category": "PRODUCT-CODE",
    "reason": "CF Pages Function (routed endpoint, middleware, or _-prefixed shared helper). Deployed on every push; defects ship directly to users.",
-   "present": false,
+   "present": true,
    "lines": 177,
-   "covered": 0,
-   "pct": 0
+   "covered": 177,
+   "pct": 100
   },
   {
    "file": "functions/api/admin/courses/[id]/sections/[sectionId].js",
@@ -787,17 +787,17 @@
    "reason": "CF Pages Function (routed endpoint, middleware, or _-prefixed shared helper). Deployed on every push; defects ship directly to users.",
    "present": true,
    "lines": 307,
-   "covered": 138,
-   "pct": 44.95
+   "covered": 307,
+   "pct": 100
   },
   {
    "file": "functions/api/admin/courses/[id]/steps.js",
    "category": "PRODUCT-CODE",
    "reason": "CF Pages Function (routed endpoint, middleware, or _-prefixed shared helper). Deployed on every push; defects ship directly to users.",
-   "present": false,
+   "present": true,
    "lines": 271,
-   "covered": 0,
-   "pct": 0
+   "covered": 271,
+   "pct": 100
   },
   {
    "file": "functions/api/admin/courses/[id]/steps/[stepId].js",
@@ -805,8 +805,8 @@
    "reason": "CF Pages Function (routed endpoint, middleware, or _-prefixed shared helper). Deployed on every push; defects ship directly to users.",
    "present": true,
    "lines": 391,
-   "covered": 80,
-   "pct": 20.46
+   "covered": 391,
+   "pct": 100
   },
   {
    "file": "functions/api/admin/courses/[id]/steps/[stepId]/renditions.js",
@@ -814,8 +814,8 @@
    "reason": "CF Pages Function (routed endpoint, middleware, or _-prefixed shared helper). Deployed on every push; defects ship directly to users.",
    "present": true,
    "lines": 268,
-   "covered": 225,
-   "pct": 83.95
+   "covered": 268,
+   "pct": 100
   },
   {
    "file": "functions/api/admin/courses/_shared.js",
@@ -3333,7 +3333,7 @@
    "category": "PRODUCT-CODE",
    "reason": "The quality instrument itself (coverage/CRAP/mutation/census). A measurement tool that is wrong is worse than no tool; its pure logic is unit-testable.",
    "present": false,
-   "lines": 660,
+   "lines": 689,
    "covered": 0,
    "pct": 0
   },
