@@ -165,7 +165,7 @@ const OUT = resolve(ROOT, 'scripts', 'quality', 'coverage-census.json');
  * particular surface is tested. Read the per-product view
  * (tools/coverage-portfolio/status.mjs) before concluding a product is covered.
  */
-const ARMED_FLOOR_PCT = 32.4;
+const ARMED_FLOOR_PCT = 33.5;
 
 const argv = process.argv.slice(2);
 const covDirIdx = argv.indexOf('--coverage-dir');
