@@ -464,6 +464,46 @@ const OUT = resolve(ROOT, 'scripts', 'quality', 'coverage-census.json');
  *                   covered, so the lines above enlarge the denominator they
  *                   report on.
  *
+ * 36.9 2026-07-31  RAISED by the course-platform LEARNER PATH lane: the
+ *                   catalogue read, enrolment, the waitlist capture, the
+ *                   rendition read and certificate issuance. Seven of the eight
+ *                   files went to 100% lines, six of them from ABSENT (no test
+ *                   had ever imported them, so they were missing from the
+ *                   report rather than sitting at 0):
+ *                     courses/certificate.js    313 lines  ABSENT -> 100%
+ *                     courses.js                220 lines  ABSENT -> 100%
+ *                     courses/enroll.js         261 lines  28%    -> 100%
+ *                     courses/waitlist.js       185 lines  ABSENT -> 100%
+ *                     courses/rendition.js      156 lines  partial-> 100%
+ *                     courses/_shared.js        130 lines  partial-> 100%
+ *                     courses/_notify-admin.js   41 lines  ABSENT -> 100%
+ *                     courses/_sanitize.js      114 lines  partial-> 99.12%
+ *                   Measured 36.96% (22183/60013) in a clean checkout with the
+ *                   gitignored src/data/*.json absent, the way CI measures.
+ *                   Armed 36.9, the measurement rounded down; proven to bite
+ *                   (37.0 exits 1 at 36.96%, 36.9 exits 0). Note that this
+ *                   file is itself in the PRODUCT-CODE denominator, so writing
+ *                   this entry moved the measurement 36.99 -> 36.96 (+37 lines,
+ *                   0 covered). The number above is the post-entry one.
+ *
+ *                   Written against the real SQLite engine
+ *                   (test/_d1-sqlite.mjs), because every consequential claim on
+ *                   this path is a ROW: whether a second enrol POST creates a
+ *                   second enrolment, whether a revoked learner gets access
+ *                   back, whether a certificate is stamped for a learner who
+ *                   did not complete. 52 mutations applied to the eight
+ *                   production files, all 52 killed.
+ *
+ *                   _sanitize.js stops at 113/114. Line 105, the `return prev`
+ *                   after the 5-pass fixpoint loop, is unreachable through the
+ *                   exported API: sanitizeOnce converges in at most 3 passes,
+ *                   confirmed by exhaustive search over every string up to
+ *                   length 5 on the tag alphabet plus 400k random longer ones
+ *                   (worst case 3, on `<a/>`), and structurally, because one
+ *                   pass canonicalises every token and escaping never emits a
+ *                   new `<`. Left as defence in depth rather than deleted, and
+ *                   left uncovered rather than reclassified.
+ *
  * MEASURE IN A CLEAN CHECKOUT, THE WAY CI DOES.
  * `src/data/glossary.json` is GITIGNORED and is never present in CI (the
  * workflow runs `npm ci` then `npm test`; there is no fetch-all step). The
@@ -483,8 +523,105 @@ const OUT = resolve(ROOT, 'scripts', 'quality', 'coverage-census.json');
  * 0-18%. The floor is a ratchet on the aggregate, not evidence that any
  * particular surface is tested. Read the per-product view
  * (tools/coverage-portfolio/status.mjs) before concluding a product is covered.
+ *
+ * 36.6 2026-07-31  RAISED on the tranche-5 ONLINE-COURSE-PLATFORM lane
+ *                   quality/coverage-t5-admin-crud: the course create / read /
+ *                   update / delete surface. All three files to 100% lines,
+ *                   branches and functions -- functions/api/admin/courses/[id].js
+ *                   (453 lines, the largest never-executed file in this
+ *                   product), functions/api/admin/courses/index.js (277, also
+ *                   ABSENT from the report rather than at zero) and their
+ *                   shared helper _shared.js (47, 38.29%).
+ *
+ *                   Measured 36.65% (22001/60031) on this branch in a clean
+ *                   checkout with the gitignored src/data/*.json absent, the
+ *                   way CI measures, up from 35.41% (21237/59976) on the same
+ *                   checkout before the drive. Rounded DOWN on the one-decimal
+ *                   scale that is 36.6; 36.7 was verified RED (exit 1) and 36.6
+ *                   GREEN (exit 0) on this branch.
+ *
+ *                   The denominator moved by +55, and none of it is a
+ *                   reclassification: +5 for the comment recording the delete
+ *                   defect below, +50 for THIS comment block, which is in the
+ *                   denominator it reports. Before this block was written the
+ *                   same tree measured 36.68% (22001/59981). Nothing was moved
+ *                   out of PRODUCT-CODE by this lane.
+ *
+ *                   THIS IS A BRANCH FLOOR. Per the tranche-4 and tranche-5
+ *                   entries above, sibling lanes measure their own surfaces
+ *                   against the same denominator, so taking the max at merge
+ *                   would under-arm the ratchet. Re-measure on merged main and
+ *                   arm that number.
+ *
+ *                   TWO THINGS THIS LANE HAD TO CORRECT BEFORE IT COULD
+ *                   MEASURE ANYTHING, both recorded because a coverage number
+ *                   that required an undocumented edit is not reproducible:
+ *                     1. DELETE /api/admin/courses/[id] probed the reference
+ *                        guard with `SELECT id FROM step_progress`. That table
+ *                        has no `id` column, so the statement was rejected, the
+ *                        enclosing Promise.all rejected with it, and every
+ *                        course delete answered 500 -- in production, not only
+ *                        in tests. One-line fix, plus a regression pin that
+ *                        asserts both halves (a clean course deletes, a course
+ *                        with progress is refused 409).
+ *                     2. course.topics_json was added to live rrm-auth on
+ *                        2026-07-01 by a hand-run ALTER with no migration file,
+ *                        so test/_d1-sqlite.mjs built a course table without it
+ *                        and the create endpoint's INSERT could not run at all.
+ *                        The ALTER is now written down as
+ *                        scripts/migrations/2026-07-01-course-topics-json.sql
+ *                        and replayed, which is the case
+ *                        test/schema-migration-replay.test.mjs documents itself
+ *                        as unable to catch.
+ * TRANCHE 5, LANE "social-keys" (2026-07-31). Four course-platform files that
+ * no test had ever imported went 0 -> 100% lines and 100% branches:
+ *   functions/api/courses/comments.js          317 lines
+ *   functions/api/account/mcp-keys/index.js    125 lines
+ *   functions/api/account/mcp-keys/[id].js      63 lines
+ *   functions/api/courses/affiliate-click.js    49 lines
+ * All four were `present: false` -- ABSENT from the c8 report, not merely low
+ * -- so their 554 lines were pure denominator. Tests run against a real SQLite
+ * engine loaded with the committed schema (test/_d1-sqlite.mjs), because the
+ * load-bearing behaviour is decided by the database: the enrollment lookup's
+ * `revoked_at IS NULL`, the per-account scoping of the MCP key list and its
+ * revocation (the IDOR case), the UNIQUE index on mcp_api_key.key_hash that
+ * turns a collision into a 409, and affiliate_clicks'
+ * UNIQUE(user_id, course_id, click_date) that makes a replayed click a no-op.
+ * The credential assertions read the stored row back and recompute SHA-256
+ * over the plaintext the endpoint handed out, so "stored hashed" and "not
+ * recoverable after mint" are properties of the write, not of the response
+ * shape. 17 mutants (ownership checks deleted, moderation bar lowered,
+ * plaintext stored instead of the hash, key_hash added to the read projection,
+ * revocation unscoped) all turned the suite red.
+ *
+ *   36.3  2026-07-31  +554 covered lines, exactly the lane's line count, over
+ *                     the 35.4093% (21237/59976) this branch started from.
+ *                     Measured on a clean checkout with the gitignored
+ *                     src/data/*.json absent, the way CI measures. Armed at
+ *                     the measurement rounded DOWN on the one-decimal scale;
+ *                     proven to bite (36.4 exits 1, 36.3 exits 0). NOTE the
+ *                     denominator moves with this comment: census.mjs is
+ *                     itself PRODUCT-CODE and never imported by the suite, so
+ *                     c8 --all counts every line of it, comments included.
+ *
+ * MERGE OF THE TRANCHE-5 ONLINE-COURSE-PLATFORM LANES (2026-07-31). The lane
+ * entries above each measured their own surface against the same repo-wide
+ * denominator and each armed a floor in isolation: 36.6 admin-crud, 36.9
+ * learner, 36.3 social-keys. Taking the max of those would under-arm the
+ * ratchet, exactly as the admin-crud entry warns, because the lanes cover
+ * disjoint files and their gains add. The floor below is therefore re-measured
+ * on the merged tree as each lane lands, never carried across:
+ *
+ *   36.6  main + admin-crud                measured 36.65%   (22001/60031)
+ *   38.1  main + learner                   measured 38.1997% (22947/60071)
+ *   39.0  main + social-keys                measured 39.0912% (23501/60117)
+ *   41.0  main + admin-structure           measured 41.0727% (24704/60147)
+ *
+ * Each is the measurement rounded DOWN on the one-decimal scale, taken in a
+ * clean checkout with the gitignored src/data/*.json absent, the way CI
+ * measures, and each was proven to bite before it was committed.
  */
-const ARMED_FLOOR_PCT = 37.3;
+const ARMED_FLOOR_PCT = 41.0;
 
 const argv = process.argv.slice(2);
 const covDirIdx = argv.indexOf('--coverage-dir');
