@@ -8,10 +8,13 @@ import {
   PROJECT_ROOT,
   SENTINEL_TABLES,
   MIN_TABLES,
+  MIN_PREPARED,
+  MAX_SQL_LEN,
   INTERP,
   attributeDatabase,
   buildSchemaDb,
   checkStatement,
+  describeFinding,
   displaySql,
   extractSql,
   fileDatabaseNames,
@@ -224,6 +227,87 @@ test('checkStatement flags a missing column, a missing table, and passes a good 
   db.close();
 });
 
+test('checkStatement flags the INSERT column-list wording, naming table AND column', () => {
+  // The hole an adversarial verifier found: SQLite reports a bad column in an
+  // INSERT/REPLACE column list as "table X has no column named Y", which the
+  // original single "no such column" pattern did not match, so this - a hard
+  // prepare-time throw, a guaranteed 500, the same class as the step_progress
+  // bug - was downgraded to a skip. On writes, of all places.
+  const { db } = buildSchemaDb();
+
+  const ins = checkStatement(db, {
+    text: 'INSERT INTO enrollment (user_id, course_id, bogus_ins) VALUES (?, ?, ?)',
+    interpolations: 0,
+  });
+  assert.equal(ins.status, 'finding', 'an INSERT naming a nonexistent column must NOT be a skip');
+  assert.equal(ins.kind, 'column');
+  assert.equal(ins.identifier, 'bogus_ins');
+  assert.equal(ins.table, 'enrollment', 'the table SQLite named must survive into the finding');
+
+  // REPLACE INTO and INSERT OR <resolution> use the same wording.
+  for (const sql of [
+    'REPLACE INTO enrollment (user_id, bogus_rep) VALUES (?, ?)',
+    'INSERT OR IGNORE INTO enrollment (user_id, bogus_ign) VALUES (?, ?)',
+  ]) {
+    const r = checkStatement(db, { text: sql, interpolations: 0 });
+    assert.equal(r.status, 'finding', sql);
+    assert.equal(r.table, 'enrollment', sql);
+  }
+
+  // The correct statement still prepares - the pattern is not just matching INSERT.
+  assert.equal(
+    checkStatement(db, { text: 'INSERT INTO enrollment (user_id, course_id) VALUES (?, ?)', interpolations: 0 }).status,
+    'checked'
+  );
+  db.close();
+});
+
+test('checkStatement flags an ambiguous column name from a JOIN', () => {
+  const { db } = buildSchemaDb();
+  const amb = checkStatement(db, {
+    text: 'SELECT user_id FROM enrollment JOIN step_progress ON enrollment.user_id = step_progress.user_id',
+    interpolations: 0,
+  });
+  assert.equal(amb.status, 'finding');
+  assert.equal(amb.kind, 'ambiguous-column');
+  assert.equal(amb.identifier, 'user_id');
+
+  // Qualifying it resolves the ambiguity and the statement prepares.
+  assert.equal(
+    checkStatement(db, {
+      text: 'SELECT enrollment.user_id FROM enrollment JOIN step_progress ON enrollment.user_id = step_progress.user_id',
+      interpolations: 0,
+    }).status,
+    'checked'
+  );
+  db.close();
+});
+
+test('an INSERT arity mismatch stays a SKIP, because placeholder substitution invents it', () => {
+  // scripts/migrate-courses-to-d1.mjs spreads a generated placeholder list into
+  // one interpolation. Substituting `?` collapses it to a single value, so
+  // "N values for M columns" fires on code that is correct at runtime.
+  // Promoting that error would buy a hole back as false positives.
+  const { db } = buildSchemaDb();
+  const r = checkStatement(db, {
+    text: `INSERT INTO enrollment (user_id, course_id, enrolled_at) VALUES (${INTERP})`,
+    interpolations: 1,
+  });
+  assert.equal(r.status, 'skipped');
+  assert.match(r.reason, /values for \d+ columns/);
+  db.close();
+});
+
+test('describeFinding names the table when SQLite gave us one', () => {
+  assert.equal(
+    describeFinding({ kind: 'column', identifier: 'bogus_ins', table: 'enrollment' }),
+    'no such column: bogus_ins (table enrollment has no column named bogus_ins)'
+  );
+  assert.equal(describeFinding({ kind: 'column', identifier: 'id', table: null }), 'no such column: id');
+  assert.equal(describeFinding({ kind: 'table', identifier: 'nope', table: null }), 'no such table: nope');
+  assert.match(describeFinding({ kind: 'ambiguous-column', identifier: 'user_id', table: null }), /^ambiguous column name: user_id/);
+});
+
 test('checkStatement skips, with a reason, what it cannot prepare', () => {
   const { db } = buildSchemaDb();
 
@@ -272,6 +356,54 @@ test('scan catches the step_progress.id defect in a fixture endpoint', () => {
   assert.equal(result.findings[0].kind, 'column');
   assert.equal(result.findings[0].identifier, 'id');
   assert.match(result.findings[0].sql, /step_progress/);
+});
+
+test('scan reports the INSERT hole end to end, with file, line, table and column', () => {
+  const abs = fixture('insert-handler.js', `
+    export async function onRequestPost({ env, params }) {
+      return env.DB.prepare(
+        'INSERT INTO enrollment (user_id, course_id, bogus_ins) VALUES (?, ?, ?)'
+      ).bind(params.user, params.course, 1).run();
+    }
+  `);
+  const result = scan({ files: [abs] });
+  assert.equal(result.findings.length, 1, 'the INSERT must surface as a finding, not vanish into the skip bucket');
+  const [f] = result.findings;
+  assert.equal(f.kind, 'column');
+  assert.equal(f.identifier, 'bogus_ins');
+  assert.equal(f.table, 'enrollment');
+  assert.equal(f.line, 4);
+  assert.match(f.file, /insert-handler\.js$/);
+  assert.match(f.sql, /INSERT INTO enrollment/);
+  assert.equal(result.skips.length, 0, 'it must not ALSO be counted as a skip');
+});
+
+test('scan records an oversized string as a counted skip instead of dropping it silently', () => {
+  const abs = fixture('oversized.js', [
+    `export const BLOB = '${'A'.repeat(MAX_SQL_LEN + 1)}';`,
+    "export async function onRequestGet({ env }) {",
+    "  return env.DB.prepare('SELECT id FROM course WHERE id = ?').bind(1).first();",
+    "}",
+  ].join('\n'));
+  const result = scan({ files: [abs] });
+  const oversized = result.skips.filter((s) => s.reason.startsWith('oversized'));
+  assert.equal(oversized.length, 1, 'the >MAX_SQL_LEN string must leave a record behind');
+  assert.match(oversized[0].reason, new RegExp(`${MAX_SQL_LEN + 1}-char string`));
+  assert.ok(oversized[0].text.length < 200, 'the recorded text must be truncated, not the whole blob');
+  assert.deepEqual(skipBuckets(result.skips).find(([r]) => r === 'oversized'), ['oversized', 1]);
+  // The real SQL in the same file is still checked; the skip does not poison it.
+  assert.equal(result.checked, 1);
+});
+
+test('the prepared-statement floor is armed close enough to the measurement to bite', () => {
+  // A floor far below the true count is an anti-vacuity assertion that asserts
+  // nothing. 600 against a measured 777 tolerated a 23% silent collapse.
+  const measured = 777;
+  assert.ok(MIN_PREPARED <= measured, `floor ${MIN_PREPARED} must not exceed the measurement`);
+  assert.ok(
+    measured - MIN_PREPARED <= 40,
+    `floor ${MIN_PREPARED} leaves ${measured - MIN_PREPARED} statements of blind spot; keep it under 40`
+  );
 });
 
 test('scan attributes a SURVEY_DB statement away from rrm-auth instead of failing it', () => {
