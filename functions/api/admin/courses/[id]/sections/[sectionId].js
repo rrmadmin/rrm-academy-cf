@@ -261,22 +261,39 @@ export async function onRequestDelete(context) {
       } catch { /* malformed row; nothing to delete */ }
     }
 
+    // The reference probe above is advisory only: a learner can start a lesson,
+    // answer a quiz or post a comment in the window between that probe and this
+    // batch. The guard below therefore has to be re-evaluated inside the batch.
+    //
+    // It is deliberately SECTION-WIDE rather than per-step. A per-step guard
+    // ("delete each step that is itself unreferenced") makes a refusal
+    // DESTRUCTIVE: the referenced step is kept, its unreferenced siblings are
+    // deleted, and the caller is answered 409 having silently lost steps. This
+    // form asks a single question of the whole section -- "is ANY step in it
+    // referenced?" -- so the statement deletes either every step or none.
+    //
+    // Why it holds under the engine's row order: the only way a later row could
+    // start deleting is if the referenced step disappeared mid-statement, and
+    // the referenced step is exactly the row this guard never deletes. The
+    // predicate is therefore constant for the whole statement whichever order
+    // rows are visited in, and both DELETEs see the same answer because D1 runs
+    // a batch in one implicit transaction.
+    const SECTION_HAS_REFERENCE =
+      ' AND NOT EXISTS (SELECT 1 FROM course_step g WHERE g.section_id = ?1 AND (' +
+      ' EXISTS (SELECT 1 FROM step_progress WHERE step_id = g.id)' +
+      ' OR EXISTS (SELECT 1 FROM quiz_response WHERE step_id = g.id)' +
+      ' OR EXISTS (SELECT 1 FROM lesson_comment WHERE step_id = g.id)' +
+      ' OR EXISTS (SELECT 1 FROM course WHERE certificate_quiz_step_id = g.id)' +
+      '))';
+
     const [, stepsDeleteResult] = await env.DB.batch([
       env.DB.prepare(
         'DELETE FROM step_rendition WHERE step_id IN (' +
         'SELECT id FROM course_step WHERE section_id = ?1' +
-        ' AND NOT EXISTS (SELECT 1 FROM step_progress WHERE step_id = course_step.id)' +
-        ' AND NOT EXISTS (SELECT 1 FROM quiz_response WHERE step_id = course_step.id)' +
-        ' AND NOT EXISTS (SELECT 1 FROM lesson_comment WHERE step_id = course_step.id)' +
-        ' AND NOT EXISTS (SELECT 1 FROM course WHERE certificate_quiz_step_id = course_step.id)' +
-        ')'
+        ')' + SECTION_HAS_REFERENCE
       ).bind(sectionId),
       env.DB.prepare(
-        'DELETE FROM course_step WHERE section_id = ?' +
-        ' AND NOT EXISTS (SELECT 1 FROM step_progress WHERE step_id = course_step.id)' +
-        ' AND NOT EXISTS (SELECT 1 FROM quiz_response WHERE step_id = course_step.id)' +
-        ' AND NOT EXISTS (SELECT 1 FROM lesson_comment WHERE step_id = course_step.id)' +
-        ' AND NOT EXISTS (SELECT 1 FROM course WHERE certificate_quiz_step_id = course_step.id)'
+        'DELETE FROM course_step WHERE section_id = ?1' + SECTION_HAS_REFERENCE
       ).bind(sectionId),
     ]);
 
@@ -285,11 +302,21 @@ export async function onRequestDelete(context) {
         'SELECT id FROM course_step WHERE section_id = ?'
       ).bind(sectionId).all();
 
-      return json({
-        ok: false,
-        error: 'references_exist',
-        stepIds: (survivors || []).map(s => s.id),
-      }, 409);
+      const survivingIds = (survivors || []).map(s => s.id);
+
+      // Refuse on what is actually still there, not on the arithmetic. Because
+      // the batch is all-or-nothing, surviving steps mean NOTHING was deleted,
+      // so the caller keeps a whole section and can retry once the reference is
+      // gone. A short change count with no survivors means another writer
+      // removed a step between the probe and the batch, which is not a refusal
+      // and must not leave the emptied section behind.
+      if (survivingIds.length > 0) {
+        return json({
+          ok: false,
+          error: 'references_exist',
+          stepIds: survivingIds,
+        }, 409);
+      }
     }
 
     await env.DB.prepare('DELETE FROM course_section WHERE id = ?').bind(sectionId).run();

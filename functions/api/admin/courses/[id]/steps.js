@@ -249,6 +249,15 @@ export async function onRequestPut(context) {
       return json({ ok: false, error: 'incomplete_order' }, 400);
     }
 
+    // Same hole as sections.js PUT: a repeated id is the right length and every
+    // entry is a real step, so ['step-a1','step-a1'] passes both other checks.
+    // The batch would then write one step twice and never touch the omitted
+    // one, leaving two steps on the same sort_order and the learner's "next
+    // lesson" decided by an id tiebreak.
+    if (new Set(order).size !== order.length) {
+      return json({ ok: false, error: 'incomplete_order' }, 400);
+    }
+
     for (const stepId of order) {
       if (!existingIds.has(stepId)) {
         return json({ ok: false, error: 'incomplete_order' }, 400);

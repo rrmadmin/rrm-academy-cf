@@ -14,7 +14,7 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import {
   treeDb, ctx, read, throwingD1, mockR2, drain,
-  readSection, readStep, sectionOrder, R2_PUBLIC_HOST,
+  readSection, readStep, readRendition, sectionOrder, R2_PUBLIC_HOST,
 } from './_course-structure-fixtures.mjs';
 import {
   onRequestOptions, onRequestGet, onRequestPut, onRequestDelete,
@@ -340,13 +340,15 @@ test('DELETE section: a failing R2 delete is logged and does not fail the reques
   db.close();
 });
 
-test('DELETE section TOCTOU: a reference landing after the guard yields 409 with the honest survivor, but the batch deletes are NOT rolled back', async () => {
-  // The ref checks pass, then a learner starts the lesson. The guarded batch
-  // therefore refuses step-a1 and deletes step-a2, so the response is a 409
-  // that names the survivor -- and the OTHER step is already gone. Pinned
-  // because the partial delete is a real, observable outcome of this design.
+test('DELETE section TOCTOU: a reference landing after the guard refuses the WHOLE delete, destroying nothing', async () => {
+  // The ref probe passes, then a learner starts step-a1 in the window before
+  // the batch. The batch guard is section-wide, so the refusal covers every
+  // step in the section: step-a2 -- which is not referenced and which a
+  // per-step guard would have deleted out from under the caller -- is still
+  // there when the 409 comes back. A refusal must not be destructive.
   let fired = false;
   const db = treeDb({
+    extraSeed: (s) => rendition(s, 'step-a2', 'audio', JSON.stringify({ r2_key: 'courses/audio/a2.mp3' })),
     interleave({ sql, db: raw }) {
       if (!fired && sql.includes('DELETE FROM step_rendition WHERE step_id IN')) {
         fired = true;
@@ -359,13 +361,51 @@ test('DELETE section TOCTOU: a reference landing after the guard yields 409 with
   const { status, body } = await read(await onRequestDelete(c));
   await drain(c.waitUntil);
 
+  assert.ok(fired, 'the scripted concurrent writer actually ran');
   assert.equal(status, 409);
   assert.equal(body.error, 'references_exist');
-  assert.deepEqual(body.stepIds, ['step-a1'], 'the survivor is named');
-  assert.ok(readSection(db, 'sec-a1'), 'the section row is NOT deleted on partial refusal');
+  assert.deepEqual([...body.stepIds].sort(), ['step-a1', 'step-a2'], 'every step survived, so every step is named');
+  assert.ok(readSection(db, 'sec-a1'), 'the section row is NOT deleted');
   assert.ok(readStep(db, 'step-a1'), 'the referenced step survives');
-  assert.equal(readStep(db, 'step-a2'), null, 'PINNED: the unreferenced sibling was already deleted by the batch');
-  assert.deepEqual(r2.deleted, [], 'no R2 object is deleted on partial refusal');
+  assert.ok(readStep(db, 'step-a2'), 'the UNREFERENCED sibling survives too: the refusal rolled nothing forward');
+  assert.ok(readRendition(db, 'step-a2', 'audio'), "the sibling's rendition row is intact");
+  assert.deepEqual(r2.deleted, [], 'no R2 object is deleted on a refusal');
+
+  // And the refusal is retryable rather than terminal: clear the reference and
+  // the same request now removes the whole section.
+  db._sqlite.prepare("DELETE FROM step_progress WHERE user_id = 'late'").run();
+  const retry = ctx({ db, params: A1, method: 'DELETE', r2 });
+  assert.equal((await onRequestDelete(retry)).status, 200);
+  await drain(retry.waitUntil);
+  assert.equal(readSection(db, 'sec-a1'), null);
+  assert.equal(readStep(db, 'step-a1'), null);
+  assert.equal(readStep(db, 'step-a2'), null);
+  assert.deepEqual(r2.deleted, ['courses/audio/a2.mp3'], 'the R2 object goes only once the delete really happens');
+  db.close();
+});
+
+test('DELETE section TOCTOU: a reference landing on the LAST step refuses the whole delete too', async () => {
+  // Order-independence of the section-wide guard: the engine may visit rows in
+  // either order, and the referenced row is the one the guard never deletes, so
+  // the predicate cannot flip mid-statement whichever row it reaches first.
+  let fired = false;
+  const db = treeDb({
+    interleave({ sql, db: raw }) {
+      if (!fired && sql.includes('DELETE FROM step_rendition WHERE step_id IN')) {
+        fired = true;
+        raw.prepare("INSERT INTO lesson_comment (id, user_id, course_id, step_id, content) VALUES ('lc1','late','course-a','step-a2','hi')").run();
+      }
+    },
+  });
+  const c = ctx({ db, params: A1, method: 'DELETE', r2: mockR2() });
+  const { status, body } = await read(await onRequestDelete(c));
+
+  assert.ok(fired);
+  assert.equal(status, 409);
+  assert.equal(body.error, 'references_exist');
+  assert.ok(readStep(db, 'step-a1'), 'the unreferenced FIRST step survives');
+  assert.ok(readStep(db, 'step-a2'), 'the referenced last step survives');
+  assert.ok(readSection(db, 'sec-a1'));
   db.close();
 });
 
