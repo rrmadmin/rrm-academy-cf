@@ -18,17 +18,17 @@
   "date": "2026-07-31",
   "instrument": "node scripts/quality/coverage.mjs (c8 --all over the full surface; full npm-test suite)",
   "full_surface": {
-   "files": 422,
-   "lines": 82252,
-   "covered": 30742,
-   "pct": 37.38
+   "files": 423,
+   "lines": 82919,
+   "covered": 31374,
+   "pct": 37.84
   },
   "by_category": {
    "PRODUCT-CODE": {
-    "files": 334,
-    "lines": 60928,
-    "covered": 25459,
-    "pct": 41.79
+    "files": 335,
+    "lines": 61595,
+    "covered": 26091,
+    "pct": 42.36
    },
    "CONTENT-TEMPLATE": {
     "files": 8,
@@ -56,13 +56,13 @@
    }
   },
   "product_code": {
-   "files": 334,
-   "lines": 60928,
-   "covered": 25459,
-   "pct": 41.79
+   "files": 335,
+   "lines": 61595,
+   "covered": 26091,
+   "pct": 42.36
   },
   "files_at_zero_in_full_report": 260,
-  "files_executed_in_full_report": 162,
+  "files_executed_in_full_report": 163,
   "highest_stakes_slice": {
    "slice": "national survey system (functions/api/survey/ + functions/api/endo-quiz/)",
    "files": [
@@ -2816,6 +2816,15 @@
    "pct": 0
   },
   {
+   "file": "scripts/gates/validate-schema-drift.mjs",
+   "category": "PRODUCT-CODE",
+   "reason": "Deterministic CI/pre-commit proof gate; it decides whether deploys are allowed and must itself be trustworthy.",
+   "present": true,
+   "lines": 524,
+   "covered": 489,
+   "pct": 93.32
+  },
+  {
    "file": "scripts/gates/validate-share-button.mjs",
    "category": "PRODUCT-CODE",
    "reason": "Deterministic CI/pre-commit proof gate; it decides whether deploys are allowed and must itself be trustworthy.",
@@ -2829,9 +2838,9 @@
    "category": "PRODUCT-CODE",
    "reason": "Deterministic CI/pre-commit proof gate; it decides whether deploys are allowed and must itself be trustworthy.",
    "present": true,
-   "lines": 781,
-   "covered": 755,
-   "pct": 96.67
+   "lines": 924,
+   "covered": 898,
+   "pct": 97.18
   },
   {
    "file": "scripts/gates/verify-library-curation.mjs",
