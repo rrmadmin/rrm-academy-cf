@@ -284,11 +284,23 @@ export async function onRequestPut(context) {
     ).bind(...bindings);
     let results;
     if (newOwnerId) {
+      // Twin of admin/community/areas.js PUT -- keep the two in step.
+      // Reassignment is a TRANSFER: demote the previous project_membership
+      // owner before promoting the new one, or two rows claim ownership.
+      // Both membership statements are gated on the project existing so an id
+      // that matches nothing (answered 404) writes nothing at all.
       results = await db.batch([
         updateProject,
         db.prepare(
-          "INSERT INTO project_membership (user_id, project_id, role) VALUES (?, ?, 'owner') ON CONFLICT(user_id, project_id) DO UPDATE SET role = 'owner'"
-        ).bind(newOwnerId, id),
+          `UPDATE project_membership SET role = 'member'
+           WHERE project_id = ? AND role = 'owner' AND user_id != ?
+             AND EXISTS (SELECT 1 FROM project WHERE id = ?)`
+        ).bind(id, newOwnerId, id),
+        db.prepare(
+          `INSERT INTO project_membership (user_id, project_id, role)
+           SELECT ?, ?, 'owner' WHERE EXISTS (SELECT 1 FROM project WHERE id = ?)
+           ON CONFLICT(user_id, project_id) DO UPDATE SET role = 'owner'`
+        ).bind(newOwnerId, id, id),
       ]);
     } else {
       results = [await updateProject.run()];
