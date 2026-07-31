@@ -8,13 +8,20 @@
  * attack on the same code: formats devised without reference to the pattern
  * list, and -- more importantly -- SINKS THAT SUITE NEVER LOOKED AT.
  *
- * The finding that matters most is EV-X0. redactionSinks() audits five strings:
- * the rendered body, og:description, twitter:description, the meta description
- * and the JSON-LD. og:image, twitter:image, the JSON-LD `image` field and the
- * rendered flyer <img src> are not among them, and summarize() captures
- * firstImage from the markdown BEFORE scrubJoinInfo() runs. So a markdown IMAGE
- * whose src is the Meet room publishes the live joining URL in four places, and
- * every assertion in the existing suite passes while it does.
+ * The finding that mattered most was EV-X0. redactionSinks() audits five
+ * strings: the rendered body, og:description, twitter:description, the meta
+ * description and the JSON-LD. og:image, twitter:image, the JSON-LD `image`
+ * field and the rendered flyer <img src> are not among them, and summarize()
+ * captured firstImage from the markdown BEFORE scrubJoinInfo() ran. So a
+ * markdown IMAGE whose src was the Meet room published the live joining URL in
+ * four places, and every assertion in the existing suite passed while it did.
+ *
+ * EV-X0 IS NOW CLOSED. An <img> src is judged on its parsed HOSTNAME -- never on
+ * its path or its filename, because "endo-call-2026.jpg" is a flyer -- and the
+ * host is normalised once so a trailing root dot cannot defeat the comparison.
+ * The closure is asserted on all four image sinks in
+ * test/events-page-over-redaction.test.js; the block below is now the control
+ * that keeps it closed.
  *
  * HOW TO READ THE ASSERTIONS
  * -------------------------
@@ -61,11 +68,13 @@ function assertPageAlive(r) {
 // =====================================================================
 
 describe('the flyer channel -- summarize() captures firstImage BEFORE scrubJoinInfo runs', () => {
-  it('LEAKS EV-X0: a markdown IMAGE whose src is the Meet room publishes it in og:image, twitter:image, JSON-LD image and the flyer', async () => {
-    // One "!" apart from the fully-redacted form asserted in the control below.
-    // summarize() pulls the src out in the ![...](...) replace, records it as
-    // firstImage, and returns it alongside the scrubbed text; renderHtml then
-    // uses it for ogImage without ever passing it through scrubJoinInfo.
+  it('EV-X0 CLOSED: a markdown IMAGE whose src is the Meet room reaches none of the four image sinks', async () => {
+    // Was one "!" apart from the fully-redacted form asserted in the control
+    // below: summarize() pulled the src out in the ![...](...) replace, recorded
+    // it as firstImage, and renderHtml used it for ogImage without it ever
+    // passing through scrubJoinInfo. The capture now refuses a src whose HOST
+    // serves meeting rooms, so the sinks that scrubJoinInfo cannot reach are
+    // closed at the point of capture instead.
     const r = await renderEvent({
       viewer: 'anonymous',
       post: { content: 'Title chunk.\n\n![Join the call](https://meet.google.com/img-aaaa-bbb)\n\nSee you there.' },
@@ -74,24 +83,23 @@ describe('the flyer channel -- summarize() captures firstImage BEFORE scrubJoinI
     assert.equal(r.response.status, 200);
     const twitterImage = /<meta name="twitter:image" content="([^"]*)">/.exec(r.html)?.[1] ?? '';
 
-    assert.equal(r.ogImage, 'https://meet.google.com/img-aaaa-bbb',
-      'EV-X0 fixed in og:image -- move this case into the proven-redacted block');
-    assert.equal(twitterImage, 'https://meet.google.com/img-aaaa-bbb', 'EV-X0 fixed in twitter:image');
-    assert.equal(r.jsonLd.image, 'https://meet.google.com/img-aaaa-bbb', 'EV-X0 fixed in JSON-LD image');
-    assert.equal(r.flyerSrc, 'https://meet.google.com/img-aaaa-bbb', 'EV-X0 fixed in the rendered flyer src');
+    assert.equal(r.ogImage, 'https://rrmacademy.org/og/save-the-uterus-club.png?v=8',
+      'EV-X0 reopened in og:image');
+    assert.equal(twitterImage, 'https://rrmacademy.org/og/save-the-uterus-club.png?v=8', 'EV-X0 reopened in twitter:image');
+    assert.equal(r.jsonLd.image, 'https://rrmacademy.org/og/save-the-uterus-club.png?v=8', 'EV-X0 reopened in JSON-LD image');
+    assert.equal(r.flyerSrc, null, 'EV-X0 reopened in the rendered flyer src');
 
-    // Four of the five audited sinks are clean. The JSON-LD is not, but only
-    // incidentally: redactionSinks() reads the whole element as one string, and
-    // the URL is in there as `image`, not as anything the redaction reasoned
-    // about. No existing case feeds a markdown image, so nothing catches it.
-    assert.deepEqual(leakingSinks(r, 'img-aaaa-bbb'), ['schema.org JSON-LD'],
-      'the prose sinks were never the problem here; EV-X0 is about the image field and og:image');
+    // And the five prose sinks the original audit DID cover stay clean, so the
+    // closure was not bought by moving the URL somewhere else in the document.
+    assert.deepEqual(leakingSinks(r, 'img-aaaa-bbb'), [],
+      'the room is still somewhere in the audited sinks');
+    assert.ok(!r.html.includes('img-aaaa-bbb'), 'the room reached the document somewhere');
     assert.ok(!appearsIn(r.ogDescription ?? '', 'img-aaaa-bbb'));
     assert.ok(!appearsIn(r.body ?? '', 'img-aaaa-bbb'));
     assert.match(r.body ?? '', /See you there\./);
   });
 
-  it('the same URL as a markdown LINK is fully redacted -- the control that makes EV-X0 a one-character defect', async () => {
+  it('the same URL as a markdown LINK is fully redacted -- the control that made EV-X0 a one-character defect', async () => {
     const r = await renderEvent({
       viewer: 'anonymous',
       post: { content: 'Title chunk.\n\n[Join the call](https://meet.google.com/lnk-aaaa-bbb)\n\nSee you there.' },
@@ -245,12 +253,16 @@ describe('scrubJoinInfo -- an independent leak hunt (formats the first pass did 
 // EV-X8, EV-X9. Channels around the scrubber, not through it
 // =====================================================================
 
-describe('the channels scrubJoinInfo is not on the path of', () => {
-  it('LEAKS EV-X8: the community_post.speaker COLUMN is never scrubbed either', async () => {
-    // The already-reported speaker finding is about a "Speaker:" line inside
-    // content. This is the other arm of `event.speaker || extractSpeaker(...)`:
-    // the column short-circuits extraction entirely, and nothing on that path
-    // has ever seen scrubJoinInfo.
+describe('the channels around the scrubber, now on its path but bounded by its vocabulary', () => {
+  it('EV-X8 PARTIALLY CLOSED: the speaker COLUMN is scrubbed now, but a mid-line label is outside the vocabulary', async () => {
+    // Both arms of `event.speaker || extractSpeaker(...)` now run through the
+    // SAME unmodified patterns the body runs, so a conferencing HOST typed
+    // beside a speaker name is removed (asserted in the closure case below).
+    // What is NOT removed is this: the patterns require a label at the START of
+    // a line followed by a colon, and "Dr Ada (PIN 660011)" is neither. That is
+    // the residual the module header names -- the label vocabulary was
+    // deliberately not widened over prose, because three attempts to widen it
+    // destroyed clinical English. The operational fix is event_link, not a regex.
     const db = await eventDb({
       viewer: 'anonymous',
       post: { speaker: 'Dr Ada (PIN 660011)', content: 'Title chunk.\n\nBody text.' },
@@ -264,10 +276,33 @@ describe('the channels scrubJoinInfo is not on the path of', () => {
     } finally { db.close(); }
   });
 
-  it('LEAKS EV-X9: the speaker and the title also reach the Google Calendar href and the .ics SUMMARY', async () => {
-    // Two sinks nobody has named yet. calDescription interpolates the speaker
-    // and buildICS interpolates the title, and both are handed to visitors of
-    // every tier including anonymous.
+  it('EV-X8 CLOSED for the shape the patterns DO cover: a conferencing host beside a speaker name', async () => {
+    // The counterweight that makes the residual above a statement about the
+    // VOCABULARY rather than about the channel. The column is genuinely on the
+    // scrubber's path now: the same fixture with a Meet host instead of an
+    // unrecognised label is removed from all four speaker sinks, and the row is
+    // omitted rather than rendered blank.
+    const db = await eventDb({
+      viewer: 'anonymous',
+      post: { speaker: 'Dr Ada meet.google.com/spk-aaaa-bbb', content: 'Title chunk.\n\nBody text.' },
+    });
+    try {
+      const html = await (await getEvent(db)).text();
+      const s = sinks(html);
+      assert.ok(!html.includes('spk-aaaa-bbb'), 'the room reached the page through the speaker column');
+      assert.equal(s.speakerRow, null, 'an emptied speaker should omit the row, not render a blank one');
+      assert.equal('performer' in s.jsonLd, false);
+      const ics = await (await getEvent(db, { query: '?add=ics' })).text();
+      assert.ok(!ics.includes('spk-aaaa-bbb'), 'the room reached the .ics through the speaker column');
+    } finally { db.close(); }
+  });
+
+  it('EV-X9 PARTIALLY CLOSED: the gcal href and the .ics SUMMARY are scrubbed now, to the same vocabulary limit', async () => {
+    // Two sinks the earlier passes had not named. calDescription interpolates
+    // the speaker and buildICS interpolates the title; both are handed to every
+    // tier including anonymous, and both now receive the SCRUBBED values through
+    // safeTitle() and the scrubbed speaker. The residual is the same one as
+    // EV-X8: a mid-line label with no colon at the start of a line.
     const db = await eventDb({
       viewer: 'anonymous',
       post: { title: 'Weekly Call PIN: 313131', content: 'Title chunk.\n\nSpeaker: Dr Ada, dial 555-020-9999\n\nBody.' },
@@ -283,13 +318,42 @@ describe('the channels scrubJoinInfo is not on the path of', () => {
     } finally { db.close(); }
   });
 
-  it('the title also reaches og:image:alt, a fifth place the unscrubbed title lands', async () => {
-    const r = await renderEvent({
+  it('EV-X9 CLOSED for the shape the patterns DO cover: a Meet host in the title', async () => {
+    const db = await eventDb({
+      viewer: 'anonymous',
+      post: {
+        title: 'Weekly Call meet.google.com/ttl-aaaa-bbb',
+        content: 'Fallback Chunk Title\n\nSpeaker: Dr Ada meet.google.com/spc-aaaa-bbb\n\nBody.',
+      },
+    });
+    try {
+      const html = await (await getEvent(db)).text();
+      const s = sinks(html);
+      assert.ok(!html.includes('ttl-aaaa-bbb'), 'the room reached the page through the title column');
+      assert.ok(!html.includes('spc-aaaa-bbb'), 'the room reached the page through the content Speaker line');
+      assert.equal(s.h1, 'Fallback Chunk Title', 'the emptied title did not fall through to a safe second source');
+      const gcal = decodeURIComponent((s.gcalHref ?? '').replace(/&amp;/g, '&'));
+      assert.ok(!gcal.includes('ttl-aaaa-bbb'));
+      const ics = await (await getEvent(db, { query: '?add=ics' })).text();
+      assert.ok(ics.includes('SUMMARY:Fallback Chunk Title'));
+      assert.ok(!ics.includes('ttl-aaaa-bbb'));
+    } finally { db.close(); }
+  });
+
+  it('og:image:alt is a fifth place the title lands, and it is scrubbed to the same limit', async () => {
+    const leaked = await renderEvent({
       viewer: 'anonymous',
       post: { title: 'Weekly Call PIN: 313132', content: 'Title chunk.\n\nBody.' },
     });
-    const alt = /<meta property="og:image:alt" content="([^"]*)">/.exec(r.html)?.[1] ?? '';
-    assert.match(alt, /PIN: 313132/, 'the unscrubbed title no longer reaches og:image:alt');
+    const alt = /<meta property="og:image:alt" content="([^"]*)">/.exec(leaked.html)?.[1] ?? '';
+    assert.match(alt, /PIN: 313132/, 'the mid-line-label residual is closed; update the module header');
+
+    const closed = await renderEvent({
+      viewer: 'anonymous',
+      post: { title: 'Weekly Call meet.google.com/alt-aaaa-bbb', content: 'Fallback Chunk Title\n\nBody.' },
+    });
+    const safeAlt = /<meta property="og:image:alt" content="([^"]*)">/.exec(closed.html)?.[1] ?? '';
+    assert.equal(safeAlt, 'Fallback Chunk Title', 'og:image:alt is not on the guarded title path');
   });
 });
 
