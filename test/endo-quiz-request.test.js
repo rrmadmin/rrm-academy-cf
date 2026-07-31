@@ -168,8 +168,35 @@ describe('POST /api/endo-quiz/request', () => {
     });
 
     it('buckets by the literal "unknown" when the client IP header is absent', async () => {
-      // Every IP-less request shares one bucket, so the sixth is refused even
-      // though each came from a different (unstated) client.
+      // PRODUCTION DEFAULT, PINNED BY VALUE. Cloudflare sets cf-connecting-ip
+      // on real traffic, so `|| 'unknown'` is the arm a direct or internal
+      // caller takes. "They share a bucket" alone does NOT pin it -- an empty
+      // string, or any other constant, shares a bucket too. So the counter is
+      // seeded under the exact key the literal produces and the handler is
+      // asked to honour it: a full `rl:endo-quiz:unknown` bucket must be the
+      // one an IP-less request lands in, and it must touch no other key.
+      const kv = env.COMMUNITY_KV;
+      const keysTouched = [];
+      env.COMMUNITY_KV = {
+        get: (k) => { keysTouched.push(k); return kv.get(k); },
+        put: (k, v, o) => { keysTouched.push(k); return kv.put(k, v, o); },
+      };
+      await kv.put('rl:endo-quiz:unknown', JSON.stringify({ count: 5, start: Math.floor(Date.now() / 1000) }));
+
+      const seeded = await endoQuiz.onRequestPost({
+        request: mockRequest('POST', { url: 'https://rrmacademy.org/api/endo-quiz/request', body: { ...VALID, email: 'anon0@example.com' } }),
+        env, waitUntil,
+      });
+      await drainWaitUntil(waitUntil);
+      assert.equal(seeded.status, 429, 'a full "rl:endo-quiz:unknown" bucket did not govern an IP-less request');
+      assert.deepEqual([...new Set(keysTouched)], ['rl:endo-quiz:unknown'],
+        'the IP-less bucket key is not the literal "unknown"');
+      assert.equal(symptomRows().length, 0, 'a rate-limited submission was still written');
+    });
+
+    it('shares that one bucket across every IP-less request', async () => {
+      // The other half of the default: distinct (unstated) clients are not
+      // each given their own allowance, so the sixth is refused.
       const noIp = { headers: {}, };
       for (let i = 0; i < 5; i++) {
         const res = await endoQuiz.onRequestPost({

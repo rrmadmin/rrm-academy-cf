@@ -115,9 +115,34 @@ describe('POST /api/endo-quiz/download', () => {
   });
 
   it('buckets every IP-less request together under the literal "unknown"', async () => {
-    // PRODUCTION DEFAULT: `cf-connecting-ip` is set by Cloudflare on real
-    // traffic, so the `|| 'unknown'` arm is what a direct or internal caller
-    // takes. Eleven of those share one bucket rather than each getting ten.
+    // PRODUCTION DEFAULT, PINNED BY VALUE. Cloudflare sets cf-connecting-ip on
+    // real traffic, so `|| 'unknown'` is the arm a direct or internal caller
+    // takes. "They share a bucket" alone does NOT pin it -- an empty string,
+    // or any other constant, shares a bucket too. So the counter is seeded
+    // under the exact key the literal produces and the handler is asked to
+    // honour it: a full `rl:endo-quiz-dl:unknown` bucket must be the one an
+    // IP-less request lands in, and it must touch no other key.
+    const kv = env.COMMUNITY_KV;
+    const keysTouched = [];
+    env.COMMUNITY_KV = {
+      get: (k) => { keysTouched.push(k); return kv.get(k); },
+      put: (k, v, o) => { keysTouched.push(k); return kv.put(k, v, o); },
+    };
+    const bare = () => download.onRequestPost({
+      request: mockRequest('POST', { url: 'https://rrmacademy.org/api/endo-quiz/download' }),
+      env, waitUntil,
+    });
+
+    await kv.put('rl:endo-quiz-dl:unknown', JSON.stringify({ count: 10, start: Math.floor(Date.now() / 1000) }));
+    assert.equal((await bare()).status, 429, 'a full "rl:endo-quiz-dl:unknown" bucket did not govern an IP-less request');
+    assert.deepEqual([...new Set(keysTouched)], ['rl:endo-quiz-dl:unknown'],
+      'the IP-less bucket key is not the literal "unknown"');
+    assert.equal(uploads().length, 0, 'a rate-limited download still uploaded a conversion');
+  });
+
+  it('shares that one bucket across every IP-less request', async () => {
+    // The other half of the default: distinct (unstated) clients are not each
+    // given their own allowance, so eleven share ten.
     const bare = () => download.onRequestPost({
       request: mockRequest('POST', { url: 'https://rrmacademy.org/api/endo-quiz/download' }),
       env, waitUntil,

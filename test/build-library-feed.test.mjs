@@ -27,7 +27,10 @@
  */
 import { describe, it, before, after, beforeEach } from 'node:test';
 import assert from 'node:assert/strict';
-import { mkdtempSync, rmSync, writeFileSync, readFileSync, existsSync, statSync, symlinkSync } from 'node:fs';
+import {
+  mkdtempSync, rmSync, writeFileSync, readFileSync, existsSync, statSync, symlinkSync,
+  openSync, closeSync, fstatSync, readSync,
+} from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join, resolve, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -132,6 +135,44 @@ describe('scripts/build-library-feed.mjs', () => {
     it('leaves no .tmp staging file behind', () => {
       write(ARTICLES);
       buildLibraryFeed({ articlesPath, outPath, logger });
+      assert.equal(existsSync(outPath + '.tmp'), false);
+    });
+
+    it('publishes by renaming over the live feed, so a reader never sees a partial one', () => {
+      // ATOMICITY, WHICH THE DEBRIS CHECK ABOVE DOES NOT PIN. The staging file
+      // being gone is equally true of a plain writeFileSync straight to the
+      // destination -- and that is the failure the stage-and-rename exists to
+      // prevent, because the real feed is ~12MB, is served continuously, and a
+      // direct write truncates the published file in place: anything reading
+      // it mid-rebuild gets a truncated or half-written feed. rename(2) swaps
+      // a fully-written file in instead, which is observable two ways.
+      write(ARTICLES);
+      buildLibraryFeed({ articlesPath, outPath, logger });
+      const publishedV1 = readFileSync(outPath, 'utf8');
+      const inodeV1 = statSync(outPath).ino;
+
+      // Observation 1: a reader opens the live feed, a rebuild republishes
+      // underneath it, and the reader still gets the whole feed it opened.
+      const reader = openSync(outPath, 'r');
+      try {
+        write([...ARTICLES, { slug: 'late-arrival', title: 'Landed after the reader opened the feed' }]);
+        buildLibraryFeed({ articlesPath, outPath, logger });
+
+        const size = fstatSync(reader).size;
+        const buf = Buffer.alloc(size);
+        readSync(reader, buf, 0, size, 0);
+        assert.equal(buf.toString('utf8'), publishedV1,
+          'the open reader saw the feed change underneath it, so the rebuild wrote in place');
+      } finally {
+        closeSync(reader);
+      }
+
+      // Observation 2: the destination is a NEW file. Only a rename produces
+      // that; writeFileSync and copyFileSync both reuse the inode in place.
+      assert.notEqual(statSync(outPath).ino, inodeV1,
+        'the destination kept its inode, so it was written in place rather than renamed over');
+      // and the republish did land: this is not passing by doing nothing.
+      assert.equal(readLines().length, 3, 'the rebuild did not republish');
       assert.equal(existsSync(outPath + '.tmp'), false);
     });
 
