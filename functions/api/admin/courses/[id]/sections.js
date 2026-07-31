@@ -155,6 +155,15 @@ export async function onRequestPut(context) {
       return json({ ok: false, error: 'incomplete_order' }, 400);
     }
 
+    // A repeated id passes both the length check and the membership check
+    // below: ['sec-a1','sec-a1'] is the right length and every entry is a real
+    // section. Without this guard the batch writes one section twice and never
+    // touches the omitted one, leaving two rows on the same sort_order and one
+    // section silently dropped from the ordering.
+    if (new Set(order).size !== order.length) {
+      return json({ ok: false, error: 'incomplete_order' }, 400);
+    }
+
     for (const sectionId of order) {
       if (!existingIds.has(sectionId)) {
         return json({ ok: false, error: 'incomplete_order' }, 400);

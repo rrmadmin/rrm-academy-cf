@@ -333,19 +333,35 @@ test('PUT /sections: reordering course-a leaves course-b untouched', async () =>
   db.close();
 });
 
-test('DEFECT PIN: a duplicated id in the reorder array passes the completeness check and leaves two sections sharing a position', async () => {
+test('PUT /sections: 400 incomplete_order for a duplicated id, and nothing is renumbered', async () => {
   // order.length === existingIds.size and every entry is a member, so
-  // ['sec-a1','sec-a1'] satisfies both guards. The batch then writes sec-a1
-  // twice (0 then 1) and never touches sec-a2, which keeps sort_order 1.
-  // Result: a 200 ok, two sections at position 1, and one section that the
-  // caller's ordering silently dropped. A Set-size check on `order` would
-  // close it. Pinned rather than fixed: this lane is coverage, not behaviour.
+  // ['sec-a1','sec-a1'] satisfies the other two guards on its own. Left
+  // unchecked the batch writes sec-a1 twice (0 then 1) and never touches
+  // sec-a2, so both sections land on sort_order 1 and one is silently dropped
+  // from the caller's ordering. The Set-size check refuses it up front.
   const db = treeDb();
+  const before = sectionOrder(db, 'course-a');
   const res = await onRequestPut(putCtx(db, { order: ['sec-a1', 'sec-a1'] }));
-  assert.equal(res.status, 200, 'the duplicate is accepted today');
-  assert.deepEqual(sectionOrder(db, 'course-a'), [
-    { id: 'sec-a1', sortOrder: 1 }, { id: 'sec-a2', sortOrder: 1 },
-  ], 'two sections now share sort_order 1');
+  assert.equal(res.status, 400, 'a duplicated id is refused');
+  assert.equal((await res.json()).error, 'incomplete_order');
+  assert.deepEqual(sectionOrder(db, 'course-a'), before, 'a refused reorder renumbers nothing');
+  assert.equal(readSection(db, 'sec-a1').updated_at, '2026-01-01 00:00:00', 'no row was even touched');
+  db.close();
+});
+
+test('PUT /sections: a duplicate is refused before the section rows are read, so a 3-section course cannot lose one', async () => {
+  // Longer array so the duplicate is not the whole payload: the completeness
+  // arithmetic still balances (3 entries, 3 sections) and every entry is real.
+  const db = treeDb({
+    extraSeed: (s) => s.prepare(
+      'INSERT INTO course_section (id, course_id, title, sort_order, created_at, updated_at) VALUES (?,?,?,?,?,?)'
+    ).run('sec-a3', 'course-a', 'Section sec-a3', 2, '2026-01-01 00:00:00', '2026-01-01 00:00:00'),
+  });
+  const before = sectionOrder(db, 'course-a');
+  const res = await onRequestPut(putCtx(db, { order: ['sec-a3', 'sec-a1', 'sec-a3'] }));
+  assert.equal(res.status, 400);
+  assert.equal((await res.json()).error, 'incomplete_order');
+  assert.deepEqual(sectionOrder(db, 'course-a'), before, 'sec-a2 keeps its position instead of being stranded');
   db.close();
 });
 

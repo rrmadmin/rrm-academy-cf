@@ -384,17 +384,34 @@ test('PUT /steps: the new order is persisted 0-based and contiguous, and stamps 
   db.close();
 });
 
-test('DEFECT PIN: a duplicated id in the step reorder passes the completeness check and strands the omitted step', async () => {
+test('PUT /steps: 400 incomplete_order for a duplicated id, and no step is renumbered', async () => {
   // Same hole as sections.js PUT: order.length === existingIds.size and every
-  // entry is a member, so ['step-a1','step-a1'] is accepted. step-a1 is written
-  // twice (0 then 1) and step-a2 is never written, so both steps end at
-  // sort_order 1 and the learner's "next lesson" is decided by the id tiebreak.
+  // entry is a member, so ['step-a1','step-a1'] clears the other two guards.
+  // Unrefused it writes step-a1 twice (0 then 1) and never writes step-a2, so
+  // both steps end at sort_order 1 and the learner's "next lesson" falls to an
+  // id tiebreak. The Set-size check refuses it before the batch is built.
   const db = treeDb();
+  const before = stepOrder(db, 'sec-a1');
   const res = await put(db, { sectionId: 'sec-a1', order: ['step-a1', 'step-a1'] });
-  assert.equal(res.status, 200, 'the duplicate is accepted today');
-  assert.deepEqual(stepOrder(db, 'sec-a1'), [
-    { id: 'step-a1', sortOrder: 1 }, { id: 'step-a2', sortOrder: 1 },
-  ], 'two steps now share sort_order 1');
+  assert.equal(res.status, 400, 'a duplicated id is refused');
+  assert.equal((await res.json()).error, 'incomplete_order');
+  assert.deepEqual(stepOrder(db, 'sec-a1'), before, 'a refused reorder renumbers nothing');
+  assert.equal(readStep(db, 'step-a1').updated_at, '2026-01-01 00:00:00', 'no row was even touched');
+  db.close();
+});
+
+test('PUT /steps: a duplicate is refused in a 3-step section, so the omitted step is not stranded', async () => {
+  const db = treeDb({
+    extraSeed: (s) => s.prepare(`INSERT INTO course_step
+        (id, section_id, course_id, title, type, sort_order, status, created_at, updated_at)
+       VALUES (?,?,?,?,?,?,?,?,?)`)
+      .run('step-a4', 'sec-a1', 'course-a', 'Step step-a4', 'article', 2, 'published', '2026-01-01 00:00:00', '2026-01-01 00:00:00'),
+  });
+  const before = stepOrder(db, 'sec-a1');
+  const res = await put(db, { sectionId: 'sec-a1', order: ['step-a4', 'step-a1', 'step-a4'] });
+  assert.equal(res.status, 400);
+  assert.equal((await res.json()).error, 'incomplete_order');
+  assert.deepEqual(stepOrder(db, 'sec-a1'), before, 'step-a2 keeps its position instead of being stranded');
   db.close();
 });
 
