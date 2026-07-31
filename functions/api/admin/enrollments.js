@@ -10,9 +10,19 @@ export async function onRequestGet({ request, env }) {
     const auth = await requireSuperAdmin(request, env.DB);
     if (auth instanceof Response) return auth;
 
+    // UNREACHABLE, kept as defence in depth. requireSuperAdmin(request, env.DB)
+    // above already answers 500 "Server misconfigured" when db is falsy and
+    // returns a Response, so control never arrives here with !env.DB. Proven by
+    // test/admin-enrollments.test.js "500s when the DB binding is absent"; it is
+    // excluded from coverage rather than covered by a fabricated env, and the
+    // exclusion is recorded in scripts/quality/coverage-census.json
+    // (_line_exclusions). Delete the ignore hints, not the guard, if
+    // requireSuperAdmin ever stops checking its db argument.
+    /* c8 ignore start */
     if (!env.DB) {
       return json({ ok: false, error: 'Database unavailable' }, 503);
     }
+    /* c8 ignore stop */
 
     const url = new URL(request.url);
     const view = url.searchParams.get('view') || 'summary';
