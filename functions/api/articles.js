@@ -149,6 +149,15 @@ export async function onRequestGet(context) {
   // nextCursor is a full-page-gated encoded offset: only emit it when this page
   // was full AND the upstream signals more (has_more) or the estimated total
   // still exceeds what we've served. A partial page ends the walk (null).
+  //
+  // EQUIVALENT-MUTANT NOTE (checked 2026-07-31, do not re-derive):
+  // `offset + results.length` and `offset + limitNum` cannot be told apart from
+  // outside this function, so a mutant swapping them survives by construction,
+  // not for want of a test. nextOffset is read in exactly three places, and all
+  // three sit behind `results.length === limitNum` in the && chain below, which
+  // short-circuits. Where the value can reach an output, results.length IS
+  // limitNum, so the two expressions are the same number. Prefer the current
+  // form: it stays honest if the short-circuit guard is ever loosened.
   const nextOffset = offset + results.length;
   const hasMore = results.length === limitNum &&
     (workerData?.has_more === true || nextOffset < total) &&

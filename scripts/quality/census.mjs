@@ -79,6 +79,31 @@ const OUT = resolve(ROOT, 'scripts', 'quality', 'coverage-census.json');
  *                   adding the session/authorization guard pins; still rounds
  *                   down to 29, so the floor does not move. The two numbers
  *                   differ for two reasons, both accounted for below.
+ *   29  2026-07-31  UNCHANGED after the tranche-4 public-read drive: the
+ *                   public glossary build surface
+ *                   (functions/api/glossary/terms.js), /api/articles,
+ *                   /api/articles/bulk and the shared _map-article.js mapper,
+ *                   all 0 -> 100% lines. On its own branch this drive moved
+ *                   the aggregate 28.19 -> 28.99 (28.97 after merging main),
+ *                   a real +0.80pp, and it armed 28.9 to record a gain the
+ *                   integer scale cannot express. MERGED, THAT NUMBER DOES
+ *                   NOT APPLY: the glossary-admin tranche had already raised
+ *                   the floor to 29 and the merged tree measures well above
+ *                   it, so arming 28.9 here would move the ratchet DOWN. The
+ *                   floor stays 29 at this commit and is armed at the final
+ *                   merged measurement in the commit that closes the tranche.
+ *                   What IS adopted from this drive is the one-decimal scale
+ *                   itself, which that closing floor uses.
+ *
+ *                   Its warning is kept because it generalizes: a change that
+ *                   ADDS product files without tests can push the aggregate
+ *                   under the floor even though no test was deleted. That is
+ *                   the ratchet working, not a bug -- fix it by testing the
+ *                   new surface, never by lowering this. The specific case it
+ *                   cited, endo-quiz/download.js landing uncovered and leaving
+ *                   main red on its own gate, was resolved by the tranche-4
+ *                   closes drive, which covered that file and regenerated the
+ *                   census; main is green as of this merge.
  *
  * MEASURE IN A CLEAN CHECKOUT, THE WAY CI DOES.
  * `src/data/glossary.json` is GITIGNORED and is never present in CI (the
@@ -239,8 +264,15 @@ const census = {
     full_surface: fullAgg,
     by_category: byCategory,
     product_code: productAgg,
-    files_absent_from_default_report: files.filter(f => !f.present).length,
-    files_present_in_default_report: files.filter(f => f.present).length,
+    // ABSENT and ZERO are different conditions and this instrument must not
+    // blur them. Under `c8 --all` NOTHING on the surface is absent -- the gate
+    // fails the run if a surface file is missing from the report. These two
+    // counts split the report into files with executed lines and files sitting
+    // at zero. The older key names said "absent from default report", which
+    // read as "not in the report at all" and put that false claim into a PR
+    // body. Renamed 2026-07-31; nothing consumes these but humans.
+    files_at_zero_in_full_report: files.filter(f => !f.present).length,
+    files_executed_in_full_report: files.filter(f => f.present).length,
     highest_stakes_slice: {
       slice: 'national survey system (functions/api/survey/ + functions/api/endo-quiz/)',
       files: files.filter(inSurveyProduct).map(f => `${f.file} ${f.covered}/${f.lines} (${f.pct}%)`),
