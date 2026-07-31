@@ -11,7 +11,7 @@
  "_gate": {
   "scope": "PRODUCT-CODE",
   "metric": "c8 line coverage with --all (every surface file in the denominator)",
-  "floor_lines_pct": 33.2,
+  "floor_lines_pct": 34.1,
   "ratchet_rule": "The floor may only move UP. Arm at the measured floor rounded down; never arm a number that is red on arrival. Raise it after a coverage drive lands, by editing this value to the new measured floor rounded down."
  },
  "_measured": {
@@ -19,16 +19,16 @@
   "instrument": "node scripts/quality/coverage.mjs (c8 --all over the full surface; full npm-test suite)",
   "full_surface": {
    "files": 421,
-   "lines": 81192,
-   "covered": 25225,
-   "pct": 31.07
+   "lines": 81238,
+   "covered": 25784,
+   "pct": 31.74
   },
   "by_category": {
    "PRODUCT-CODE": {
     "files": 333,
-    "lines": 59907,
-    "covered": 19942,
-    "pct": 33.29
+    "lines": 59953,
+    "covered": 20501,
+    "pct": 34.2
    },
    "CONTENT-TEMPLATE": {
     "files": 8,
@@ -57,12 +57,12 @@
   },
   "product_code": {
    "files": 333,
-   "lines": 59907,
-   "covered": 19942,
-   "pct": 33.29
+   "lines": 59953,
+   "covered": 20501,
+   "pct": 34.2
   },
-  "files_at_zero_in_full_report": 275,
-  "files_executed_in_full_report": 146,
+  "files_at_zero_in_full_report": 273,
+  "files_executed_in_full_report": 148,
   "highest_stakes_slice": {
    "slice": "national survey system (functions/api/survey/ + functions/api/endo-quiz/)",
    "files": [
@@ -310,14 +310,6 @@
    "crap": 1190
   },
   {
-   "file": "functions/api/community/unfurl.js",
-   "fn": "onRequestGet",
-   "line": 219,
-   "cc": 33,
-   "coverage": 0,
-   "crap": 1122
-  },
-  {
    "file": "functions/api/admin/content.js",
    "fn": "onRequestGet",
    "line": 18,
@@ -329,6 +321,14 @@
    "file": "functions/api/admin/courses/[id]/attachments.js",
    "fn": "onRequestDelete",
    "line": 137,
+   "cc": 32,
+   "coverage": 0,
+   "crap": 1056
+  },
+  {
+   "file": "functions/api/admin/wix-migration-email.js",
+   "fn": "onRequestPost",
+   "line": 35,
    "cc": 32,
    "coverage": 0,
    "crap": 1056
@@ -1417,8 +1417,8 @@
    "reason": "CF Pages Function (routed endpoint, middleware, or _-prefixed shared helper). Deployed on every push; defects ship directly to users.",
    "present": true,
    "lines": 398,
-   "covered": 278,
-   "pct": 69.84
+   "covered": 398,
+   "pct": 100
   },
   {
    "file": "functions/api/community/_shared.js",
@@ -1595,19 +1595,19 @@
    "file": "functions/api/community/unfurl.js",
    "category": "PRODUCT-CODE",
    "reason": "CF Pages Function (routed endpoint, middleware, or _-prefixed shared helper). Deployed on every push; defects ship directly to users.",
-   "present": false,
+   "present": true,
    "lines": 362,
-   "covered": 0,
-   "pct": 0
+   "covered": 360,
+   "pct": 99.44
   },
   {
    "file": "functions/api/community/upload.js",
    "category": "PRODUCT-CODE",
    "reason": "CF Pages Function (routed endpoint, middleware, or _-prefixed shared helper). Deployed on every push; defects ship directly to users.",
-   "present": false,
+   "present": true,
    "lines": 79,
-   "covered": 0,
-   "pct": 0
+   "covered": 79,
+   "pct": 100
   },
   {
    "file": "functions/api/contact/_subject.js",
@@ -3333,7 +3333,7 @@
    "category": "PRODUCT-CODE",
    "reason": "The quality instrument itself (coverage/CRAP/mutation/census). A measurement tool that is wrong is worse than no tool; its pure logic is unit-testable.",
    "present": false,
-   "lines": 591,
+   "lines": 637,
    "covered": 0,
    "pct": 0
   },
