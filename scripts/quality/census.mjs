@@ -57,17 +57,26 @@ const OUT = resolve(ROOT, 'scripts', 'quality', 'coverage-census.json');
  *   28.9 2026-07-31 raised after the tranche-4 public-read drive: the public
  *                   glossary build surface (functions/api/glossary/terms.js),
  *                   /api/articles, /api/articles/bulk and the shared
- *                   _map-article.js mapper, all 0 -> 100% lines. Measured
- *                   28.99%. FIRST NON-INTEGER FLOOR: this drive moved the
- *                   aggregate 28.19 -> 28.99, a real +0.80pp that the integer
- *                   scale cannot express (28.99 rounds down to the incumbent
- *                   28, which would record the drive as no gain at all). One
+ *                   _map-article.js mapper, all 0 -> 100% lines. FIRST
+ *                   NON-INTEGER FLOOR: this drive moved the aggregate
+ *                   28.19 -> 28.99, a real +0.80pp that the integer scale
+ *                   cannot express (28.99 rounds down to the incumbent 28,
+ *                   which would record the drive as no gain at all). One
  *                   decimal, still rounded DOWN, still green on arrival.
- *                   Headroom is thin by construction (~0.09pp, ~58 lines): a
- *                   later change that ADDS product files without tests can
- *                   push the aggregate under this floor even though no test
- *                   was deleted. That is the ratchet working, not a bug -- fix
- *                   it by testing the new surface, never by lowering this.
+ *
+ *                   Re-measured 28.97% after merging main, which had landed
+ *                   functions/api/endo-quiz/download.js (45 PRODUCT-CODE
+ *                   lines, no tests) WITHOUT regenerating this census -- so
+ *                   main was red on its own gate until this merge fixed the
+ *                   drift. 28.97 still rounds DOWN to 28.9, so the armed
+ *                   number is unchanged and green.
+ *
+ *                   That episode is exactly the thin-headroom failure this
+ *                   floor was expected to catch (~0.07pp, ~45 lines): a change
+ *                   that ADDS product files without tests can push the
+ *                   aggregate under the floor even though no test was deleted.
+ *                   That is the ratchet working, not a bug -- fix it by
+ *                   testing the new surface, never by lowering this.
  *
  * A REPO-WIDE FLOOR CAN HIDE A PRODUCT AT ZERO. That is what tranche 3 found:
  * this number was green at 26 while five separate product surfaces measured
@@ -208,8 +217,15 @@ const census = {
     full_surface: fullAgg,
     by_category: byCategory,
     product_code: productAgg,
-    files_absent_from_default_report: files.filter(f => !f.present).length,
-    files_present_in_default_report: files.filter(f => f.present).length,
+    // ABSENT and ZERO are different conditions and this instrument must not
+    // blur them. Under `c8 --all` NOTHING on the surface is absent -- the gate
+    // fails the run if a surface file is missing from the report. These two
+    // counts split the report into files with executed lines and files sitting
+    // at zero. The older key names said "absent from default report", which
+    // read as "not in the report at all" and put that false claim into a PR
+    // body. Renamed 2026-07-31; nothing consumes these but humans.
+    files_at_zero_in_full_report: files.filter(f => !f.present).length,
+    files_executed_in_full_report: files.filter(f => f.present).length,
     highest_stakes_slice: {
       slice: 'national survey intake/submit path (functions/api/survey/)',
       files: files.filter(f => f.file.startsWith('functions/api/survey/')).map(f => `${f.file} ${f.covered}/${f.lines} (${f.pct}%)`),

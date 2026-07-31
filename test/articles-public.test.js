@@ -334,9 +334,33 @@ describe('GET /api/articles -- opaque cursor', () => {
   const b64url = (obj) => Buffer.from(JSON.stringify(obj)).toString('base64')
     .replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
 
+  const unb64url = (cursor) => JSON.parse(Buffer.from(cursor, 'base64url').toString('utf8'));
+
+  /**
+   * A cursor that is VALID in every respect EXCEPT length: it decodes to a real
+   * integer {o, l} pair, and an extra `pad` key (which decodeCursor ignores)
+   * stretches the encoded string to exactly `targetLen` characters.
+   *
+   * Unpadded base64url cannot produce a length where len % 4 === 1, so the two
+   * achievable lengths straddling the 128-character cap are 128 and 130.
+   */
+  function cursorOfLength(targetLen, o = 100, l = 25) {
+    for (let pad = 0; pad <= targetLen; pad += 1) {
+      const c = b64url({ o, l, pad: 'x'.repeat(pad) });
+      if (c.length === targetLen) return c;
+      if (c.length > targetLen) break;
+    }
+    throw new Error(`no base64url cursor of length ${targetLen} exists`);
+  }
+
   const badCursors = [
     ['an empty cursor', ''],
-    ['a cursor longer than 128 chars', 'a'.repeat(129)],
+    // NOT a length-cap fixture, despite reading like one. For a whitespace-free
+    // string, 129 % 4 === 1 is an impossible base64 length, so atob() throws and
+    // decodeCursor returns null from its catch WITHOUT ever reaching
+    // `cursor.length > 128`. Delete the cap and this string still 400s. The
+    // three tests below the loop are what actually pin the cap.
+    ['a 129-char run of "a", which atob rejects before the length cap is reached', 'a'.repeat(129)],
     ['a cursor that is not valid base64', '!!!not-base64!!!'],
     ['base64 that is not JSON', Buffer.from('plain text').toString('base64url')],
     ['JSON that is not an object', Buffer.from('null').toString('base64url')],
@@ -360,6 +384,63 @@ describe('GET /api/articles -- opaque cursor', () => {
     });
   }
 
+  // --- the 128-character cap, pinned with cursors that are otherwise valid ---
+  //
+  // Every fixture in badCursors above is rejected by base64 or JSON decoding
+  // BEFORE the length check runs, so none of them can tell a present cap from
+  // an absent one. These two can: both decode cleanly to {o: 100, l: 25}, so
+  // length is the ONLY thing separating the accepted one from the rejected one.
+
+  it('ACCEPTS a structurally valid cursor of exactly 128 characters, the longest allowed', async () => {
+    const cursor = cursorOfLength(128);
+    assert.equal(cursor.length, 128, 'fixture must sit exactly ON the cap');
+    const { status, body, stub } = await against(
+      { results: rows(25, 100), total: 400, has_more: true },
+      { url: `${BASE}?cursor=${encodeURIComponent(cursor)}` }
+    );
+    assert.equal(status, 200, 'the cap is > 128, not >= 128');
+    assert.equal(stub.calls[0].offset, '100', 'a 128-char cursor is decoded and honoured');
+    assert.equal(stub.calls[0].limit, '25');
+    assert.equal(body.page, 5);
+  });
+
+  it('400s a structurally valid cursor one base64url step PAST 128 characters', async () => {
+    const cursor = cursorOfLength(130);
+    assert.equal(cursor.length, 130, 'fixture must sit just over the cap');
+    // Prove the fixture is not vacuous: it survives base64 and JSON decoding
+    // and yields integer o/l, so the length cap is the only gate left to fail.
+    assert.deepEqual(
+      { o: unb64url(cursor).o, l: unb64url(cursor).l },
+      { o: 100, l: 25 },
+      'a 130-char cursor decodes to a VALID offset/limit -- only its length is wrong'
+    );
+
+    const stub = stubWorker(() => { throw new Error('upstream must not be called'); });
+    const { status, body } = await parseResponse(await call({ url: `${BASE}?cursor=${encodeURIComponent(cursor)}` }));
+    assert.equal(status, 400);
+    assert.equal(body.error, 'invalid_cursor');
+    assert.equal(stub.calls.length, 0, 'an over-long cursor is refused before any upstream work');
+  });
+
+  // The cap is measured on the RAW string, and it has to be. atob() strips
+  // ASCII whitespace before decoding, so 128 valid base64 characters plus one
+  // space is a 129-character string that still decodes to a usable {o, l}.
+  // That is the shape that smuggles length past a cap set one character too
+  // high, and it is the only fixture that separates `> 128` from `> 129`.
+  it('400s a 129-char cursor padded with whitespace that atob would otherwise strip', async () => {
+    const cursor = `${cursorOfLength(128)} `;
+    assert.equal(cursor.length, 129, 'raw length is 129');
+    const decoded = unb64url(cursor.trim());
+    assert.deepEqual({ o: decoded.o, l: decoded.l }, { o: 100, l: 25 },
+      'strip the space and it is a perfectly valid cursor -- length is the only defect');
+
+    const stub = stubWorker(() => { throw new Error('upstream must not be called'); });
+    const { status, body } = await parseResponse(await call({ url: `${BASE}?cursor=${encodeURIComponent(cursor)}` }));
+    assert.equal(status, 400);
+    assert.equal(body.error, 'invalid_cursor');
+    assert.equal(stub.calls.length, 0);
+  });
+
   it('accepts the exact ceiling offset 17500, which page/limit alone cannot reach', async () => {
     const { status, body, stub } = await against(
       { results: rows(50, 17500), has_more: true },
@@ -369,6 +450,40 @@ describe('GET /api/articles -- opaque cursor', () => {
     assert.equal(stub.calls[0].offset, '17500');
     assert.equal(body.page, 351, 'a cursor can address past the page-number cap');
     assert.equal(body.nextCursor, null, 'but the walk stops at the 17500 ceiling');
+  });
+
+  // The test above pins the ceiling on the INPUT path (an offset of 17500 is
+  // accepted, and 17501 is not). This one pins the ceiling on the OUTPUT path,
+  // which is a separate comparison and needs no crafted cursor at all:
+  // page=350&limit=50 is the last addressable page, offset 17450, and a full
+  // page from there lands nextOffset exactly ON 17500. The bound is INCLUSIVE,
+  // so that last cursor must still be emitted.
+  it('EMITS a cursor when nextOffset lands exactly ON the 17500 ceiling (page 350, limit 50)', async () => {
+    const { status, body, stub } = await against(
+      { results: rows(50, 17450), total: 20000, has_more: true },
+      { url: `${BASE}?page=350&limit=50` }
+    );
+    assert.equal(status, 200);
+    assert.equal(stub.calls[0].offset, '17450');
+    assert.ok(body.nextCursor, 'nextOffset 17450 + 50 === 17500, and the ceiling is inclusive');
+    assert.deepEqual(unb64url(body.nextCursor), { o: 17500, l: 50 },
+      'the emitted cursor addresses the ceiling offset itself');
+  });
+
+  // The other side of the same bound. If the output ceiling were one higher
+  // than the input ceiling, the endpoint would hand out a cursor for offset
+  // 17501 that its own decode path then 400s -- a walk that dead-ends on an
+  // invalid_cursor. The invariant is that every cursor emitted is one this
+  // endpoint will accept back.
+  it('STOPS one offset past the ceiling: nextOffset 17501 emits no cursor', async () => {
+    const { status, body, stub } = await against(
+      { results: rows(1, 17500), total: 20000, has_more: true },
+      { url: `${BASE}?cursor=${encodeURIComponent(b64url({ o: 17500, l: 1 }))}` }
+    );
+    assert.equal(status, 200);
+    assert.equal(stub.calls[0].offset, '17500');
+    assert.equal(body.results.length, 1, 'a FULL page at limit 1 -- the shape a wrong bound gets wrong');
+    assert.equal(body.nextCursor, null, 'nextOffset 17501 is past the ceiling, so the walk ends');
   });
 });
 

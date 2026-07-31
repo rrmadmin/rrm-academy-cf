@@ -18,17 +18,17 @@
   "date": "2026-07-31",
   "instrument": "node scripts/quality/coverage.mjs (c8 --all over the full surface; full npm-test suite)",
   "full_surface": {
-   "files": 420,
-   "lines": 80726,
-   "covered": 18818,
-   "pct": 23.31
+   "files": 421,
+   "lines": 80788,
+   "covered": 18826,
+   "pct": 23.3
   },
   "by_category": {
    "PRODUCT-CODE": {
-    "files": 333,
-    "lines": 64643,
-    "covered": 18737,
-    "pct": 28.99
+    "files": 334,
+    "lines": 64705,
+    "covered": 18745,
+    "pct": 28.97
    },
    "CONTENT-TEMPLATE": {
     "files": 8,
@@ -56,13 +56,13 @@
    }
   },
   "product_code": {
-   "files": 333,
-   "lines": 64643,
-   "covered": 18737,
-   "pct": 28.99
+   "files": 334,
+   "lines": 64705,
+   "covered": 18745,
+   "pct": 28.97
   },
-  "files_absent_from_default_report": 312,
-  "files_present_in_default_report": 108,
+  "files_at_zero_in_full_report": 313,
+  "files_executed_in_full_report": 108,
   "highest_stakes_slice": {
    "slice": "national survey intake/submit path (functions/api/survey/)",
    "files": [
@@ -1046,8 +1046,8 @@
    "category": "PRODUCT-CODE",
    "reason": "CF Pages Function (routed endpoint, middleware, or _-prefixed shared helper). Deployed on every push; defects ship directly to users.",
    "present": true,
-   "lines": 167,
-   "covered": 167,
+   "lines": 175,
+   "covered": 175,
    "pct": 100
   },
   {
@@ -1749,6 +1749,15 @@
    "reason": "CF Pages Function (routed endpoint, middleware, or _-prefixed shared helper). Deployed on every push; defects ship directly to users.",
    "present": false,
    "lines": 542,
+   "covered": 0,
+   "pct": 0
+  },
+  {
+   "file": "functions/api/endo-quiz/download.js",
+   "category": "PRODUCT-CODE",
+   "reason": "CF Pages Function (routed endpoint, middleware, or _-prefixed shared helper). Deployed on every push; defects ship directly to users.",
+   "present": false,
+   "lines": 45,
    "covered": 0,
    "pct": 0
   },
@@ -3314,7 +3323,7 @@
    "category": "PRODUCT-CODE",
    "reason": "The quality instrument itself (coverage/CRAP/mutation/census). A measurement tool that is wrong is worse than no tool; its pure logic is unit-testable.",
    "present": false,
-   "lines": 259,
+   "lines": 268,
    "covered": 0,
    "pct": 0
   },
