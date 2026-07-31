@@ -39,32 +39,37 @@
  * real `session` table, resolved by the canonical requireMember(). Stubbing it
  * would produce 100% coverage of a gate nobody tested. See _event-page-fixtures.mjs.
  *
- * COVERAGE, AND THE FOUR BRANCHES THAT ARE NOT REACHABLE FROM onRequestGet
+ * COVERAGE, AND THE FIVE BRANCHES THAT ARE NOT REACHABLE FROM onRequestGet
  * ------------------------------------------------------------------------
- * Both files reach 100% lines / 100% statements / 100% functions. Four DEFENSIVE
+ * Both files reach 100% lines / 100% statements / 100% functions. Five DEFENSIVE
  * branches remain uncovered, and each is unreachable through the module's only
  * entry point rather than merely untested. The claim is not an argument: each
  * fallback was replaced by `throw` and this whole file re-run; all tests still
- * passed, so none of the four fires. The static reason in each case:
+ * passed, so none of the five fires. The static reason in each case:
  *
  *   [slug].js:20   escapeHtml's `s == null` guard. All 22 call sites pass either
  *                  a locally-computed string (title/description/canonical/ogImage,
- *                  each with its own `||` fallback) or a value already guarded by
+ *                  each with its own fallback chain) or a value already guarded by
  *                  a truthiness test in the same expression (speaker, cta.note,
  *                  cta.secondaryLabel, the flyer src, gcalUrl).
- *   [slug].js:220-223  buildGoogleCalUrl's `title || ...`, `details || ''`,
- *                  `location || ''`. Its single call site (line 265) passes
- *                  `title` (already defaulted), `calDescription` (a template
- *                  literal with a constant prefix) and `eventsUrl` (a template
- *                  literal on SITE_ORIGIN) -- none can be falsy.
- *   [slug].js:227  icsEscape's `s == null` ternary. Its six call sites are all
- *                  inside buildICS, whose single call site (line 578) supplies
- *                  seven non-null values, `title` via its own `||` fallback.
- *   [slug].js:307  `.chunks || []` and the `memberSummary` falsy arm. summarize()
+ *   [slug].js:173  isConferencingHost's `pathname || ''`. Its single call site
+ *                  (line 197) passes `URL.pathname`, which is a string on every
+ *                  successful parse -- '' for a hostless data: URI, never null.
+ *                  Kept because the parameter is optional by shape and the next
+ *                  host rule to be added may well omit it.
+ *   [slug].js:421-424  buildGoogleCalUrl's `title || ...`, `details || ''`,
+ *                  `location || ''`. Its single call site (line 475) passes
+ *                  `title` (already non-empty via safeTitle), `calDescription` (a
+ *                  template literal with a constant prefix) and `eventsUrl` (a
+ *                  template literal on SITE_ORIGIN) -- none can be falsy.
+ *   [slug].js:428  icsEscape's `s == null` ternary. Its six call sites are all
+ *                  inside buildICS, whose single call site (line 792) supplies
+ *                  seven non-null values, `title` via safeTitle's chain.
+ *   [slug].js:517  `.chunks || []` and the `memberSummary` falsy arm. summarize()
  *                  returns `chunks` on both of its return paths, and renderHtml's
- *                  single call site (line 599) always passes memberSummary.
+ *                  single call site (line 816) always passes memberSummary.
  *
- * They are left in place: they are cheap, and the first three would become live
+ * They are left in place: they are cheap, and three of them would become live
  * the moment renderHtml or buildICS gained a second call site.
  */
 import { describe, it } from 'node:test';
@@ -317,23 +322,47 @@ describe('scrubJoinInfo -- the leak hunt (each of these is a production finding)
       'the leading fragment is on the deleted line and should still be gone');
   });
 
-  it('LEAKS EV-T1: community_post.title is never scrubbed at all', async () => {
-    // scrubJoinInfo only ever sees `content`. The title column is rendered
-    // verbatim into <h1>, <title>, og:title and JSON-LD `name`, for every tier.
+  it('EV-T1 PARTIALLY CLOSED: the title runs through the scrubber now, so only the vocabulary residual is left', async () => {
+    // The title column used to bypass scrubJoinInfo entirely and render verbatim
+    // into <h1>, <title>, og:title, og:image:alt, JSON-LD `name`, the gcal text=
+    // parameter and the .ics SUMMARY, for every tier. It is on the scrubber's
+    // path now -- see the closure case below -- but the patterns were NOT
+    // widened, so a label sitting mid-line rather than at the start of one is
+    // still published. That is the EV-A1 class, reaching a required field.
     const rendered = await renderEvent({
       viewer: 'anonymous',
       post: { title: 'Weekly Call PIN: 313131', content: 'Title chunk.\n\nBody text.' },
     });
-    assert.match(rendered.h1 ?? '', /PIN: 313131/, 'EV-T1 fixed in <h1>; move this case into block A');
-    assert.match(rendered.ogTitle ?? '', /PIN: 313131/, 'EV-T1 fixed in og:title');
-    assert.match(rendered.docTitle ?? '', /PIN: 313131/, 'EV-T1 fixed in <title>');
-    assert.equal(rendered.jsonLd.name, 'Weekly Call PIN: 313131', 'EV-T1 fixed in JSON-LD name');
+    assert.match(rendered.h1 ?? '', /PIN: 313131/, 'EV-T1 fully fixed in <h1>; update the module header residual');
+    assert.match(rendered.ogTitle ?? '', /PIN: 313131/, 'EV-T1 fully fixed in og:title');
+    assert.match(rendered.docTitle ?? '', /PIN: 313131/, 'EV-T1 fully fixed in <title>');
+    assert.equal(rendered.jsonLd.name, 'Weekly Call PIN: 313131', 'EV-T1 fully fixed in JSON-LD name');
   });
 
-  it('LEAKS EV-S1: the Speaker line is read from UNSCRUBBED content and re-emitted', async () => {
-    // extractSpeaker() runs against event.content directly, not against the
-    // scrubbed summary, so whatever trails "Speaker:" is reproduced in the meta
-    // row, in JSON-LD performer.name, and in the .ics DESCRIPTION.
+  it('EV-T1 CLOSED for the shapes the patterns cover, and the emptied title falls to a SAFE source', async () => {
+    for (const [title, needle] of [
+      ['Weekly Call meet.google.com/ttl-aaaa-bbb', 'ttl-aaaa-bbb'],
+      ['Meet link: https://video.example/ttl-cccc-ddd', 'ttl-cccc-ddd'],
+      ['PIN: 445599', '445599'],
+      ['tel:+15550109999', '15550109999'],
+    ]) {
+      const r = await renderEvent({
+        viewer: 'anonymous',
+        post: { title, content: 'Fallback Chunk Title\n\nBody text.' },
+      });
+      assert.ok(!r.html.includes(needle), `title ${JSON.stringify(title)} published ${needle}`);
+      // Non-empty, and from the scrubbed first content chunk -- never from the
+      // unscrubbed column, which IS the credential.
+      assert.equal(r.h1, 'Fallback Chunk Title', `title ${JSON.stringify(title)} did not fall to a safe source`);
+      assert.equal(r.jsonLd.name, 'Fallback Chunk Title');
+    }
+  });
+
+  it('EV-S1 PARTIALLY CLOSED: the Speaker line is scrubbed now, to the same vocabulary limit', async () => {
+    // extractSpeaker() ran against event.content directly rather than against
+    // the scrubbed summary, so whatever trailed "Speaker:" was reproduced in the
+    // meta row, in JSON-LD performer.name and in the .ics DESCRIPTION. Both arms
+    // are scrubbed now; "dial 555-020-9999" mid-line is outside the patterns.
     const db = await eventDb({
       viewer: 'anonymous',
       post: { content: 'Title chunk.\n\nSpeaker: Dr Ada, dial 555-020-9999\n\nBody text.' },
@@ -341,13 +370,34 @@ describe('scrubJoinInfo -- the leak hunt (each of these is a production finding)
     try {
       const html = await (await getEvent(db)).text();
       const s = sinks(html);
-      assert.match(s.speakerRow ?? '', /555-020-9999/, 'EV-S1 fixed in the meta row');
-      assert.match(s.jsonLd.performer.name, /555-020-9999/, 'EV-S1 fixed in JSON-LD performer');
+      assert.match(s.speakerRow ?? '', /555-020-9999/, 'EV-S1 fully fixed in the meta row');
+      assert.match(s.jsonLd.performer.name, /555-020-9999/, 'EV-S1 fully fixed in JSON-LD performer');
 
       const ics = await (await getEvent(db, { query: '?add=ics' })).text();
-      assert.match(ics, /555-020-9999/, 'EV-S1 fixed in the .ics export');
+      assert.match(ics, /555-020-9999/, 'EV-S1 fully fixed in the .ics export');
     } finally {
       db.close();
+    }
+  });
+
+  it('EV-S1 CLOSED for the shapes the patterns cover, on both arms of the speaker fallback', async () => {
+    for (const post of [
+      { speaker: 'Dr Ada meet.google.com/spk-aaaa-bbb', content: 'Title chunk.\n\nBody text.' },
+      { speaker: null, content: 'Title chunk.\n\nSpeaker: Dr Ada tel.meet/spk-aaaa-bbb\n\nBody text.' },
+      { speaker: 'Dial-in: +1 555-010-7777', content: 'Title chunk.\n\nBody text.' },
+    ]) {
+      const db = await eventDb({ viewer: 'anonymous', post });
+      try {
+        const html = await (await getEvent(db)).text();
+        const s = sinks(html);
+        for (const needle of ['spk-aaaa-bbb', '555-010-7777']) {
+          assert.ok(!html.includes(needle), `${JSON.stringify(post)} published ${needle}`);
+        }
+        assert.equal(s.speakerRow, null, 'an emptied speaker rendered a blank meta row instead of being omitted');
+        assert.equal('performer' in s.jsonLd, false);
+        const ics = await (await getEvent(db, { query: '?add=ics' })).text();
+        assert.ok(!/spk-aaaa-bbb|555-010-7777/.test(ics), 'the credential reached the .ics through the speaker');
+      } finally { db.close(); }
     }
   });
 
