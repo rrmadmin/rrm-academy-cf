@@ -5,6 +5,12 @@
  * Auth: session + superadmin or admin role (self-checked; admin/_middleware.js is best-effort only).
  *
  * GET response:  { ok: true, requests: [{id, areaId, areaName, areaSlug, areaHasOwner, userId, userName, userEmail, message, createdAt}] }
+ *                The join to `user` is LEFT, not inner: this queue is the only
+ *                surface a pending request appears on, so a request whose user
+ *                row was deleted must still be listed (userName/userEmail null,
+ *                which the admin table already renders as "--") or it can never
+ *                be decided and stays pending forever. Approving one is refused
+ *                with owner_user_not_found; rejecting it clears the row.
  * POST body:     { id: string, action: 'approve' | 'reject' }
  * POST response: { ok: true, action: 'approve' | 'reject' }
  */
@@ -43,7 +49,7 @@ export async function onRequestGet(context) {
          u.email AS user_email
        FROM area_ownership_request r
        JOIN action_area a ON a.id = r.area_id
-       JOIN user u ON u.id = r.user_id
+       LEFT JOIN user u ON u.id = r.user_id
        WHERE r.status = 'pending' AND a.status = 'active'
        ORDER BY r.created_at ASC`
     ).all();
@@ -145,46 +151,63 @@ export async function onRequestPost(context) {
     return json({ ok: false, error: 'area_already_owned' }, 409);
   }
 
-  // Claim the area atomically — the WHERE guard is the race-condition fence.
-  // Only if meta.changes === 1 did THIS request win the claim; zero means a concurrent
-  // approve beat us between the SELECT above and this UPDATE.
-  let claimResult;
+  // The volunteer may have deleted their account since filing the request.
+  // Refuse rather than point owner_user_id at a user row that is gone: an area
+  // owned by nobody still reads as owned, so /api/community/areas renders a
+  // null ownerName and nobody can volunteer for it again. Same refusal, same
+  // error code as the sibling admin/community/areas.js PUT.
   try {
-    claimResult = await db.prepare(
-      `UPDATE action_area
-       SET owner_user_id = ?, updated_at = datetime('now')
-       WHERE id = ? AND owner_user_id IS NULL`
-    ).bind(volunteerId, areaId).run();
+    const volunteerRow = await db.prepare('SELECT id FROM user WHERE id = ?').bind(volunteerId).first();
+    if (!volunteerRow) return json({ ok: false, error: 'owner_user_not_found' }, 400);
   } catch (err) {
-    log(env, waitUntil, 'admin-community', 'ownership_decide_error', 'error', `approve claim: ${err.message}`, 0, 500);
+    log(env, waitUntil, 'admin-community', 'ownership_decide_error', 'error', `volunteer lookup: ${err.message}`, 0, 500);
     return json({ ok: false, error: 'internal_error' }, 500);
   }
 
-  if (claimResult.meta.changes === 0) {
-    return json({ ok: false, error: 'area_already_owned' }, 409);
-  }
-
+  // The whole approval commits or none of it does. The claim used to sit
+  // OUTSIDE this batch, so a batch failure answered 500 with the area already
+  // owned and the request still pending -- and every retry then 409'd on the
+  // handler's own half-finished write, so the request could never be cleared.
+  //
+  // `WHERE owner_user_id IS NULL` on the claim is still the race fence; the
+  // SELECT above it is only an early exit. The three statements after it are
+  // gated on `owner_user_id = volunteerId`, which inside the batch's
+  // transaction reads as "the claim above landed", so an approve that loses the
+  // race writes nothing at all before answering 409.
+  let results;
   try {
-    await db.batch([
+    results = await db.batch([
+      db.prepare(
+        `UPDATE action_area
+         SET owner_user_id = ?, updated_at = datetime('now')
+         WHERE id = ? AND owner_user_id IS NULL`
+      ).bind(volunteerId, areaId),
       db.prepare(
         `INSERT INTO area_membership (user_id, area_id, role)
-         VALUES (?, ?, 'owner')
+         SELECT ?, ?, 'owner'
+         WHERE EXISTS (SELECT 1 FROM action_area WHERE id = ? AND owner_user_id = ?)
          ON CONFLICT(user_id, area_id) DO UPDATE SET role = 'owner'`
-      ).bind(volunteerId, areaId),
+      ).bind(volunteerId, areaId, areaId, volunteerId),
       db.prepare(
         `UPDATE area_ownership_request
          SET status = 'approved', decided_at = datetime('now'), decided_by = ?
-         WHERE id = ? AND status = 'pending'`
-      ).bind(user.id, id),
+         WHERE id = ? AND status = 'pending'
+           AND EXISTS (SELECT 1 FROM action_area WHERE id = ? AND owner_user_id = ?)`
+      ).bind(user.id, id, areaId, volunteerId),
       db.prepare(
         `UPDATE area_ownership_request
          SET status = 'rejected', decided_at = datetime('now'), decided_by = ?
-         WHERE area_id = ? AND status = 'pending' AND id != ?`
-      ).bind(user.id, areaId, id),
+         WHERE area_id = ? AND status = 'pending' AND id != ?
+           AND EXISTS (SELECT 1 FROM action_area WHERE id = ? AND owner_user_id = ?)`
+      ).bind(user.id, areaId, id, areaId, volunteerId),
     ]);
   } catch (err) {
     log(env, waitUntil, 'admin-community', 'ownership_decide_error', 'error', `approve batch: ${err.message}`, 0, 500);
     return json({ ok: false, error: 'internal_error' }, 500);
+  }
+
+  if (results[0].meta.changes === 0) {
+    return json({ ok: false, error: 'area_already_owned' }, 409);
   }
 
   return json({ ok: true, action: 'approve' });

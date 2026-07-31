@@ -244,11 +244,28 @@ export async function onRequestPut(context) {
     ).bind(...bindings);
     let results;
     if (newOwnerId) {
+      // Reassignment is a TRANSFER, not an addition: demote whoever held
+      // area_membership.role = 'owner' before promoting the new owner, or two
+      // users read as owner from GET /api/community/memberships.
+      //
+      // Both membership statements are gated on the area actually existing.
+      // Without the gate an id that matches nothing runs the UPDATE (0 rows,
+      // answered 404) while still writing an owner membership for an area that
+      // does not exist -- D1 keeps no foreign keys and does not roll a
+      // successful batch back. Inside the batch's transaction the EXISTS is
+      // exactly "the UPDATE above matched".
       results = await db.batch([
         updateArea,
         db.prepare(
-          "INSERT INTO area_membership (user_id, area_id, role) VALUES (?, ?, 'owner') ON CONFLICT(user_id, area_id) DO UPDATE SET role = 'owner'"
-        ).bind(newOwnerId, id),
+          `UPDATE area_membership SET role = 'member'
+           WHERE area_id = ? AND role = 'owner' AND user_id != ?
+             AND EXISTS (SELECT 1 FROM action_area WHERE id = ?)`
+        ).bind(id, newOwnerId, id),
+        db.prepare(
+          `INSERT INTO area_membership (user_id, area_id, role)
+           SELECT ?, ?, 'owner' WHERE EXISTS (SELECT 1 FROM action_area WHERE id = ?)
+           ON CONFLICT(user_id, area_id) DO UPDATE SET role = 'owner'`
+        ).bind(newOwnerId, id, id),
       ]);
     } else {
       results = [await updateArea.run()];

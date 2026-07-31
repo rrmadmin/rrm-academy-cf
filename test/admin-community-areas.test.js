@@ -606,31 +606,31 @@ describe('PUT admin/community/areas -- ownership is two tables', () => {
     assert.deepEqual(memberships(db, AREA), [{ user_id: MEMBER.id, role: 'owner' }]);
   });
 
-  it('PINS A DEFECT: reassigning ownership leaves the PREVIOUS owner holding area_membership.role = owner', async () => {
-    // The handler moves action_area.owner_user_id and upserts the NEW owner's
-    // membership. No statement anywhere demotes the old one, so after a
-    // reassignment TWO users hold role='owner' on the same area.
+  it('reassigning ownership DEMOTES the previous owner -- exactly one area_membership holds owner', async () => {
+    // Reassignment is a transfer, not an addition: the handler moves
+    // action_area.owner_user_id, demotes whoever held role='owner' on the area,
+    // and promotes the new owner, all in one batch. Two owner rows is the
+    // defect this asserts is gone.
     //
-    // Pinned as-is rather than asserted as fixed: this test states the
-    // behaviour the deployed endpoint has, so the day someone adds the missing
-    // demote it fails by name and points at the decision. From the endpoint's
-    // own response the write looks clean -- it answers {ok: true} -- which is
-    // exactly why the next test goes to the consumer instead.
+    // The ex-owner is demoted to 'member', not deleted -- losing the lead does
+    // not eject you from the area. The memberCount assertion two tests below is
+    // the other half of that decision.
     await parseResponse(await put({ db, body: { id: AREA, owner_user_id: MEMBER.id } }));
     await parseResponse(await put({ db, body: { id: AREA, owner_user_id: ADMIN.id } }));
 
     assert.equal(row(db, AREA).owner_user_id, ADMIN.id, 'the canonical owner column did move');
     assert.deepEqual(memberships(db, AREA), [
       { user_id: ADMIN.id, role: 'owner' },
-      { user_id: MEMBER.id, role: 'owner' },
-    ], 'two owner memberships is the CURRENT behaviour; one would mean the demote landed');
+      { user_id: MEMBER.id, role: 'member' },
+    ], 'the previous owner still holds role=owner -- the demote did not land');
   });
 
-  it('PINS A DEFECT: the demoted owner still reads as an owner from GET /api/community/memberships', async () => {
+  it('the demoted owner reads as a plain member from GET /api/community/memberships', async () => {
     // The real consumer, with the real requireMember gate (not stubbed): the
     // demoted user is a genuine STUC member with an active Wix subscription and
     // a valid session, so requireMember admits them and the response below is
-    // the one the community UI renders its owner controls from.
+    // the one the community UI renders its owner controls from. It must no
+    // longer offer them owner controls for an area they do not own.
     insertWixSubscription(db._sqlite, { email: 'member@example.com', user_id: MEMBER.id });
     await insertSession(db._sqlite, { rawId: 'sess-demoted', userId: MEMBER.id, expiresAt: FUTURE });
 
@@ -646,15 +646,15 @@ describe('PUT admin/community/areas -- ownership is two tables', () => {
     });
     const { status, body } = await parseResponse(res);
     assert.equal(status, 200, `requireMember refused the fixture member: ${JSON.stringify(body)}`);
-    assert.deepEqual(body.areas, [{ areaId: AREA, role: 'owner' }],
-      'CURRENT behaviour: a user who owns nothing is told by the API that they own this area');
+    assert.deepEqual(body.areas, [{ areaId: AREA, role: 'member' }],
+      'a user who owns nothing is still told by the API that they own this area');
   });
 
-  it('the public areas list DOES follow the reassignment -- the two views disagree', async () => {
-    // Same database, same moment, opposite answers: /api/community/areas reads
-    // action_area.owner_user_id and correctly names the new owner, while
-    // /api/community/memberships (above) still names the old one. That
-    // disagreement is the whole finding.
+  it('the public areas list agrees with the memberships view about who owns it', async () => {
+    // Same database, same moment: /api/community/areas reads
+    // action_area.owner_user_id and /api/community/memberships (above) reads
+    // area_membership.role. Both now name the new owner. The two disagreeing
+    // was the whole finding.
     await parseResponse(await put({ db, body: { id: AREA, owner_user_id: MEMBER.id } }));
     await parseResponse(await put({ db, body: { id: AREA, owner_user_id: ADMIN.id } }));
 
@@ -665,7 +665,8 @@ describe('PUT admin/community/areas -- ownership is two tables', () => {
     assert.equal(body.areas.length, 1);
     assert.equal(body.areas[0].ownerUserId, ADMIN.id);
     assert.equal(body.areas[0].ownerName, 'Admin');
-    assert.equal(body.areas[0].memberCount, 2, 'both the old and new owner are still members');
+    assert.equal(body.areas[0].memberCount, 2,
+      'the demote removed the ex-owner from the area instead of dropping them to member');
   });
 
   it('PINS A DEFECT: clearing owner_user_id to null leaves the ex-owner membership at role owner', async () => {
@@ -680,20 +681,33 @@ describe('PUT admin/community/areas -- ownership is two tables', () => {
       'CURRENT behaviour: an ownerless area still carries a membership row claiming ownership');
   });
 
-  it('PINS A DEFECT: a 404 update that carries an owner still writes a membership for the missing area', async () => {
-    // The batch runs both statements: the UPDATE matches nothing, but the
-    // membership INSERT is unconditional, so the handler answers 404 while
-    // having created a row that says this user owns an area that does not
-    // exist. Foreign keys are inert in D1, so nothing rejects it, and D1's
-    // batch transaction does not roll back either -- the batch SUCCEEDED; it
-    // is the handler that decided afterwards to call the result a 404.
+  it('a 404 update that carries an owner writes NOTHING for the missing area', async () => {
+    // The membership statements used to be unconditional, so the UPDATE matched
+    // nothing (answered 404) while the INSERT still created a row saying this
+    // user owns an area that does not exist. Foreign keys are inert in D1 and a
+    // batch that SUCCEEDED does not roll back, so nothing else would have
+    // caught it. Both membership statements now carry
+    // `EXISTS (SELECT 1 FROM action_area WHERE id = ?)`.
     const { status, body } = await parseResponse(await put({
       db, body: { id: 'a_missing', owner_user_id: MEMBER.id },
     }));
     assert.equal(status, 404);
     assert.equal(body.error, 'not_found');
+    assert.deepEqual(memberships(db, 'a_missing'), [],
+      'a 404 response left an orphan area_membership row behind');
+  });
+
+  it('a 404 update does not touch a pre-existing orphan membership either', async () => {
+    // The demote statement is gated on the same EXISTS as the insert. An orphan
+    // row left over from the old behaviour is not silently rewritten by a
+    // request that the handler is about to answer 404.
+    insertAreaMembership(db._sqlite, { userId: MEMBER.id, areaId: 'a_missing', role: 'owner' });
+    const { status } = await parseResponse(await put({
+      db, body: { id: 'a_missing', owner_user_id: ADMIN.id },
+    }));
+    assert.equal(status, 404);
     assert.deepEqual(memberships(db, 'a_missing'), [{ user_id: MEMBER.id, role: 'owner' }],
-      'CURRENT behaviour: a 404 response leaves an orphan area_membership row behind');
+      'a 404 response rewrote membership rows for an area that does not exist');
   });
 });
 

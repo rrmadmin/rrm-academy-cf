@@ -19,14 +19,18 @@
  * subscription row. Stubbing the gate is how you get 100% coverage of a broken
  * gate.
  *
- * Two things this file establishes that the endpoint's own responses hide:
- *   - the approve path is NOT atomic. The claim UPDATE lands before the
- *     membership/decision batch, so a failure in the batch leaves the area
- *     owned while the request stays pending, and every retry then 409s.
- *   - approve never checks that the volunteer still exists, so it will point
- *     owner_user_id at a deleted user. The sibling endpoint
- *     (admin/community/areas.js PUT) refuses the same move with
- *     `owner_user_not_found`.
+ * Three things this file holds that the endpoint's own responses cannot show:
+ *   - the approve path is ATOMIC. The claim UPDATE, the membership, the
+ *     decision and the auto-reject of rival requests are one db.batch(), so a
+ *     failure anywhere leaves no trace and the request stays retryable. The
+ *     claim used to sit outside the batch: a batch failure then left the area
+ *     owned with the request still pending, and every retry 409'd forever.
+ *   - approve refuses a volunteer whose account is gone, with the same
+ *     `owner_user_not_found` the sibling endpoint (admin/community/areas.js
+ *     PUT) answers. It used to point owner_user_id at a deleted user.
+ *   - the pending queue LEFT JOINs `user`. This queue is the only surface a
+ *     pending request appears on, so an inner join made a request whose user
+ *     row was deleted undecidable and permanently pending.
  */
 import { describe, it, beforeEach } from 'node:test';
 import assert from 'node:assert/strict';
@@ -275,20 +279,39 @@ describe('GET admin/community/ownership -- the pending queue', () => {
     db.close();
   });
 
-  it('drops a request whose user row is gone -- the JOIN to user is inner', async () => {
-    // Not cosmetic: the queue is the ONLY surface these rows appear on, so a
-    // request that falls out of it can never be decided and stays pending
-    // forever, blocking nothing but visible nowhere.
+  it('still lists a request whose user row is gone -- the JOIN to user is LEFT', async () => {
+    // The queue is the ONLY surface these rows appear on. An inner join dropped
+    // them, so the request could never be decided and stayed pending forever:
+    // blocking nothing, visible nowhere, accumulating. It is listed with null
+    // name and email, which the admin table already renders as "--".
     const db = seededDb((s) => {
       insertOwnershipRequest(s, { id: 'r_orphan', areaId: AREA, userId: 'u_deleted' });
       insertOwnershipRequest(s, { id: 'r_ok', areaId: AREA, userId: VOLUNTEER.id });
     });
     const { body } = await parseResponse(await get({ db }));
-    assert.deepEqual(body.requests.map((r) => r.id), ['r_ok']);
+    assert.deepEqual(body.requests.map((r) => r.id).sort(), ['r_ok', 'r_orphan']);
+    const orphan = body.requests.find((r) => r.id === 'r_orphan');
+    assert.equal(orphan.userId, 'u_deleted', 'the request still names the user it was filed by');
+    assert.equal(orphan.userName, null);
+    assert.equal(orphan.userEmail, null);
+    assert.equal(orphan.areaName, 'Open Area', 'the area side of the join was collateral damage');
+    db.close();
+  });
+
+  it('a moderator can dismiss the orphaned request, and it leaves the queue', async () => {
+    // Surfacing it is only half a fix. Reject touches nothing but
+    // area_ownership_request, so it works on a request whose user is gone --
+    // which is what makes the row reachable instead of permanently stuck.
+    const db = seededDb((s) => insertOwnershipRequest(s, { id: 'r_orphan', areaId: AREA, userId: 'u_deleted' }));
+    assert.deepEqual((await parseResponse(await get({ db }))).body.requests.map((r) => r.id), ['r_orphan'],
+      'the moderator cannot dismiss what the queue never shows them');
+    const { status } = await parseResponse(await post({ db, body: { id: 'r_orphan', action: 'reject' } }));
+    assert.equal(status, 200);
     assert.equal(
       db._sqlite.prepare("SELECT status FROM area_ownership_request WHERE id = 'r_orphan'").get().status,
-      'pending', 'the invisible request is still pending in the table',
+      'rejected', 'the request could not be cleared',
     );
+    assert.deepEqual((await parseResponse(await get({ db }))).body.requests, []);
     db.close();
   });
 
@@ -529,14 +552,15 @@ describe('POST admin/community/ownership -- approve refusals', () => {
     raced.close();
   });
 
-  it('PINS A DEFECT: the approve is not atomic -- a failed batch leaves the area owned and the request pending', async () => {
-    // The claim UPDATE is issued OUTSIDE the batch, so by the time the batch
-    // (membership + decision + auto-reject) runs, ownership has already been
-    // granted. If the batch throws, the handler answers 500 and rolls back
-    // nothing that already landed: the area is owned by a user who has no
-    // owner membership, and the request that granted it is still 'pending'.
-    // A retry then hits `area_already_owned`, so the request can never be
-    // cleared through this endpoint again.
+  it('the approve is atomic -- a failed batch leaves the area ownerless and the request retryable', async () => {
+    // The claim UPDATE used to be issued OUTSIDE the batch, so by the time the
+    // batch (membership + decision + auto-reject) ran, ownership had already
+    // been granted; a throw in the batch answered 500 and rolled back nothing
+    // that already landed. The area ended up owned by a user with no owner
+    // membership, the request that granted it stayed 'pending', and every retry
+    // hit `area_already_owned` -- the request could never be cleared again.
+    //
+    // The claim now sits inside the same batch, so the 500 leaves no trace.
     const db = seededDb((s) => insertOwnershipRequest(s, { id: 'r1', areaId: AREA, userId: VOLUNTEER.id }));
     const events = [];
     const env = mockEnv({ DB: db });
@@ -548,39 +572,61 @@ describe('POST admin/community/ownership -- approve refusals', () => {
     assert.equal(body.error, 'internal_error');
     assert.ok(events.some((e) => e.blobs.includes('ownership_decide_error')));
 
-    assert.equal(area(db).owner_user_id, VOLUNTEER.id,
-      'CURRENT behaviour: the 500 still granted ownership');
-    assert.equal(request(db, 'r1').status, 'pending',
-      'CURRENT behaviour: the request that granted it was never marked approved');
+    assert.equal(area(db).owner_user_id, null, 'the 500 still granted ownership');
+    assert.equal(request(db, 'r1').status, 'pending', 'the request was decided by a failed approval');
 
-    // And the follow-up is permanently stuck.
+    // The retry reaches the same failure, NOT a 409 on the handler's own
+    // half-finished write: once area_membership is back the approval can land.
     const retry = await parseResponse(await post({ db, body: { id: 'r1', action: 'approve' } }));
-    assert.equal(retry.status, 409);
-    assert.equal(retry.body.error, 'area_already_owned');
+    assert.equal(retry.status, 500, 'the retry 409d on state the failed approve left behind');
+    assert.equal(retry.body.error, 'internal_error');
     db.close();
   });
 
-  it('PINS A DEFECT: approve never checks the volunteer still exists, unlike the areas.js sibling', async () => {
-    // areas.js PUT answers 400 owner_user_not_found for exactly this move.
-    // This endpoint takes user_id straight off the request row and writes it,
-    // so a deleted account ends up owning an area: /api/community/areas then
-    // renders ownerName null over a non-null ownerUserId, and nobody can
-    // volunteer for the area again because it reads as owned.
+  it('a retry after the transient failure clears succeeds and grants ownership', async () => {
+    // The point of the rollback: nothing about the failed attempt blocks the
+    // next one. Same request row, same area, once the batch can run.
+    const db = seededDb((s) => insertOwnershipRequest(s, { id: 'r1', areaId: AREA, userId: VOLUNTEER.id }));
+    // A trigger fails the membership INSERT on a live schema, so the batch
+    // throws for a reason that later goes away.
+    db._sqlite.exec("CREATE TRIGGER once BEFORE INSERT ON area_membership BEGIN SELECT RAISE(ABORT, 'transient'); END");
+    assert.equal((await parseResponse(await post({ db, body: { id: 'r1', action: 'approve' } }))).status, 500);
+    assert.equal(area(db).owner_user_id, null, 'the failed attempt left the claim behind');
+    assert.equal(request(db, 'r1').status, 'pending');
+    db._sqlite.exec('DROP TRIGGER once');
+
+    const retry = await parseResponse(await post({ db, body: { id: 'r1', action: 'approve' } }));
+    assert.equal(retry.status, 200, `the retry was blocked by the failed attempt: ${JSON.stringify(retry.body)}`);
+    assert.equal(area(db).owner_user_id, VOLUNTEER.id);
+    assert.deepEqual(memberships(db), [{ user_id: VOLUNTEER.id, role: 'owner' }]);
+    assert.equal(request(db, 'r1').status, 'approved');
+    db.close();
+  });
+
+  it('refuses to approve a volunteer whose account is gone, like the areas.js sibling', async () => {
+    // areas.js PUT answers 400 owner_user_not_found for exactly this move. This
+    // endpoint used to take user_id straight off the request row and write it,
+    // so a deleted account ended up owning an area: /api/community/areas
+    // rendered ownerName null over a non-null ownerUserId, and nobody could
+    // volunteer for the area again because it read as owned.
     const db = seededDb((s) => insertOwnershipRequest(s, { id: 'r1', areaId: AREA, userId: VOLUNTEER.id }));
     db._sqlite.prepare('DELETE FROM user WHERE id = ?').run(VOLUNTEER.id);
 
-    const { status } = await parseResponse(await post({ db, body: { id: 'r1', action: 'approve' } }));
-    assert.equal(status, 200, 'CURRENT behaviour: approving a deleted volunteer succeeds');
-    assert.equal(area(db).owner_user_id, VOLUNTEER.id, 'owner_user_id points at a user row that does not exist');
+    const { status, body: refusal } = await parseResponse(await post({ db, body: { id: 'r1', action: 'approve' } }));
+    assert.equal(status, 400, 'approving a deleted volunteer still succeeds');
+    assert.equal(refusal.error, 'owner_user_not_found');
+    assert.equal(area(db).owner_user_id, null, 'owner_user_id points at a user row that does not exist');
+    assert.deepEqual(memberships(db), []);
+    assert.equal(request(db, 'r1').status, 'pending', 'the refused request was decided anyway');
 
     const { body } = await parseResponse(await communityAreas.onRequestGet({
       request: mockRequest('GET', { url: 'https://rrmacademy.org/api/community/areas' }),
       env: mockEnv({ DB: db }),
     }));
-    assert.equal(body.areas[0].ownerUserId, VOLUNTEER.id);
+    assert.equal(body.areas[0].ownerUserId, null);
     assert.equal(body.areas[0].ownerName, null, 'an area owned by nobody, displayed as owned');
 
-    // The sibling endpoint refuses the same assignment outright.
+    // The sibling endpoint refuses the same assignment the same way.
     const viaAreas = await parseResponse(await adminAreas.onRequestPut({
       request: mockRequest('PUT', {
         url: 'https://rrmacademy.org/api/admin/community/areas',
@@ -591,6 +637,20 @@ describe('POST admin/community/ownership -- approve refusals', () => {
     }));
     assert.equal(viaAreas.status, 400);
     assert.equal(viaAreas.body.error, 'owner_user_not_found');
+    db.close();
+  });
+
+  it('500s, and logs, when the volunteer existence check fails', async () => {
+    const db = seededDb((s) => insertOwnershipRequest(s, { id: 'r1', areaId: AREA, userId: VOLUNTEER.id }));
+    const events = [];
+    const env = mockEnv({ DB: db });
+    env.EVENTS = { writeDataPoint: (p) => events.push(p) };
+    db._sqlite.exec('DROP TABLE user');
+    const { status, body } = await parseResponse(await post({ db, env, body: { id: 'r1', action: 'approve' } }));
+    assert.equal(status, 500);
+    assert.equal(body.error, 'internal_error');
+    assert.ok(events.some((e) => e.blobs.includes('ownership_decide_error')));
+    assert.equal(area(db).owner_user_id, null, 'the failed check still granted ownership');
     db.close();
   });
 
