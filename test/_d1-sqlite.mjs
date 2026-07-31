@@ -118,7 +118,7 @@ export const MIGRATIONS_NOT_REPLAYED = {
   '2026-07-02-quiz-events-and-rules-version.sql':
     'Targets the rrm-survey database (binding SURVEY_DB), not rrm-auth. Loaded by test/_survey-sqlite.mjs alongside the quiz_result migration.',
   'ai-search-docs.sql':
-    'Targets rrm-auth, applied 2026-04-28, well before the snapshot. The ai_search_docs table was subsequently DROPPED (see the schema.sql comment block); replaying it would resurrect a retired table.',
+    'Targets rrm-auth, applied 2026-04-28, well before the snapshot, so it is out of scope for a POST-snapshot replay list. NOT DROPPED: this entry used to say the table had been retired and that replaying it would resurrect it, citing a schema.sql comment that said the same. Both halves were false, and that comment has been corrected. Live rrm-auth still has ai_search_docs (verified 2026-07-31) and scripts/ai-search-corpus-upload.mjs still writes to it. Consequence to know before you trust this harness: schema.sql does not inline the DDL either, so ai_search_docs is absent from THIS harness while present in production. Nothing under test/ touches it. The SQL gate composes it back in via EXTRA_DDL in scripts/gates/validate-sql-columns.mjs, which is why npm run gates:schema-drift reports no stale-absent drift for it.',
 };
 
 function buildSchemaSql() {

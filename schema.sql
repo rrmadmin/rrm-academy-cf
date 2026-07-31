@@ -13,48 +13,26 @@ CREATE INDEX IF NOT EXISTS idx_affiliate_clicks_user ON affiliate_clicks(user_id
 -- ============================================================
 -- ai_search_docs
 -- ============================================================
--- DROPPED 2026-05-27 (retrieval Plan 3): legacy AutoRAG/AI-Search manifest replaced by retrieval_docs below.
--- The live table was COLLATE NOCASE; the new manifest is case-sensitive (binary). See rrm-library-worker migrations.
+-- NOT DROPPED. A comment here used to record this table as retired under
+-- retrieval Plan 3. That was wrong, and being wrong in this file propagated: it
+-- is the stated reason test/_d1-sqlite.mjs excluded ai-search-docs.sql from the
+-- replay list. Live rrm-auth still has ai_search_docs (verified 2026-07-31) and
+-- scripts/ai-search-corpus-upload.mjs still writes to it.
+-- The DDL is not inlined here; it is composed in from scripts/migrations/
+-- ai-search-docs.sql via EXTRA_DDL in scripts/gates/validate-sql-columns.mjs,
+-- which is why npm run gates:schema-drift reports no stale-absent drift for it.
+-- The one difference against live is the key collation, noted in that file's
+-- own header.
 
--- ============================================================
--- retrieval_docs (SSOT for what is indexed in Vectorize + AutoRAG)
--- Canonical copy of rrm-library-worker/migrations/2026-05-27-retrieval-docs.sql
--- ============================================================
-CREATE TABLE IF NOT EXISTS retrieval_docs (
-  key TEXT PRIMARY KEY,
-  source_type TEXT NOT NULL,            -- article|post|faq|glossary|pillar|course
-  content_hash TEXT NOT NULL,
-  in_vectorize INTEGER NOT NULL,        -- 1 for all types
-  in_autorag INTEGER NOT NULL,          -- 1 for all types EXCEPT course (0)
-  vectorize_id TEXT,
-  vectorize_hash TEXT,
-  autorag_item_id TEXT,
-  autorag_hash TEXT,
-  consecutive_failures INTEGER NOT NULL DEFAULT 0,
-  quarantined_at TEXT,
-  last_failure TEXT,
-  full_slug TEXT,
-  indexed_at TEXT,
-  last_seen_at TEXT NOT NULL
-);
-CREATE INDEX IF NOT EXISTS idx_retrieval_docs_source_type ON retrieval_docs(source_type);
-CREATE INDEX IF NOT EXISTS idx_retrieval_docs_last_seen ON retrieval_docs(last_seen_at);
-CREATE INDEX IF NOT EXISTS idx_retrieval_docs_quarantined ON retrieval_docs(quarantined_at);
-
--- ============================================================
--- retrieval_state (reconcile snapshot, one row id='singleton')
--- Canonical copy of rrm-library-worker/migrations/2026-05-28-retrieval-state.sql
--- ============================================================
-CREATE TABLE IF NOT EXISTS retrieval_state (
-  id TEXT PRIMARY KEY,                  -- always 'singleton'
-  last_reconcile_at TEXT,
-  last_converged_at TEXT,
-  drift_by_index TEXT,                  -- JSON
-  live_counts_by_type TEXT,             -- JSON
-  last_failure TEXT,
-  updated_at TEXT
-);
-INSERT OR IGNORE INTO retrieval_state (id) VALUES ('singleton');
+-- retrieval_docs / retrieval_state were declared here until 2026-07-31 and were
+-- REMOVED. They are rrm-library tables, not rrm-auth tables: their DDL lives in
+-- rrm-library-worker/migrations/2026-05-27-retrieval-docs.sql and
+-- 2026-05-28-retrieval-state.sql, and both are present in live rrm-library and
+-- absent from live rrm-auth (both verified 2026-07-31). Copying them into the
+-- rrm-auth mirror made every static check believe rrm-auth had them: a SELECT
+-- against either one PREPAREd clean under npm run gates:sql and would have
+-- thrown "no such table" on its first production call. That is the founding
+-- stale-present instance behind scripts/gates/validate-schema-drift.mjs.
 
 -- ============================================================
 -- ask_saved

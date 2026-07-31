@@ -53,12 +53,19 @@
  *     rrm-analytics are skipped by name, not silently.
  *  3. Runtime values. A prepared statement proves the identifiers resolve; it
  *     proves nothing about bindings, types, or whether the row exists.
- *  4. Drift in schema.sql itself. Three tables illustrate the limit:
- *     `retrieval_docs` and `retrieval_state` are in schema.sql but NOT in live
- *     rrm-auth (verified 2026-07-31), so a statement against them passes here
- *     and would fail in production; the dm_* tables were the mirror image, live
- *     but absent from every committed file, until sql-columns-live-tables.sql
- *     captured them. The gate is exactly as current as the files it composes.
+ *  4. Drift in schema.sql itself - NOW GUARDED, by a sibling rather than here.
+ *     This gate is exactly as current as the files it composes, and it cannot
+ *     see that its own definition of truth is wrong. `retrieval_docs` and
+ *     `retrieval_state` were in schema.sql but NOT in live rrm-auth, so a
+ *     statement against them PREPAREd clean here and would have thrown in
+ *     production; the dm_* tables were the mirror image, live but absent from
+ *     every committed file, until sql-columns-live-tables.sql captured them.
+ *     scripts/gates/validate-schema-drift.mjs closes that blind side by
+ *     comparing this composed schema against live rrm-auth in both directions
+ *     (stale-present FAILS, stale-absent WARNS, unreachable D1 warn-skips).
+ *     The retrieval_* tables were removed from schema.sql on 2026-07-31; they
+ *     are rrm-library tables. Run `npm run gates:schema-drift` after any change
+ *     to schema.sql, EXTRA_DDL or the replay list.
  *
  * SKIPPING QUIETLY IS THE FAILURE MODE. A gate that swallows what it cannot
  * parse passes vacuously. So every skip carries a reason, the reason counts are
@@ -118,7 +125,7 @@ export const EXTRA_DDL = [
   },
   {
     path: 'scripts/migrations/ai-search-docs.sql',
-    why: 'ai_search_docs is excluded from POST_SNAPSHOT_MIGRATIONS on the belief it was dropped. It is NOT dropped: live rrm-auth still has it (verified 2026-07-31, columns identical to this file, differing only in the key collation noted in its own header) and scripts/ai-search-corpus-upload.mjs still writes to it.',
+    why: 'ai_search_docs is excluded from POST_SNAPSHOT_MIGRATIONS because it predates the 2026-05-27 snapshot, and schema.sql does not inline it because a comment there wrongly recorded it as DROPPED (corrected 2026-07-31). It is NOT dropped: live rrm-auth still has it (verified 2026-07-31, columns identical to this file, differing only in the key collation noted in its own header) and scripts/ai-search-corpus-upload.mjs still writes to it. This entry is what keeps the composed mirror level with live, so gates:schema-drift reports no stale-absent drift for it.',
   },
   {
     path: 'scripts/gates/sql-columns-live-tables.sql',
