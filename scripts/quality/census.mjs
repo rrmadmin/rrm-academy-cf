@@ -127,6 +127,23 @@ const OUT = resolve(ROOT, 'scripts', 'quality', 'coverage-census.json');
  *                   harness behind production, which made an eight-column
  *                   insertEmailLog() INSERT fail in tests only and read as a
  *                   production email outage that was never happening.
+ * 32.4 2026-07-31  RAISED to close tranche 4, after all four branches landed
+ *                   in sequence (#104 closes, #102 glossary-admin, #101
+ *                   glossary-public, #103 PDF/blog/FAQ). Measured 32.43%
+ *                   (21042/64887) on merged main, rounded DOWN on the
+ *                   one-decimal scale #101 introduced.
+ *
+ *                   THE FOUR BRANCH FLOORS WERE NEVER COMPARABLE AND WERE
+ *                   NOT MAXED. Each measured its own tranche alone against a
+ *                   shared denominator: 28.92, 29.78, 28.97, 29.30. Merged,
+ *                   the coverage sets are cumulative, so the true floor sits
+ *                   above all of them. Taking the max would have armed 29.7
+ *                   and left most of a proven tranche unratcheted.
+ *
+ *                   Bite proven both ways on merged main, and this entry is
+ *                   part of what is measured: census.mjs is itself
+ *                   PRODUCT-CODE at 0% covered, so every comment line added
+ *                   here enlarges the denominator it reports.
  *
  * MEASURE IN A CLEAN CHECKOUT, THE WAY CI DOES.
  * `src/data/glossary.json` is GITIGNORED and is never present in CI (the
@@ -148,7 +165,7 @@ const OUT = resolve(ROOT, 'scripts', 'quality', 'coverage-census.json');
  * particular surface is tested. Read the per-product view
  * (tools/coverage-portfolio/status.mjs) before concluding a product is covered.
  */
-const ARMED_FLOOR_PCT = 29;
+const ARMED_FLOOR_PCT = 32.4;
 
 const argv = process.argv.slice(2);
 const covDirIdx = argv.indexOf('--coverage-dir');
