@@ -1,0 +1,104 @@
+name: E2E Smoke
+
+# End-to-end smoke tests against the LIVE site (https://rrmacademy.org).
+# Design: docs/superpowers/specs/2026-07-05-e2e-in-ci-design.md
+#
+# Architecture: production-URL smoke. Runs a curated, READ-ONLY subset of the
+# tests/e2e suite (config: playwright.ci.config.ts). Every assertion is a GET, a
+# page render, or an anonymous-rejection (401/400/404) check -- zero mutating
+# success paths against production D1 / Stripe.
+#
+# ROLLOUT POSTURE (non-blocking by construction):
+#   * This is its own workflow file. It is NOT in the `main` repository ruleset's
+#     required status checks, so a flake here can never block a deploy or a merge.
+#   * The post-deploy (workflow_run) and nightly (schedule) runs execute AFTER a
+#     deploy or on a timer -- they cannot gate the deploy pipeline.
+#   * The pull_request run is informational (harness self-check only).
+#   * DO NOT add this workflow to required checks until it has a green track record
+#     (proposed: 2+ weeks of clean post-deploy + nightly runs).
+
+on:
+  # Primary: smoke the live site right after a deploy to main lands.
+  workflow_run:
+    workflows: ["Build & Deploy"]
+    types:
+      - completed
+  # Catch drift with no deploy (dependency shifts, CDN/router changes, prod rot).
+  schedule:
+    - cron: '17 7 * * *'
+  # Validate the harness itself when the e2e surface changes (informational).
+  pull_request:
+    paths:
+      - 'tests/e2e/**'
+      - 'playwright.config.js'
+      - 'playwright.ci.config.ts'
+      - '.github/workflows/e2e.yml'
+  # Manual on-demand run.
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+# Debounce the burst of content-publish deploys (blog/faq/course/glossary each
+# fire a repository_dispatch deploy) down to one smoke run.
+concurrency:
+  group: e2e-${{ github.event_name }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  smoke:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    # On workflow_run, only smoke after a deploy that actually succeeded.
+    if: >-
+      github.event_name != 'workflow_run' ||
+      github.event.workflow_run.conclusion == 'success'
+    env:
+      CI: 'true'
+      E2E_BASE_URL: https://rrmacademy.org
+      # The boundary specs read these (defaulting to localhost:8788); point them at
+      # production so their anonymous-rejection checks run against the real handlers.
+      AUTH_E2E_BASE: https://rrmacademy.org
+      BILLING_E2E_BASE: https://rrmacademy.org
+      COURSES_E2E_BASE: https://rrmacademy.org
+    steps:
+      - name: Checkout
+        uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+
+      - name: Setup Node
+        uses: actions/setup-node@2028fbc5c25fe9cf00d9f06a71cc4710d4507903 # v6.0.0
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci --ignore-scripts
+
+      # Cache the Playwright browser download keyed on the resolved version.
+      - name: Resolve Playwright version
+        id: pw
+        run: echo "version=$(node -p "require('@playwright/test/package.json').version")" >> "$GITHUB_OUTPUT"
+
+      - name: Cache Playwright browsers
+        id: pw-cache
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/ms-playwright
+          key: playwright-${{ runner.os }}-${{ steps.pw.outputs.version }}
+
+      - name: Install Chromium
+        run: npx playwright install --with-deps chromium
+
+      - name: Run e2e smoke suite
+        run: npx playwright test --config=playwright.ci.config.ts
+
+      - name: Upload report on failure
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-report-${{ github.run_id }}
+          path: |
+            playwright-report/
+            test-results/
+          retention-days: 7
+          if-no-files-found: ignore
