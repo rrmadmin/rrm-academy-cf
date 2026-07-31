@@ -144,6 +144,22 @@ const OUT = resolve(ROOT, 'scripts', 'quality', 'coverage-census.json');
  *                   part of what is measured: census.mjs is itself
  *                   PRODUCT-CODE at 0% covered, so every comment line added
  *                   here enlarges the denominator it reports.
+ * 33.4 2026-07-31  RAISED by the tranche-5 moderation drive. The STUC
+ *                   moderation surface -- community/flags.js, ban.js and
+ *                   unban.js -- went from ABSENT-FROM-THE-REPORT (never
+ *                   imported by any test, which reads as 0 but is not the
+ *                   same thing) to 100% lines on all three, exercised against
+ *                   a real SQLite engine loaded with the committed schema.
+ *                   Measured 33.46% (21713/64887) on a clean checkout of this
+ *                   branch, rounded DOWN on the one-decimal scale.
+ *
+ *                   The endpoints were picked because a canned mock cannot
+ *                   test them at all: "the ban bites" is a claim about a row
+ *                   written by ban.js and re-read much later by a DIFFERENT
+ *                   query inside requireMember, and the flag duplicate/upsert
+ *                   path is decided by the UNIQUE index in schema.sql. The
+ *                   ban refusal is asserted through the real requireMember and
+ *                   through two real endpoints, never a stub.
  *
  * MEASURE IN A CLEAN CHECKOUT, THE WAY CI DOES.
  * `src/data/glossary.json` is GITIGNORED and is never present in CI (the
@@ -165,7 +181,7 @@ const OUT = resolve(ROOT, 'scripts', 'quality', 'coverage-census.json');
  * particular surface is tested. Read the per-product view
  * (tools/coverage-portfolio/status.mjs) before concluding a product is covered.
  */
-const ARMED_FLOOR_PCT = 32.4;
+const ARMED_FLOOR_PCT = 33.4;
 
 const argv = process.argv.slice(2);
 const covDirIdx = argv.indexOf('--coverage-dir');
