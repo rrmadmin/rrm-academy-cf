@@ -404,9 +404,14 @@ describe('POST /api/community/ban -- what the ban actually writes', () => {
           .run('u_member', 'comment', 'c_1', '\u{1F622}');
         sqlite.prepare('INSERT INTO community_comment (id, post_id, author_id, content) VALUES (?,?,?,?)')
           .run('c_reply', 'p_long', 'u_member', 'Someone else replying under the banned post');
+        // A reaction and a report attached to that third-party reply, so the scope
+        // of the purge is provable on the whole row family, not just the comment.
+        sqlite.prepare('INSERT INTO community_reaction (user_id, target_type, target_id, emoji) VALUES (?,?,?,?)')
+          .run('u_mod', 'comment', 'c_reply', '\u{1F44D}');
         seedFlag(sqlite, { id: 'f_by_target', userId: 'u_member2', targetId: 'p_titleonly' });
         seedFlag(sqlite, { id: 'f_on_target_post', userId: 'u_member', targetId: 'p_long' });
         seedFlag(sqlite, { id: 'f_on_target_comment', userId: 'u_member', targetType: 'comment', targetId: 'c_1' });
+        seedFlag(sqlite, { id: 'f_on_third_party_reply', userId: 'u_member', targetType: 'comment', targetId: 'c_reply' });
       },
     });
   });
@@ -418,10 +423,25 @@ describe('POST /api/community/ban -- what the ban actually writes', () => {
     assert.equal(sessionCount(db, 'u_member2'), 0);
   });
 
-  it('erases the banned account own reactions and its own filed reports', async () => {
+  it('erases the banned account own reactions but KEEPS the reports it filed about other people', async () => {
     await parseResponse(await banPost(db, { body: { userId: 'u_member2' } }));
     assert.equal(rows(db, "SELECT 1 FROM community_reaction WHERE user_id = 'u_member2'").length, 0);
-    assert.equal(row(db, "SELECT 1 FROM community_flag WHERE id = 'f_by_target'"), null);
+    // f_by_target is u_member2 reporting p_titleonly, a post by u_member. A report
+    // is an accusation ABOUT somebody else, not content the reporter owns; banning
+    // the reporter must not destroy pending moderation signal about a third party
+    // who has not been moderated at all.
+    const filed = row(db, "SELECT * FROM community_flag WHERE id = 'f_by_target'");
+    assert.ok(filed, 'banning the reporter destroyed their pending report about a third party');
+    assert.equal(filed.status, 'pending', 'the filed report was silently closed instead of left for review');
+    assert.equal(filed.target_id, 'p_titleonly');
+  });
+
+  it('leaves the banned account filed reports visible in the moderator queue', async () => {
+    await parseResponse(await banPost(db, { body: { userId: 'u_member2' } }));
+    const { status, body } = await parseResponse(await flagGet(db, { who: 'mod' }));
+    assert.equal(status, 200);
+    assert.ok(body.flags.some((f) => f.id === 'f_by_target'),
+      'the report vanished from the pending queue when its reporter was banned');
   });
 
   it('leaves the banned account content standing when deleteContent is not asked for', async () => {
@@ -431,18 +451,41 @@ describe('POST /api/community/ban -- what the ban actually writes', () => {
     assert.ok(row(db, "SELECT 1 FROM community_flag WHERE id = 'f_on_target_post'"));
   });
 
-  it('deleteContent removes posts, comments, replies under them, and every flag and reaction pointing at them', async () => {
+  it('deleteContent removes the banned account posts and comments, plus every flag and reaction pointing at them', async () => {
     const { status } = await parseResponse(await banPost(db, { body: { userId: 'u_member2', deleteContent: true } }));
     assert.equal(status, 200);
     assert.equal(rows(db, "SELECT 1 FROM community_post WHERE author_id = 'u_member2'").length, 0);
     assert.equal(row(db, "SELECT 1 FROM community_comment WHERE id = 'c_1'"), null);
-    assert.equal(row(db, "SELECT 1 FROM community_comment WHERE id = 'c_reply'"), null,
-      'a third-party reply was orphaned under a deleted post');
     assert.equal(row(db, "SELECT 1 FROM community_flag WHERE id = 'f_on_target_post'"), null);
     assert.equal(row(db, "SELECT 1 FROM community_flag WHERE id = 'f_on_target_comment'"), null);
     assert.equal(rows(db, "SELECT 1 FROM community_reaction WHERE target_id IN ('p_long','c_1')").length, 0);
     // A post by somebody else is untouched.
     assert.ok(row(db, "SELECT 1 FROM community_post WHERE id = 'p_titleonly'"));
+  });
+
+  it('deleteContent does NOT destroy replies other members wrote under the banned account posts', async () => {
+    // The moderator is asked "Also remove all posts and comments by <name>?" and
+    // approves exactly that. c_reply is u_member's writing, sitting under
+    // u_member2's post; c_2 is u_member's writing under u_member2's p_legacy.
+    // Both belong to a member in good standing. The post they hang from is gone,
+    // so neither renders any more, but neither is destroyed -- a ban is
+    // reversible and a delete is not.
+    const { status } = await parseResponse(await banPost(db, { body: { userId: 'u_member2', deleteContent: true } }));
+    assert.equal(status, 200);
+
+    const reply = row(db, "SELECT * FROM community_comment WHERE id = 'c_reply'");
+    assert.ok(reply, 'banning one account destroyed another member reply');
+    assert.equal(reply.author_id, 'u_member');
+    assert.ok(row(db, "SELECT 1 FROM community_comment WHERE id = 'c_2'"),
+      'a third-party comment under a different banned-author post was destroyed');
+
+    // The surviving reply keeps its own row family: a reaction somebody left on
+    // it, and a pending report about it that a moderator still has to action.
+    assert.ok(row(db, "SELECT 1 FROM community_reaction WHERE target_type = 'comment' AND target_id = 'c_reply'"),
+      'a reaction on a surviving third-party reply was deleted with it');
+    const openReport = row(db, "SELECT * FROM community_flag WHERE id = 'f_on_third_party_reply'");
+    assert.ok(openReport, 'a pending report about a third-party reply was destroyed by an unrelated ban');
+    assert.equal(openReport.status, 'pending');
   });
 
   it('queues the R2 objects behind the deleted posts and skips URLs that are not asset routes', async () => {
@@ -918,10 +961,10 @@ describe('POST /api/community/flags -- double-flagging', () => {
     assert.equal(rows(db, "SELECT 1 FROM community_flag WHERE target_id = 'p_long'").length, 2);
   });
 
-  it('upserts in place when the same user re-flags content whose earlier report was resolved', async () => {
+  it('REOPENS in place when the same user re-flags content whose earlier report was resolved', async () => {
     db._sqlite.prepare(
-      "INSERT INTO community_flag (id, user_id, target_type, target_id, reason, note, status) VALUES (?,?,?,?,?,?,?)"
-    ).run('f_old', 'u_member', 'post', 'p_long', 'spam', 'first pass', 'resolved');
+      "INSERT INTO community_flag (id, user_id, target_type, target_id, reason, note, status, resolved_by, resolved_at, created_at) VALUES (?,?,?,?,?,?,?,?,?,?)"
+    ).run('f_old', 'u_member', 'post', 'p_long', 'spam', 'first pass', 'resolved', 'u_admin', '2020-01-01T00:00:00Z', '2020-01-01T00:00:00Z');
 
     const { status, body } = await parseResponse(await flag('member', { reason: 'harassment', note: 'it is back' }));
     assert.equal(status, 201);
@@ -931,13 +974,34 @@ describe('POST /api/community/flags -- double-flagging', () => {
     assert.equal(stored.length, 1);
     assert.equal(stored[0].reason, 'harassment');
     assert.equal(stored[0].note, 'it is back');
-    // Pinned as current behaviour, and it is the sharp edge of this state
-    // machine: the ON CONFLICT clause updates reason and note only, so a
-    // re-report of previously-resolved content stays out of the pending queue.
-    assert.equal(stored[0].status, 'resolved');
+    // The row is being repurposed to carry a NEW report -- reason and note are
+    // already replaced -- so the whole closure has to come off with them, or the
+    // reporter gets a 201 for a report no moderator will ever see.
+    assert.equal(stored[0].status, 'pending', 'a re-report of resolved content never reopened');
+    assert.equal(stored[0].resolved_by, null, 'the reopened report still names the admin who closed the old one');
+    assert.equal(stored[0].resolved_at, null);
+    // created_at is refreshed, or the reopened row sorts below newer reports and
+    // falls off the queue's LIMIT 50 -- the same defect one layer down.
+    assert.notEqual(stored[0].created_at, '2020-01-01T00:00:00Z', 'the reopened report kept its stale timestamp');
   });
 
-  it('does the same for a dismissed report', async () => {
+  it('a reopened report is actually visible to a moderator in the pending queue', async () => {
+    db._sqlite.prepare(
+      "INSERT INTO community_flag (id, user_id, target_type, target_id, reason, note, status, created_at) VALUES (?,?,?,?,?,?,?,?)"
+    ).run('f_old', 'u_member', 'post', 'p_long', 'spam', 'first pass', 'resolved', '2020-01-01T00:00:00Z');
+
+    assert.deepEqual((await parseResponse(await flagGet(db, { who: 'mod' }))).body.flags, [],
+      'the queue was not empty before the re-report');
+
+    assert.equal((await parseResponse(await flag('member', { reason: 'harassment' }))).status, 201);
+
+    const { body } = await parseResponse(await flagGet(db, { who: 'mod' }));
+    assert.deepEqual(body.flags.map((f) => f.id), ['f_old'],
+      'the re-reported item never re-entered the queue a moderator reads');
+    assert.equal(body.flags[0].reason, 'harassment');
+  });
+
+  it('reopens a DISMISSED report too -- content can be edited after it was cleared', async () => {
     db._sqlite.prepare(
       "INSERT INTO community_flag (id, user_id, target_type, target_id, reason, note, status) VALUES (?,?,?,?,?,?,?)"
     ).run('f_dismissed', 'u_member', 'post', 'p_long', 'other', null, 'dismissed');
@@ -945,7 +1009,14 @@ describe('POST /api/community/flags -- double-flagging', () => {
     const { status, body } = await parseResponse(await flag('member', { reason: 'spam' }));
     assert.equal(status, 201);
     assert.equal(body.flagId, 'f_dismissed');
-    assert.equal(row(db, "SELECT status FROM community_flag WHERE id = 'f_dismissed'").status, 'dismissed');
+    // A dismissal judged the content as it stood; the thing being reported now is
+    // not necessarily the thing that was cleared. The unique key caps this at one
+    // open row per reporter per target, so reopening cannot flood the queue.
+    assert.equal(row(db, "SELECT status FROM community_flag WHERE id = 'f_dismissed'").status, 'pending');
+    assert.deepEqual(
+      (await parseResponse(await flagGet(db, { who: 'mod' }))).body.flags.map((f) => f.id),
+      ['f_dismissed'],
+    );
   });
 });
 

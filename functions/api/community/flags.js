@@ -72,13 +72,36 @@ export async function onRequestPost({ request, env, waitUntil }) {
       return json({ ok: false, error: 'You have already flagged this content' }, 409);
     }
 
+    // UNIQUE(user_id, target_type, target_id) means one reporter holds at most one
+    // row per target, so a re-report has to REOPEN that row rather than mint a new
+    // one. The pending duplicate is already refused above with a 409, so the only
+    // rows that reach this clause are closed ones -- resolved or dismissed -- and
+    // the clause is already replacing reason and note, i.e. the row is being
+    // repurposed to carry a NEW report. Leaving status closed made that a silent
+    // no-op: the reporter got a 201 and the item never re-entered the pending queue
+    // GET reads, so no moderator ever saw it.
+    //
+    // Dismissed reopens on the same terms as resolved. A dismissal judged the
+    // content as it stood; content can be edited afterwards, so the thing being
+    // reported now is not necessarily the thing that was cleared. Re-reporting
+    // cannot flood the queue either -- the unique key caps it at one open row per
+    // reporter per target, under an existing 10-per-hour budget. Suppressing a
+    // bad-faith reporter is a reporter-level control, not a write that lies to them.
+    //
+    // created_at is refreshed because the queue is ORDER BY created_at DESC LIMIT
+    // 50: a reopened row keeping a stale timestamp sorts below newer reports and
+    // stays invisible, which is the same defect one layer down.
     const id = generateId();
     const upserted = await db.prepare(`
       INSERT INTO community_flag (id, user_id, target_type, target_id, reason, note)
       VALUES (?, ?, ?, ?, ?, ?)
       ON CONFLICT(user_id, target_type, target_id) DO UPDATE SET
         reason = excluded.reason,
-        note = excluded.note
+        note = excluded.note,
+        status = 'pending',
+        resolved_by = NULL,
+        resolved_at = NULL,
+        created_at = datetime('now')
       RETURNING id
     `).bind(id, user.id, targetType, targetId, reason, note?.trim() || null).first();
     const flagId = upserted?.id ?? existing?.id ?? id;
