@@ -412,6 +412,29 @@ const OUT = resolve(ROOT, 'scripts', 'quality', 'coverage-census.json');
  *                   printed 34.2 was verified RED (exit 1) on this tree before
  *                   34.1 was armed, so the displayed number is not the number.
  *
+ * 35.4 2026-07-31  TRANCHE LANE 6 OF 6, AND THE LAST OF THIS TRANCHE (the
+ *                   public /events/<slug> page and its join-credential
+ *                   redaction).
+ *                   Re-armed on the corrected denominator: the lane branch
+ *                   armed 33.5, measured over the padded 64887-line
+ *                   PRODUCT-CODE denominator before #110 reclassified the 5202
+ *                   generated lines of _disposable-domains.js out of it. See
+ *                   the 27.6 entry above for the full statement of how this
+ *                   tranche re-arms.
+ *
+ *                   Measured 35.4093% (21237/59976) on the merge commit, in a
+ *                   clean checkout with the gitignored src/data/*.json absent,
+ *                   the way CI measures. The ratchet moved UP: 34.1 on
+ *                   main before this merge, 35.4 after it.
+ *
+ *                   TRANCHE CLOSED. Six lanes, floor 26.5 -> 35.4 over the
+ *                   corrected denominator. From here the ratchet applies
+ *                   normally again: the padded pre-#110 numbers (32.4, 33.4,
+ *                   33.5, 33.7, 34.1, 34.7, 34.8) are historical record only
+ *                   and must never be re-armed, because every one of them was
+ *                   measured over a denominator that counted 5202 generated
+ *                   lines as covered.
+ *
  * MEASURE IN A CLEAN CHECKOUT, THE WAY CI DOES.
  * `src/data/glossary.json` is GITIGNORED and is never present in CI (the
  * workflow runs `npm ci` then `npm test`; there is no fetch-all step). The
@@ -432,7 +455,7 @@ const OUT = resolve(ROOT, 'scripts', 'quality', 'coverage-census.json');
  * particular surface is tested. Read the per-product view
  * (tools/coverage-portfolio/status.mjs) before concluding a product is covered.
  */
-const ARMED_FLOOR_PCT = 34.1;
+const ARMED_FLOOR_PCT = 35.4;
 
 const argv = process.argv.slice(2);
 const covDirIdx = argv.indexOf('--coverage-dir');
