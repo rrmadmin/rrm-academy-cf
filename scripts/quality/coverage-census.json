@@ -11,7 +11,7 @@
  "_gate": {
   "scope": "PRODUCT-CODE",
   "metric": "c8 line coverage with --all (every surface file in the denominator)",
-  "floor_lines_pct": 28,
+  "floor_lines_pct": 29,
   "ratchet_rule": "The floor may only move UP. Arm at the measured floor rounded down; never arm a number that is red on arrival. Raise it after a coverage drive lands, by editing this value to the new measured floor rounded down."
  },
  "_measured": {
@@ -19,16 +19,16 @@
   "instrument": "node scripts/quality/coverage.mjs (c8 --all over the full surface; full npm-test suite)",
   "full_surface": {
    "files": 421,
-   "lines": 80869,
-   "covered": 18818,
-   "pct": 23.27
+   "lines": 80899,
+   "covered": 19867,
+   "pct": 24.56
   },
   "by_category": {
    "PRODUCT-CODE": {
     "files": 334,
-    "lines": 64786,
-    "covered": 18737,
-    "pct": 28.92
+    "lines": 64816,
+    "covered": 19786,
+    "pct": 30.53
    },
    "CONTENT-TEMPLATE": {
     "files": 8,
@@ -57,12 +57,12 @@
   },
   "product_code": {
    "files": 334,
-   "lines": 64786,
-   "covered": 18737,
-   "pct": 28.92
+   "lines": 64816,
+   "covered": 19786,
+   "pct": 30.53
   },
-  "files_absent_from_default_report": 315,
-  "files_present_in_default_report": 106,
+  "files_absent_from_default_report": 308,
+  "files_present_in_default_report": 113,
   "highest_stakes_slice": {
    "slice": "national survey system (functions/api/survey/ + functions/api/endo-quiz/)",
    "files": [
@@ -246,14 +246,6 @@
    "crap": 2970
   },
   {
-   "file": "functions/api/admin/glossary/terms/[id].js",
-   "fn": "onRequestPut",
-   "line": 39,
-   "cc": 52,
-   "coverage": 0,
-   "crap": 2756
-  },
-  {
    "file": "src/lib/enrich-glossary.mjs",
    "fn": "main",
    "line": 496,
@@ -268,14 +260,6 @@
    "cc": 51,
    "coverage": 0,
    "crap": 2652
-  },
-  {
-   "file": "functions/api/admin/glossary/terms/index.js",
-   "fn": "onRequestPost",
-   "line": 36,
-   "cc": 50,
-   "coverage": 0,
-   "crap": 2550
   },
   {
    "file": "functions/api/admin/community/areas.js",
@@ -332,6 +316,22 @@
    "cc": 44,
    "coverage": 0,
    "crap": 1980
+  },
+  {
+   "file": "functions/api/courses/enroll.js",
+   "fn": "handleEnroll",
+   "line": 56,
+   "cc": 43,
+   "coverage": 0,
+   "crap": 1892
+  },
+  {
+   "file": "functions/api/ask.js",
+   "fn": "callUpstream",
+   "line": 102,
+   "cc": 41,
+   "coverage": 0,
+   "crap": 1722
   }
  ],
  "crap_top_files": [
@@ -444,16 +444,16 @@
    "fns": 1
   },
   {
-   "file": "functions/api/admin/glossary/terms/[id].js",
-   "worst": 2756,
-   "total": 3152,
-   "fns": 3
-  },
-  {
    "file": "functions/api/newsletter/send.js",
    "worst": 3080,
    "total": 3130,
    "fns": 5
+  },
+  {
+   "file": "scripts/build-og-index.mjs",
+   "worst": 2970,
+   "total": 3052,
+   "fns": 6
   }
  ],
  "files": [
@@ -668,10 +668,10 @@
    "file": "functions/api/admin/_middleware.js",
    "category": "PRODUCT-CODE",
    "reason": "CF Pages Function (routed endpoint, middleware, or _-prefixed shared helper). Deployed on every push; defects ship directly to users.",
-   "present": false,
+   "present": true,
    "lines": 43,
-   "covered": 0,
-   "pct": 0
+   "covered": 43,
+   "pct": 100
   },
   {
    "file": "functions/api/admin/backlinks.js",
@@ -920,55 +920,55 @@
    "file": "functions/api/admin/glossary/abbreviations/[abbr].js",
    "category": "PRODUCT-CODE",
    "reason": "CF Pages Function (routed endpoint, middleware, or _-prefixed shared helper). Deployed on every push; defects ship directly to users.",
-   "present": false,
+   "present": true,
    "lines": 180,
-   "covered": 0,
-   "pct": 0
+   "covered": 180,
+   "pct": 100
   },
   {
    "file": "functions/api/admin/glossary/abbreviations/index.js",
    "category": "PRODUCT-CODE",
    "reason": "CF Pages Function (routed endpoint, middleware, or _-prefixed shared helper). Deployed on every push; defects ship directly to users.",
-   "present": false,
+   "present": true,
    "lines": 116,
-   "covered": 0,
-   "pct": 0
+   "covered": 116,
+   "pct": 100
   },
   {
    "file": "functions/api/admin/glossary/refs/[refnum].js",
    "category": "PRODUCT-CODE",
    "reason": "CF Pages Function (routed endpoint, middleware, or _-prefixed shared helper). Deployed on every push; defects ship directly to users.",
-   "present": false,
+   "present": true,
    "lines": 194,
-   "covered": 0,
-   "pct": 0
+   "covered": 194,
+   "pct": 100
   },
   {
    "file": "functions/api/admin/glossary/refs/index.js",
    "category": "PRODUCT-CODE",
    "reason": "CF Pages Function (routed endpoint, middleware, or _-prefixed shared helper). Deployed on every push; defects ship directly to users.",
-   "present": false,
+   "present": true,
    "lines": 119,
-   "covered": 0,
-   "pct": 0
+   "covered": 119,
+   "pct": 100
   },
   {
    "file": "functions/api/admin/glossary/terms/[id].js",
    "category": "PRODUCT-CODE",
    "reason": "CF Pages Function (routed endpoint, middleware, or _-prefixed shared helper). Deployed on every push; defects ship directly to users.",
-   "present": false,
+   "present": true,
    "lines": 230,
-   "covered": 0,
-   "pct": 0
+   "covered": 230,
+   "pct": 100
   },
   {
    "file": "functions/api/admin/glossary/terms/index.js",
    "category": "PRODUCT-CODE",
    "reason": "CF Pages Function (routed endpoint, middleware, or _-prefixed shared helper). Deployed on every push; defects ship directly to users.",
-   "present": false,
+   "present": true,
    "lines": 164,
-   "covered": 0,
-   "pct": 0
+   "covered": 164,
+   "pct": 100
   },
   {
    "file": "functions/api/admin/membership-report.js",
@@ -1138,8 +1138,8 @@
    "reason": "CF Pages Function (routed endpoint, middleware, or _-prefixed shared helper). Deployed on every push; defects ship directly to users.",
    "present": true,
    "lines": 585,
-   "covered": 478,
-   "pct": 81.7
+   "covered": 481,
+   "pct": 82.22
   },
   {
    "file": "functions/api/auth/change-password.js",
@@ -3333,7 +3333,7 @@
    "category": "PRODUCT-CODE",
    "reason": "The quality instrument itself (coverage/CRAP/mutation/census). A measurement tool that is wrong is worse than no tool; its pure logic is unit-testable.",
    "present": false,
-   "lines": 268,
+   "lines": 298,
    "covered": 0,
    "pct": 0
   },
