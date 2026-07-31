@@ -6,7 +6,8 @@
 //   2. UPDATE glossary_abbreviation SET term_slug = <new> WHERE term_slug = <old>
 //   3. UPDATE glossary_term.body_html anywhere it cross-references the old slug
 //      (`href="#<old>"`, `href="/glossary/<old>/"`, `href="/glossary/<old>"`)
-//   4. UPDATE posts.content / faq.answer / course_step.content_md likewise
+//   4. UPDATE posts.content, the three faq answer columns (basic_answer,
+//      schema_answer, published_answer) and course_step.content_md likewise
 //   5. Emit router redirect lines to add to rrm-router/src/index.js REDIRECTS
 //
 // Modes:
@@ -53,6 +54,14 @@ const RENAMES = [
   { old: 'nk-cells',                    new: 'natural-killer-cells' },
   { old: 'restorative-as-a-principle',  new: 'restorative-principle' },
 ];
+
+/**
+ * The faq table stores its answer in three columns, not one. schema.sql:
+ *   basic_answer TEXT, schema_answer TEXT, published_answer TEXT
+ * A slug rewrite has to touch every one of them, because any can hold the link
+ * and which one is populated varies by FAQ.
+ */
+const FAQ_ANSWER_COLUMNS = ['basic_answer', 'schema_answer', 'published_answer'];
 
 const args = process.argv.slice(2);
 const APPLY = args.includes('--apply');
@@ -113,9 +122,19 @@ function findCrossRefs() {
       }
     }
 
-    // faq.answer
+    // faq answers. There is no `faq.answer` column and never has been: the
+    // answer is stored in THREE columns (basic_answer / schema_answer /
+    // published_answer, see schema.sql). The old single-column query threw
+    // "no such column: answer" on every rename, was swallowed by the catch
+    // below as a WARN, and left faqs = [] -- so no FAQ cross-reference has
+    // ever been rewritten by this script. All three are scanned because any of
+    // them can hold a link; on 2026-07-31 only published_answer did (5 rows).
+    // The three column names are written out LITERALLY rather than joined from
+    // FAQ_ANSWER_COLUMNS so that a static SQL checker can see them and prove
+    // they exist. Behind an interpolation they would be invisible, which is
+    // how this bug survived.
     try {
-      const fq = d1Query('rrm-auth', `SELECT id, slug FROM faq WHERE answer LIKE '%/glossary/${r.old}/%' OR answer LIKE '%/glossary/${r.old}"%'`);
+      const fq = d1Query('rrm-auth', `SELECT id, slug FROM faq WHERE basic_answer LIKE '%/glossary/${r.old}/%' OR basic_answer LIKE '%/glossary/${r.old}"%' OR schema_answer LIKE '%/glossary/${r.old}/%' OR schema_answer LIKE '%/glossary/${r.old}"%' OR published_answer LIKE '%/glossary/${r.old}/%' OR published_answer LIKE '%/glossary/${r.old}"%'`);
       found[r.old].faqs = fq;
     } catch (e) {
       const msg = (e?.message || '').toLowerCase();
@@ -188,12 +207,15 @@ function buildPlan(crossRefs) {
       });
     }
 
-    // 5. faq cross-refs
+    // 5. faq cross-refs. Rewrites all three answer columns in one statement.
+    //    REPLACE(NULL, ...) is NULL, so a variant that is not populated stays
+    //    NULL rather than becoming an empty string. Column names literal, for
+    //    the same reason as the scan above: a checker has to be able to see them.
     for (const f of crossRefs[r.old].faqs) {
       plan.d1_updates.push({
         db: 'rrm-auth',
-        label: `faq[${f.slug}].answer: replace /glossary/${r.old}/ -> ${r.new}`,
-        sql: `UPDATE faq SET answer = REPLACE(REPLACE(answer, '/glossary/${r.old}/', '/glossary/${r.new}/'), '/glossary/${r.old}"', '/glossary/${r.new}"'), updated_at = datetime('now') WHERE id = '${f.id}'`,
+        label: `faq[${f.slug}] ${FAQ_ANSWER_COLUMNS.join('/')}: replace /glossary/${r.old}/ -> ${r.new}`,
+        sql: `UPDATE faq SET basic_answer = REPLACE(REPLACE(basic_answer, '/glossary/${r.old}/', '/glossary/${r.new}/'), '/glossary/${r.old}"', '/glossary/${r.new}"'), schema_answer = REPLACE(REPLACE(schema_answer, '/glossary/${r.old}/', '/glossary/${r.new}/'), '/glossary/${r.old}"', '/glossary/${r.new}"'), published_answer = REPLACE(REPLACE(published_answer, '/glossary/${r.old}/', '/glossary/${r.new}/'), '/glossary/${r.old}"', '/glossary/${r.new}"'), updated_at = datetime('now') WHERE id = '${f.id}'`,
       });
     }
 
