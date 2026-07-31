@@ -84,6 +84,8 @@
     "gates:courses:check": "node scripts/gates/validate-courses-schema.mjs --quick",
     "gates:sql": "node scripts/gates/validate-sql-columns.mjs",
     "gates:sql:check": "node scripts/gates/validate-sql-columns.mjs --quick",
+    "gates:schema-drift": "node scripts/gates/validate-schema-drift.mjs",
+    "gates:schema-drift:check": "node scripts/gates/validate-schema-drift.mjs --quick",
     "gates:removed-ids": "node scripts/gates/check-removed-ids.mjs",
     "gates:share": "node scripts/gates/validate-share-button.mjs",
     "gates:email-verify": "node scripts/gates/validate-email-verification.mjs",

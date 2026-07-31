@@ -536,6 +536,27 @@ jobs:
         # reference guard below it had never run. Static, in-memory, no network.
         run: npm run gates:sql
 
+      - name: Validate schema.sql drift gates (always)
+        # SD1-SD3. The gate above is only as current as the files it composes,
+        # and cannot see that its own definition of truth is wrong. This one
+        # compares that composed mirror against LIVE rrm-auth in both
+        # directions.
+        # SD2 stale-PRESENT (mirror has it, live does not) FAILS: a statement
+        # against such a table PREPAREs clean, passes gates:sql, and throws in
+        # production. retrieval_docs / retrieval_state were exactly that until
+        # 2026-07-31; they are rrm-library tables.
+        # SD3 stale-ABSENT (live has it, the mirror does not) WARNS and names
+        # the object: it cannot produce a false pass anywhere, and failing on it
+        # would redden every unrelated PR over a bookkeeping lag. Born from
+        # email_log.ses_message_id, where a stale DRAFT/HELD migration header
+        # led an agent to "fix" a production outage that was not happening.
+        # A D1 query/auth failure WARN-skips (never fails), as does an
+        # implausibly small live read, so this cannot block or flake.
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+        run: npm run gates:schema-drift
+
       - name: Validate share button gates (always)
         # SB1-SB4 static gates: navigator.share primary branch, .catch() on
         # writeText, aria-label="Share", .action-label visible in .copied state.
