@@ -454,8 +454,58 @@ const OUT = resolve(ROOT, 'scripts', 'quality', 'coverage-census.json');
  * 0-18%. The floor is a ratchet on the aggregate, not evidence that any
  * particular surface is tested. Read the per-product view
  * (tools/coverage-portfolio/status.mjs) before concluding a product is covered.
+ *
+ * 36.6 2026-07-31  RAISED on the tranche-5 ONLINE-COURSE-PLATFORM lane
+ *                   quality/coverage-t5-admin-crud: the course create / read /
+ *                   update / delete surface. All three files to 100% lines,
+ *                   branches and functions -- functions/api/admin/courses/[id].js
+ *                   (453 lines, the largest never-executed file in this
+ *                   product), functions/api/admin/courses/index.js (277, also
+ *                   ABSENT from the report rather than at zero) and their
+ *                   shared helper _shared.js (47, 38.29%).
+ *
+ *                   Measured 36.65% (22001/60031) on this branch in a clean
+ *                   checkout with the gitignored src/data/*.json absent, the
+ *                   way CI measures, up from 35.41% (21237/59976) on the same
+ *                   checkout before the drive. Rounded DOWN on the one-decimal
+ *                   scale that is 36.6; 36.7 was verified RED (exit 1) and 36.6
+ *                   GREEN (exit 0) on this branch.
+ *
+ *                   The denominator moved by +55, and none of it is a
+ *                   reclassification: +5 for the comment recording the delete
+ *                   defect below, +50 for THIS comment block, which is in the
+ *                   denominator it reports. Before this block was written the
+ *                   same tree measured 36.68% (22001/59981). Nothing was moved
+ *                   out of PRODUCT-CODE by this lane.
+ *
+ *                   THIS IS A BRANCH FLOOR. Per the tranche-4 and tranche-5
+ *                   entries above, sibling lanes measure their own surfaces
+ *                   against the same denominator, so taking the max at merge
+ *                   would under-arm the ratchet. Re-measure on merged main and
+ *                   arm that number.
+ *
+ *                   TWO THINGS THIS LANE HAD TO CORRECT BEFORE IT COULD
+ *                   MEASURE ANYTHING, both recorded because a coverage number
+ *                   that required an undocumented edit is not reproducible:
+ *                     1. DELETE /api/admin/courses/[id] probed the reference
+ *                        guard with `SELECT id FROM step_progress`. That table
+ *                        has no `id` column, so the statement was rejected, the
+ *                        enclosing Promise.all rejected with it, and every
+ *                        course delete answered 500 -- in production, not only
+ *                        in tests. One-line fix, plus a regression pin that
+ *                        asserts both halves (a clean course deletes, a course
+ *                        with progress is refused 409).
+ *                     2. course.topics_json was added to live rrm-auth on
+ *                        2026-07-01 by a hand-run ALTER with no migration file,
+ *                        so test/_d1-sqlite.mjs built a course table without it
+ *                        and the create endpoint's INSERT could not run at all.
+ *                        The ALTER is now written down as
+ *                        scripts/migrations/2026-07-01-course-topics-json.sql
+ *                        and replayed, which is the case
+ *                        test/schema-migration-replay.test.mjs documents itself
+ *                        as unable to catch.
  */
-const ARMED_FLOOR_PCT = 35.4;
+const ARMED_FLOOR_PCT = 36.6;
 
 const argv = process.argv.slice(2);
 const covDirIdx = argv.indexOf('--coverage-dir');
