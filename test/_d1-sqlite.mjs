@@ -113,7 +113,7 @@ export const MIGRATIONS_NOT_REPLAYED = {
   '2026-06-13-quiz-result.sql':
     'Targets the rrm-survey database (binding SURVEY_DB), not rrm-auth. Loaded separately by test/_survey-sqlite.mjs, which builds the SURVEY_DB harness from these files.',
   '2026-06-26-survey-symptoms.sql':
-    'Targets the rrm-survey-symptoms database (binding SURVEY_SYMPTOMS_DB), not rrm-auth.',
+    'Targets the rrm-survey-symptoms database (binding SURVEY_SYMPTOMS_DB), not rrm-auth. Loaded separately by test/_survey-sqlite.mjs symptomsD1(), which builds the SURVEY_SYMPTOMS_DB harness from this file.',
   '2026-07-02-quiz-events-and-rules-version.sql':
     'Targets the rrm-survey database (binding SURVEY_DB), not rrm-auth. Loaded by test/_survey-sqlite.mjs alongside the quiz_result migration.',
   'ai-search-docs.sql':

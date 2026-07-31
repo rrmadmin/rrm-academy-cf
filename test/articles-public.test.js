@@ -1,0 +1,864 @@
+/**
+ * functions/api/articles.js -- the public, unauthenticated library list API,
+ * plus functions/api/_map-article.js, the shared row-to-payload mapper it and
+ * /api/articles/bulk both render through.
+ *
+ * There is no D1 on this path: the endpoint is a proxy over rrm-library-worker,
+ * so the harness that matters here is a fetch stub, not a database. What the
+ * stub is used to pin is the arithmetic the endpoint does to the upstream
+ * answer, which is where the bugs live:
+ *   - offset = (page - 1) * limit, and the page/limit range gate around it;
+ *   - the opaque cursor, which is a base64url-encoded OFFSET and round-trips
+ *     through the same endpoint;
+ *   - `total`, which is upstream's number only when upstream gives a positive
+ *     one and is otherwise ESTIMATED from offset + page size + has_more;
+ *   - nextCursor, which must be null on the last page.
+ *
+ * The last one is the reason this file has a whole describe block for it. A
+ * FULL final page is the only shape that separates a correct end-of-walk from a
+ * wrong one: a partial page ends the walk under any implementation, so a test
+ * that only ever looks at partial pages proves nothing. The exact-multiple case
+ * (total 50, limit 25, page 2) is asserted directly, in both the
+ * upstream-total and the estimated-total shapes.
+ *
+ * WHAT IS STILL FAKED
+ *  - rrm-library-worker. Every upstream body here is one this test wrote, so
+ *    nothing about the worker's real contract is proven -- only what this
+ *    endpoint does with a body of that shape.
+ *  - KV is the in-memory stub from _helpers.js, so the rate limiter's bucket is
+ *    per-test and never crosses isolates the way the real one does.
+ */
+import { describe, it, afterEach } from 'node:test';
+import assert from 'node:assert/strict';
+import { mockRequest, mockEnv, mockKV, mockWaitUntil, parseResponse } from './_helpers.js';
+import { onRequestGet, onRequestOptions } from '../functions/api/articles.js';
+import { mapArticle } from '../functions/api/_map-article.js';
+
+const TOKEN = 'test-library-build-token';
+const BASE = 'https://rrmacademy.org/api/articles';
+const WORKER_HOST = 'rrm-library-worker.administrator-cloudflare.workers.dev';
+
+function recorder() {
+  const points = [];
+  return { points, writeDataPoint(p) { points.push(p); } };
+}
+
+const ipSeq = (() => { let n = 0; return () => `10.0.${Math.floor(n / 250) % 250}.${(n++ % 250) + 1}`; })();
+
+/**
+ * Replaces globalThis.fetch with a recorder over the one host this endpoint
+ * talks to. `handler` receives the parsed upstream URL so a test can answer
+ * differently per offset; returning a real Response keeps `resp.ok` and
+ * `resp.json()` behaving the way the endpoint expects.
+ */
+let activeStub = null;
+function stubWorker(handler) {
+  const original = globalThis.fetch;
+  const calls = [];
+  globalThis.fetch = async (input, init) => {
+    const url = String(input);
+    const parsed = new URL(url);
+    if (parsed.host !== WORKER_HOST) throw new Error(`unexpected host: ${parsed.host}`);
+    const call = {
+      url,
+      init,
+      path: parsed.pathname,
+      offset: parsed.searchParams.get('offset'),
+      limit: parsed.searchParams.get('limit'),
+      auth: init?.headers?.Authorization ?? null,
+    };
+    calls.push(call);
+    return handler(call);
+  };
+  activeStub = { calls, restore() { globalThis.fetch = original; } };
+  return activeStub;
+}
+
+afterEach(() => { if (activeStub) { activeStub.restore(); activeStub = null; } });
+
+/** A worker response whose body is exactly `body`, at HTTP `status`. */
+const workerJson = (body, status = 200) =>
+  new Response(JSON.stringify(body), { status, headers: { 'content-type': 'application/json' } });
+
+/** N distinct upstream article rows, ids offset-<i>. */
+function rows(n, from = 0) {
+  return Array.from({ length: n }, (_, i) => ({
+    id: `rec${from + i}`,
+    slug: `slug-${from + i}`,
+    title: `Title ${from + i}`,
+    authors: 'Whittaker N',
+    year: 2026,
+    journal: 'JRRM',
+    doi: `10.1/${from + i}`,
+    pmid: `${1000 + from + i}`,
+    abstract: 'abstract',
+    topics: ['endometriosis'],
+    isOpenAccess: true,
+    dateAddedToLibrary: '2026-03-04T05:06:07.000Z',
+  }));
+}
+
+function call({ url = BASE, method = 'GET', ip = ipSeq(), token = TOKEN, kv, events } = {}) {
+  const env = mockEnv({
+    LIBRARY_BUILD_TOKEN: token,
+    COMMUNITY_KV: kv === null ? undefined : (kv ?? mockKV()),
+    EVENTS: events ?? recorder(),
+  });
+  return onRequestGet({
+    request: mockRequest(method, { url, headers: ip === null ? {} : { 'cf-connecting-ip': ip } }),
+    env,
+    waitUntil: mockWaitUntil(),
+  });
+}
+
+/** Shorthand: run one request against a fixed upstream body. */
+async function against(body, opts = {}, status = 200) {
+  const stub = stubWorker(() => workerJson(body, status));
+  const res = await call(opts);
+  return { ...(await parseResponse(res)), stub };
+}
+
+// ----------------------------------------------------------------- preflight --
+
+describe('GET /api/articles -- method and preflight', () => {
+  it('OPTIONS is 204 and advertises the locked-down public CORS origin', async () => {
+    const res = onRequestOptions();
+    assert.equal(res.status, 204);
+    assert.equal(res.headers.get('Access-Control-Allow-Origin'), 'https://rrmacademy.org');
+    assert.equal(res.headers.get('Access-Control-Allow-Methods'), 'GET, OPTIONS');
+    assert.equal(await res.text(), '');
+  });
+
+  it('405s a non-GET method before any rate-limit or upstream work', async () => {
+    const stub = stubWorker(() => { throw new Error('upstream must not be called'); });
+    const { status, headers } = await parseResponse(await call({ method: 'POST' }));
+    assert.equal(status, 405);
+    assert.equal(headers.allow, 'GET');
+    assert.equal(headers['access-control-allow-origin'], 'https://rrmacademy.org');
+    assert.equal(stub.calls.length, 0);
+  });
+});
+
+// ------------------------------------------------------------------- gating --
+
+describe('GET /api/articles -- gating', () => {
+  it('503s when cf-connecting-ip is absent (the rate limiter has nothing to key on)', async () => {
+    const events = recorder();
+    const stub = stubWorker(() => { throw new Error('upstream must not be called'); });
+    const { status, body } = await parseResponse(await call({ ip: null, events }));
+    assert.equal(status, 503);
+    assert.equal(body.error, 'service_unavailable');
+    assert.equal(stub.calls.length, 0);
+    assert.ok(events.points.some((p) => p.blobs[2] === 'missing_ip'));
+  });
+
+  it('429s once the 30/min budget for that IP is spent, and says so in RateLimit-Remaining', async () => {
+    const ip = ipSeq();
+    const kv = mockKV();
+    await kv.put(`rl:art:${ip}`, JSON.stringify({ count: 30, start: Math.floor(Date.now() / 1000) }));
+    const stub = stubWorker(() => { throw new Error('upstream must not be called'); });
+
+    const { status, body, headers } = await parseResponse(await call({ ip, kv }));
+    assert.equal(status, 429);
+    assert.equal(body.error, 'rate_limited');
+    assert.equal(headers['ratelimit-limit'], '30');
+    assert.equal(headers['ratelimit-remaining'], '0');
+    assert.equal(stub.calls.length, 0);
+  });
+
+  it('lets the 30th request through and rejects the 31st', async () => {
+    const ip = ipSeq();
+    const kv = mockKV();
+    await kv.put(`rl:art:${ip}`, JSON.stringify({ count: 29, start: Math.floor(Date.now() / 1000) }));
+    stubWorker(() => workerJson({ results: [], has_more: false }));
+
+    assert.equal((await parseResponse(await call({ ip, kv }))).status, 200, '30th request must be allowed');
+    assert.equal((await parseResponse(await call({ ip, kv }))).status, 429, '31st must be refused');
+  });
+
+  it('fails CLOSED with 429 when the KV binding is missing entirely', async () => {
+    const stub = stubWorker(() => { throw new Error('upstream must not be called'); });
+    const { status, body, headers } = await parseResponse(await call({ kv: null }));
+    assert.equal(status, 429);
+    assert.equal(body.error, 'rate_limited');
+    assert.equal(headers['ratelimit-limit'], undefined, 'no bucket to report when KV is gone');
+    assert.equal(stub.calls.length, 0);
+  });
+
+  it('503s when LIBRARY_BUILD_TOKEN is unset -- never calls upstream unauthenticated', async () => {
+    const events = recorder();
+    const stub = stubWorker(() => { throw new Error('upstream must not be called'); });
+    const { status, body } = await parseResponse(await call({ token: null, events }));
+    assert.equal(status, 503);
+    assert.equal(body.error, 'service_unavailable');
+    assert.equal(stub.calls.length, 0);
+    assert.ok(events.points.some((p) => p.blobs[2] === 'missing_token'));
+  });
+
+  it('sends the build token as a Bearer header upstream', async () => {
+    const { stub } = await against({ results: [], has_more: false });
+    assert.equal(stub.calls[0].auth, `Bearer ${TOKEN}`);
+  });
+});
+
+// --------------------------------------------------------------- pagination --
+
+describe('GET /api/articles -- page/limit pagination', () => {
+  it('DEFAULTS to page 1, limit 25 when neither param is supplied', async () => {
+    const { status, body, stub } = await against({ results: rows(25), total: 400, has_more: true });
+    assert.equal(status, 200);
+    assert.equal(stub.calls[0].limit, '25');
+    assert.equal(stub.calls[0].offset, '0');
+    assert.equal(body.page, 1);
+    assert.equal(body.limit, 25);
+  });
+
+  it('translates page+limit into the upstream offset', async () => {
+    const { body, stub } = await against(
+      { results: rows(10, 30), total: 400, has_more: true },
+      { url: `${BASE}?page=4&limit=10` }
+    );
+    assert.equal(stub.calls[0].offset, '30');
+    assert.equal(stub.calls[0].limit, '10');
+    assert.equal(body.page, 4);
+    assert.equal(body.limit, 10);
+  });
+
+  it('accepts the extreme ends of both ranges (page 1..350, limit 1..50)', async () => {
+    for (const [url, offset, limit] of [
+      [`${BASE}?page=1&limit=1`, '0', '1'],
+      [`${BASE}?page=350&limit=50`, '17450', '50'],
+      [`${BASE}?page=1&limit=50`, '0', '50'],
+      [`${BASE}?page=350&limit=1`, '349', '1'],
+    ]) {
+      const { status, stub } = await against({ results: [], has_more: false }, { url });
+      assert.equal(status, 200, url);
+      assert.equal(stub.calls[0].offset, offset, url);
+      assert.equal(stub.calls[0].limit, limit, url);
+      activeStub.restore(); activeStub = null;
+    }
+  });
+
+  const bad = [
+    ['page 0', `${BASE}?page=0`],
+    ['page 351 (one past the cap)', `${BASE}?page=351`],
+    ['limit 0', `${BASE}?limit=0`],
+    ['limit 51 (one past the cap)', `${BASE}?limit=51`],
+    ['a negative page', `${BASE}?page=-1`],
+    ['a non-numeric page', `${BASE}?page=abc`],
+    ['a non-numeric limit', `${BASE}?limit=lots`],
+    ['a fractional limit', `${BASE}?limit=2.5`],
+    ['an empty page value', `${BASE}?page=`],
+    ['a whitespace page value', `${BASE}?page=%20`],
+    ['Infinity', `${BASE}?limit=Infinity`],
+    ['NaN', `${BASE}?page=NaN`],
+  ];
+  for (const [label, url] of bad) {
+    it(`400s invalid_pagination on ${label}, without calling upstream`, async () => {
+      const stub = stubWorker(() => { throw new Error('upstream must not be called'); });
+      const { status, body } = await parseResponse(await call({ url }));
+      assert.equal(status, 400);
+      assert.equal(body.error, 'invalid_pagination');
+      assert.equal(stub.calls.length, 0);
+    });
+  }
+
+  // Validation is `Number()` + `Number.isInteger()`, not a decimal-digit regex,
+  // so every numeric literal form JavaScript understands is accepted. This is
+  // pinned rather than asserted-against because it is the CURRENT contract: the
+  // resulting page is in range and the offset is computed correctly, so the only
+  // consequence is that one page of results is addressable at several distinct
+  // URLs. Tightening it to /^\d+$/ would be a deliberate change, and this test
+  // is what would tell you that you made it.
+  for (const [label, value, expectedOffset] of [
+    ['hexadecimal', '0x10', '375'],
+    ['exponential', '1e2', '2475'],
+    ['binary', '0b10', '25'],
+    ['a leading plus', '+3', '50'],
+    ['leading whitespace', '%093', '50'],
+  ]) {
+    it(`accepts a ${label} page value and computes its offset from the parsed number`, async () => {
+      const { status, stub } = await against({ results: [], has_more: false }, { url: `${BASE}?page=${value}` });
+      assert.equal(status, 200, `page=${value}`);
+      assert.equal(stub.calls[0].offset, expectedOffset, `page=${value}`);
+    });
+  }
+});
+
+// ------------------------------------------------------------------- cursor --
+
+describe('GET /api/articles -- opaque cursor', () => {
+  it('round-trips: the nextCursor of page 1 fetches exactly the next offset', async () => {
+    const first = await against({ results: rows(25), total: 100, has_more: true });
+    assert.ok(first.body.nextCursor, 'a full page with more upstream must emit a cursor');
+    activeStub.restore(); activeStub = null;
+
+    const second = await against(
+      { results: rows(25, 25), total: 100, has_more: true },
+      { url: `${BASE}?cursor=${encodeURIComponent(first.body.nextCursor)}` }
+    );
+    assert.equal(second.stub.calls[0].offset, '25');
+    assert.equal(second.stub.calls[0].limit, '25');
+    assert.equal(second.body.page, 2, 'page is derived from the encoded offset');
+    assert.equal(second.body.limit, 25);
+  });
+
+  it('carries a non-default limit through the cursor', async () => {
+    const first = await against({ results: rows(10), total: 100, has_more: true }, { url: `${BASE}?limit=10` });
+    activeStub.restore(); activeStub = null;
+    const second = await against(
+      { results: rows(10, 10), total: 100, has_more: true },
+      { url: `${BASE}?cursor=${encodeURIComponent(first.body.nextCursor)}` }
+    );
+    assert.equal(second.stub.calls[0].limit, '10');
+    assert.equal(second.stub.calls[0].offset, '10');
+    assert.equal(second.body.page, 2);
+  });
+
+  it('the cursor is base64url -- no +, / or = ever reaches the query string', async () => {
+    const { body } = await against({ results: rows(25), total: 100, has_more: true });
+    assert.match(body.nextCursor, /^[A-Za-z0-9_-]+$/);
+  });
+
+  it('a cursor overrides page/limit rather than being merged with them', async () => {
+    const first = await against({ results: rows(25), total: 100, has_more: true });
+    activeStub.restore(); activeStub = null;
+    const second = await against(
+      { results: rows(25, 25), total: 100, has_more: true },
+      { url: `${BASE}?page=9&limit=50&cursor=${encodeURIComponent(first.body.nextCursor)}` }
+    );
+    assert.equal(second.stub.calls[0].offset, '25');
+    assert.equal(second.stub.calls[0].limit, '25');
+  });
+
+  const b64url = (obj) => Buffer.from(JSON.stringify(obj)).toString('base64')
+    .replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+
+  const unb64url = (cursor) => JSON.parse(Buffer.from(cursor, 'base64url').toString('utf8'));
+
+  /**
+   * A cursor that is VALID in every respect EXCEPT length: it decodes to a real
+   * integer {o, l} pair, and an extra `pad` key (which decodeCursor ignores)
+   * stretches the encoded string to exactly `targetLen` characters.
+   *
+   * Unpadded base64url cannot produce a length where len % 4 === 1, so the two
+   * achievable lengths straddling the 128-character cap are 128 and 130.
+   */
+  function cursorOfLength(targetLen, o = 100, l = 25) {
+    for (let pad = 0; pad <= targetLen; pad += 1) {
+      const c = b64url({ o, l, pad: 'x'.repeat(pad) });
+      if (c.length === targetLen) return c;
+      if (c.length > targetLen) break;
+    }
+    throw new Error(`no base64url cursor of length ${targetLen} exists`);
+  }
+
+  const badCursors = [
+    ['an empty cursor', ''],
+    // NOT a length-cap fixture, despite reading like one. For a whitespace-free
+    // string, 129 % 4 === 1 is an impossible base64 length, so atob() throws and
+    // decodeCursor returns null from its catch WITHOUT ever reaching
+    // `cursor.length > 128`. Delete the cap and this string still 400s. The
+    // three tests below the loop are what actually pin the cap.
+    ['a 129-char run of "a", which atob rejects before the length cap is reached', 'a'.repeat(129)],
+    ['a cursor that is not valid base64', '!!!not-base64!!!'],
+    ['base64 that is not JSON', Buffer.from('plain text').toString('base64url')],
+    ['JSON that is not an object', Buffer.from('null').toString('base64url')],
+    ['a missing offset', b64url({ l: 25 })],
+    ['a missing limit', b64url({ o: 0 })],
+    ['a fractional offset', b64url({ o: 1.5, l: 25 })],
+    ['a fractional limit', b64url({ o: 0, l: 25.5 })],
+    ['a string offset', b64url({ o: '0', l: 25 })],
+    ['a negative offset', b64url({ o: -1, l: 25 })],
+    ['an offset past the 17500 ceiling', b64url({ o: 17501, l: 25 })],
+    ['limit 0', b64url({ o: 0, l: 0 })],
+    ['limit 51', b64url({ o: 0, l: 51 })],
+  ];
+  for (const [label, cursor] of badCursors) {
+    it(`400s invalid_cursor on ${label}, without calling upstream`, async () => {
+      const stub = stubWorker(() => { throw new Error('upstream must not be called'); });
+      const { status, body } = await parseResponse(await call({ url: `${BASE}?cursor=${encodeURIComponent(cursor)}` }));
+      assert.equal(status, 400, label);
+      assert.equal(body.error, 'invalid_cursor', label);
+      assert.equal(stub.calls.length, 0, label);
+    });
+  }
+
+  // --- the 128-character cap, pinned with cursors that are otherwise valid ---
+  //
+  // Every fixture in badCursors above is rejected by base64 or JSON decoding
+  // BEFORE the length check runs, so none of them can tell a present cap from
+  // an absent one. These two can: both decode cleanly to {o: 100, l: 25}, so
+  // length is the ONLY thing separating the accepted one from the rejected one.
+
+  it('ACCEPTS a structurally valid cursor of exactly 128 characters, the longest allowed', async () => {
+    const cursor = cursorOfLength(128);
+    assert.equal(cursor.length, 128, 'fixture must sit exactly ON the cap');
+    const { status, body, stub } = await against(
+      { results: rows(25, 100), total: 400, has_more: true },
+      { url: `${BASE}?cursor=${encodeURIComponent(cursor)}` }
+    );
+    assert.equal(status, 200, 'the cap is > 128, not >= 128');
+    assert.equal(stub.calls[0].offset, '100', 'a 128-char cursor is decoded and honoured');
+    assert.equal(stub.calls[0].limit, '25');
+    assert.equal(body.page, 5);
+  });
+
+  it('400s a structurally valid cursor one base64url step PAST 128 characters', async () => {
+    const cursor = cursorOfLength(130);
+    assert.equal(cursor.length, 130, 'fixture must sit just over the cap');
+    // Prove the fixture is not vacuous: it survives base64 and JSON decoding
+    // and yields integer o/l, so the length cap is the only gate left to fail.
+    assert.deepEqual(
+      { o: unb64url(cursor).o, l: unb64url(cursor).l },
+      { o: 100, l: 25 },
+      'a 130-char cursor decodes to a VALID offset/limit -- only its length is wrong'
+    );
+
+    const stub = stubWorker(() => { throw new Error('upstream must not be called'); });
+    const { status, body } = await parseResponse(await call({ url: `${BASE}?cursor=${encodeURIComponent(cursor)}` }));
+    assert.equal(status, 400);
+    assert.equal(body.error, 'invalid_cursor');
+    assert.equal(stub.calls.length, 0, 'an over-long cursor is refused before any upstream work');
+  });
+
+  // The cap is measured on the RAW string, and it has to be. atob() strips
+  // ASCII whitespace before decoding, so 128 valid base64 characters plus one
+  // space is a 129-character string that still decodes to a usable {o, l}.
+  // That is the shape that smuggles length past a cap set one character too
+  // high, and it is the only fixture that separates `> 128` from `> 129`.
+  it('400s a 129-char cursor padded with whitespace that atob would otherwise strip', async () => {
+    const cursor = `${cursorOfLength(128)} `;
+    assert.equal(cursor.length, 129, 'raw length is 129');
+    const decoded = unb64url(cursor.trim());
+    assert.deepEqual({ o: decoded.o, l: decoded.l }, { o: 100, l: 25 },
+      'strip the space and it is a perfectly valid cursor -- length is the only defect');
+
+    const stub = stubWorker(() => { throw new Error('upstream must not be called'); });
+    const { status, body } = await parseResponse(await call({ url: `${BASE}?cursor=${encodeURIComponent(cursor)}` }));
+    assert.equal(status, 400);
+    assert.equal(body.error, 'invalid_cursor');
+    assert.equal(stub.calls.length, 0);
+  });
+
+  // The cursor is documented as base64URL, and every round-trip assertion in
+  // this file decodes it with a tolerant reader, so a cursor that quietly went
+  // back to plain base64 would still pass all of them. This pins the ALPHABET
+  // of the emitted string instead of only its meaning. `=` padding is the
+  // reachable half: JSON bodies of the form {"o":N,"l":M} land on a length that
+  // needs padding for most offsets, so dropping the strip changes what real
+  // callers are handed and puts a character in the cursor that has to be
+  // percent-encoded to survive a query string intact.
+  it('emits a URL-SAFE cursor: base64url alphabet only, no + / or = padding', async () => {
+    const { body } = await against({ results: rows(25), has_more: true });
+    assert.ok(body.nextCursor, 'a full page with has_more emits a cursor to inspect');
+    assert.match(
+      body.nextCursor, /^[A-Za-z0-9_-]+$/,
+      'base64url is [A-Za-z0-9_-] and NOTHING else -- no +, no /, no = padding'
+    );
+    // And it must still round-trip through the endpoint's own decoder.
+    assert.deepEqual(unb64url(body.nextCursor), { o: 25, l: 25 });
+  });
+
+  it('emits an unpadded cursor for a body length that plain base64 WOULD pad', async () => {
+    // {"o":25,"l":25} is 15 bytes; 15 % 3 === 0 pads nothing, so pick an offset
+    // whose JSON length actually forces padding under plain base64.
+    const { body } = await against(
+      { results: rows(1), has_more: true },
+      { url: `${BASE}?page=1&limit=1` }
+    );
+    const padded = btoa(JSON.stringify({ o: 1, l: 1 }));
+    assert.ok(padded.endsWith('='), 'fixture check: plain base64 of this body IS padded');
+    assert.equal(body.nextCursor, padded.replace(/=+$/, ''), 'the endpoint strips that padding');
+    assert.deepEqual(unb64url(body.nextCursor), { o: 1, l: 1 });
+  });
+
+  it('accepts the exact ceiling offset 17500, which page/limit alone cannot reach', async () => {
+    const { status, body, stub } = await against(
+      { results: rows(50, 17500), has_more: true },
+      { url: `${BASE}?cursor=${encodeURIComponent(b64url({ o: 17500, l: 50 }))}` }
+    );
+    assert.equal(status, 200);
+    assert.equal(stub.calls[0].offset, '17500');
+    assert.equal(body.page, 351, 'a cursor can address past the page-number cap');
+    assert.equal(body.nextCursor, null, 'but the walk stops at the 17500 ceiling');
+  });
+
+  // The test above pins the ceiling on the INPUT path (an offset of 17500 is
+  // accepted, and 17501 is not). This one pins the ceiling on the OUTPUT path,
+  // which is a separate comparison and needs no crafted cursor at all:
+  // page=350&limit=50 is the last addressable page, offset 17450, and a full
+  // page from there lands nextOffset exactly ON 17500. The bound is INCLUSIVE,
+  // so that last cursor must still be emitted.
+  it('EMITS a cursor when nextOffset lands exactly ON the 17500 ceiling (page 350, limit 50)', async () => {
+    const { status, body, stub } = await against(
+      { results: rows(50, 17450), total: 20000, has_more: true },
+      { url: `${BASE}?page=350&limit=50` }
+    );
+    assert.equal(status, 200);
+    assert.equal(stub.calls[0].offset, '17450');
+    assert.ok(body.nextCursor, 'nextOffset 17450 + 50 === 17500, and the ceiling is inclusive');
+    assert.deepEqual(unb64url(body.nextCursor), { o: 17500, l: 50 },
+      'the emitted cursor addresses the ceiling offset itself');
+  });
+
+  // The other side of the same bound. If the output ceiling were one higher
+  // than the input ceiling, the endpoint would hand out a cursor for offset
+  // 17501 that its own decode path then 400s -- a walk that dead-ends on an
+  // invalid_cursor. The invariant is that every cursor emitted is one this
+  // endpoint will accept back.
+  it('STOPS one offset past the ceiling: nextOffset 17501 emits no cursor', async () => {
+    const { status, body, stub } = await against(
+      { results: rows(1, 17500), total: 20000, has_more: true },
+      { url: `${BASE}?cursor=${encodeURIComponent(b64url({ o: 17500, l: 1 }))}` }
+    );
+    assert.equal(status, 200);
+    assert.equal(stub.calls[0].offset, '17500');
+    assert.equal(body.results.length, 1, 'a FULL page at limit 1 -- the shape a wrong bound gets wrong');
+    assert.equal(body.nextCursor, null, 'nextOffset 17501 is past the ceiling, so the walk ends');
+  });
+});
+
+// --------------------------------------------------------- has_more / total --
+
+describe('GET /api/articles -- end of walk', () => {
+  it('EXACT-MULTIPLE FINAL PAGE: a full last page with upstream total emits no nextCursor', async () => {
+    const { status, body } = await against(
+      { results: rows(25, 25), total: 50, has_more: false },
+      { url: `${BASE}?page=2&limit=25` }
+    );
+    assert.equal(status, 200);
+    assert.equal(body.results.length, 25, 'the page is FULL -- this is the shape a wrong has_more gets wrong');
+    assert.equal(body.total, 50);
+    assert.equal(body.total_pages, 2);
+    assert.equal(body.nextCursor, null, 'offset 25 + 25 rows == total 50, so the walk is over');
+  });
+
+  it('EXACT-MULTIPLE FINAL PAGE, estimated total: a full last page with has_more false also ends the walk', async () => {
+    const { body } = await against(
+      { results: rows(25, 25), has_more: false },
+      { url: `${BASE}?page=2&limit=25` }
+    );
+    assert.equal(body.results.length, 25);
+    assert.equal(body.total, 50, 'estimate = offset 25 + 25 rows + 0 (no has_more)');
+    assert.equal(body.nextCursor, null);
+  });
+
+  it('a full NON-final page still emits a cursor when upstream total says there is more', async () => {
+    const { body } = await against(
+      { results: rows(25), total: 50, has_more: false },
+      { url: `${BASE}?page=1&limit=25` }
+    );
+    assert.ok(body.nextCursor, 'offset 0 + 25 < total 50, so there is another page');
+  });
+
+  it('a full page with has_more true emits a cursor even when total is unknown', async () => {
+    const { body } = await against({ results: rows(25), has_more: true });
+    assert.equal(body.total, 50, 'estimate = 0 + 25 + one more page worth');
+    assert.ok(body.nextCursor);
+  });
+
+  it('a PARTIAL page always ends the walk, even if upstream claims has_more', async () => {
+    const { body } = await against(
+      { results: rows(7, 25), total: 999, has_more: true },
+      { url: `${BASE}?page=2&limit=25` }
+    );
+    assert.equal(body.nextCursor, null, 'a short page is the end regardless of what upstream says');
+  });
+
+  it('an empty result set reports total 0 but never total_pages 0', async () => {
+    const { status, body } = await against({ results: [], has_more: false }, { url: `${BASE}?page=9&limit=25` });
+    assert.equal(status, 200);
+    assert.deepEqual(body.results, []);
+    assert.equal(body.total, 200, 'estimate = offset 200 + 0 rows');
+    assert.equal(body.page, 9);
+    assert.equal(body.nextCursor, null);
+  });
+
+  it('total_pages floors at 1 when the corpus estimate is 0', async () => {
+    const { body } = await against({ results: [], has_more: false });
+    assert.equal(body.total, 0);
+    assert.equal(body.total_pages, 1, 'Math.ceil(0/25) is 0; the endpoint must report at least one page');
+  });
+
+  it('an upstream total of 0 is treated as unknown and re-estimated', async () => {
+    const { body } = await against(
+      { results: rows(25, 25), total: 0, has_more: true },
+      { url: `${BASE}?page=2&limit=25` }
+    );
+    assert.equal(body.total, 75, 'estimate = offset 25 + 25 rows + 25 for the promised next page');
+  });
+
+  it('a non-numeric upstream total is ignored in favour of the estimate', async () => {
+    const { body } = await against({ results: rows(25), total: 'many', has_more: false });
+    assert.equal(body.total, 25);
+  });
+
+  // Every other has_more fixture in this file sets the key explicitly, so
+  // `has_more === true` and `has_more !== false` cannot be told apart by any of
+  // them. An upstream that OMITS the key is the shape that separates them, and
+  // it is the shape a worker version skew actually produces. With the key
+  // absent the endpoint must fall back to the total comparison and end the
+  // walk; a truthiness test would instead hand out a cursor for an offset the
+  // corpus does not have, so the walk never terminates.
+  it('OMITTED has_more is not a promise of more: a full final page still ends the walk', async () => {
+    const { status, body } = await against(
+      { results: rows(25, 25), total: 50 },
+      { url: `${BASE}?page=2&limit=25` }
+    );
+    assert.equal(status, 200);
+    assert.equal(body.results.length, 25, 'the page is FULL, so only has_more/total can end the walk');
+    assert.equal(body.total, 50);
+    assert.equal(
+      body.nextCursor, null,
+      'has_more is ABSENT, not true -- offset 25 + 25 rows == total 50, so the walk is over'
+    );
+  });
+
+  // The other half of `=== true`. An omitted key is falsy under any form of the
+  // check, so it cannot separate `=== true` from a plain truthiness test. A
+  // TRUTHY NON-BOOLEAN can, and it is the shape a SQLite-backed worker emits
+  // when a 0/1 column is serialised without coercion. The endpoint must treat
+  // it as "upstream did not say true" and fall back to the total comparison.
+  it('a TRUTHY NON-BOOLEAN has_more is not true: only a real boolean promises another page', async () => {
+    const { body } = await against(
+      { results: rows(25, 25), total: 50, has_more: 1 },
+      { url: `${BASE}?page=2&limit=25` }
+    );
+    assert.equal(body.results.length, 25, 'the page is FULL, so has_more is the deciding input');
+    assert.equal(body.total, 50);
+    assert.equal(
+      body.nextCursor, null,
+      'has_more is 1, not true -- the check is === true, so the total comparison decides and ends the walk'
+    );
+  });
+
+  // The mirror of the case above: an absent has_more must not SUPPRESS a cursor
+  // either. The fallback is `nextOffset < total`, and that is what has to carry
+  // the decision when upstream says nothing.
+  it('OMITTED has_more still emits a cursor while the upstream total says there is more', async () => {
+    const { body } = await against(
+      { results: rows(25), total: 200 },
+      { url: `${BASE}?page=1&limit=25` }
+    );
+    assert.ok(body.nextCursor, 'offset 0 + 25 < total 200, so the walk continues');
+    assert.deepEqual(
+      JSON.parse(Buffer.from(body.nextCursor, 'base64url').toString('utf8')),
+      { o: 25, l: 25 }
+    );
+  });
+
+  // An upstream that over-delivers is not hypothetical -- it is a limit the
+  // proxy passes through and does not enforce. The endpoint serves whatever
+  // came back, so the walk must END on an over-long page: the only offset it
+  // could emit is one it never actually served from. `results.length ===
+  // limitNum` gives that; `>=` would emit a cursor at offset 26 for a page the
+  // caller was handed 26 rows of under a limit of 25, silently skipping a row
+  // on the next hop.
+  it('an OVER-LONG upstream page ends the walk: the page size gate is ===, never >=', async () => {
+    const { status, body } = await against(
+      { results: rows(26), total: 999, has_more: true },
+      { url: `${BASE}?page=1&limit=25` }
+    );
+    assert.equal(status, 200);
+    assert.equal(body.results.length, 26, 'the endpoint does not truncate what upstream sent');
+    assert.equal(
+      body.nextCursor, null,
+      'upstream returned more rows than the limit, so no emitted offset can be trusted'
+    );
+  });
+
+  // total_pages is the one field derived by division, and every other fixture
+  // in this file uses an exact multiple (total 50 / limit 25), where ceil and
+  // floor agree. A remainder is the only shape that separates them, and getting
+  // it wrong hides the last partial page from any client that paginates by
+  // total_pages.
+  it('total_pages ROUNDS UP on a partial last page (51 items, limit 25, is 3 pages not 2)', async () => {
+    const { body } = await against(
+      { results: rows(25), total: 51, has_more: true },
+      { url: `${BASE}?page=1&limit=25` }
+    );
+    assert.equal(body.total, 51);
+    assert.equal(body.total_pages, 3, 'ceil(51/25) is 3; floor would strand the final row');
+  });
+});
+
+// ------------------------------------------------------------ upstream fail --
+
+describe('GET /api/articles -- upstream failure', () => {
+  it('503s on an upstream non-2xx and logs the status', async () => {
+    const events = recorder();
+    stubWorker(() => workerJson({ error: 'boom' }, 502));
+    const { status, body } = await parseResponse(await call({ events }));
+    assert.equal(status, 503);
+    assert.equal(body.error, 'service_unavailable');
+    const logged = events.points.find((p) => p.blobs[2] === 'upstream_error');
+    assert.ok(logged);
+    assert.equal(logged.blobs[4], '502');
+  });
+
+  it('503s when the upstream fetch throws, and does not leak the network message', async () => {
+    const events = recorder();
+    stubWorker(() => { throw new Error('ECONNREFUSED 10.1.2.3:443'); });
+    const { status, body } = await parseResponse(await call({ events }));
+    assert.equal(status, 503);
+    assert.equal(body.error, 'service_unavailable');
+    assert.ok(!JSON.stringify(body).includes('ECONNREFUSED'));
+    assert.ok(events.points.some((p) => p.blobs[2] === 'fetch_error'));
+  });
+
+  it('503s when the upstream body is not JSON (resp.json() rejects)', async () => {
+    stubWorker(() => new Response('<html>504 gateway</html>', { status: 200, headers: { 'content-type': 'text/html' } }));
+    const { status, body } = await parseResponse(await call());
+    assert.equal(status, 503);
+    assert.equal(body.error, 'service_unavailable');
+  });
+
+  it('serves an empty page rather than 500ing when upstream returns a JSON null', async () => {
+    const { status, body } = await against(null);
+    assert.equal(status, 200);
+    assert.deepEqual(body.results, []);
+    assert.equal(body.total, 0);
+  });
+
+  it('serves an empty page when upstream returns results in the wrong type', async () => {
+    const { status, body } = await against({ results: { not: 'an array' }, has_more: false });
+    assert.equal(status, 200);
+    assert.deepEqual(body.results, []);
+  });
+});
+
+// ------------------------------------------------------------------ headers --
+
+describe('GET /api/articles -- response headers', () => {
+  it('a 200 is edge-cacheable for an hour and carries the public CORS origin', async () => {
+    const { headers } = await against({ results: rows(3), has_more: false });
+    assert.equal(headers['cache-control'], 'public, max-age=3600, s-maxage=3600');
+    assert.equal(headers['access-control-allow-origin'], 'https://rrmacademy.org');
+    assert.equal(headers['content-type'], 'application/json');
+  });
+
+  it('a 200 reports the rate-limit budget that request consumed', async () => {
+    const { headers } = await against({ results: [], has_more: false });
+    assert.equal(headers['ratelimit-limit'], '30');
+    assert.equal(headers['ratelimit-remaining'], '29', 'one slot of thirty is spent by this request');
+    assert.ok(Number(headers['ratelimit-reset']) > 0);
+  });
+
+  it('an ERROR response is never cached at the edge', async () => {
+    const { status, headers } = await parseResponse(await call({ url: `${BASE}?page=0` }));
+    assert.equal(status, 400);
+    assert.equal(headers['cache-control'], undefined, 'a 400 must not be stored for an hour');
+  });
+
+  it('a 503 is never cached at the edge', async () => {
+    stubWorker(() => workerJson({}, 500));
+    const { status, headers } = await parseResponse(await call());
+    assert.equal(status, 503);
+    assert.equal(headers['cache-control'], undefined);
+  });
+});
+
+// -------------------------------------------------------------- the mapper --
+
+describe('_map-article.js -- shared row mapper, through /api/articles', () => {
+  it('renders an upstream row into the public payload, deriving the canonical URL from the slug', async () => {
+    const upstream = {
+      id: 'rec42',
+      slug: 'endometriosis-excision-outcomes',
+      title: 'Excision outcomes',
+      authors: 'Whittaker N; Boyle P',
+      year: 2025,
+      journal: 'JRRM',
+      doi: '10.1234/jrrm.42',
+      pmid: '39123456',
+      abstract: 'A cohort study.',
+      topics: ['endometriosis', 'surgery'],
+      isOpenAccess: true,
+      dateAddedToLibrary: '2026-03-04T05:06:07.891Z',
+      internal_note: 'NEVER SHIP THIS',
+      is_published: 1,
+    };
+    const { body } = await against({ results: [upstream], has_more: false });
+
+    assert.deepEqual(body.results[0], {
+      id: 'rec42',
+      slug: 'endometriosis-excision-outcomes',
+      url: 'https://rrmacademy.org/library/endometriosis-excision-outcomes/',
+      title: 'Excision outcomes',
+      authors: 'Whittaker N; Boyle P',
+      year: 2025,
+      journal: 'JRRM',
+      doi: '10.1234/jrrm.42',
+      pmid: '39123456',
+      abstract: 'A cohort study.',
+      topics: ['endometriosis', 'surgery'],
+      is_open_access: true,
+      date_added: '2026-03-04',
+    });
+    assert.ok(!JSON.stringify(body).includes('NEVER SHIP THIS'), 'the mapper is an allowlist, not a passthrough');
+  });
+});
+
+describe('_map-article.js -- shared row mapper, called directly', () => {
+  it('builds the library URL from the slug on the production site base', () => {
+    assert.equal(mapArticle({ slug: 'pcos-metformin' }).url, 'https://rrmacademy.org/library/pcos-metformin/');
+  });
+
+  for (const [label, topics] of [
+    ['a missing topics key', undefined],
+    ['a null topics value', null],
+    ['a comma-joined string from an older upstream shape', 'endometriosis,pcos'],
+    ['an object', { a: 1 }],
+  ]) {
+    it(`coerces ${label} to an empty array so consumers can always .map it`, () => {
+      assert.deepEqual(mapArticle({ slug: 's', topics }).topics, []);
+    });
+  }
+
+  it('passes a genuine topics array through unchanged, including the empty one', () => {
+    assert.deepEqual(mapArticle({ slug: 's', topics: ['a', 'b'] }).topics, ['a', 'b']);
+    assert.deepEqual(mapArticle({ slug: 's', topics: [] }).topics, []);
+  });
+
+  for (const [label, value] of [
+    ['the string "true"', 'true'],
+    ['the number 1', 1],
+    ['undefined', undefined],
+    ['null', null],
+    ['false', false],
+  ]) {
+    it(`reports is_open_access false for ${label} -- only a real boolean true counts`, () => {
+      assert.equal(mapArticle({ slug: 's', isOpenAccess: value }).is_open_access, false);
+    });
+  }
+
+  it('reports is_open_access true only for boolean true', () => {
+    assert.equal(mapArticle({ slug: 's', isOpenAccess: true }).is_open_access, true);
+  });
+
+  it('truncates the added date to a bare YYYY-MM-DD', () => {
+    assert.equal(mapArticle({ slug: 's', dateAddedToLibrary: '2026-03-04T05:06:07.891Z' }).date_added, '2026-03-04');
+    assert.equal(mapArticle({ slug: 's', dateAddedToLibrary: '2026-03-04' }).date_added, '2026-03-04');
+  });
+
+  for (const [label, value] of [['null', null], ['undefined', undefined], ['an empty string', '']]) {
+    it(`reports date_added null for ${label} rather than an empty or sliced value`, () => {
+      assert.equal(mapArticle({ slug: 's', dateAddedToLibrary: value }).date_added, null);
+    });
+  }
+
+  it('leaves absent scalar fields undefined rather than inventing defaults', () => {
+    const mapped = mapArticle({ slug: 's' });
+    for (const key of ['id', 'title', 'authors', 'year', 'journal', 'doi', 'pmid', 'abstract']) {
+      assert.equal(mapped[key], undefined, key);
+    }
+  });
+
+  it('emits exactly the thirteen public keys and nothing else', () => {
+    assert.deepEqual(Object.keys(mapArticle({ slug: 's', secret: 'x' })).sort(), [
+      'abstract', 'authors', 'date_added', 'doi', 'id', 'is_open_access',
+      'journal', 'pmid', 'slug', 'title', 'topics', 'url', 'year',
+    ]);
+  });
+});
