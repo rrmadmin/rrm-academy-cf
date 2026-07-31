@@ -11,7 +11,7 @@
  "_gate": {
   "scope": "PRODUCT-CODE",
   "metric": "c8 line coverage with --all (every surface file in the denominator)",
-  "floor_lines_pct": 36.3,
+  "floor_lines_pct": 39,
   "ratchet_rule": "The floor may only move UP. Arm at the measured floor rounded down; never arm a number that is red on arrival. Raise it after a coverage drive lands, by editing this value to the new measured floor rounded down."
  },
  "_measured": {
@@ -19,16 +19,16 @@
   "instrument": "node scripts/quality/coverage.mjs (c8 --all over the full surface; full npm-test suite)",
   "full_surface": {
    "files": 421,
-   "lines": 81292,
-   "covered": 27074,
-   "pct": 33.3
+   "lines": 81402,
+   "covered": 28784,
+   "pct": 35.36
   },
   "by_category": {
    "PRODUCT-CODE": {
     "files": 333,
-    "lines": 60007,
-    "covered": 21791,
-    "pct": 36.31
+    "lines": 60117,
+    "covered": 23501,
+    "pct": 39.09
    },
    "CONTENT-TEMPLATE": {
     "files": 8,
@@ -57,12 +57,12 @@
   },
   "product_code": {
    "files": 333,
-   "lines": 60007,
-   "covered": 21791,
-   "pct": 36.31
+   "lines": 60117,
+   "covered": 23501,
+   "pct": 39.09
   },
-  "files_at_zero_in_full_report": 268,
-  "files_executed_in_full_report": 153,
+  "files_at_zero_in_full_report": 263,
+  "files_executed_in_full_report": 158,
   "highest_stakes_slice": {
    "slice": "national survey system (functions/api/survey/ + functions/api/endo-quiz/)",
    "files": [
@@ -108,22 +108,6 @@
    "cc": 97,
    "coverage": 0,
    "crap": 9506
-  },
-  {
-   "file": "functions/api/admin/courses/[id].js",
-   "fn": "onRequestPut",
-   "line": 106,
-   "cc": 91,
-   "coverage": 0,
-   "crap": 8372
-  },
-  {
-   "file": "functions/api/admin/courses/index.js",
-   "fn": "onRequestPost",
-   "line": 105,
-   "cc": 91,
-   "coverage": 0,
-   "crap": 8372
   },
   {
    "file": "scripts/css-audit/audit.mjs",
@@ -238,14 +222,6 @@
    "crap": 2352
   },
   {
-   "file": "functions/api/admin/courses/[id].js",
-   "fn": "onRequestDelete",
-   "line": 333,
-   "cc": 45,
-   "coverage": 0,
-   "crap": 2070
-  },
-  {
    "file": "scripts/guard.mjs",
    "fn": "checkInvariants",
    "line": 104,
@@ -260,14 +236,6 @@
    "cc": 44,
    "coverage": 0,
    "crap": 1980
-  },
-  {
-   "file": "functions/api/courses/enroll.js",
-   "fn": "handleEnroll",
-   "line": 56,
-   "cc": 43,
-   "coverage": 0,
-   "crap": 1892
   },
   {
    "file": "functions/api/ask.js",
@@ -332,6 +300,38 @@
    "cc": 32,
    "coverage": 0,
    "crap": 1056
+  },
+  {
+   "file": "functions/api/admin/wix-migration-status.js",
+   "fn": "onRequestGet",
+   "line": 18,
+   "cc": 32,
+   "coverage": 0,
+   "crap": 1056
+  },
+  {
+   "file": "functions/api/ask.js",
+   "fn": "handleAuthedAsk",
+   "line": 238,
+   "cc": 32,
+   "coverage": 0,
+   "crap": 1056
+  },
+  {
+   "file": "scripts/extract-article-facts.mjs",
+   "fn": "<anonymous>",
+   "line": 379,
+   "cc": 32,
+   "coverage": 0,
+   "crap": 1056
+  },
+  {
+   "file": "functions/api/admin/courses/[id]/sections.js",
+   "fn": "onRequestPost",
+   "line": 8,
+   "cc": 31,
+   "coverage": 0,
+   "crap": 992
   }
  ],
  "crap_top_files": [
@@ -348,22 +348,10 @@
    "fns": 4
   },
   {
-   "file": "functions/api/admin/courses/[id].js",
-   "worst": 8372,
-   "total": 10650,
-   "fns": 7
-  },
-  {
    "file": "scripts/css-audit/audit.mjs",
    "worst": 7482,
    "total": 8776,
    "fns": 39
-  },
-  {
-   "file": "functions/api/admin/courses/index.js",
-   "worst": 8372,
-   "total": 8526,
-   "fns": 6
   },
   {
    "file": "functions/api/newsletter/bounce.js",
@@ -454,6 +442,18 @@
    "worst": 2070,
    "total": 2936,
    "fns": 11
+  },
+  {
+   "file": "functions/api/admin/search-queries.js",
+   "worst": 2352,
+   "total": 2352,
+   "fns": 1
+  },
+  {
+   "file": "functions/api/saved.js",
+   "worst": 1980,
+   "total": 2210,
+   "fns": 3
   }
  ],
  "files": [
@@ -499,8 +499,8 @@
    "reason": "CF Pages Function (routed endpoint, middleware, or _-prefixed shared helper). Deployed on every push; defects ship directly to users.",
    "present": true,
    "lines": 123,
-   "covered": 118,
-   "pct": 95.93
+   "covered": 121,
+   "pct": 98.37
   },
   {
    "file": "functions/api/_endpoint-template.js",
@@ -758,10 +758,10 @@
    "file": "functions/api/admin/courses/[id].js",
    "category": "PRODUCT-CODE",
    "reason": "CF Pages Function (routed endpoint, middleware, or _-prefixed shared helper). Deployed on every push; defects ship directly to users.",
-   "present": false,
-   "lines": 453,
-   "covered": 0,
-   "pct": 0
+   "present": true,
+   "lines": 458,
+   "covered": 458,
+   "pct": 100
   },
   {
    "file": "functions/api/admin/courses/[id]/attachments.js",
@@ -823,17 +823,17 @@
    "reason": "CF Pages Function (routed endpoint, middleware, or _-prefixed shared helper). Deployed on every push; defects ship directly to users.",
    "present": true,
    "lines": 47,
-   "covered": 18,
-   "pct": 38.29
+   "covered": 47,
+   "pct": 100
   },
   {
    "file": "functions/api/admin/courses/index.js",
    "category": "PRODUCT-CODE",
    "reason": "CF Pages Function (routed endpoint, middleware, or _-prefixed shared helper). Deployed on every push; defects ship directly to users.",
-   "present": false,
+   "present": true,
    "lines": 277,
-   "covered": 0,
-   "pct": 0
+   "covered": 277,
+   "pct": 100
   },
   {
    "file": "functions/api/admin/dm-queue.js",
@@ -1631,10 +1631,10 @@
    "file": "functions/api/courses.js",
    "category": "PRODUCT-CODE",
    "reason": "CF Pages Function (routed endpoint, middleware, or _-prefixed shared helper). Deployed on every push; defects ship directly to users.",
-   "present": false,
+   "present": true,
    "lines": 220,
-   "covered": 0,
-   "pct": 0
+   "covered": 220,
+   "pct": 100
   },
   {
    "file": "functions/api/courses/_notify-admin.js",
@@ -1642,8 +1642,8 @@
    "reason": "CF Pages Function (routed endpoint, middleware, or _-prefixed shared helper). Deployed on every push; defects ship directly to users.",
    "present": true,
    "lines": 41,
-   "covered": 33,
-   "pct": 80.48
+   "covered": 41,
+   "pct": 100
   },
   {
    "file": "functions/api/courses/_quiz-content.js",
@@ -1660,8 +1660,8 @@
    "reason": "CF Pages Function (routed endpoint, middleware, or _-prefixed shared helper). Deployed on every push; defects ship directly to users.",
    "present": true,
    "lines": 114,
-   "covered": 111,
-   "pct": 97.36
+   "covered": 113,
+   "pct": 99.12
   },
   {
    "file": "functions/api/courses/_shared.js",
@@ -1669,8 +1669,8 @@
    "reason": "CF Pages Function (routed endpoint, middleware, or _-prefixed shared helper). Deployed on every push; defects ship directly to users.",
    "present": true,
    "lines": 130,
-   "covered": 121,
-   "pct": 93.07
+   "covered": 130,
+   "pct": 100
   },
   {
    "file": "functions/api/courses/affiliate-click.js",
@@ -1685,10 +1685,10 @@
    "file": "functions/api/courses/certificate.js",
    "category": "PRODUCT-CODE",
    "reason": "CF Pages Function (routed endpoint, middleware, or _-prefixed shared helper). Deployed on every push; defects ship directly to users.",
-   "present": false,
+   "present": true,
    "lines": 313,
-   "covered": 0,
-   "pct": 0
+   "covered": 313,
+   "pct": 100
   },
   {
    "file": "functions/api/courses/comments.js",
@@ -1705,8 +1705,8 @@
    "reason": "CF Pages Function (routed endpoint, middleware, or _-prefixed shared helper). Deployed on every push; defects ship directly to users.",
    "present": true,
    "lines": 261,
-   "covered": 73,
-   "pct": 27.96
+   "covered": 261,
+   "pct": 100
   },
   {
    "file": "functions/api/courses/progress.js",
@@ -1732,17 +1732,17 @@
    "reason": "CF Pages Function (routed endpoint, middleware, or _-prefixed shared helper). Deployed on every push; defects ship directly to users.",
    "present": true,
    "lines": 156,
-   "covered": 138,
-   "pct": 88.46
+   "covered": 156,
+   "pct": 100
   },
   {
    "file": "functions/api/courses/waitlist.js",
    "category": "PRODUCT-CODE",
    "reason": "CF Pages Function (routed endpoint, middleware, or _-prefixed shared helper). Deployed on every push; defects ship directly to users.",
-   "present": false,
+   "present": true,
    "lines": 185,
-   "covered": 0,
-   "pct": 0
+   "covered": 185,
+   "pct": 100
   },
   {
    "file": "functions/api/create-checkout.js",
@@ -3333,7 +3333,7 @@
    "category": "PRODUCT-CODE",
    "reason": "The quality instrument itself (coverage/CRAP/mutation/census). A measurement tool that is wrong is worse than no tool; its pure logic is unit-testable.",
    "present": false,
-   "lines": 691,
+   "lines": 796,
    "covered": 0,
    "pct": 0
   },
