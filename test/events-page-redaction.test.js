@@ -152,13 +152,19 @@ describe('scrubJoinInfo -- pattern by pattern, on a page a non-member is looking
     assert.equal(rendered.ogDescription, 'We will discuss surgical technique. Bring questions.');
   });
 
-  it('collapses the blank space a removed line leaves behind', async () => {
+  it('leaves no empty paragraph behind where a line was removed', async () => {
+    // NOT a test of scrubJoinInfo's `\n{3,}` collapse, despite appearances.
+    // Replacing that collapse with a no-op leaves this assertion green: the
+    // extra newlines survive into summarize(), whose own
+    // .map(trim).filter(Boolean) drops the blank chunk regardless. Mutation-
+    // checked 2026-07-31. The collapse is inert on every input reachable here;
+    // what this pins is the end-to-end outcome, which is what matters.
     const rendered = await renderEvent({
       viewer: 'anonymous',
       post: { content: 'Title chunk.\n\nBefore.\n\nPIN: 445566\n\nAfter.' },
     });
     assert.equal(rendered.body, '<p>Before.</p>\n<p>After.</p>',
-      'the removal left an empty paragraph, which is what the \\n{3,} collapse exists to prevent');
+      'the removal left an empty paragraph in the rendered body');
   });
 
   it('handles content that is nothing but an image (scrubJoinInfo receives an empty string)', async () => {
@@ -190,6 +196,8 @@ describe('scrubJoinInfo -- pattern by pattern, on a page a non-member is looking
       post: { content: contentAround('Join at https://Meet.Google.COM/mIx-eDcA-sEt now.') },
     });
     assert.deepEqual(leakingSinks(rendered, 'mIx-eDcA-sEt'), []);
+    assert.match(rendered.body ?? '', /Closing paragraph, kept\./,
+      'positive control: an absence result on a page that rendered nothing proves nothing');
   });
 
   it('a Meet URL inside a markdown link is redacted', async () => {
@@ -199,6 +207,7 @@ describe('scrubJoinInfo -- pattern by pattern, on a page a non-member is looking
     });
     assert.deepEqual(leakingSinks(rendered, 'mkd-lnkk-abc'), []);
     assert.deepEqual(leakingSinks(rendered, 'meet.google.com'), []);
+    assert.match(rendered.body ?? '', /Closing paragraph, kept\./, 'positive control');
   });
 
   it('a Meet URL with a query, a fragment, or wrapped in parentheses is redacted', async () => {
@@ -210,6 +219,8 @@ describe('scrubJoinInfo -- pattern by pattern, on a page a non-member is looking
       const rendered = await renderEvent({ viewer: 'anonymous', post: { content: contentAround(line) } });
       const code = /\/([a-z]{3}-aaaa-bbb)/.exec(line)[1];
       assert.deepEqual(leakingSinks(rendered, code), [], `leaked from: ${line}`);
+      assert.match(rendered.body ?? '', /Closing paragraph, kept\./,
+        `positive control failed for: ${line}`);
     }
   });
 
@@ -406,6 +417,10 @@ describe('the redaction requirement, sink by sink', () => {
       for (const needle of ['snk-aaaa-bbb', 'meet.google.com', '555-030-1111', '707070']) {
         assert.ok(!appearsIn(r.jsonLdRaw ?? '', needle), `JSON-LD leaked ${needle}`);
       }
+      // Positive control. Without it this case passes on a page that rendered
+      // no prose at all, which is how an absence assertion goes vacuous.
+      assert.match(r.jsonLd.description, /What we will cover\./,
+        'the post content never reached the JSON-LD, so "no credential in it" proves nothing');
       // location.url is the public landing page, never the Meet room.
       assert.equal(r.jsonLd.location['@type'], 'VirtualLocation');
       assert.equal(r.jsonLd.location.url, 'https://rrmacademy.org/events/endo-excision-call');
@@ -416,6 +431,9 @@ describe('the redaction requirement, sink by sink', () => {
       for (const needle of ['snk-aaaa-bbb', 'meet.google.com', '555-030-1111', '707070']) {
         assert.ok(!appearsIn(r.body ?? '', needle), `body leaked ${needle}`);
       }
+      // Positive control, same reason as the JSON-LD case above.
+      assert.match(r.body ?? '', /What we will cover\./,
+        'the body rendered nothing, so "no credential in the body" proves nothing');
     });
   }
 
