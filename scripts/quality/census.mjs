@@ -54,6 +54,17 @@ const OUT = resolve(ROOT, 'scripts', 'quality', 'coverage-census.json');
  *                   the library render surface (0 -> 67.4%), the FABM quiz API
  *                   (3.5 -> 100%), and the course-platform enrolment/quiz path.
  *                   Measured 28.32%.
+ *   29  2026-07-31  raised after the tranche-4 glossary-admin drive. All six
+ *                   CF Pages Functions behind rrmacademy.org/glossary/ admin
+ *                   CRUD went 0 -> 100% lines: terms/index.js, terms/[id].js,
+ *                   refs/index.js, refs/[refnum].js, abbreviations/index.js,
+ *                   abbreviations/[abbr].js. 367 tests against a real SQLite
+ *                   engine loaded with the committed schema
+ *                   (test/_d1-sqlite.mjs), because the load-bearing behaviour
+ *                   is decided by the database: NOCASE primary keys and unique
+ *                   slugs turning duplicates into 409s, COALESCE(MAX(..))+1
+ *                   auto-numbering, and the abbreviation unlink that runs on a
+ *                   BINARY column under an explicit COLLATE. Measured 29.93%.
  *
  * A REPO-WIDE FLOOR CAN HIDE A PRODUCT AT ZERO. That is what tranche 3 found:
  * this number was green at 26 while five separate product surfaces measured
@@ -61,7 +72,7 @@ const OUT = resolve(ROOT, 'scripts', 'quality', 'coverage-census.json');
  * particular surface is tested. Read the per-product view
  * (tools/coverage-portfolio/status.mjs) before concluding a product is covered.
  */
-const ARMED_FLOOR_PCT = 28;
+const ARMED_FLOOR_PCT = 29;
 
 const argv = process.argv.slice(2);
 const covDirIdx = argv.indexOf('--coverage-dir');
