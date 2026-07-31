@@ -64,7 +64,26 @@ const OUT = resolve(ROOT, 'scripts', 'quality', 'coverage-census.json');
  *                   is decided by the database: NOCASE primary keys and unique
  *                   slugs turning duplicates into 409s, COALESCE(MAX(..))+1
  *                   auto-numbering, and the abbreviation unlink that runs on a
- *                   BINARY column under an explicit COLLATE. Measured 29.93%.
+ *                   BINARY column under an explicit COLLATE. Measured 29.93%
+ *                   (19344/64640) on the branch before it was merged with main.
+ *                   Re-measured 29.78% (19268/64704) after merging main and
+ *                   adding the session/authorization guard pins; still rounds
+ *                   down to 29, so the floor does not move. The two numbers
+ *                   differ for two reasons, both accounted for below.
+ *
+ * MEASURE IN A CLEAN CHECKOUT, THE WAY CI DOES.
+ * `src/data/glossary.json` is GITIGNORED and is never present in CI (the
+ * workflow runs `npm ci` then `npm test`; there is no fetch-all step). The
+ * audit-glossary-links smoke test in test/glossary-link-classifier.test.js
+ * skips itself when that file is missing, and scripts/audit-glossary-links.mjs
+ * then measures 0/101 instead of 81/101. So a measurement taken in a working
+ * copy that has fetched data reads ~0.12 points HIGHER than the number the
+ * gate actually sees. Regenerate the census from a clean checkout, or the
+ * committed snapshot records coverage CI cannot reproduce.
+ *   with fetched glossary.json:    19349/64704 = 29.90%
+ *   clean checkout (what CI sees): 19268/64704 = 29.78%   <- the census below
+ * The rest is main's functions/api/endo-quiz/download.js (789d734d), which
+ * added 45 uncovered lines to the denominator, against +5 covered here.
  *
  * A REPO-WIDE FLOOR CAN HIDE A PRODUCT AT ZERO. That is what tranche 3 found:
  * this number was green at 26 while five separate product surfaces measured

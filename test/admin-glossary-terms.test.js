@@ -859,7 +859,12 @@ describe('glossary terms admin -- authorization end to end through admin/_middle
     assert.equal(body.error, 'Forbidden');
   });
 
-  it('a blocked superadmin never gets a user populated, so the handler answers 401', async () => {
+  // The refusal here comes from validateSession (`if (row.blocked) return null`
+  // in auth/_shared.js), NOT from the middleware's own `!user.blocked` arm:
+  // with no session, the middleware never reaches that arm. Both guards are
+  // pinned separately, including the mid-request race that is the only path to
+  // the middleware's own arm, in test/session-authorization-guards.test.js.
+  it('a blocked superadmin gets no session from validateSession, so no user is populated and the handler answers 401', async () => {
     const { status, body } = await viaMiddleware('sess-blocked');
     assert.equal(status, 401);
     assert.equal(body.error, 'Unauthorized');
