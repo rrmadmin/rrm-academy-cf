@@ -196,4 +196,39 @@ describe('schema.sql migration replay list is self-checking', () => {
       'the replay is supposed to add email_verification.token -- POST /api/auth/signup INSERTs into it'
     );
   });
+
+  it('email_log carries ses_message_id, the column every mail component INSERTs into', () => {
+    // functions/api/_ses.js insertEmailLog() names eight columns unconditionally,
+    // ses_message_id among them, and swallows its own error. Drop this column from
+    // the harness and every mail component silently stops writing its audit row
+    // HERE while production keeps writing one, which reads as an outage that is
+    // not happening. Live rrm-auth on 2026-07-31 returns
+    //   id, event, email, category, source, subject, detail, send_id, ses_message_id
+    // so the harness owes production this column. schema.sql is a 2026-05-27
+    // snapshot and predates it; 2026-06-28-email-event.sql supplies it on replay.
+    const snapshot = snapshotOnlyDb();
+    const beforeReplay = columnNames(snapshot, 'email_log');
+    const snapshotTables = snapshot
+      .prepare("SELECT name FROM sqlite_master WHERE type='table' AND name = 'email_event'")
+      .all();
+    snapshot.close();
+
+    const db = sqliteD1();
+    const afterReplay = columnNames(db._sqlite, 'email_log');
+    const eventTable = db._sqlite
+      .prepare("SELECT name FROM sqlite_master WHERE type='table' AND name = 'email_event'")
+      .all();
+    db.close();
+
+    assert.equal(
+      beforeReplay.includes('ses_message_id'), false,
+      'schema.sql now has email_log.ses_message_id; regenerate the replay-list dispositions'
+    );
+    assert.equal(snapshotTables.length, 0, 'schema.sql now has email_event; regenerate the dispositions');
+    assert.ok(
+      afterReplay.includes('ses_message_id'),
+      'the harness is behind production: _ses.js INSERTs ses_message_id and the row would be lost'
+    );
+    assert.equal(eventTable.length, 1, 'email_event exists in live rrm-auth, so it must exist here');
+  });
 });

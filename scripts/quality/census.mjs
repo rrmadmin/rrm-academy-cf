@@ -54,6 +54,13 @@ const OUT = resolve(ROOT, 'scripts', 'quality', 'coverage-census.json');
  *                   the library render surface (0 -> 67.4%), the FABM quiz API
  *                   (3.5 -> 100%), and the course-platform enrolment/quiz path.
  *                   Measured 28.32%.
+ *   29  2026-07-31  raised after the tranche-4 drive (guide-PDF magic-link
+ *                   mint/redeem, the blog build feed, and the whole FAQ admin
+ *                   surface plus its public read). Ten files taken to 100%
+ *                   lines, five of which were absent from the report entirely
+ *                   rather than merely low. Measured 29.30% on this branch
+ *                   after merging main, which brought in an untested
+ *                   functions/api/endo-quiz/download.js.
  *
  * A REPO-WIDE FLOOR CAN HIDE A PRODUCT AT ZERO. That is what tranche 3 found:
  * this number was green at 26 while five separate product surfaces measured
@@ -61,7 +68,7 @@ const OUT = resolve(ROOT, 'scripts', 'quality', 'coverage-census.json');
  * particular surface is tested. Read the per-product view
  * (tools/coverage-portfolio/status.mjs) before concluding a product is covered.
  */
-const ARMED_FLOOR_PCT = 28;
+const ARMED_FLOOR_PCT = 29;
 
 const argv = process.argv.slice(2);
 const covDirIdx = argv.indexOf('--coverage-dir');
