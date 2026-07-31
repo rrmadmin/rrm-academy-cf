@@ -77,6 +77,27 @@ jobs:
       - name: Test
         run: npm test
 
+      # The coverage floor, on the repo's only FULLY AUTONOMOUS path to
+      # production. Until 2026-07-31 this workflow ran guard/lint/test/gates but
+      # NOT quality:coverage, and it opens no pull request, so tests.yml's
+      # pull_request trigger never fired for it either. A claude/** branch was
+      # therefore the one route by which uncovered code reached rrmacademy.org
+      # with the floor never evaluated -- the single path where no human sees a
+      # diff was the single path with no coverage gate.
+      #
+      # INTENDED BLAST RADIUS: a claude/** branch that drops PRODUCT-CODE line
+      # coverage below the armed floor now FAILS TO AUTO-MERGE and does not
+      # deploy. That is the point. The fix is to test the new surface, never to
+      # lower the floor. This also fails when the census drifts from the file
+      # tree, which is what stops a new product file being silently absent from
+      # the denominator (see the tests.yml comment for how that went in 789d734d).
+      #
+      # Cheap enough to run twice: the gate re-runs the suite under c8 in about
+      # 15s, well inside this job's 20-minute timeout even across all 5 merge
+      # retries below.
+      - name: Coverage floor + census
+        run: npm run quality:coverage
+
       # Mint the privileged App token only now: nothing untrusted has run with it in
       # scope. `workflow` write (which the default GITHUB_TOKEN lacks) is retained so
       # the bot identity owns the merge commit. Key SSOT: 1P op://Automation/RRM
@@ -155,6 +176,16 @@ jobs:
             npm test
             npm run gates:payment
             npm run gates:share
+            # Coverage floor on the MERGE COMMIT, not just the branch tip: the
+            # tip gate above never saw this tree, and a branch that is green
+            # alone can still land main under the floor (it adds product lines
+            # while main adds the tests that were covering something else).
+            # Positioned before `git push origin main`, so a failure blocks the
+            # merge instead of reporting on it afterwards.
+            if ! npm run quality:coverage; then
+              echo "::error::Coverage floor failed on the MERGE COMMIT -- auto-merge refused, nothing was pushed to main. This branch drops PRODUCT-CODE line coverage below the armed floor in scripts/quality/coverage-census.json (_gate.floor_lines_pct), or it adds/removes a first-party source file without reclassifying it. To fix: run 'npm run quality:coverage' locally for the measured number, add tests for the code this branch introduces, and if the file list changed run 'node scripts/quality/census.mjs' and commit the regenerated census. Do NOT lower the floor -- it only ratchets up."
+              exit 1
+            fi
 
             if git push origin main; then
               echo "before=$BEFORE" >> "$GITHUB_OUTPUT"
