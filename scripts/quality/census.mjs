@@ -275,6 +275,53 @@ const OUT = resolve(ROOT, 'scripts', 'quality', 'coverage-census.json');
  *                   the way CI measures. The ratchet moved UP: 27.6 on
  *                   main before this merge, 29.7 after it.
  *
+ * 34.1 2026-07-31  RAISED on the tranche-5 EVENTS-AND-LEARNING-COLLABORATIVES
+ *                   membership lane (quality/coverage-ev-membership). The STUC
+ *                   community membership gate and its join/leave surface: all
+ *                   fourteen files to 100% lines and 100% functions, 1364/1364,
+ *                   thirteen of which were sitting at zero.
+ *
+ *                   Measured 34.11% (22146/64920) against a 32.4 floor, in a
+ *                   clean checkout with no fetched src/data/glossary.json, so
+ *                   the number is the one CI reproduces. Rounded DOWN to 34.1
+ *                   and bite-proven both ways on this branch.
+ *
+ *                   THIS IS A BRANCH FLOOR, NOT A TRANCHE FLOOR. The other
+ *                   tranche-5 lanes measure their own surfaces against the same
+ *                   denominator, so their numbers and this one are not
+ *                   comparable and taking the max at merge would under-arm the
+ *                   ratchet exactly as the tranche-4 entry above records.
+ *                   Re-measure on merged main and arm THAT number.
+ *
+ *                   THE ONE THING THIS DRIVE HAD TO ADD TO THE HARNESS, and
+ *                   why: the action-areas tables (action_area, project,
+ *                   area_membership, project_membership, impact_entry,
+ *                   area_ownership_request, community_post.area_id) are in
+ *                   NEITHER schema.sql NOR the POST_SNAPSHOT_MIGRATIONS replay
+ *                   list. Their DDL lives in the ROOT migrations/ directory
+ *                   (025, 027), which the replay list does not read and
+ *                   test/schema-migration-replay.test.mjs does not scan, and
+ *                   025's own header records its pre-apply check running
+ *                   against live rrm-auth on 2026-05-29, two days AFTER the
+ *                   schema.sql snapshot. So the default harness cannot even
+ *                   PREPARE a statement on this product. test/_community-sqlite.mjs
+ *                   composes the snapshot with those two files; _d1-sqlite.mjs
+ *                   gained one line, `export const SCHEMA_SQL`, so it could.
+ *
+ * 31.4 2026-07-31  TRANCHE LANE 3 OF 6 (the requireMember gate and the
+ *                   join/leave surface, 14 files to 100%).
+ *                   Re-armed on the corrected denominator: the lane branch
+ *                   armed 34.1, measured over the padded 64887-line
+ *                   PRODUCT-CODE denominator before #110 reclassified the 5202
+ *                   generated lines of _disposable-domains.js out of it. See
+ *                   the 27.6 entry above for the full statement of how this
+ *                   tranche re-arms.
+ *
+ *                   Measured 31.42% (18807/59863) on the merge commit, in a
+ *                   clean checkout with the gitignored src/data/*.json absent,
+ *                   the way CI measures. The ratchet moved UP: 29.7 on
+ *                   main before this merge, 31.4 after it.
+ *
  * MEASURE IN A CLEAN CHECKOUT, THE WAY CI DOES.
  * `src/data/glossary.json` is GITIGNORED and is never present in CI (the
  * workflow runs `npm ci` then `npm test`; there is no fetch-all step). The
@@ -295,7 +342,7 @@ const OUT = resolve(ROOT, 'scripts', 'quality', 'coverage-census.json');
  * particular surface is tested. Read the per-product view
  * (tools/coverage-portfolio/status.mjs) before concluding a product is covered.
  */
-const ARMED_FLOOR_PCT = 29.7;
+const ARMED_FLOOR_PCT = 31.4;
 
 const argv = process.argv.slice(2);
 const covDirIdx = argv.indexOf('--coverage-dir');
