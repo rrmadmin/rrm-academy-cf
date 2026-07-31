@@ -434,6 +434,35 @@ const OUT = resolve(ROOT, 'scripts', 'quality', 'coverage-census.json');
  *                   and must never be re-armed, because every one of them was
  *                   measured over a denominator that counted 5202 generated
  *                   lines as covered.
+ * 37.3 2026-07-31  RAISED by the admin course-structure drive: the nested
+ *                   section/step/rendition/attachment tree under
+ *                   /api/admin/courses/<id>. Six files, 1646 lines, all to
+ *                   100% lines. Three of them (steps.js, sections.js,
+ *                   attachments.js) were ABSENT from the report entirely --
+ *                   never imported by any test, which reads as 0 but is not
+ *                   the same thing.
+ *
+ *                   Engine-backed, because the load-bearing claims here are
+ *                   database claims: COALESCE(MAX(sort_order),-1)+1 appending
+ *                   without a gap, PRIMARY KEY conflicts becoming 409s, the
+ *                   ON CONFLICT(step_id, format) upsert actually conflicting,
+ *                   and json_insert/json_group_array rewriting attachments_json
+ *                   in place. A substring-matching mock returns whatever it was
+ *                   handed and proves none of it.
+ *
+ *                   Two findings are pinned as tests rather than argued: the
+ *                   reorder endpoints accept a DUPLICATED id (order.length
+ *                   still equals the section's step count, so both guards
+ *                   pass) and leave two rows sharing a sort_order; and a
+ *                   section DELETE that is refused by the TOCTOU guard has
+ *                   already deleted the unreferenced steps in the same batch.
+ *
+ *                   Measured 37.39% on a clean checkout of this branch, with
+ *                   the gitignored src/data/*.json absent, the way CI
+ *                   measures. Rounded DOWN on the one-decimal scale. This
+ *                   entry is itself measured: census.mjs is PRODUCT-CODE at 0%
+ *                   covered, so the lines above enlarge the denominator they
+ *                   report on.
  *
  * 36.9 2026-07-31  RAISED by the course-platform LEARNER PATH lane: the
  *                   catalogue read, enrolment, the waitlist capture, the
@@ -586,12 +615,13 @@ const OUT = resolve(ROOT, 'scripts', 'quality', 'coverage-census.json');
  *   36.6  main + admin-crud                measured 36.65%   (22001/60031)
  *   38.1  main + learner                   measured 38.1997% (22947/60071)
  *   39.0  main + social-keys                measured 39.0912% (23501/60117)
+ *   41.0  main + admin-structure           measured 41.0727% (24704/60147)
  *
  * Each is the measurement rounded DOWN on the one-decimal scale, taken in a
  * clean checkout with the gitignored src/data/*.json absent, the way CI
  * measures, and each was proven to bite before it was committed.
  */
-const ARMED_FLOOR_PCT = 39.0;
+const ARMED_FLOOR_PCT = 41.0;
 
 const argv = process.argv.slice(2);
 const covDirIdx = argv.indexOf('--coverage-dir');
