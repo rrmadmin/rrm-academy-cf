@@ -441,6 +441,38 @@ describe('GET /api/articles -- opaque cursor', () => {
     assert.equal(stub.calls.length, 0);
   });
 
+  // The cursor is documented as base64URL, and every round-trip assertion in
+  // this file decodes it with a tolerant reader, so a cursor that quietly went
+  // back to plain base64 would still pass all of them. This pins the ALPHABET
+  // of the emitted string instead of only its meaning. `=` padding is the
+  // reachable half: JSON bodies of the form {"o":N,"l":M} land on a length that
+  // needs padding for most offsets, so dropping the strip changes what real
+  // callers are handed and puts a character in the cursor that has to be
+  // percent-encoded to survive a query string intact.
+  it('emits a URL-SAFE cursor: base64url alphabet only, no + / or = padding', async () => {
+    const { body } = await against({ results: rows(25), has_more: true });
+    assert.ok(body.nextCursor, 'a full page with has_more emits a cursor to inspect');
+    assert.match(
+      body.nextCursor, /^[A-Za-z0-9_-]+$/,
+      'base64url is [A-Za-z0-9_-] and NOTHING else -- no +, no /, no = padding'
+    );
+    // And it must still round-trip through the endpoint's own decoder.
+    assert.deepEqual(unb64url(body.nextCursor), { o: 25, l: 25 });
+  });
+
+  it('emits an unpadded cursor for a body length that plain base64 WOULD pad', async () => {
+    // {"o":25,"l":25} is 15 bytes; 15 % 3 === 0 pads nothing, so pick an offset
+    // whose JSON length actually forces padding under plain base64.
+    const { body } = await against(
+      { results: rows(1), has_more: true },
+      { url: `${BASE}?page=1&limit=1` }
+    );
+    const padded = btoa(JSON.stringify({ o: 1, l: 1 }));
+    assert.ok(padded.endsWith('='), 'fixture check: plain base64 of this body IS padded');
+    assert.equal(body.nextCursor, padded.replace(/=+$/, ''), 'the endpoint strips that padding');
+    assert.deepEqual(unb64url(body.nextCursor), { o: 1, l: 1 });
+  });
+
   it('accepts the exact ceiling offset 17500, which page/limit alone cannot reach', async () => {
     const { status, body, stub } = await against(
       { results: rows(50, 17500), has_more: true },
@@ -560,6 +592,94 @@ describe('GET /api/articles -- end of walk', () => {
   it('a non-numeric upstream total is ignored in favour of the estimate', async () => {
     const { body } = await against({ results: rows(25), total: 'many', has_more: false });
     assert.equal(body.total, 25);
+  });
+
+  // Every other has_more fixture in this file sets the key explicitly, so
+  // `has_more === true` and `has_more !== false` cannot be told apart by any of
+  // them. An upstream that OMITS the key is the shape that separates them, and
+  // it is the shape a worker version skew actually produces. With the key
+  // absent the endpoint must fall back to the total comparison and end the
+  // walk; a truthiness test would instead hand out a cursor for an offset the
+  // corpus does not have, so the walk never terminates.
+  it('OMITTED has_more is not a promise of more: a full final page still ends the walk', async () => {
+    const { status, body } = await against(
+      { results: rows(25, 25), total: 50 },
+      { url: `${BASE}?page=2&limit=25` }
+    );
+    assert.equal(status, 200);
+    assert.equal(body.results.length, 25, 'the page is FULL, so only has_more/total can end the walk');
+    assert.equal(body.total, 50);
+    assert.equal(
+      body.nextCursor, null,
+      'has_more is ABSENT, not true -- offset 25 + 25 rows == total 50, so the walk is over'
+    );
+  });
+
+  // The other half of `=== true`. An omitted key is falsy under any form of the
+  // check, so it cannot separate `=== true` from a plain truthiness test. A
+  // TRUTHY NON-BOOLEAN can, and it is the shape a SQLite-backed worker emits
+  // when a 0/1 column is serialised without coercion. The endpoint must treat
+  // it as "upstream did not say true" and fall back to the total comparison.
+  it('a TRUTHY NON-BOOLEAN has_more is not true: only a real boolean promises another page', async () => {
+    const { body } = await against(
+      { results: rows(25, 25), total: 50, has_more: 1 },
+      { url: `${BASE}?page=2&limit=25` }
+    );
+    assert.equal(body.results.length, 25, 'the page is FULL, so has_more is the deciding input');
+    assert.equal(body.total, 50);
+    assert.equal(
+      body.nextCursor, null,
+      'has_more is 1, not true -- the check is === true, so the total comparison decides and ends the walk'
+    );
+  });
+
+  // The mirror of the case above: an absent has_more must not SUPPRESS a cursor
+  // either. The fallback is `nextOffset < total`, and that is what has to carry
+  // the decision when upstream says nothing.
+  it('OMITTED has_more still emits a cursor while the upstream total says there is more', async () => {
+    const { body } = await against(
+      { results: rows(25), total: 200 },
+      { url: `${BASE}?page=1&limit=25` }
+    );
+    assert.ok(body.nextCursor, 'offset 0 + 25 < total 200, so the walk continues');
+    assert.deepEqual(
+      JSON.parse(Buffer.from(body.nextCursor, 'base64url').toString('utf8')),
+      { o: 25, l: 25 }
+    );
+  });
+
+  // An upstream that over-delivers is not hypothetical -- it is a limit the
+  // proxy passes through and does not enforce. The endpoint serves whatever
+  // came back, so the walk must END on an over-long page: the only offset it
+  // could emit is one it never actually served from. `results.length ===
+  // limitNum` gives that; `>=` would emit a cursor at offset 26 for a page the
+  // caller was handed 26 rows of under a limit of 25, silently skipping a row
+  // on the next hop.
+  it('an OVER-LONG upstream page ends the walk: the page size gate is ===, never >=', async () => {
+    const { status, body } = await against(
+      { results: rows(26), total: 999, has_more: true },
+      { url: `${BASE}?page=1&limit=25` }
+    );
+    assert.equal(status, 200);
+    assert.equal(body.results.length, 26, 'the endpoint does not truncate what upstream sent');
+    assert.equal(
+      body.nextCursor, null,
+      'upstream returned more rows than the limit, so no emitted offset can be trusted'
+    );
+  });
+
+  // total_pages is the one field derived by division, and every other fixture
+  // in this file uses an exact multiple (total 50 / limit 25), where ceil and
+  // floor agree. A remainder is the only shape that separates them, and getting
+  // it wrong hides the last partial page from any client that paginates by
+  // total_pages.
+  it('total_pages ROUNDS UP on a partial last page (51 items, limit 25, is 3 pages not 2)', async () => {
+    const { body } = await against(
+      { results: rows(25), total: 51, has_more: true },
+      { url: `${BASE}?page=1&limit=25` }
+    );
+    assert.equal(body.total, 51);
+    assert.equal(body.total_pages, 3, 'ceil(51/25) is 3; floor would strand the final row');
   });
 });
 
