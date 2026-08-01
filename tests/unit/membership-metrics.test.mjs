@@ -240,6 +240,35 @@ test('anticipatedRenewalsCents: in-window counts once, out-of-window zero, watch
   assert.equal(dedup, 4500);
 });
 
+test('validateMonthParam near UTC midnight on the 1st resolves the ET month, not the UTC month (regression: month-boundary fixture flake)', () => {
+  // 2026-09-01T03:30:00Z is 2026-08-31T23:30:00 EDT (UTC-4) -- still August in ET.
+  const now = Date.parse('2026-09-01T03:30:00Z');
+  const month = validateMonthParam(null, now);
+  assert.equal(month, '2026-08');
+
+  const [fy, fm] = month.split('-').map(Number);
+  const b = monthBoundsET(month);
+  const startMs = Date.parse(b.startUtc);
+  const endMs = Date.parse(b.endUtc);
+
+  // NEW way: derive the fixture day from the SAME resolved month the endpoint uses.
+  const newWayMs = Date.UTC(fy, fm - 1, 5, 12);
+  assert.ok(
+    newWayMs >= startMs && newWayMs < endMs,
+    'day 5 built from the resolved ET month must fall inside the report window'
+  );
+
+  // OLD way: derive the fixture day from new Date(now).getUTCFullYear()/getUTCMonth()
+  // -- the exact pattern the old collation-identity.test.js fixture used, which
+  // reads September (UTC) while the report resolves August (ET) at this instant.
+  const wallClockNow = new Date(now);
+  const oldWayMs = Date.UTC(wallClockNow.getUTCFullYear(), wallClockNow.getUTCMonth(), 5, 12);
+  assert.ok(
+    oldWayMs < startMs || oldWayMs >= endMs,
+    'day 5 built from the UTC calendar month must fall OUTSIDE the ET report window -- this is the bug the fix corrects'
+  );
+});
+
 test('assembleReport degrades: stripeUnavailable nulls delta and flags degraded', () => {
   const rep = assembleReport({
     generatedAt: '2026-08-01T12:30:00.000Z', month: '2026-07',
