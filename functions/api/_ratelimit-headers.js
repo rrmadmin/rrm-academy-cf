@@ -9,28 +9,39 @@
  *   { count: number, start: number }   (start = unix epoch seconds)
  * Stored under key `rl:${key}`.
  */
+import { peekRateLimit } from './auth/_shared.js';
+
 export async function getRateLimitHeaders(env, key, max, windowS) {
   try {
     if (!env.COMMUNITY_KV) return {};
     const fullKey = `rl:${key}`;
     const raw = await env.COMMUNITY_KV.get(fullKey);
-    if (!raw) {
+    const nowS = Math.floor(Date.now() / 1000);
+    let bucket = null;
+    if (raw) {
+      try {
+        bucket = JSON.parse(raw);
+      } catch {
+        return {};
+      }
+      if (typeof bucket !== 'object' || bucket === null || typeof bucket.count !== 'number' || typeof bucket.start !== 'number') {
+        return {};
+      }
+    }
+    // checkRateLimit coalesces its KV writes, so the persisted count can lag
+    // the count it is actually enforcing. Prefer the in-memory bucket whenever
+    // it covers the current window and has counted more.
+    const local = peekRateLimit(env, key);
+    if (local && nowS - local.start < windowS && (!bucket || (local.start === bucket.start && local.count > bucket.count))) {
+      bucket = local;
+    }
+    if (!bucket) {
       return {
         'RateLimit-Limit': String(max),
         'RateLimit-Remaining': String(max),
         'RateLimit-Reset': String(windowS),
       };
     }
-    let bucket;
-    try {
-      bucket = JSON.parse(raw);
-    } catch {
-      return {};
-    }
-    if (typeof bucket !== 'object' || bucket === null || typeof bucket.count !== 'number' || typeof bucket.start !== 'number') {
-      return {};
-    }
-    const nowS = Math.floor(Date.now() / 1000);
     const remaining = Math.max(0, max - bucket.count);
     const reset = Math.max(0, Math.ceil(bucket.start + windowS - nowS));
     return {

@@ -321,34 +321,116 @@ export function constantTimeEqual(a, b) {
 //
 // Returns true if the request is allowed, false if rate-limited or KV error.
 
+// KV accepts one write per second per key and rejects the surplus with 429. A
+// single-IP burst on a hot key (track:${ip} allows 60/60s by design) therefore
+// turns ordinary traffic into a write-error storm — 1303 of 1705 worker events
+// on 2026-07-30. PUTs are coalesced to one per key per interval (over a second,
+// so scheduling jitter cannot push two writes into the same KV second), and the
+// count is carried forward in memory because a suppressed write would otherwise
+// lose the increment entirely: the next request re-reads the last persisted
+// value and the counter never advances.
+//
+// The cache hangs off the KV namespace object, so it lives exactly as long as
+// the binding does. If a runtime ever hands out a fresh namespace object per
+// request, every request simply reads and writes KV as before — the fallback
+// is today's behaviour, never a looser limit. KV stays the source of truth
+// across isolates; a local entry only ever raises a count, never lowers one.
+const KV_WRITE_INTERVAL_MS = 1500;
+const RL_LOCAL_MAX = 2000;
+const rlLocal = new WeakMap();
+
+function localBuckets(kv) {
+  let buckets = rlLocal.get(kv);
+  if (!buckets) {
+    buckets = new Map();
+    rlLocal.set(kv, buckets);
+  }
+  return buckets;
+}
+
+function setLocalBucket(buckets, fullKey, entry) {
+  if (buckets.size >= RL_LOCAL_MAX && !buckets.has(fullKey)) buckets.clear();
+  buckets.set(fullKey, entry);
+}
+
+/**
+ * Returns the in-memory bucket checkRateLimit is enforcing for `key`, or null.
+ * Read-only: consuming a slot is checkRateLimit's job. getRateLimitHeaders()
+ * needs this because the persisted count lags while writes are coalesced.
+ */
+export function peekRateLimit(env, key) {
+  const buckets = env?.COMMUNITY_KV ? rlLocal.get(env.COMMUNITY_KV) : null;
+  return buckets?.get(`rl:${key}`) || null;
+}
+
+// A 429 from KV is throttling, not a fault — the request was still handled
+// correctly (fail-closed). Logging it with status 'error' counted it toward the
+// observatory's high_error_rate alert, which reads blob4. Real KV failures
+// (outage, quota, malformed response) keep logging as errors.
+const KV_THROTTLED_RE = /429|too many requests|rate.?limit/i;
+
+function logKvFailure(env, key, e) {
+  if (!env?.EVENTS) return;
+  const detail = String(e?.message || e).slice(0, 200);
+  const throttled = KV_THROTTLED_RE.test(detail);
+  env.EVENTS.writeDataPoint({
+    blobs: [
+      'rrm-academy',
+      'rate_limit',
+      throttled ? 'kv_write_limited' : 'kv_error',
+      throttled ? 'limited' : 'error',
+      detail,
+    ],
+    doubles: [0, 1, 0],
+    indexes: [key],
+  });
+}
+
 export async function checkRateLimit(env, key, max = 5, windowS = 900) {
   if (!env.COMMUNITY_KV) {
     // Fail-CLOSED: missing KV binding denies rather than allows.
     return false;
   }
+  const fullKey = `rl:${key}`;
+  const nowMs = Date.now();
+  const now = Math.floor(nowMs / 1000);
+
+  let bucket;
   try {
-    const fullKey = `rl:${key}`;
     const raw = await env.COMMUNITY_KV.get(fullKey);
-    const now = Math.floor(Date.now() / 1000);
-    let bucket = raw ? JSON.parse(raw) : { count: 0, start: now };
-    if (now - bucket.start >= windowS) {
-      bucket = { count: 0, start: now };
-    }
-    if (bucket.count >= max) return false;
-    bucket.count++;
-    await env.COMMUNITY_KV.put(fullKey, JSON.stringify(bucket), { expirationTtl: windowS + 60 });
-    return true;
+    bucket = raw ? JSON.parse(raw) : null;
   } catch (e) {
-    if (env?.EVENTS) {
-      env.EVENTS.writeDataPoint({
-        blobs: ['rrm-academy', 'rate_limit', 'kv_error', 'error', String(e?.message || e).slice(0, 200)],
-        doubles: [0, 1, 0],
-        indexes: [key],
-      });
-    }
+    logKvFailure(env, key, e);
     // Fail-CLOSED on KV outage.
     return false;
   }
+  // Type check mirrors getRateLimitHeaders() in _ratelimit-headers.js: a
+  // malformed bucket must reset the window, not poison the count with NaN.
+  if (typeof bucket?.count !== 'number' || typeof bucket?.start !== 'number' || now - bucket.start >= windowS) {
+    bucket = { count: 0, start: now };
+  }
+
+  const buckets = localBuckets(env.COMMUNITY_KV);
+  const local = buckets.get(fullKey);
+  const current = local && local.start === bucket.start ? local : null;
+  if (current && current.count > bucket.count) {
+    bucket.count = current.count;
+  }
+  if (bucket.count >= max) return false;
+  bucket.count++;
+
+  const coalesce = current !== null && nowMs - current.putAt < KV_WRITE_INTERVAL_MS;
+  setLocalBucket(buckets, fullKey, { count: bucket.count, start: bucket.start, putAt: coalesce ? current.putAt : nowMs });
+  if (coalesce) return true;
+
+  try {
+    await env.COMMUNITY_KV.put(fullKey, JSON.stringify(bucket), { expirationTtl: windowS + 60 });
+  } catch (e) {
+    logKvFailure(env, key, e);
+    // Fail-CLOSED on KV outage.
+    return false;
+  }
+  return true;
 }
 
 // --- Email validation ---
