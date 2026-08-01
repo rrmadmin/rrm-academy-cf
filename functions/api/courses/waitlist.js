@@ -3,7 +3,7 @@
  * Captures email sign-ups for waitlisted affiliate courses.
  * Dual-subscribes to newsletter_subscriber with a waitlist segment.
  */
-import { json, optionsResponse, verifyTurnstile, generateId, getSessionIdFromCookie, checkRateLimit } from '../auth/_shared.js';
+import { json, optionsResponse, verifyTurnstile, generateId, getSessionIdFromCookie, checkRateLimit, hashToken } from '../auth/_shared.js';
 import { verifyAndTagEmail } from '../_elv.js';
 import { log } from '../_log.js';
 import { sendGA4Event } from '../_ga4.js';
@@ -60,8 +60,10 @@ export async function onRequestPost(context) {
     return json({ ok: true });
   }
 
-  // 6. Rate limit by email
-  if (!await checkRateLimit(env, `waitlist-email:${email}`, 3, 900)) {
+  // 6. Rate limit by email — key is a hash, never the raw address, so it never
+  // reaches the COMMUNITY_KV key name or an Analytics Engine index (PRIV-02).
+  const emailHash = (await hashToken(email)).slice(0, 32);
+  if (!await checkRateLimit(env, `waitlist-email:${emailHash}`, 3, 900)) {
     return json({ ok: false, error: 'rate_limited' }, 429);
   }
 
