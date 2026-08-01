@@ -193,6 +193,17 @@ describe('checkRateLimit', () => {
     assert.equal(EVENTS.points[0].blobs[3], 'error');
   });
 
+  it('indexes only the limiter-name prefix on a KV failure, never the raw key (PRIV-02)', async () => {
+    const EVENTS = makeEventsStub();
+    const env = {
+      COMMUNITY_KV: makeRateLimitKv({ putError: new Error('KV PUT failed: 500 internal error') }),
+      EVENTS,
+    };
+    assert.equal(await checkRateLimit(env, 'waitlist-email:ada@example.com', 3, 900), false);
+    assert.equal(EVENTS.points[0].indexes[0], 'waitlist-email');
+    assert.ok(!EVENTS.points[0].indexes[0].includes('@'), 'index must never carry an email address');
+  });
+
   it('coalesces a same-key burst into a single KV write', async () => {
     const kv = makeRateLimitKv();
     const env = { COMMUNITY_KV: kv, EVENTS: makeEventsStub() };

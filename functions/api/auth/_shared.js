@@ -382,7 +382,7 @@ function logKvFailure(env, key, e) {
       detail,
     ],
     doubles: [0, 1, 0],
-    indexes: [key],
+    indexes: [key.split(':', 1)[0]],
   });
 }
 

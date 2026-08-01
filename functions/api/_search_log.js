@@ -58,7 +58,22 @@ export async function logSearchQuery(env, {
       user_agent_short || null,
       referer_path || null,
     ).run();
-  } catch {
-    // Swallow all errors -- logging failure must not break caller
+  } catch (err) {
+    // Fail-open per the module doc: the D1 insert failure must never break the
+    // caller's response path. But swallowing it silently is what let months of
+    // CHECK-constraint rejections go unnoticed, so surface it to Analytics
+    // Engine -- the '_dropped' suffix is what the observatory's
+    // data_loss_symptoms alert matches on. Shape mirrors log() (_log.js) /
+    // logKvFailure (auth/_shared.js): blob1 'rrm-academy', event, action,
+    // status, detail.
+    try {
+      env.EVENTS?.writeDataPoint({
+        blobs: ['rrm-academy', 'search', 'search_log_dropped', 'error', String(err?.message || err).slice(0, 200)],
+        doubles: [0, 1, 0],
+        indexes: ['search_log_dropped'],
+      });
+    } catch {
+      // AE write failure must never break the response path either.
+    }
   }
 }

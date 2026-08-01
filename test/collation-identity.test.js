@@ -40,6 +40,7 @@ import {
 } from './_d1-sqlite.mjs';
 import { mockRequest, mockEnv, mockWaitUntil, parseResponse, stubExternalFetch, randomIp } from './_helpers.js';
 import { hashPassword } from '../functions/api/auth/_shared.js';
+import { validateMonthParam } from '../functions/api/admin/_membership-metrics.js';
 
 const login = await import('../functions/api/auth/login.js');
 const signup = await import('../functions/api/auth/signup.js');
@@ -457,8 +458,14 @@ describe('admin/membership-report.js -- the seven identity joins (COLUMN collati
    * reports the wrong name and the wrong amount to Naomi's outreach list.
    */
   it('names and prices a new recurring donor from their FIRST gift, across spellings (:194/:197)', async () => {
-    const thisMonth = new Date();
-    const day = (d) => new Date(Date.UTC(thisMonth.getUTCFullYear(), thisMonth.getUTCMonth(), d, 12)).toISOString();
+    // The endpoint (no ?month=) resolves its default report month via
+    // validateMonthParam(null, Date.now()) in ET, not the UTC calendar month --
+    // deriving the fixture the same way keeps day(5)/day(20) inside the
+    // endpoint's actual [startUtc, endUtc) window even in the few hours around
+    // UTC midnight on the 1st when the UTC and ET months disagree.
+    const month = validateMonthParam(null, Date.now());
+    const [fy, fm] = month.split('-').map(Number);
+    const day = (d) => new Date(Date.UTC(fy, fm - 1, d, 12)).toISOString();
     const db = reportDb((s) => {
       insertDonorGift(s, {
         email: 'CARA@example.com', display_name: 'Cara First', kind: 'recurring',

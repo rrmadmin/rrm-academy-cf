@@ -5,7 +5,7 @@
 
 CREATE TABLE IF NOT EXISTS search_log (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
-  source TEXT NOT NULL CHECK(source IN ('ask', 'semantic', 'pagefind')),
+  source TEXT NOT NULL,
   query TEXT NOT NULL,
   user_id TEXT,
   ip_hash TEXT,
