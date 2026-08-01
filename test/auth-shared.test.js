@@ -2,7 +2,7 @@
  * Tests for auth utility functions.
  * Run with: node --test test/auth-shared.test.js
  *
- * Tests pure functions from functions/api/auth/_shared.js.
+ * Tests utility functions from functions/api/auth/_shared.js.
  * These use Web Crypto APIs available in Node 18+.
  */
 
@@ -11,8 +11,9 @@ import assert from 'node:assert/strict';
 import {
   hashPassword, verifyPassword, hashToken, PBKDF2_ITERATIONS,
   generateId, generateSessionId, generateToken,
-  isValidEmail, isValidPassword, isSafeRedirect,
+  isValidEmail, isValidPassword, isSafeRedirect, checkRateLimit,
 } from '../functions/api/auth/_shared.js';
+import { randomIp } from './_helpers.js';
 
 describe('hashPassword + verifyPassword', () => {
   it('roundtrips correctly', async () => {
@@ -136,5 +137,104 @@ describe('isSafeRedirect', () => {
   it('rejects external URLs', () => {
     assert.ok(!isSafeRedirect('https://evil.com/steal'));
     assert.ok(!isSafeRedirect('//evil.com'));
+  });
+});
+
+// KV stub with put-error injection and write recording — mockKV() in _helpers
+// has neither, and both are the point of these tests. randomIp() keeps each
+// test on its own bucket key: checkRateLimit's write-coalescing cache is
+// module-level and lives for the whole test process.
+function makeRateLimitKv({ putError } = {}) {
+  const store = new Map();
+  const puts = [];
+  return {
+    puts,
+    async get(key) {
+      return store.has(key) ? store.get(key) : null;
+    },
+    async put(key, value) {
+      puts.push({ key, value });
+      if (putError) throw putError;
+      store.set(key, value);
+    },
+  };
+}
+
+function makeEventsStub() {
+  const points = [];
+  return { points, writeDataPoint(point) { points.push(point); } };
+}
+
+describe('checkRateLimit', () => {
+  it('fails closed when the KV binding is missing', async () => {
+    assert.equal(await checkRateLimit({}, `track:${randomIp()}`, 60, 60), false);
+  });
+
+  it('logs a KV write 429 as status "limited", not "error"', async () => {
+    const EVENTS = makeEventsStub();
+    const env = {
+      COMMUNITY_KV: makeRateLimitKv({ putError: new Error('KV PUT failed: 429 Too Many Requests') }),
+      EVENTS,
+    };
+    assert.equal(await checkRateLimit(env, `track:${randomIp()}`, 60, 60), false, 'still fails closed');
+    assert.equal(EVENTS.points.length, 1);
+    assert.equal(EVENTS.points[0].blobs[2], 'kv_write_limited');
+    assert.equal(EVENTS.points[0].blobs[3], 'limited');
+  });
+
+  it('logs a genuine KV failure as status "error"', async () => {
+    const EVENTS = makeEventsStub();
+    const env = {
+      COMMUNITY_KV: makeRateLimitKv({ putError: new Error('KV PUT failed: 500 internal error') }),
+      EVENTS,
+    };
+    assert.equal(await checkRateLimit(env, `track:${randomIp()}`, 60, 60), false);
+    assert.equal(EVENTS.points[0].blobs[2], 'kv_error');
+    assert.equal(EVENTS.points[0].blobs[3], 'error');
+  });
+
+  it('coalesces a same-key burst into a single KV write', async () => {
+    const kv = makeRateLimitKv();
+    const env = { COMMUNITY_KV: kv, EVENTS: makeEventsStub() };
+    const key = `track:${randomIp()}`;
+    for (let i = 0; i < 20; i++) {
+      assert.equal(await checkRateLimit(env, key, 60, 60), true, `request ${i} should be allowed`);
+    }
+    assert.equal(kv.puts.length, 1, 'burst collapses to one KV write');
+  });
+
+  it('still enforces max while writes are coalesced', async () => {
+    const kv = makeRateLimitKv();
+    const env = { COMMUNITY_KV: kv, EVENTS: makeEventsStub() };
+    const key = `track:${randomIp()}`;
+    assert.equal(await checkRateLimit(env, key, 3, 60), true);
+    assert.equal(await checkRateLimit(env, key, 3, 60), true);
+    assert.equal(await checkRateLimit(env, key, 3, 60), true);
+    assert.equal(await checkRateLimit(env, key, 3, 60), false, '4th request exceeds max=3');
+    assert.equal(kv.puts.length, 1);
+  });
+
+  it('writes again once the coalescing interval has elapsed', async (t) => {
+    t.mock.timers.enable({ apis: ['Date'], now: Date.now() });
+    const kv = makeRateLimitKv();
+    const env = { COMMUNITY_KV: kv, EVENTS: makeEventsStub() };
+    const key = `track:${randomIp()}`;
+    assert.equal(await checkRateLimit(env, key, 60, 60), true);
+    assert.equal(await checkRateLimit(env, key, 60, 60), true);
+    assert.equal(kv.puts.length, 1);
+    t.mock.timers.tick(2000);
+    assert.equal(await checkRateLimit(env, key, 60, 60), true);
+    assert.equal(kv.puts.length, 2);
+    assert.equal(JSON.parse(kv.puts[1].value).count, 3, 'coalesced increments are carried forward');
+  });
+
+  it('resets a malformed KV bucket instead of counting NaN', async () => {
+    const kv = makeRateLimitKv();
+    const key = `track:${randomIp()}`;
+    await kv.put(`rl:${key}`, '"not-a-bucket"');
+    kv.puts.length = 0;
+    const env = { COMMUNITY_KV: kv, EVENTS: makeEventsStub() };
+    assert.equal(await checkRateLimit(env, key, 2, 60), true);
+    assert.equal(JSON.parse(kv.puts[0].value).count, 1);
   });
 });
