@@ -17,6 +17,7 @@
     "participants": 0,
     "isAffiliate": true,
     "affiliateUrl": "https://chartneo.com/RRMA",
+    "couponCode": "",
     "couponDiscount": "10%",
     "affiliatePriceCents": 134550,
     "cohortDates": {
