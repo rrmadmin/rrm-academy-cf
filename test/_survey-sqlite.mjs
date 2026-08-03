@@ -65,6 +65,7 @@ CREATE TABLE IF NOT EXISTS email_log (
   detail TEXT,
   send_id TEXT,
   ses_message_id TEXT,
+  lane TEXT,
   created_at TEXT NOT NULL DEFAULT (datetime('now'))
 );
 `;

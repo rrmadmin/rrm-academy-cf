@@ -6,6 +6,7 @@ import { json, optionsResponse, checkRateLimit, verifyTurnstile } from '../auth/
 import { validateEmail } from '../auth/_email-validate.js';
 import { verifyAndTagEmail } from '../_elv.js';
 import { sendEmail, logEmailFailure } from '../_ses.js';
+import { sendTransactionalEmail } from '../_mail-lanes.js';
 import { log } from '../_log.js';
 import { validateBody } from '../_validate.js';
 import { CONTACT_CATEGORIES, CATEGORY_SOURCES } from '../../../src/lib/contact-categories.js';
@@ -117,7 +118,7 @@ async function _handlePost(context) {
     // Send confirmation to the sender
     const confirmSubject = 'We received your message — RRM Academy';
     try {
-      await sendEmail(env, {
+      await sendTransactionalEmail(env, {
         from: 'RRM Academy <contact@mail.rrmacademy.org>',
         to: email,
         subject: confirmSubject,
