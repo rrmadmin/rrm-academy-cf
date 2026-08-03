@@ -8,7 +8,7 @@
     "shortDescription": "11-week live training in Restorative Reproductive Medicine for clinicians treating infertility and recurrent miscarriage. Led by Dr. Phil Boyle. 20+ CME credits.",
     "image": "/api/assets/course-covers/neofertility-med-training.webp",
     "imageAlt": "NeoFertility Medical Training Cohort branded graphic: April 20 – July 2, 2026, 20+ CME, live sessions, ChartNeo access, with the neo circle logo on a blue gradient background",
-    "priceCents": 120000,
+    "priceCents": 149500,
     "isFree": false,
     "hasCertificate": false,
     "selfPaced": false,
@@ -17,24 +17,17 @@
     "participants": 0,
     "isAffiliate": true,
     "affiliateUrl": "https://chartneo.com/RRMA",
-    "couponCode": "RRMA-S26",
-    "couponDiscount": "5%",
-    "affiliatePriceCents": 114000,
+    "couponDiscount": "10%",
+    "affiliatePriceCents": 134550,
     "cohortDates": {
-      "start": "2026-04-20",
-      "end": "2026-07-02"
+      "start": "2026-10-13",
+      "end": "2026-12-10"
     },
-    "waitlistUrl": "https://www.neofertilitytraining.com/october2026cohortwaitlist",
-    "nextCohortLabel": "October 2026",
     "whatsIncluded": [
-      "10-lesson course with Dr. Phil Boyle (15 CME credits)",
-      "6 live Q&A sessions",
-      "Monthly live case studies with Dr. Phil Boyle & Dr. Monica Minjeur (CME eligible)",
-      "Clinical Resource Library (CME eligible)",
-      "NeoFertility Medical Forum",
-      "Chart Neo Professional Portal Account (HIPAA-compliant)",
-      "One additional staff member access for your clinic",
-      "Monthly Chart Neo support sessions"
+      "10-lesson course with Dr. Phil Boyle (CME eligible)",
+      "6 live Q&A sessions + monthly case studies with Dr. Phil Boyle & Dr. Monica Minjeur (CME eligible)",
+      "NeoFertility Medical Forum for peer discussion and clinical support",
+      "6 months access to Chart Neo Professional Portal Account (HIPAA-compliant)"
     ],
     "instructors": [
       {
@@ -55,7 +48,7 @@
     },
     "seo": {
       "title": "NeoFertility Medical Training Cohort | RRM Academy",
-      "description": "11-week live clinical training in Restorative Reproductive Medicine with Dr. Phil Boyle. 20+ CME credits. Next cohort: October 2026. Join the waitlist."
+      "description": "11-week live clinical training in Restorative Reproductive Medicine with Dr. Phil Boyle. 20+ CME credits. Fall cohort: October 13 to December 10, 2026."
     },
     "sections": [],
     "topics": [
