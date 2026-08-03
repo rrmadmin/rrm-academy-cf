@@ -1,6 +1,6 @@
 {
  "_note": "Every first-party executable file (census-rules.mjs SURFACE_ROOTS) is accounted for here, and scripts/quality/coverage.mjs FAILS its run if the enumerated surface drifts from this file or a new file matches no classification rule. A file is either PRODUCT-CODE (inside the gated coverage denominator) or excluded below with a category and written reason — never silently. Regenerate with: node scripts/quality/coverage.mjs && node scripts/quality/census.mjs",
- "_generated": "2026-07-31",
+ "_generated": "2026-08-03",
  "_categories": {
   "PRODUCT-CODE": "Deployed or deploy-chain code whose defects ship to users: CF Pages Functions (every route + _helper under functions/), build-time data fetchers and shared logic (src/lib), client bundles (src/scripts), Astro build integrations, and the CI gate/guard/build scripts that decide whether a deploy is allowed. This is the gated denominator. Uncovered PRODUCT-CODE is debt, listed so it is visible and countable, never argued away.",
   "CONTENT-TEMPLATE": "Files where line coverage is the wrong instrument because they are content, data constants, or scaffolding: reference-only endpoint templates (header forbids importing), typed data constants consumed by Astro templates, and Astro endpoint modules (*.md.ts / rss.xml.ts) that only execute inside the Astro build container. Their correctness instruments are the build itself, verify-build-output, the data deploy-guard floors, and the e2e suite.",
@@ -15,26 +15,26 @@
   "ratchet_rule": "The floor may only move UP. Arm at the measured floor rounded down; never arm a number that is red on arrival. Raise it after a coverage drive lands, by editing this value to the new measured floor rounded down."
  },
  "_measured": {
-  "date": "2026-07-31",
+  "date": "2026-08-03",
   "instrument": "node scripts/quality/coverage.mjs (c8 --all over the full surface; full npm-test suite)",
   "full_surface": {
-   "files": 423,
-   "lines": 82919,
-   "covered": 31374,
-   "pct": 37.84
+   "files": 424,
+   "lines": 83485,
+   "covered": 31916,
+   "pct": 38.23
   },
   "by_category": {
    "PRODUCT-CODE": {
     "files": 335,
-    "lines": 61595,
-    "covered": 26091,
-    "pct": 42.36
+    "lines": 62085,
+    "covered": 26633,
+    "pct": 42.9
    },
    "CONTENT-TEMPLATE": {
-    "files": 8,
-    "lines": 606,
+    "files": 9,
+    "lines": 682,
     "covered": 81,
-    "pct": 13.37
+    "pct": 11.88
    },
    "E2E-DRIVER": {
     "files": 35,
@@ -57,12 +57,12 @@
   },
   "product_code": {
    "files": 335,
-   "lines": 61595,
-   "covered": 26091,
-   "pct": 42.36
+   "lines": 62085,
+   "covered": 26633,
+   "pct": 42.9
   },
   "files_at_zero_in_full_report": 260,
-  "files_executed_in_full_report": 163,
+  "files_executed_in_full_report": 164,
   "highest_stakes_slice": {
    "slice": "national survey system (functions/api/survey/ + functions/api/endo-quiz/)",
    "files": [
@@ -588,16 +588,16 @@
    "category": "PRODUCT-CODE",
    "reason": "CF Pages Function (routed endpoint, middleware, or _-prefixed shared helper). Deployed on every push; defects ship directly to users.",
    "present": true,
-   "lines": 44,
-   "covered": 32,
-   "pct": 72.72
+   "lines": 55,
+   "covered": 43,
+   "pct": 78.18
   },
   {
    "file": "functions/api/_search_log.js",
    "category": "PRODUCT-CODE",
    "reason": "CF Pages Function (routed endpoint, middleware, or _-prefixed shared helper). Deployed on every push; defects ship directly to users.",
    "present": false,
-   "lines": 64,
+   "lines": 79,
    "covered": 0,
    "pct": 0
   },
@@ -705,8 +705,8 @@
    "category": "PRODUCT-CODE",
    "reason": "CF Pages Function (routed endpoint, middleware, or _-prefixed shared helper). Deployed on every push; defects ship directly to users.",
    "present": true,
-   "lines": 334,
-   "covered": 334,
+   "lines": 351,
+   "covered": 351,
    "pct": 100
   },
   {
@@ -723,8 +723,8 @@
    "category": "PRODUCT-CODE",
    "reason": "CF Pages Function (routed endpoint, middleware, or _-prefixed shared helper). Deployed on every push; defects ship directly to users.",
    "present": true,
-   "lines": 191,
-   "covered": 191,
+   "lines": 214,
+   "covered": 214,
    "pct": 100
   },
   {
@@ -732,8 +732,8 @@
    "category": "PRODUCT-CODE",
    "reason": "CF Pages Function (routed endpoint, middleware, or _-prefixed shared helper). Deployed on every push; defects ship directly to users.",
    "present": true,
-   "lines": 368,
-   "covered": 368,
+   "lines": 380,
+   "covered": 380,
    "pct": 100
   },
   {
@@ -777,8 +777,8 @@
    "category": "PRODUCT-CODE",
    "reason": "CF Pages Function (routed endpoint, middleware, or _-prefixed shared helper). Deployed on every push; defects ship directly to users.",
    "present": true,
-   "lines": 177,
-   "covered": 177,
+   "lines": 186,
+   "covered": 186,
    "pct": 100
   },
   {
@@ -786,8 +786,8 @@
    "category": "PRODUCT-CODE",
    "reason": "CF Pages Function (routed endpoint, middleware, or _-prefixed shared helper). Deployed on every push; defects ship directly to users.",
    "present": true,
-   "lines": 307,
-   "covered": 307,
+   "lines": 334,
+   "covered": 334,
    "pct": 100
   },
   {
@@ -795,8 +795,8 @@
    "category": "PRODUCT-CODE",
    "reason": "CF Pages Function (routed endpoint, middleware, or _-prefixed shared helper). Deployed on every push; defects ship directly to users.",
    "present": true,
-   "lines": 271,
-   "covered": 271,
+   "lines": 280,
+   "covered": 280,
    "pct": 100
   },
   {
@@ -1137,9 +1137,9 @@
    "category": "PRODUCT-CODE",
    "reason": "CF Pages Function (routed endpoint, middleware, or _-prefixed shared helper). Deployed on every push; defects ship directly to users.",
    "present": true,
-   "lines": 585,
-   "covered": 490,
-   "pct": 83.76
+   "lines": 667,
+   "covered": 580,
+   "pct": 86.95
   },
   {
    "file": "functions/api/auth/change-password.js",
@@ -1470,8 +1470,8 @@
    "category": "PRODUCT-CODE",
    "reason": "CF Pages Function (routed endpoint, middleware, or _-prefixed shared helper). Deployed on every push; defects ship directly to users.",
    "present": true,
-   "lines": 95,
-   "covered": 95,
+   "lines": 116,
+   "covered": 116,
    "pct": 100
   },
   {
@@ -1488,8 +1488,8 @@
    "category": "PRODUCT-CODE",
    "reason": "CF Pages Function (routed endpoint, middleware, or _-prefixed shared helper). Deployed on every push; defects ship directly to users.",
    "present": true,
-   "lines": 266,
-   "covered": 266,
+   "lines": 289,
+   "covered": 289,
    "pct": 100
   },
   {
@@ -1740,8 +1740,8 @@
    "category": "PRODUCT-CODE",
    "reason": "CF Pages Function (routed endpoint, middleware, or _-prefixed shared helper). Deployed on every push; defects ship directly to users.",
    "present": true,
-   "lines": 185,
-   "covered": 185,
+   "lines": 187,
+   "covered": 187,
    "pct": 100
   },
   {
@@ -2118,8 +2118,8 @@
    "category": "PRODUCT-CODE",
    "reason": "CF Pages Function (routed endpoint, middleware, or _-prefixed shared helper). Deployed on every push; defects ship directly to users.",
    "present": true,
-   "lines": 611,
-   "covered": 611,
+   "lines": 828,
+   "covered": 828,
    "pct": 100
   },
   {
@@ -2252,10 +2252,10 @@
    "file": "scripts/audit-glossary-links.mjs",
    "category": "PRODUCT-CODE",
    "reason": "Local deterministic analysis of glossary.json link classes; unit-tested (glossary-link-classifier.test.js), 80% covered today.",
-   "present": false,
+   "present": true,
    "lines": 101,
-   "covered": 0,
-   "pct": 0
+   "covered": 81,
+   "pct": 80.19
   },
   {
    "file": "scripts/audit-textbook-fact-coverage.mjs",
@@ -3945,7 +3945,7 @@
    "category": "PRODUCT-CODE",
    "reason": "Build-time data fetcher / shared logic. Feeds every deploy (fetch-all -> src/data -> astro build); silent failure here is a data-loss deploy.",
    "present": false,
-   "lines": 322,
+   "lines": 344,
    "covered": 0,
    "pct": 0
   },
@@ -4180,6 +4180,15 @@
    "reason": "Astro endpoint module (*.md.ts / rss.xml.ts): executes only inside the Astro build container (astro:content et al). Instruments: the build itself, verify-build-output, standards gate, e2e.",
    "present": false,
    "lines": 50,
+   "covered": 0,
+   "pct": 0
+  },
+  {
+   "file": "src/pages/faqs.md.ts",
+   "category": "CONTENT-TEMPLATE",
+   "reason": "Astro endpoint module (*.md.ts / rss.xml.ts): executes only inside the Astro build container (astro:content et al). Instruments: the build itself, verify-build-output, standards gate, e2e.",
+   "present": false,
+   "lines": 76,
    "covered": 0,
    "pct": 0
   },
