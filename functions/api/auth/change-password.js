@@ -9,7 +9,8 @@ import {
   generateSessionId, sessionCookie, authHintCookie, checkRateLimit, sessionInsertStatement,
   SESSION_DURATION_MS, hashToken, COMMON_PASSWORD_ERROR,
 } from './_shared.js';
-import { sendEmail, logEmailFailure } from '../_ses.js';
+import { logEmailFailure } from '../_ses.js';
+import { sendTransactionalEmail } from '../_mail-lanes.js';
 import { log } from '../_log.js';
 
 export async function onRequestOptions() {
@@ -96,7 +97,7 @@ export async function onRequestPost({ request, env, waitUntil }) {
     if (env.AWS_ACCESS_KEY_ID && user.email) {
       const changeDate = new Date().toUTCString();
       waitUntil(
-        sendEmail(env, {
+        sendTransactionalEmail(env, {
           from: 'RRM Academy <accounts@mail.rrmacademy.org>',
           to: user.email,
           subject: 'Your RRM Academy password was changed',

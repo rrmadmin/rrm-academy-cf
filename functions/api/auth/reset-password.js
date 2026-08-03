@@ -8,7 +8,8 @@ import {
   isValidPassword, checkRateLimit, sessionInsertStatement, SESSION_DURATION_MS,
   COMMON_PASSWORD_ERROR,
 } from './_shared.js';
-import { sendEmail, logEmailFailure } from '../_ses.js';
+import { logEmailFailure } from '../_ses.js';
+import { sendTransactionalEmail } from '../_mail-lanes.js';
 import { log } from '../_log.js';
 
 export async function onRequestOptions() {
@@ -117,7 +118,7 @@ export async function onRequestPost({ request, env, waitUntil }) {
       if (notifyUser) {
         const changeDate = new Date().toUTCString();
         waitUntil(
-          sendEmail(env, {
+          sendTransactionalEmail(env, {
             from: 'RRM Academy <accounts@mail.rrmacademy.org>',
             to: notifyUser.email,
             subject: 'Your RRM Academy password was changed',

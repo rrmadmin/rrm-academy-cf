@@ -9,7 +9,8 @@ import {
   DUMMY_PASSWORD_HASH, SESSION_DURATION_MS, hashToken, hashPassword, PBKDF2_ITERATIONS,
 } from './_shared.js';
 import { cleanupEmail } from './_email-validate.js';
-import { sendEmail, logEmailFailure } from '../_ses.js';
+import { logEmailFailure } from '../_ses.js';
+import { sendTransactionalEmail } from '../_mail-lanes.js';
 import { log } from '../_log.js';
 import { fireFpLink } from '../_fp-link.js';
 
@@ -106,7 +107,7 @@ export async function onRequestPost({ request, env, waitUntil }) {
                 '',
                 '-- RRM Academy',
               ].join('\n');
-          await sendEmail(env, {
+          await sendTransactionalEmail(env, {
             from: 'RRM Academy <accounts@mail.rrmacademy.org>',
             to: user.email,
             subject: 'Sign-in attempt on your RRM Academy account',

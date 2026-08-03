@@ -3,6 +3,7 @@
  * Prefixed with _ so CF Pages doesn't treat it as a route handler.
  */
 import { sendEmail, logEmailFailure } from '../_ses.js';
+import { sendTransactionalEmail } from '../_mail-lanes.js';
 import { SITE_URL } from '../auth/_shared.js';
 import { STUC_MEMBER_WHERE } from './_shared.js';
 import { log } from '../_log.js';
@@ -26,7 +27,7 @@ async function sendBroadcastTrickle(env, recipients, buildEmail, { from, subject
     const batch = recipients.slice(i, i + BROADCAST_BATCH_SIZE);
     const batchResults = await Promise.allSettled(batch.map(m => {
       const { html, text } = buildEmail(m);
-      return sendEmail(env, { from, to: m.email, subject, html, text, replyTo, log });
+      return sendTransactionalEmail(env, { from, to: m.email, subject, html, text, replyTo, log });
     }));
     results.push(...batchResults);
     if (i + BROADCAST_BATCH_SIZE < recipients.length) {
@@ -386,7 +387,7 @@ export async function notifyReply(env, db, postId, parentId, replierId, replierN
   `;
   const text = `${greeting}\n\n${replierName} replied to your ${targetLabel}:\n"${preview}"\nView: ${link}`;
 
-  await sendEmail(env, {
+  await sendTransactionalEmail(env, {
     from: authorFrom(replierId, replierName),
     to: recipient.email,
     subject,

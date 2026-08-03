@@ -16,7 +16,8 @@ import {
   verifyTurnstile, checkRateLimit, isValidEmail, RESET_TOKEN_TTL_S,
 } from './_shared.js';
 import { cleanupEmail } from './_email-validate.js';
-import { sendEmail, logEmailFailure } from '../_ses.js';
+import { logEmailFailure } from '../_ses.js';
+import { sendTransactionalEmail } from '../_mail-lanes.js';
 import { log } from '../_log.js';
 
 export async function onRequestOptions() {
@@ -100,7 +101,7 @@ export async function onRequestPost({ request, env, waitUntil }) {
             return;
           }
 
-          await sendEmail(env, {
+          await sendTransactionalEmail(env, {
             from: 'RRM Academy <accounts@mail.rrmacademy.org>',
             to: email,
             subject: 'Reset your password — RRM Academy',

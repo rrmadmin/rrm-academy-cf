@@ -18,17 +18,17 @@
   "date": "2026-08-03",
   "instrument": "node scripts/quality/coverage.mjs (c8 --all over the full surface; full npm-test suite)",
   "full_surface": {
-   "files": 424,
-   "lines": 83485,
-   "covered": 31916,
-   "pct": 38.23
+   "files": 425,
+   "lines": 83757,
+   "covered": 32090,
+   "pct": 38.31
   },
   "by_category": {
    "PRODUCT-CODE": {
-    "files": 335,
-    "lines": 62085,
-    "covered": 26633,
-    "pct": 42.9
+    "files": 336,
+    "lines": 62357,
+    "covered": 26807,
+    "pct": 42.99
    },
    "CONTENT-TEMPLATE": {
     "files": 9,
@@ -56,25 +56,25 @@
    }
   },
   "product_code": {
-   "files": 335,
-   "lines": 62085,
-   "covered": 26633,
-   "pct": 42.9
+   "files": 336,
+   "lines": 62357,
+   "covered": 26807,
+   "pct": 42.99
   },
-  "files_at_zero_in_full_report": 260,
+  "files_at_zero_in_full_report": 261,
   "files_executed_in_full_report": 164,
   "highest_stakes_slice": {
    "slice": "national survey system (functions/api/survey/ + functions/api/endo-quiz/)",
    "files": [
     "functions/api/endo-quiz/download.js 45/45 (100%)",
-    "functions/api/endo-quiz/request.js 224/224 (100%)",
+    "functions/api/endo-quiz/request.js 225/225 (100%)",
     "functions/api/survey/count.js 71/71 (100%)",
     "functions/api/survey/event.js 96/96 (100%)",
-    "functions/api/survey/request.js 183/183 (100%)",
+    "functions/api/survey/request.js 184/184 (100%)",
     "functions/api/survey/submit.js 204/204 (100%)",
     "functions/api/survey/validate.js 44/44 (100%)"
    ],
-   "state": "867/867 lines (100%). Executed suites: test/survey-request.test.js, test/survey-submit.test.js, test/survey-endpoints.test.js, test/endo-quiz-request.test.js, test/endo-quiz-download.test.js. The two load-bearing invariants are asserted by running the handlers against SEPARATE databases: identity (email + rec_id) lands only in SURVEY_DB while symptoms land only in SURVEY_SYMPTOMS_DB with no address in the SQL or any bound value; and a failed symptom write deletes the D1 token claim and restores the original KV token record so the participant can resubmit. The endo-quiz (Google Ads) half runs on real SQLite engines built from the committed rrm-survey-symptoms migration, and asserts the same split plus the asymmetry either side of it: a failed symptom write is a 500 with no identity row, a failed identity write still counts the submission and alerts an administrator by rec_id."
+   "state": "869/869 lines (100%). Executed suites: test/survey-request.test.js, test/survey-submit.test.js, test/survey-endpoints.test.js, test/endo-quiz-request.test.js, test/endo-quiz-download.test.js. The two load-bearing invariants are asserted by running the handlers against SEPARATE databases: identity (email + rec_id) lands only in SURVEY_DB while symptoms land only in SURVEY_SYMPTOMS_DB with no address in the SQL or any bound value; and a failed symptom write deletes the D1 token claim and restores the original KV token record so the participant can resubmit. The endo-quiz (Google Ads) half runs on real SQLite engines built from the committed rrm-survey-symptoms migration, and asserts the same split plus the asymmetry either side of it: a failed symptom write is a 500 with no identity row, a failed identity write still counts the submission and alerts an administrator by rec_id."
   }
  },
  "_line_exclusions": [
@@ -128,7 +128,7 @@
   {
    "file": "functions/api/auth/google-callback.js",
    "fn": "onRequestGet",
-   "line": 176,
+   "line": 177,
    "cc": 66,
    "coverage": 0,
    "crap": 4422
@@ -575,6 +575,15 @@
    "pct": 100
   },
   {
+   "file": "functions/api/_mail-lanes.js",
+   "category": "PRODUCT-CODE",
+   "reason": "CF Pages Function (routed endpoint, middleware, or _-prefixed shared helper). Deployed on every push; defects ship directly to users.",
+   "present": true,
+   "lines": 256,
+   "covered": 239,
+   "pct": 93.35
+  },
+  {
    "file": "functions/api/_map-article.js",
    "category": "PRODUCT-CODE",
    "reason": "CF Pages Function (routed endpoint, middleware, or _-prefixed shared helper). Deployed on every push; defects ship directly to users.",
@@ -606,9 +615,9 @@
    "category": "PRODUCT-CODE",
    "reason": "CF Pages Function (routed endpoint, middleware, or _-prefixed shared helper). Deployed on every push; defects ship directly to users.",
    "present": true,
-   "lines": 202,
-   "covered": 101,
-   "pct": 50
+   "lines": 205,
+   "covered": 109,
+   "pct": 53.17
   },
   {
    "file": "functions/api/_track-events.js",
@@ -1146,7 +1155,7 @@
    "category": "PRODUCT-CODE",
    "reason": "CF Pages Function (routed endpoint, middleware, or _-prefixed shared helper). Deployed on every push; defects ship directly to users.",
    "present": false,
-   "lines": 131,
+   "lines": 132,
    "covered": 0,
    "pct": 0
   },
@@ -1155,7 +1164,7 @@
    "category": "PRODUCT-CODE",
    "reason": "CF Pages Function (routed endpoint, middleware, or _-prefixed shared helper). Deployed on every push; defects ship directly to users.",
    "present": false,
-   "lines": 136,
+   "lines": 137,
    "covered": 0,
    "pct": 0
   },
@@ -1164,7 +1173,7 @@
    "category": "PRODUCT-CODE",
    "reason": "CF Pages Function (routed endpoint, middleware, or _-prefixed shared helper). Deployed on every push; defects ship directly to users.",
    "present": false,
-   "lines": 424,
+   "lines": 425,
    "covered": 0,
    "pct": 0
   },
@@ -1182,9 +1191,9 @@
    "category": "PRODUCT-CODE",
    "reason": "CF Pages Function (routed endpoint, middleware, or _-prefixed shared helper). Deployed on every push; defects ship directly to users.",
    "present": true,
-   "lines": 177,
-   "covered": 122,
-   "pct": 68.92
+   "lines": 178,
+   "covered": 123,
+   "pct": 69.1
   },
   {
    "file": "functions/api/auth/logout.js",
@@ -1209,7 +1218,7 @@
    "category": "PRODUCT-CODE",
    "reason": "CF Pages Function (routed endpoint, middleware, or _-prefixed shared helper). Deployed on every push; defects ship directly to users.",
    "present": false,
-   "lines": 109,
+   "lines": 110,
    "covered": 0,
    "pct": 0
   },
@@ -1218,7 +1227,7 @@
    "category": "PRODUCT-CODE",
    "reason": "CF Pages Function (routed endpoint, middleware, or _-prefixed shared helper). Deployed on every push; defects ship directly to users.",
    "present": false,
-   "lines": 168,
+   "lines": 169,
    "covered": 0,
    "pct": 0
   },
@@ -1236,9 +1245,9 @@
    "category": "PRODUCT-CODE",
    "reason": "CF Pages Function (routed endpoint, middleware, or _-prefixed shared helper). Deployed on every push; defects ship directly to users.",
    "present": true,
-   "lines": 283,
-   "covered": 193,
-   "pct": 68.19
+   "lines": 284,
+   "covered": 194,
+   "pct": 68.3
   },
   {
    "file": "functions/api/auth/verify-email.js",
@@ -1416,8 +1425,8 @@
    "category": "PRODUCT-CODE",
    "reason": "CF Pages Function (routed endpoint, middleware, or _-prefixed shared helper). Deployed on every push; defects ship directly to users.",
    "present": true,
-   "lines": 398,
-   "covered": 398,
+   "lines": 399,
+   "covered": 399,
    "pct": 100
   },
   {
@@ -1623,9 +1632,9 @@
    "category": "PRODUCT-CODE",
    "reason": "CF Pages Function (routed endpoint, middleware, or _-prefixed shared helper). Deployed on every push; defects ship directly to users.",
    "present": true,
-   "lines": 147,
-   "covered": 119,
-   "pct": 80.95
+   "lines": 148,
+   "covered": 120,
+   "pct": 81.08
   },
   {
    "file": "functions/api/courses.js",
@@ -1776,8 +1785,8 @@
    "category": "PRODUCT-CODE",
    "reason": "CF Pages Function (routed endpoint, middleware, or _-prefixed shared helper). Deployed on every push; defects ship directly to users.",
    "present": true,
-   "lines": 224,
-   "covered": 224,
+   "lines": 225,
+   "covered": 225,
    "pct": 100
   },
   {
@@ -1983,8 +1992,8 @@
    "category": "PRODUCT-CODE",
    "reason": "CF Pages Function (routed endpoint, middleware, or _-prefixed shared helper). Deployed on every push; defects ship directly to users.",
    "present": true,
-   "lines": 133,
-   "covered": 133,
+   "lines": 134,
+   "covered": 134,
    "pct": 100
   },
   {
@@ -2001,8 +2010,8 @@
    "category": "PRODUCT-CODE",
    "reason": "CF Pages Function (routed endpoint, middleware, or _-prefixed shared helper). Deployed on every push; defects ship directly to users.",
    "present": true,
-   "lines": 259,
-   "covered": 259,
+   "lines": 260,
+   "covered": 260,
    "pct": 100
   },
   {
@@ -2073,8 +2082,8 @@
    "category": "PRODUCT-CODE",
    "reason": "CF Pages Function (routed endpoint, middleware, or _-prefixed shared helper). Deployed on every push; defects ship directly to users.",
    "present": true,
-   "lines": 183,
-   "covered": 183,
+   "lines": 184,
+   "covered": 184,
    "pct": 100
   },
   {
@@ -2252,10 +2261,10 @@
    "file": "scripts/audit-glossary-links.mjs",
    "category": "PRODUCT-CODE",
    "reason": "Local deterministic analysis of glossary.json link classes; unit-tested (glossary-link-classifier.test.js), 80% covered today.",
-   "present": true,
+   "present": false,
    "lines": 101,
-   "covered": 81,
-   "pct": 80.19
+   "covered": 0,
+   "pct": 0
   },
   {
    "file": "scripts/audit-textbook-fact-coverage.mjs",

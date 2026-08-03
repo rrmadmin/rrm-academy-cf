@@ -2,7 +2,8 @@
  * POST /api/survey/request
  * Accepts { email }, generates a magic-link token, stores in KV, sends email via SES.
  */
-import { sendEmail, logEmailFailure } from '../_ses.js';
+import { logEmailFailure } from '../_ses.js';
+import { sendTransactionalEmail } from '../_mail-lanes.js';
 import { sendGA4Event } from '../_ga4.js';
 import { log } from '../_log.js';
 import { validateEmail } from '../auth/_email-validate.js';
@@ -121,7 +122,7 @@ export async function onRequestPost(context) {
     // Send email via SES
     const surveySubject = 'Your Endometriosis Symptom Self-Survey';
     try {
-      await sendEmail(env, {
+      await sendTransactionalEmail(env, {
         from: 'RRM Academy <survey@mail.rrmacademy.org>',
         to: email,
         subject: surveySubject,
