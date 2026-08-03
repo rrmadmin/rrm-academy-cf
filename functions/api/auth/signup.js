@@ -11,7 +11,8 @@ import {
 } from './_shared.js';
 import { validateEmail } from './_email-validate.js';
 import { verifyAndTagEmail, verifyEmailELV } from '../_elv.js';
-import { sendEmail, logEmailFailure } from '../_ses.js';
+import { logEmailFailure } from '../_ses.js';
+import { sendTransactionalEmail } from '../_mail-lanes.js';
 import { sendGA4Event } from '../_ga4.js';
 import { log } from '../_log.js';
 import { validateBody } from '../_validate.js';
@@ -49,7 +50,7 @@ async function sendWelcomeAskEmail(env, email, firstName) {
     '<p>-- The RRM Academy team</p>',
     '</body></html>',
   ].join('\n');
-  await sendEmail(env, {
+  await sendTransactionalEmail(env, {
     from: 'RRM Academy <hello@mail.rrmacademy.org>',
     to: email,
     subject,
@@ -150,7 +151,7 @@ export async function onRequestPost({ request, env, waitUntil }) {
         if (!alreadySent) {
           await env.COMMUNITY_KV.put(cooldownKey, '1', { expirationTtl: 3600 });
           waitUntil(
-            sendEmail(env, {
+            sendTransactionalEmail(env, {
               from: 'RRM Academy <accounts@mail.rrmacademy.org>',
               to: cleanEmail,
               subject: 'Did you try to sign up at RRM Academy?',
@@ -233,7 +234,7 @@ export async function onRequestPost({ request, env, waitUntil }) {
 
     // Send verification email via waitUntil (decouple SES latency from response timing)
     waitUntil(
-      sendEmail(env, {
+      sendTransactionalEmail(env, {
         from: 'RRM Academy <accounts@mail.rrmacademy.org>',
         to: cleanEmail,
         subject: 'Confirm your email — RRM Academy',

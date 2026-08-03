@@ -1,4 +1,5 @@
-import { sendEmail, logEmailFailure } from '../_ses.js';
+import { logEmailFailure } from '../_ses.js';
+import { sendTransactionalEmail } from '../_mail-lanes.js';
 import { log } from '../_log.js';
 import { validateEmail } from '../auth/_email-validate.js';
 import { verifyAndTagEmail } from '../_elv.js';
@@ -197,7 +198,7 @@ export async function onRequestPost(context) {
       const emailSubject = `Your fertility awareness method match: ${methodInfo.name}`;
       const emailText = buildEmailText(methodInfo, alternateInfo, safeAnswersCode);
       try {
-        await sendEmail(env, {
+        await sendTransactionalEmail(env, {
           from: 'RRM Academy <info@mail.rrmacademy.org>',
           to: email,
           subject: emailSubject,

@@ -1,16 +1,16 @@
 import { AwsClient } from 'aws4fetch';
 
-function sanitizeHeader(v) {
+export function sanitizeHeader(v) {
   const s = String(v ?? '');
   // eslint-disable-next-line no-control-regex -- intentional: block CRLF + NUL header injection
   if (/[\r\n\x00]/.test(s)) throw new Error('Header contains illegal control characters');
   return s.slice(0, 998);
 }
 
-async function insertEmailLog(db, { event, email, category, source, subject, detail, send_id, ses_message_id }) {
+export async function insertEmailLog(db, { event, email, category, source, subject, detail, send_id, ses_message_id, lane }) {
   try {
     await db.prepare(
-      'INSERT INTO email_log (event, email, category, source, subject, detail, send_id, ses_message_id) VALUES (?, ?, ?, ?, ?, ?, ?, ?)'
+      'INSERT INTO email_log (event, email, category, source, subject, detail, send_id, ses_message_id, lane) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)'
     ).bind(
       event,
       email.toLowerCase(),
@@ -20,6 +20,7 @@ async function insertEmailLog(db, { event, email, category, source, subject, det
       detail ? String(detail).slice(0, 500) : null,
       send_id || null,
       ses_message_id || null,
+      lane || 'ses',
     ).run();
   } catch (err) {
     console.error('insertEmailLog failed:', err.message);
@@ -94,6 +95,7 @@ export async function sendEmail(env, { from, to, subject, html, text, replyTo, c
       detail: messageId,
       send_id: messageId,
       ses_message_id: messageId,
+      lane: log.lane || 'ses',
     });
   }
 
@@ -195,6 +197,7 @@ export async function sendRawEmail(env, { from, to, subject, html, text, replyTo
       detail: sesMessageId,
       send_id: sesMessageId,
       ses_message_id: sesMessageId,
+      lane: log.lane || 'ses',
     });
   }
 
