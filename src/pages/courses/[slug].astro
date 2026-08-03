@@ -413,7 +413,11 @@ const relatedCourses = course.relatedCourses
                     <a href={`/login/?redirect=/courses/${course.slug}/`}>Log in</a> or <a href={`/signup/?redirect=/courses/${course.slug}/`}>create a free account</a> for an exclusive discount code.
                   </div>
                   <div id="affiliate-coupon" class="affiliate-coupon-code" hidden>
-                    Use code <strong>{course.couponCode}</strong> at checkout for {course.couponDiscount} off ({affiliatePrice}).
+                    {course.couponCode ? (
+                      <>Use code <strong>{course.couponCode}</strong> at checkout for {course.couponDiscount} off ({affiliatePrice}).</>
+                    ) : (
+                      <>Your member price of {affiliatePrice} ({course.couponDiscount} off) is applied automatically through this link.</>
+                    )}
                   </div>
                   <p class="affiliate-disclosure">This is an affiliate link. RRM Academy may earn a commission at no cost to you.</p>
                 </div>
