@@ -11,7 +11,8 @@ import {
   json, optionsResponse, generateId, generateToken, getSessionIdFromCookie,
   validateSession, checkRateLimit, EMAIL_VERIFY_TTL_S, sessionCookie, authHintCookie,
 } from './_shared.js';
-import { sendEmail, logEmailFailure } from '../_ses.js';
+import { logEmailFailure } from '../_ses.js';
+import { sendTransactionalEmail } from '../_mail-lanes.js';
 import { log } from '../_log.js';
 
 export async function onRequestOptions() {
@@ -76,7 +77,7 @@ export async function onRequestPost({ request, env, waitUntil }) {
 
     // Now send email; on failure the code is already in D1 so the user can retry.
     try {
-      await sendEmail(env, {
+      await sendTransactionalEmail(env, {
         from: 'RRM Academy <accounts@mail.rrmacademy.org>',
         to: user.email,
         subject: 'Confirm your email — RRM Academy',

@@ -14,7 +14,8 @@ import {
   waitlistBackfillStatement, deriveSignupSource, checkRateLimit,
   generateSessionId, hashToken, sessionInsertStatement, SESSION_DURATION_MS,
 } from './_shared.js';
-import { sendEmail, logEmailFailure } from '../_ses.js';
+import { logEmailFailure } from '../_ses.js';
+import { sendTransactionalEmail } from '../_mail-lanes.js';
 import { sendGA4Event } from '../_ga4.js';
 import { log } from '../_log.js';
 import { fireFpLink } from '../_fp-link.js';
@@ -129,7 +130,7 @@ async function upgradeUnverifiedUser(db, googleId, email, avatarUrl, env, waitUn
   // Notify the user that their password was wiped by the Google account upgrade.
   if (env?.AWS_ACCESS_KEY_ID) {
     waitUntil(
-      sendEmail(env, {
+      sendTransactionalEmail(env, {
         from: 'RRM Academy <accounts@mail.rrmacademy.org>',
         to: unverified.email,
         subject: 'Your RRM Academy account has been linked to Google',
@@ -274,7 +275,7 @@ export async function onRequestGet({ request, env, waitUntil }) {
       // Email is verified=1 since Google confirmed ownership at the L1 gate.
       if (r1.oldEmail && env.AWS_ACCESS_KEY_ID) {
         waitUntil(
-          sendEmail(env, {
+          sendTransactionalEmail(env, {
             from: 'RRM Academy <accounts@mail.rrmacademy.org>',
             to: r1.oldEmail,
             subject: 'Your RRM Academy email address was changed',

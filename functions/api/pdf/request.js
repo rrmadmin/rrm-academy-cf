@@ -1,4 +1,5 @@
-import { sendEmail, logEmailFailure } from '../_ses.js';
+import { logEmailFailure } from '../_ses.js';
+import { sendTransactionalEmail } from '../_mail-lanes.js';
 import { log } from '../_log.js';
 import { validateEmail } from '../auth/_email-validate.js';
 import { verifyAndTagEmail } from '../_elv.js';
@@ -110,7 +111,7 @@ export async function onRequestPost(context) {
 
     const pdfSubject = `Your ${guideTitle} - Download Link Inside`;
     try {
-      await sendEmail(env, {
+      await sendTransactionalEmail(env, {
         from: 'RRM Academy <info@mail.rrmacademy.org>',
         to: email,
         subject: pdfSubject,
