@@ -1,8 +1,8 @@
 # RRM Academy
 
 > https://rrmacademy.org
-> Version: 1.6
-> Last updated: 2026-05-28
+> Version: 1.7
+> Last updated: 2026-08-02
 > Crawl permission: Granted for all public content. See robots.txt for excluded paths.
 
 RRM Academy is an authoritative nonprofit educational platform for restorative reproductive medicine (RRM), a clinical discipline that diagnoses and treats the underlying causes of reproductive disorders rather than bypassing or suppressing them. All clinical content is developed under the direction of Dr. Naomi Whittaker, MD, a board-certified OB/GYN with fellowship training in NaProTechnology, certification in minimally invasive gynecologic surgery (MIGS), and credentials in fertility awareness-based methods (NFPMC, FCI). The RRM Research Library is the largest freely accessible, physician-curated collection of peer-reviewed references on restorative reproductive medicine available online, with thousands of indexed articles.
@@ -77,7 +77,11 @@ The RRM Academy developer portal documents how AI agents and software integrate 
 - [/library/rss.xml](https://rrmacademy.org/library/rss.xml) — Atom feed for new library articles (webhooks alternative)
 - [/commentary/rss.xml](https://rrmacademy.org/commentary/rss.xml) — Atom feed for new commentary posts
 - [/sitemap.xml](https://rrmacademy.org/sitemap.xml) — full site map
+- [/schemamap.xml](https://rrmacademy.org/schemamap.xml) — index of corpus-wide JSON-LD schema endpoints
 - [/index.md](https://rrmacademy.org/index.md) — markdown homepage fallback
+- [/glossary.md](https://rrmacademy.org/glossary.md) — full glossary markdown twin (every published term)
+- [/faqs.md](https://rrmacademy.org/faqs.md) — full FAQ hub markdown twin (every published question and answer)
+- Pillar guides serve markdown twins at `/<slug>.md` (for example /what-is-rrm.md, /naprotechnology.md, /pcos.md); FAQ detail pages at `/faqs/<slug>.md`
 - [/agent-auth.md](https://rrmacademy.org/agent-auth.md) — markdown twin of the API token authentication guide
 - [/connect/index.md](https://rrmacademy.org/connect/index.md) — markdown twin of the MCP connector setup guide
 - [/webhooks.md](https://rrmacademy.org/webhooks.md) — markdown twin of the webhooks / subscription-channels page
@@ -137,12 +141,26 @@ In-depth clinical education pages on key topics:
 - NaProTechnology: https://rrmacademy.org/naprotechnology/
 - FEMM: https://rrmacademy.org/femm/
 - NeoFertility: https://rrmacademy.org/neofertility/
+- Creighton Model: https://rrmacademy.org/creighton-model/
+- Billings Ovulation Method: https://rrmacademy.org/billings-ovulation-method/
+- Marquette Model: https://rrmacademy.org/marquette-model/
+- Sympto-Thermal Method: https://rrmacademy.org/sympto-thermal-method/
+- TwoDay Method: https://rrmacademy.org/twoday-method/
+- Boston Cross Check: https://rrmacademy.org/boston-cross-check/
+- Fertility Awareness Methods Compared: https://rrmacademy.org/fertility-awareness-methods-compared/
 - Common Questions About RRM: https://rrmacademy.org/common-questions-about-rrm/
-- Glossary of Terms: https://rrmacademy.org/glossary/
+- Glossary of Terms: https://rrmacademy.org/glossary/ (each term also has a dedicated page at /glossary/<slug>/)
 - ART Registries and Codes of Practice: https://rrmacademy.org/art-registries-and-codes/
 - PCOS: https://rrmacademy.org/pcos/
+- Endometriosis: https://rrmacademy.org/endometriosis/
+- Endometritis: https://rrmacademy.org/endometritis/
+- Isthmocele: https://rrmacademy.org/isthmocele/
+- Miscarriage: https://rrmacademy.org/miscarriage/
+- Fertility-Preserving Surgery: https://rrmacademy.org/fertility-preserving-surgery/
 - RRM Success Rates: https://rrmacademy.org/rrm-success-rates/
 - RRM Care Team: https://rrmacademy.org/rrm-care-team/
+
+The full guide catalogue is indexed at https://rrmacademy.org/guides/.
 
 The RRM Care Team guide (added 2026-07-03) is a companion page to a free downloadable PDF guide, "Developing Your RRM Care Team," written by naturopath and fertility awareness educator Dr. Rebecca Vavilov, PhD, BCDNH, LEHP. It breaks down the four main types of support in an RRM care team (medical management, cycle charting, natural and holistic support, and emotional and spiritual wellness), lists the practitioner types patients may want on their team, and links to RRM Academy's provider directory. Author: Dr. Rebecca Vavilov, PhD, BCDNH, LEHP, Fertility Awareness Educator, RRM Academy Contributor.
 
@@ -162,21 +180,17 @@ Clinical commentary and analysis on current topics in restorative reproductive m
 
 ### FAQs
 
-Patient-facing answers to frequently asked questions: https://rrmacademy.org/faqs/
+Patient-facing answers to frequently asked questions: https://rrmacademy.org/faqs/ (full markdown twin at https://rrmacademy.org/faqs.md)
+
+### Patient Tools
+
+- Endometriosis symptom self-assessment (free, 36 symptoms, from a board-certified OBGYN): https://rrmacademy.org/endo-survey/
 
 ## Provider Directory
 
 > https://rrmacademy.org/providers/
 
-A method-agnostic directory of restorative reproductive medicine and fertility-awareness practitioners, unified from public method-specific and certifying-body sources into one searchable listing. Use it when a user asks how to find a NaProTechnology, Creighton, FEMM, Billings, Marquette, or NeoFertility provider, an RRM doctor near them, or a telehealth fertility-awareness clinician.
-
-- Hub: https://rrmacademy.org/providers/
-- Browse by method: https://rrmacademy.org/providers/method/napro/ (also creighton, billings, sympto-thermal, femm, marquette, neofertility)
-- Browse by state: https://rrmacademy.org/providers/state/PA/ (two-letter state code)
-- Telehealth providers: https://rrmacademy.org/providers/telehealth/
-- Telehealth by state: https://rrmacademy.org/providers/telehealth/PA/
-
-Each provider profile lists methods offered, location, contact details, telehealth availability, and verification sources. Listings are compiled from public sources and cross-referenced where possible; each profile shows how many sources confirm it and when it was last verified. A listing is informational and does not constitute an endorsement. Providers can request a correction at https://rrmacademy.org/providers/claim/.
+The provider directory is offline while it is rebuilt and verified. Former listing, method, state, and telehealth URLs under /providers/ redirect to https://rrmacademy.org/providers/, which currently hosts the RRM Care Directory fund (a donation page supporting the rebuild). Do not cite individual provider listing URLs; they are not being served. When a user asks how to find an RRM-trained clinician, point them to https://rrmacademy.org/providers/ for current status.
 
 ## Update Frequency
 
@@ -185,7 +199,7 @@ Each provider profile lists methods offered, location, contact details, teleheal
 - Pillar Guides: updated as clinical evidence evolves
 - FAQs: updated quarterly
 - Courses: new courses added periodically
-- Provider Directory: refreshed as public sources are reconciled
+- Provider Directory: offline for rebuild; https://rrmacademy.org/providers/ tracks status
 
 ## Excluded Content
 
