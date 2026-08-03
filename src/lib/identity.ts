@@ -118,6 +118,25 @@ export function getOrganizationJsonLd(): OrgNode {
       addressCountry: 'US',
     };
   }
+  // logo + description + foundingDate are not yet modeled in
+  // ssot/organization.json either (and the CI fallback emitter omits them
+  // even when they are). Inject here so every Organization emit carries them.
+  // Description mirrors ssot/site.json; foundingDate is the Academy's 2022
+  // launch (ecosystem timeline), distinct from the Foundation's 2023-11-28
+  // incorporation which lives on the Foundation node.
+  if (!org.logo) {
+    org.logo = {
+      '@type': 'ImageObject',
+      url: 'https://rrmacademy.org/icon-512.png',
+      width: 512,
+      height: 512,
+    };
+  }
+  if (!org.description) {
+    org.description =
+      'RRM Academy is a nonprofit education platform for restorative reproductive medicine. The research library indexes thousands of peer-reviewed articles; a comprehensive glossary, clinical courses, and patient FAQs complete the resource set.';
+  }
+  if (!org.foundingDate) org.foundingDate = '2022';
   return org;
 }
 
@@ -136,6 +155,9 @@ export function getFoundationJsonLd(): SchemaNode {
     name: 'Restorative Reproductive Medicine Foundation',
     legalName: 'Restorative Reproductive Medicine Foundation Inc',
     url: 'https://rrm.foundation/',
+    // Incorporated in Pennsylvania 2023-11-28; IRS 501(c)(3) determination
+    // effective retroactive to the same date (ecosystem timeline).
+    foundingDate: '2023-11-28',
     identifier: [{ '@type': 'PropertyValue', propertyID: 'EIN', value: '93-4594315' }],
     sameAs: [
       'https://projects.propublica.org/nonprofits/organizations/934594315',

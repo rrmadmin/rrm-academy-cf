@@ -164,6 +164,7 @@ const hasPart = !isAffiliate && course.sections?.length > 0 ? buildHasPart(cours
 // Schema.org Course
 const courseSchema = {
   '@type': 'Course',
+  '@id': `https://rrmacademy.org/courses/${course.slug}/#course`,
   name: course.title,
   description: course.seo?.description || course.shortDescription,
   url: `https://rrmacademy.org/courses/${course.slug}/`,
@@ -173,7 +174,14 @@ const courseSchema = {
     : { '@type': 'Organization', '@id': 'https://rrmacademy.org/#organization', name: 'RRM Academy', url: 'https://rrmacademy.org/' },
   educationalLevel: 'Beginner to Advanced',
   ...(course.topics?.length ? { about: course.topics } : {}),
-  ...(course.teaches?.length ? { teaches: course.teaches } : {}),
+  // teaches: explicit list when the course data carries one (affiliate
+  // override); otherwise derive from section titles, which are the course's
+  // actual curriculum topics (no invented outcomes).
+  ...(course.teaches?.length
+    ? { teaches: course.teaches }
+    : course.sections?.length
+      ? { teaches: course.sections.map((s: any) => s.title).filter(Boolean) }
+      : {}),
   ...(!isAffiliate ? { timeRequired: hours > 0 ? `PT${hours}H${minutes}M` : `PT${minutes}M` } : {}),
   ...(!isAffiliate && hasPart.length > 0 ? { hasPart } : {}),
   isAccessibleForFree: !isMembers && course.isFree,
