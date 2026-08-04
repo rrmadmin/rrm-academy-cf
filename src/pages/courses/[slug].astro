@@ -23,8 +23,15 @@ const totalDuration = course.sections.reduce((sum: number, s: any) => sum + s.st
 const hours = Math.floor(totalDuration / 3600);
 const minutes = Math.round((totalDuration % 3600) / 60);
 const durationLabel = hours > 0 ? `${hours}h ${minutes}m` : `${minutes} min`;
-const price = course.isFree ? 'Free' : `$${(course.priceCents / 100).toFixed(0)}`;
+const price = course.isFree ? 'Free' : formatPrice(course.priceCents);
 const instructor = course.instructors.find((i: any) => i.role === 'Lead Instructor') || course.instructors[0];
+
+// Thousands separator, cents only shown when the amount isn't a whole dollar.
+function formatPrice(cents: number): string {
+  const dollars = cents / 100;
+  const hasCents = cents % 100 !== 0;
+  return `$${dollars.toLocaleString('en-US', { minimumFractionDigits: hasCents ? 2 : 0, maximumFractionDigits: 2 })}`;
+}
 
 // Step type icons mapping
 function stepIcon(type: string) {
@@ -97,7 +104,7 @@ if (isAffiliate && course.cohortDates) {
   cohortLabel = `${fmt(course.cohortDates.start, { month: 'short', day: 'numeric' })} to ${fmt(course.cohortDates.end, { month: 'short', day: 'numeric', year: 'numeric' })}`;
 }
 const cohortPillText = onWaitlist && nextCohortLabel ? `Next cohort: ${nextCohortLabel}` : cohortLabel;
-const affiliatePrice = isAffiliate && course.affiliatePriceCents ? `$${(course.affiliatePriceCents / 100).toFixed(0)}` : '';
+const affiliatePrice = isAffiliate && course.affiliatePriceCents ? formatPrice(course.affiliatePriceCents) : '';
 
 // Resolve instructor schema node for non-affiliate courses.
 // If instructors[0] is Naomi, use the canonical @id reference.
@@ -350,7 +357,7 @@ const relatedCourses = course.relatedCourses
                 <>
                   <span class="meta-pill">
                     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 10v6M2 10l10-5 10 5-10 5z"/><path d="M6 12v5c0 1.1 2.7 3 6 3s6-1.9 6-3v-5"/></svg>
-                    20+ CME Credits
+                    CME Eligible
                   </span>
                   <span class="meta-pill">
                     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
@@ -428,7 +435,7 @@ const relatedCourses = course.relatedCourses
                     <span class="course-hero__price course-hero__price--members">Free for Members</span>
                     <a href="/save-the-uterus-club/" class="btn btn--primary btn--lg">Join Save the Uterus Club</a>
                     <a href={`/login/?redirect=/courses/${course.slug}/`} class="course-login-link">Already a member? Log in</a>
-                    <p class="members-hero__note">Included with any Save the Uterus Club tier — from $9/mo. Cancel anytime.</p>
+                    <p class="members-hero__note">Included with any Save the Uterus Club tier, from $9/mo. Cancel anytime.</p>
                   </div>
                   <!-- Active member, not yet enrolled: hidden until JS confirms membership -->
                   <div class="hero-cta-static hero-cta-members" id="members-cta-start" hidden>
@@ -597,7 +604,7 @@ const relatedCourses = course.relatedCourses
               <h2>Also Available As Part Of</h2>
               <a href={`/courses/${parentCourse.slug}/`} class="related-course__link">
                 <strong>{parentCourse.title}</strong>
-                <span>Includes this course as a bonus. {parentCourse.isFree ? 'Free' : `$${(parentCourse.priceCents / 100).toFixed(0)}`}</span>
+                <span>Includes this course as a bonus. {parentCourse.isFree ? 'Free' : formatPrice(parentCourse.priceCents)}</span>
               </a>
             </div>
           )}

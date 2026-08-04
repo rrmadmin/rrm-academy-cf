@@ -39,8 +39,15 @@ const totalDuration = course.sections.reduce((sum, s) => sum + s.steps.reduce((d
 const hours = Math.floor(totalDuration / 3600);
 const minutes = Math.round((totalDuration % 3600) / 60);
 const durationLabel = hours > 0 ? `${hours}h ${minutes}m` : `${minutes}m`;
-const price = course.isFree ? 'Free' : `$${(course.priceCents / 100).toFixed(0)}`;
+const price = course.isFree ? 'Free' : formatPrice(course.priceCents);
 const instructor = course.instructors.find(i => i.role === 'Lead Instructor')?.name || course.instructors[0]?.name;
+
+// Thousands separator, cents only shown when the amount isn't a whole dollar.
+function formatPrice(cents: number): string {
+  const dollars = cents / 100;
+  const hasCents = cents % 100 !== 0;
+  return `$${dollars.toLocaleString('en-US', { minimumFractionDigits: hasCents ? 2 : 0, maximumFractionDigits: 2 })}`;
+}
 const progressPct = progress && progress.totalSteps > 0 ? Math.round((progress.completedSteps / progress.totalSteps) * 100) : 0;
 
 const isAffiliate = !!course.isAffiliate;
@@ -113,7 +120,7 @@ const cardCohortText = onWaitlist && course.nextCohortLabel ? `Next: ${course.ne
         <div class="course-card__meta">
           <span class="course-card__meta-item">
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 10v6M2 10l10-5 10 5-10 5z"/><path d="M6 12v5c0 1.1 2.7 3 6 3s6-1.9 6-3v-5"/></svg>
-            20+ CME
+            CME eligible
           </span>
           <span class="course-card__meta-item">
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
