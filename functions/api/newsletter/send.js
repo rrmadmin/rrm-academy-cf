@@ -29,6 +29,17 @@ const PAGE_SIZE = 80;           // subscribers per invocation
 const BATCH_SIZE = 10;          // concurrent sends per batch
 const BATCH_DELAY_MS = 500;     // pause between batches; 10 concurrent + network latency keeps us under SES 14/sec
 
+// Circuit breaker: aborts the run on systemic send failure (e.g. a bad SES
+// configuration set or revoked credentials) instead of marching through the
+// whole recipient list marking everyone sent while delivering nothing.
+// Recipients here are already ELV-verified + suppression-filtered, so an
+// individual SES rejection is rare -- a whole batch failing is strong
+// evidence of misconfiguration, not bad addresses. Bounds phantom
+// newsletter_event rows per invocation to at most BATCH_SIZE (first-batch
+// case) or FAILURE_RATE_MIN_SAMPLE (sustained-partial-failure case).
+const FAILURE_RATE_THRESHOLD = 0.5;   // 50%+ failures across the min sample below aborts the run
+const FAILURE_RATE_MIN_SAMPLE = 20;   // don't judge systemic failure on fewer than 2 batches' worth of attempts
+
 export async function onRequestPost({ request, env, waitUntil }) {
   // Admin auth
   const auth = request.headers.get('Authorization');
@@ -157,6 +168,9 @@ export async function onRequestPost({ request, env, waitUntil }) {
 
   // Send in batches
   let sentCount = 0;
+  let attemptedCount = 0;
+  let failedCount = 0;
+  let abortReason = null;
   const succeededIds = [];
   for (let i = 0; i < page.length; i += BATCH_SIZE) {
     const batch = page.slice(i, i + BATCH_SIZE);
@@ -196,7 +210,8 @@ export async function onRequestPost({ request, env, waitUntil }) {
           html,
           text,
           headers,
-          configurationSet: 'rrm-newsletter',
+          replyTo: 'community@rrmacademy.org',
+          configurationSet: 'rrm-email',
           log: { db, source: 'newsletter/send', category: 'newsletter' },
         });
 
@@ -204,13 +219,32 @@ export async function onRequestPost({ request, env, waitUntil }) {
       })
     );
 
+    let batchAttempted = 0;
+    let batchFailed = 0;
+    let lastFailureMessage = null;
     for (let j = 0; j < results.length; j++) {
       if (results[j].status === 'fulfilled' && results[j].value !== null) {
         sentCount++;
         succeededIds.push(batch[j].id);
+        attemptedCount++;
+        batchAttempted++;
       } else if (results[j].status === 'rejected') {
-        log(env, waitUntil, 'newsletter', 'send_error', 'error', results[j].reason?.message || 'unknown', 0, 0);
+        lastFailureMessage = results[j].reason?.message || 'unknown';
+        log(env, waitUntil, 'newsletter', 'send_error', 'error', lastFailureMessage, 0, 0);
+        attemptedCount++;
+        batchAttempted++;
+        failedCount++;
+        batchFailed++;
       }
+    }
+
+    // Circuit breaker -- see constants above for threshold rationale.
+    if (
+      (batchAttempted > 0 && batchFailed === batchAttempted) ||
+      (attemptedCount >= FAILURE_RATE_MIN_SAMPLE && failedCount / attemptedCount >= FAILURE_RATE_THRESHOLD)
+    ) {
+      abortReason = lastFailureMessage;
+      break;
     }
 
     // Rate limit delay between batches
@@ -219,10 +253,24 @@ export async function onRequestPost({ request, env, waitUntil }) {
     }
   }
 
-  // Update running sent_count
+  // Update running sent_count (reflects whatever succeeded before an abort, if any)
   await db.prepare(
     "UPDATE newsletter_send SET sent_count = sent_count + ? WHERE id = ?"
   ).bind(sentCount, sendId).run();
+
+  if (abortReason) {
+    await db.prepare(
+      "UPDATE newsletter_send SET status = 'failed' WHERE id = ?"
+    ).bind(sendId).run();
+    log(env, waitUntil, 'newsletter', 'send_aborted_systemic_failure', 'error', abortReason, 0, 502);
+    return Response.json({
+      ok: false,
+      error: 'ses_systemic_failure',
+      sesError: String(abortReason).slice(0, 300),
+      sendId,
+      sent: sentCount,
+    }, { status: 502 });
+  }
 
   // If no more recipients, mark as sent
   if (!hasMore) {
