@@ -45,13 +45,23 @@ function newsletterDb(subscribers) {
  * `newsletterDb`'s substring-keyed mock (same canned rows on every call,
  * regardless of `id > ?` / `LIMIT ?` bindings) can't simulate successive
  * onRequestPost calls seeing different pages.
+ *
+ * Also tracks newsletter_send rows (captured from the INSERT on the creating
+ * call) so a resume call's persisted-filter lookup
+ * (`SELECT segment_filter, exclude_segment_filter FROM newsletter_send WHERE id = ?`)
+ * answers with real state instead of the default "not found".
  */
 function makePaginatingDb(allSubscribers) {
+  const sends = new Map(); // sendId -> { segment_filter, exclude_segment_filter }
+  const sentBySend = new Map(); // sendId -> Set(subscriberId)
+
   function makeStmt(sql) {
-    let bindings = [];
-    return {
-      bind(...args) { bindings = args; return this; },
+    const stmt = {
+      _sql: sql,
+      _bindings: [],
+      bind(...args) { this._bindings = args; return this; },
       async first() {
+        const bindings = this._bindings;
         if (sql.includes('COUNT(*) as c FROM newsletter_subscriber')) {
           return { c: allSubscribers.length };
         }
@@ -59,9 +69,13 @@ function makePaginatingDb(allSubscribers) {
           const sub = allSubscribers.find(s => s.id === bindings[0]);
           return sub ? { status: 'active' } : null;
         }
+        if (sql.includes('SELECT segment_filter, exclude_segment_filter FROM newsletter_send WHERE id = ?')) {
+          return sends.get(bindings[0]) || null;
+        }
         return null;
       },
       async all() {
+        const bindings = this._bindings;
         if (sql.includes('SELECT segments FROM newsletter_subscriber')) {
           return { results: allSubscribers.map(s => ({ segments: s.segments })) };
         }
@@ -75,16 +89,36 @@ function makePaginatingDb(allSubscribers) {
           return { results: rows };
         }
         if (sql.includes('SELECT subscriber_id FROM newsletter_event')) {
-          return { results: [] };
+          const sent = sentBySend.get(bindings[0]) || new Set();
+          return { results: [...sent].map(id => ({ subscriber_id: id })) };
         }
         return { results: [] };
       },
-      async run() { return { success: true, meta: { changes: 1 } }; },
+      async run() {
+        const bindings = this._bindings;
+        if (sql.includes('INSERT INTO newsletter_send')) {
+          sends.set(bindings[0], {
+            segment_filter: bindings[3],
+            exclude_segment_filter: bindings[4],
+          });
+        }
+        return { success: true, meta: { changes: 1 } };
+      },
     };
+    return stmt;
   }
   return {
     prepare(sql) { return makeStmt(sql); },
-    async batch(stmts) { return stmts.map(() => ({ success: true })); },
+    async batch(stmts) {
+      for (const stmt of stmts) {
+        if (stmt._sql.includes('INSERT INTO newsletter_event')) {
+          const [sendId, subscriberId] = stmt._bindings;
+          if (!sentBySend.has(sendId)) sentBySend.set(sendId, new Set());
+          sentBySend.get(sendId).add(subscriberId);
+        }
+      }
+      return stmts.map(() => ({ success: true }));
+    },
   };
 }
 
@@ -469,6 +503,7 @@ describe('onRequestPost - excludeSegments', () => {
       assert.equal(body1.done, false, 'more (matching) subscribers remain beyond this page');
       assert.ok(body1.cursor, 'cursor must advance past the fully-excluded page instead of stalling');
       assert.notEqual(body1.cursor, null);
+      assert.equal(body1.remaining, 0, 'remaining must clamp to 0, not go negative, when the whole page was filtered out');
 
       const req2 = mockRequest('POST', {
         body: {
@@ -487,6 +522,236 @@ describe('onRequestPost - excludeSegments', () => {
       assert.equal(body2.sent, matchingCount, 'the second call must reach and send to the 39 non-excluded subscribers');
       assert.equal(body2.done, true);
       assert.equal(stub.ses.length, matchingCount, 'only the 39 non-excluded subscribers were ever attempted, across both calls');
+    } finally {
+      stub.restore();
+    }
+  });
+
+  // -------------------------------------------------------------------------
+  // Persistence hazard: a resume call must apply the PERSISTED exclusion,
+  // not silently fall back to "no filter" when the caller omits it.
+  // -------------------------------------------------------------------------
+
+  it('exclusion persists across a simulated resume when the caller omits it', async () => {
+    const subscribers = [
+      { id: 'a000001', email: 'stuc@example.com', name: null, segments: JSON.stringify(['stuc']) },
+      { id: 'a000002', email: 'plain-1@example.com', name: null, segments: JSON.stringify([]) },
+      { id: 'a000003', email: 'plain-2@example.com', name: null, segments: JSON.stringify([]) },
+    ];
+    const db = makePaginatingDb(subscribers);
+    const env = baseEnv({ DB: db });
+    const stub = stubExternalFetch();
+
+    try {
+      const req1 = mockRequest('POST', {
+        body: { subject: 'Hello', body: '<p>Hello world</p>', excludeSegments: ['stuc'] },
+        headers: { Authorization: 'Bearer secret' },
+      });
+      const res1 = await onRequestPost({ request: req1, env, waitUntil: nullWaitUntil });
+      const { status: status1, body: body1 } = await parseResponse(res1);
+      assert.equal(status1, 200);
+      assert.equal(body1.sent, 2, 'the stuc subscriber must be excluded on the creating call');
+      assert.ok(body1.sendId);
+
+      // Simulated resume: same sendId, but the caller (mirroring a driver bug
+      // or an n8n retry that dropped a field) omits excludeSegments entirely.
+      const req2 = mockRequest('POST', {
+        body: { subject: 'Hello', body: '<p>Hello world</p>', sendId: body1.sendId },
+        headers: { Authorization: 'Bearer secret' },
+      });
+      const res2 = await onRequestPost({ request: req2, env, waitUntil: nullWaitUntil });
+      const { status: status2, body: body2 } = await parseResponse(res2);
+
+      assert.equal(status2, 200);
+      assert.equal(body2.sent, 0, 'the 2 non-stuc subscribers were already sent to and must not be resent');
+      assert.equal(
+        stub.ses.some(call => decodeToAddress(call) === 'stuc@example.com'),
+        false,
+        'the stuc subscriber must stay excluded on resume even though excludeSegments was omitted from the request'
+      );
+    } finally {
+      stub.restore();
+    }
+  });
+
+  it('a conflicting excludeSegments on resume is refused, not silently applied', async () => {
+    const subscribers = [
+      { id: 'a000001', email: 'stuc@example.com', name: null, segments: JSON.stringify(['stuc']) },
+      { id: 'a000002', email: 'plain@example.com', name: null, segments: JSON.stringify([]) },
+    ];
+    const db = makePaginatingDb(subscribers);
+    const env = baseEnv({ DB: db });
+    const stub = stubExternalFetch();
+
+    try {
+      const req1 = mockRequest('POST', {
+        body: { subject: 'Hello', body: '<p>Hello world</p>', excludeSegments: ['stuc'] },
+        headers: { Authorization: 'Bearer secret' },
+      });
+      const res1 = await onRequestPost({ request: req1, env, waitUntil: nullWaitUntil });
+      const { body: body1 } = await parseResponse(res1);
+      const sesCountAfterFirstCall = stub.ses.length;
+
+      const req2 = mockRequest('POST', {
+        body: {
+          subject: 'Hello',
+          body: '<p>Hello world</p>',
+          sendId: body1.sendId,
+          excludeSegments: ['member'], // conflicts with the persisted ['stuc']
+        },
+        headers: { Authorization: 'Bearer secret' },
+      });
+      const res2 = await onRequestPost({ request: req2, env, waitUntil: nullWaitUntil });
+      const { status: status2, body: body2 } = await parseResponse(res2);
+
+      assert.equal(status2, 409);
+      assert.equal(body2.ok, false);
+      assert.equal(body2.error, 'exclude_segments_conflict');
+      assert.deepEqual(body2.persisted, ['stuc']);
+      assert.deepEqual(body2.supplied, ['member']);
+      assert.equal(stub.ses.length, sesCountAfterFirstCall, 'a refused conflict call must not send anything');
+    } finally {
+      stub.restore();
+    }
+  });
+
+  it('a conflicting segments on resume is refused the same way as excludeSegments', async () => {
+    const subscribers = [
+      { id: 'a000001', email: 'a@example.com', name: null, segments: JSON.stringify(['member']) },
+      { id: 'a000002', email: 'b@example.com', name: null, segments: JSON.stringify(['member']) },
+    ];
+    const db = makePaginatingDb(subscribers);
+    const env = baseEnv({ DB: db });
+    const stub = stubExternalFetch();
+
+    try {
+      const req1 = mockRequest('POST', {
+        body: { subject: 'Hello', body: '<p>Hello world</p>', segments: ['member'] },
+        headers: { Authorization: 'Bearer secret' },
+      });
+      const res1 = await onRequestPost({ request: req1, env, waitUntil: nullWaitUntil });
+      const { body: body1 } = await parseResponse(res1);
+
+      const req2 = mockRequest('POST', {
+        body: {
+          subject: 'Hello',
+          body: '<p>Hello world</p>',
+          sendId: body1.sendId,
+          segments: ['stuc'], // conflicts with the persisted ['member']
+        },
+        headers: { Authorization: 'Bearer secret' },
+      });
+      const res2 = await onRequestPost({ request: req2, env, waitUntil: nullWaitUntil });
+      const { status: status2, body: body2 } = await parseResponse(res2);
+
+      assert.equal(status2, 409);
+      assert.equal(body2.error, 'segments_conflict');
+      assert.deepEqual(body2.persisted, ['member']);
+    } finally {
+      stub.restore();
+    }
+  });
+
+  it('the same segments/excludeSegments resupplied on resume (n8n\'s normal shape) is not treated as a conflict', async () => {
+    const subscribers = [
+      { id: 'a000001', email: 'a@example.com', name: null, segments: JSON.stringify(['member']) },
+      { id: 'a000002', email: 'b@example.com', name: null, segments: JSON.stringify(['member', 'stuc']) },
+    ];
+    const db = makePaginatingDb(subscribers);
+    const env = baseEnv({ DB: db });
+    const stub = stubExternalFetch();
+
+    try {
+      const req1 = mockRequest('POST', {
+        body: { subject: 'Hello', body: '<p>Hello world</p>', segments: ['member'], excludeSegments: ['stuc'] },
+        headers: { Authorization: 'Bearer secret' },
+      });
+      const res1 = await onRequestPost({ request: req1, env, waitUntil: nullWaitUntil });
+      const { body: body1 } = await parseResponse(res1);
+
+      const req2 = mockRequest('POST', {
+        body: {
+          subject: 'Hello',
+          body: '<p>Hello world</p>',
+          sendId: body1.sendId,
+          segments: ['member'],
+          excludeSegments: ['stuc'],
+        },
+        headers: { Authorization: 'Bearer secret' },
+      });
+      const res2 = await onRequestPost({ request: req2, env, waitUntil: nullWaitUntil });
+      const { status: status2, body: body2 } = await parseResponse(res2);
+
+      assert.equal(status2, 200);
+      assert.equal(body2.ok, true);
+    } finally {
+      stub.restore();
+    }
+  });
+
+  it('an unknown sendId on resume returns 404, not a silent unfiltered send', async () => {
+    const subscribers = makeSubscribers(2);
+    const db = newsletterDb(subscribers);
+    const env = baseEnv({ DB: db });
+    const stub = stubExternalFetch();
+
+    try {
+      const req = mockRequest('POST', {
+        body: { subject: 'Hello', body: '<p>Hello world</p>', sendId: 'deadbeef-0000-0000-0000-000000000000' },
+        headers: { Authorization: 'Bearer secret' },
+      });
+      const res = await onRequestPost({ request: req, env, waitUntil: nullWaitUntil });
+      const { status, body } = await parseResponse(res);
+
+      assert.equal(status, 404);
+      assert.equal(body.error, 'send_not_found');
+      assert.equal(stub.ses.length, 0);
+    } finally {
+      stub.restore();
+    }
+  });
+
+  // -------------------------------------------------------------------------
+  // `remaining` must never go negative (Math.max clamp)
+  // -------------------------------------------------------------------------
+
+  it('remaining is never negative when exclusions filter most of a fetched page below PAGE_SIZE', async () => {
+    // 161 subscribers is exactly one fetch window (PAGE_SIZE*2+1). 100 of
+    // them carry the excluded segment, leaving 61 candidates -- fewer than
+    // PAGE_SIZE (80). Before the Math.max clamp this produced
+    // recipients.length(61) - PAGE_SIZE(80) = -19.
+    const excludedCount = 100;
+    const matchingCount = 61;
+    const subscribers = [
+      ...Array.from({ length: excludedCount }, (_, i) => ({
+        id: `a${String(i + 1).padStart(6, '0')}`,
+        email: `excluded-${i + 1}@example.com`,
+        name: null,
+        segments: JSON.stringify(['stuc']),
+      })),
+      ...Array.from({ length: matchingCount }, (_, i) => ({
+        id: `a${String(excludedCount + i + 1).padStart(6, '0')}`,
+        email: `included-${i + 1}@example.com`,
+        name: null,
+        segments: JSON.stringify([]),
+      })),
+    ];
+    const db = makePaginatingDb(subscribers);
+    const env = baseEnv({ DB: db });
+    const stub = stubExternalFetch();
+
+    try {
+      const req = mockRequest('POST', {
+        body: { subject: 'Hello', body: '<p>Hello world</p>', excludeSegments: ['stuc'] },
+        headers: { Authorization: 'Bearer secret' },
+      });
+      const res = await onRequestPost({ request: req, env, waitUntil: nullWaitUntil });
+      const { status, body } = await parseResponse(res);
+
+      assert.equal(status, 200);
+      assert.equal(body.done, false, 'more subscribers remain beyond this fetch window');
+      assert.ok(body.remaining >= 0, `remaining must never be negative, got ${body.remaining}`);
+      assert.equal(body.remaining, 0);
     } finally {
       stub.restore();
     }

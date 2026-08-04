@@ -1,0 +1,25 @@
+-- 2026-08-04 newsletter_send.exclude_segment_filter for persisted-cohort resume safety
+--
+-- Target database: rrm-auth (D1 binding DB)
+--
+-- POST /api/newsletter/send is a paginated, cursor-driven endpoint that n8n
+-- calls repeatedly for large sends. Until this migration, only the inclusion
+-- filter (segment_filter) was persisted on the newsletter_send row; the new
+-- excludeSegments parameter existed only in the request body and was never
+-- written down. If a resume call omitted excludeSegments, the remaining
+-- pages of a disjoint-cohort send (e.g. "member" minus anyone also "stuc")
+-- would silently fall back to no exclusion and reach subscribers the send
+-- was designed to skip.
+--
+-- functions/api/newsletter/send.js now persists exclude_segment_filter
+-- alongside segment_filter on the first call of a send and re-reads BOTH
+-- from the row on every resume call, applying the persisted values rather
+-- than trusting the caller to resend them. A resume call that supplies a
+-- value conflicting with what was persisted is refused (409), not silently
+-- reconciled.
+--
+-- Run ONCE before deploying the updated functions/api/newsletter/send.js:
+--   npx wrangler d1 execute rrm-auth --remote \
+--     --file=scripts/migrations/2026-08-04-newsletter-exclude-segment-filter.sql
+
+ALTER TABLE newsletter_send ADD COLUMN exclude_segment_filter TEXT;

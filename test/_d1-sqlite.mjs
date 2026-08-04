@@ -85,6 +85,7 @@ export const POST_SNAPSHOT_MIGRATIONS = [
   '2026-06-28-email-event.sql',
   '2026-07-01-course-topics-json.sql',
   '2026-08-03-email-log-lane.sql',
+  '2026-08-04-newsletter-exclude-segment-filter.sql',
 ];
 
 /**
