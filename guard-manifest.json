@@ -63,7 +63,7 @@
       "note": "Subscription lifecycle handler"
     },
     "functions/api/billing/_webhook-shared.js": {
-      "hash": "2be8ce987f6b5c338a4456476fc45dfbd0c705d48753e2d2e2131af831f44e4b",
+      "hash": "4302256b5ec044e998e56db5f67a201eda2a3bd3ff7fc79c4937afb403daf63e",
       "note": "Shared webhook helpers"
     },
     "functions/api/billing/_migration-token.js": {
