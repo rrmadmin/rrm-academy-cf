@@ -410,7 +410,7 @@ const relatedCourses = course.relatedCourses
                     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-left: 4px; vertical-align: middle;"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
                   </a>
                   <div id="affiliate-login-prompt" class="affiliate-coupon-code">
-                    <a href={`/login/?redirect=/courses/${course.slug}/`}>Log in</a> or <a href={`/signup/?redirect=/courses/${course.slug}/`}>create a free account</a> for an exclusive discount code.
+                    RRM Academy members save {course.couponDiscount} on this course: <a href={`/login/?redirect=/courses/${course.slug}/`}>log in</a> or <a href={`/signup/?redirect=/courses/${course.slug}/`}>create a free account</a> to {course.couponCode ? 'get your discount code' : 'unlock your member price'}.
                   </div>
                   <div id="affiliate-coupon" class="affiliate-coupon-code" hidden>
                     {course.couponCode ? (
