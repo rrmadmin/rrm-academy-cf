@@ -88,8 +88,49 @@ export async function isM365Recipient(email) {
 
 const TOKEN_ENDPOINT = 'https://oauth2.googleapis.com/token';
 const GMAIL_SEND_ENDPOINT = 'https://gmail.googleapis.com/gmail/v1/users/me/messages/send';
-const WORKSPACE_FROM = 'RRM Academy <surveys@rrmacademy.org>';
 const TOKEN_EXPIRY_SAFETY_MS = 60 * 1000;
+
+// Default Workspace send-as identity. MUST be a registered send-as identity
+// itself, since every local-part not present in WORKSPACE_FROM_MAP below
+// (including an unparseable `from`) resolves here.
+const WORKSPACE_FROM_DEFAULT = 'RRM Academy <surveys@rrmacademy.org>';
+
+// Strict allowlist: SES `from` local-part -> registered Gmail send-as
+// identity. Keys mirror the local-part of the address inside the SES `from`
+// each caller already passes (e.g. 'RRM Academy <accounts@mail.rrmacademy.org>'
+// -> 'accounts'), not the Workspace address itself. A local-part with no
+// entry here -- including one that fails to parse at all -- must fall
+// through to WORKSPACE_FROM_DEFAULT, never to the caller's raw `from`: Gmail
+// silently rewrites a send-as address it doesn't recognize to the mailbox
+// owner (virtualassistant@), so guessing wrong here would leak the wrong
+// sender identity instead of failing loudly.
+const WORKSPACE_FROM_MAP = {
+  accounts: 'RRM Academy <receipts@rrmacademy.org>',
+};
+
+/**
+ * Extracts the local-part (before @) from an SES `from` string. Handles both
+ * 'Name <addr@host>' and a bare 'addr@host'. Returns null on anything that
+ * doesn't parse as an address, so the caller can fall back to the default
+ * identity instead of guessing.
+ */
+function parseFromLocalPart(from) {
+  const s = String(from ?? '');
+  const angleMatch = s.match(/<([^>]+)>/);
+  const addr = (angleMatch ? angleMatch[1] : s).trim();
+  const at = addr.indexOf('@');
+  if (at <= 0) return null;
+  return addr.slice(0, at).trim().toLowerCase();
+}
+
+/** Resolves the Workspace send-as identity for a caller's SES `from`. */
+function workspaceFromFor(from) {
+  const localPart = parseFromLocalPart(from);
+  if (localPart && Object.prototype.hasOwnProperty.call(WORKSPACE_FROM_MAP, localPart)) {
+    return WORKSPACE_FROM_MAP[localPart];
+  }
+  return WORKSPACE_FROM_DEFAULT;
+}
 
 // Single-slot cache: one Workspace sender identity, one refresh token.
 let cachedToken = null; // { accessToken, expiresAt }
@@ -142,17 +183,19 @@ function base64UrlEncode(str) {
 
 /**
  * Sends via the Gmail API using the Workspace service account's refresh
- * token. Always sends as WORKSPACE_FROM regardless of the `from` the caller
- * passed -- this lane has exactly one sending identity.
+ * token. The From identity is derived from the caller's SES `from` via
+ * WORKSPACE_FROM_MAP (see above) -- never passed through verbatim, since
+ * this lane may only ever emit a registered send-as identity.
  */
-export async function sendViaWorkspace(env, { to, subject, html, text, replyTo }) {
+export async function sendViaWorkspace(env, { from, to, subject, html, text, replyTo }) {
   const accessToken = await getWorkspaceAccessToken(env);
+  const workspaceFrom = workspaceFromFor(from);
 
   const boundary = `----=_Part_${crypto.randomUUID().replace(/-/g, '')}`;
   const toAddr = sanitizeHeader(Array.isArray(to) ? to[0] : to);
 
   const headers = [
-    `From: ${sanitizeHeader(WORKSPACE_FROM)}`,
+    `From: ${sanitizeHeader(workspaceFrom)}`,
     `To: ${toAddr}`,
     `Subject: ${sanitizeHeader(subject)}`,
     'MIME-Version: 1.0',

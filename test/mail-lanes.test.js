@@ -11,7 +11,7 @@
 import { describe, it } from 'node:test';
 import assert from 'node:assert/strict';
 import { mockEnv, mockDB } from './_helpers.js';
-import { isM365Recipient, sendTransactionalEmail } from '../functions/api/_mail-lanes.js';
+import { isM365Recipient, sendTransactionalEmail, sendViaWorkspace } from '../functions/api/_mail-lanes.js';
 
 const WORKSPACE_ENV = {
   GOG_CLIENT_ID: 'client-id-test',
@@ -70,6 +70,14 @@ function stubMailLaneFetch(overrides = {}) {
 
 function mxAnswer(target) {
   return { ok: true, json: async () => ({ Answer: [{ data: `10 ${target}` }] }) };
+}
+
+/** Decodes a Gmail API call's base64url `raw` MIME body and returns the From: header value. */
+function fromHeaderOf(gmailCall) {
+  const { raw } = JSON.parse(gmailCall.init.body);
+  const decoded = Buffer.from(raw, 'base64url').toString('utf8');
+  const match = decoded.match(/^From: (.+)\r?$/m);
+  return match ? match[1].trim() : null;
 }
 
 describe('isM365Recipient', () => {
@@ -163,6 +171,93 @@ describe('isM365Recipient', () => {
       assert.equal(stub.dns.length, 1);
       assert.equal(await isM365Recipient(`second@${domain}`), true, 'same domain, different local part');
       assert.equal(stub.dns.length, 1, 'the second lookup must be served from cache');
+    } finally { stub.restore(); }
+  });
+});
+
+describe('sendViaWorkspace -- per-caller From identity map', () => {
+  it('accounts@ local-part maps to the registered receipts@ identity', async () => {
+    const env = mockEnv({ ...WORKSPACE_ENV });
+    const stub = stubMailLaneFetch();
+    try {
+      await sendViaWorkspace(env, {
+        from: 'RRM Academy <accounts@mail.rrmacademy.org>',
+        to: 'user@identity-map-accounts.test',
+        subject: 'Test subject',
+        text: 'Hello',
+      });
+      assert.equal(stub.gmail.length, 1);
+      assert.equal(fromHeaderOf(stub.gmail[0]), 'RRM Academy <receipts@rrmacademy.org>');
+    } finally { stub.restore(); }
+  });
+
+  it('a bare address with no display name still maps by local-part', async () => {
+    const env = mockEnv({ ...WORKSPACE_ENV });
+    const stub = stubMailLaneFetch();
+    try {
+      await sendViaWorkspace(env, {
+        from: 'accounts@mail.rrmacademy.org',
+        to: 'user@identity-map-bare.test',
+        subject: 'Test subject',
+        text: 'Hello',
+      });
+      assert.equal(fromHeaderOf(stub.gmail[0]), 'RRM Academy <receipts@rrmacademy.org>');
+    } finally { stub.restore(); }
+  });
+
+  it('survey@ local-part (not in the map) falls back to the surveys@ default', async () => {
+    const env = mockEnv({ ...WORKSPACE_ENV });
+    const stub = stubMailLaneFetch();
+    try {
+      await sendViaWorkspace(env, {
+        from: 'RRM Academy <survey@mail.rrmacademy.org>',
+        to: 'user@identity-map-survey.test',
+        subject: 'Test subject',
+        text: 'Hello',
+      });
+      assert.equal(fromHeaderOf(stub.gmail[0]), 'RRM Academy <surveys@rrmacademy.org>');
+    } finally { stub.restore(); }
+  });
+
+  it('an unmapped but well-formed local-part falls back to the surveys@ default', async () => {
+    const env = mockEnv({ ...WORKSPACE_ENV });
+    const stub = stubMailLaneFetch();
+    try {
+      await sendViaWorkspace(env, {
+        from: 'RRM Academy <alerts@mail.rrmacademy.org>',
+        to: 'user@identity-map-unknown.test',
+        subject: 'Test subject',
+        text: 'Hello',
+      });
+      assert.equal(fromHeaderOf(stub.gmail[0]), 'RRM Academy <surveys@rrmacademy.org>');
+    } finally { stub.restore(); }
+  });
+
+  it('a malformed from (no @ at all) falls back to the surveys@ default', async () => {
+    const env = mockEnv({ ...WORKSPACE_ENV });
+    const stub = stubMailLaneFetch();
+    try {
+      await sendViaWorkspace(env, {
+        from: 'not an email address at all',
+        to: 'user@identity-map-malformed.test',
+        subject: 'Test subject',
+        text: 'Hello',
+      });
+      assert.equal(fromHeaderOf(stub.gmail[0]), 'RRM Academy <surveys@rrmacademy.org>');
+    } finally { stub.restore(); }
+  });
+
+  it('an empty/missing from falls back to the surveys@ default', async () => {
+    const env = mockEnv({ ...WORKSPACE_ENV });
+    const stub = stubMailLaneFetch();
+    try {
+      await sendViaWorkspace(env, {
+        from: undefined,
+        to: 'user@identity-map-empty.test',
+        subject: 'Test subject',
+        text: 'Hello',
+      });
+      assert.equal(fromHeaderOf(stub.gmail[0]), 'RRM Academy <surveys@rrmacademy.org>');
     } finally { stub.restore(); }
   });
 });
