@@ -5,7 +5,7 @@
     "title": "NeoFertility Medical Training Cohort",
     "slug": "neofertility-medical-training",
     "description": "The NeoFertility Medical Training Cohort is an 11-week live program providing a structured diagnostic and treatment framework for infertility and recurrent miscarriage using Restorative Reproductive Medicine.\n\nDesigned for Family Medicine, OB/GYN, and women's health clinicians, this cohort combines on-demand coursework with live mentorship from Dr. Phil Boyle, founder of NeoFertility and a pioneer in RRM.\n\nThe program covers:\n\n• The foundations of Restorative Reproductive Medicine\n\n• Diagnostic and treatment protocols for hormonal and cycle-related conditions\n\n• The psychology of conception and patient relationships\n\n• Chart Neo app integration for data-driven patient care\n\n• Case studies and outcome-based implementation",
-    "shortDescription": "11-week live training in Restorative Reproductive Medicine for clinicians treating infertility and recurrent miscarriage. Led by Dr. Phil Boyle. 20+ CME credits.",
+    "shortDescription": "11-week live training in Restorative Reproductive Medicine for clinicians treating infertility and recurrent miscarriage. Led by Dr. Phil Boyle. CME eligible.",
     "image": "/api/assets/course-covers/neofertility-med-training.webp?v=2",
     "imageAlt": "NeoFertility Medical Training Cohort branded graphic: starts October 13, 2026, CME eligible, 10 lessons, 6 live Q&As, case studies, medical forum, Chart Neo access, with the neo circle logo on a light background crossed by blue diagonal bands",
     "priceCents": 149500,
@@ -49,7 +49,7 @@
     },
     "seo": {
       "title": "NeoFertility Medical Training Cohort | RRM Academy",
-      "description": "11-week live clinical training in Restorative Reproductive Medicine with Dr. Phil Boyle. 20+ CME credits. Fall cohort: October 13 to December 10, 2026."
+      "description": "11-week live clinical training in Restorative Reproductive Medicine with Dr. Phil Boyle. CME eligible. Fall cohort: October 13 to December 10, 2026."
     },
     "sections": [],
     "topics": [
