@@ -24,7 +24,7 @@ Gmail's Primary-vs-Promotions decision is driven by **sender identity + per-reci
 The SES newsletter path fingerprints every message as bulk marketing:
 - **Identity:** `newsletter@` local-part + the `mail.` send-only subdomain, which has *learned* bulk reputation at Gmail because it carries all SES traffic.
 - **`Precedence: bulk`** header, hardcoded in `functions/api/_ses.js` (`sendRawEmail`). Only two callers use this path (`newsletter/send.js`, `admin/wix-migration-email.js`); all transactional mail uses `sendEmail()` (Simple API) and never sets it.
-- **Tracking:** an open pixel + every link rewritten through `/api/newsletter/click` redirects (`_template.js`), plus the SES `rrm-newsletter` configuration set.
+- **Tracking:** an open pixel + every link rewritten through `/api/newsletter/click` redirects (`_template.js`), plus the SES `rrm-email` configuration set.
 - **Content:** styled CTA button + multi-item list + legal/postal/unsubscribe footer = marketing visual grammar.
 
 ### What actually moves the tab (ranked)
@@ -40,7 +40,7 @@ Raising DMARC `pct`, BIMI, renaming the config set, moving the pixel to a first-
 ### Caveats
 - Verification can't use Gmail Postmaster Tools (you're far below its ~100-200/day display threshold). Test by sending to two or three personal Gmail accounts and eyeballing the tab.
 - Tab placement is partly per-recipient and learned; results will be uneven until members engage.
-- Confirm the SES `rrm-newsletter` config set's open/click tracking state in the AWS console if quantifying Lane B.
+- Confirm the SES `rrm-email` config set's open/click tracking state in the AWS console if quantifying Lane B.
 
 ## Lane A recipe (the relationship email)
 
