@@ -13,6 +13,17 @@
  *   - slug: commentary slug (for RSS-triggered sends, stored for dedup)
  *   - sendId: existing send ID to continue a paginated send
  *   - cursor: subscriber ID to resume from (returned by previous call)
+ *
+ * Both segments and excludeSegments are persisted on the newsletter_send row
+ * (segment_filter / exclude_segment_filter) on the call that creates it. Every
+ * resume call (one carrying sendId) re-reads BOTH from that row and filters
+ * against the PERSISTED values, never the values a resume call happens to
+ * supply -- a driver that omits either parameter on a later page must keep
+ * getting the same cohort, not silently fall back to "no filter". A resume
+ * call may still pass segments/excludeSegments (n8n resends the same body on
+ * every page for this endpoint), but if what it sends disagrees with what was
+ * persisted, the call is refused with 409 rather than picking one silently --
+ * a mid-campaign filter change is an operator error worth stopping for.
  */
 import { log } from '../_log.js';
 import { sendRawEmail } from '../_ses.js';
@@ -27,6 +38,14 @@ function parseSegments(s) {
   } catch {
     return [];
   }
+}
+
+/** Order-insensitive set equality for segment-name arrays. */
+function sameSegmentSet(a, b) {
+  const na = [...new Set(a)].sort();
+  const nb = [...new Set(b)].sort();
+  if (na.length !== nb.length) return false;
+  return na.every((v, i) => v === nb[i]);
 }
 
 const PAGE_SIZE = 80;           // subscribers per invocation
@@ -95,6 +114,12 @@ export async function onRequestPost({ request, env, waitUntil }) {
 
   const db = env.DB;
 
+  // Effective filters used for this invocation's query/send logic. On the
+  // first call these are just the validated request values; on a resume call
+  // they are overwritten below with whatever was persisted on the row.
+  let effectiveSegments = segments && segments.length > 0 ? segments : null;
+  let effectiveExcludeSegments = excludeSegments && excludeSegments.length > 0 ? excludeSegments : null;
+
   // Create or resume send record
   let sendId = existingSendId;
   if (!sendId) {
@@ -102,7 +127,7 @@ export async function onRequestPost({ request, env, waitUntil }) {
 
     // Count candidate recipients upfront (only on first call); does not account for suppression set
     let totalRecipients;
-    if ((!segments || segments.length === 0) && (!excludeSegments || excludeSegments.length === 0)) {
+    if (!effectiveSegments && !effectiveExcludeSegments) {
       const countResult = await db.prepare(
         "SELECT COUNT(*) as c FROM newsletter_subscriber WHERE status = 'active'"
       ).first();
@@ -113,10 +138,10 @@ export async function onRequestPost({ request, env, waitUntil }) {
       ).all();
       totalRecipients = allSubs.results.filter(sub => {
         const subSegs = parseSegments(sub.segments);
-        if (excludeSegments && excludeSegments.length > 0 && excludeSegments.some(seg => subSegs.includes(seg))) {
+        if (effectiveExcludeSegments && effectiveExcludeSegments.some(seg => subSegs.includes(seg))) {
           return false;
         }
-        if (segments && segments.length > 0 && !segments.some(seg => subSegs.includes(seg))) {
+        if (effectiveSegments && !effectiveSegments.some(seg => subSegs.includes(seg))) {
           return false;
         }
         return true;
@@ -125,9 +150,50 @@ export async function onRequestPost({ request, env, waitUntil }) {
 
     // arise-ignore unbatched-writes -- if/else branch; only one .run() executes per request
     await db.prepare(
-      "INSERT INTO newsletter_send (id, subject, html, segment_filter, status, total_recipients, commentary_slug) VALUES (?, ?, ?, ?, 'sending', ?, ?)"
-    ).bind(sendId, subject, htmlBody, segments ? JSON.stringify(segments) : null, totalRecipients, slug || null).run();
+      "INSERT INTO newsletter_send (id, subject, html, segment_filter, exclude_segment_filter, status, total_recipients, commentary_slug) VALUES (?, ?, ?, ?, ?, 'sending', ?, ?)"
+    ).bind(
+      sendId,
+      subject,
+      htmlBody,
+      effectiveSegments ? JSON.stringify(effectiveSegments) : null,
+      effectiveExcludeSegments ? JSON.stringify(effectiveExcludeSegments) : null,
+      totalRecipients,
+      slug || null
+    ).run();
   } else {
+    // Resume: the persisted filters on this row are authoritative. A resume
+    // call that omits segments/excludeSegments must keep filtering by the
+    // cohort the send was created with, not silently fall back to "everyone".
+    const existingSend = await db.prepare(
+      "SELECT segment_filter, exclude_segment_filter FROM newsletter_send WHERE id = ?"
+    ).bind(sendId).first();
+    if (!existingSend) {
+      return Response.json({ ok: false, error: 'send_not_found' }, { status: 404 });
+    }
+
+    const persistedSegments = parseSegments(existingSend.segment_filter);
+    const persistedExcludeSegments = parseSegments(existingSend.exclude_segment_filter);
+
+    if (segments !== undefined && segments !== null && !sameSegmentSet(segments, persistedSegments)) {
+      return Response.json({
+        ok: false,
+        error: 'segments_conflict',
+        persisted: persistedSegments,
+        supplied: segments,
+      }, { status: 409 });
+    }
+    if (excludeSegments !== undefined && excludeSegments !== null && !sameSegmentSet(excludeSegments, persistedExcludeSegments)) {
+      return Response.json({
+        ok: false,
+        error: 'exclude_segments_conflict',
+        persisted: persistedExcludeSegments,
+        supplied: excludeSegments,
+      }, { status: 409 });
+    }
+
+    effectiveSegments = persistedSegments.length > 0 ? persistedSegments : null;
+    effectiveExcludeSegments = persistedExcludeSegments.length > 0 ? persistedExcludeSegments : null;
+
     await db.prepare("UPDATE newsletter_send SET status = 'sending' WHERE id = ?").bind(sendId).run();
   }
 
@@ -159,18 +225,19 @@ export async function onRequestPost({ request, env, waitUntil }) {
   params.push(fetchLimit);
   const subscribers = (await db.prepare(query).bind(...params).all()).results;
 
-  // Filter by segment if requested, and suppress bad ELV emails
+  // Filter by segment if requested, and suppress bad ELV emails.
+  // Uses the effective (persisted-on-resume) filters, never the raw request values.
   let recipients = subscribers.filter(s => !suppressedEmails.has(s.email?.toLowerCase()));
-  if (segments && segments.length > 0) {
+  if (effectiveSegments) {
     recipients = recipients.filter(sub => {
       const subSegments = parseSegments(sub.segments);
-      return segments.some(seg => subSegments.includes(seg));
+      return effectiveSegments.some(seg => subSegments.includes(seg));
     });
   }
-  if (excludeSegments && excludeSegments.length > 0) {
+  if (effectiveExcludeSegments) {
     recipients = recipients.filter(sub => {
       const subSegments = parseSegments(sub.segments);
-      return !excludeSegments.some(seg => subSegments.includes(seg));
+      return !effectiveExcludeSegments.some(seg => subSegments.includes(seg));
     });
   }
 
@@ -311,12 +378,19 @@ export async function onRequestPost({ request, env, waitUntil }) {
   const lastSuccess = succeededIds.length > 0 ? succeededIds[succeededIds.length - 1] : null;
   const nextCursor = lastSuccess || (page.length === 0 ? rawLastId : cursor) || null;
 
+  // recipients.length can be < PAGE_SIZE on a page where most of the fetch
+  // window was filtered out by segments/excludeSegments/suppression (the
+  // common case for a narrow cohort) -- clamp so a driver branching on
+  // `remaining` never sees a negative "recipients left" count. This is an
+  // estimate scoped to the current fetch window, not a total-outstanding count.
+  const remaining = hasMore ? Math.max(recipients.length - PAGE_SIZE, 0) : 0;
+
   return Response.json({
     ok: true,
     done: !hasMore,
     sendId,
     cursor: hasMore ? nextCursor : null,
     sent: sentCount,
-    remaining: hasMore ? recipients.length - PAGE_SIZE : 0,
+    remaining,
   });
 }

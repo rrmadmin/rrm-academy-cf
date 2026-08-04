@@ -67,7 +67,7 @@
 | **Newsletter** | | |
 | `POST /api/newsletter/subscribe` | `newsletter/subscribe.js` | Signup (Turnstile + honeypot + ELV + rate limit + idempotency) |
 | `GET/POST /api/newsletter/unsubscribe` | `newsletter/unsubscribe.js` | RFC 8058 one-click + page (HMAC token) |
-| `POST /api/newsletter/send` | `newsletter/send.js` | Paginated campaign send (Bearer ADMIN_API_SECRET) |
+| `POST /api/newsletter/send` | `newsletter/send.js` | Paginated campaign send (Bearer ADMIN_API_SECRET). `segments`/`excludeSegments` persist to the `newsletter_send` row on creation; resume calls (`sendId`) apply the persisted filters and 409 on a conflicting resupply |
 | `POST /api/newsletter/send-first-email` | `newsletter/send-first-email.js` | Welcome backfill to explicit ids (Bearer ADMIN_API_SECRET) |
 | `POST /api/newsletter/rss-check` | `newsletter/rss-check.js` | RSS poll to trigger send (Bearer ADMIN_API_SECRET) |
 | `POST /api/newsletter/bounce` | `newsletter/bounce.js` | SES/SNS bounce+complaint webhook (secret param + SNS RSA sig) |
