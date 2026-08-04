@@ -24,6 +24,16 @@
  * every page for this endpoint), but if what it sends disagrees with what was
  * persisted, the call is refused with 409 rather than picking one silently --
  * a mid-campaign filter change is an operator error worth stopping for.
+ *
+ * A request carrying cursor MUST also carry a sendId that resolves to an
+ * existing row (400 cursor_requires_send_id otherwise). Without this, a page
+ * beyond the first that drops sendId mints a brand-new send with no history --
+ * defeating both the persisted-filter resume above and the already-sent guard
+ * (scoped by sendId), and reaching subscribers the original call excluded.
+ *
+ * A persisted filter that fails to parse as JSON aborts the send (500
+ * persisted_filter_unreadable) rather than degrading to "no filter" -- an
+ * unreadable filter is not the same as no filter.
  */
 import { log } from '../_log.js';
 import { sendRawEmail } from '../_ses.js';
@@ -38,6 +48,21 @@ function parseSegments(s) {
   } catch {
     return [];
   }
+}
+
+/**
+ * Parses a persisted newsletter_send filter column (segment_filter /
+ * exclude_segment_filter). Unlike parseSegments (used for a subscriber's own
+ * segment list, where a corrupt value only misclassifies that one row), an
+ * unreadable persisted filter is a send-wide safety property -- defaulting it
+ * to [] would silently turn a scoped/excluded send into an unfiltered one.
+ * Throws on anything that isn't valid JSON encoding an array.
+ */
+function parsePersistedFilter(s) {
+  if (s === null || s === undefined) return [];
+  const v = JSON.parse(s);
+  if (!Array.isArray(v)) throw new Error('persisted filter is not an array');
+  return v;
 }
 
 /** Order-insensitive set equality for segment-name arrays. */
@@ -112,6 +137,14 @@ export async function onRequestPost({ request, env, waitUntil }) {
     return Response.json({ ok: false, error: 'invalid_cursor' }, { status: 400 });
   }
 
+  // Any request carrying a cursor MUST also carry a sendId (resolved to an
+  // existing row just below, in the resume branch) -- see the file-level
+  // comment above for why. This is a create-vs-resume decision, so it must be
+  // checked before the `!sendId` branch below ever runs.
+  if (cursor && !existingSendId) {
+    return Response.json({ ok: false, error: 'cursor_requires_send_id' }, { status: 400 });
+  }
+
   const db = env.DB;
 
   // Effective filters used for this invocation's query/send logic. On the
@@ -171,8 +204,14 @@ export async function onRequestPost({ request, env, waitUntil }) {
       return Response.json({ ok: false, error: 'send_not_found' }, { status: 404 });
     }
 
-    const persistedSegments = parseSegments(existingSend.segment_filter);
-    const persistedExcludeSegments = parseSegments(existingSend.exclude_segment_filter);
+    let persistedSegments, persistedExcludeSegments;
+    try {
+      persistedSegments = parsePersistedFilter(existingSend.segment_filter);
+      persistedExcludeSegments = parsePersistedFilter(existingSend.exclude_segment_filter);
+    } catch (err) {
+      log(env, waitUntil, 'newsletter', 'persisted_filter_unreadable', 'error', err.message, 0, 500);
+      return Response.json({ ok: false, error: 'persisted_filter_unreadable', sendId }, { status: 500 });
+    }
 
     if (segments !== undefined && segments !== null && !sameSegmentSet(segments, persistedSegments)) {
       return Response.json({
