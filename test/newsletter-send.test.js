@@ -54,6 +54,7 @@ function newsletterDb(subscribers) {
 function makePaginatingDb(allSubscribers) {
   const sends = new Map(); // sendId -> { segment_filter, exclude_segment_filter }
   const sentBySend = new Map(); // sendId -> Set(subscriberId)
+  const _calls = []; // mirrors mockDB()._calls, for assertions across a multi-call resume flow
 
   function makeStmt(sql) {
     const stmt = {
@@ -62,6 +63,7 @@ function makePaginatingDb(allSubscribers) {
       bind(...args) { this._bindings = args; return this; },
       async first() {
         const bindings = this._bindings;
+        _calls.push({ sql, bound: bindings, method: 'first' });
         if (sql.includes('COUNT(*) as c FROM newsletter_subscriber')) {
           return { c: allSubscribers.length };
         }
@@ -76,6 +78,7 @@ function makePaginatingDb(allSubscribers) {
       },
       async all() {
         const bindings = this._bindings;
+        _calls.push({ sql, bound: bindings, method: 'all' });
         if (sql.includes('SELECT segments FROM newsletter_subscriber')) {
           return { results: allSubscribers.map(s => ({ segments: s.segments })) };
         }
@@ -96,6 +99,7 @@ function makePaginatingDb(allSubscribers) {
       },
       async run() {
         const bindings = this._bindings;
+        _calls.push({ sql, bound: bindings, method: 'run' });
         if (sql.includes('INSERT INTO newsletter_send')) {
           sends.set(bindings[0], {
             segment_filter: bindings[3],
@@ -108,9 +112,11 @@ function makePaginatingDb(allSubscribers) {
     return stmt;
   }
   return {
+    _calls,
     prepare(sql) { return makeStmt(sql); },
     async batch(stmts) {
       for (const stmt of stmts) {
+        _calls.push({ sql: stmt._sql, bound: stmt._bindings, method: 'run(batch)' });
         if (stmt._sql.includes('INSERT INTO newsletter_event')) {
           const [sendId, subscriberId] = stmt._bindings;
           if (!sentBySend.has(sendId)) sentBySend.set(sendId, new Set());
@@ -193,6 +199,25 @@ describe('onRequestPost - auth & validation', () => {
     const { status, body } = await parseResponse(res);
     assert.equal(status, 400);
     assert.equal(body.error, 'invalid_cursor');
+  });
+
+  it('a well-formed cursor without sendId is refused, not treated as a new send', async () => {
+    const db = newsletterDb([]);
+    const env = baseEnv({ DB: db });
+    const req = mockRequest('POST', {
+      body: { subject: 'Hi', body: '<p>hi</p>', cursor: 'a000001' },
+      headers: { Authorization: 'Bearer secret' },
+    });
+    const res = await onRequestPost({ request: req, env, waitUntil: nullWaitUntil });
+    const { status, body } = await parseResponse(res);
+    assert.equal(status, 400);
+    assert.equal(body.ok, false);
+    assert.equal(body.error, 'cursor_requires_send_id');
+    assert.equal(
+      db._calls.some(c => c.sql.includes('INSERT INTO newsletter_send')),
+      false,
+      'a refused cursor-without-sendId call must never create a newsletter_send row'
+    );
   });
 });
 
@@ -752,6 +777,161 @@ describe('onRequestPost - excludeSegments', () => {
       assert.equal(body.done, false, 'more subscribers remain beyond this fetch window');
       assert.ok(body.remaining >= 0, `remaining must never be negative, got ${body.remaining}`);
       assert.equal(body.remaining, 0);
+    } finally {
+      stub.restore();
+    }
+  });
+});
+
+// ---------------------------------------------------------------------------
+// Cursor-requires-sendId (proven exploit regression) + fail-closed persisted
+// filter parsing. An adversarial verifier reproduced: after a correct page-1
+// call with excludeSegments ["stuc"], a page-2 POST of {subject, body,
+// cursor} that drops both sendId and excludeSegments returned 200, minted a
+// SECOND newsletter_send row, applied no exclusion, and delivered to an
+// excluded subscriber -- while also defeating the already-sent guard (scoped
+// by sendId) because the new sendId had no history.
+// ---------------------------------------------------------------------------
+
+describe('onRequestPost - cursor requires sendId (proven exploit regression)', () => {
+  it('REGRESSION: a page-2 call dropping both sendId and excludeSegments is refused, never a second unfiltered send', async () => {
+    const subscribers = [
+      { id: 'a000001', email: 'stuc@example.com', name: null, segments: JSON.stringify(['stuc']) },
+      { id: 'a000002', email: 'plain@example.com', name: null, segments: JSON.stringify([]) },
+    ];
+    const db = makePaginatingDb(subscribers);
+    const env = baseEnv({ DB: db });
+    const stub = stubExternalFetch();
+
+    try {
+      // Page 1: correct call, excludes the stuc subscriber.
+      const req1 = mockRequest('POST', {
+        body: { subject: 'Hello', body: '<p>Hello world</p>', excludeSegments: ['stuc'] },
+        headers: { Authorization: 'Bearer secret' },
+      });
+      const res1 = await onRequestPost({ request: req1, env, waitUntil: nullWaitUntil });
+      const { status: status1, body: body1 } = await parseResponse(res1);
+      assert.equal(status1, 200);
+      assert.equal(body1.sent, 1, 'only the non-stuc subscriber is sent on page 1');
+      assert.equal(
+        stub.ses.some(call => decodeToAddress(call) === 'stuc@example.com'),
+        false,
+        'the excluded subscriber must not be sent to on page 1'
+      );
+
+      // Page 2 (the exploit): only subject/body/cursor survive -- sendId and
+      // excludeSegments are both dropped, exactly as n8n's proven bug shape.
+      const req2 = mockRequest('POST', {
+        body: { subject: 'Hello', body: '<p>Hello world</p>', cursor: 'a000001' },
+        headers: { Authorization: 'Bearer secret' },
+      });
+      const res2 = await onRequestPost({ request: req2, env, waitUntil: nullWaitUntil });
+      const { status: status2, body: body2 } = await parseResponse(res2);
+
+      assert.equal(status2, 400, 'the exploit call must be refused, not answered 200');
+      assert.equal(body2.ok, false);
+      assert.equal(body2.error, 'cursor_requires_send_id');
+      assert.equal(body2.sendId, undefined, 'a refused call must not mint or return a new sendId');
+
+      const sendInserts = db._calls.filter(c => c.sql.includes('INSERT INTO newsletter_send'));
+      assert.equal(sendInserts.length, 1, 'exactly one newsletter_send row may ever exist -- the exploit must not mint a second');
+
+      assert.equal(
+        stub.ses.some(call => decodeToAddress(call) === 'stuc@example.com'),
+        false,
+        'the excluded subscriber must receive nothing across either call'
+      );
+      assert.equal(stub.ses.length, 1, 'only the single legitimate page-1 send may ever reach SES');
+    } finally {
+      stub.restore();
+    }
+  });
+
+  it('cursor with a sendId that resolves fine still resumes normally (sanity check the guard is not overbroad)', async () => {
+    const subscribers = [
+      { id: 'a000001', email: 'stuc@example.com', name: null, segments: JSON.stringify(['stuc']) },
+      { id: 'a000002', email: 'plain@example.com', name: null, segments: JSON.stringify([]) },
+    ];
+    const db = makePaginatingDb(subscribers);
+    const env = baseEnv({ DB: db });
+    const stub = stubExternalFetch();
+
+    try {
+      const req1 = mockRequest('POST', {
+        body: { subject: 'Hello', body: '<p>Hello world</p>', excludeSegments: ['stuc'] },
+        headers: { Authorization: 'Bearer secret' },
+      });
+      const res1 = await onRequestPost({ request: req1, env, waitUntil: nullWaitUntil });
+      const { body: body1 } = await parseResponse(res1);
+
+      const req2 = mockRequest('POST', {
+        body: { subject: 'Hello', body: '<p>Hello world</p>', sendId: body1.sendId, cursor: 'a000001' },
+        headers: { Authorization: 'Bearer secret' },
+      });
+      const res2 = await onRequestPost({ request: req2, env, waitUntil: nullWaitUntil });
+      const { status: status2, body: body2 } = await parseResponse(res2);
+
+      assert.equal(status2, 200);
+      assert.equal(body2.ok, true);
+    } finally {
+      stub.restore();
+    }
+  });
+
+  it('an unreadable persisted filter aborts the send instead of degrading to unfiltered', async () => {
+    const subscribers = makeSubscribers(2);
+    const db = mockDB({
+      'COUNT(*) as c FROM newsletter_subscriber': { first: { c: subscribers.length } },
+      'SELECT id, email, name, segments FROM newsletter_subscriber': { all: { results: subscribers } },
+      'SELECT segment_filter, exclude_segment_filter FROM newsletter_send WHERE id = ?': {
+        first: { segment_filter: 'not-valid-json{', exclude_segment_filter: null },
+      },
+      "SELECT status FROM newsletter_subscriber WHERE id = ?": { first: { status: 'active' } },
+    });
+    const env = baseEnv({ DB: db });
+    const stub = stubExternalFetch();
+
+    try {
+      const req = mockRequest('POST', {
+        body: { subject: 'Hello', body: '<p>Hello world</p>', sendId: 'existing-send-id' },
+        headers: { Authorization: 'Bearer secret' },
+      });
+      const res = await onRequestPost({ request: req, env, waitUntil: nullWaitUntil });
+      const { status, body } = await parseResponse(res);
+
+      assert.equal(status, 500);
+      assert.equal(body.ok, false);
+      assert.equal(body.error, 'persisted_filter_unreadable');
+      assert.equal(stub.ses.length, 0, 'a send with a corrupted persisted filter must never reach SES');
+    } finally {
+      stub.restore();
+    }
+  });
+
+  it('an unreadable persisted exclude_segment_filter also aborts the send', async () => {
+    const subscribers = makeSubscribers(2);
+    const db = mockDB({
+      'COUNT(*) as c FROM newsletter_subscriber': { first: { c: subscribers.length } },
+      'SELECT id, email, name, segments FROM newsletter_subscriber': { all: { results: subscribers } },
+      'SELECT segment_filter, exclude_segment_filter FROM newsletter_send WHERE id = ?': {
+        first: { segment_filter: null, exclude_segment_filter: '{"not":"an-array"}' },
+      },
+      "SELECT status FROM newsletter_subscriber WHERE id = ?": { first: { status: 'active' } },
+    });
+    const env = baseEnv({ DB: db });
+    const stub = stubExternalFetch();
+
+    try {
+      const req = mockRequest('POST', {
+        body: { subject: 'Hello', body: '<p>Hello world</p>', sendId: 'existing-send-id' },
+        headers: { Authorization: 'Bearer secret' },
+      });
+      const res = await onRequestPost({ request: req, env, waitUntil: nullWaitUntil });
+      const { status, body } = await parseResponse(res);
+
+      assert.equal(status, 500);
+      assert.equal(body.error, 'persisted_filter_unreadable');
+      assert.equal(stub.ses.length, 0);
     } finally {
       stub.restore();
     }
