@@ -50,8 +50,9 @@ const FROM = '"Dr. Naomi Whittaker" <newsletter@mail.rrmacademy.org>';
 const REPLY_TO = 'community@rrmacademy.org';
 const SUBJECT = 'Is your cycle app helping you, or misleading you?';
 
-// SES configuration set that actually exists in us-east-1 (send.js hardcodes the
-// non-existent 'rrm-newsletter' -- a latent bug in that never-used path).
+// SES configuration set that actually exists in us-east-1. send.js used to
+// hardcode the non-existent 'rrm-newsletter' (fixed 2026-08-04, see
+// functions/api/newsletter/send.js) -- both now agree on this value.
 const CONFIGURATION_SET = 'rrm-email';
 
 // Trickle pacing (this task's spec; loop shape mirrors send.js).
