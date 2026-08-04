@@ -2,10 +2,14 @@
  * POST /api/newsletter/send
  * Admin-only: send a newsletter to subscribers (paginated).
  *
- * Body: { subject, body, segments?, slug?, sendId?, cursor? }
+ * Body: { subject, body, segments?, excludeSegments?, slug?, sendId?, cursor? }
  *   - subject: email subject line
  *   - body: HTML content (the message, Gmail-plain style)
  *   - segments: optional array of segment names to filter (null = all active)
+ *   - excludeSegments: optional array of segment names to exclude; a subscriber
+ *     matching ANY excluded segment is dropped even if they also match an
+ *     included segment (lets disjoint-cohort sends target "segment X minus
+ *     anyone also in segment Y")
  *   - slug: commentary slug (for RSS-triggered sends, stored for dedup)
  *   - sendId: existing send ID to continue a paginated send
  *   - cursor: subscriber ID to resume from (returned by previous call)
@@ -63,7 +67,7 @@ export async function onRequestPost({ request, env, waitUntil }) {
     return Response.json({ ok: false, error: 'Invalid payload' }, { status: 400 });
   }
 
-  const { subject, body: htmlBody, segments, slug, sendId: existingSendId, cursor } = body;
+  const { subject, body: htmlBody, segments, excludeSegments, slug, sendId: existingSendId, cursor } = body;
   if (typeof subject !== 'string' || typeof htmlBody !== 'string' || !subject.trim() || !htmlBody.trim()) {
     return Response.json({ ok: false, error: 'subject and body required as non-empty strings' }, { status: 400 });
   }
@@ -73,6 +77,11 @@ export async function onRequestPost({ request, env, waitUntil }) {
   if (segments !== undefined && segments !== null) {
     if (!Array.isArray(segments) || !segments.every(s => typeof s === 'string' && s.length > 0 && s.length < 100)) {
       return Response.json({ ok: false, error: 'segments must be an array of strings' }, { status: 400 });
+    }
+  }
+  if (excludeSegments !== undefined && excludeSegments !== null) {
+    if (!Array.isArray(excludeSegments) || !excludeSegments.every(s => typeof s === 'string' && s.length > 0 && s.length < 100)) {
+      return Response.json({ ok: false, error: 'excludeSegments must be an array of strings' }, { status: 400 });
     }
   }
 
@@ -93,7 +102,7 @@ export async function onRequestPost({ request, env, waitUntil }) {
 
     // Count candidate recipients upfront (only on first call); does not account for suppression set
     let totalRecipients;
-    if (!segments || segments.length === 0) {
+    if ((!segments || segments.length === 0) && (!excludeSegments || excludeSegments.length === 0)) {
       const countResult = await db.prepare(
         "SELECT COUNT(*) as c FROM newsletter_subscriber WHERE status = 'active'"
       ).first();
@@ -104,7 +113,13 @@ export async function onRequestPost({ request, env, waitUntil }) {
       ).all();
       totalRecipients = allSubs.results.filter(sub => {
         const subSegs = parseSegments(sub.segments);
-        return segments.some(seg => subSegs.includes(seg));
+        if (excludeSegments && excludeSegments.length > 0 && excludeSegments.some(seg => subSegs.includes(seg))) {
+          return false;
+        }
+        if (segments && segments.length > 0 && !segments.some(seg => subSegs.includes(seg))) {
+          return false;
+        }
+        return true;
       }).length;
     }
 
@@ -150,6 +165,12 @@ export async function onRequestPost({ request, env, waitUntil }) {
     recipients = recipients.filter(sub => {
       const subSegments = parseSegments(sub.segments);
       return segments.some(seg => subSegments.includes(seg));
+    });
+  }
+  if (excludeSegments && excludeSegments.length > 0) {
+    recipients = recipients.filter(sub => {
+      const subSegments = parseSegments(sub.segments);
+      return !excludeSegments.some(seg => subSegments.includes(seg));
     });
   }
 
@@ -280,9 +301,15 @@ export async function onRequestPost({ request, env, waitUntil }) {
     log(env, waitUntil, 'newsletter', 'send_complete', 'ok', `send ${sendId} complete`, 0, 200);
   }
 
-  // Cursor = highest successful ID so failed sends in this page get retried on resume
+  // Cursor = highest successful ID so failed sends in this page get retried on resume.
+  // If nothing in this fetch was even a send candidate (whole page filtered out by
+  // segment/excludeSegments/suppression/already-sent -- expected for narrow cohorts
+  // like a 48-person segment scanned in 80-row windows across 6,229 subscribers),
+  // advance past the whole scanned range so pagination keeps making forward
+  // progress instead of re-fetching the same non-matching rows forever.
+  const rawLastId = subscribers.length > 0 ? subscribers[subscribers.length - 1].id : null;
   const lastSuccess = succeededIds.length > 0 ? succeededIds[succeededIds.length - 1] : null;
-  const nextCursor = lastSuccess || cursor || null;
+  const nextCursor = lastSuccess || (page.length === 0 ? rawLastId : cursor) || null;
 
   return Response.json({
     ok: true,
