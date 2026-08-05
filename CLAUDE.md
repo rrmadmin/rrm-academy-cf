@@ -447,12 +447,16 @@ Companion to the HttpOnly `session` cookie. **No PII, no session ID** — just a
 - **Open/click pixels**: `s` (send_id) + `u` (subscriber_id) validated against `/^[0-9a-f-]{36}$/i`; KV-backed rate limit `pixel:${ip}` 600/min; INSERT INTO `newsletter_event` scoped with `WHERE EXISTS (SELECT 1 FROM newsletter_subscriber WHERE id = ?)`.
 - **Scripts**: `verify-crm-elv.mjs` (bulk verify; treats `error` as `errored` bucket per `_elv.js` fail-open policy — NOT tagged elv:error), `import-newsletter-subscribers.mjs` (ELV-filtered import + `SUPPRESSION_TAGS` exclusion + re-sync UPDATE flipping existing rows whose contact carries a suppression tag), `segment-newsletter.mjs` (tag-based segmentation).
 
-## Operational Automation (n8n)
+## Operational Automation
+
+n8n.rrmacademy.org (RackNerd VPS) RETIRED 2026-05-08, decommissioned 2026-08-05 -- historical archive, not live infrastructure. Do not build on it.
 
 | Workflow | Schedule | What |
 |----------|----------|------|
-| Daily Cleanup (`La9Bauj70L82oua8`) | 5 AM UTC | POST `/api/admin/cleanup` -- prunes expired sessions, resets, verifications, webhook events >7d |
-| Down Detector (`HxxCkFOPbrXa0r08`) | Every 5 min | Checks site, library data, n8n. Telegram alert on failure via @rrm_n8n_notification_bot |
+| Daily Cleanup | `0 5 * * *` (rrm-observatory cron) | POST `/api/admin/cleanup` -- prunes expired sessions, resets, verifications, webhook events >7d |
+| Down Detector (`HxxCkFOPbrXa0r08`) | RETIRED | Formerly checked site/library data every 5 min via n8n; no replacement wired yet |
+
+`/api/newsletter/rss-check` is orphaned pending decision -- its former n8n caller no longer exists; see `functions/api/newsletter/rss-check.js` (flag-only, not touched by this sweep).
 
 ## Survey Pseudonymization
 
