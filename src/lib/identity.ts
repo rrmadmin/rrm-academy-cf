@@ -31,6 +31,7 @@ import {
   buildBreadcrumbList as _buildBreadcrumbList,
   buildScholarlyArticleStub as _buildScholarlyArticleStub,
   buildMedicalScholarlyArticle as _buildMedicalScholarlyArticle,
+  libraryProfileForType as _libraryProfileForType,
 } from './schema-builders.mjs';
 
 /**
@@ -235,6 +236,13 @@ export const buildScholarlyArticleStub: (props: {
   journal?: string;
 }) => SchemaNode = _buildScholarlyArticleStub as any;
 export const buildMedicalScholarlyArticle: (article: any) => SchemaNode = _buildMedicalScholarlyArticle as any;
+export const libraryProfileForType: (type: string | null | undefined) => {
+  schemaType: string;
+  container: 'Periodical' | 'Book' | null;
+  pages: boolean;
+  ris: string;
+  genre?: string;
+} = _libraryProfileForType as any;
 
 // =============================================================================
 // Phase 2 — SSOT-dependent builders
