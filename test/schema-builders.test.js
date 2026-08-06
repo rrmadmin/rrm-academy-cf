@@ -23,6 +23,9 @@ import {
   nameKeyLib,
   cleanAffiliationNameLib,
   dedupeAuthorRecordsLib,
+  libraryProfileForType,
+  LIBRARY_SCHEMA_PROFILES,
+  DEFAULT_LIBRARY_PROFILE,
   AUTHOR_CAP_LIB,
 } from '../src/lib/schema-builders.mjs';
 
@@ -274,6 +277,186 @@ describe('buildMedicalScholarlyArticle (smoke)', () => {
   it('isAccessibleForFree always present (defaults false)', () => {
     const out = buildMedicalScholarlyArticle({ title: 't', slug: 's' });
     assert.equal(out.isAccessibleForFree, false);
+  });
+});
+
+describe('libraryProfileForType', () => {
+  it('falls back to MedicalScholarlyArticle for journal literature', () => {
+    for (const type of ['article', 'preprint', undefined, null, '', 'type-we-have-not-seen']) {
+      assert.equal(libraryProfileForType(type), DEFAULT_LIBRARY_PROFILE);
+    }
+  });
+
+  it('never emits pageStart/pageEnd on a type schema.org does not define them for', () => {
+    // schema.org domainIncludes for pageStart/pageEnd/pagination:
+    // Article, Chapter, PublicationIssue, PublicationVolume.
+    const PAGE_BEARING = new Set([
+      'Article', 'ScholarlyArticle', 'MedicalScholarlyArticle', 'Report', 'Chapter',
+    ]);
+    for (const [type, profile] of Object.entries(LIBRARY_SCHEMA_PROFILES)) {
+      if (profile.pages) {
+        assert.ok(
+          PAGE_BEARING.has(profile.schemaType),
+          `${type} emits pages on non-page-bearing type ${profile.schemaType}`
+        );
+      }
+    }
+  });
+
+  it('only asserts a Periodical container for types that can be in one', () => {
+    for (const [type, profile] of Object.entries(LIBRARY_SCHEMA_PROFILES)) {
+      if (profile.container === 'Periodical') {
+        assert.ok(
+          profile.schemaType.endsWith('Article') || profile.schemaType === 'Report',
+          `${type} claims a Periodical container as ${profile.schemaType}`
+        );
+      }
+    }
+  });
+});
+
+describe('buildMedicalScholarlyArticle record type mapping', () => {
+  const bookish = {
+    title: 'Natural Hormone Balance',
+    slug: 'natural-hormone-balance',
+    authors: 'Reiss U',
+    datePublished: '2001-01-01',
+  };
+
+  it('a book emits Book, never MedicalScholarlyArticle', () => {
+    const out = buildMedicalScholarlyArticle({ ...bookish, type: 'book' });
+    assert.equal(out['@type'], 'Book');
+  });
+
+  it('a book drops journal container, volume, issue and page range', () => {
+    const out = buildMedicalScholarlyArticle({
+      ...bookish,
+      type: 'book',
+      journal: 'Greenpeak Publishing',
+      volume: '2',
+      issue: '1',
+      pages: '224-259',
+    });
+    assert.equal(out.isPartOf, undefined);
+    assert.equal(out.pageStart, undefined);
+    assert.equal(out.pageEnd, undefined);
+  });
+
+  it('a chapter emits Chapter inside a Book, keeping its page range', () => {
+    for (const type of ['book-chapter', 'chapter']) {
+      const out = buildMedicalScholarlyArticle({
+        ...bookish,
+        type,
+        title: 'Tuboplasty',
+        journal: 'Textbook of Minimally Invasive Gynecologic Surgery',
+        volume: '16',
+        issue: '1',
+        pages: '280-286',
+      });
+      assert.equal(out['@type'], 'Chapter');
+      assert.equal(out.isPartOf['@type'], 'Book');
+      assert.equal(out.isPartOf.name, 'Textbook of Minimally Invasive Gynecologic Surgery');
+      assert.equal(out.isPartOf.volumeNumber, undefined);
+      assert.equal(out.isPartOf.issueNumber, undefined);
+      assert.equal(out.pageStart, '280');
+      assert.equal(out.pageEnd, '286');
+    }
+  });
+
+  it('a report emits Report and keeps its journal container', () => {
+    const out = buildMedicalScholarlyArticle({
+      ...bookish,
+      type: 'report',
+      journal: 'Human Reproduction',
+      pages: '1-10',
+    });
+    assert.equal(out['@type'], 'Report');
+    assert.equal(out.isPartOf['@type'], 'Periodical');
+    assert.equal(out.pageStart, '1');
+  });
+
+  it('opinion and presentation types emit ScholarlyArticle + genre', () => {
+    for (const [type, genre] of [
+      ['editorial', 'editorial'],
+      ['op-ed', 'op-ed'],
+      ['conference-presentation', 'conference-presentation'],
+    ]) {
+      const out = buildMedicalScholarlyArticle({ ...bookish, type });
+      assert.equal(out['@type'], 'ScholarlyArticle');
+      assert.equal(out.genre, genre);
+    }
+  });
+
+  it('unclassified and regulatory types emit bare CreativeWork with no container', () => {
+    for (const type of ['other', 'clinical-protocol', 'assessment', 'addendum']) {
+      const out = buildMedicalScholarlyArticle({
+        ...bookish,
+        type,
+        journal: 'Mayo Clinic',
+        pages: '1-2',
+      });
+      assert.equal(out['@type'], 'CreativeWork');
+      assert.equal(out.isPartOf, undefined);
+      assert.equal(out.pageStart, undefined);
+    }
+  });
+
+  it('leaves journal literature byte-identical to the pre-mapping output', () => {
+    const journalArticle = {
+      type: 'article',
+      title: 'Sample paper on RRM',
+      slug: 'sample-paper-on-rrm',
+      authors: 'Jane Doe, John Roe',
+      datePublished: '2023-06-01',
+      abstract: 'Sample abstract.',
+      journal: 'J. RRM',
+      volume: '12',
+      issue: '3',
+      pages: '101-110',
+      doi: '10.1234/foo',
+      pmid: '123456',
+      accessLevel: 'open',
+      license: 'CC-BY',
+    };
+    const expected = JSON.stringify({
+      '@context': 'https://schema.org',
+      '@type': 'MedicalScholarlyArticle',
+      '@id': 'https://rrmacademy.org/library/sample-paper-on-rrm/',
+      name: 'Sample paper on RRM',
+      headline: 'Sample paper on RRM',
+      url: 'https://rrmacademy.org/library/sample-paper-on-rrm/',
+      publisher: {
+        '@id': 'https://rrmacademy.org/#organization',
+        '@type': 'Organization',
+        name: 'RRM Academy',
+        url: 'https://rrmacademy.org',
+      },
+      author: [
+        { '@type': 'Person', name: 'Jane Doe' },
+        { '@type': 'Person', name: 'John Roe' },
+      ],
+      datePublished: '2023-06-01',
+      abstract: 'Sample abstract.',
+      isPartOf: {
+        '@type': 'PublicationVolume',
+        volumeNumber: '12',
+        isPartOf: {
+          '@type': 'PublicationIssue',
+          issueNumber: '3',
+          isPartOf: { '@type': 'Periodical', name: 'J. RRM' },
+        },
+      },
+      pageStart: '101',
+      pageEnd: '110',
+      sameAs: 'https://doi.org/10.1234/foo',
+      identifier: [
+        { '@type': 'PropertyValue', propertyID: 'doi', value: '10.1234/foo' },
+        { '@type': 'PropertyValue', propertyID: 'PMID', value: '123456' },
+      ],
+      isAccessibleForFree: true,
+      license: 'https://creativecommons.org/licenses/by/4.0/',
+    });
+    assert.equal(JSON.stringify(buildMedicalScholarlyArticle(journalArticle)), expected);
   });
 });
 
