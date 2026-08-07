@@ -64,6 +64,7 @@ interface Props {
     authors: string[];      // One meta tag per author
     date?: string;          // Format: YYYY/MM/DD or YYYY
     journal?: string;
+    inbookTitle?: string;   // Containing book, for chapters (never with journal)
     journalAbbrev?: string;
     volume?: string;
     issue?: string;
@@ -322,6 +323,7 @@ if (!jsonLd) {
       ))}
       {citationMeta.date && <meta name="citation_publication_date" content={citationMeta.date} />}
       {citationMeta.journal && <meta name="citation_journal_title" content={citationMeta.journal} />}
+      {citationMeta.inbookTitle && <meta name="citation_inbook_title" content={citationMeta.inbookTitle} />}
       {citationMeta.journalAbbrev && <meta name="citation_journal_abbrev" content={citationMeta.journalAbbrev} />}
       {citationMeta.volume && <meta name="citation_volume" content={citationMeta.volume} />}
       {citationMeta.issue && <meta name="citation_issue" content={citationMeta.issue} />}

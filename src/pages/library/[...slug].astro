@@ -13,7 +13,7 @@ import { OG_VERSION } from '../../lib/og-config';
 import { fetchAllArticles, getRelatedArticles, getArticlesByAuthor, type Article } from '../../lib/airtable';
 import { parseStructuredAbstract } from '../../lib/abstract-parser';
 import { parseMarkdown, looksLikeMarkdown } from '../../lib/markdown-sanitize';
-import { buildMedicalScholarlyArticle, buildBreadcrumbList } from '../../lib/identity';
+import { buildMedicalScholarlyArticle, buildBreadcrumbList, libraryProfileForType } from '../../lib/identity';
 
 const SHELL_ENABLED = isShellEnabled('library');
 
@@ -322,7 +322,13 @@ const igShareCaption = article.infographic
   ? ((article.infographic as Record<string, unknown>).share_caption as string | undefined || `${article.title}. New research from RRM Academy.`).replace(/[—–]/g, '-').slice(0, 240)
   : '';
 
-// Highwire Press citation meta for Zotero Connector
+// Highwire Press citation meta for Zotero Connector. The container and page
+// tags follow the same per-type profile as the JSON-LD: citation_journal_title
+// on a book or a statute would claim it was published in a periodical, and a
+// chapter's container is a book, so it ships as citation_inbook_title.
+const schemaProfile = libraryProfileForType(article.type);
+const inJournal = schemaProfile.container === 'Periodical';
+const inBook = schemaProfile.container === 'Book';
 const citationAuthors = article.authors?.split(';').map(a => a.trim()).filter(Boolean) || [];
 const citationDate = article.datePublished?.split('T')[0]?.replace(/-/g, '/') || (article.year ? String(article.year) : undefined);
 // Parse pages broadly for Highwire (handles S42-S48, e123-e130, etc.)
@@ -331,12 +337,13 @@ const citationMeta = {
   title: article.title,
   authors: citationAuthors,
   date: citationDate,
-  journal: article.journal || undefined,
-  journalAbbrev: article.journalAbbv || undefined,
-  volume: article.volume || undefined,
-  issue: article.issue || undefined,
-  firstPage: hwPages[0] || undefined,
-  lastPage: hwPages[1] || undefined,
+  journal: (inJournal && article.journal) || undefined,
+  inbookTitle: (inBook && article.journal) || undefined,
+  journalAbbrev: (inJournal && article.journalAbbv) || undefined,
+  volume: (inJournal && article.volume) || undefined,
+  issue: (inJournal && article.issue) || undefined,
+  firstPage: (schemaProfile.pages && hwPages[0]) || undefined,
+  lastPage: (schemaProfile.pages && hwPages[1]) || undefined,
   doi: article.doi || undefined,
   pmid: article.pmid || undefined,
   abstract: article.abstract || undefined,
@@ -1349,7 +1356,7 @@ const citationMeta = {
 
   // RIS citation generation (shared by download button + batch export)
   function generateRIS(d) {
-    var lines = ['TY  - JOUR'];
+    var lines = ['TY  - ' + (d.risType || 'JOUR')];
     var authors = (d.authors || '').split(/[,;]/);
     for (var i = 0; i < authors.length; i++) {
       var a = authors[i].trim();

@@ -332,7 +332,7 @@ E2E spec: `tests/e2e/app-shell.spec.ts` asserts `/library/` index has no middle 
 
 | Template | Data Source | Schema (JSON-LD) | Notes |
 |----------|------------|-------------------|-------|
-| `src/pages/library/[...slug].astro` | `articles.json` | MedicalScholarlyArticle + citation_* meta | Highwire Press tags for Google Scholar |
+| `src/pages/library/[...slug].astro` | `articles.json` | Per-record type + citation_* meta | Highwire Press tags for Google Scholar. `@type` is resolved from the record's `type` by `libraryProfileForType()` in `src/lib/schema-builders.mjs` (the SSOT for that mapping): journal literature stays MedicalScholarlyArticle, `book` -> Book, `book-chapter`/`chapter` -> Chapter in a Book, `report` -> Report, opinion/presentation -> ScholarlyArticle + genre, unclassified/regulatory -> CreativeWork. The same profile gates journal-only output everywhere it appears: `isPartOf`/`pageStart`/`pageEnd` in JSON-LD, `citation_journal_title`/`_abbrev`/`_volume`/`_issue`/`_firstpage`/`_lastpage` (chapters emit `citation_inbook_title` instead), the COinS `rft_val_fmt` on `ArticleCard`, and the RIS `TY` on the cite button. Add a new library record type here, not at the call sites. |
 | `src/pages/commentary/[...slug].astro` | `posts.json` | BlogPosting + BreadcrumbList (+ Person for Whittaker) | Cover image alt = post title |
 | `src/pages/faqs/[...slug].astro` | `faqs.json` | QAPage | Related questions linking |
 | `src/pages/courses/[slug].astro` | `courses.json` | Course + Person + BreadcrumbList + FAQPage | Lesson player at `[slug]/[stepId].astro` |

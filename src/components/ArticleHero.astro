@@ -22,6 +22,7 @@
  * that the page's cite handler reads now live on the cite button itself.
  */
 import type { Article } from '../lib/airtable';
+import { libraryProfileForType } from '../lib/identity';
 
 type AuthorRec = {
   name?: string | null;
@@ -102,6 +103,14 @@ if (!readUrl && pubmedUrl) {
   if (safe !== '#') { readUrl = safe; readLabel = 'Read on PubMed'; }
 }
 
+// Citation payload for the .RIS download. Same per-type profile as the JSON-LD:
+// the reference type follows the record type, and the journal-only fields are
+// withheld from records that were never in a journal (a chapter keeps its
+// container, which RIS carries as T2 alongside TY - CHAP).
+const citeProfile = libraryProfileForType(article.type);
+const citeInJournal = citeProfile.container === 'Periodical';
+const citeContainer = citeProfile.container ? (article.journal || article.journalAbbv || '') : '';
+
 // Access state — closed lock for restricted, open lock + amber for open / free.
 const accessKind: 'restricted' | 'open' | 'free' | 'none' =
   article.accessLevel === 'open' ? 'open' :
@@ -130,14 +139,15 @@ const accessKind: 'restricted' | 'open' | 'free' | 'none' =
         data-slug={article.slug}
         data-title={article.title}
         data-authors={article.shortCitation || ''}
-        data-journal={article.journal || article.journalAbbv || ''}
-        data-journal-abbv={article.journalAbbv || ''}
+        data-ris-type={citeProfile.ris}
+        data-journal={citeContainer}
+        data-journal-abbv={citeInJournal ? (article.journalAbbv || '') : ''}
         data-year={article.year || ''}
         data-doi={article.doi || ''}
         data-pmid={article.pmid || ''}
-        data-volume={article.volume || ''}
-        data-issue={article.issue || ''}
-        data-pages={article.pages || ''}
+        data-volume={citeInJournal ? (article.volume || '') : ''}
+        data-issue={citeInJournal ? (article.issue || '') : ''}
+        data-pages={citeProfile.pages ? (article.pages || '') : ''}
         data-date-published={article.datePublished || ''}
         data-abstract={article.abstract || ''}
         data-topics={article.topics.join(';')}
