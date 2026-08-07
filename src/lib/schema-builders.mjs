@@ -181,6 +181,10 @@ export function orcidUrlLib(orcid) {
   return `https://orcid.org/${clean.toUpperCase()}`;
 }
 
+// Dedup key: lastname + first-initial. Tolerates middle-initial variations
+// ("Lauren Wise" vs "Lauren A Wise" both produce "wise l"), which is the
+// dominant legacy-vs-enriched collision shape. Collisions on this key are
+// only acted on when one side has an ORCID, so false positives are safe.
 export function nameKeyLib(fullName) {
   if (!fullName) return '';
   const n = String(fullName)
@@ -197,11 +201,16 @@ export function nameKeyLib(fullName) {
   return `${last} ${firstInitial}`;
 }
 
+// Cap affiliation name length: raw PubMed affiliations can include the entire
+// authors-affiliations block ("Authors' Affiliations: 1Slone ...") which is
+// hundreds of chars and not a valid organization name.
 export function cleanAffiliationNameLib(raw) {
   if (!raw) return null;
   let s = String(raw).trim();
   if (!s) return null;
+  // Strip PubMed-style "Authors' Affiliations:" prefix (smart or straight quote)
   s = s.replace(/^Authors['’]?\s*Affiliations?\s*:?\s*/i, '');
+  // Strip leading superscript-like number prefix ("1Slone", "2 Lombardi")
   s = s.replace(/^\d+\s*/, '');
   s = s.trim();
   if (!s) return null;
@@ -240,7 +249,7 @@ export function dedupeAuthorRecordsLib(records) {
     keptNoOrcid.push(entry);
   }
   // Emit survivors in first-occurrence order of the original array (not
-  // ORCID-first) so the JSON-LD author[] matches published author order.
+  // ORCID-first) so the byline and the JSON-LD author[] match published order.
   return [...byOrcid.values(), ...keptNoOrcid]
     .sort((a, b) => a.index - b.index)
     .map(({ record }) => record);

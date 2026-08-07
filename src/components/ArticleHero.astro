@@ -23,6 +23,7 @@
  */
 import type { Article } from '../lib/airtable';
 import { libraryProfileForType } from '../lib/identity';
+import { orcidUrlLib as orcidUrl } from '../lib/schema-builders.mjs';
 
 type AuthorRec = {
   name?: string | null;
@@ -64,13 +65,6 @@ function safeHref(url: string | null | undefined): string {
   const t = url.trim();
   if (/^(https?:|mailto:|\/|#)/i.test(t)) return t;
   return '#';
-}
-
-function orcidUrl(orcid: string | null | undefined): string | null {
-  if (!orcid) return null;
-  const clean = String(orcid).trim();
-  if (!/^\d{4}-\d{4}-\d{4}-\d{3}[\dX]$/i.test(clean)) return null;
-  return `https://orcid.org/${clean.toUpperCase()}`;
 }
 
 // Authors collapsed display — show first 3 names in the head, rest slide in.
