@@ -14,6 +14,11 @@ import { fetchAllArticles, getRelatedArticles, getArticlesByAuthor, type Article
 import { parseStructuredAbstract } from '../../lib/abstract-parser';
 import { parseMarkdown, looksLikeMarkdown } from '../../lib/markdown-sanitize';
 import { buildMedicalScholarlyArticle, buildBreadcrumbList, libraryProfileForType } from '../../lib/identity';
+import {
+  AUTHOR_CAP_LIB as AUTHOR_CAP,
+  cleanAffiliationNameLib as cleanAffiliationName,
+  dedupeAuthorRecordsLib as dedupeAuthorRecords,
+} from '../../lib/schema-builders.mjs';
 
 const SHELL_ENABLED = isShellEnabled('library');
 
@@ -176,8 +181,9 @@ const hasAbstract = renderedAbstractSections.length > 0;
 const hasPublisherUrl = Boolean(abstractCtaUrl && abstractCtaUrl !== '#');
 
 // Schema.org JSON-LD — delegated to buildMedicalScholarlyArticle (Phase 7).
-// Helpers below (orcidUrl, nameKey, dedupeAuthorRecords, cleanAffiliationName,
-// uniqueAffiliations) remain because the visible markup still depends on them.
+// The dedup/affiliation/cap helpers the visible markup still needs are imported
+// from schema-builders.mjs, so the byline and the JSON-LD author[] can never
+// drift apart.
 const articleSchemaRaw = buildMedicalScholarlyArticle(article) as Record<string, unknown>;
 const breadcrumbRaw = buildBreadcrumbList([
   { name: 'Home', url: 'https://rrmacademy.org/' },
@@ -200,91 +206,9 @@ const jsonLd = {
 // Collapse duplicates here so JSON-LD doesn't emit the same person twice.
 const authorRecordsRaw = Array.isArray(article.authorRecords) ? article.authorRecords : [];
 
-function orcidUrl(orcid: string | null | undefined): string | null {
-  if (!orcid) return null;
-  const clean = String(orcid).trim();
-  if (!/^\d{4}-\d{4}-\d{4}-\d{3}[\dX]$/i.test(clean)) return null;
-  return `https://orcid.org/${clean.toUpperCase()}`;
-}
-
-// Dedup key: lastname + first-initial. Tolerates middle-initial variations
-// ("Lauren Wise" vs "Lauren A Wise" both produce "wise l"), which is the
-// dominant legacy-vs-enriched collision shape. Collisions on this key are
-// only acted on when one side has an ORCID, so false positives are safe.
-function nameKey(fullName: string | null | undefined): string {
-  if (!fullName) return '';
-  const n = String(fullName)
-    .toLowerCase()
-    .normalize('NFKD').replace(/[\u0300-\u036f]/g, '')
-    .replace(/[.,]/g, '')
-    .replace(/\s+/g, ' ')
-    .trim();
-  const parts = n.split(' ').filter(Boolean);
-  if (parts.length === 0) return '';
-  if (parts.length === 1) return parts[0];
-  const last = parts[parts.length - 1];
-  const firstInitial = parts[0][0] || '';
-  return `${last} ${firstInitial}`;
-}
-
 type AuthorRec = typeof authorRecordsRaw[number];
 
-function dedupeAuthorRecords(records: AuthorRec[]): AuthorRec[] {
-  // Pass 1: collapse by ORCID. When multiple records share an ORCID, keep the
-  // one with the richest affiliation data, but remember each survivor's
-  // first-occurrence index so dedup can't reorder authors away from
-  // published order.
-  const byOrcid = new Map<string, { record: AuthorRec; index: number }>();
-  const noOrcid: Array<{ record: AuthorRec; index: number }> = [];
-  records.forEach((r, index) => {
-    if (r.orcid) {
-      const prev = byOrcid.get(r.orcid);
-      if (!prev) { byOrcid.set(r.orcid, { record: r, index }); return; }
-      const prevScore = (prev.record.primary_ror_id ? 2 : 0) + (prev.record.primary_institution_name ? 1 : 0);
-      const nextScore = (r.primary_ror_id ? 2 : 0) + (r.primary_institution_name ? 1 : 0);
-      if (nextScore > prevScore) byOrcid.set(r.orcid, { record: r, index: prev.index });
-    } else {
-      noOrcid.push({ record: r, index });
-    }
-  });
-  // Pass 2: among no-ORCID entries, drop any whose nameKey is already covered
-  // by an ORCID-bearing record (legacy duplicate of an enriched author).
-  const orcidNameKeys = new Set([...byOrcid.values()].map(({ record }) => nameKey(record.full_name || record.name)));
-  const seenNoOrcidKey = new Set<string>();
-  const keptNoOrcid: Array<{ record: AuthorRec; index: number }> = [];
-  for (const entry of noOrcid) {
-    const key = nameKey(entry.record.full_name || entry.record.name);
-    if (key && orcidNameKeys.has(key)) continue;
-    if (key && seenNoOrcidKey.has(key)) continue;
-    if (key) seenNoOrcidKey.add(key);
-    keptNoOrcid.push(entry);
-  }
-  // Emit survivors in first-occurrence order of the original array (not
-  // ORCID-first) so the byline and JSON-LD match published author order.
-  return [...byOrcid.values(), ...keptNoOrcid]
-    .sort((a, b) => a.index - b.index)
-    .map(({ record }) => record);
-}
-
-// Cap affiliation name length: raw PubMed affiliations can include the entire
-// authors-affiliations block ("Authors' Affiliations: 1Slone ...") which is
-// hundreds of chars and not a valid organization name.
-function cleanAffiliationName(raw: string | null | undefined): string | null {
-  if (!raw) return null;
-  let s = String(raw).trim();
-  if (!s) return null;
-  // Strip PubMed-style "Authors' Affiliations:" prefix (smart or straight quote)
-  s = s.replace(/^Authors['’]?\s*Affiliations?\s*:?\s*/i, '');
-  // Strip leading superscript-like number prefix ("1Slone", "2 Lombardi")
-  s = s.replace(/^\d+\s*/, '');
-  s = s.trim();
-  if (!s) return null;
-  if (s.length <= 200) return s;
-  return s.slice(0, 197) + '...';
-}
-
-const authorRecords = dedupeAuthorRecords(authorRecordsRaw);
-const AUTHOR_CAP = 20;
+const authorRecords = dedupeAuthorRecords(authorRecordsRaw) as AuthorRec[];
 
 // Unique institutions for the visible affiliations block. Dedup by ROR id when
 // present (canonical); fall back to normalized name so two authors at the same
