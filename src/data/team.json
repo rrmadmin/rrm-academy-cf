@@ -8,7 +8,7 @@
       "name": "Dr. Naomi Whittaker",
       "credentials": "MD, Board-Certified OBGYN, MIGS, NFPMC, FCI",
       "academy_role": "Founder and Lead Instructor",
-      "foundation_role": "Board Chair and Chief Medical Director",
+      "foundation_role": "President and Chief Medical Director",
       "photo": "/images/authors/naomi-whittaker.webp",
       "photo_alt": "Dr. Naomi Whittaker, MD",
       "bio_paragraphs": ["TODO: Brian"],
@@ -21,11 +21,24 @@
       "name": "Brian Whittaker",
       "credentials": null,
       "academy_role": "Executive Director",
-      "foundation_role": "Board Treasurer and Acting Executive Lead",
+      "foundation_role": "Executive Director",
       "photo": "/images/authors/brian-whittaker.webp",
       "photo_alt": "Brian Whittaker",
       "bio_paragraphs": ["TODO: Brian"],
       "display_order": 2
+    },
+    {
+      "ssot_id": "https://rrmacademy.org/#rebecca-vavilov",
+      "given_name": "Rebecca",
+      "family_name": "Vavilov",
+      "name": "Rebecca Vavilov",
+      "credentials": null,
+      "academy_role": "Board Treasurer",
+      "foundation_role": "Board Treasurer",
+      "photo": null,
+      "photo_alt": "Rebecca Vavilov, RRM Foundation Board Treasurer",
+      "bio_paragraphs": ["TODO: Brian"],
+      "display_order": 3
     },
     {
       "ssot_id": "https://rrmacademy.org/#bailey-long",
@@ -38,7 +51,7 @@
       "photo": "/images/authors/bailey-long.webp",
       "photo_alt": "Bailey Long, RRM Foundation Board Secretary",
       "bio_paragraphs": ["TODO: Brian"],
-      "display_order": 3
+      "display_order": 4
     },
     {
       "ssot_id": "https://rrmacademy.org/#erin-callaghan",
@@ -51,7 +64,7 @@
       "photo": "/images/authors/erin-kay.webp",
       "photo_alt": "Erin Kay, DO, Family Practice Physician and Clinical Advisor",
       "bio_paragraphs": ["TODO: Brian"],
-      "display_order": 4
+      "display_order": 5
     }
   ]
 }
