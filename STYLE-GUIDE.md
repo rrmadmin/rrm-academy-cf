@@ -1081,7 +1081,7 @@ Components with multiple sub-elements use BEM naming: `.article-card__title`, `.
 | Page | File | Notes |
 |------|------|-------|
 | Landing | `src/pages/library/index.astro` | Full-viewport hero, ticker, topic browse, article grid |
-| Detail | `src/pages/library/[...slug].astro` | `data-pagefind-body`, MedicalScholarlyArticle JSON-LD |
+| Detail | `src/pages/library/[...slug].astro` | `data-pagefind-body`, JSON-LD typed from the record (MedicalScholarlyArticle / Book / Chapter / Report / ScholarlyArticle / CreativeWork) |
 | Pagination | `src/pages/library/page/[page].astro` | `data-pagefind-ignore="all"` |
 | Saved | `src/pages/saved/index.astro` | Universal saved pages, tabbed by type; localStorage + server sync. Legacy `/library/saved` 301s here |
 

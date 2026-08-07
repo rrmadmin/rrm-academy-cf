@@ -112,6 +112,65 @@ export function buildMedicalCondition({ name, alternateName = [], icd10, signs =
 }
 
 // =============================================================================
+// Library record type → schema.org type
+// =============================================================================
+
+/**
+ * Per-record-type emission profile for library records.
+ *
+ * `schemaType` is the schema.org @type. `container` is what the record's
+ * `journal` field actually denotes for that record type: a Periodical for
+ * journal literature, a Book for chapters, nothing for standalone works.
+ * `pages` gates pageStart/pageEnd, which schema.org only defines on Article,
+ * Chapter, PublicationIssue and PublicationVolume (a whole Book has no page
+ * range within a container). `genre` mirrors the record type onto works that
+ * are scholarly but not research articles.
+ *
+ * Types absent from this map fall through to DEFAULT_LIBRARY_PROFILE
+ * (MedicalScholarlyArticle), which covers `article` and `preprint`: both are
+ * scholarly articles in the medical domain, and schema.org has no Preprint
+ * type.
+ *
+ * `other`, `clinical-protocol`, `assessment` and `addendum` resolve to bare
+ * CreativeWork: statutes, codes of practice, drug labels and self-assessment
+ * tools are not scholarly articles, and every schema.org type that names them
+ * (MedicalGuideline, MedicalProcedure) descends from MedicalEntity, not
+ * CreativeWork, so it could not carry author/datePublished/isPartOf.
+ *
+ * `ris` is the RIS reference-type tag the .RIS download emits, so a citation
+ * manager files the record as what it is.
+ */
+export const LIBRARY_SCHEMA_PROFILES = {
+  book: { schemaType: 'Book', container: null, pages: false, ris: 'BOOK' },
+  'book-chapter': { schemaType: 'Chapter', container: 'Book', pages: true, ris: 'CHAP' },
+  chapter: { schemaType: 'Chapter', container: 'Book', pages: true, ris: 'CHAP' },
+  report: { schemaType: 'Report', container: 'Periodical', pages: true, ris: 'RPRT' },
+  editorial: { schemaType: 'ScholarlyArticle', container: 'Periodical', pages: true, genre: 'editorial', ris: 'JOUR' },
+  'op-ed': { schemaType: 'ScholarlyArticle', container: 'Periodical', pages: true, genre: 'op-ed', ris: 'JOUR' },
+  'conference-presentation': { schemaType: 'ScholarlyArticle', container: 'Periodical', pages: true, genre: 'conference-presentation', ris: 'CPAPER' },
+  'clinical-protocol': { schemaType: 'CreativeWork', container: null, pages: false, ris: 'GEN' },
+  assessment: { schemaType: 'CreativeWork', container: null, pages: false, ris: 'GEN' },
+  addendum: { schemaType: 'CreativeWork', container: null, pages: false, ris: 'GEN' },
+  other: { schemaType: 'CreativeWork', container: null, pages: false, ris: 'GEN' },
+};
+
+export const DEFAULT_LIBRARY_PROFILE = {
+  schemaType: 'MedicalScholarlyArticle',
+  container: 'Periodical',
+  pages: true,
+  ris: 'JOUR',
+};
+
+/**
+ * Resolve a library record's emission profile. Shared by the JSON-LD builder,
+ * the Highwire citation meta on the detail page, and the COinS spans on cards
+ * so all three make the same claim about the same record.
+ */
+export function libraryProfileForType(type) {
+  return LIBRARY_SCHEMA_PROFILES[type] || DEFAULT_LIBRARY_PROFILE;
+}
+
+// =============================================================================
 // MedicalScholarlyArticle (library) — PARITY-CRITICAL helpers
 // =============================================================================
 
@@ -207,14 +266,21 @@ export function personFromRecordLib(rec) {
 }
 
 /**
- * MedicalScholarlyArticle for library pages. Mirrors the inline implementation
- * in src/pages/library/[...slug].astro — same dedup/cap/affiliation/license/OA
- * behavior. Returns the @context-bearing top-level node ready to JSON.stringify.
+ * Library record JSON-LD. The @type and the container/page properties are
+ * resolved from the record's own `type` via libraryProfileForType. A book row
+ * emits Book, a chapter emits Chapter, and only journal literature emits
+ * MedicalScholarlyArticle. Everything else (authors, identifiers, access,
+ * license, respondsTo) is type-independent.
+ *
+ * Mirrors the inline implementation in src/pages/library/[...slug].astro:
+ * same dedup/cap/affiliation/license/OA behavior. Returns the @context-bearing
+ * top-level node ready to JSON.stringify.
  */
 export function buildMedicalScholarlyArticle(article) {
+  const profile = libraryProfileForType(article.type);
   const node = {
     '@context': 'https://schema.org',
-    '@type': 'MedicalScholarlyArticle',
+    '@type': profile.schemaType,
     '@id': `https://rrmacademy.org/library/${article.slug}/`,
     name: article.title,
     headline: article.title,
@@ -246,7 +312,15 @@ export function buildMedicalScholarlyArticle(article) {
   if (article.datePublished) node.datePublished = article.datePublished;
   if (article.abstract) node.abstract = article.abstract;
 
-  if (article.journal) {
+  // Container. For chapters the `journal` column holds the containing BOOK
+  // title, so it resolves to a Book and volume/issue (journal-only) are dropped.
+  // Standalone works (Book, CreativeWork) have no container to assert.
+  if (article.journal && profile.container === 'Book') {
+    node.isPartOf = {
+      '@type': 'Book',
+      name: article.journal,
+    };
+  } else if (article.journal && profile.container === 'Periodical') {
     const isPartOf = {
       '@type': 'Periodical',
       name: article.journal,
@@ -264,12 +338,15 @@ export function buildMedicalScholarlyArticle(article) {
     }
   }
 
-  // Pages
-  const pageMatch = article.pages ? String(article.pages).match(/^(\d+)\s*[-–]\s*(\d+)$/) : null;
-  const pageStart = pageMatch ? pageMatch[1] : (article.pages || undefined);
-  const pageEnd = pageMatch ? pageMatch[2] : undefined;
-  if (pageStart) node.pageStart = pageStart;
-  if (pageEnd) node.pageEnd = pageEnd;
+  // Pages. schema.org defines pageStart/pageEnd on Article, Chapter,
+  // PublicationIssue and PublicationVolume only.
+  if (profile.pages) {
+    const pageMatch = article.pages ? String(article.pages).match(/^(\d+)\s*[-–]\s*(\d+)$/) : null;
+    const pageStart = pageMatch ? pageMatch[1] : (article.pages || undefined);
+    const pageEnd = pageMatch ? pageMatch[2] : undefined;
+    if (pageStart) node.pageStart = pageStart;
+    if (pageEnd) node.pageEnd = pageEnd;
+  }
 
   // Identifiers
   const identifiers = [];
@@ -309,13 +386,11 @@ export function buildMedicalScholarlyArticle(article) {
     node.license = LICENSE_URLS_LIB[article.license];
   }
 
-  // Editorial type: emit ScholarlyArticle subtype + citation relationship to the
-  // paper this editorial responds to. Drives LLM/citation-graph linkage so that
-  // RRM Academy editorials surface alongside the papers they engage with.
-  if (article.type === 'editorial') {
-    node['@type'] = 'ScholarlyArticle';
-    node.genre = 'editorial';
-  }
+  // Opinion/presentation types emit the ScholarlyArticle supertype plus a genre,
+  // and (for editorials) a citation relationship to the paper they respond to.
+  // Drives LLM/citation-graph linkage so that RRM Academy editorials surface
+  // alongside the papers they engage with.
+  if (profile.genre) node.genre = profile.genre;
   if (article.respondsTo && typeof article.respondsTo === 'object') {
     const cited = {
       '@type': 'ScholarlyArticle',
