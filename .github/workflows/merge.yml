@@ -223,6 +223,15 @@ jobs:
       # ping (same endpoint + payload shape, status=failure). Non-blocking. There are
       # no TELEGRAM_* repo secrets; OBSERVATORY_API_TOKEN is the channel deploy.yml
       # already uses. The branch is identifiable from the run URL.
+      #
+      # `kind: merge-guard` is what keeps this out of the "Deploy FAILED" subject
+      # line. A refused auto-merge is NOT a production deploy failure: nothing
+      # shipped and the live site is untouched. Between 2026-08-01 and 08-06 this
+      # step sent four "Deploy FAILED: rrm-academy-cf" emails for merge-guard
+      # blocks while rrmacademy.org was up the entire time. Observatory renders
+      # this kind as "CI blocked (merge guard)" and keeps a SEPARATE alert
+      # cooldown, so a guard block can no longer mask a real deploy failure in
+      # the same hour. deploy.yml deliberately omits `kind` (defaults to deploy).
       - name: Notify Observatory on failure
         if: failure()
         run: |
@@ -233,6 +242,7 @@ jobs:
             -d "{
               \"repo\": \"rrm-academy-cf\",
               \"status\": \"failure\",
+              \"kind\": \"merge-guard\",
               \"commit\": \"${{ github.sha }}\",
               \"duration_ms\": 0,
               \"url\": \"${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}\",
