@@ -1,18 +1,16 @@
 {
   "issuer": "https://rrmacademy.org",
-  "authorization_endpoint": "https://rrmacademy.org/account/mcp-keys",
-  "token_endpoint": "https://rrmacademy.org/account/mcp-keys",
   "scopes_supported": [
     "mcp:read",
     "mcp:invoke",
     "library:read",
     "faq:read"
   ],
-  "response_types_supported": ["token"],
+  "response_types_supported": ["none"],
   "grant_types_supported": [
     "urn:ietf:params:oauth:grant-type:api-key"
   ],
-  "token_endpoint_auth_methods_supported": ["none"],
+  "x-endpoint-note": "No OAuth authorization_endpoint or token_endpoint is advertised: RRM Academy does not operate an interactive OAuth flow. Credentials are self-service Bearer API keys minted at https://rrmacademy.org/account/mcp-keys (see agent_auth and x-auth-flow).",
   "agent_auth": {
     "skill": "https://rrmacademy.org/auth.md",
     "register_uri": "https://rrmacademy.org/signup",
