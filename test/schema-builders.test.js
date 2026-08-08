@@ -23,6 +23,7 @@ import {
   nameKeyLib,
   cleanAffiliationNameLib,
   dedupeAuthorRecordsLib,
+  authorNodeFromRecordLib,
   libraryProfileForType,
   LIBRARY_SCHEMA_PROFILES,
   DEFAULT_LIBRARY_PROFILE,
@@ -202,6 +203,17 @@ describe('dedupeAuthorRecordsLib', () => {
   });
 });
 
+describe('authorNodeFromRecordLib', () => {
+  it('routes on is_org, not on the name', () => {
+    assert.equal(authorNodeFromRecordLib({ full_name: 'ART Online Registration Committee' })['@type'], 'Person');
+    assert.equal(authorNodeFromRecordLib({ full_name: 'ART Online Registration Committee', is_org: 1 })['@type'], 'Organization');
+  });
+
+  it('falls back to name when full_name is absent', () => {
+    assert.equal(authorNodeFromRecordLib({ name: 'ENDO Study Working Group', is_org: 1 }).name, 'ENDO Study Working Group');
+  });
+});
+
 describe('buildMedicalScholarlyArticle (smoke)', () => {
   it('emits MedicalScholarlyArticle with publisher + authors', () => {
     const article = {
@@ -255,6 +267,65 @@ describe('buildMedicalScholarlyArticle (smoke)', () => {
     assert.equal(out.author[0].sameAs, 'https://orcid.org/0000-0002-1234-5678');
     assert.equal(out.author[0].affiliation.sameAs, 'https://ror.org/abc');
     assert.equal(out.isAccessibleForFree, false);
+  });
+
+  it('emits Organization for an is_org author record', () => {
+    const article = {
+      title: 'Salpingectomy for hydrosalpinx prior to IVF',
+      slug: 'salpingectomy-for-hydrosalpinx',
+      authors: 'Practice Committee Report',
+      authorRecords: [
+        { id: 'author-practice-committee-report', full_name: 'Practice Committee Report', is_org: 1 },
+      ],
+    };
+    const out = buildMedicalScholarlyArticle(article);
+    assert.equal(out.author.length, 1);
+    assert.equal(out.author[0]['@type'], 'Organization');
+    assert.equal(out.author[0].name, 'Practice Committee Report');
+  });
+
+  it('keeps Person and Organization authors side by side in published order', () => {
+    const out = buildMedicalScholarlyArticle({
+      title: 'Mixed authorship',
+      slug: 'mixed-authorship',
+      authorRecords: [
+        { full_name: 'ENDO Study Working Group', is_org: 1 },
+        { full_name: 'Ann Alpha', is_org: 0, orcid: '0000-0002-1234-5678' },
+      ],
+    });
+    assert.deepEqual(out.author.map((a) => [a['@type'], a.name]), [
+      ['Organization', 'ENDO Study Working Group'],
+      ['Person', 'Ann Alpha'],
+    ]);
+    assert.equal(out.author[1].sameAs, 'https://orcid.org/0000-0002-1234-5678');
+  });
+
+  it('never emits ORCID or affiliation on an Organization author', () => {
+    const out = buildMedicalScholarlyArticle({
+      title: 'Committee with stray enrichment',
+      slug: 'committee-stray-enrichment',
+      authorRecords: [
+        {
+          full_name: 'Practice Committee of the American Society for Reproductive Medicine',
+          is_org: 1,
+          orcid: '0000-0002-1825-0097',
+          primary_ror_id: 'https://ror.org/abc',
+          primary_institution_name: 'ASRM',
+          affiliation: 'ASRM, Birmingham, AL',
+        },
+      ],
+    });
+    assert.deepEqual(out.author, [{
+      '@type': 'Organization',
+      name: 'Practice Committee of the American Society for Reproductive Medicine',
+    }]);
+  });
+
+  it('treats a falsy or absent is_org as a person', () => {
+    for (const rec of [{ full_name: 'Ann Alpha' }, { full_name: 'Ann Alpha', is_org: 0 }, { full_name: 'Ann Alpha', is_org: null }]) {
+      const out = buildMedicalScholarlyArticle({ title: 't', slug: 's', authorRecords: [rec] });
+      assert.equal(out.author[0]['@type'], 'Person');
+    }
   });
 
   it('falls back to consortium Organization when authors > AUTHOR_CAP', () => {
