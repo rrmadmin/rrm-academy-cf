@@ -369,7 +369,7 @@ function checkRequiredFiles() {
   // Directory file-count check — warns when new security-critical files appear without guard coverage
   const DIR_MINIMUMS = [
     { dir: 'functions/api/auth', min: 15, note: 'auth endpoints' },
-    { dir: 'functions/api/billing', min: 14, note: 'billing endpoints (8 + _shared + _migration-handoff + _webhook-refund + _donor-gift + _supporter-gift + _campaign-count)' },
+    { dir: 'functions/api/billing', min: 15, note: 'billing endpoints (8 + _shared + _migration-handoff + _webhook-refund + _donor-gift + _supporter-gift + _campaign-count + _webhook-shared)' },
   ];
 
   for (const { dir, min, note } of DIR_MINIMUMS) {
