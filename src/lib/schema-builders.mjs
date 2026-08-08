@@ -274,6 +274,29 @@ export function personFromRecordLib(rec) {
   return person;
 }
 
+// Collective authors (committees, consortia, study groups) are marked is_org in
+// the library's authors table and arrive on the /articles feed as an integer.
+// Accept the boolean and string forms too so a feed shape change can only make
+// this stricter, never silently reclassify an organization as a person.
+export function isOrgRecordLib(rec) {
+  const flag = rec?.is_org;
+  return flag === 1 || flag === true || flag === '1';
+}
+
+/**
+ * Author node for one record. An is_org record is a schema.org Organization:
+ * flat name only, matching the over-cap consortium fallback below. No ORCID
+ * (ORCID identifies researchers, not organizations) and no affiliation
+ * (schema.org defines affiliation on Person, not on Organization), even when
+ * enrichment has stamped those columns onto the row.
+ */
+export function authorNodeFromRecordLib(rec) {
+  if (isOrgRecordLib(rec)) {
+    return { '@type': 'Organization', name: rec.full_name || rec.name };
+  }
+  return personFromRecordLib(rec);
+}
+
 /**
  * Library record JSON-LD. The @type and the container/page properties are
  * resolved from the record's own `type` via libraryProfileForType. A book row
@@ -310,7 +333,7 @@ export function buildMedicalScholarlyArticle(article) {
       ? [{ '@type': 'Organization', name: String(article.authors).trim() }]
       : [{ '@type': 'Organization', name: 'Consortium Authors' }];
   } else if (authorRecords.length > 0) {
-    node.author = authorRecords.map(personFromRecordLib);
+    node.author = authorRecords.map(authorNodeFromRecordLib);
   } else if (article.authors) {
     node.author = String(article.authors).split(',').map((name) => ({
       '@type': 'Person',
