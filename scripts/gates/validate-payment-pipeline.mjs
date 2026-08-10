@@ -13,7 +13,7 @@
  * or Stripe calls; safe to run in pre-commit + CI.
  *
  * Usage:
- *   node scripts/gates/validate-payment-pipeline.mjs            # all 4 gates
+ *   node scripts/gates/validate-payment-pipeline.mjs            # all 5 gates
  *   node scripts/gates/validate-payment-pipeline.mjs --gate PG1 # specific gate
  *   node scripts/gates/validate-payment-pipeline.mjs --json     # machine-readable
  *
@@ -23,8 +23,8 @@
  *   2  gate runner itself errored (file missing, etc.)
  */
 
-import { readFileSync, existsSync } from 'node:fs';
-import { dirname, resolve, join, relative } from 'node:path';
+import { readFileSync, existsSync, readdirSync } from 'node:fs';
+import { dirname, resolve, join, relative, extname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
@@ -35,36 +35,113 @@ const GREEN = '\x1b[32m', RED = '\x1b[31m', YELLOW = '\x1b[33m';
 const BOLD = '\x1b[1m', RESET = '\x1b[0m', DIM = '\x1b[2m';
 
 // ---------- Files under guard --------------------------------------------
-// All files that handle money, subscription state, or payment auth.
-// Adding a new payment endpoint? Add it here.
-const PAYMENT_FILES = [
+// The payment surface is ENUMERATED FROM DISK, never hand-listed. Until
+// 2026-08-10 this was a literal 15-entry array introduced by "Adding a new
+// payment endpoint? Add it here." -- four files already sitting in
+// functions/api/billing/ had never been added, including _donor-gift.js, which
+// computes and INSERTs amount_cents, and supporter-badge.js, a public endpoint.
+// Every one of them was invisible to PG2 and PG3 while the runner reported "all
+// payment-pipeline gates passed". An allowlist is a hole in the shape of
+// whatever nobody thought of; the drift check is the gate.
+//
+// Coverage = every module under functions/api/billing/ + the named money-path
+// files that live outside it, minus EXCLUDED. PG0 enforces the accounting.
+
+const BILLING_DIR = 'functions/api/billing';
+
+// Money-path files outside the billing directory. Named because no directory at
+// the functions/api root means "payment"; PG0 fails if one stops existing.
+const TOP_LEVEL_PAYMENT_FILES = [
   'functions/api/stripe-webhook.js',
   'functions/api/create-checkout.js',
-  'functions/api/billing/_webhook-checkout.js',
-  'functions/api/billing/_webhook-subscription.js',
-  'functions/api/billing/_webhook-invoice.js',
-  'functions/api/billing/_webhook-shared.js',
-  'functions/api/billing/_webhook-refund.js',
-  'functions/api/billing/_shared.js',
-  'functions/api/billing/_migration-handoff.js',
-  'functions/api/billing/_migration-token.js',
-  'functions/api/billing/checkout-account.js',
-  'functions/api/billing/portal.js',
-  'functions/api/billing/status.js',
   'functions/api/fund-progress.js',
   'functions/api/fund-supporters.js',
 ];
 
+// Extensions whose contents the PG2/PG3 source checks understand. A billing
+// module written in anything else is NOT silently dropped -- PG0 fails on it.
+const SCANNED_EXT = ['.js', '.mjs', '.ts'];
+
+// Non-module files allowed to sit in the billing directory unscanned.
+const UNSCANNABLE_EXT = ['.md', '.sql', '.json', '.txt'];
+
+// Files inside the payment surface deliberately NOT gated. Key = repo-relative
+// path, value = why, in >= EXCLUDED_MIN_REASON characters.
+//
+// EXCLUDED IS EMPTY, and PG0 says so out loud: every module in the billing
+// directory is gated today, including the four the old array had missed. PG0
+// fails on any key that no longer exists on disk, so this cannot rot into
+// permanent cover for a real gap.
+const EXCLUDED = {};
+const EXCLUDED_MIN_REASON = 40;
+
+// Coverage must always contain these. This is what keeps EXCLUDED a documented
+// exception rather than an escape hatch: excluding a core money file fails PG0
+// instead of quietly shrinking the surface every other gate scans.
+const COVERAGE_SENTINELS = [
+  'functions/api/stripe-webhook.js',
+  'functions/api/create-checkout.js',
+  'functions/api/billing/_webhook-checkout.js',
+  'functions/api/billing/_webhook-subscription.js',
+  'functions/api/billing/_webhook-refund.js',
+  'functions/api/billing/_shared.js',
+  'functions/api/billing/_donor-gift.js',
+  'functions/api/billing/_supporter-gift.js',
+];
+
+// Anti-vacuity floor: a broken walk (directory renamed, permissions, a bad
+// filter) must fail rather than report success over an empty surface.
+// 15 billing modules on disk 2026-08-10.
+const MIN_BILLING_MODULES = 14;
+
+const TEST_FILE_RE = /\.(test|spec)\.[cm]?[jt]s$/;
+
+/**
+ * Walk BILLING_DIR recursively. Returns repo-relative paths split into
+ * modules (scannable), unscannable (known non-module extensions), and
+ * unclassified (everything else -- a PG0 failure, because a .cjs/.jsx/.mts
+ * billing module dropped by the extension filter is exactly the silent hole
+ * the hand-maintained array already produced once).
+ */
+function enumerateBillingSurface() {
+  const out = { modules: [], unscannable: [], unclassified: [], error: null };
+  const abs = join(PROJECT_ROOT, BILLING_DIR);
+  const walk = (dir) => {
+    for (const e of readdirSync(dir, { withFileTypes: true })) {
+      const p = join(dir, e.name);
+      if (e.isDirectory()) { walk(p); continue; }
+      const rel = relative(PROJECT_ROOT, p);
+      if (TEST_FILE_RE.test(e.name)) continue;
+      const ext = extname(e.name);
+      if (SCANNED_EXT.includes(ext)) out.modules.push(rel);
+      else if (UNSCANNABLE_EXT.includes(ext)) out.unscannable.push(rel);
+      else out.unclassified.push(rel);
+    }
+  };
+  try { walk(abs); } catch (err) { out.error = err.message; }
+  out.modules.sort(); out.unscannable.sort(); out.unclassified.sort();
+  return out;
+}
+
+const BILLING_SCAN = enumerateBillingSurface();
+
+// All files that handle money, subscription state, or payment auth.
+const PAYMENT_FILES = [...TOP_LEVEL_PAYMENT_FILES, ...BILLING_SCAN.modules]
+  .filter((f) => !(f in EXCLUDED));
+
 // Webhook entrypoint (must implement signature verify + dedup envelope)
 const WEBHOOK_ENTRY = 'functions/api/stripe-webhook.js';
 
+// Sub-handler modules dispatched by the entrypoint. Derived from the same scan
+// so a new _webhook-*.js is dedup-purity and atomicity checked the day it lands.
+const NOT_A_WEBHOOK_HANDLER = {
+  'functions/api/billing/_webhook-shared.js':
+    'Shared helper imported BY the handlers (sendEmailSafe et al), not a Stripe event handler the entrypoint dispatches to.',
+};
+
 // Sub-handler files (must NOT re-implement dedup; parent handles it)
-const WEBHOOK_HANDLERS = [
-  'functions/api/billing/_webhook-checkout.js',
-  'functions/api/billing/_webhook-subscription.js',
-  'functions/api/billing/_webhook-invoice.js',
-  'functions/api/billing/_webhook-refund.js',
-];
+const WEBHOOK_HANDLERS = BILLING_SCAN.modules.filter((f) =>
+  /\/_webhook-[^/]+$/.test(f) && !(f in NOT_A_WEBHOOK_HANDLER) && !(f in EXCLUDED));
 
 // ---------- CLI -----------------------------------------------------------
 const argv = process.argv.slice(2);
@@ -116,6 +193,107 @@ function read(rel) {
   const full = join(PROJECT_ROOT, rel);
   if (!existsSync(full)) return null;
   return readFileSync(full, 'utf8');
+}
+
+// ---------- Gate PG0: Payment surface enumeration ---------------------------
+// Class of bugs prevented: a money-path file that no gate ever reads. Every
+// other gate in this runner is only as good as the file list it walks, so the
+// list itself needs a gate. A file under functions/api/billing must end up
+// either COVERED or EXCLUDED-with-a-reason; there is no third bucket, and the
+// enumeration cannot silently collapse to nothing.
+function gatePG0() {
+  const results = [];
+
+  // a) The walk itself must have worked, and must find a plausible surface.
+  if (BILLING_SCAN.error) {
+    return [fail(`could not enumerate ${BILLING_DIR}: ${BILLING_SCAN.error}`)];
+  }
+  if (BILLING_SCAN.modules.length < MIN_BILLING_MODULES) {
+    results.push(fail(
+      `${BILLING_DIR} enumerated only ${BILLING_SCAN.modules.length} modules, below floor ${MIN_BILLING_MODULES}: ` +
+      `the walk or the extension filter is broken; a gate runner must not report success over an empty surface`));
+  } else {
+    results.push(pass(
+      `enumerated ${BILLING_SCAN.modules.length} modules from ${BILLING_DIR} (floor ${MIN_BILLING_MODULES}), ` +
+      `${PAYMENT_FILES.length} payment files under guard`));
+  }
+
+  // b) No file in the billing directory may fall outside both buckets.
+  for (const f of BILLING_SCAN.unclassified) {
+    results.push(fail(
+      `${f}: in ${BILLING_DIR} but neither scannable (${SCANNED_EXT.join(', ')}) nor a known non-module ` +
+      `(${UNSCANNABLE_EXT.join(', ')}); add its extension to SCANNED_EXT so the gates read it, or to UNSCANNABLE_EXT`));
+  }
+  if (BILLING_SCAN.unclassified.length === 0) {
+    results.push(pass(`every file in ${BILLING_DIR} is classified (no unreadable module types)`));
+  }
+
+  // c) Named money-path files outside the billing directory must still exist.
+  let missingNamed = 0;
+  for (const f of TOP_LEVEL_PAYMENT_FILES) {
+    if (!existsSync(join(PROJECT_ROOT, f))) {
+      results.push(fail(`${f} listed in TOP_LEVEL_PAYMENT_FILES but not on disk (moved or renamed; update the list)`));
+      missingNamed++;
+    }
+  }
+  if (missingNamed === 0) {
+    results.push(pass(`all ${TOP_LEVEL_PAYMENT_FILES.length} named top-level payment files present`));
+  }
+
+  // d) EXCLUDED hygiene: no rot, and every opt-out carries a real reason.
+  const excludedKeys = Object.keys(EXCLUDED);
+  let excludedProblems = 0;
+  for (const [f, reason] of Object.entries(EXCLUDED)) {
+    if (!existsSync(join(PROJECT_ROOT, f))) {
+      results.push(fail(`EXCLUDED['${f}'] does not exist on disk: stale exclusion, delete the entry`));
+      excludedProblems++;
+    }
+    if (typeof reason !== 'string' || reason.trim().length < EXCLUDED_MIN_REASON) {
+      results.push(fail(
+        `EXCLUDED['${f}'] needs a written reason of at least ${EXCLUDED_MIN_REASON} characters ` +
+        `explaining why this money-path file needs no gating`));
+      excludedProblems++;
+    }
+  }
+  if (excludedProblems === 0) {
+    results.push(pass(excludedKeys.length === 0
+      ? `EXCLUDED is empty: every module in ${BILLING_DIR} is gated`
+      : `${excludedKeys.length} EXCLUDED entr${excludedKeys.length === 1 ? 'y' : 'ies'}, each present on disk with a written reason`));
+  }
+
+  // e) Same rot check for the webhook-handler carve-out.
+  let carveProblems = 0;
+  for (const [f, reason] of Object.entries(NOT_A_WEBHOOK_HANDLER)) {
+    if (!existsSync(join(PROJECT_ROOT, f))) {
+      results.push(fail(`NOT_A_WEBHOOK_HANDLER['${f}'] does not exist on disk: stale carve-out, delete the entry`));
+      carveProblems++;
+    }
+    if (typeof reason !== 'string' || reason.trim().length < EXCLUDED_MIN_REASON) {
+      results.push(fail(`NOT_A_WEBHOOK_HANDLER['${f}'] needs a written reason of at least ${EXCLUDED_MIN_REASON} characters`));
+      carveProblems++;
+    }
+  }
+  if (carveProblems === 0) {
+    results.push(pass(`${WEBHOOK_HANDLERS.length} webhook sub-handlers derived from the scan (carve-outs verified)`));
+  }
+
+  // f) Sentinels: excluding a core money file fails here rather than silently
+  //    shrinking the surface PG2/PG3 walk.
+  const covered = new Set(PAYMENT_FILES);
+  let missingSentinels = 0;
+  for (const f of COVERAGE_SENTINELS) {
+    if (!covered.has(f)) {
+      results.push(fail(
+        `${f} is a payment-surface sentinel but is not covered: it was excluded, renamed, or the enumeration missed it. ` +
+        `Coverage must never drop this file.`));
+      missingSentinels++;
+    }
+  }
+  if (missingSentinels === 0) {
+    results.push(pass(`all ${COVERAGE_SENTINELS.length} coverage sentinels present in the guarded set`));
+  }
+
+  return results;
 }
 
 // ---------- Gate PG1: Stripe webhook signature + dedup discipline ----------
@@ -339,6 +517,7 @@ function gatePG4() {
 }
 
 // ---------- Run -----------------------------------------------------------
+runGate('PG0', 'Payment surface enumeration (no ungated money-path file)', gatePG0);
 runGate('PG1', 'Stripe webhook signature + dedup discipline', gatePG1);
 runGate('PG2', 'No err.message leak in client-bound responses', gatePG2);
 runGate('PG3', 'Enrollment revocation discipline', gatePG3);
