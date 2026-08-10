@@ -108,6 +108,13 @@ function enumerateBillingSurface() {
   const abs = join(PROJECT_ROOT, BILLING_DIR);
   const walk = (dir) => {
     for (const e of readdirSync(dir, { withFileTypes: true })) {
+      // Dotfiles are OS and editor droppings, never payment modules. macOS writes
+      // .DS_Store into any directory Finder opens, and extname('.DS_Store') is '',
+      // so an unfiltered dotfile lands in the unclassified bucket and fails PG0 on
+      // an otherwise clean tree -- i.e. it would break every deploy from a Mac.
+      // Skipped before classification so the bucket keeps meaning "real module the
+      // gates cannot read".
+      if (e.name.startsWith('.')) continue;
       const p = join(dir, e.name);
       if (e.isDirectory()) { walk(p); continue; }
       const rel = relative(PROJECT_ROOT, p);

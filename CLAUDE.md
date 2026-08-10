@@ -613,7 +613,7 @@ Docs: `scripts/gates/README.md`.
 
 ## Payment Pipeline Proof Gates
 
-`scripts/gates/validate-payment-pipeline.mjs` runs 5 deterministic gates against the payment surface (`functions/api/{stripe-webhook,create-checkout,billing/*}`). Built 2026-05-07 in response to /arise-intel finding that the payment surface accumulated 41 findings across 13 distinct /arise runs. Code is currently clean — gates encode the recurring bug classes so regressions trip deterministically.
+`scripts/gates/validate-payment-pipeline.mjs` runs 5 deterministic gates against the payment surface (`functions/api/{stripe-webhook,create-checkout,billing/*}`). Built 2026-05-07 in response to /arise-intel finding that the payment surface accumulated 41 findings across 13 distinct /arise runs. Code is currently clean; gates encode the recurring bug classes so regressions trip deterministically.
 
 **The surface is enumerated from disk, not hand-listed (2026-08-10).** `PAYMENT_FILES` used to be a literal 15-entry array headed "Adding a new payment endpoint? Add it here." Four files already sitting in `functions/api/billing/` had never been added: `_donor-gift.js` (computes and INSERTs `amount_cents`), `_supporter-gift.js`, `_campaign-count.js` and `supporter-badge.js` (a public endpoint). All four were invisible to PG2 and PG3 while the runner printed "All payment-pipeline gates passed". This is the same allowlist shape `tests.yml` rejects in its own header comment, applied to the money path. Coverage is now `readdirSync(functions/api/billing)` (recursive) plus the four named top-level money files, and PG0 gates the accounting. `WEBHOOK_HANDLERS` is derived from the same scan, so a new `_webhook-*.js` is dedup-purity and atomicity checked the day it lands.
 
@@ -628,7 +628,7 @@ Docs: `scripts/gates/README.md`.
 | **PG4** Atomicity heuristic | Webhook handlers (`billing/_webhook-*.js`) with ≥5 sequential `.run()` calls and zero `db.batch()` get a yellow warn (review for transactional safety). Calibrated as warn not fail — sequential `.run()`s are sometimes legitimate. |
 
 **Commands**:
-- `npm run gates:payment` — runs all 5 gates
+- `npm run gates:payment` runs all 5 gates
 - `node scripts/gates/validate-payment-pipeline.mjs --gate PG1` — single gate
 - `node scripts/gates/validate-payment-pipeline.mjs --json` — machine-readable
 
