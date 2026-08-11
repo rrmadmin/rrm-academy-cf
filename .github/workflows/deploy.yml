@@ -400,6 +400,15 @@ jobs:
 
           [ "$fail" = "0" ] || exit 1
 
+      - name: Data-dependent unit tests (post-fetch)
+        # These two files self-skip when src/data/*.json is absent, and the "Test"
+        # step above runs BEFORE the fetch/restore steps, so in CI they contributed
+        # nothing: canonical-lockdown skipped every run and the audit-glossary-links
+        # smoke has skipped since 2026-05-05. Run them again HERE, after the data
+        # exists, so SHELL_SLUG_CAP and the glossary link classifier are actually
+        # evaluated against real published data. Same invocation as `npm test`.
+        run: node --experimental-strip-types --test tests/unit/canonical-lockdown.test.mjs test/glossary-link-classifier.test.js
+
       - name: Verify blog citations
         if: ${{ github.event.client_payload.record_id }}
         env:
