@@ -27,6 +27,7 @@ const knownPages = buildKnownPages(pageKeys);
       <div class="not-found__search" id="nf-search">
         <div class="nf-search-box">
           <svg class="nf-search-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+          <!-- id="nf-search-input": do not rename, load-bearing for the library render gate, see scripts/check-render-gate-ids.mjs -->
           <input type="search" class="nf-search-input" placeholder="Search articles, topics, conditions..." id="nf-search-input" autocomplete="off" aria-label="Search articles" />
           <button class="nf-search-clear hidden" id="nf-search-clear" aria-label="Clear search">&#x2715;</button>
         </div>
@@ -588,6 +589,7 @@ const knownPages = buildKnownPages(pageKeys);
 })();
 </script>
 
+<!-- id="nf-known-pages": do not rename, load-bearing for the library render gate, see scripts/check-render-gate-ids.mjs -->
 <script type="application/json" id="nf-known-pages" set:html={JSON.stringify(knownPages).replace(/</g, '\\u003c')}></script>
 
 <script>
