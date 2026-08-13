@@ -98,6 +98,10 @@ const AGGREGATE_SQL = `
  * Recompute a contact's donor rollups from donor_gift (derived state, safe to
  * re-run any time), then backlink any donor_gift rows still missing contact_id.
  * Aggregates exclude kind='course' and refunded rows.
+ *
+ * The contact rollup UPDATE and the donor_gift backlink UPDATE don't interact
+ * (the former never touches contact.id; the latter only reads it), so they
+ * commit together via db.batch for atomicity.
  */
 export async function recomputeContactRollups(db, email) {
   const agg = await db.prepare(AGGREGATE_SQL).bind(email).first();
@@ -106,18 +110,19 @@ export async function recomputeContactRollups(db, email) {
     donatedCents: agg?.donated_cents || 0,
     lastRecurringAt: agg?.last_recurring_at || null,
   });
-  await db.prepare(
-    `UPDATE contact SET
-       total_donated = ?, first_gift_at = ?, last_gift_at = ?, gift_count = ?, donor_stage = ?,
-       updated_at = datetime('now')
-     WHERE email = ? COLLATE NOCASE`
-  ).bind((agg?.donated_cents || 0) / 100, agg?.first_gift_at || null, agg?.last_gift_at || null,
-         agg?.gift_count || 0, stage, email).run();
-
-  await db.prepare(
-    `UPDATE donor_gift SET contact_id = (SELECT id FROM contact WHERE email = ? COLLATE NOCASE)
-     WHERE email = ? COLLATE NOCASE AND contact_id IS NULL`
-  ).bind(email, email).run();
+  await db.batch([
+    db.prepare(
+      `UPDATE contact SET
+         total_donated = ?, first_gift_at = ?, last_gift_at = ?, gift_count = ?, donor_stage = ?,
+         updated_at = datetime('now')
+       WHERE email = ? COLLATE NOCASE`
+    ).bind((agg?.donated_cents || 0) / 100, agg?.first_gift_at || null, agg?.last_gift_at || null,
+           agg?.gift_count || 0, stage, email),
+    db.prepare(
+      `UPDATE donor_gift SET contact_id = (SELECT id FROM contact WHERE email = ? COLLATE NOCASE)
+       WHERE email = ? COLLATE NOCASE AND contact_id IS NULL`
+    ).bind(email, email),
+  ]);
 }
 
 /**
