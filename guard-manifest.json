@@ -183,7 +183,7 @@
       "note": "Wix-to-Stripe migration handoff lock primitives"
     },
     "functions/api/billing/_donor-gift.js": {
-      "hash": "889b40659e50b39ac864f60aaa42c4b18ad806b64323fb442c556a84160a75a4",
+      "hash": "622f245930696c65c49e4e28e7e3ea09be65b69f5ee4b799443fec5f06ee204d",
       "note": "Donor gift recording + contact rollups/stage derivation"
     },
     "functions/api/billing/_supporter-gift.js": {

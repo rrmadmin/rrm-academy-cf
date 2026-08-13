@@ -20,6 +20,16 @@ function fakeDb(script = []) {
         async all() { return { results: next.rows ?? [] }; },
       };
     },
+    // D1 runs a batch's statements in order inside an implicit transaction and
+    // answers one result per statement. The scripted result is captured at
+    // prepare() time, and the array elements are still prepared left to right,
+    // so batching a pair of writes consumes the same script slots in the same
+    // order that two sequential .run() calls did.
+    async batch(statements) {
+      const out = [];
+      for (const st of statements) out.push(await st.run());
+      return out;
+    },
   };
 }
 
