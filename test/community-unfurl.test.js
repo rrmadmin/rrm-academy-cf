@@ -28,9 +28,9 @@
  *     on adversarial markup (mis-nested tags, `<meta>` inside `<script>`,
  *     character-reference edge cases, chunk boundaries mid-entity). Where those
  *     could differ the tests stay on well-formed input and say so.
- *  2. DNS. resolveAndCheck asks 1.1.1.1 over DoH; the stub answers it. The
- *     tests prove the handler's decision GIVEN an answer, not that 1.1.1.1
- *     returns that answer, and not that the address the runtime finally
+ *  2. DNS. resolveAndCheck asks cloudflare-dns.com over DoH; the stub answers
+ *     it. The tests prove the handler's decision GIVEN an answer, not that the
+ *     resolver returns that answer, and not that the address the runtime finally
  *     connects to is the one that was resolved (a true DNS-rebinding race
  *     between the check and the connect is outside any unit test).
  *  3. The 5s/3s AbortSignal budgets are asserted as values on the fetch init,
@@ -127,7 +127,7 @@ function dnsBody(records, status = 0) {
 }
 
 /**
- * Routes both fetches unfurl.js makes: the DoH probe to 1.1.1.1 and the page
+ * Routes both fetches unfurl.js makes: the DoH probe to cloudflare-dns.com and the page
  * fetch itself. Every call is recorded, split into dnsCalls / pageCalls, which
  * is what the SSRF assertions read.
  *
@@ -146,7 +146,7 @@ function stubUnfurlFetch({ dns, page } = {}) {
     const call = { url, init };
     calls.push(call);
 
-    if (url.startsWith('https://1.1.1.1/dns-query')) {
+    if (url.startsWith('https://cloudflare-dns.com/dns-query')) {
       call.kind = 'dns';
       const parsed = new URL(url);
       const answer = (dns ?? defaultDns)(parsed.searchParams.get('name'), parsed.searchParams.get('type'));
@@ -358,11 +358,8 @@ describe('community/unfurl.js -- SSRF front door: destinations refused without a
       assert.equal(parsed.body.error, 'invalid_url');
       assert.equal(stub.calls.length, 0,
         `${target} produced an outbound request; a refusal that still fetches is not a refusal`);
-      const writes = cacheWrites(kv);
-      assert.equal(writes.length, 1, 'a policy refusal is negative-cached so the next attempt is free');
-      assert.deepEqual(JSON.parse(writes[0].value), { preview: null });
-      assert.equal(writes[0].opts.expirationTtl, 21600);
-      assert.equal(writes[0].key, await cacheKeyFor(target));
+      assert.equal(cacheWrites(kv).length, 0,
+        'a policy refusal is never re-read from cache, so nothing is written for it');
     });
   }
 

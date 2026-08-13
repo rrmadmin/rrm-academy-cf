@@ -90,7 +90,7 @@ async function resolveAndCheck(host) {
     let data;
     try {
       const resp = await fetch(
-        `https://1.1.1.1/dns-query?name=${encodeURIComponent(host)}&type=${type}`,
+        `https://cloudflare-dns.com/dns-query?name=${encodeURIComponent(host)}&type=${type}`,
         {
           headers: { accept: 'application/dns-json' },
           signal: AbortSignal.timeout(3000),
@@ -242,16 +242,13 @@ export async function onRequestGet({ request, env, waitUntil }) {
 
     const passesPolicy = isUnfurlableUrl(raw);
 
-    // Compute KV key for ALL validated (but possibly policy-failing) URLs
-    const cacheKey = 'unfurl:v1:' + (await sha256hex(raw));
-
-    // For policy failures: negative-cache and 400
+    // For policy failures: 400, no cache (nothing ever reads a cache entry keyed
+    // before this point returns, so writing one here would be unread)
     if (!passesPolicy) {
-      if (env.COMMUNITY_KV) {
-        env.COMMUNITY_KV.put(cacheKey, JSON.stringify({ preview: null }), { expirationTtl: 21600 }).catch(() => {});
-      }
       return json({ ok: false, error: 'invalid_url' }, 400);
     }
+
+    const cacheKey = 'unfurl:v1:' + (await sha256hex(raw));
 
     // KV read (non-fatal on error)
     if (env.COMMUNITY_KV) {
@@ -351,7 +348,7 @@ export async function onRequestGet({ request, env, waitUntil }) {
     // Cache and respond
     const ttl = preview !== null ? 604800 : 21600;
     if (env.COMMUNITY_KV) {
-      env.COMMUNITY_KV.put(cacheKey, JSON.stringify({ preview }), { expirationTtl: ttl }).catch(() => {});
+      waitUntil(env.COMMUNITY_KV.put(cacheKey, JSON.stringify({ preview }), { expirationTtl: ttl }).catch(() => {}));
     }
 
     return json({ ok: true, preview });
