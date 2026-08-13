@@ -19,7 +19,7 @@ export async function onRequestOptions() {
   return optionsResponse();
 }
 
-export async function onRequestGet({ request, env }) {
+export async function onRequestGet({ request, env, waitUntil }) {
   try {
     // Session-based admin auth
     const auth = await requireSuperAdmin(request, env.DB);
@@ -32,11 +32,15 @@ export async function onRequestGet({ request, env }) {
     const daysMap = { '7d': 7, '28d': 28, '90d': 90 };
     const days = daysMap[period] || 28;
 
-    // Check KV cache (15 min)
+    // Check KV cache (15 min); non-fatal on error — fall through to the live fetch
     const cacheKey = `admin:revenue:${period}`;
     if (env.COMMUNITY_KV) {
-      const cached = await env.COMMUNITY_KV.get(cacheKey, 'json');
-      if (cached) return json({ ok: true, data: cached, cached: true });
+      try {
+        const cached = await env.COMMUNITY_KV.get(cacheKey, 'json');
+        if (cached) return json({ ok: true, data: cached, cached: true });
+      } catch {
+        // KV read failure is non-fatal — fall through to live fetch
+      }
     }
 
     const stripe = new Stripe(env.STRIPE_SECRET_KEY, {
@@ -161,8 +165,9 @@ export async function onRequestGet({ request, env }) {
       fetchedAt: new Date().toISOString(),
     };
 
+    // Cache-write failure must not discard the report
     if (env.COMMUNITY_KV) {
-      await env.COMMUNITY_KV.put(cacheKey, JSON.stringify(report), { expirationTtl: CACHE_TTL });
+      waitUntil(env.COMMUNITY_KV.put(cacheKey, JSON.stringify(report), { expirationTtl: CACHE_TTL }).catch(() => {}));
     }
 
     return json({ ok: true, data: report, cached: false });

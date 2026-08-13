@@ -15,7 +15,7 @@ export async function onRequestOptions() {
   return optionsResponse();
 }
 
-export async function onRequestGet({ request, env }) {
+export async function onRequestGet({ request, env, waitUntil }) {
   try {
     // Session-based admin auth
     const auth = await requireSuperAdmin(request, env.DB);
@@ -30,10 +30,15 @@ export async function onRequestGet({ request, env }) {
     const periodMap = { '7d': '7daysAgo', '28d': '28daysAgo', '90d': '90daysAgo' };
     const startDate = periodMap[period] || '28daysAgo';
 
+    // Non-fatal on error — fall through to the live fetch
     const cacheKey = `admin:content:${period}`;
     if (env.COMMUNITY_KV) {
-      const cached = await env.COMMUNITY_KV.get(cacheKey, 'json');
-      if (cached) return json({ ok: true, data: cached, cached: true });
+      try {
+        const cached = await env.COMMUNITY_KV.get(cacheKey, 'json');
+        if (cached) return json({ ok: true, data: cached, cached: true });
+      } catch {
+        // KV read failure is non-fatal — fall through to live fetch
+      }
     }
 
     const accessToken = await getAccessToken(env);
@@ -111,8 +116,9 @@ export async function onRequestGet({ request, env }) {
       fetchedAt: new Date().toISOString(),
     };
 
+    // Cache-write failure must not discard the report
     if (env.COMMUNITY_KV) {
-      await env.COMMUNITY_KV.put(cacheKey, JSON.stringify(report), { expirationTtl: CACHE_TTL });
+      waitUntil(env.COMMUNITY_KV.put(cacheKey, JSON.stringify(report), { expirationTtl: CACHE_TTL }).catch(() => {}));
     }
 
     return json({ ok: true, data: report, cached: false });
