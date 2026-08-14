@@ -43,7 +43,7 @@
       "note": "Webhook + signature verification"
     },
     "functions/api/create-checkout.js": {
-      "hash": "7e845fad365547a2d229d1dde87ffc947235b50eab4ef030eb0384a1862c966a",
+      "hash": "caefc9ab0229fb1092bbcc22350cd755713d051539f7717ee8db3d38968ea44a",
       "note": "Stripe checkout"
     },
     "functions/api/billing/status.js": {
@@ -183,7 +183,7 @@
       "note": "Wix-to-Stripe migration handoff lock primitives"
     },
     "functions/api/billing/_donor-gift.js": {
-      "hash": "622f245930696c65c49e4e28e7e3ea09be65b69f5ee4b799443fec5f06ee204d",
+      "hash": "2d842a77d5bf5bc5871e875000dce69dbd85a9dca157372f0ad072f06951e540",
       "note": "Donor gift recording + contact rollups/stage derivation"
     },
     "functions/api/billing/_supporter-gift.js": {

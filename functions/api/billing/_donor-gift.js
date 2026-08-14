@@ -58,6 +58,7 @@ export function giftFromCheckoutSession(session, eventCreatedEpoch, env, waitUnt
   return {
     email: session.customer_details?.email || session.customer_email || '',
     displayName: session.customer_details?.name || '',
+    phone: session.customer_details?.phone || '',
     amountCents: session.amount_total || 0,
     source: 'stripe',
     sourceId: String(session.payment_intent),
@@ -144,6 +145,7 @@ export async function recordDonorGift(db, gift) {
   const occurredAt = toIsoUtc(gift.occurredAt);
   if (!occurredAt) return { recorded: false, reason: 'bad_occurred_at' };
   const displayName = String(gift.displayName || '').trim().slice(0, 200);
+  const phone = String(gift.phone || '').trim().slice(0, 30);
 
   const id = 'dg_' + crypto.randomUUID();
   const ins = await db.prepare(
@@ -165,12 +167,13 @@ export async function recordDonorGift(db, gift) {
 
   const [first = '', ...restName] = displayName.split(/\s+/);
   await db.prepare(
-    `INSERT INTO contact (id, email, first_name, last_name, source, first_seen_at)
-     VALUES (?, ?, ?, ?, 'donor-gift', ?)
+    `INSERT INTO contact (id, email, first_name, last_name, phone, source, first_seen_at)
+     VALUES (?, ?, ?, ?, ?, 'donor-gift', ?)
      ON CONFLICT(email) DO UPDATE SET
        first_name = COALESCE(NULLIF(excluded.first_name, ''), first_name),
-       last_name = COALESCE(NULLIF(excluded.last_name, ''), last_name)`
-  ).bind(crypto.randomUUID(), email, first, restName.join(' '), occurredAt).run();
+       last_name = COALESCE(NULLIF(excluded.last_name, ''), last_name),
+       phone = COALESCE(NULLIF(excluded.phone, ''), phone)`
+  ).bind(crypto.randomUUID(), email, first, restName.join(' '), phone, occurredAt).run();
 
   await recomputeContactRollups(db, email);
 
