@@ -198,6 +198,7 @@ async function handleCheckout(request, env, waitUntil) {
 
     if (campaign === 'provider-directory') {
       sessionParams.billing_address_collection = 'required';
+      sessionParams.phone_number_collection = { enabled: true };
       sessionParams.custom_fields = [{
         key: 'show_supporter',
         label: { type: 'custom', custom: 'Show my first name as a public supporter?' },
