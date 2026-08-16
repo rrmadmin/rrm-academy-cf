@@ -55,8 +55,8 @@ export async function sendSignupEmails(env, waitUntil, email, _sendTracked, _tra
         }
       } catch (_e) { /* best-effort latest-post fetch */ }
 
-      const footer = `<p style="font-size:11px;color:#999;margin-top:32px;border-top:1px solid #eee;padding-top:12px;">RRM Academy, a program of Restorative Reproductive Medicine Foundation Inc. | 3401 Hartzdale Dr, Ste 103B PMB 3518, Camp Hill, PA 17011<br><a href="${unsubLink}" style="color:#999;">Unsubscribe</a></p>`;
-      const footerText = `---\nRRM Academy, a program of Restorative Reproductive Medicine Foundation Inc. | 3401 Hartzdale Dr, Ste 103B PMB 3518, Camp Hill, PA 17011\nUnsubscribe: ${unsubLink}`;
+      const footer = `<p style="font-size:11px;color:#999;margin-top:32px;border-top:1px solid #eee;padding-top:12px;">RRM Academy, a program of Restorative Reproductive Medicine Foundation | 3401 Hartzdale Dr, Ste 103B PMB 3518, Camp Hill, PA 17011<br><a href="${unsubLink}" style="color:#999;">Unsubscribe</a></p>`;
+      const footerText = `---\nRRM Academy, a program of Restorative Reproductive Medicine Foundation | 3401 Hartzdale Dr, Ste 103B PMB 3518, Camp Hill, PA 17011\nUnsubscribe: ${unsubLink}`;
 
       const html = `<div style="font-family:Arial,Helvetica,sans-serif;font-size:14px;color:#333;max-width:600px;line-height:1.6;"><p>Hi there,</p><p>Thanks for subscribing. I'm really glad you're here.</p><p>Here's what to expect: I'll only write when there's something genuinely worth your time. A new piece of commentary, research worth knowing about, or a resource that might actually help. No daily noise.</p><p>Restorative reproductive medicine starts by finding the underlying cause of what's happening with your cycle or your fertility, and then treating that directly. That's the thread through everything we publish, and I hope you find it useful.</p>${postLine}<p>If something ever resonates, or you have a question, just hit reply. A real person reads every one.</p><p>Warmly,<br>Dr. Naomi Whittaker, MD<br>RRM Academy</p>${footer}</div>`;
 
