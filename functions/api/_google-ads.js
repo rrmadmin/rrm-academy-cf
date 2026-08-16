@@ -21,6 +21,12 @@
  * GOOGLE_ADS_REFRESH_TOKEN. Missing any of these is treated as "not
  * configured yet" -- a silent no-op, not an error, since this augments an
  * already-successful user-facing response.
+ *
+ * Every attempted upload (success or failure) logs the gclid to Analytics
+ * Engine via log() -- see _log.js -- so a stale-secret failure (e.g. a dead
+ * OAuth client secret returning token_401) leaves a replayable audit row
+ * instead of losing the click permanently. Success rows also carry the Data
+ * Manager requestId for cross-referencing against Google's own ingest logs.
  */
 
 import { log } from './_log.js';
@@ -119,6 +125,15 @@ async function uploadConversion(env, gclid, conversionActionId) {
     const bodyText = await resp.text().catch(() => '');
     throw new Error(`upload_${resp.status}:${bodyText.slice(0, 150)}`);
   }
+
+  let requestId = '';
+  try {
+    const data = await resp.json();
+    requestId = typeof data?.requestId === 'string' ? data.requestId : '';
+  } catch {
+    requestId = '';
+  }
+  return requestId;
 }
 
 /**
@@ -134,8 +149,10 @@ export function sendGoogleAdsConversion(env, waitUntil, cookieHeader, conversion
     const gclid = parseGclidCookie(cookieHeader);
     if (!gclid) return;
 
-    const task = uploadConversion(env, gclid, conversionActionId).catch((err) => {
-      log(env, waitUntil, 'google_ads', 'conversion_error', 'error', err.message, 0, 502);
+    const task = uploadConversion(env, gclid, conversionActionId).then((requestId) => {
+      log(env, waitUntil, 'google_ads', 'conversion_ok', 'ok', conversionActionId, 0, 200, [gclid, requestId]);
+    }).catch((err) => {
+      log(env, waitUntil, 'google_ads', 'conversion_error', 'error', err.message, 0, 502, [gclid, conversionActionId]);
     });
 
     if (typeof waitUntil === 'function') {
