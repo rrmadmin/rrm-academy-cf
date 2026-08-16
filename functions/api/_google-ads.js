@@ -126,14 +126,12 @@ async function uploadConversion(env, gclid, conversionActionId) {
     throw new Error(`upload_${resp.status}:${bodyText.slice(0, 150)}`);
   }
 
-  let requestId = '';
   try {
     const data = await resp.json();
-    requestId = typeof data?.requestId === 'string' ? data.requestId : '';
+    return typeof data?.requestId === 'string' ? data.requestId : '';
   } catch {
-    requestId = '';
+    return '';
   }
-  return requestId;
 }
 
 /**
