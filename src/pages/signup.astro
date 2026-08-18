@@ -108,10 +108,13 @@ import { TURNSTILE_SITE_KEY } from '../lib/turnstile';
       try {
         var params = new URLSearchParams(window.location.search);
         var raw = params.get('next') || '';
-        if (raw && raw.charAt(0) === '/' && raw.indexOf('//') !== 0 && raw.indexOf('/\\') !== 0 && raw.length <= 500) nextParam = raw;
+        if (raw && raw.charAt(0) === '/' && raw.length <= 500) {
+          var u = new URL(raw, window.location.origin);
+          if (u.origin === window.location.origin) nextParam = u.pathname + u.search + u.hash;
+        }
       } catch (_) {}
 
-      if (nextParam === '/ask' || nextParam === '/ask/') {
+      if (nextParam === '/ask' || nextParam.indexOf('/ask/') === 0) {
         document.getElementById('signup-heading').textContent = 'Create your free account';
         signupSubheading.textContent = 'One free account unlocks our conversational research layer -- ask anything about restorative reproductive medicine.';
         signupSubheading.hidden = false;

@@ -22,6 +22,11 @@ import { fireFpLink } from '../_fp-link.js';
 
 const LOGIN_ERROR_URL = '/login/?error=oauth_failed';
 
+function appendRedirectParam(url, returnTo) {
+  if (!returnTo || returnTo === '/account/' || url.includes('error=account_blocked')) return url;
+  return `${url}${url.includes('?') ? '&' : '?'}redirect=${encodeURIComponent(returnTo)}`;
+}
+
 function isValidGoogleAvatarUrl(url) {
   if (!url || typeof url !== 'string') return false;
   try {
@@ -188,10 +193,23 @@ export async function onRequestGet({ request, env, waitUntil }) {
     const code = url.searchParams.get('code');
     const stateRaw = url.searchParams.get('state') || '';
 
+    // Parse + decode the return-to URL from the state parameter up front (before
+    // CSRF cookie verification) so it can be threaded into every recoverable error
+    // redirect below, not just the happy path.
+    const colonIdx = stateRaw.indexOf(':');
+    const stateNonce = colonIdx >= 0 ? stateRaw.slice(0, colonIdx) : '';
+    const stateRedirectB64 = colonIdx >= 0 ? stateRaw.slice(colonIdx + 1) : '';
+    let returnTo = '/account/';
+    try {
+      const decoded = new TextDecoder().decode(Uint8Array.from(atob(stateRedirectB64), c => c.charCodeAt(0)));
+      if (isSafeRedirect(decoded)) returnTo = decoded;
+    } catch { // arise-ignore silent-catch -- malformed base64 falls back to /account/
+    }
+
     // Handle user denying consent or other Google errors
     const error = url.searchParams.get('error');
     if (error || !code) {
-      return htmlRedirect(`${SITE_URL}/login/?error=oauth_denied`);
+      return htmlRedirect(appendRedirectParam(`${SITE_URL}/login/?error=oauth_denied`, returnTo));
     }
 
     // Verify CSRF state nonce — RFC 6749 §10.12.
@@ -199,9 +217,6 @@ export async function onRequestGet({ request, env, waitUntil }) {
     const cookieHeader = request.headers.get('Cookie') || '';
     const cookieMatch = cookieHeader.match(/(?:^|;\s*)oauth_state=([^;]+)/);
     const cookieRaw = cookieMatch ? cookieMatch[1] : null;
-    const colonIdx = stateRaw.indexOf(':');
-    const stateNonce = colonIdx >= 0 ? stateRaw.slice(0, colonIdx) : '';
-    const stateRedirectB64 = colonIdx >= 0 ? stateRaw.slice(colonIdx + 1) : '';
 
     const cookieColonIdx = cookieRaw ? cookieRaw.indexOf(':') : -1;
     const cookieNonce = cookieRaw && cookieColonIdx >= 0 ? cookieRaw.slice(0, cookieColonIdx) : null;
@@ -212,14 +227,6 @@ export async function onRequestGet({ request, env, waitUntil }) {
       return htmlRedirect(LOGIN_ERROR_URL);
     }
 
-    // Decode the return-to URL from the state parameter.
-    let returnTo = '/account/';
-    try {
-      const decoded = new TextDecoder().decode(Uint8Array.from(atob(stateRedirectB64), c => c.charCodeAt(0)));
-      if (isSafeRedirect(decoded)) returnTo = decoded;
-    } catch { // arise-ignore silent-catch -- malformed base64 falls back to /account/
-    }
-
     // Rate-limit by IP before billed OAuth token exchange
     const ip = request.headers.get('cf-connecting-ip');
     if (!ip) {
@@ -228,7 +235,7 @@ export async function onRequestGet({ request, env, waitUntil }) {
     }
     const gcbAllowed = await checkRateLimit(env, `gcb:${ip}`, 20, 60);
     if (!gcbAllowed) {
-      return htmlRedirect('/login/?error=rate_limited');
+      return htmlRedirect(appendRedirectParam('/login/?error=rate_limited', returnTo));
     }
 
     // Exchange authorization code for tokens
@@ -268,7 +275,7 @@ export async function onRequestGet({ request, env, waitUntil }) {
 
     // 1. Check if google_id already linked to an account
     const r1 = await handleReturningGoogleUser(db, googleId, email);
-    if (r1?.redirect) return htmlRedirect(r1.redirect);
+    if (r1?.redirect) return htmlRedirect(appendRedirectParam(r1.redirect, returnTo));
     if (r1) {
       ({ user } = r1);
       // Notify old email address when Google profile email changes (safety net).
@@ -305,7 +312,7 @@ export async function onRequestGet({ request, env, waitUntil }) {
     // 2. Check if email matches an existing account (first Google login for this user)
     if (!user) {
       const r2 = await linkGoogleToVerifiedUser(db, googleId, email, avatarUrl);
-      if (r2?.redirect) return htmlRedirect(r2.redirect);
+      if (r2?.redirect) return htmlRedirect(appendRedirectParam(r2.redirect, returnTo));
       if (r2) ({ user } = r2);
     }
 
@@ -315,7 +322,7 @@ export async function onRequestGet({ request, env, waitUntil }) {
     // so a D1 failure cannot strand the user passwordless with no valid session.
     if (!user) {
       const r3 = await upgradeUnverifiedUser(db, googleId, email, avatarUrl, env, waitUntil, preHashedSessionId, preSessionExpiresAt);
-      if (r3?.redirect) return htmlRedirect(r3.redirect);
+      if (r3?.redirect) return htmlRedirect(appendRedirectParam(r3.redirect, returnTo));
       if (r3) {
         ({ user } = r3);
         sessionAlreadyCreated = r3.sessionAlreadyCreated;
@@ -338,11 +345,11 @@ export async function onRequestGet({ request, env, waitUntil }) {
 
         if (isEmailCollision) {
           const r4retry = await linkGoogleToVerifiedUser(db, googleId, email, avatarUrl);
-          if (r4retry?.redirect) return htmlRedirect(r4retry.redirect);
+          if (r4retry?.redirect) return htmlRedirect(appendRedirectParam(r4retry.redirect, returnTo));
           if (r4retry) ({ user } = r4retry);
           if (!user) {
             const r4retryUnverified = await upgradeUnverifiedUser(db, googleId, email, avatarUrl, env, waitUntil, preHashedSessionId, preSessionExpiresAt);
-            if (r4retryUnverified?.redirect) return htmlRedirect(r4retryUnverified.redirect);
+            if (r4retryUnverified?.redirect) return htmlRedirect(appendRedirectParam(r4retryUnverified.redirect, returnTo));
             if (r4retryUnverified) {
               ({ user } = r4retryUnverified);
               sessionAlreadyCreated = r4retryUnverified.sessionAlreadyCreated;
@@ -350,7 +357,7 @@ export async function onRequestGet({ request, env, waitUntil }) {
           }
         } else if (isGoogleIdCollision) {
           const r4retry = await handleReturningGoogleUser(db, googleId, email);
-          if (r4retry?.redirect) return htmlRedirect(r4retry.redirect);
+          if (r4retry?.redirect) return htmlRedirect(appendRedirectParam(r4retry.redirect, returnTo));
           if (r4retry) ({ user } = r4retry);
         }
         if (!user) throw err;
