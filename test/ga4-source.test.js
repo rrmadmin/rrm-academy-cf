@@ -151,6 +151,23 @@ describe('extractUtm', () => {
     const result = extractUtm(`https://rrmacademy.org/?utm_campaign=${exact}`);
     assert.equal(result.utm_campaign, exact);
   });
+
+  it('drops an email that straddles the 100-character clamp boundary', () => {
+    const straddling = `${'x'.repeat(88)}jane.doe@example.com`;
+    assert.equal(straddling.length, 108);
+    const result = extractUtm(`https://rrmacademy.org/?utm_term=${straddling}`);
+    assert.equal('utm_term' in result, false);
+  });
+
+  it('drops a 13-digit card-shaped value', () => {
+    const result = extractUtm('https://rrmacademy.org/?utm_content=1234567890123');
+    assert.equal('utm_content' in result, false);
+  });
+
+  it('keeps a 12-digit value (below the card-shape band)', () => {
+    const result = extractUtm('https://rrmacademy.org/?utm_content=818477153915');
+    assert.equal(result.utm_content, '818477153915');
+  });
 });
 
 describe('classifyPaid', () => {

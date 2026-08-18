@@ -207,3 +207,5 @@ Tests:
 - `create-checkout.js` / `courses/enroll.js` still classify by referrer only (purchase/enroll from a paid click stays organic/direct). Follow-up: call `classifyPaid(entry_url)` there; both already receive `entry_url`.
 - Registering the two dimensions in GA4 (run `scripts/ga4-phase4-config.mjs`) and deploying: Brian's go.
 - Historical Unassigned sessions are not repaired; GA4 does not reprocess.
+- `functions/api/create-checkout.js` lines ~136-137: the comment about capping UTM values with `.slice(0, 500)` for Stripe metadata is now stale (`extractUtm` caps at 100), and the slice is dead code. Left for the billing follow-up; the file is hash-guarded and out of scope per G1.
+- `functions/api/courses/enroll.js` passes `gaCampaign` into Stripe metadata with no slice at all. The 100-char clamp closed a latent Stripe 500-char throw there as a side effect, and the raw-value PII screen in `extractUtm` now also covers the checkout/enroll -> Stripe metadata -> purchase path.

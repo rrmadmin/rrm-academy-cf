@@ -525,7 +525,7 @@ Push to `claude/` branch -- GitHub Actions auto-builds + merges. No local creden
 
 A zero-dependency Node.js script (`scripts/guard.mjs`) that blocks deployments if critical security files are tampered with.
 
-**Guarded files** (hash-checked via `guard-manifest.json`, 42 files):
+**Guarded files** (hash-checked via `guard-manifest.json`, 44 files):
 - `functions/api/auth/_shared.js` — CORS, sessions, crypto, rate limiting
 - `functions/api/auth/login.js`, `signup.js`, `google-callback.js`, `google.js` — authentication
 - `functions/api/auth/forgot-password.js`, `reset-password.js`, `change-password.js` — password management
@@ -546,6 +546,8 @@ A zero-dependency Node.js script (`scripts/guard.mjs`) that blocks deployments i
 - `functions/api/faqs.js` — public FAQ endpoint (Bearer token auth)
 - `functions/api/admin/faqs/index.js`, `[id].js`, `[id]/library-refs.js`, `[id]/resources.js` — FAQ admin CRUD
 - `functions/api/pdf/request.js`, `pdf/redeem.js` — PDF magic-link tokens
+- `functions/api/_ga4.js` -- GA4 MP relay: server-derived attribution PII screen (second pass) + page_location query/hash/userinfo strip
+- `functions/api/_ga4-source.js` -- traffic-source classification: utm value PII screen (first pass) + 100-char clamp + paid/email overrides
 - `functions/_middleware.js` — auth gating for /account and /community
 - `wrangler.toml` — D1, KV, R2 bindings
 - `scripts/guard.mjs` — self-guarding
