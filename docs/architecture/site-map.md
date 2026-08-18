@@ -72,7 +72,7 @@
 | `/community/areas/[slug]` | `src/pages/community/areas/[...slug].astro` (client-rendered action-area feed; single placeholder static shell) |
 | `/community/archive/masterclass` | `src/pages/community/archive/masterclass.astro` (admin-only; unlinked, direct URL; API + inline script enforce bounce) |
 | `/community/archive/members` | `src/pages/community/archive/members.astro` (admin-only; unlinked, direct URL; API + inline script enforce bounce) |
-| `/events/[slug]` | `functions/events/[slug].js` (public shareable STUC event landing page from D1 `community_post`; strips join info for non-members) |
+| `/events/[slug]` | `functions/events/[slug].js` (public shareable STUC event landing page from D1 `community_post`; strips join info for non-members; an `is_free = 1` upcoming event renders an email-capture form that posts to `/api/events/register`) |
 
 **Guides & pillars**
 

@@ -50,9 +50,25 @@ export const ACTION_AREA_MIGRATIONS = [
   '027-stuc-ownership-requests.sql',
 ];
 
+/**
+ * Root-migrations files that are NOT part of the areas surface but that the
+ * community endpoints now read and write.
+ *
+ * 032 adds community_post.is_free (free-event mode) and the event_registration
+ * table. functions/api/community/posts.js names is_free in its event INSERT and
+ * both GET projections read it, so a harness built without this file fails to
+ * PREPARE the create-post statement rather than merely missing a column.
+ */
+export const FREE_EVENT_MIGRATIONS = [
+  '032-free-events.sql',
+];
+
+/** Every root-migrations file this harness replays, in application order. */
+export const ROOT_MIGRATIONS = [...ACTION_AREA_MIGRATIONS, ...FREE_EVENT_MIGRATIONS];
+
 export const COMMUNITY_SCHEMA_SQL =
   SCHEMA_SQL + '\n' +
-  ACTION_AREA_MIGRATIONS
+  ROOT_MIGRATIONS
     .map((name) => readFileSync(new URL(`../migrations/${name}`, import.meta.url), 'utf8'))
     .join('\n');
 

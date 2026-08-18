@@ -41,6 +41,16 @@ const page = await import('../functions/events/[slug].js');
 const MIGRATION_025 = readFileSync(
   new URL('../migrations/025-stuc-action-areas.sql', import.meta.url), 'utf8'
 );
+/**
+ * Free-event mode: community_post.is_free + the event_registration table. Also
+ * read off disk for the same reason as 025 -- the page's SELECT now names
+ * is_free, so a hand-written ALTER here could pass while the committed migration
+ * says something else, and the suite would be certifying a schema production
+ * does not have.
+ */
+const MIGRATION_032 = readFileSync(
+  new URL('../migrations/032-free-events.sql', import.meta.url), 'utf8'
+);
 
 export const SESSION_RAW = 'raw-event-session-token';
 export const SESSION_COOKIE = `session=${SESSION_RAW}`;
@@ -83,6 +93,7 @@ export async function eventDb({ post = {}, viewer = 'anonymous', seed, interleav
     seed(s) {
       handle = s;
       s.exec(MIGRATION_025);
+      s.exec(MIGRATION_032);
 
       // The event's author. Always staff, because only staff can author events.
       insertUser(s, { id: 'usr_staff', email: 'staff@rrmacademy.org', role: 'admin', email_verified: 1 });
@@ -191,6 +202,15 @@ export function sinks(html) {
     ctaNote: attr(/<p class="cta__note">([\s\S]*?)<\/p>/),
     gcalHref: attr(/<a class="cta__cal-link" href="([^"]*)" target="_blank"/),
     icsHref: attr(/<a class="cta__cal-link" href="([^"]*)">Apple \/ Outlook<\/a>/),
+    /**
+     * Free-event registration form. `regSlug` is the slug the form will POST to
+     * /api/events/register, and it is null when no form was rendered -- so a
+     * test can assert the form's PRESENCE and its TARGET separately, rather than
+     * grepping for a class name that could survive a form pointing at the wrong
+     * event.
+     */
+    regSlug: /<form class="reg" data-reg-form data-reg-slug="([^"]*)"/.exec(html)?.[1] ?? null,
+    regButtonLabel: attr(/<button class="btn btn--primary reg__btn"[^>]*>([\s\S]*?)<\/button>/),
     flyerSrc: attr(/<img class="flyer" src="([^"]*)"/),
     speakerRow: attr(/<span class="meta__row">Speaker: ([^<]*)<\/span>/),
     dateRow: attr(/<span class="meta__row"><strong>([^<]*)<\/strong><\/span>/),

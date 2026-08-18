@@ -33,7 +33,7 @@
  * The schema is composed from, in order:
  *   1. schema.sql                     - generated mirror of live rrm-auth, 2026-05-27
  *   2. POST_SNAPSHOT_MIGRATIONS       - the replay list in test/_d1-sqlite.mjs
- *   3. ACTION_AREA_MIGRATIONS         - root migrations/025 + /027, per test/_community-sqlite.mjs
+ *   3. ROOT_MIGRATIONS                - root migrations/025 + /027 + /032, per test/_community-sqlite.mjs
  *   4. EXTRA_DDL                      - see the table below
  * Steps 1-3 are IMPORTED from the test harness rather than re-listed, so the
  * gate and the suite can never disagree about what rrm-auth contains. When a
@@ -265,7 +265,7 @@ export function buildSchemaDb(root = PROJECT_ROOT) {
   const errors = [];
   const loaded = [];
   applySchema(db, COMMUNITY_SCHEMA_SQL, errors);
-  loaded.push('schema.sql + POST_SNAPSHOT_MIGRATIONS + ACTION_AREA_MIGRATIONS');
+  loaded.push('schema.sql + POST_SNAPSHOT_MIGRATIONS + ROOT_MIGRATIONS');
   for (const extra of EXTRA_DDL) {
     const abs = resolve(root, extra.path);
     if (!existsSync(abs)) {
