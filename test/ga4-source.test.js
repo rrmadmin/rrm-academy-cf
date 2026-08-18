@@ -1,7 +1,7 @@
 // test/ga4-source.test.js
 import { describe, it } from 'node:test';
 import assert from 'node:assert/strict';
-import { classifySource, extractUtm, deriveSessionId, buildSourceParams } from '../functions/api/_ga4-source.js';
+import { classifySource, extractUtm, classifyPaid, deriveSessionId, buildSourceParams } from '../functions/api/_ga4-source.js';
 
 describe('classifySource', () => {
   it('returns direct for empty referrer', () => {
@@ -138,6 +138,108 @@ describe('extractUtm', () => {
     const result = extractUtm('https://rrmacademy.org/?page=2&utm_source=test&sort=date');
     assert.deepStrictEqual(result, { utm_source: 'test' });
   });
+
+  it('clamps a captured value to the GA4 100-character parameter limit', () => {
+    const long = 'a'.repeat(150);
+    const result = extractUtm(`https://rrmacademy.org/?utm_campaign=${long}`);
+    assert.equal(result.utm_campaign.length, 100);
+    assert.equal(result.utm_campaign, 'a'.repeat(100));
+  });
+
+  it('leaves a value of exactly 100 characters unchanged', () => {
+    const exact = 'b'.repeat(100);
+    const result = extractUtm(`https://rrmacademy.org/?utm_campaign=${exact}`);
+    assert.equal(result.utm_campaign, exact);
+  });
+
+  it('drops an email that straddles the 100-character clamp boundary', () => {
+    const straddling = `${'x'.repeat(88)}jane.doe@example.com`;
+    assert.equal(straddling.length, 108);
+    const result = extractUtm(`https://rrmacademy.org/?utm_term=${straddling}`);
+    assert.equal('utm_term' in result, false);
+  });
+
+  it('drops a 13-digit card-shaped value', () => {
+    const result = extractUtm('https://rrmacademy.org/?utm_content=1234567890123');
+    assert.equal('utm_content' in result, false);
+  });
+
+  it('keeps a 12-digit value (below the card-shape band)', () => {
+    const result = extractUtm('https://rrmacademy.org/?utm_content=818477153915');
+    assert.equal(result.utm_content, '818477153915');
+  });
+});
+
+describe('classifyPaid', () => {
+  it('returns null for a URL with no query string', () => {
+    assert.equal(classifyPaid('https://rrmacademy.org/endo-quiz/'), null);
+  });
+
+  it('returns null for organic-looking utm params', () => {
+    assert.equal(classifyPaid('https://rrmacademy.org/?utm_source=newsletter&utm_medium=email'), null);
+  });
+
+  it('classifies a bare gclid as paid google cpc', () => {
+    const result = classifyPaid('https://rrmacademy.org/?gclid=EAIaIQobChMI-test');
+    assert.deepStrictEqual(result, {
+      source: 'google',
+      medium: 'cpc',
+      entry_category: 'paid',
+      entry_platform: 'google',
+    });
+  });
+
+  it('maps gbraid and wbraid to google and msclkid to bing', () => {
+    assert.equal(classifyPaid('https://rrmacademy.org/?gbraid=abc123').entry_platform, 'google');
+    assert.equal(classifyPaid('https://rrmacademy.org/?wbraid=abc123').entry_platform, 'google');
+    assert.equal(classifyPaid('https://rrmacademy.org/?msclkid=abc123').entry_platform, 'bing');
+  });
+
+  it('returns null for fbclid alone (Facebook appends it to organic clicks too)', () => {
+    assert.equal(classifyPaid('https://rrmacademy.org/?fbclid=abc123'), null);
+  });
+
+  it('classifies a paid utm_medium with no click id', () => {
+    const result = classifyPaid('https://rrmacademy.org/?utm_medium=cpc&utm_source=gads');
+    assert.equal(result.entry_category, 'paid');
+    assert.equal(result.entry_platform, 'gads');
+    assert.equal(result.source, 'gads');
+    assert.equal(result.medium, 'cpc');
+  });
+
+  it('lowercases utm_source when it becomes the platform', () => {
+    const result = classifyPaid('https://rrmacademy.org/?utm_medium=paid_social&utm_source=Instagram');
+    assert.equal(result.entry_category, 'paid');
+    assert.equal(result.entry_platform, 'instagram');
+    assert.equal(result.medium, 'paid_social');
+  });
+
+  it('accepts every GA4 paid medium spelling', () => {
+    assert.equal(classifyPaid('https://rrmacademy.org/?utm_medium=ppc').entry_category, 'paid');
+    assert.equal(classifyPaid('https://rrmacademy.org/?utm_medium=retargeting').entry_category, 'paid');
+    assert.equal(classifyPaid('https://rrmacademy.org/?utm_medium=display_cpm').entry_category, 'paid');
+  });
+
+  it('falls back to (paid) when nothing names the platform', () => {
+    const result = classifyPaid('https://rrmacademy.org/?utm_medium=cpc');
+    assert.equal(result.entry_category, 'paid');
+    assert.equal(result.entry_platform, null);
+    assert.equal(result.source, '(paid)');
+  });
+
+  it('prefers the click id platform over a free-text utm_source', () => {
+    const result = classifyPaid('https://rrmacademy.org/?gclid=abc123&utm_source=gads');
+    assert.equal(result.entry_platform, 'google');
+    assert.equal(result.source, 'gads');
+  });
+
+  it('returns null for an empty click id value', () => {
+    assert.equal(classifyPaid('https://rrmacademy.org/?gclid='), null);
+  });
+
+  it('returns null for a malformed URL instead of throwing', () => {
+    assert.equal(classifyPaid('not a url'), null);
+  });
 });
 
 describe('deriveSessionId', () => {
@@ -227,6 +329,8 @@ describe('buildSourceParams cookie-based attribution', () => {
     assert.equal(params.utm_source, 'gads');
     assert.equal(params.utm_medium, 'cpc');
     assert.equal(params.utm_campaign, 'spring');
+    assert.equal(params.entry_category, 'paid');
+    assert.equal(params.entry_platform, 'gads');
   });
 
   it('falls back to Referer header when no cookies present', async () => {
@@ -245,5 +349,74 @@ describe('buildSourceParams cookie-based attribution', () => {
     const params = await buildSourceParams(req, 'test-client-id');
     assert.equal(params.utm_source, '(direct)');
     assert.equal(params.utm_medium, '(none)');
+  });
+});
+
+describe('buildSourceParams paid override', () => {
+  // Helper: fake a Request with headers
+  function fakeRequest(headers = {}) {
+    return {
+      url: 'https://rrmacademy.org/api/track',
+      headers: {
+        get(name) { return headers[name] || null; },
+      },
+    };
+  }
+
+  const AD_ENTRY_URL = 'https://rrmacademy.org/endo-quiz/?utm_source=google&utm_medium=cpc' +
+    '&utm_campaign=google_ads_endometriosis_symptom_quiz_2026-q3' +
+    '&utm_content=818477153915&gclid=EAIaIQobChMI-test';
+
+  it('classifies a Google Ads landing with no referrer as paid', async () => {
+    const req = fakeRequest({
+      'Cookie': 'entry_ref=; entry_url=' + encodeURIComponent(AD_ENTRY_URL),
+    });
+    const params = await buildSourceParams(req, 'test-client-id');
+    assert.equal(params.entry_category, 'paid');
+    assert.equal(params.entry_platform, 'google');
+    assert.equal(params.utm_source, 'google');
+    assert.equal(params.utm_medium, 'cpc');
+    assert.equal(params.utm_campaign, 'google_ads_endometriosis_symptom_quiz_2026-q3');
+    assert.equal(params.utm_content, '818477153915');
+  });
+
+  it('beats an organic google referrer', async () => {
+    const req = fakeRequest({
+      'Cookie': 'entry_ref=' + encodeURIComponent('https://www.google.com/') +
+                '; entry_url=' + encodeURIComponent(AD_ENTRY_URL),
+    });
+    const params = await buildSourceParams(req, 'test-client-id');
+    assert.equal(params.entry_category, 'paid');
+    assert.equal(params.entry_platform, 'google');
+  });
+
+  it('beats the email override and drops email_type', async () => {
+    const entryUrl = 'https://rrmacademy.org/?utm_source=email&utm_medium=newsletter&gclid=abc123';
+    const req = fakeRequest({
+      'Cookie': 'entry_url=' + encodeURIComponent(entryUrl),
+    });
+    const params = await buildSourceParams(req, 'test-client-id');
+    assert.equal(params.entry_category, 'paid');
+    assert.equal(params.entry_platform, 'google');
+    assert.equal('email_type' in params, false);
+  });
+
+  it('leaves an fbclid social landing untouched', async () => {
+    const req = fakeRequest({
+      'Cookie': 'entry_ref=' + encodeURIComponent('https://l.instagram.com/something') +
+                '; entry_url=' + encodeURIComponent('https://rrmacademy.org/?fbclid=abc'),
+    });
+    const params = await buildSourceParams(req, 'test-client-id');
+    assert.equal(params.entry_category, 'social');
+    assert.equal(params.entry_platform, 'instagram');
+  });
+
+  it('keeps the referrer-derived platform when nothing names the ad platform', async () => {
+    const req = fakeRequest({
+      'Cookie': 'entry_ref=; entry_url=' + encodeURIComponent('https://rrmacademy.org/?utm_medium=cpc'),
+    });
+    const params = await buildSourceParams(req, 'test-client-id');
+    assert.equal(params.entry_category, 'paid');
+    assert.equal(params.entry_platform, 'direct');
   });
 });

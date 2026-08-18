@@ -18,10 +18,11 @@ const PARAM_KEY_RE  = /^[a-z][a-z0-9_]{0,39}$/;
 // Fixed enums for the AE-only entry_category/device_type hints (see onRequestPost
 // below). entry_category mirrors the value set classifySource()/buildSourceParams()
 // actually emit in _ga4-source.js (direct/organic/social/referral/ai, plus 'email'
-// from the UTM override in buildSourceParams) -- that file is the SSOT, kept in
-// sync manually since AE hints never round-trip through it. device_type mirrors
-// the mobile/tablet/desktop convention already used in survey/event.js.
-const ENTRY_CATEGORY_VALUES = new Set(['direct', 'organic', 'social', 'referral', 'ai', 'email']);
+// from the UTM override and 'paid' from the click-id/paid-medium override in
+// buildSourceParams) -- that file is the SSOT, kept in sync manually since AE
+// hints never round-trip through it. device_type mirrors the mobile/tablet/desktop
+// convention already used in survey/event.js.
+const ENTRY_CATEGORY_VALUES = new Set(['direct', 'organic', 'social', 'referral', 'ai', 'email', 'paid']);
 const DEVICE_TYPE_VALUES = new Set(['mobile', 'tablet', 'desktop']);
 
 export function onRequestOptions() {
