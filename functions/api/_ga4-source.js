@@ -81,6 +81,9 @@ export function classifySource(referrer) {
 
 const UTM_KEYS = ['utm_source', 'utm_medium', 'utm_campaign', 'utm_content', 'utm_term'];
 
+// GA4 Measurement Protocol caps event parameter values at 100 characters.
+const UTM_VALUE_MAX = 100;
+
 export function extractUtm(urlString) {
   let params;
   try {
@@ -92,7 +95,7 @@ export function extractUtm(urlString) {
   const result = {};
   for (const key of UTM_KEYS) {
     const val = params.get(key);
-    if (val) result[key] = val;
+    if (val) result[key] = val.slice(0, UTM_VALUE_MAX);
   }
   return result;
 }
