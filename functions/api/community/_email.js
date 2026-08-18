@@ -85,7 +85,9 @@ const AUTHOR_SENDERS = {
 // STUC member-facing broadcast emails always appear from Dr. Naomi Whittaker
 // regardless of which admin created the post. Members expect the face of the
 // club, not the admin/operator behind the scenes. See memory feedback-stuc-email-sender-naomi.
-const STUC_BROADCAST_SENDER = '"Dr. Naomi Whittaker" <community@rrmacademy.org>';
+// Exported so the free-event joining-link mail (functions/api/events/_email.js)
+// uses this exact identity rather than a second copy that can drift from it.
+export const STUC_BROADCAST_SENDER = '"Dr. Naomi Whittaker" <community@rrmacademy.org>';
 
 function authorFrom(authorId, authorName) {
   if (AUTHOR_SENDERS[authorId]) return AUTHOR_SENDERS[authorId];

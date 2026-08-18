@@ -16,6 +16,29 @@ import { TRACKING_HEAD, TRACKING_BODY } from './_tracking.js';
 
 const SITE_ORIGIN = 'https://rrmacademy.org';
 
+/**
+ * Cloudflare Turnstile SITE key (public by definition -- it ships in the widget
+ * markup on every page that renders a challenge).
+ *
+ * Inlined rather than imported because this is a Pages Function and cannot pull
+ * from src/. The single source of truth is src/lib/turnstile.ts; when the widget
+ * is rotated in the Cloudflare dashboard, BOTH must change. The SECRET half stays
+ * a CF Pages secret (CF_TURNSTILE_SECRET) and never appears here.
+ */
+const TURNSTILE_SITE_KEY = '0x4AAAAAACgpzkB4TaFA-Jrx';
+
+/**
+ * D1 hands an INTEGER column back as a number, but this row also travels through
+ * the test harness and, historically, through hand-written fixtures. Read the
+ * flag through one predicate so "free" means the same thing at every call site,
+ * and so anything that is not affirmatively 1/true is members-only -- the safe
+ * default, since this flag is what opens the email channel.
+ */
+function isFreeEvent(event) {
+  const value = event?.is_free;
+  return value === 1 || value === true || value === '1';
+}
+
 function escapeHtml(s) {
   if (s == null) return '';
   return String(s)
@@ -372,6 +395,26 @@ function ctaForVisitor(tier, event) {
     };
   }
 
+  // FREE EVENT, still upcoming, visitor is not a member.
+  //
+  // The page body is UNCHANGED by this branch: a non-member still gets the
+  // scrubbed chunks, so the joining credential is no more present in the HTML,
+  // og:description, the JSON-LD or the .ics than it was before. All that changes
+  // is the CTA, which becomes an email capture. The credential travels in the
+  // message POST /api/events/register sends, and nowhere else.
+  //
+  // Members and staff never reach here -- they are served the inline Join Call
+  // button above, free or not -- and a PAST free event falls through the isPast
+  // arm at the top, so the recording stays members-only exactly as before.
+  if (isFreeEvent(event)) {
+    return {
+      kind: 'register',
+      note: 'This live call is free and open to everyone. Enter your email and we will send you the link.',
+      secondaryHref: SITE_ORIGIN + '/community/events',
+      secondaryLabel: 'See all events',
+    };
+  }
+
   if (tier === 'authenticated') {
     return {
       primaryHref: SITE_ORIGIN + '/save-the-uterus-club',
@@ -449,6 +492,142 @@ function buildICS({ uid, title, startMs, endMs, description, location, url }) {
   ].join('\r\n') + '\r\n';
 }
 
+/**
+ * The free-event email capture, rendered IN PLACE OF the two-button CTA block.
+ *
+ * The form posts to /api/events/register, which is the only code path allowed to
+ * put the joining credential in front of a non-member, and it does so by email.
+ * Nothing here knows the credential: the slug is the entire payload the page
+ * contributes, and the endpoint resolves the room itself.
+ *
+ * Progressive-enhancement note: this is a JS-driven submit (Turnstile is
+ * invisible and must be executed before the POST), so the form carries no
+ * `action`. With JS off there is no silent wrong-target submit -- the button
+ * simply does nothing, and the "See all events" link below it still works.
+ */
+function renderRegisterForm(slug, cta) {
+  const safeSlug = escapeHtml(slug);
+  return `<form class="reg" data-reg-form data-reg-slug="${safeSlug}" novalidate>
+      <label class="reg__label" for="reg-email">Email address</label>
+      <div class="reg__row">
+        <input class="reg__input" id="reg-email" type="email" name="email" placeholder="you@example.com" required autocomplete="email">
+        <button class="btn btn--primary reg__btn" type="submit" data-reg-btn>Send me the link</button>
+      </div>
+      <input class="reg__hp" type="text" name="website" tabindex="-1" autocomplete="off" aria-hidden="true">
+      <div class="reg__turnstile" data-reg-turnstile></div>
+      <p class="reg__feedback" data-reg-feedback role="status" aria-live="polite"></p>
+    </form>
+    ${cta.secondaryHref ? `<p class="reg__alt"><a class="link" href="${escapeHtml(cta.secondaryHref)}">${escapeHtml(cta.secondaryLabel)}</a></p>` : ''}
+    <script>${REGISTER_SCRIPT}</script>`;
+}
+
+/**
+ * Written as a plain string, not a template literal, so nothing inside it can be
+ * read as an interpolation by the template literals that embed it. ES5 shapes
+ * throughout, matching the waitlist form in src/pages/courses/[slug].astro,
+ * whose invisible-Turnstile execute-then-POST sequence this copies.
+ */
+const REGISTER_SCRIPT = [
+  '(function () {',
+  '  var form = document.querySelector("[data-reg-form]");',
+  '  if (!form) return;',
+  '  var SITE_KEY = ' + JSON.stringify(TURNSTILE_SITE_KEY) + ';',
+  '  var slug = form.getAttribute("data-reg-slug") || "";',
+  '  var btn = form.querySelector("[data-reg-btn]");',
+  '  var feedback = form.querySelector("[data-reg-feedback]");',
+  '  var emailInput = form.querySelector("input[name=email]");',
+  '  var websiteInput = form.querySelector("input[name=website]");',
+  '  var widgetId = null;',
+  '  var widgetToken = "";',
+  '  var turnstileReady = false;',
+  '  var turnstileLoading = false;',
+  '  function renderWidget() {',
+  '    if (!turnstileReady || !window.turnstile || widgetId !== null) return;',
+  '    var container = form.querySelector("[data-reg-turnstile]");',
+  '    if (!container) return;',
+  '    widgetId = window.turnstile.render(container, {',
+  '      sitekey: SITE_KEY,',
+  '      size: "invisible",',
+  '      callback: function (token) { widgetToken = token; }',
+  '    });',
+  '  }',
+  '  function loadTurnstile() {',
+  '    if (turnstileLoading) return;',
+  '    turnstileLoading = true;',
+  '    var script = document.createElement("script");',
+  '    script.src = "https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit";',
+  '    script.async = true;',
+  '    script.onload = function () { turnstileReady = true; renderWidget(); };',
+  '    document.head.appendChild(script);',
+  '  }',
+  '  if (emailInput) emailInput.addEventListener("focus", loadTurnstile, { once: true });',
+  '  function fail(message) {',
+  '    feedback.textContent = message;',
+  '    feedback.className = "reg__feedback reg__feedback--error";',
+  '    btn.disabled = false;',
+  '    btn.textContent = "Send me the link";',
+  '  }',
+  '  form.addEventListener("submit", function (e) {',
+  '    e.preventDefault();',
+  '    var email = emailInput ? emailInput.value.trim() : "";',
+  '    if (!email) return;',
+  '    loadTurnstile();',
+  '    btn.disabled = true;',
+  '    btn.textContent = "Sending...";',
+  '    feedback.textContent = "";',
+  '    feedback.className = "reg__feedback";',
+  '    var executePromise;',
+  '    if (!widgetToken && window.turnstile && widgetId !== null) {',
+  '      executePromise = new Promise(function (resolve) {',
+  '        var timeout = setTimeout(resolve, 5000);',
+  '        try {',
+  '          window.turnstile.execute(widgetId, {',
+  '            callback: function (token) { clearTimeout(timeout); widgetToken = token; resolve(); },',
+  '            "error-callback": function () { clearTimeout(timeout); resolve(); }',
+  '          });',
+  '        } catch (ex) { clearTimeout(timeout); resolve(); }',
+  '      });',
+  '    } else {',
+  '      executePromise = Promise.resolve();',
+  '    }',
+  '    executePromise.then(function () {',
+  '      return fetch("/api/events/register", {',
+  '        method: "POST",',
+  '        credentials: "same-origin",',
+  '        headers: { "Content-Type": "application/json" },',
+  '        body: JSON.stringify({',
+  '          slug: slug,',
+  '          email: email,',
+  '          turnstileToken: widgetToken,',
+  '          website: websiteInput ? websiteInput.value : ""',
+  '        })',
+  '      });',
+  '    }).then(function (r) { return r.json(); }).then(function (data) {',
+  '      if (data && data.ok) {',
+  '        feedback.textContent = "Check your inbox for the link.";',
+  '        feedback.className = "reg__feedback reg__feedback--ok";',
+  '        btn.textContent = "Sent";',
+  '        if (emailInput) emailInput.disabled = true;',
+  '      } else {',
+  '        var code = data && data.error;',
+  '        fail(code === "spam_check_failed" ? "Spam check failed. Please try again."',
+  '          : code === "email_rejected" ? "That email address could not be verified. Please try another one."',
+  '          : code === "rate_limited" ? "Too many requests. Please try again in a few minutes."',
+  '          : code === "event_ended" ? "This call has already taken place."',
+  '          : code === "not_found" ? "Registration is not open for this call."',
+  '          : "Something went wrong. Please try again.");',
+  '      }',
+  '      if (window.turnstile && widgetId !== null) {',
+  '        window.turnstile.reset(widgetId);',
+  '        widgetToken = "";',
+  '      }',
+  '    }).catch(function () {',
+  '      fail("Network error. Please try again.");',
+  '    });',
+  '  });',
+  '})();',
+].join('\n');
+
 function renderHtml({ event, summary, speaker, visitor, cta, canonical, memberSummary }) {
   const title = safeTitle(event.title, summary.title, 'Save the Uterus Club Event');
   // summary.description is already scrubbed of Meet URL / dial / PIN. A
@@ -505,6 +684,12 @@ function renderHtml({ event, summary, speaker, visitor, cta, canonical, memberSu
       validFrom: new Date().toISOString(),
     },
   };
+  // A free event is genuinely open to everyone, so say so in the offer. This is
+  // metadata about ACCESS, not about the joining credential -- location.url
+  // still points at this public page and never at the room.
+  if (isFreeEvent(event)) {
+    eventJsonLd.offers.isAccessibleForFree = true;
+  }
   if (speaker) {
     eventJsonLd.performer = { '@type': 'Person', name: speaker };
   }
@@ -517,6 +702,15 @@ function renderHtml({ event, summary, speaker, visitor, cta, canonical, memberSu
   const renderChunks = (isMember && memberSummary ? memberSummary : summary).chunks || [];
   // Chunk 0 is the title (rendered in <h1>), so skip it for the body.
   const bodyChunks = renderChunks.slice(1);
+
+  // Either the two-button block or, on a free upcoming event for a non-member,
+  // the inline email capture. Built here so the markup below has one shape.
+  const ctaBlock = cta.kind === 'register'
+    ? renderRegisterForm(event.slug || event.id, cta)
+    : `<div class="cta__buttons">
+      <a class="btn btn--primary" href="${escapeHtml(cta.primaryHref)}" ${cta.primaryAttrs || ''}>${escapeHtml(cta.primaryLabel)}</a>
+      ${cta.secondaryHref ? `<a class="btn btn--secondary" href="${escapeHtml(cta.secondaryHref)}">${escapeHtml(cta.secondaryLabel)}</a>` : ''}
+    </div>`;
 
   return `<!DOCTYPE html>
 <html lang="en">
@@ -558,6 +752,18 @@ ${TRACKING_HEAD}
     --color-muted: #62625e;
     --color-accent: #6a3a4a;
     --color-accent-fg: #ffffff;
+    --color-danger: #a3302f;
+    /* Local scale for the free-event registration block. Prefixed --reg- so it
+       cannot shadow a global token name, and declared rather than inlined so the
+       block has one place to change. This file is a Pages Function: it cannot
+       import src/styles/global.css, which is why it carries its own tokens at
+       all. */
+    --reg-gap-sm: 6px;
+    --reg-gap: 10px;
+    --reg-gap-lg: 14px;
+    --reg-pad-y: 12px;
+    --reg-fs-label: 14px;
+    --reg-fs-field: 16px;
     --color-line: #e8e5dc;
     --font-display: 'Cormorant Garamond', Georgia, serif;
     --font-body: 'Inter', -apple-system, system-ui, sans-serif;
@@ -670,6 +876,56 @@ ${TRACKING_HEAD}
   .btn--secondary { background: transparent; color: var(--color-ink); border-color: var(--color-line); }
   .btn--secondary:hover { background: var(--color-bg); }
   .btn:active { transform: translateY(1px); }
+  /* Free-event email capture. Mobile first: the field and the button stack by
+     default and only sit side by side once there is room. */
+  .reg { margin: 0; }
+  .reg__label {
+    display: block;
+    font-size: var(--reg-fs-label);
+    font-weight: 600;
+    color: var(--color-muted);
+    margin-bottom: var(--reg-gap-sm);
+  }
+  .reg__row { display: flex; flex-direction: column; gap: var(--reg-gap); }
+  /* Offscreen honeypot. A class, not an inline style: the same trick inline is
+     what src/pages/courses/[slug].astro does, and it is a standing css-audit
+     finding there. */
+  .reg__hp { position: absolute; left: -9999px; }
+  .reg__input {
+    flex: 1 1 auto;
+    min-width: 0;
+    font-family: inherit;
+    /* 16px, never smaller: iOS Safari zooms the viewport on focus below it. */
+    font-size: var(--reg-fs-field);
+    padding: var(--reg-pad-y) var(--reg-gap-lg);
+    color: var(--color-ink);
+    background: var(--color-bg);
+    border: 1px solid var(--color-line);
+    border-radius: var(--radius-md);
+  }
+  .reg__input:focus-visible {
+    outline: 2px solid var(--color-accent);
+    outline-offset: 1px;
+  }
+  .reg__input:disabled { opacity: .6; }
+  .reg__btn { border: 0; cursor: pointer; font-family: inherit; width: 100%; }
+  .reg__btn[disabled] { opacity: .7; cursor: default; }
+  .reg__turnstile:empty { display: none; }
+  .reg__feedback { margin: var(--reg-gap) 0 0; font-size: var(--reg-fs-label); color: var(--color-muted); }
+  .reg__feedback:empty { display: none; }
+  .reg__feedback--ok { color: var(--color-accent); font-weight: 600; }
+  .reg__feedback--error { color: var(--color-danger); }
+  .reg__alt { margin: var(--reg-gap-lg) 0 0; font-size: var(--reg-fs-label); }
+  /* 640px is one of the documented breakpoints, and it sits clear of the
+     max-width:540px block below -- that block sets .btn { width: 100% }, which
+     at an overlapping breakpoint would apply to .reg__btn at equal specificity
+     and squash the input flat. Below 640 the field and the button stack, which
+     is the mobile-first default above. */
+  @media (min-width: 640px) {
+    .reg__row { flex-direction: row; align-items: center; }
+    .reg__btn { width: auto; flex: 0 0 auto; }
+  }
+
   .cta__cal { margin: 16px 0 0; display: flex; align-items: center; flex-wrap: wrap; gap: 8px 14px; font-size: 14px; }
   .cta__cal-label { color: var(--color-muted); font-weight: 600; }
   .cta__cal-link { color: var(--color-accent); text-decoration: underline; text-decoration-thickness: 1px; text-underline-offset: 3px; }
@@ -718,10 +974,7 @@ ${TRACKING_HEAD}
 
   <section class="cta" aria-label="Attend this event">
     ${cta.note ? `<p class="cta__note">${escapeHtml(cta.note)}</p>` : ''}
-    <div class="cta__buttons">
-      <a class="btn btn--primary" href="${escapeHtml(cta.primaryHref)}" ${cta.primaryAttrs || ''}>${escapeHtml(cta.primaryLabel)}</a>
-      ${cta.secondaryHref ? `<a class="btn btn--secondary" href="${escapeHtml(cta.secondaryHref)}">${escapeHtml(cta.secondaryLabel)}</a>` : ''}
-    </div>
+    ${ctaBlock}
     ${gcalUrl ? `<div class="cta__cal">
       <span class="cta__cal-label">Add to calendar</span>
       <a class="cta__cal-link" href="${escapeHtml(gcalUrl)}" target="_blank" rel="noopener noreferrer">Google</a>
@@ -752,7 +1005,7 @@ export async function onRequestGet({ request, params, env }) {
   let event;
   try {
     event = await env.DB.prepare(
-      `SELECT id, slug, title, content, event_date, event_link, og_image_url, channel, type, speaker
+      `SELECT id, slug, title, content, event_date, event_link, og_image_url, channel, type, speaker, is_free
        FROM community_post
        WHERE channel = 'stuc' AND type = 'event' AND (slug = ? COLLATE NOCASE OR id = ?)
        LIMIT 1`

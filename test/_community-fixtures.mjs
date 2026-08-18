@@ -55,6 +55,17 @@ export const ACTION_AREAS_DDL = readFileSync(
   'utf8',
 );
 
+/**
+ * Free-event mode DDL (community_post.is_free + event_registration), read off
+ * disk for the same reason. posts.js names is_free in its event INSERT, so
+ * without this the create-post statement fails to PREPARE and every write test
+ * in community-posts.test.js turns into a 500 that says nothing useful.
+ */
+export const FREE_EVENTS_DDL = readFileSync(
+  new URL('../migrations/032-free-events.sql', import.meta.url),
+  'utf8',
+);
+
 // Session cookie values. `insertSession` stores the SHA-256 of these, exactly
 // as login.js does, so validateSession's hashed lookup is the one under test.
 export const RAW = {
@@ -104,6 +115,7 @@ export async function communityDb(seed, opts = {}) {
     ...opts,
     seed(sqlite) {
       sqlite.exec(ACTION_AREAS_DDL);
+      sqlite.exec(FREE_EVENTS_DDL);
 
       insertUser(sqlite, { id: USERS.admin, email: 'admin@example.com', role: 'superadmin', name: 'Ada Admin' });
       insertUser(sqlite, { id: USERS.mod, email: 'mod@example.com', role: 'mod', name: 'Moe Mod' });
@@ -153,14 +165,15 @@ export function insertPost(sqlite, {
   ogImageUrl = null,
   speaker = null,
   areaId = null,
+  isFree = 0,
 } = {}) {
   sqlite.prepare(`
     INSERT INTO community_post
       (id, author_id, type, title, body, pinned, event_date, event_link, resource_url,
-       created_at, updated_at, channel, content, slug, og_image_url, speaker, area_id)
-    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+       created_at, updated_at, channel, content, slug, og_image_url, speaker, area_id, is_free)
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
   `).run(id, authorId, type, title, body, pinned, eventDate, eventLink, resourceUrl,
-    createdAt, updatedAt, channel, content, slug, ogImageUrl, speaker, areaId);
+    createdAt, updatedAt, channel, content, slug, ogImageUrl, speaker, areaId, isFree);
   return id;
 }
 
