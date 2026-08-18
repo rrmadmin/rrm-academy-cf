@@ -39,23 +39,24 @@ export async function sendGA4Event(env, request, eventName, params = {}, overrid
     const clientId = overrides.client_id || await getClientId(request);
     // When both client_id and session_id are overridden (client beacon or webhook replay),
     // skip buildSourceParams -- the request arrives via the first-party /api/track relay,
-    // so its Referer and URL describe the relay endpoint, not the page the user is on.
-    // page_location (with utm_*) and page_referrer therefore come from the event params
-    // the client sends directly. The cookies on that request ARE the user's (same-origin
-    // fetch), which is what the entry_ref/entry_url fallback below reads. session_number
-    // is included when provided.
+    // so its URL is /api/track and its Referer is a same-origin self-referral to the page
+    // the user is on, which classifySource files as direct. Neither one is the entry URL,
+    // so page_location (with utm_*) and page_referrer come from the event params the
+    // client sends directly, and the entry_ref/entry_url cookies are preferred over both
+    // in the fallback below. Those cookies ARE the user's, because the beacon is
+    // same-origin. session_number is included when provided.
     let sourceParams;
     if (overrides.client_id != null && overrides.session_id != null) {
       sourceParams = { session_id: overrides.session_id };
       if (overrides.session_number != null) sourceParams.session_number = overrides.session_number;
       // Entry-source attribution is normally skipped on this branch (see
-      // comment above) because the relay request's own headers describe the
-      // endpoint, not the page. But when the caller's own params are missing
-      // entry_category/entry_platform, fall back to the entry_ref/entry_url
-      // cookies (same signal buildSourceParams already reads) rather than
-      // shipping the event with no attribution at all. The whole attribution
-      // set travels, not just entry_category/entry_platform: entry_*, utm_*,
-      // email_type, list_source.
+      // comment above) because the relay request's own URL and self-referral
+      // Referer are not the entry URL. But when the caller's own params are
+      // missing entry_category/entry_platform, fall back to the entry_ref and
+      // entry_url cookies (same signal buildSourceParams already reads) rather
+      // than shipping the event with no attribution at all. The whole
+      // attribution set travels, not just entry_category/entry_platform:
+      // entry_*, utm_*, email_type, list_source.
       if (params.entry_category == null || params.entry_platform == null) {
         const cookies = request.headers.get('Cookie') || '';
         if (parseCookie(cookies, 'entry_ref') || parseCookie(cookies, 'entry_url')) {
