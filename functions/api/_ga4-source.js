@@ -2,6 +2,8 @@
 // Server-side traffic source classification for GA4 Measurement Protocol.
 // Prefixed with _ so CF Pages doesn't treat it as a route handler.
 
+import { PII_VALUE_REGEX } from './_track-events.js';
+
 // AI agent referrer patterns. Tested BEFORE SEARCH_ENGINES so that bing.com/chat
 // routes to 'copilot' (ai category) rather than 'bing' (organic).
 const AI_AGENTS = [
@@ -95,7 +97,12 @@ export function extractUtm(urlString) {
   const result = {};
   for (const key of UTM_KEYS) {
     const val = params.get(key);
-    if (val) result[key] = val.slice(0, UTM_VALUE_MAX);
+    if (!val) continue;
+    // Screen the RAW value before clamping: truncation can split an email
+    // across the 100-char boundary so it no longer matches, letting the
+    // identifying local part through. Same regex the client path uses.
+    if (PII_VALUE_REGEX.test(val)) continue;
+    result[key] = val.slice(0, UTM_VALUE_MAX);
   }
   return result;
 }

@@ -742,7 +742,7 @@ export function trackOutbound(event: string, href: string, extra: TrackParams = 
     <tr><td><code>utm_content</code></td><td>event-scoped</td><td><code>utm_content</code></td><td>Creative/ad id from the entry URL; <code>{creative}</code> on Google Ads</td></tr>
   </tbody>
 </table>
-<p><strong>Addendum 2026-08-18:</strong> <code>entry_category = paid</code> is now emitted: <code>buildSourceParams()</code> classifies a visit as paid when the entry URL carries a Google/Microsoft click id (<code>gclid</code>, <code>gbraid</code>, <code>wbraid</code>, <code>msclkid</code>) or a paid <code>utm_medium</code> (GA4's own <code>^(.*cp.*|ppc|retargeting|paid.*)$</code>). <code>fbclid</code> is not a paid signal. The beacon branch of <code>sendGA4Event()</code> forwards the full attribution set (<code>entry_*</code>, <code>utm_*</code>, <code>email_type</code>, <code>list_source</code>) instead of only <code>entry_category</code>/<code>entry_platform</code>. Native GA4 channel groups stay Unassigned by design (no tag).</p>
+<p><strong>Addendum 2026-08-18:</strong> <code>entry_category = paid</code> is now emitted: <code>buildSourceParams()</code> classifies a visit as paid when the entry URL carries a Google/Microsoft click id (<code>gclid</code>, <code>gbraid</code>, <code>wbraid</code>, <code>msclkid</code>) or a paid <code>utm_medium</code> (GA4's own <code>^(.*cp.*|ppc|retargeting|paid.*)$</code>). <code>fbclid</code> is not a paid signal. The beacon branch of <code>sendGA4Event()</code> forwards the full attribution set (<code>entry_*</code>, <code>utm_*</code>, <code>email_type</code>, <code>list_source</code>) instead of only <code>entry_category</code>/<code>entry_platform</code>. Native GA4 channel groups stay Unassigned by design (no tag). Server-derived attribution values are screened against <code>PII_VALUE_REGEX</code> at parse time in <code>extractUtm()</code> and again before egress in <code>sendGA4Event()</code>, and clamped to 100 characters (the GA4 Measurement Protocol parameter limit).</p>
 
 <h3>15.3 Conversions (Key Events) to mark in GA4</h3>
 <p>Each gets a primary "is this a conversion?" toggle on in <em>Admin → Events → Mark as conversion</em>:</p>
@@ -874,7 +874,7 @@ if (listSource) params.list_source = listSource;</code></pre>
     <tr><td>Instagram bio link</td><td><code>instagram</code></td><td><code>social</code></td><td><code>bio_link_napro_fertility_surgeon</code></td><td>—</td></tr>
     <tr><td>Instagram story / post</td><td><code>instagram</code></td><td><code>social</code></td><td><code>ig_story_endo_awareness_2026-05</code></td><td><code>utm_content</code> = post type</td></tr>
     <tr><td>External press / partner</td><td>publication name (slugified)</td><td><code>referral</code></td><td><code>press_$publication_2026-05</code></td><td>—</td></tr>
-    <tr><td>Paid (future)</td><td>vendor (e.g. <code>google</code>, <code>meta</code>)</td><td><code>cpc</code> or <code>paid_social</code></td><td>campaign name</td><td>—</td></tr>
+    <tr><td>Paid</td><td>vendor (e.g. <code>google</code>, <code>meta</code>)</td><td><code>cpc</code> or <code>paid_social</code></td><td>campaign name</td><td>—</td></tr>
   </tbody>
 </table>
 

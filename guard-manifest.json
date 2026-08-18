@@ -229,6 +229,14 @@
       "hash": "51a87fc4276db78422804a6afc0c56b776daf5a68361d91876be5262730d3325",
       "note": "Allowed events, required params, PII_REGEX, reserved params (security invariants for /api/track)"
     },
+    "functions/api/_ga4.js": {
+      "hash": "0fd11ea7b8376233a5a024bb4c07e70c594485a6bd283427769974290cd21a34",
+      "note": "GA4 MP relay: server-derived attribution PII screen (second pass) + page_location query/hash/userinfo strip"
+    },
+    "functions/api/_ga4-source.js": {
+      "hash": "bc5c8316caa9be716c19ffe62aa581c4237ec59c5eacb4ebe83da339f1102e84",
+      "note": "Traffic-source classification: utm value PII screen (first pass) + 100-char clamp + paid/email overrides"
+    },
     "functions/api/email/events.js": {
       "hash": "9bd41fadde6cf5650e8bdf2960491047af6e3dd1dd3f4a2613020661784903d6",
       "note": "SNS SES event ingestion (RSA signature + webhook_event dedup)"
