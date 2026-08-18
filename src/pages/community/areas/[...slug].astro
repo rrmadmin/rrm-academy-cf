@@ -137,7 +137,7 @@ const SHELL_ENABLED = isShellEnabled('community');
             <p class="hub-stream-lock__text">The projects and impact above are open to browse. The live member conversation is for Save the Uterus Club members.</p>
             <div class="hub-stream-lock__actions">
               <a class="btn btn--primary" href="/save-the-uterus-club/">Join the Club</a>
-              <a class="btn btn--secondary" href="/login?redirect=/community">Log in</a>
+              <a class="btn btn--secondary" href="/login/?redirect=/community/" id="area-login-link">Log in</a>
             </div>
           </div>
 
@@ -233,6 +233,8 @@ const SHELL_ENABLED = isShellEnabled('community');
       var composeSubmit = document.getElementById('area-compose-submit');
 
       var streamLock = document.getElementById('area-stream-lock');
+      var areaLoginLink = document.getElementById('area-login-link');
+      if (areaLoginLink) areaLoginLink.href = '/login/?redirect=' + encodeURIComponent(window.location.pathname);
       var postListEl = document.getElementById('area-post-list');
       var postsEmpty = document.getElementById('area-posts-empty');
       var loadMoreWrap = document.getElementById('area-load-more');

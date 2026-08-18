@@ -34,7 +34,7 @@ const SHELL_ENABLED = isShellEnabled('community');
         <div class="post-empty-card">
           <h1>Membership Required</h1>
           <p>You need an active membership to access the community.</p>
-          <a href="/login/" class="btn btn--primary">Log in</a>
+          <a href="/login/" class="btn btn--primary" id="post-login-link">Log in</a>
         </div>
       </div>
 
@@ -204,6 +204,8 @@ const SHELL_ENABLED = isShellEnabled('community');
       // --- DOM refs ---
       var loadingEl = document.getElementById('post-loading');
       var unauthorizedEl = document.getElementById('post-unauthorized');
+      var loginLinkEl = document.getElementById('post-login-link');
+      if (loginLinkEl) loginLinkEl.href = '/login/?redirect=' + encodeURIComponent(window.location.pathname);
       var notFoundEl = document.getElementById('post-not-found');
       var errorEl = document.getElementById('post-error');
       var errorTextEl = document.getElementById('post-error-text');
