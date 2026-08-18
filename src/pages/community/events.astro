@@ -23,7 +23,8 @@ const SHELL_ENABLED = isShellEnabled('community');
       <!-- Gate: non-members get redirected to /community -->
       <div id="events-gate" hidden>
         <p class="events-gate-text">You need to be a Save the Uterus Club member to view events.</p>
-        <a href="/login/?redirect=/community/events/" class="btn btn--primary">Log in</a>
+        <a href="/save-the-uterus-club/" class="btn btn--primary">Join the Club</a>
+        <a href="/login/?redirect=/community/events/" class="btn btn--secondary">Log in</a>
         <a href="/community/" class="btn btn--secondary">Go to Community</a>
       </div>
 
@@ -340,9 +341,7 @@ const SHELL_ENABLED = isShellEnabled('community');
       // --- Helpers ---
       function escapeHtml(str) {
         if (!str) return '';
-        var el = document.createElement('span');
-        el.textContent = str;
-        return el.innerHTML;
+        return String(str).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#39;');
       }
 
       function truncate(str, len) {
