@@ -612,4 +612,31 @@ describe('POST /api/track -- beacon attribution forwarding', () => {
       await Promise.all(ctx.waitUntil.promises);
     } finally { restore(); }
   });
+
+  it('drops a PII-valued utm_term from the cookie-derived set and keeps the numeric ad id', async () => {
+    const { restore, state } = makeFetchStub();
+    const piiEntryUrl = 'https://rrmacademy.org/endo-quiz/?utm_source=google&utm_medium=cpc' +
+      '&utm_campaign=google_ads_endometriosis_symptom_quiz_2026-q3' +
+      '&utm_content=818477153915&utm_term=jane.doe%40example.com&gclid=EAIaIQobChMI-test';
+    try {
+      const ctx = makeContext({
+        body: {
+          event: 'page_view',
+          params: { page_location: AD_PAGE_LOCATION, page_referrer: '' },
+          cid: CID,
+          sid: SID,
+          sn: 1,
+        },
+        headers: { Cookie: 'entry_ref=; entry_url=' + encodeURIComponent(piiEntryUrl) },
+      });
+      const res = await onRequestPost(ctx);
+      assert.equal(res.status, 204);
+      const mp = await captureGa4Params(ctx, state);
+      const p = mp.events[0].params;
+      assert.ok(!('utm_term' in p), 'an email address in utm_term must never reach GA4');
+      assert.equal(p.entry_category, 'paid');
+      assert.equal(p.utm_campaign, 'google_ads_endometriosis_symptom_quiz_2026-q3');
+      assert.equal(p.utm_content, '818477153915', 'a 12-digit ad id must survive the phone/card patterns');
+    } finally { restore(); }
+  });
 });
