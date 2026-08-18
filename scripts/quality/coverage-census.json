@@ -1,6 +1,6 @@
 {
  "_note": "Every first-party executable file (census-rules.mjs SURFACE_ROOTS) is accounted for here, and scripts/quality/coverage.mjs FAILS its run if the enumerated surface drifts from this file or a new file matches no classification rule. A file is either PRODUCT-CODE (inside the gated coverage denominator) or excluded below with a category and written reason — never silently. Regenerate with: node scripts/quality/coverage.mjs && node scripts/quality/census.mjs",
- "_generated": "2026-08-12",
+ "_generated": "2026-08-18",
  "_categories": {
   "PRODUCT-CODE": "Deployed or deploy-chain code whose defects ship to users: CF Pages Functions (every route + _helper under functions/), build-time data fetchers and shared logic (src/lib), client bundles (src/scripts), Astro build integrations, and the CI gate/guard/build scripts that decide whether a deploy is allowed. This is the gated denominator. Uncovered PRODUCT-CODE is debt, listed so it is visible and countable, never argued away.",
   "CONTENT-TEMPLATE": "Files where line coverage is the wrong instrument because they are content, data constants, or scaffolding: reference-only endpoint templates (header forbids importing), typed data constants consumed by Astro templates, and Astro endpoint modules (*.md.ts / rss.xml.ts) that only execute inside the Astro build container. Their correctness instruments are the build itself, verify-build-output, the data deploy-guard floors, and the e2e suite.",
@@ -15,20 +15,20 @@
   "ratchet_rule": "The floor may only move UP. Arm at the measured floor rounded down; never arm a number that is red on arrival. Raise it after a coverage drive lands, by editing this value to the new measured floor rounded down."
  },
  "_measured": {
-  "date": "2026-08-12",
+  "date": "2026-08-18",
   "instrument": "node scripts/quality/coverage.mjs (c8 --all over the full surface; full npm-test suite)",
   "full_surface": {
-   "files": 426,
-   "lines": 84359,
-   "covered": 32890,
-   "pct": 38.99
+   "files": 429,
+   "lines": 85447,
+   "covered": 33858,
+   "pct": 39.62
   },
   "by_category": {
    "PRODUCT-CODE": {
-    "files": 337,
-    "lines": 62958,
-    "covered": 27607,
-    "pct": 43.85
+    "files": 340,
+    "lines": 64043,
+    "covered": 28575,
+    "pct": 44.62
    },
    "CONTENT-TEMPLATE": {
     "files": 9,
@@ -38,7 +38,7 @@
    },
    "E2E-DRIVER": {
     "files": 35,
-    "lines": 8326,
+    "lines": 8329,
     "covered": 0,
     "pct": 0
    },
@@ -56,13 +56,13 @@
    }
   },
   "product_code": {
-   "files": 337,
-   "lines": 62958,
-   "covered": 27607,
-   "pct": 43.85
+   "files": 340,
+   "lines": 64043,
+   "covered": 28575,
+   "pct": 44.62
   },
-  "files_at_zero_in_full_report": 259,
-  "files_executed_in_full_report": 167,
+  "files_at_zero_in_full_report": 260,
+  "files_executed_in_full_report": 169,
   "highest_stakes_slice": {
    "slice": "national survey system (functions/api/survey/ + functions/api/endo-quiz/)",
    "files": [
@@ -257,9 +257,9 @@
    "file": "functions/api/admin/content.js",
    "fn": "onRequestGet",
    "line": 18,
-   "cc": 32,
+   "cc": 33,
    "coverage": 0,
-   "crap": 1056
+   "crap": 1122
   },
   {
    "file": "functions/api/admin/wix-migration-email.js",
@@ -525,27 +525,27 @@
    "category": "PRODUCT-CODE",
    "reason": "CF Pages Function (routed endpoint, middleware, or _-prefixed shared helper). Deployed on every push; defects ship directly to users.",
    "present": true,
-   "lines": 173,
-   "covered": 160,
-   "pct": 92.48
+   "lines": 244,
+   "covered": 237,
+   "pct": 97.13
   },
   {
    "file": "functions/api/_ga4.js",
    "category": "PRODUCT-CODE",
    "reason": "CF Pages Function (routed endpoint, middleware, or _-prefixed shared helper). Deployed on every push; defects ship directly to users.",
    "present": true,
-   "lines": 124,
-   "covered": 100,
-   "pct": 80.64
+   "lines": 145,
+   "covered": 125,
+   "pct": 86.2
   },
   {
    "file": "functions/api/_google-ads.js",
    "category": "PRODUCT-CODE",
    "reason": "CF Pages Function (routed endpoint, middleware, or _-prefixed shared helper). Deployed on every push; defects ship directly to users.",
    "present": true,
-   "lines": 147,
-   "covered": 137,
-   "pct": 93.19
+   "lines": 287,
+   "covered": 265,
+   "pct": 92.33
   },
   {
    "file": "functions/api/_guide-pdfs.js",
@@ -750,7 +750,7 @@
    "category": "PRODUCT-CODE",
    "reason": "CF Pages Function (routed endpoint, middleware, or _-prefixed shared helper). Deployed on every push; defects ship directly to users.",
    "present": false,
-   "lines": 123,
+   "lines": 129,
    "covered": 0,
    "pct": 0
   },
@@ -759,7 +759,7 @@
    "category": "PRODUCT-CODE",
    "reason": "CF Pages Function (routed endpoint, middleware, or _-prefixed shared helper). Deployed on every push; defects ship directly to users.",
    "present": false,
-   "lines": 158,
+   "lines": 162,
    "covered": 0,
    "pct": 0
   },
@@ -1011,7 +1011,7 @@
    "category": "PRODUCT-CODE",
    "reason": "CF Pages Function (routed endpoint, middleware, or _-prefixed shared helper). Deployed on every push; defects ship directly to users.",
    "present": false,
-   "lines": 173,
+   "lines": 178,
    "covered": 0,
    "pct": 0
   },
@@ -1272,8 +1272,8 @@
    "category": "PRODUCT-CODE",
    "reason": "CF Pages Function (routed endpoint, middleware, or _-prefixed shared helper). Deployed on every push; defects ship directly to users.",
    "present": true,
-   "lines": 173,
-   "covered": 173,
+   "lines": 181,
+   "covered": 181,
    "pct": 100
   },
   {
@@ -1425,8 +1425,8 @@
    "category": "PRODUCT-CODE",
    "reason": "CF Pages Function (routed endpoint, middleware, or _-prefixed shared helper). Deployed on every push; defects ship directly to users.",
    "present": true,
-   "lines": 399,
-   "covered": 399,
+   "lines": 401,
+   "covered": 401,
    "pct": 100
   },
   {
@@ -1542,8 +1542,8 @@
    "category": "PRODUCT-CODE",
    "reason": "CF Pages Function (routed endpoint, middleware, or _-prefixed shared helper). Deployed on every push; defects ship directly to users.",
    "present": true,
-   "lines": 747,
-   "covered": 747,
+   "lines": 766,
+   "covered": 766,
    "pct": 100
   },
   {
@@ -1605,8 +1605,8 @@
    "category": "PRODUCT-CODE",
    "reason": "CF Pages Function (routed endpoint, middleware, or _-prefixed shared helper). Deployed on every push; defects ship directly to users.",
    "present": true,
-   "lines": 362,
-   "covered": 360,
+   "lines": 359,
+   "covered": 357,
    "pct": 99.44
   },
   {
@@ -1758,7 +1758,7 @@
    "category": "PRODUCT-CODE",
    "reason": "CF Pages Function (routed endpoint, middleware, or _-prefixed shared helper). Deployed on every push; defects ship directly to users.",
    "present": false,
-   "lines": 423,
+   "lines": 424,
    "covered": 0,
    "pct": 0
   },
@@ -1788,6 +1788,33 @@
    "lines": 225,
    "covered": 225,
    "pct": 100
+  },
+  {
+   "file": "functions/api/events/_email.js",
+   "category": "PRODUCT-CODE",
+   "reason": "CF Pages Function (routed endpoint, middleware, or _-prefixed shared helper). Deployed on every push; defects ship directly to users.",
+   "present": true,
+   "lines": 158,
+   "covered": 156,
+   "pct": 98.73
+  },
+  {
+   "file": "functions/api/events/register.js",
+   "category": "PRODUCT-CODE",
+   "reason": "CF Pages Function (routed endpoint, middleware, or _-prefixed shared helper). Deployed on every push; defects ship directly to users.",
+   "present": true,
+   "lines": 257,
+   "covered": 247,
+   "pct": 96.1
+  },
+  {
+   "file": "functions/api/events/remind.js",
+   "category": "PRODUCT-CODE",
+   "reason": "CF Pages Function (routed endpoint, middleware, or _-prefixed shared helper). Deployed on every push; defects ship directly to users.",
+   "present": true,
+   "lines": 158,
+   "covered": 152,
+   "pct": 96.2
   },
   {
    "file": "functions/api/faqs.js",
@@ -2109,9 +2136,9 @@
    "category": "PRODUCT-CODE",
    "reason": "CF Pages Function (routed endpoint, middleware, or _-prefixed shared helper). Deployed on every push; defects ship directly to users.",
    "present": true,
-   "lines": 229,
-   "covered": 189,
-   "pct": 82.53
+   "lines": 230,
+   "covered": 193,
+   "pct": 83.91
   },
   {
    "file": "functions/ask/s/[token].js",
@@ -2127,8 +2154,8 @@
    "category": "PRODUCT-CODE",
    "reason": "CF Pages Function (routed endpoint, middleware, or _-prefixed shared helper). Deployed on every push; defects ship directly to users.",
    "present": true,
-   "lines": 828,
-   "covered": 828,
+   "lines": 1063,
+   "covered": 1063,
    "pct": 100
   },
   {
@@ -2261,10 +2288,10 @@
    "file": "scripts/audit-glossary-links.mjs",
    "category": "PRODUCT-CODE",
    "reason": "Local deterministic analysis of glossary.json link classes; unit-tested (glossary-link-classifier.test.js), 80% covered today.",
-   "present": true,
+   "present": false,
    "lines": 101,
-   "covered": 81,
-   "pct": 80.19
+   "covered": 0,
+   "pct": 0
   },
   {
    "file": "scripts/audit-textbook-fact-coverage.mjs",
@@ -2640,7 +2667,7 @@
    "category": "E2E-DRIVER",
    "reason": "Live GA4 Admin API configuration driver.",
    "present": false,
-   "lines": 211,
+   "lines": 214,
    "covered": 0,
    "pct": 0
   },
@@ -2694,7 +2721,7 @@
    "category": "PRODUCT-CODE",
    "reason": "Deterministic CI/pre-commit proof gate; it decides whether deploys are allowed and must itself be trustworthy.",
    "present": false,
-   "lines": 835,
+   "lines": 837,
    "covered": 0,
    "pct": 0
   },
@@ -3010,8 +3037,8 @@
    "reason": "Infographic pipeline entry points; unit-tested (infographic-*.test.js).",
    "present": true,
    "lines": 74,
-   "covered": 60,
-   "pct": 81.08
+   "covered": 59,
+   "pct": 79.72
   },
   {
    "file": "scripts/infographic-render.mjs",

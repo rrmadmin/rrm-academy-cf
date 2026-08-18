@@ -123,6 +123,7 @@ export async function onRequestGet({ request, env, waitUntil }) {
         resourceUrl: row.resource_url, createdAt: row.created_at, updatedAt: row.updated_at,
         slug: row.slug || null, ogImageUrl: row.og_image_url || null,
         speaker: row.speaker || null,
+        isFree: !!row.is_free,
         authorId: row.author_id, authorName: row.author_name || displayName(row),
         authorRole: row.author_role, authorAvatar: row.author_avatar || null,
         authorTier: tierFromLabel(row.author_tier_label), commentCount: row.comment_count,
@@ -273,6 +274,7 @@ export async function onRequestGet({ request, env, waitUntil }) {
       slug: r.slug || null,
       ogImageUrl: r.og_image_url || null,
       speaker: r.speaker || null,
+      isFree: !!r.is_free,
       areaId: r.area_id || null,
       authorId: r.author_id,
       authorName: r.author_name || displayName(r),
@@ -313,7 +315,7 @@ async function _handlePost({ request, env, waitUntil }) {
     }
     if (typeof body !== 'object' || body === null || Array.isArray(body)) return json({ ok: false, error: 'Invalid payload' }, 400);
 
-    const { type, title, body: postBody, eventDate, eventLink, resourceUrl, channel: reqChannel, slug: reqSlug, ogImageUrl: reqOgImageUrl, speaker: reqSpeaker, area_id: reqAreaId } = body;
+    const { type, title, body: postBody, eventDate, eventLink, resourceUrl, channel: reqChannel, slug: reqSlug, ogImageUrl: reqOgImageUrl, speaker: reqSpeaker, area_id: reqAreaId, isFree: reqIsFree } = body;
 
     // Validate channel
     const channel = reqChannel || 'stuc';
@@ -366,6 +368,22 @@ async function _handlePost({ request, env, waitUntil }) {
       const trimmedSpeaker = reqSpeaker.trim();
       if (trimmedSpeaker.length === 0 || trimmedSpeaker.length > 200) return json({ ok: false, error: 'invalid_speaker' }, 400);
       finalSpeaker = trimmedSpeaker;
+    }
+
+    // Free-event mode is EVENT-ONLY. A non-event asking to be free is refused
+    // rather than silently ignored: this one flag is what decides whether an
+    // anonymous visitor can obtain the joining link by email, so a caller must
+    // never be able to set it on a row where nothing reads it and then believe
+    // it took effect. Absent or false keeps today's members-only behavior.
+    let finalIsFree = 0;
+    if (reqIsFree !== undefined && reqIsFree !== null) {
+      if (typeof reqIsFree !== 'boolean') {
+        return json({ ok: false, error: 'invalid_is_free' }, 400);
+      }
+      if (reqIsFree && type !== 'event') {
+        return json({ ok: false, error: 'is_free_event_only' }, 400);
+      }
+      finalIsFree = reqIsFree ? 1 : 0;
     }
 
     // Optional area_id — validate if present (G-AREA-3)
@@ -453,12 +471,12 @@ async function _handlePost({ request, env, waitUntil }) {
 
     try {
       await db.prepare(`
-        INSERT INTO community_post (id, author_id, type, title, content, event_date, event_link, resource_url, channel, slug, og_image_url, speaker, area_id)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        INSERT INTO community_post (id, author_id, type, title, content, event_date, event_link, resource_url, channel, slug, og_image_url, speaker, area_id, is_free)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
       `).bind(
         id, user.id, type, titleForInsert, contentToStore,
         eventDate || null, eventLink || null, resourceUrl || null, channel,
-        finalSlug, finalOgImageUrl, finalSpeaker, finalAreaId
+        finalSlug, finalOgImageUrl, finalSpeaker, finalAreaId, finalIsFree
       ).run();
     } catch (err) {
       if (err.message?.includes('UNIQUE constraint')) {
@@ -487,6 +505,7 @@ async function _handlePost({ request, env, waitUntil }) {
         pinned: false, eventDate, eventLink, resourceUrl,
         slug: finalSlug, ogImageUrl: finalOgImageUrl,
         speaker: finalSpeaker,
+        isFree: !!finalIsFree,
         areaId: finalAreaId,
         createdAt: new Date().toISOString().replace('T', ' ').slice(0, 19),
         authorId: user.id,
