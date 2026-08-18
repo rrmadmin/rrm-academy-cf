@@ -73,7 +73,8 @@ export async function sendGA4Event(env, request, eventName, params = {}, overrid
     // authored by whoever built the inbound link (a newsletter that stamps the
     // subscriber's email into utm_term, for instance). Apply the same value
     // screen /api/track applies to client params so PII never reaches GA4 from
-    // either branch. Numeric ad ids ({creative} is 11-12 digits) do not match.
+    // either branch. Pure digit runs of 10 or 13-19 characters are dropped
+    // (phone/card shapes); {creative} ad ids are 11-12 digits and pass.
     for (const [key, value] of Object.entries(sourceParams)) {
       if (typeof value === 'string' && PII_VALUE_REGEX.test(value)) delete sourceParams[key];
     }
