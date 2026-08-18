@@ -234,7 +234,7 @@ const SHELL_ENABLED = isShellEnabled('community');
 
       var streamLock = document.getElementById('area-stream-lock');
       var areaLoginLink = document.getElementById('area-login-link');
-      if (areaLoginLink) areaLoginLink.href = '/login/?redirect=' + encodeURIComponent(window.location.pathname);
+      if (areaLoginLink) areaLoginLink.href = '/login/?redirect=' + encodeURIComponent(window.location.pathname + window.location.search);
       var postListEl = document.getElementById('area-post-list');
       var postsEmpty = document.getElementById('area-posts-empty');
       var loadMoreWrap = document.getElementById('area-load-more');
@@ -264,7 +264,9 @@ const SHELL_ENABLED = isShellEnabled('community');
       function escapeHtml(str) {
         var div = document.createElement('div');
         div.appendChild(document.createTextNode(str == null ? '' : String(str)));
-        return div.innerHTML;
+        // innerHTML escapes < > & but NOT quotes; escape quotes too so this is
+        // safe inside double/single-quoted HTML attributes (src=, alt=, data-*).
+        return div.innerHTML.replace(/"/g, '&quot;').replace(/'/g, '&#39;');
       }
 
       function initials(name) {

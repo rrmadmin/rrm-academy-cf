@@ -371,7 +371,7 @@ const hasSecondaryAudio = showTabs && presentFormats.has('audio');
         if (markBtn) {
           markBtn.outerHTML =
             '<a class="btn btn--secondary" href="/login/?redirect=' +
-            encodeURIComponent(window.location.pathname) +
+            encodeURIComponent(window.location.pathname + window.location.search) +
             '">Log in to track progress</a>';
         }
         // 2. Keep navigation free — guests may read every lesson in order.
@@ -388,7 +388,7 @@ const hasSecondaryAudio = showTabs && presentFormats.has('audio');
           banner.className = 'guest-preview-banner';
           banner.innerHTML =
             'You’re previewing this course. <a href="/login/?redirect=' +
-            encodeURIComponent(window.location.pathname) +
+            encodeURIComponent(window.location.pathname + window.location.search) +
             '">Log in</a> and enroll to take the quiz and earn your RRM Policymaker Briefing certificate.';
           content.parentNode.insertBefore(banner, content);
         }
@@ -802,7 +802,7 @@ const hasSecondaryAudio = showTabs && presentFormats.has('audio');
         if (data && data.error) {
           if (data.error === 'Not authenticated') {
             titleEl2.textContent = 'Sign In Required';
-            textEl2.innerHTML = 'Please <a href="/login/?redirect=' + encodeURIComponent(window.location.pathname) + '">sign in</a> to access this quiz.';
+            textEl2.innerHTML = 'Please <a href="/login/?redirect=' + encodeURIComponent(window.location.pathname + window.location.search) + '">sign in</a> to access this quiz.';
           } else if (data.error === 'Not enrolled') {
             titleEl2.textContent = 'Enrollment Required';
             textEl2.textContent = 'You need to be enrolled in this course to take the quiz.';
@@ -1195,7 +1195,7 @@ const hasSecondaryAudio = showTabs && presentFormats.has('audio');
         } else if (status === 401 || error === 'Not authenticated') {
           var box = panel.querySelector('[data-rendition-message]');
           if (box) {
-            box.innerHTML = 'Please <a href="/login/?redirect=' + encodeURIComponent(window.location.pathname) + '">sign in</a> to view this format.';
+            box.innerHTML = 'Please <a href="/login/?redirect=' + encodeURIComponent(window.location.pathname + window.location.search) + '">sign in</a> to view this format.';
             box.hidden = false;
           }
           var l1 = panel.querySelector('[data-rendition-loading]'); if (l1) l1.hidden = true;
