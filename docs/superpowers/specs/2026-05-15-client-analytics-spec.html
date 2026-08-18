@@ -738,8 +738,11 @@ export function trackOutbound(event: string, href: string, extra: TrackParams = 
     <tr><td><code>cohort_date</code></td><td>user-scoped</td><td><code>cohort_date</code></td><td>First-touch month (YYYY-MM). Enables cohort retention analysis without a separate tool</td></tr>
     <tr><td><code>audience_type</code></td><td>user-scoped</td><td><code>audience_type</code></td><td>clinician / researcher / student / donor / patient-advocate — set on signup form or inferred from behavior. Optional, populates over time</td></tr>
     <tr><td><code>experiment_id</code> + <code>variant_id</code></td><td>event-scoped</td><td>(future)</td><td>Reserved slots for when A/B testing comes online; lets every event be sliced by variant</td></tr>
+    <tr><td><code>utm_campaign</code></td><td>event-scoped</td><td><code>utm_campaign</code></td><td>Campaign name from the entry URL; Google Ads <code>final_url_suffix</code> and email links</td></tr>
+    <tr><td><code>utm_content</code></td><td>event-scoped</td><td><code>utm_content</code></td><td>Creative/ad id from the entry URL; <code>{creative}</code> on Google Ads</td></tr>
   </tbody>
 </table>
+<p><strong>Addendum 2026-08-18:</strong> <code>entry_category = paid</code> is now emitted: <code>buildSourceParams()</code> classifies a visit as paid when the entry URL carries a Google/Microsoft click id (<code>gclid</code>, <code>gbraid</code>, <code>wbraid</code>, <code>msclkid</code>) or a paid <code>utm_medium</code> (GA4's own <code>^(.*cp.*|ppc|retargeting|paid.*)$</code>). <code>fbclid</code> is not a paid signal. The beacon branch of <code>sendGA4Event()</code> forwards the full attribution set (<code>entry_*</code>, <code>utm_*</code>, <code>email_type</code>, <code>list_source</code>) instead of only <code>entry_category</code>/<code>entry_platform</code>. Native GA4 channel groups stay Unassigned by design (no tag).</p>
 
 <h3>15.3 Conversions (Key Events) to mark in GA4</h3>
 <p>Each gets a primary "is this a conversion?" toggle on in <em>Admin → Events → Mark as conversion</em>:</p>
@@ -901,7 +904,7 @@ if (listSource) params.list_source = listSource;</code></pre>
 <h3>15.9 Phase 4 dashboard work</h3>
 <p>After Phase 1 deploys and ~24 hours of event flow:</p>
 <ol>
-  <li><strong>Register 13 custom dimensions</strong> (§15.2) via GA4 Admin API or dashboard</li>
+  <li><strong>Register 15 custom dimensions</strong> (§15.2) via GA4 Admin API or dashboard</li>
   <li><strong>Mark 8 conversions / Key Events</strong> (§15.3)</li>
   <li><strong>Build 13 Audiences</strong> (§15.5), including the 3 email-arriver tiers</li>
   <li><strong>Build 20 Funnel Explorations</strong> (§15.4), pin top 5–7 to GA4 home</li>

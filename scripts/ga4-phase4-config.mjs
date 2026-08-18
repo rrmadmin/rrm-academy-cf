@@ -3,9 +3,10 @@
  * One-time GA4 dashboard provisioning for Phase 4 of the client-analytics spec.
  *
  * What this script does (API-able, ~30 sec):
- *   - Creates 13 custom dimensions (user_role, entry_category, entry_platform,
+ *   - Creates 15 custom dimensions (user_role, entry_category, entry_platform,
  *     content_pillar, device_type, lead_source, article_type, email_type,
- *     list_source, engagement_tier, cohort_date, audience_type, experiment_id)
+ *     list_source, engagement_tier, cohort_date, audience_type, experiment_id,
+ *     utm_campaign, utm_content)
  *   - Marks 7 events as conversions / Key Events (sign_up, generate_lead,
  *     begin_checkout, purchase, pdf_download, copy_citation, video_complete)
  *
@@ -52,6 +53,8 @@ const CUSTOM_DIMENSIONS = [
   ['Cohort Date',        'cohort_date',     'USER',    'first-touch month YYYY-MM (cohort retention key)'],
   ['Audience Type',      'audience_type',   'USER',    'clinician / researcher / student / donor / patient-advocate'],
   ['Experiment ID',      'experiment_id',   'EVENT',   'A/B test variant ID (reserved for future)'],
+  ['UTM Campaign',       'utm_campaign',    'EVENT',   'utm_campaign from the entry URL (Google Ads final_url_suffix, email links)'],
+  ['UTM Content',        'utm_content',     'EVENT',   'utm_content from the entry URL ({creative} ad id on Google Ads)'],
 ];
 
 // 7 conversions can be marked as Key Events via API.
