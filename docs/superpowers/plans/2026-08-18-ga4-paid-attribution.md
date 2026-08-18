@@ -135,7 +135,7 @@ Tests to add in `test/ga4-source.test.js` (import `classifyPaid`):
 
 ## Task 2: forward the attribution set on the beacon branch + AE hint enum
 
-Files: `functions/api/_ga4.js`, `functions/api/track.js`, `test/track-endpoint.test.js`.
+Files: `functions/api/_ga4.js`, `functions/api/track.js`, `test/track-endpoint.test.js`, plus (added after the Task 1 review) `functions/api/_ga4-source.js` and `test/ga4-source.test.js` for the length clamp below.
 
 In `functions/api/_ga4.js`, inside the beacon branch (`overrides.client_id != null && overrides.session_id != null`), replace the two `if (params.entry_category == null && derived.entry_category) ...` / `if (params.entry_platform == null && derived.entry_platform) ...` lines with forwarding of the whole attribution set minus `session_id`:
 
@@ -150,6 +150,8 @@ In `functions/api/_ga4.js`, inside the beacon branch (`overrides.client_id != nu
 ```
 
 Keep the surrounding trigger condition (`if (params.entry_category == null || params.entry_platform == null)` and the cookie presence check) exactly as is. Update the comment block above it so it no longer says only entry_category/entry_platform are forwarded (it now says: the full attribution set: `entry_*`, `utm_*`, `email_type`, `list_source`). If eslint's `no-unused-vars` complains about `_serverSessionId`, use whichever pattern sibling files in `functions/api/` already use for an intentionally-unused destructure (check `.eslintrc*`/`eslint.config.*` for `varsIgnorePattern`); if none exists, delete the key from a shallow copy instead (`const attribution = { ...derived }; delete attribution.session_id;`).
+
+Length clamp (added 2026-08-18 after the Task 1 review flagged that no consumer bounds `utm_*` values from the attacker-controllable `entry_url` cookie, and Task 2 widens their egress from conversions to every page_view; GA4 Measurement Protocol caps event parameter values at 100 characters and gives no error on the production endpoint): in `functions/api/_ga4-source.js` `extractUtm`, clamp each captured value with `.slice(0, 100)` (add a module constant `UTM_VALUE_MAX = 100` with a one-line comment naming the GA4 limit). Because `entry_platform` on the paid path derives from `utmParams.utm_source`, this bounds that dimension too. Test in `test/ga4-source.test.js` under `describe('extractUtm')`: a 150-character `utm_campaign` comes back exactly 100 characters; a 100-character value is unchanged.
 
 In `functions/api/track.js`, add `'paid'` to `ENTRY_CATEGORY_VALUES` and update the comment so it lists `paid` (the comment says the set mirrors what `classifySource()`/`buildSourceParams()` emit; that is now true again). No other track.js change. `track.js` is hash-guarded (G9b): after editing it run `npm run guard:update`, confirm `node scripts/guard.mjs` passes and that the ONLY manifest hash that changed is `functions/api/track.js` (`git diff guard-manifest.json`), and stage `guard-manifest.json` in the same commit as `track.js`.
 
