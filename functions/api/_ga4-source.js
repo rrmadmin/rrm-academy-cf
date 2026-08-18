@@ -97,6 +97,54 @@ export function extractUtm(urlString) {
   return result;
 }
 
+// Paid click identifiers, keyed by ad platform. fbclid is deliberately absent:
+// Facebook appends it to every outbound click, organic posts included, so it
+// is not evidence the visit was bought.
+const PAID_CLICK_IDS = [
+  { param: 'gclid',   platform: 'google' },
+  { param: 'gbraid',  platform: 'google' },
+  { param: 'wbraid',  platform: 'google' },
+  { param: 'msclkid', platform: 'bing' },
+];
+
+// GA4's own default-channel-group definition of a paid medium.
+const PAID_MEDIUM_RE = /^(.*cp.*|ppc|retargeting|paid.*)$/i;
+
+/**
+ * Detects a bought visit from the entry URL: an ad-platform click id
+ * (gclid/gbraid/wbraid/msclkid) or a paid utm_medium. Referrer-only
+ * classification cannot see this: Google Ads clicks arrive with an empty
+ * or google.com referrer and would file as direct/organic.
+ *
+ * Returns null when the URL carries no paid signal, otherwise
+ * { source, medium, entry_category: 'paid', entry_platform } where
+ * entry_platform is the click id's canonical platform when a click id is
+ * present, else lowercased utm_source, else null (caller keeps its
+ * referrer-derived platform).
+ */
+export function classifyPaid(urlString, utmParams = extractUtm(urlString)) {
+  let params;
+  try {
+    params = new URL(urlString).searchParams;
+  } catch {
+    params = new URLSearchParams();
+  }
+  const clickId = PAID_CLICK_IDS.find(({ param }) => params.get(param));
+  const paidMedium = typeof utmParams.utm_medium === 'string' && PAID_MEDIUM_RE.test(utmParams.utm_medium);
+  if (!clickId && !paidMedium) return null;
+
+  const utmSource = typeof utmParams.utm_source === 'string' && utmParams.utm_source
+    ? utmParams.utm_source.toLowerCase()
+    : null;
+  const entry_platform = clickId ? clickId.platform : utmSource;
+  return {
+    source: utmSource || entry_platform || '(paid)',
+    medium: paidMedium ? utmParams.utm_medium : 'cpc',
+    entry_category: 'paid',
+    entry_platform,
+  };
+}
+
 export async function deriveSessionId(clientId, dateStr) {
   const raw = new TextEncoder().encode(`${clientId}:${dateStr}`);
   const hashBuffer = await crypto.subtle.digest('SHA-256', raw);
@@ -149,6 +197,19 @@ export async function buildSourceParams(request, clientId) {
     else if (utmParams.utm_medium === 'email_automation') classified.email_type = 'automation';
     else if (utmParams.utm_medium === 'email_transactional') classified.email_type = 'transactional';
     else classified.email_type = 'other';
+  }
+
+  // Paid override: a click id or paid utm_medium in the entry URL means the
+  // visit was bought regardless of referrer. Runs after the email override so
+  // a paid click always wins over utm_source=email, and clears email_type so a
+  // bought visit never lands in an email slice.
+  const paid = classifyPaid(url, utmParams);
+  if (paid) {
+    classified.source = paid.source;
+    classified.medium = paid.medium;
+    classified.entry_category = paid.entry_category;
+    if (paid.entry_platform) classified.entry_platform = paid.entry_platform;
+    delete classified.email_type;
   }
 
   const dateStr = new Date().toLocaleDateString('en-CA', { timeZone: 'America/New_York' });
