@@ -151,8 +151,12 @@ import { TURNSTILE_SITE_KEY } from '../lib/turnstile';
             if (data.ok) {
               var params = new URLSearchParams(window.location.search);
               var dest = params.get('redirect') || '/account/';
-              if (!dest || dest.charAt(0) !== '/' || dest.indexOf('//') === 0 || dest.indexOf('/\\') === 0 || dest.length > 500) dest = '/account/';
-              if (dest.length > 1 && dest.charAt(dest.length - 1) !== '/') dest += '/';
+              try {
+                var u = new URL(dest, window.location.origin);
+                if (u.origin !== window.location.origin || dest.charAt(0) !== '/' || dest.length > 500) dest = '/account/';
+                else dest = u.pathname + u.search + u.hash;
+              } catch (e) { dest = '/account/'; }
+              if (dest.length > 1 && dest.charAt(dest.length - 1) !== '/' && dest.indexOf('?') === -1 && dest.indexOf('#') === -1) dest += '/';
               window.location.href = dest;
             } else {
               showError(data.error || 'Sign in failed.');
