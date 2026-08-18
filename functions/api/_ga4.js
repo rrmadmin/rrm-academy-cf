@@ -7,6 +7,7 @@
  */
 
 import { buildSourceParams, getClientId, parseCookie } from './_ga4-source.js';
+import { PII_VALUE_REGEX } from './_track-events.js';
 
 const GA4_ENDPOINT = 'https://www.google-analytics.com/mp/collect';
 
@@ -67,6 +68,14 @@ export async function sendGA4Event(env, request, eventName, params = {}, overrid
       }
     } else {
       sourceParams = await buildSourceParams(request, clientId);
+    }
+    // Server-derived attribution is parsed from the entry_url cookie, which is
+    // authored by whoever built the inbound link (a newsletter that stamps the
+    // subscriber's email into utm_term, for instance). Apply the same value
+    // screen /api/track applies to client params so PII never reaches GA4 from
+    // either branch. Numeric ad ids ({creative} is 11-12 digits) do not match.
+    for (const [key, value] of Object.entries(sourceParams)) {
+      if (typeof value === 'string' && PII_VALUE_REGEX.test(value)) delete sourceParams[key];
     }
     const defaultPageLocation = (() => { try { const u = new URL(request.headers.get('referer') || request.url); u.username = ''; u.password = ''; u.search = ''; u.hash = ''; return u.toString(); } catch { return ''; } })();
     const payload = {
