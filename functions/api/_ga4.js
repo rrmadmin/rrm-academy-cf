@@ -50,13 +50,19 @@ export async function sendGA4Event(env, request, eventName, params = {}, overrid
       // context. But when the caller's own params are missing entry_category/
       // entry_platform, fall back to the entry_ref/entry_url cookies (same
       // signal buildSourceParams already reads) rather than shipping the
-      // event with no attribution at all.
+      // event with no attribution at all. The whole attribution set travels,
+      // not just entry_category/entry_platform: entry_*, utm_*, email_type,
+      // list_source.
       if (params.entry_category == null || params.entry_platform == null) {
         const cookies = request.headers.get('Cookie') || '';
         if (parseCookie(cookies, 'entry_ref') || parseCookie(cookies, 'entry_url')) {
           const derived = await buildSourceParams(request, clientId);
-          if (params.entry_category == null && derived.entry_category) sourceParams.entry_category = derived.entry_category;
-          if (params.entry_platform == null && derived.entry_platform) sourceParams.entry_platform = derived.entry_platform;
+          // Forward everything buildSourceParams knows about the visit except
+          // its server-derived session_id: the client's session_id (overrides)
+          // is the real one and must win. Caller params still spread last in
+          // the payload, so a caller-supplied value is never clobbered here.
+          const { session_id: _serverSessionId, ...attribution } = derived;
+          Object.assign(sourceParams, attribution);
         }
       }
     } else {

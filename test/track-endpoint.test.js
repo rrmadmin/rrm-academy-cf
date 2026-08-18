@@ -17,11 +17,14 @@ import { mockRequest, mockEnv, mockWaitUntil, parseResponse, randomIp } from './
 // counter via makeFetchStub() so there's no cross-test contamination.
 
 function makeFetchStub() {
-  const state = { callCount: 0 };
+  const state = { callCount: 0, bodies: [] };
   const original = globalThis.fetch;
-  globalThis.fetch = async (url) => {
+  globalThis.fetch = async (url, init) => {
     if (String(url).includes('google-analytics.com')) {
       state.callCount++;
+      // Parsed Measurement Protocol payload, so tests can assert on what
+      // actually egresses (attribution params, session_id, page_location).
+      try { state.bodies.push(JSON.parse(init.body)); } catch { state.bodies.push(null); }
       return { ok: true, status: 200, json: async () => ({}), text: async () => '' };
     }
     if (original) return original(url);
@@ -43,7 +46,7 @@ function makeAnalyticsStub() {
 }
 
 // --- Context factory ---
-function makeContext({ body, ipOverride, envOverrides = {} } = {}) {
+function makeContext({ body, ipOverride, envOverrides = {}, headers = {} } = {}) {
   const ip = ipOverride || randomIp();
   const ae = makeAnalyticsStub();
   const env = mockEnv({
@@ -55,7 +58,7 @@ function makeContext({ body, ipOverride, envOverrides = {} } = {}) {
   const waitUntil = mockWaitUntil();
   const request = mockRequest('POST', {
     body,
-    headers: { 'CF-Connecting-IP': ip },
+    headers: { 'CF-Connecting-IP': ip, ...headers },
     url: 'https://rrmacademy.org/api/track',
   });
   return { request, env, waitUntil, data: {}, ae };
@@ -430,6 +433,183 @@ describe('POST /api/track -- bot short-circuit', () => {
       assert.equal(ctx.waitUntil.promises.length, 0, 'no GA4 call for a datacenter-ASN request');
       assert.equal(ctx.ae.calls.length, 1, 'a cheap bot_skipped AE counter event is written, not the normal event');
       assert.equal(ctx.ae.calls[0].blobs[1], 'bot_skipped');
+    } finally { restore(); }
+  });
+});
+
+describe('POST /api/track -- beacon attribution forwarding', () => {
+  // The client beacon sends cid/sid/sn at the top level, so sendGA4Event takes
+  // its overrides branch. Attribution on that branch comes from the entry_ref/
+  // entry_url cookies via buildSourceParams; the client's own utm_*/entry_*
+  // params are RESERVED_PARAMS and never reach GA4.
+  const CID = '3f2504e0-4f89-41d3-9a0c-0305e82c3301';
+  const SID = 1757000000;
+
+  const AD_ENTRY_URL = 'https://rrmacademy.org/endo-quiz/?utm_source=google&utm_medium=cpc' +
+    '&utm_campaign=google_ads_endometriosis_symptom_quiz_2026-q3' +
+    '&utm_content=818477153915&gclid=EAIaIQobChMI-test';
+  const AD_PAGE_LOCATION = 'https://rrmacademy.org/endo-quiz/?utm_source=google&utm_medium=cpc&gclid=x';
+
+  function adCookie() {
+    return 'entry_ref=; entry_url=' + encodeURIComponent(AD_ENTRY_URL);
+  }
+
+  // Earlier tests in this file leave un-awaited waitUntil promises whose GA4
+  // fetches land on whichever stub is installed when they settle, so scope the
+  // lookup to this beacon's own client_id rather than to the whole capture.
+  async function captureGa4Params(ctx, state) {
+    await Promise.all(ctx.waitUntil.promises);
+    const beacons = state.bodies.filter((b) => b && b.client_id === CID);
+    assert.equal(beacons.length, 1, 'exactly one GA4 Measurement Protocol call for this beacon');
+    return beacons[0];
+  }
+
+  it('forwards the full paid attribution set from the entry_url cookie', async () => {
+    const { restore, state } = makeFetchStub();
+    try {
+      const ctx = makeContext({
+        body: {
+          event: 'page_view',
+          params: { page_location: AD_PAGE_LOCATION, page_referrer: '' },
+          cid: CID,
+          sid: SID,
+          sn: 1,
+        },
+        headers: { Cookie: adCookie() },
+      });
+      const res = await onRequestPost(ctx);
+      assert.equal(res.status, 204);
+      const mp = await captureGa4Params(ctx, state);
+      const p = mp.events[0].params;
+      assert.equal(mp.client_id, CID, 'client_id must be the client cid');
+      assert.equal(p.session_id, SID, 'session_id must be the client sid, never the server-derived one');
+      assert.equal(p.session_number, 1);
+      assert.equal(p.entry_category, 'paid');
+      assert.equal(p.entry_platform, 'google');
+      assert.equal(p.utm_medium, 'cpc');
+      assert.equal(p.utm_campaign, 'google_ads_endometriosis_symptom_quiz_2026-q3');
+      assert.equal(p.utm_content, '818477153915');
+      assert.equal(p.page_location, 'https://rrmacademy.org/endo-quiz/', 'page_location must egress with no query string');
+    } finally { restore(); }
+  });
+
+  it('ignores client-supplied utm_campaign/entry_category in favor of the cookie-derived values', async () => {
+    const { restore, state } = makeFetchStub();
+    try {
+      const ctx = makeContext({
+        body: {
+          event: 'page_view',
+          params: {
+            page_location: AD_PAGE_LOCATION,
+            page_referrer: '',
+            utm_campaign: 'client_spoof',
+            entry_category: 'organic',
+          },
+          cid: CID,
+          sid: SID,
+          sn: 1,
+        },
+        headers: { Cookie: adCookie() },
+      });
+      const res = await onRequestPost(ctx);
+      assert.equal(res.status, 204);
+      const mp = await captureGa4Params(ctx, state);
+      const p = mp.events[0].params;
+      assert.equal(p.utm_campaign, 'google_ads_endometriosis_symptom_quiz_2026-q3', 'client utm_campaign must be dropped');
+      assert.equal(p.entry_category, 'paid', 'client entry_category must be dropped');
+    } finally { restore(); }
+  });
+
+  it('forwards organic attribution with no utm keys when the entry URL carries none', async () => {
+    const { restore, state } = makeFetchStub();
+    try {
+      const ctx = makeContext({
+        body: {
+          event: 'page_view',
+          params: { page_location: 'https://rrmacademy.org/library/', page_referrer: 'https://www.google.com/' },
+          cid: CID,
+          sid: SID,
+          sn: 1,
+        },
+        headers: {
+          Cookie: 'entry_ref=' + encodeURIComponent('https://www.google.com/') +
+            '; entry_url=' + encodeURIComponent('https://rrmacademy.org/library/'),
+        },
+      });
+      const res = await onRequestPost(ctx);
+      assert.equal(res.status, 204);
+      const mp = await captureGa4Params(ctx, state);
+      const p = mp.events[0].params;
+      assert.equal(p.entry_category, 'organic');
+      assert.equal(p.entry_platform, 'google');
+      assert.ok(!('utm_campaign' in p), 'utm_campaign must be absent when the entry URL has none');
+      assert.ok(!('utm_content' in p), 'utm_content must be absent when the entry URL has none');
+    } finally { restore(); }
+  });
+
+  it('sends no attribution keys and keeps the client session_id when no cookies are present', async () => {
+    const { restore, state } = makeFetchStub();
+    try {
+      const ctx = makeContext({
+        body: {
+          event: 'page_view',
+          params: { page_location: 'https://rrmacademy.org/', page_referrer: '' },
+          cid: CID,
+          sid: SID,
+          sn: 1,
+        },
+      });
+      const res = await onRequestPost(ctx);
+      assert.equal(res.status, 204);
+      const mp = await captureGa4Params(ctx, state);
+      const p = mp.events[0].params;
+      assert.equal(p.session_id, SID);
+      assert.ok(!('entry_category' in p), 'entry_category must be absent with no entry cookies');
+      assert.ok(!('entry_platform' in p), 'entry_platform must be absent with no entry cookies');
+      assert.ok(!('utm_campaign' in p), 'utm_campaign must be absent with no entry cookies');
+    } finally { restore(); }
+  });
+
+  it('forwards email_type and list_source, which the beacon branch previously dropped', async () => {
+    const { restore, state } = makeFetchStub();
+    try {
+      const entryUrl = 'https://rrmacademy.org/?utm_source=email&utm_medium=newsletter&list_source=endo_survey_signup';
+      const ctx = makeContext({
+        body: {
+          event: 'page_view',
+          params: { page_location: 'https://rrmacademy.org/', page_referrer: '' },
+          cid: CID,
+          sid: SID,
+          sn: 1,
+        },
+        headers: {
+          Cookie: 'entry_url=' + encodeURIComponent(entryUrl) + '; list_source=endo_survey_signup',
+        },
+      });
+      const res = await onRequestPost(ctx);
+      assert.equal(res.status, 204);
+      const mp = await captureGa4Params(ctx, state);
+      const p = mp.events[0].params;
+      assert.equal(p.entry_category, 'email');
+      assert.equal(p.email_type, 'broadcast');
+      assert.equal(p.list_source, 'endo_survey_signup');
+    } finally { restore(); }
+  });
+
+  it('accepts paid as an AE entry_category hint', async () => {
+    const { restore } = makeFetchStub();
+    try {
+      const ctx = makeContext({
+        body: {
+          event: 'cta_click',
+          params: { id: 'hero', page: '/', entry_category: 'paid' },
+        },
+      });
+      const res = await onRequestPost(ctx);
+      assert.equal(res.status, 204);
+      assert.equal(ctx.ae.calls.length, 1);
+      assert.equal(ctx.ae.calls[0].blobs[2], 'paid', 'paid must be a valid AE entry_category hint');
+      await Promise.all(ctx.waitUntil.promises);
     } finally { restore(); }
   });
 });

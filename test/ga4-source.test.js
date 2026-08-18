@@ -138,6 +138,19 @@ describe('extractUtm', () => {
     const result = extractUtm('https://rrmacademy.org/?page=2&utm_source=test&sort=date');
     assert.deepStrictEqual(result, { utm_source: 'test' });
   });
+
+  it('clamps a captured value to the GA4 100-character parameter limit', () => {
+    const long = 'a'.repeat(150);
+    const result = extractUtm(`https://rrmacademy.org/?utm_campaign=${long}`);
+    assert.equal(result.utm_campaign.length, 100);
+    assert.equal(result.utm_campaign, 'a'.repeat(100));
+  });
+
+  it('leaves a value of exactly 100 characters unchanged', () => {
+    const exact = 'b'.repeat(100);
+    const result = extractUtm(`https://rrmacademy.org/?utm_campaign=${exact}`);
+    assert.equal(result.utm_campaign, exact);
+  });
 });
 
 describe('classifyPaid', () => {
