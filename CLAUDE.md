@@ -525,7 +525,7 @@ Push to `claude/` branch -- GitHub Actions auto-builds + merges. No local creden
 
 A zero-dependency Node.js script (`scripts/guard.mjs`) that blocks deployments if critical security files are tampered with.
 
-**Guarded files** (hash-checked via `guard-manifest.json`, 44 files):
+**Guarded files** (hash-checked via `guard-manifest.json`, which is the SSOT for the full list; the bullets below are the security-relevant subset):
 - `functions/api/auth/_shared.js` — CORS, sessions, crypto, rate limiting
 - `functions/api/auth/login.js`, `signup.js`, `google-callback.js`, `google.js` — authentication
 - `functions/api/auth/forgot-password.js`, `reset-password.js`, `change-password.js` — password management
