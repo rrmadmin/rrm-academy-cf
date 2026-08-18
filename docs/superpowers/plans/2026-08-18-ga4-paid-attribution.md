@@ -176,6 +176,32 @@ Files: `scripts/ga4-phase4-config.mjs`, `scripts/gates/validate-analytics-pipeli
 3. Spec HTML: in the §15.2 table (`<h3>15.2 Custom dimensions to register in GA4</h3>`), append two `<tr>` rows before `</tbody>` for `utm_campaign` (event-scoped, source param `utm_campaign`, why: campaign name from the entry URL; Google Ads `final_url_suffix` and email links) and `utm_content` (event-scoped, `utm_content`, why: creative/ad id from the entry URL; `{creative}` on Google Ads). Directly after the table add one paragraph: `<p><strong>Addendum 2026-08-18:</strong> <code>entry_category = paid</code> is now emitted: <code>buildSourceParams()</code> classifies a visit as paid when the entry URL carries a Google/Microsoft click id (<code>gclid</code>, <code>gbraid</code>, <code>wbraid</code>, <code>msclkid</code>) or a paid <code>utm_medium</code> (GA4's own <code>^(.*cp.*|ppc|retargeting|paid.*)$</code>). <code>fbclid</code> is not a paid signal. The beacon branch of <code>sendGA4Event()</code> forwards the full attribution set (<code>entry_*</code>, <code>utm_*</code>, <code>email_type</code>, <code>list_source</code>) instead of only <code>entry_category</code>/<code>entry_platform</code>. Native GA4 channel groups stay Unassigned by design (no tag).</p>`. Also update the line `<li><strong>Register 13 custom dimensions</strong> (§15.2)` to 15.
 4. Run `node scripts/gates/validate-analytics-pipeline.mjs` (all gates) and confirm it still passes with no new FAIL; run `node --check scripts/ga4-phase4-config.mjs` to prove the edited script still parses. Do not run the config script itself (it mutates the live GA4 property; Brian's go).
 
+## Task 4: PII value screen on server-derived attribution (added after the Task 2 review)
+
+Files: `functions/api/_ga4.js`, `test/track-endpoint.test.js`, new `test/ga4-event.test.js`.
+
+Why: `/api/track` runs every client param value through `PII_VALUE_REGEX` (`functions/api/_track-events.js:78`) before it reaches GA4, but the server-derived attribution set from `buildSourceParams()` (parsed from the third-party-authored `entry_url` cookie) has never been screened. Task 2 widened that set's egress from rare conversion events to every page_view, so an external newsletter that stamps subscriber emails into `utm_term` or `utm_content` (a real, common bad practice) would now put PII into GA4 on every visit it sends. Apply the same screen the client path already uses, on BOTH branches of `sendGA4Event`, in one place.
+
+Change in `functions/api/_ga4.js`:
+1. Add `import { PII_VALUE_REGEX } from './_track-events.js';` next to the existing `_ga4-source.js` import (`_track-events.js` is a side-effect-free constants module; `track.js` already imports the same symbol).
+2. Directly after the `if (overrides.client_id != null && overrides.session_id != null) { ... } else { sourceParams = await buildSourceParams(request, clientId); }` block and BEFORE `const defaultPageLocation = ...`, add:
+
+```js
+    // Server-derived attribution is parsed from the entry_url cookie, which is
+    // authored by whoever built the inbound link (a newsletter that stamps the
+    // subscriber's email into utm_term, for instance). Apply the same value
+    // screen /api/track applies to client params so PII never reaches GA4 from
+    // either branch. Numeric ad ids ({creative} is 11-12 digits) do not match.
+    for (const [key, value] of Object.entries(sourceParams)) {
+      if (typeof value === 'string' && PII_VALUE_REGEX.test(value)) delete sourceParams[key];
+    }
+```
+
+Tests:
+- `test/track-endpoint.test.js`, in the existing `describe('POST /api/track -- beacon attribution forwarding')`, add case 7: same request shape as case 1 but the `entry_url` cookie is `https://rrmacademy.org/endo-quiz/?utm_source=google&utm_medium=cpc&utm_campaign=google_ads_endometriosis_symptom_quiz_2026-q3&utm_content=818477153915&utm_term=jane.doe%40example.com&gclid=EAIaIQobChMI-test` -> the captured MP body has NO `utm_term` key, and still has `entry_category 'paid'`, `utm_campaign` as given, and `utm_content '818477153915'` (proves the 12-digit ad id survives the phone/card patterns).
+- New `test/ga4-event.test.js` (conversion branch, no overrides): stub `globalThis.fetch` the same way `test/track-endpoint.test.js` does (capture parsed body for google-analytics.com calls), build a request via `mockRequest('POST', { headers: { 'CF-Connecting-IP': '203.0.113.5', 'User-Agent': 'test', Cookie: 'entry_ref=; entry_url=' + encodeURIComponent('https://rrmacademy.org/?utm_source=partner_news&utm_medium=email&utm_campaign=aug&utm_term=jane.doe%40example.com') }, url: 'https://rrmacademy.org/api/newsletter/subscribe' })`, env via `mockEnv()` (it already carries `GA4_MEASUREMENT_ID`/`GA4_API_SECRET`), then `await sendGA4Event(env, request, 'generate_lead', { lead_source: 'newsletter' })`. Assert: exactly one captured body; `events[0].params.utm_term` is absent; `utm_source === 'partner_news'`; `utm_campaign === 'aug'`; `lead_source === 'newsletter'`. Second case: an `entry_url` with `utm_content=555-123-4567` -> `utm_content` absent (phone pattern), other keys intact.
+- Run `node scripts/gates/validate-analytics-pipeline.mjs` (AG7 allows `www.google-analytics.com` only in `_ga4.js`; unchanged) and the G9 set.
+
 ## Out of scope (recorded, not built)
 
 - `create-checkout.js` / `courses/enroll.js` still classify by referrer only (purchase/enroll from a paid click stays organic/direct). Follow-up: call `classifyPaid(entry_url)` there; both already receive `entry_url`.
