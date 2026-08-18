@@ -424,6 +424,14 @@ Companion to the HttpOnly `session` cookie. **No PII, no session ID** — just a
 
 **Rule:** When adding any new code path that creates a session, pair-issue both cookies. When adding any new code path that observes "no session" but received a hint cookie in the request, clear the hint via `clearAuthHintCookie()`.
 
+## Redirect Target Validation
+
+Any `?redirect=`/`?next=` param that becomes a client-side `window.location.href` or a server-side `Location` MUST be validated by parsing it as a URL and comparing `.origin`, never by string-prefix checks (`indexOf('//')`, `startsWith('/')`). String checks are bypassable via `%09`/`%0a` tab/newline injection: `URLSearchParams.get()` decodes `%09` to a literal TAB, so `/\t/evil.com` contains no `//` substring and passes, then the browser strips tab/newline from the whole URL per the WHATWG URL Standard before parsing, turning it into `//evil.com` (CRITICAL open redirect, found + fixed 2026-08-18 in `login.astro`; `signup.astro` hardened to match). `functions/api/auth/_shared.js`'s `isSafeRedirect()` is the canonical pattern -- client-side checks must mirror it (`new URL(dest, location.origin).origin === location.origin`), not roll their own substring test.
+
+`functions/api/auth/google-callback.js`'s `appendRedirectParam()` helper threads the original `?redirect=` through recoverable OAuth error branches (skips the terminal `account_blocked` case and the default `/account/`) -- reuse it for any new error early-return that should preserve the user's destination.
+
+`functions/_middleware.js`'s `render500Page()` helper returns a branded fail-closed 500 with security headers -- wrap any new `validateSession()`/`context.next()` call added inside the `needsAuth`/`isAdminPage` blocks in try/catch using it; the file's outer catch is unreachable from those early-return blocks.
+
 ## Email Validation (ELV)
 
 **EmailListVerify** provides SMTP-level mailbox verification. Shared helper: `functions/api/_elv.js`.
