@@ -222,12 +222,20 @@
       "hash": "c8053c9818a055f56bdfe145bbab83ca1aa7566d2c512d96edcd6e6ca0f17eaa"
     },
     "functions/api/track.js": {
-      "hash": "f23f00cecb9fd344f184d036a175130000643a48f3476676b2a88f48e00a4ece",
+      "hash": "8406f738a9d8529cac16274524fd1776d7d94711d755e3a677fc91e5a58a25bc",
       "note": "Client analytics endpoint: rate limit + allowlist + PII strip + GA4 MP relay + AE mirror"
     },
     "functions/api/_track-events.js": {
       "hash": "51a87fc4276db78422804a6afc0c56b776daf5a68361d91876be5262730d3325",
       "note": "Allowed events, required params, PII_REGEX, reserved params (security invariants for /api/track)"
+    },
+    "functions/api/_ga4.js": {
+      "hash": "8939b044c854346d15478e5d36eab856b04b1e558be0ea64cc196a6cff430988",
+      "note": "GA4 MP relay: server-derived attribution PII screen (second pass) + page_location query/hash/userinfo strip"
+    },
+    "functions/api/_ga4-source.js": {
+      "hash": "bc5c8316caa9be716c19ffe62aa581c4237ec59c5eacb4ebe83da339f1102e84",
+      "note": "Traffic-source classification: utm value PII screen (first pass) + 100-char clamp + paid/email overrides"
     },
     "functions/api/email/events.js": {
       "hash": "9bd41fadde6cf5650e8bdf2960491047af6e3dd1dd3f4a2613020661784903d6",

@@ -7,6 +7,7 @@
  */
 
 import { buildSourceParams, getClientId, parseCookie } from './_ga4-source.js';
+import { PII_VALUE_REGEX } from './_track-events.js';
 
 const GA4_ENDPOINT = 'https://www.google-analytics.com/mp/collect';
 
@@ -38,29 +39,49 @@ export async function sendGA4Event(env, request, eventName, params = {}, overrid
     const clientId = overrides.client_id || await getClientId(request);
     // When both client_id and session_id are overridden (client beacon or webhook replay),
     // skip buildSourceParams -- the request arrives via the first-party /api/track relay,
-    // so server-side headers are not the user's browser context. Attribution for the client
-    // beacon comes from page_location (with utm_*) and page_referrer in the event params
-    // which the client sends directly. session_number is included when provided.
+    // so its URL is /api/track and its Referer is a same-origin self-referral to the page
+    // the user is on, which classifySource files as direct. Neither one is the entry URL,
+    // so page_location (with utm_*) and page_referrer come from the event params the
+    // client sends directly, and the entry_ref/entry_url cookies are preferred over both
+    // in the fallback below. Those cookies ARE the user's, because the beacon is
+    // same-origin. session_number is included when provided.
     let sourceParams;
     if (overrides.client_id != null && overrides.session_id != null) {
       sourceParams = { session_id: overrides.session_id };
       if (overrides.session_number != null) sourceParams.session_number = overrides.session_number;
       // Entry-source attribution is normally skipped on this branch (see
-      // comment above) because server headers aren't the user's browser
-      // context. But when the caller's own params are missing entry_category/
-      // entry_platform, fall back to the entry_ref/entry_url cookies (same
-      // signal buildSourceParams already reads) rather than shipping the
-      // event with no attribution at all.
+      // comment above) because the relay request's own URL and self-referral
+      // Referer are not the entry URL. But when the caller's own params are
+      // missing entry_category/entry_platform, fall back to the entry_ref and
+      // entry_url cookies (same signal buildSourceParams already reads) rather
+      // than shipping the event with no attribution at all. The whole
+      // attribution set travels, not just entry_category/entry_platform:
+      // entry_*, utm_*, email_type, list_source.
       if (params.entry_category == null || params.entry_platform == null) {
         const cookies = request.headers.get('Cookie') || '';
         if (parseCookie(cookies, 'entry_ref') || parseCookie(cookies, 'entry_url')) {
           const derived = await buildSourceParams(request, clientId);
-          if (params.entry_category == null && derived.entry_category) sourceParams.entry_category = derived.entry_category;
-          if (params.entry_platform == null && derived.entry_platform) sourceParams.entry_platform = derived.entry_platform;
+          // Forward everything buildSourceParams knows about the visit except
+          // its server-derived session_id: the client's session_id (overrides)
+          // is the real one and must win. Caller params still spread last in
+          // the payload, so a caller-supplied value is never clobbered here.
+          const { session_id: _serverSessionId, ...attribution } = derived;
+          Object.assign(sourceParams, attribution);
         }
       }
     } else {
       sourceParams = await buildSourceParams(request, clientId);
+    }
+    // Server-derived attribution is parsed from the entry_url cookie, which is
+    // authored by whoever built the inbound link (a newsletter that stamps the
+    // subscriber's email into utm_term, for instance). Apply the same value
+    // screen /api/track applies to client params so PII never reaches GA4 from
+    // either branch. The utm_* values were already screened raw in extractUtm
+    // before clamping, so this pass covers the rest of the set (list_source and
+    // the referrer-derived values). Pure digit runs of 10 or 13-19 characters
+    // are dropped (phone/card shapes); {creative} ad ids are 11-12 digits and pass.
+    for (const [key, value] of Object.entries(sourceParams)) {
+      if (typeof value === 'string' && PII_VALUE_REGEX.test(value)) delete sourceParams[key];
     }
     const defaultPageLocation = (() => { try { const u = new URL(request.headers.get('referer') || request.url); u.username = ''; u.password = ''; u.search = ''; u.hash = ''; return u.toString(); } catch { return ''; } })();
     const payload = {

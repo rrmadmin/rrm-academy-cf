@@ -709,6 +709,8 @@ function gateAG12() {
     'engagement_tier',
     'cohort_date',
     'audience_type',
+    'utm_campaign',
+    'utm_content',
   ];
   const files = [
     ...walkSource('src', ['.astro', '.ts', '.tsx', '.js', '.mjs']),
