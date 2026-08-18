@@ -2,7 +2,14 @@
 
 **Date:** 2026-08-18
 **Spec:** `docs/superpowers/specs/2026-05-15-client-analytics-spec.html` §15.2 (already lists `paid` as an `entry_category` value; never implemented) + §15.7 (UTM convention).
-**Branch:** `claude/ga4-paid-attribution` (worktree `.worktrees/ga4-paid-attribution`)
+**Branch:** `ga4-paid-attribution` (worktree `.worktrees/ga4-paid-attribution`, cut from `origin/main` at `c3854da5`, fetched 2026-08-18). Deliberately NOT under `claude/**`: `.github/workflows/merge.yml` auto-merges every `claude/**` push straight to `main`, and `deploy.yml` deploys `main` on any `functions/**` change, so a `claude/**` push would BE the production deploy. On this branch a push only opens a PR (`tests.yml` unit + coverage floor, `build-verify.yml`, `security.yml` run on `pull_request`); merging the PR is the deploy and is Brian's explicit go.
+
+## Execution, revert, verification
+
+- Executor: subagent-driven development from this session (controller does not edit code). Implementers: the repo-mandated `coder` agent for anything under `functions/api/` (Tasks 1 and 2, model opus), a general-purpose implementer for Task 3 (model sonnet). Task reviewers and the final whole-branch reviewer: model opus. Fix loop cap: 5 rounds per task, then adjudicate and stop; a pre-commit hook that blocks and cannot be satisfied by fixing the finding in one attempt is an abort (report, do not bypass).
+- Auto-mode: build + test + PR only. No deploy, no GA4 admin mutation, no push to `main` from this plan.
+- Revert (whole feature, no external state involved because nothing outside git changes): `git revert -m 1 <merge-commit-sha>` on `main` (or "Revert" on the PR), which redeploys the prior code via `deploy.yml`. Pre-change production SHA: `c3854da5`. GA4 custom-dimension registration is additive metadata and can stay if the code is reverted (dimensions simply stop populating).
+- Post-deploy verification (live effect, not liveness): (1) `curl -s -o /dev/null -w '%{http_code}' -X POST https://rrmacademy.org/api/track -H 'Content-Type: application/json' -H 'Cookie: entry_ref=; entry_url=https%3A%2F%2Frrmacademy.org%2F%3Futm_source%3Dgoogle%26utm_medium%3Dcpc%26utm_campaign%3Ddeploy_proof_2026_08_18%26gclid%3Ddeployproof' -d '{"event":"page_view","params":{"page_location":"https://rrmacademy.org/"},"cid":"00000000-0000-4000-8000-00000000d3ad","sid":<epoch seconds>,"sn":1}'` returns 204; (2) GA4 property 526304690 realtime or next-day report shows `customEvent:entry_category = paid` with `customEvent:utm_campaign = deploy_proof_2026_08_18` for that one event; (3) within a week, ads clicks show up as `entry_category = paid`, `entry_platform = google` on `/endo-quiz/` page_views (the ads-only funnel page `/endo-quiz/results/` stops filing as `organic/google`).
 
 ## Problem (measured 2026-08-18)
 
@@ -20,10 +27,11 @@ Native GA4 channel groups (`sessionDefaultChannelGroup`, `sessionSourceMedium`) 
 - G4. Precedence inside `buildSourceParams`: existing email override runs first, then the paid override, so a click id or paid medium wins over `utm_source=email`.
 - G5. `session_id` on the beacon branch is ALWAYS the client's `overrides.session_id`; the server-derived `session_id` from `buildSourceParams` is never forwarded.
 - G6. Client-supplied `utm_*`, `entry_*`, `email_type`, `list_source` stay in `RESERVED_PARAMS` and are still dropped by `/api/track`; only server-derived values reach GA4. `page_location` still egresses with no query string or hash.
-- G7. New param names emitted to GA4: `utm_campaign`, `utm_content` (both to be registered as event-scoped custom dimensions). Names stay `utm_*` to match the existing server-conversion path (`buildSourceParams` return shape), no renaming.
+- G7. The beacon branch forwards the exact set the server-conversion path already emits from `buildSourceParams()`: `entry_category`, `entry_platform`, `utm_source`, `utm_medium`, and when present `utm_campaign`, `utm_content`, `utm_term`, `email_type`, `list_source`. Newly registered as event-scoped custom dimensions: `utm_campaign`, `utm_content`. Deliberately NOT registered: `utm_source`/`utm_medium` (redundant with `entry_platform`/`entry_category`, and already emitted unregistered by the conversion path today) and `utm_term` (no RRM link populates it; register the day one does). Names stay `utm_*`, no renaming.
 - G8. Value convention per spec §15.7: lowercase, underscore, ASCII for our own literals (gate AG6). Ad platform names emitted as `entry_platform` are canonical lowercase: `google`, `bing`.
-- G9. Tests: `node --experimental-strip-types --test test/ga4-source.test.js test/track-endpoint.test.js` must pass; `npm test` (4618 tests baseline, 0 fail) must pass; `node scripts/gates/validate-analytics-pipeline.mjs` must still pass (7 warnings baseline). `npm run lint` clean on `functions/`.
-- G10. Commit messages are written to a file and committed with `git commit -F <file>`; never a long `-m` (global hook doctrine). Never bypass the pre-commit hooks; if a hook blocks, fix the finding and report it.
+- G9. Tests: `node --experimental-strip-types --test test/ga4-source.test.js test/track-endpoint.test.js` must pass; `npm test` (4618 tests baseline, 0 fail) must pass; `node scripts/gates/validate-analytics-pipeline.mjs` must still pass (7 warnings baseline, no `dist/` present); `npm run quality:coverage` must still PASS (baseline PRODUCT-CODE 43.82% vs 41% floor; `merge.yml`/`tests.yml` run it); `npm run lint` on `functions/` stays at 0 errors (14 warnings baseline). Astro build is exercised by `build-verify.yml` on the PR, not locally.
+- G9b. `functions/api/track.js` and `functions/api/_track-events.js` are hash-guarded in `guard-manifest.json` (`node scripts/guard.mjs` fails on a stale hash; `merge.yml` and the pre-commit hook both run it). Any commit that changes `track.js` MUST run `npm run guard:update` and stage `guard-manifest.json` in that same commit; verify with `node scripts/guard.mjs` before committing.
+- G10. Commit messages are written to `.superpowers/sdd/2026-08-18-ga4-paid-attribution/commit-task-<N>.txt` (git-ignored) and committed with `git add <named paths> && git commit -F <that file>`; never a long `-m` (global hook doctrine). Never bypass the pre-commit hooks (`--no-verify` is forbidden); if a hook blocks, fix the finding once and re-run; if it still blocks, stop and report BLOCKED.
 - G11. No em dashes in code comments or docs.
 
 ## Task 1: paid classifier in `_ga4-source.js`
@@ -87,13 +95,15 @@ In `buildSourceParams`, directly AFTER the existing email override block (the `i
 ```js
   // Paid override: a click id or paid utm_medium in the entry URL means the
   // visit was bought regardless of referrer. Runs after the email override so
-  // a paid click always wins over utm_source=email.
+  // a paid click always wins over utm_source=email, and clears email_type so a
+  // bought visit never lands in an email slice.
   const paid = classifyPaid(url, utmParams);
   if (paid) {
     classified.source = paid.source;
     classified.medium = paid.medium;
     classified.entry_category = paid.entry_category;
     if (paid.entry_platform) classified.entry_platform = paid.entry_platform;
+    delete classified.email_type;
   }
 ```
 
@@ -118,7 +128,7 @@ Tests to add in `test/ga4-source.test.js` (import `classifyPaid`):
 `describe('buildSourceParams paid override')` using the existing `fakeRequest` helper pattern in that file:
 13. `entry_url` cookie = `https://rrmacademy.org/endo-quiz/?utm_source=google&utm_medium=cpc&utm_campaign=google_ads_endometriosis_symptom_quiz_2026-q3&utm_content=818477153915&gclid=EAIaIQobChMI-test` with `entry_ref` cookie empty -> `entry_category 'paid'`, `entry_platform 'google'`, `utm_source 'google'`, `utm_medium 'cpc'`, `utm_campaign` and `utm_content` as given.
 14. same cookie but `entry_ref` = `https://www.google.com/` -> still `paid`/`google` (paid beats organic).
-15. `entry_url` with `gclid` and `utm_source=email&utm_medium=newsletter` -> `entry_category 'paid'` (G4), and `email_type` is still whatever the email override set (do not strip it; assert `email_type === 'broadcast'`).
+15. `entry_url` with `gclid` and `utm_source=email&utm_medium=newsletter` -> `entry_category 'paid'`, `entry_platform 'google'` (G4), and `email_type` is ABSENT from the returned object (`assert.equal('email_type' in params, false)`): a bought visit never carries an email slice.
 16. `entry_url` = `https://rrmacademy.org/?fbclid=abc` with instagram `entry_ref` -> `social`/`instagram` (unchanged).
 17. `entry_url` = `https://rrmacademy.org/?utm_medium=cpc` (no source, no click id), `entry_ref` empty -> `entry_category 'paid'`, `entry_platform 'direct'` (falls back to referrer-derived platform).
 18. Existing test "uses entry_url cookie for UTM extraction" (`utm_source=gads&utm_medium=cpc`) must keep passing unchanged and now also yields `entry_category 'paid'`; extend that test with the two new assertions rather than duplicating it.
@@ -141,7 +151,7 @@ In `functions/api/_ga4.js`, inside the beacon branch (`overrides.client_id != nu
 
 Keep the surrounding trigger condition (`if (params.entry_category == null || params.entry_platform == null)` and the cookie presence check) exactly as is. Update the comment block above it so it no longer says only entry_category/entry_platform are forwarded (it now says: the full attribution set: `entry_*`, `utm_*`, `email_type`, `list_source`). If eslint's `no-unused-vars` complains about `_serverSessionId`, use whichever pattern sibling files in `functions/api/` already use for an intentionally-unused destructure (check `.eslintrc*`/`eslint.config.*` for `varsIgnorePattern`); if none exists, delete the key from a shallow copy instead (`const attribution = { ...derived }; delete attribution.session_id;`).
 
-In `functions/api/track.js`, add `'paid'` to `ENTRY_CATEGORY_VALUES` and update the comment so it lists `paid` (the comment says the set mirrors what `classifySource()`/`buildSourceParams()` emit; that is now true again). No other track.js change.
+In `functions/api/track.js`, add `'paid'` to `ENTRY_CATEGORY_VALUES` and update the comment so it lists `paid` (the comment says the set mirrors what `classifySource()`/`buildSourceParams()` emit; that is now true again). No other track.js change. `track.js` is hash-guarded (G9b): after editing it run `npm run guard:update`, confirm `node scripts/guard.mjs` passes and that the ONLY manifest hash that changed is `functions/api/track.js` (`git diff guard-manifest.json`), and stage `guard-manifest.json` in the same commit as `track.js`.
 
 Tests to add in `test/track-endpoint.test.js`. Extend `makeFetchStub()` so it also records the parsed JSON body of each google-analytics.com call (`state.bodies.push(JSON.parse(init.body))`, capturing the second fetch argument); keep `callCount` behavior. New `describe('POST /api/track -- beacon attribution forwarding')`:
 
@@ -159,10 +169,10 @@ Files: `scripts/ga4-phase4-config.mjs`, `scripts/gates/validate-analytics-pipeli
 1. `scripts/ga4-phase4-config.mjs`: append two rows to `CUSTOM_DIMENSIONS`:
    `['UTM Campaign', 'utm_campaign', 'EVENT', 'utm_campaign from the entry URL (Google Ads final_url_suffix, email links)']` and
    `['UTM Content', 'utm_content', 'EVENT', 'utm_content from the entry URL ({creative} ad id on Google Ads)']`.
-   Update the header comment count "Creates 13 custom dimensions" to 15 and add the two names to that list.
-2. `scripts/gates/validate-analytics-pipeline.mjs` AG12 `SPEC_DIMS`: append `'utm_campaign'`, `'utm_content'`.
+   Update ONLY the header line `*   - Creates 13 custom dimensions (user_role, entry_category, entry_platform,` (line 6) to say 15 and add `utm_campaign, utm_content` to that parenthetical list; the separate `13 saved audiences` line (line 13) is unrelated and stays 13.
+2. `scripts/gates/validate-analytics-pipeline.mjs` AG12 `SPEC_DIMS`: append `'utm_campaign'`, `'utm_content'`. This is parity bookkeeping only: AG12 greps source for the name and both names already appear in `_ga4-source.js`/`_track-events.js`, so it cannot prove the beacon emits them. The proof that they reach GA4 is Task 2 test 1 (MP body assertion), not this gate.
 3. Spec HTML: in the §15.2 table (`<h3>15.2 Custom dimensions to register in GA4</h3>`), append two `<tr>` rows before `</tbody>` for `utm_campaign` (event-scoped, source param `utm_campaign`, why: campaign name from the entry URL; Google Ads `final_url_suffix` and email links) and `utm_content` (event-scoped, `utm_content`, why: creative/ad id from the entry URL; `{creative}` on Google Ads). Directly after the table add one paragraph: `<p><strong>Addendum 2026-08-18:</strong> <code>entry_category = paid</code> is now emitted: <code>buildSourceParams()</code> classifies a visit as paid when the entry URL carries a Google/Microsoft click id (<code>gclid</code>, <code>gbraid</code>, <code>wbraid</code>, <code>msclkid</code>) or a paid <code>utm_medium</code> (GA4's own <code>^(.*cp.*|ppc|retargeting|paid.*)$</code>). <code>fbclid</code> is not a paid signal. The beacon branch of <code>sendGA4Event()</code> forwards the full attribution set (<code>entry_*</code>, <code>utm_*</code>, <code>email_type</code>, <code>list_source</code>) instead of only <code>entry_category</code>/<code>entry_platform</code>. Native GA4 channel groups stay Unassigned by design (no tag).</p>`. Also update the line `<li><strong>Register 13 custom dimensions</strong> (§15.2)` to 15.
-4. Run `node scripts/gates/validate-analytics-pipeline.mjs --gate AG12` and confirm the two new dims report as present.
+4. Run `node scripts/gates/validate-analytics-pipeline.mjs` (all gates) and confirm it still passes with no new FAIL; run `node --check scripts/ga4-phase4-config.mjs` to prove the edited script still parses. Do not run the config script itself (it mutates the live GA4 property; Brian's go).
 
 ## Out of scope (recorded, not built)
 
