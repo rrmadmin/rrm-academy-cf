@@ -31,7 +31,7 @@
       "note": "OAuth redirect initiation"
     },
     "functions/api/auth/google-callback.js": {
-      "hash": "44faef1935bafefb9155acadde2e6ee233c80c444a61b34621b3af848cadc6ba",
+      "hash": "b2cf3b68d908b106e2548eebe62d4ccb60b62fa0d2d99daee6ebfa2b32332fa9",
       "note": "Google OAuth callback"
     },
     "functions/api/auth/_email-validate.js": {
@@ -71,7 +71,7 @@
       "note": "HMAC-SHA256 magic-link token for Wix-to-Stripe donor migration"
     },
     "functions/_middleware.js": {
-      "hash": "955ac7865d722ba2af8d8881ad76b34290940bfcc350c0f05440e20d4d19db7c",
+      "hash": "0000aeaca84f079c7818068b1e451f7a136aeaaee1e166f92680bec64657bc70",
       "note": "Auth gating"
     },
     "wrangler.toml": {

@@ -35,6 +35,10 @@ export async function onRequestGet({ request, env, waitUntil }) {
     // Full membership check
     const auth = await requireMember(request, env);
     if (auth instanceof Response) {
+      if (auth.status >= 500) {
+        log(env, waitUntil, 'community', 'status_unavailable', 'error', `requireMember returned ${auth.status}`, 0, auth.status);
+        return json({ ok: false, access: 'error', error: 'Membership check temporarily unavailable' }, auth.status);
+      }
       const user = await db.prepare('SELECT name, first_name, last_name, role, avatar_url, blocked FROM user WHERE id = ?')
         .bind(session.userId).first();
       if (user?.blocked) {

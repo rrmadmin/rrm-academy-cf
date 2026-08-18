@@ -163,6 +163,25 @@ async function sendAiBotEvent(request, env) {
   }
 }
 
+async function render500Page(context, request) {
+  const errorHeaders = new Headers({
+    'Content-Type': 'text/html; charset=utf-8',
+    'X-Robots-Tag': 'noindex',
+  });
+  try {
+    if (context.env?.ASSETS) {
+      const asset = await context.env.ASSETS.fetch(new Request(new URL('/500.html', request.url)));
+      if (asset.ok) {
+        return new Response(asset.body, { status: 500, headers: errorHeaders });
+      }
+    }
+  } catch {
+    // fall through to inline fallback
+  }
+  const inlineHtml = '<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="robots" content="noindex"><title>Something went wrong | RRM Academy</title><style>body{font-family:Georgia,serif;display:flex;align-items:center;justify-content:center;min-height:100vh;margin:0;background:#faf9f7;color:#1a1a1a;text-align:center;padding:2rem}.box{max-width:480px}.code{font-size:5rem;font-weight:600;color:#c9b99a;line-height:1;margin-bottom:1rem}h1{font-size:1.5rem;margin:0 0 .75rem}p{color:#555;margin:0 0 1.5rem}a{color:#8b5e3c;font-weight:500}</style></head><body><div class="box"><div class="code">500</div><h1>Something went wrong on our end</h1><p>We hit an unexpected error. It is not you, it is us, and we are looking into it.</p><a href="/">Back to homepage</a></div></body></html>';
+  return new Response(inlineHtml, { status: 500, headers: errorHeaders });
+}
+
 function htmlRedirect(location) {
   const escaped = location.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#39;');
   const html = `<!DOCTYPE html><html><head><meta http-equiv="refresh" content="0;url=${escaped}"></head><body><script>window.location.href=${JSON.stringify(location).replace(/</g, '\\u003c')}</script></body></html>`;
@@ -214,7 +233,12 @@ export async function onRequest(context) {
 
   // Block search engine indexing of CF Pages preview domains
   if (url.hostname.endsWith('.pages.dev')) {
-    const response = await context.next();
+    let response;
+    try {
+      response = await context.next();
+    } catch {
+      return withSecurityHeaders(await render500Page(context, request));
+    }
     const headers = new Headers(response.headers);
     headers.set('X-Robots-Tag', 'noindex');
     return withSecurityHeaders(new Response(response.body, {
@@ -310,7 +334,12 @@ export async function onRequest(context) {
       return withSecurityHeaders(htmlRedirect(authRedirect));
     }
 
-    const session = await validateSession(env.DB, sessionId);
+    let session;
+    try {
+      session = await validateSession(env.DB, sessionId);
+    } catch {
+      return withSecurityHeaders(new Response('Service Unavailable', { status: 503, headers: { 'Retry-After': '120' } }));
+    }
     if (!session) {
       return withSecurityHeaders(htmlRedirectWithCookies(authRedirect, [
         'session=; Path=/; HttpOnly; Secure; SameSite=Lax; Max-Age=0',
@@ -318,7 +347,12 @@ export async function onRequest(context) {
       ]));
     }
 
-    const response = await context.next();
+    let response;
+    try {
+      response = await context.next();
+    } catch {
+      return withSecurityHeaders(new Response('Service Unavailable', { status: 503, headers: { 'Retry-After': '120' } }));
+    }
     if (session.renewed) {
       const headers = new Headers(response.headers);
       headers.append('Set-Cookie', sessionCookie(session.cookieId, session.expiresAt));
@@ -346,7 +380,12 @@ export async function onRequest(context) {
       return withSecurityHeaders(htmlRedirect(`https://rrmacademy.org/login/?redirect=${encodeURIComponent(url.pathname + url.search)}`));
     }
 
-    const session = await validateSession(env.DB, sessionId);
+    let session;
+    try {
+      session = await validateSession(env.DB, sessionId);
+    } catch {
+      return withSecurityHeaders(new Response('Service Unavailable', { status: 503, headers: { 'Retry-After': '120' } }));
+    }
     if (!session) {
       const adminLoginRedirect = `https://rrmacademy.org/login/?redirect=${encodeURIComponent(url.pathname + url.search)}`;
       return withSecurityHeaders(htmlRedirectWithCookies(adminLoginRedirect, [
@@ -365,7 +404,12 @@ export async function onRequest(context) {
       return withSecurityHeaders(new Response('Forbidden', { status: 403 }));
     }
 
-    const response = await context.next();
+    let response;
+    try {
+      response = await context.next();
+    } catch {
+      return withSecurityHeaders(new Response('Service Unavailable', { status: 503, headers: { 'Retry-After': '120' } }));
+    }
     if (session.renewed) {
       const headers = new Headers(response.headers);
       headers.append('Set-Cookie', sessionCookie(session.cookieId, session.expiresAt));
@@ -406,7 +450,12 @@ export async function onRequest(context) {
         // fail-open: fall through to normal handling below
       }
       if (healedSession) {
-        const response = await context.next();
+        let response;
+        try {
+          response = await context.next();
+        } catch {
+          return withSecurityHeaders(await render500Page(context, request));
+        }
         const headers = new Headers(response.headers);
         headers.append('Set-Cookie', authHintCookie(healedSession.expiresAt));
         if (healedSession.renewed) {
@@ -428,26 +477,8 @@ export async function onRequest(context) {
   let response;
   try {
     response = await context.next();
-  } catch (err) {
-    response = await (async () => {
-      const errorHeaders = new Headers({
-        'Content-Type': 'text/html; charset=utf-8',
-        'X-Robots-Tag': 'noindex',
-      });
-      try {
-        if (context.env?.ASSETS) {
-          const asset = await context.env.ASSETS.fetch(new Request(new URL('/500.html', request.url)));
-          if (asset.ok) {
-            return new Response(asset.body, { status: 500, headers: errorHeaders });
-          }
-        }
-      } catch {
-        // fall through to inline fallback
-      }
-      const inlineHtml = '<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="robots" content="noindex"><title>Something went wrong | RRM Academy</title><style>body{font-family:Georgia,serif;display:flex;align-items:center;justify-content:center;min-height:100vh;margin:0;background:#faf9f7;color:#1a1a1a;text-align:center;padding:2rem}.box{max-width:480px}.code{font-size:5rem;font-weight:600;color:#c9b99a;line-height:1;margin-bottom:1rem}h1{font-size:1.5rem;margin:0 0 .75rem}p{color:#555;margin:0 0 1.5rem}a{color:#8b5e3c;font-weight:500}</style></head><body><div class="box"><div class="code">500</div><h1>Something went wrong on our end</h1><p>We hit an unexpected error. It is not you, it is us, and we are looking into it.</p><a href="/">Back to homepage</a></div></body></html>';
-      return new Response(inlineHtml, { status: 500, headers: errorHeaders });
-    })();
-    return withSecurityHeaders(response);
+  } catch {
+    return withSecurityHeaders(await render500Page(context, request));
   }
   return withSecurityHeaders(response);
 }
