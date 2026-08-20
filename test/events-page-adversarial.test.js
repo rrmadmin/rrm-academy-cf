@@ -83,9 +83,13 @@ describe('the flyer channel -- summarize() captures firstImage BEFORE scrubJoinI
     assert.equal(r.response.status, 200);
     const twitterImage = /<meta name="twitter:image" content="([^"]*)">/.exec(r.html)?.[1] ?? '';
 
-    assert.equal(r.ogImage, 'https://rrmacademy.org/og/save-the-uterus-club.png?v=8',
+    // og:image and twitter:image are the site's own rendered card now, so they
+    // cannot carry a column value in ANY form -- the strongest possible result
+    // for this leak, but also a vacuous one, which is why the flyer pipeline's
+    // actual decision is still asserted on the JSON-LD image and the hero below.
+    assert.match(r.ogImage, /^https:\/\/rrmacademy\.org\/og\/events-[a-z0-9-]+\.png\?v=/,
       'EV-X0 reopened in og:image');
-    assert.equal(twitterImage, 'https://rrmacademy.org/og/save-the-uterus-club.png?v=8', 'EV-X0 reopened in twitter:image');
+    assert.equal(twitterImage, r.ogImage, 'EV-X0 reopened in twitter:image');
     assert.equal(r.jsonLd.image, 'https://rrmacademy.org/og/save-the-uterus-club.png?v=8', 'EV-X0 reopened in JSON-LD image');
     assert.equal(r.flyerSrc, null, 'EV-X0 reopened in the rendered flyer src');
 
@@ -117,7 +121,7 @@ describe('the flyer channel -- summarize() captures firstImage BEFORE scrubJoinI
         content: 'Title chunk.\n\n![Join](https://meet.google.com/pre-aaaa-bbb)\n\nSee you there.',
       },
     });
-    assert.equal(r.ogImage, 'https://cdn.example/flyer.png');
+    assert.equal(r.jsonLd.image, 'https://cdn.example/flyer.png');
     assert.ok(!r.html.includes('pre-aaaa-bbb'),
       'og_image_url won, so firstImage was never used and nothing leaked');
   });

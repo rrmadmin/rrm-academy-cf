@@ -85,6 +85,64 @@ async function lookupAsk(slug, env) {
   }
 }
 
+// Save the Uterus Club events are runtime entities too -- they are authored in
+// D1 and published to /events/<slug> by a Pages Function, so they never pass
+// through the build that writes og-index.json. Same posture as lookupAsk: match
+// a narrow slug shape, read one row, and return null on ANY failure (no DB
+// binding, no row, D1 throw) so the caller falls through to the branded card.
+//
+// The captured group is restricted to the character set community_post slugs are
+// minted in, and length-capped WELL below the outer 300-char slug guard, so a
+// hostile path never reaches D1 as a long bind value.
+const EVENT_SLUG_RE = /^events-([a-z0-9][a-z0-9-]{0,119})$/i;
+async function lookupEvent(slug, env) {
+  const m = EVENT_SLUG_RE.exec(slug);
+  if (!m || !env.DB) return null;
+  try {
+    const row = await env.DB.prepare(
+      `SELECT title, event_date, speaker, is_free FROM community_post
+       WHERE channel = 'stuc' AND type = 'event' AND slug = ? COLLATE NOCASE LIMIT 1`
+    ).bind(m[1]).first();
+    if (!row) return null;
+    return {
+      kind: 'event',
+      title: row.title || 'Save the Uterus Club Live Event',
+      eventDate: row.event_date || '',
+      speaker: row.speaker || '',
+      // D1 hands INTEGER back as a number; fixtures and the events page have
+      // historically also seen true / '1'. Anything not affirmatively free is
+      // members-only, matching isFreeEvent() in functions/events/[slug].js --
+      // the safe default, since this flag decides which access chip is printed.
+      isFree: row.is_free === 1 || row.is_free === true || row.is_free === '1',
+    };
+  } catch {
+    return null;
+  }
+}
+
+/**
+ * `Monday, August 24 · 8:00 PM Eastern`, always in America/New_York -- the club
+ * publishes one time zone and the card is read by people in many, so the zone is
+ * printed rather than implied. An unparseable date yields '' and the caller drops
+ * the line instead of printing "Invalid Date".
+ */
+function formatEventDate(iso) {
+  // The type check is load-bearing, not decoration: `new Date(null)` is the
+  // Unix epoch, not an invalid date, so a null column would have printed
+  // "Wednesday, December 31 · 7:00 PM Eastern" on the card. Only a non-empty
+  // string is a date this function will attempt to read.
+  if (typeof iso !== 'string' || !iso.trim()) return '';
+  const d = new Date(iso);
+  if (!Number.isFinite(d.getTime())) return '';
+  const day = d.toLocaleString('en-US', {
+    weekday: 'long', month: 'long', day: 'numeric', timeZone: 'America/New_York',
+  });
+  const time = d.toLocaleString('en-US', {
+    hour: 'numeric', minute: '2-digit', timeZone: 'America/New_York',
+  });
+  return `${day} · ${time} Eastern`;
+}
+
 // Per-font loader: returns ArrayBuffer or null on any failure (B4)
 async function loadFont(url) {
   try {
@@ -229,6 +287,125 @@ function buildStucTree(title, description) {
               overflow: 'hidden',
             },
             children: contentChildren,
+          },
+        },
+        brandBand(),
+      ],
+    },
+  };
+}
+
+// Save the Uterus Club EVENT card (runtime slug `events-<slug>`).
+//
+// Modelled on buildStucTree -- same brand tokens, same Cuterus mascot, same
+// purple brand band -- but laid out as a left text column beside the mascot,
+// because an event card carries four lines (eyebrow, title, date, speaker) plus
+// an access chip and there is no room to stack them under a centred mascot.
+//
+// Every string arrives pre-clamped. `dateLine` and `speaker` are optional: an
+// unparseable event_date or an absent speaker drops the line rather than
+// printing a placeholder.
+function buildEventTree({ title, dateLine, speaker, isFree }) {
+  const len = [...title].length;
+  const titleSize = len <= 28 ? 68 : len <= 50 ? 58 : len <= 75 ? 48 : 42;
+
+  const textChildren = [
+    {
+      type: 'span',
+      props: {
+        style: { fontSize: '23px', fontWeight: 500, color: BRAND_C, letterSpacing: '0.08em', fontFamily: 'Inter' },
+        children: 'SAVE THE UTERUS CLUB · LIVE EVENT',
+      },
+    },
+    {
+      type: 'span',
+      props: {
+        style: { fontSize: `${titleSize}px`, fontWeight: 600, color: TITLE_C, lineHeight: 1.15, marginTop: '18px', fontFamily: 'Cormorant Garamond' },
+        children: title,
+      },
+    },
+  ];
+
+  if (dateLine) {
+    textChildren.push({
+      type: 'span',
+      props: {
+        style: { fontSize: '30px', fontWeight: 400, color: DESC_C, lineHeight: 1.35, marginTop: '20px', fontFamily: 'Inter' },
+        children: dateLine,
+      },
+    });
+  }
+
+  if (speaker) {
+    textChildren.push({
+      type: 'span',
+      props: {
+        style: { fontSize: '26px', fontWeight: 400, color: LOC_C, lineHeight: 1.3, marginTop: '8px', fontFamily: 'Inter' },
+        children: `With ${speaker}`,
+      },
+    });
+  }
+
+  textChildren.push({
+    type: 'div',
+    props: {
+      style: { display: 'flex', marginTop: '26px' },
+      children: [
+        isFree
+          ? badgePill('FREE · OPEN TO EVERYONE', TELE_BG, TELE_FG)
+          : badgePill('MEMBERS-ONLY LIVE CALL', NPI_BG, NPI_FG),
+      ],
+    },
+  });
+
+  return {
+    type: 'div',
+    props: {
+      style: {
+        width: '1200px',
+        height: '630px',
+        backgroundColor: BG,
+        display: 'flex',
+        flexDirection: 'column',
+        fontFamily: 'Cormorant Garamond',
+      },
+      children: [
+        {
+          type: 'div',
+          props: {
+            style: {
+              display: 'flex',
+              flexDirection: 'row',
+              flexGrow: 1,
+              alignItems: 'center',
+              padding: '0 56px',
+              overflow: 'hidden',
+            },
+            children: [
+              {
+                type: 'div',
+                props: {
+                  style: {
+                    display: 'flex',
+                    flexDirection: 'column',
+                    width: '736px',
+                    overflow: 'hidden',
+                  },
+                  children: textChildren,
+                },
+              },
+              // Mascot, right-hand side. 300x280 keeps the 430x402 aspect the
+              // STUC card established, and clears the 132px brand band.
+              {
+                type: 'img',
+                props: {
+                  src: CUTERUS_OG,
+                  width: 300,
+                  height: 280,
+                  style: { marginLeft: 'auto' },
+                },
+              },
+            ],
           },
         },
         brandBand(),
@@ -439,6 +616,13 @@ function logRender(env, slug, statusLabel, durationMs) {
   }
 }
 
+// Exported for unit tests only. Cloudflare Pages dispatches exclusively on the
+// onRequest* handlers, so additional named exports are inert at runtime. They
+// exist because the event card's layout decisions (which lines are printed,
+// which access chip, how the title is sized) are worth asserting directly
+// rather than inferring from PNG bytes.
+export { buildEventTree, formatEventDate, EVENT_SLUG_RE };
+
 export async function onRequest(context) {
   const { request, env } = context;
   const start = Date.now();
@@ -492,6 +676,10 @@ export async function onRequest(context) {
     if (entry) statusLabel = 'ask_hit';
   }
   if (!entry) {
+    entry = await lookupEvent(slug, env);
+    if (entry) statusLabel = 'event_hit';
+  }
+  if (!entry) {
     logRender(env, slug, 'fallback', Date.now() - start);
     return renderFallback(env, start);
   }
@@ -513,6 +701,25 @@ export async function onRequest(context) {
       telehealth: Boolean(entry.telehealth),
     };
     return renderCard(env, buildProviderTree(provEntry), title, statusLabel, start);
+  }
+
+  // Save the Uterus Club event (kind:'event', resolved from D1 above). Fixed
+  // club copy in the eyebrow plus the row's own title/date/speaker -- never the
+  // page's augmented SEO title, which is far too long for a card sharing its
+  // width with the mascot.
+  if (entry.kind === 'event') {
+    return renderCard(
+      env,
+      buildEventTree({
+        title: clamp(title, 90),
+        dateLine: clamp(formatEventDate(entry.eventDate), 60),
+        speaker: clamp(entry.speaker, 46),
+        isFree: Boolean(entry.isFree),
+      }),
+      title,
+      statusLabel,
+      start
+    );
   }
 
   const description = entry.description ? clamp(entry.description, 240) : null;
