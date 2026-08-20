@@ -136,12 +136,12 @@ describe('the casualties of the three rejected rounds must all survive', () => {
     const src = 'https://cdn.example/endo-call-2026.jpg';
     const fromColumn = await renderEvent({ viewer: 'anonymous', post: { og_image_url: src, content: 'T.\n\nB.' } });
     assert.equal(fromColumn.flyerSrc, src, 'the flyer was dropped from the rendered <img>');
-    assert.equal(fromColumn.ogImage, src, 'the flyer was dropped from og:image');
+    assert.equal(fromColumn.jsonLd.image, src, 'the flyer was dropped from the JSON-LD image');
     assert.equal(fromColumn.jsonLd.image, src, 'the flyer was dropped from the JSON-LD image');
 
     const fromContent = await renderEvent({ viewer: 'anonymous', post: { og_image_url: null, content: `T.\n\n![flyer](${src})\n\nB.` } });
     assert.equal(fromContent.flyerSrc, src, 'the markdown flyer was dropped');
-    assert.equal(fromContent.ogImage, src);
+    assert.equal(fromContent.jsonLd.image, src);
   });
 });
 
@@ -256,7 +256,7 @@ describe('the newly-scrubbed channels keep what is innocent', () => {
     it(`keeps the flyer at ${src}`, async () => {
       const fromColumn = await renderEvent({ viewer: 'anonymous', post: { og_image_url: src, content: 'T.\n\nB.' } });
       assert.ok(fromColumn.flyerSrc, `og_image_url ${src} was dropped from the rendered flyer`);
-      assert.ok(fromColumn.ogImage.endsWith(src.replace(/^\//, '')), `og:image lost ${src}`);
+      assert.ok(fromColumn.flyerSrc.endsWith(src.replace(/^\//, '')), `the hero flyer lost ${src}`);
       assert.ok(fromColumn.jsonLd.image.endsWith(src.replace(/^\//, '')), `the JSON-LD image lost ${src}`);
 
       const fromContent = await renderEvent({
@@ -290,7 +290,7 @@ describe('the newly-scrubbed channels keep what is innocent', () => {
     for (const src of ['https://g.co/meet/gco-aaaa-bbb', 'https://www.g.co/meet/gco-cccc-ddd', 'https://g.co/meet']) {
       const r = await renderEvent({ viewer: 'anonymous', post: { og_image_url: src, content: 'T.\n\nB.' } });
       assert.equal(r.flyerSrc, null, `${src} was published as a flyer`);
-      assert.equal(r.ogImage, 'https://rrmacademy.org/og/save-the-uterus-club.png?v=8');
+      assert.equal(r.jsonLd.image, 'https://rrmacademy.org/og/save-the-uterus-club.png?v=8');
     }
   });
 
@@ -349,7 +349,7 @@ describe('a markdown IMAGE whose src is the meeting room reaches none of its fou
     assert.ok(!r.html.includes('meet.google.com'), 'the Meet host reached the document somewhere');
     // ...and the page is still a page: the fallback is the branded card, and the
     // prose around the image is untouched.
-    assert.equal(r.ogImage, 'https://rrmacademy.org/og/save-the-uterus-club.png?v=8');
+    assert.equal(r.jsonLd.image, 'https://rrmacademy.org/og/save-the-uterus-club.png?v=8');
     assert.equal(r.flyerSrc, null, 'no flyer element should be emitted rather than an empty one');
     assert.match(r.body ?? '', /See you there\./);
   });
@@ -362,7 +362,7 @@ describe('a markdown IMAGE whose src is the meeting room reaches none of its fou
     for (const [name, value] of IMAGE_SINKS(r)) {
       assert.ok(!String(value ?? '').includes('col-aaaa-bbb'), `the Meet room is still in ${name}`);
     }
-    assert.equal(r.ogImage, 'https://rrmacademy.org/og/save-the-uterus-club.png?v=8');
+    assert.equal(r.jsonLd.image, 'https://rrmacademy.org/og/save-the-uterus-club.png?v=8');
     assert.equal(r.flyerSrc, null);
   });
 
@@ -375,7 +375,7 @@ describe('a markdown IMAGE whose src is the meeting room reaches none of its fou
       post: { og_image_url: 'https://meet.google.com./dot-aaaa-bbb', content: 'T.\n\nB.' },
     });
     assert.ok(!fromColumn.html.includes('dot-aaaa-bbb'), 'a trailing root dot published the room from the column');
-    assert.equal(fromColumn.ogImage, 'https://rrmacademy.org/og/save-the-uterus-club.png?v=8');
+    assert.equal(fromColumn.jsonLd.image, 'https://rrmacademy.org/og/save-the-uterus-club.png?v=8');
 
     const fromContent = await renderEvent({
       viewer: 'anonymous',
@@ -402,7 +402,7 @@ describe('a markdown IMAGE whose src is the meeting room reaches none of its fou
       post: { content: 'T.\n\n![room](https://meet.google.com/sec-aaaa-bbb) ![flyer](https://cdn.example/real-flyer.png)\n\nB.' },
     });
     assert.equal(r.flyerSrc, 'https://cdn.example/real-flyer.png');
-    assert.equal(r.ogImage, 'https://cdn.example/real-flyer.png');
+    assert.equal(r.jsonLd.image, 'https://cdn.example/real-flyer.png');
     assert.ok(!r.html.includes('sec-aaaa-bbb'));
   });
 
@@ -532,7 +532,7 @@ describe('nothing required may be emptied: the direct attack on all three fields
         post: { og_image_url, content: 'A Real Title\n\nBody prose kept.' },
       });
       assertNothingEmptyAndNothingLeaked(r, `og_image_url ${JSON.stringify(og_image_url)}`);
-      assert.equal(r.ogImage, 'https://rrmacademy.org/og/save-the-uterus-club.png?v=8');
+      assert.equal(r.jsonLd.image, 'https://rrmacademy.org/og/save-the-uterus-club.png?v=8');
       // A whitespace src must be treated as ABSENT, never absolutised into a
       // relative URL pointing at the site root with spaces in it.
       assert.equal(r.flyerSrc, null, `og_image_url ${JSON.stringify(og_image_url)} emitted a broken <img>`);
@@ -563,7 +563,7 @@ describe('nothing required may be emptied: the direct attack on all three fields
     assertNothingEmptyAndNothingLeaked(r, 'the maximal emptying input');
     assert.equal(r.h1, 'Save the Uterus Club Event', 'the title fell through to the constant, as designed');
     assert.equal(r.ogDescription, 'Live members-only call from Save the Uterus Club.');
-    assert.equal(r.ogImage, 'https://rrmacademy.org/og/save-the-uterus-club.png?v=8');
+    assert.equal(r.jsonLd.image, 'https://rrmacademy.org/og/save-the-uterus-club.png?v=8');
     assert.equal(r.body, null);
     assert.equal(r.speakerRow, null);
     assert.equal('performer' in r.jsonLd, false);
