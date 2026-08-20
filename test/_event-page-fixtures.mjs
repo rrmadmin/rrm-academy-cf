@@ -186,6 +186,20 @@ export function sinks(html) {
     body: /<div class="body">([\s\S]*?)<\/div>/.exec(html)?.[1] ?? null,
     ogDescription: attr(/<meta property="og:description" content="([^"]*)">/),
     ogTitle: attr(/<meta property="og:title" content="([^"]*)">/),
+    /**
+     * SINCE THE OG-CARD CHANGE, THIS IS NOT THE FLYER.
+     *
+     * og:image and twitter:image are now `/og/events-<slug>.png?v=…`, the
+     * site's own rendered 1200x630 card, because Facebook and WhatsApp reject
+     * the flyer's webp outright and X centre-crops its square. They interpolate
+     * the SLUG and nothing else, so no column value can reach them in any form.
+     *
+     * That makes this field the WRONG observable for anything about the flyer
+     * pipeline -- an assertion here would pass whether or not the pipeline
+     * still worked. The flyer's two surviving sinks are `flyerSrc` (the page
+     * hero) and `jsonLd.image`; assert on those. The card URL itself is held by
+     * test/events-page-og-card.test.js.
+     */
     ogImage: attr(/<meta property="og:image" content="([^"]*)">/),
     twitterDescription: attr(/<meta name="twitter:description" content="([^"]*)">/),
     metaDescription: attr(/<meta name="description" content="([^"]*)">/),
