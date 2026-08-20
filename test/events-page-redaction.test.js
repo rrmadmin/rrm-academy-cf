@@ -584,7 +584,11 @@ describe('escaping', () => {
     });
     assert.ok(!r.html.includes('"><script>'), 'the attribute was broken out of');
     assert.match(r.flyerSrc ?? '', /&quot;&gt;&lt;script&gt;/);
-    assert.match(r.ogImage ?? '', /&quot;&gt;&lt;script&gt;/);
+    // og:image no longer interpolates the column at all: it is the site's own
+    // card URL, built from the slug. So the hostile string cannot reach it in
+    // escaped OR raw form, which is what is asserted instead of the escaping.
+    assert.match(r.ogImage ?? '', /^https:\/\/rrmacademy\.org\/og\/events-[a-z0-9-]+\.png\?v=[a-z0-9]+$/);
+    assert.ok(!(r.ogImage ?? '').includes('script'), 'the hostile column reached og:image');
   });
 
   it('renders markdown links as anchors, escaping label and href', async () => {
@@ -1107,7 +1111,7 @@ describe('rendering details', () => {
   it('takes the flyer from og_image_url, and absolutises each URL shape', async () => {
     const absolute = await renderEvent({ viewer: 'anonymous', post: { og_image_url: 'https://cdn.example/a.png', content: 'T.\n\nB.' } });
     assert.equal(absolute.flyerSrc, 'https://cdn.example/a.png');
-    assert.equal(absolute.ogImage, 'https://cdn.example/a.png');
+    assert.equal(absolute.jsonLd.image, 'https://cdn.example/a.png');
 
     const rooted = await renderEvent({ viewer: 'anonymous', post: { og_image_url: '/images/a.png', content: 'T.\n\nB.' } });
     assert.equal(rooted.flyerSrc, 'https://rrmacademy.org/images/a.png');
@@ -1123,12 +1127,13 @@ describe('rendering details', () => {
     });
     assert.equal(fromContent.flyerSrc, 'https://cdn.example/one.png',
       'the SECOND image displaced the first; the !firstImage guard is inverted');
-    assert.equal(fromContent.ogImage, 'https://cdn.example/one.png');
+    assert.equal(fromContent.jsonLd.image, 'https://cdn.example/one.png');
     assert.ok(!(fromContent.body ?? '').includes('![one]'), 'the image markdown was left in the prose');
 
     const fallback = await renderEvent({ viewer: 'anonymous', post: { og_image_url: null, content: 'T.\n\nB.' } });
     assert.equal(fallback.flyerSrc, null, 'no flyer element should be emitted with no image');
-    assert.equal(fallback.ogImage, 'https://rrmacademy.org/og/save-the-uterus-club.png?v=8');
+    assert.match(fallback.ogImage, /^https:\/\/rrmacademy\.org\/og\/events-[a-z0-9-]+\.png\?v=/,
+      'og:image is the rendered event card regardless of whether a flyer exists');
     assert.equal(fallback.jsonLd.image, 'https://rrmacademy.org/og/save-the-uterus-club.png?v=8');
   });
 

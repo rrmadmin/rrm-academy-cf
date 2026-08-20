@@ -28,6 +28,15 @@ const SITE_ORIGIN = 'https://rrmacademy.org';
 const TURNSTILE_SITE_KEY = '0x4AAAAAACgpzkB4TaFA-Jrx';
 
 /**
+ * OG image cache-busting version, appended as `?v=` to the card URL.
+ *
+ * Inlined for the same reason as TURNSTILE_SITE_KEY above: this is a Pages
+ * Function and cannot import from src/. The single source of truth is
+ * src/lib/og-config.ts (OG_VERSION); when that is bumped, BOTH must change.
+ */
+const OG_VERSION = 'v8';
+
+/**
  * D1 hands an INTEGER column back as a number, but this row also travels through
  * the test harness and, historically, through hand-written fixtures. Read the
  * flag through one predicate so "free" means the same thing at every call site,
@@ -643,6 +652,24 @@ function renderHtml({ event, summary, speaker, visitor, cta, canonical, memberSu
     summary.firstImage
   ) || null;
   const ogImage = abs(flyerSrc) || FALLBACK_OG_IMAGE;
+
+  /**
+   * THE SOCIAL CARD IS NOT THE FLYER.
+   *
+   * The flyer is a 1080x1080 WEBP in R2. Facebook and WhatsApp reject webp
+   * outright (the share renders with no image at all), and X's
+   * summary_large_image crops a square to 1.91:1 from the centre, which takes
+   * the headline off the top. So og:image and twitter:image now point at the
+   * site's own on-demand renderer -- functions/og/[[path]].js, which serves a
+   * branded 1200x630 PNG for the runtime slug `events-<slug>` -- and an unknown
+   * slug there still returns a branded card with a 200, never a 404.
+   *
+   * The flyer keeps every OTHER job it had: it is still the page hero, and it is
+   * still the JSON-LD `image`, where a square is correct and the format
+   * restrictions above do not apply.
+   */
+  const cardImage = `${SITE_ORIGIN}/og/events-${event.slug || event.id}.png?v=${OG_VERSION}`;
+
   const startMs = Date.parse(event.event_date);
   const endMs = Number.isFinite(startMs) ? startMs + 60 * 60 * 1000 : null;
   const startISO = Number.isFinite(startMs) ? new Date(startMs).toISOString() : event.event_date;
@@ -727,13 +754,16 @@ function renderHtml({ event, summary, speaker, visitor, cta, canonical, memberSu
 <meta property="og:url" content="${escapeHtml(canonical)}">
 <meta property="og:site_name" content="RRM Academy">
 <meta property="og:locale" content="en_US">
-<meta property="og:image" content="${escapeHtml(ogImage)}">
+<meta property="og:image" content="${escapeHtml(cardImage)}">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:type" content="image/png">
 <meta property="og:image:alt" content="${escapeHtml(title)}">
 
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:title" content="${escapeHtml(fullTitle)}">
 <meta name="twitter:description" content="${escapeHtml(description)}">
-<meta name="twitter:image" content="${escapeHtml(ogImage)}">
+<meta name="twitter:image" content="${escapeHtml(cardImage)}">
 <meta name="twitter:site" content="@rrm_academy">
 
 <link rel="icon" href="/favicon.ico">
