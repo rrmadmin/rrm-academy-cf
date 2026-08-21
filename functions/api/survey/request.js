@@ -28,6 +28,11 @@ export async function onRequestOptions() {
 export async function onRequestPost(context) {
   const { request, env, waitUntil } = context;
   try {
+    const ip = request.headers.get('CF-Connecting-IP') || 'unknown';
+    if (!await checkRateLimit(env, `survey:${ip}`, 5, 900)) {
+      return json({ ok: false, error: 'Too many attempts. Please try again later.' }, 429);
+    }
+
     if (!env.SURVEY_TOKENS) {
       return json({ ok: false, error: 'Server misconfigured' }, 500);
     }
@@ -48,10 +53,6 @@ export async function onRequestPost(context) {
     });
     if (!validated.valid) return json({ ok: false, error: validated.error }, validated.status);
     const email = validated.data.email;
-    const ip = request.headers.get('CF-Connecting-IP') || 'unknown';
-    if (!await checkRateLimit(env, `survey:${ip}`, 5, 900)) {
-      return json({ ok: false, error: 'Too many attempts. Please try again later.' }, 429);
-    }
 
     const emailCheck = await validateEmail(email, env);
     if (!emailCheck.valid) {

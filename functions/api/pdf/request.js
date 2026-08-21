@@ -13,6 +13,11 @@ export async function onRequestOptions() {
 export async function onRequestPost(context) {
   const { request, env, waitUntil } = context;
 
+  const ip = request.headers.get('CF-Connecting-IP') || 'unknown';
+  if (!await checkRateLimit(env, `pdf:${ip}`, 5, 900)) {
+    return json({ ok: false, error: 'Too many requests. Please try again later.' }, 429);
+  }
+
   if (!env.DB) {
     log(env, waitUntil, 'pdf', 'config_missing', 'error', 'DB binding not configured', 0, 500);
     return json({ ok: false, error: 'Server misconfigured' }, 500);
@@ -37,11 +42,6 @@ export async function onRequestPost(context) {
 
   if (!GUIDE_PDFS[guide_slug] || !GUIDE_PDFS[guide_slug].enabled) {
     return json({ ok: false, error: 'Not found.' }, 404);
-  }
-
-  const ip = request.headers.get('CF-Connecting-IP') || 'unknown';
-  if (!await checkRateLimit(env, `pdf:${ip}`, 5, 900)) {
-    return json({ ok: false, error: 'Too many requests. Please try again later.' }, 429);
   }
 
   const email = (body.email || '').trim().toLowerCase();

@@ -241,6 +241,33 @@ describe('POST /api/auth/signup -- missing DB binding', () => {
     assert.notEqual(status, 200, 'Missing DB must not return 200');
     assert.ok(status >= 400, `Expected 4xx/5xx, got ${status}`);
   });
+
+  it('checks the rate limit before the DB binding guard', async () => {
+    // Order matters: a misconfigured account must not become an unmetered
+    // endpoint that answers 500 as fast as it is asked.
+    const ip = randomIp();
+    const env = mockEnv({ DB: undefined });
+    const statuses = [];
+    for (let i = 0; i < 5; i++) {
+      const req = mockRequest('POST', {
+        body: { firstName: 'Alice', lastName: 'Smith', email: `alice${i}@example.com`, password: 'aaaa-bbbb-cccc-dddd' },
+        headers: { 'CF-Connecting-IP': ip },
+      });
+      const wt = mockWaitUntil();
+      const res = await onRequestPost(makeContext(req, env, wt));
+      statuses.push((await parseResponse(res)).status);
+    }
+    assert.deepEqual(statuses, [500, 500, 500, 500, 500]);
+    const req = mockRequest('POST', {
+      body: { firstName: 'Alice', lastName: 'Smith', email: 'alice5@example.com', password: 'aaaa-bbbb-cccc-dddd' },
+      headers: { 'CF-Connecting-IP': ip },
+    });
+    const wt = mockWaitUntil();
+    const res = await onRequestPost(makeContext(req, env, wt));
+    const { status, body } = await parseResponse(res);
+    assert.equal(status, 429, 'the 6th attempt from one IP must be rate-limited even while misconfigured');
+    assert.match(body.error, /Too many attempts/);
+  });
 });
 
 describe('POST /api/auth/signup -- SQL injection prevention', () => {
