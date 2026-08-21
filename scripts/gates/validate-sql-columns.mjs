@@ -124,6 +124,10 @@ export const EXTRA_DDL = [
     why: 'supporter_recognition lives in the ROOT migrations/ directory, which the test replay list does not read, and postdates the 2026-05-27 snapshot. Verified present in live rrm-auth 2026-07-31.',
   },
   {
+    path: 'migrations/033-admin-audit.sql',
+    why: 'admin_audit is written by the RRM Backoffice (rrmadmin/rrm-backoffice) and lives in the ROOT migrations/ directory, which the test replay list does not read, and postdates the 2026-05-27 snapshot; added 2026-08-20 with the migration in the same commit so gates:schema-drift stays level with live once 033 is applied remotely. Until the remote apply, SD2 (STALE-PRESENT) is the expected and intended signal.',
+  },
+  {
     path: 'scripts/migrations/ai-search-docs.sql',
     why: 'ai_search_docs is excluded from POST_SNAPSHOT_MIGRATIONS because it predates the 2026-05-27 snapshot, and schema.sql does not inline it because a comment there wrongly recorded it as DROPPED (corrected 2026-07-31). It is NOT dropped: live rrm-auth still has it (verified 2026-07-31, columns identical to this file, differing only in the key collation noted in its own header) and scripts/ai-search-corpus-upload.mjs still writes to it. This entry is what keeps the composed mirror level with live, so gates:schema-drift reports no stale-absent drift for it.',
   },
