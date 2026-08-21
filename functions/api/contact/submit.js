@@ -25,6 +25,17 @@ async function _handlePost(context) {
   const { request, env, waitUntil } = context;
 
   try {
+    const ip = request.headers.get('CF-Connecting-IP') || 'unknown';
+
+    // Rate limit by IP
+    if (!await checkRateLimit(env, `contact:${ip}`, 5, 900)) {
+      return json({ ok: false, error: 'Too many attempts. Please try again later.' }, 429);
+    }
+
+    if (!env.AWS_ACCESS_KEY_ID) {
+      return json({ ok: false, error: 'Server misconfigured' }, 500);
+    }
+
     // Parse body
     let body;
     try {
@@ -37,10 +48,6 @@ async function _handlePost(context) {
     // Honeypot — if filled, silently accept (bots think they succeeded)
     if (body.website) {
       return json({ ok: true });
-    }
-
-    if (!env.AWS_ACCESS_KEY_ID) {
-      return json({ ok: false, error: 'Server misconfigured' }, 500);
     }
 
     const validated = validateBody(body, {
@@ -59,13 +66,6 @@ async function _handlePost(context) {
     const category = validated.data.category || 'other';
     const categorySource = validated.data.category_source || 'default';
     const authStateAtSubmit = context.data?.user?.id ?? null;
-
-    const ip = request.headers.get('CF-Connecting-IP') || 'unknown';
-
-    // Rate limit by IP
-    if (!await checkRateLimit(env, `contact:${ip}`, 5, 900)) {
-      return json({ ok: false, error: 'Too many attempts. Please try again later.' }, 429);
-    }
 
     // Verify Turnstile token
     const turnstileResult = await verifyTurnstile(env.CF_TURNSTILE_SECRET, body.turnstileToken, ip, env);

@@ -23,6 +23,13 @@ export async function onRequestPost(context) {
 async function _handlePost(context) {
   const { request, env, waitUntil } = context;
 
+  // Rate limit by IP (protects ELV API credits); KV-backed so applies across all isolates
+  const ip = request.headers.get('CF-Connecting-IP') || 'unknown';
+  const allowed = await checkRateLimit(env, `newsletter-sub:${ip}`, 10, 900);
+  if (!allowed) {
+    return json({ ok: false, error: 'Too many requests. Please try again later.' }, 429);
+  }
+
   if (!env.DB) {
     log(env, waitUntil, 'newsletter', 'config_missing', 'error', 'DB binding not configured', 0, 500);
     return json({ ok: false, error: 'Server misconfigured' }, 500);
@@ -36,13 +43,6 @@ async function _handlePost(context) {
     return json({ ok: false, error: 'Invalid JSON' }, 400);
   }
   if (typeof body !== 'object' || body === null || Array.isArray(body)) return json({ ok: false, error: 'Invalid payload' }, 400);
-
-  // Rate limit by IP (protects ELV API credits); KV-backed so applies across all isolates
-  const ip = request.headers.get('CF-Connecting-IP') || 'unknown';
-  const allowed = await checkRateLimit(env, `newsletter-sub:${ip}`, 10, 900);
-  if (!allowed) {
-    return json({ ok: false, error: 'Too many requests. Please try again later.' }, 429);
-  }
 
   // Honeypot
   if (body.website) {

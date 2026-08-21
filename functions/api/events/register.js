@@ -38,11 +38,18 @@ export async function onRequestOptions() {
 export async function onRequestPost(context) {
   const { request, env, waitUntil } = context;
 
+  const ip = request.headers.get('CF-Connecting-IP') || 'unknown';
+
+  // 1. Rate limit by IP
+  if (!await checkRateLimit(env, `event-reg-ip:${ip}`, 10, 900)) {
+    return json({ ok: false, error: 'rate_limited' }, 429);
+  }
+
   if (!env.DB || !env.CF_TURNSTILE_SECRET) {
     return json({ ok: false, error: 'service_unavailable' }, 503);
   }
 
-  // 1. Parse JSON
+  // 2. Parse JSON
   let body;
   try {
     body = await request.json();
@@ -50,7 +57,7 @@ export async function onRequestPost(context) {
     return json({ ok: false, error: 'invalid_json' }, 400);
   }
 
-  // 2. Validate declared fields. `website` is excluded so a non-string value trips the honeypot silently.
+  // 3. Validate declared fields. `website` is excluded so a non-string value trips the honeypot silently.
   const validated = validateBody(body, {
     slug:           { type: 'string', required: true, maxLength: 200 },
     email:          { type: 'email',  required: true },
@@ -61,12 +68,6 @@ export async function onRequestPost(context) {
   }
 
   const { slug, email, turnstileToken } = validated.data;
-  const ip = request.headers.get('CF-Connecting-IP') || 'unknown';
-
-  // 3. Rate limit by IP
-  if (!await checkRateLimit(env, `event-reg-ip:${ip}`, 10, 900)) {
-    return json({ ok: false, error: 'rate_limited' }, 429);
-  }
 
   // 4. Honeypot, inside the rate-limited path so bots count toward the IP limit
   if (body.website) {
