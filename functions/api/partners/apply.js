@@ -31,6 +31,13 @@ export async function onRequestPost(context) {
 async function _handlePost(context) {
   const { request, env, waitUntil } = context;
 
+  const ip = request.headers.get('CF-Connecting-IP') || 'unknown';
+
+  // Rate limit by IP (KV-backed; mirrors contact/submit.js)
+  if (!await checkRateLimit(env, `partners-apply:${ip}`, 5, 900)) {
+    return json({ error: 'rate_limited' }, 429);
+  }
+
   if (!env.DB) {
     return json({ error: 'service_unavailable' }, 503);
   }
@@ -137,13 +144,6 @@ async function _handlePost(context) {
     if (affirmations[key] !== true) {
       return json({ error: 'affirmations_required' }, 400);
     }
-  }
-
-  const ip = request.headers.get('CF-Connecting-IP') || 'unknown';
-
-  // Rate limit by IP (KV-backed; mirrors contact/submit.js)
-  if (!await checkRateLimit(env, `partners-apply:${ip}`, 5, 900)) {
-    return json({ error: 'rate_limited' }, 429);
   }
 
   // Verify Turnstile token

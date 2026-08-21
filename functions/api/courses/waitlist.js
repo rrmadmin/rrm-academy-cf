@@ -18,11 +18,18 @@ export async function onRequestOptions() {
 export async function onRequestPost(context) {
   const { request, env, waitUntil } = context;
 
+  const ip = request.headers.get('CF-Connecting-IP') || 'unknown';
+
+  // 1. Rate limit by IP
+  if (!await checkRateLimit(env, `waitlist-ip:${ip}`, 10, 900)) {
+    return json({ ok: false, error: 'rate_limited' }, 429);
+  }
+
   if (!env.DB || !env.CF_TURNSTILE_SECRET) {
     return json({ ok: false, error: 'service_unavailable' }, 503);
   }
 
-  // 1. Parse JSON
+  // 2. Parse JSON
   let body;
   try {
     body = await request.json();
@@ -30,7 +37,7 @@ export async function onRequestPost(context) {
     return json({ ok: false, error: 'invalid_json' }, 400);
   }
 
-  // 2. Validate declared fields — `website` excluded so non-string values trip honeypot silently
+  // 3. Validate declared fields — `website` excluded so non-string values trip honeypot silently
   const validated = validateBody(body, {
     courseId:       { type: 'string', required: true, maxLength: 100 },
     email:          { type: 'email',  required: true },
@@ -42,16 +49,9 @@ export async function onRequestPost(context) {
 
   const { courseId, email, turnstileToken } = validated.data;
 
-  // 3. Fail fast: reject non-waitlist courses before burning any external service credits
+  // 4. Fail fast: reject non-waitlist courses before burning any external service credits
   if (!isWaitlistCourse(courseId)) {
     return json({ ok: false, error: 'not_waitlist_course' }, 400);
-  }
-
-  const ip = request.headers.get('CF-Connecting-IP') || 'unknown';
-
-  // 4. Rate limit by IP
-  if (!await checkRateLimit(env, `waitlist-ip:${ip}`, 10, 900)) {
-    return json({ ok: false, error: 'rate_limited' }, 429);
   }
 
   // 5. Honeypot — inside rate-limited path so bots count toward the IP limit
