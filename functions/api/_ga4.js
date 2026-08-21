@@ -104,6 +104,7 @@ export async function sendGA4Event(env, request, eventName, params = {}, overrid
     // leaves any embedded https://user:pass@host userinfo intact in toString().
     {
       const finalParams = payload.events[0].params;
+      const callerSuppliedPageLocation = params.page_location != null;
       try {
         const u = new URL(finalParams.page_location);
         u.username = '';
@@ -112,7 +113,11 @@ export async function sendGA4Event(env, request, eventName, params = {}, overrid
         u.hash = '';
         finalParams.page_location = u.toString();
       } catch {
-        finalParams.page_location = defaultPageLocation;
+        if (callerSuppliedPageLocation) {
+          delete finalParams.page_location;
+        } else {
+          finalParams.page_location = defaultPageLocation;
+        }
       }
     }
     if (REGISTERED_USER_EVENTS.has(eventName)) {

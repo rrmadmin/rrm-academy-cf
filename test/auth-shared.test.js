@@ -248,4 +248,35 @@ describe('checkRateLimit', () => {
     assert.equal(await checkRateLimit(env, key, 2, 60), true);
     assert.equal(JSON.parse(kv.puts[0].value).count, 1);
   });
+
+  it('rolls back the local bucket on a transient PUT failure so a denied request never permanently eats a slot', async () => {
+    // A denied request must not shrink the effective budget for the rest of
+    // the window. Fail the very first PUT (the only one this fast a loop
+    // will actually attempt -- write-coalescing absorbs the rest), then let
+    // KV recover; exactly max=10 requests should be allowed across the
+    // window, no fewer.
+    let failNext = true;
+    const store = new Map();
+    const puts = [];
+    const kv = {
+      async get(key) { return store.has(key) ? store.get(key) : null; },
+      async put(key, value) {
+        puts.push({ key, value });
+        if (failNext) {
+          failNext = false;
+          throw new Error('KV PUT failed: 500 internal error');
+        }
+        store.set(key, value);
+      },
+    };
+    const env = { COMMUNITY_KV: kv, EVENTS: makeEventsStub() };
+    const key = `track:${randomIp()}`;
+
+    const results = [];
+    for (let i = 0; i < 12; i++) {
+      results.push(await checkRateLimit(env, key, 10, 60));
+    }
+    assert.equal(results[0], false, 'the first request (transient PUT failure) should have been denied');
+    assert.equal(results.filter(Boolean).length, 10, 'expected exactly max=10 allowed requests across the window');
+  });
 });
