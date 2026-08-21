@@ -72,6 +72,15 @@ const PAGE_URL = 'https://rrmacademy.org/endo-quiz/start/';
     renderTier('tier2-items', 't2', TIER2);
     renderTier('tier3-items', 't3', TIER3);
 
+    // Fires once per browser session: taking the quiz is a completed action for
+    // ad-recruited visitors regardless of whether they later download the PDF
+    // or hand over an email. The endpoint no-ops without a gclid cookie, and
+    // the sessionStorage guard stops a page reload from refiring.
+    if (!sessionStorage.getItem('ec-start-conv')) {
+      try { sessionStorage.setItem('ec-start-conv', '1'); } catch (e) {}
+      fetch('/api/endo-quiz/start', { method: 'POST', keepalive: true }).catch(function () {});
+    }
+
     document.querySelectorAll('.tier-items input[type="checkbox"]').forEach(function (cb) {
       cb.addEventListener('change', function () {
         const tier = cb.closest('[data-tier]') && cb.closest('[data-tier]').dataset.tier;
