@@ -88,6 +88,20 @@ export const PII_REGEX = /email|user|name|password|token|cookie|address|phone|ss
 // before forwarding. Covers: email addresses, SSNs, US phone numbers, card numbers.
 export const PII_VALUE_REGEX = /[\w.+-]+@[\w-]+\.[\w.-]+|\b\d{3}-\d{2}-\d{4}\b|\b\d{3}[-.\s]?\d{3}[-.\s]?\d{4}\b|\b(?:\d[ -]?){13,19}\b/;
 
+// Params in LONG_PARAM_LIMITS that carry a client-generated URL rather than
+// free text. Used to scope the digit-run-only PII screen exemption below to
+// params where a bare 13-19 digit run is far more likely to be an epoch-ms
+// cache-buster or numeric id than an unformatted card/account number.
+export const URL_SHAPED_LONG_PARAMS = new Set(['page_location', 'page_referrer']);
+
+const PII_VALUE_REGEX_NO_DIGITRUN = /[\w.+-]+@[\w-]+\.[\w.-]+|\b\d{3}-\d{2}-\d{4}\b|\b\d{3}[-.\s]?\d{3}[-.\s]?\d{4}\b/;
+
+// True when a value matches PII_VALUE_REGEX only via the bare long-digit-run
+// alternative (no email/SSN/formatted-phone shape present).
+export function isDigitRunOnlyMatch(value) {
+  return PII_VALUE_REGEX.test(value) && !PII_VALUE_REGEX_NO_DIGITRUN.test(value);
+}
+
 // Param names the server adds automatically. Client-supplied values for these keys
 // are dropped silently (not rejected) to prevent accidental override.
 // Note: page_location, page_referrer, engagement_time_msec are NOT reserved -- the

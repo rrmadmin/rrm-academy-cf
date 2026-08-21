@@ -427,6 +427,15 @@ export async function checkRateLimit(env, key, max = 5, windowS = 900) {
     await env.COMMUNITY_KV.put(fullKey, JSON.stringify(bucket), { expirationTtl: windowS + 60 });
   } catch (e) {
     logKvFailure(env, key, e);
+    // The persist never landed, so this request's own increment must not
+    // stick around and permanently eat a slot for a denied request. Undo
+    // exactly this request's +1 rather than resetting to a snapshot: other
+    // requests may have advanced the local bucket concurrently while this
+    // put was in flight, and their increments are real.
+    const afterFailure = buckets.get(fullKey);
+    if (afterFailure && afterFailure.start === bucket.start) {
+      setLocalBucket(buckets, fullKey, { ...afterFailure, count: Math.max(0, afterFailure.count - 1) });
+    }
     // Fail-CLOSED on KV outage.
     return false;
   }

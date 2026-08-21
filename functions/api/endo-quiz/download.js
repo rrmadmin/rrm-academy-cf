@@ -6,12 +6,15 @@
  * downloads the PDF instead of requesting the email leaves with nothing
  * recorded: the Google Ads Grants account has logged zero conversions
  * all-time, and Ad Grants policy requires at least one meaningful conversion
- * per calendar month. This fires the same Endo Quiz conversion action
- * (ENDO_QUIZ_PDF_CONVERSION_ACTION_ID) that /api/endo-quiz/request fires on
- * email capture. No body is parsed -- there is no user input here beyond IP
- * and the request's own Cookie header, and sendGoogleAdsConversion is a
- * silent no-op when the gclid cookie is absent, so organic/non-ad visitors
- * correctly get { ok: true } with nothing uploaded.
+ * per calendar month. This fires its own secondary Endo Quiz conversion
+ * action (ENDO_QUIZ_PDF_CONVERSION_ACTION_ID), distinct from the one
+ * /api/endo-quiz/request fires on email capture
+ * (ENDO_QUIZ_EMAIL_CONVERSION_ACTION_ID), so PDF downloads and email
+ * requests are counted separately. No body is parsed -- there is no user
+ * input here beyond IP and the request's own Cookie header, and
+ * sendGoogleAdsConversion is a silent no-op when the gclid cookie is
+ * absent, so organic/non-ad visitors correctly get { ok: true } with
+ * nothing uploaded.
  */
 import { log } from '../_log.js';
 import { json, optionsResponse, checkRateLimit } from '../auth/_shared.js';

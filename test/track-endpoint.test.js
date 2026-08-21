@@ -483,6 +483,94 @@ describe('POST /api/track -- long-param clamping (GA4 MP limits)', () => {
       assert.match(parsed.body.detail, /param "surface" string value exceeds 100 chars/);
     } finally { restore(); }
   });
+
+  it('drops a page_referrer whose PII email straddles the 420-char truncation boundary, instead of leaking the local part', async () => {
+    const { restore, state } = makeFetchStub();
+    try {
+      const prefix = 'https://example.com/?r=' + 'a'.repeat(390);
+      const emailReferrer = prefix + 'user@evil-tracker.com'; // full email present in the RAW value
+      assert.ok(emailReferrer.length > 420, 'fixture must exceed the 420-char limit');
+      assert.ok(emailReferrer.slice(0, 420).length === 420 && !/user@evil-tracker\.com/.test(emailReferrer.slice(0, 420)),
+        'fixture must split the email across the naive truncation boundary');
+      const ctx = makeContext({
+        body: {
+          event: 'page_view',
+          params: { page_location: 'https://rrmacademy.org/', page_referrer: emailReferrer },
+          cid: CID,
+          sid: SID,
+          sn: 1,
+        },
+      });
+      const res = await onRequestPost(ctx);
+      assert.equal(res.status, 204);
+      const mp = await captureGa4Params(ctx, state);
+      const p = mp.events[0].params;
+      assert.ok(!('page_referrer' in p), 'a PII-valued page_referrer must be dropped entirely, screened on the raw value');
+    } finally { restore(); }
+  });
+
+  it('accepts a page_referrer carrying a 13-19 digit cache-buster/epoch query param and strips only that param', async () => {
+    const { restore, state } = makeFetchStub();
+    try {
+      const referrer = 'https://google.com/search?q=endometriosis&ts=1787344117289';
+      const ctx = makeContext({
+        body: {
+          event: 'page_view',
+          params: { page_location: 'https://rrmacademy.org/', page_referrer: referrer },
+          cid: CID,
+          sid: SID,
+          sn: 1,
+        },
+      });
+      const res = await onRequestPost(ctx);
+      assert.equal(res.status, 204, 'a long digit-run in a URL query value must not 400 the page_view');
+      const mp = await captureGa4Params(ctx, state);
+      const p = mp.events[0].params;
+      assert.ok(p.page_referrer, 'page_referrer must survive with the offending query param stripped, not dropped entirely');
+      assert.ok(!p.page_referrer.includes('1787344117289'), 'the digit-run query value must be stripped');
+      assert.ok(p.page_referrer.includes('q=endometriosis'), 'unrelated query params must be preserved');
+    } finally { restore(); }
+  });
+
+  it('returns 400 for a non-string page_location', async () => {
+    const { restore } = makeFetchStub();
+    try {
+      const ctx = makeContext({
+        body: { event: 'page_view', params: { page_location: 123, page_referrer: '' } },
+      });
+      const res = await onRequestPost(ctx);
+      const parsed = await parseResponse(res);
+      assert.equal(parsed.status, 400, 'a non-string page_location must be rejected, not coerced');
+      assert.equal(parsed.body.error, 'invalid_request');
+      assert.match(parsed.body.detail, /param "page_location" must be a string/);
+    } finally { restore(); }
+  });
+
+  it('truncates page_referrer without splitting a UTF-16 surrogate pair at the 420-char boundary', async () => {
+    const { restore, state } = makeFetchStub();
+    try {
+      const base = 'https://google.com/';
+      const prefix = base + 'a'.repeat(419 - base.length); // 419 chars, boundary at index 419
+      const overLong = prefix + '\u{1F600}' + 'a'.repeat(10); // surrogate pair spans indices 419-420
+      assert.equal(overLong.charCodeAt(419), 0xD83D, 'fixture must place a high surrogate exactly at the 420-char cut boundary');
+      const ctx = makeContext({
+        body: {
+          event: 'page_view',
+          params: { page_location: 'https://rrmacademy.org/', page_referrer: overLong },
+          cid: CID,
+          sid: SID,
+          sn: 1,
+        },
+      });
+      const res = await onRequestPost(ctx);
+      assert.equal(res.status, 204);
+      const mp = await captureGa4Params(ctx, state);
+      const p = mp.events[0].params;
+      const lastCode = p.page_referrer.charCodeAt(p.page_referrer.length - 1);
+      assert.ok(lastCode < 0xD800 || lastCode > 0xDBFF, 'truncated page_referrer must not end on a lone high surrogate');
+      assert.ok(p.page_referrer.length <= 420, 'truncated page_referrer must not exceed the 420-char limit');
+    } finally { restore(); }
+  });
 });
 
 describe('OPTIONS /api/track -- CORS preflight', () => {
