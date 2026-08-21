@@ -33,15 +33,20 @@
  * logging above -- built after six real conversions were lost silently for
  * 18 days (07-29..08-12) when the deployed OAuth client secret went stale
  * and nobody noticed the AE rows. Mail is best-effort and capped via
- * checkRateLimit (12/hr success, 6/hr failure); it can never throw back
- * into the upload task, never change AE logging, and never affects the
- * caller's response. Missing SES secrets are a silent no-op, same posture
- * as missing Google Ads secrets above. Rate-limit dampening is deliberately
- * fail-OPEN here (opposite of checkRateLimit's normal fail-closed default):
- * a missing COMMUNITY_KV binding must not silently swallow the alarm that
- * exists to catch exactly this kind of outage. A suppressed alert (real
- * cap hit, KV present) still logs its own AE row so suppression is never
- * invisible.
+ * checkRateLimit (12/hr success, 6/hr failure) PER CONVERSION ACTION -- the
+ * budget is scoped per action, not shared across all 6 actions, because the
+ * quiz-start actions fire on every ad landing-page load and would otherwise
+ * exhaust a shared success budget in under an hour, silently suppressing the
+ * alert for a rarer, higher-value conversion (found 2026-08-21, the morning
+ * after the funnel split added the two quiz-start actions). It can never
+ * throw back into the upload task, never change AE logging, and never
+ * affects the caller's response. Missing SES secrets are a silent no-op,
+ * same posture as missing Google Ads secrets above. Rate-limit dampening is
+ * deliberately fail-OPEN here (opposite of checkRateLimit's normal
+ * fail-closed default): a missing COMMUNITY_KV binding must not silently
+ * swallow the alarm that exists to catch exactly this kind of outage. A
+ * suppressed alert (real cap hit, KV present) still logs its own AE row so
+ * suppression is never invisible.
  */
 
 import { log } from './_log.js';
@@ -183,11 +188,13 @@ async function uploadConversion(env, gclid, conversionActionId) {
  * binding must send the alert rather than swallow it: KV being down is
  * exactly the class of silent failure this alarm exists to catch. When KV
  * is bound and the cap is genuinely hit, the suppression itself is logged
- * to AE as its own action so it stays visible.
+ * to AE as its own action so it stays visible. Scoped per conversion action
+ * (not just per kind) so a noisy action's cap can't crowd out the alert for
+ * a rarer one sharing the same success/failure budget.
  */
-async function alertAllowed(env, waitUntil, kind, max, windowS) {
+async function alertAllowed(env, waitUntil, kind, conversionActionId, max, windowS) {
   if (!env.COMMUNITY_KV) return true;
-  const allowed = await checkRateLimit(env, `google_ads_alert_${kind}`, max, windowS);
+  const allowed = await checkRateLimit(env, `google_ads_alert_${kind}_${conversionActionId}`, max, windowS);
   if (!allowed) {
     log(env, waitUntil, 'google_ads', 'conversion_alert_suppressed', 'warn', kind, 0, 0);
   }
@@ -200,7 +207,7 @@ async function sendConversionSuccessEmail(env, waitUntil, conversionActionId, gc
     return;
   }
   try {
-    if (!(await alertAllowed(env, waitUntil, 'success', 12, 3600))) return;
+    if (!(await alertAllowed(env, waitUntil, 'success', conversionActionId, 12, 3600))) return;
 
     const name = conversionActionName(conversionActionId);
     const timestamp = formatEventTimestamp(new Date());
@@ -238,7 +245,7 @@ async function sendConversionFailureEmail(env, waitUntil, conversionActionId, gc
     return;
   }
   try {
-    if (!(await alertAllowed(env, waitUntil, 'failure', 6, 3600))) return;
+    if (!(await alertAllowed(env, waitUntil, 'failure', conversionActionId, 6, 3600))) return;
 
     const name = conversionActionName(conversionActionId);
     const timestamp = formatEventTimestamp(new Date());
