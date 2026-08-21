@@ -72,13 +72,16 @@ export async function onRequestPost(context) {
   const { request, env, waitUntil } = context;
 
   try {
-    if (!env.SURVEY_DB) {
-      return json({ error: 'service_unavailable' }, 503);
-    }
-
     const ip = request.headers.get('cf-connecting-ip') || 'unknown';
     if (!await checkRateLimit(env, `quiz:${ip}`, 5, 900)) {
       return json({ error: 'rate_limited' }, 429);
+    }
+
+    if (!env.SURVEY_DB) {
+      return json({ error: 'service_unavailable' }, 503);
+    }
+    if (!env.CF_TURNSTILE_SECRET) {
+      return json({ error: 'service_unavailable' }, 503);
     }
 
     let body;
@@ -101,9 +104,6 @@ export async function onRequestPost(context) {
       : null;
 
     // Turnstile
-    if (!env.CF_TURNSTILE_SECRET) {
-      return json({ error: 'service_unavailable' }, 503);
-    }
     const turnstileResult = await verifyTurnstile(env.CF_TURNSTILE_SECRET, turnstileToken, ip, env);
     if (!turnstileResult.ok) {
       const msg = turnstileResult.reason === 'network'

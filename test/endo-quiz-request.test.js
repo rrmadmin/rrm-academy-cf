@@ -212,6 +212,20 @@ describe('POST /api/endo-quiz/request', () => {
       });
       assert.equal(res.status, 429);
     });
+
+    it('checks the rate limit before the configuration guards', async () => {
+      // Order matters: a misconfigured account must not become an unmetered
+      // endpoint that answers 503 as fast as it is asked.
+      env.SURVEY_DB = undefined;
+      const ip = randomIp();
+      for (let i = 0; i < 5; i++) {
+        const { status } = await post(VALID, { headers: { 'cf-connecting-ip': ip } });
+        assert.equal(status, 503);
+      }
+      const { status, body } = await post(VALID, { headers: { 'cf-connecting-ip': ip } });
+      assert.equal(status, 429);
+      assert.deepEqual(body, { error: 'rate_limited' });
+    });
   });
 
   // --- payload validation --------------------------------------------------

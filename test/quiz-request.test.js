@@ -171,6 +171,19 @@ describe('POST /api/quiz/request', () => {
     assert.equal(results().length, 5, 'the 6th submission was stored despite the rate limit');
   });
 
+  it('checks the rate limit before the configuration guards', async () => {
+    // Order matters: a misconfigured account must not become an unmetered
+    // endpoint that answers 503 as fast as it is asked.
+    env.SURVEY_DB = undefined;
+    const ip = randomIp();
+    for (let i = 0; i < 5; i++) {
+      assert.equal((await parseResponse(await post(VALID, { headers: { 'cf-connecting-ip': ip } }))).status, 503);
+    }
+    const { status, body } = await parseResponse(await post(VALID, { headers: { 'cf-connecting-ip': ip } }));
+    assert.equal(status, 429);
+    assert.equal(body.error, 'rate_limited');
+  });
+
   it('400s on unparseable JSON and on non-object payloads', async () => {
     for (const [rawBody, expected] of [['{oops', 'invalid_json'], ['[]', 'invalid_payload'], ['null', 'invalid_payload']]) {
       const res = await quizRequest.onRequestPost({
