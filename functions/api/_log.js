@@ -12,7 +12,7 @@
 const EMAIL_PATTERN = /[^\s@]+@[^\s@]+\.[^\s@]+/g;
 
 function redactPii(value) {
-  return (value == null ? '' : value).toString().slice(0, 200).replace(EMAIL_PATTERN, '[redacted-email]');
+  return (value == null ? '' : value).toString().replace(EMAIL_PATTERN, '[redacted-email]').slice(0, 200);
 }
 
 export function log(env, waitUntil, event, action, status, detail, duration, httpStatus, extras) {
