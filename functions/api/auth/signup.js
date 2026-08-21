@@ -66,6 +66,13 @@ export async function onRequestOptions() {
 
 export async function onRequestPost({ request, env, waitUntil }) {
   try {
+    // Rate limit by IP (before expensive DNS lookups): 5 attempts per 15 minutes
+    const ip = request.headers.get('CF-Connecting-IP');
+    if (!ip) return json({ ok: false, error: 'Service temporarily unavailable.' }, 503);
+    if (!await checkRateLimit(env, `signup:${ip}`, 5, 900)) {
+      return json({ ok: false, error: 'Too many attempts. Please try again later.' }, 429);
+    }
+
     const db = env.DB;
     if (!db) return json({ ok: false, error: 'Server misconfigured' }, 500);
 
@@ -92,13 +99,6 @@ export async function onRequestPost({ request, env, waitUntil }) {
         ? COMMON_PASSWORD_ERROR
         : 'Password must be between 8 and 128 characters.';
       return json({ ok: false, error: pwErr }, 400);
-    }
-
-    // Rate limit by IP (before expensive DNS lookups): 5 attempts per 15 minutes
-    const ip = request.headers.get('CF-Connecting-IP');
-    if (!ip) return json({ ok: false, error: 'Service temporarily unavailable.' }, 503);
-    if (!await checkRateLimit(env, `signup:${ip}`, 5, 900)) {
-      return json({ ok: false, error: 'Too many attempts. Please try again later.' }, 429);
     }
 
     if (!env.AWS_ACCESS_KEY_ID) {

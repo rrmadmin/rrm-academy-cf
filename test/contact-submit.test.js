@@ -124,6 +124,42 @@ describe('contact-submit -- category enum', () => {
   });
 });
 
+describe('contact-submit -- guard order', () => {
+  it('checks the rate limit before the AWS configuration guard', async () => {
+    // Order matters: a misconfigured account must not become an unmetered
+    // endpoint that answers 500 as fast as it is asked.
+    const ip = randomIp();
+    const env = mockEnv({ AWS_ACCESS_KEY_ID: undefined });
+    const waitUntil = mockWaitUntil();
+    const statuses = [];
+    for (let i = 0; i < 5; i++) {
+      const res = await onRequestPost({
+        request: mockRequest('POST', {
+          body: makeBody({ email: `sender${i}@example.com` }),
+          headers: { 'CF-Connecting-IP': ip },
+        }),
+        env,
+        waitUntil,
+        data: {},
+      });
+      statuses.push((await parseResponse(res)).status);
+    }
+    assert.deepEqual(statuses, [500, 500, 500, 500, 500]);
+    const res = await onRequestPost({
+      request: mockRequest('POST', {
+        body: makeBody({ email: 'sender5@example.com' }),
+        headers: { 'CF-Connecting-IP': ip },
+      }),
+      env,
+      waitUntil,
+      data: {},
+    });
+    const parsed = await parseResponse(res);
+    assert.equal(parsed.status, 429, 'the 6th attempt from one IP must be rate-limited even while misconfigured');
+    assert.equal(parsed.body.ok, false);
+  });
+});
+
 describe('contact-submit -- subject prefix', () => {
   it('email subject includes [Contact][CATEGORY] prefix', async () => {
     const restore = stubFetchSuccess();

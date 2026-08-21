@@ -246,6 +246,19 @@ describe('POST /api/pdf/request -- configuration and payload guards', () => {
     assert.equal((await parseResponse(res)).status, 429);
   });
 
+  it('checks the rate limit before the DB configuration guard', async () => {
+    // Order matters: a misconfigured account must not become an unmetered
+    // endpoint that answers 500 as fast as it is asked.
+    const env = mockEnv({ DB: undefined });
+    const ip = randomIp();
+    const seen = [];
+    for (let i = 0; i < 6; i++) {
+      const res = await onRequestPost(postCtx({ guide_slug: LIVE_SLUG, email: `a${i}@b.com` }, { env, ip }));
+      seen.push((await parseResponse(res)).status);
+    }
+    assert.deepEqual(seen, [500, 500, 500, 500, 500, 429], 'five hit the config guard, the sixth is rate-limited');
+  });
+
   it('returns 400 for a structurally invalid email', async () => {
     const env = mockEnv({ DB: db() });
     const res = await onRequestPost(postCtx({ guide_slug: LIVE_SLUG, email: 'reader@@example' }, { env }));

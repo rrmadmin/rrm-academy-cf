@@ -174,6 +174,33 @@ describe('survey/request -- abuse controls', () => {
     } finally { stub.restore(); }
   });
 
+  it('checks the rate limit before the configuration guards', async () => {
+    // Order matters: a misconfigured account must not become an unmetered
+    // endpoint that answers 500 as fast as it is asked.
+    const ip = randomIp();
+    const env = mockEnv({ SURVEY_TOKENS: undefined });
+    const stub = stubExternalFetch();
+    try {
+      const statuses = [];
+      for (let i = 0; i < 6; i++) {
+        const waitUntil = mockWaitUntil();
+        const res = await onRequestPost({
+          env,
+          waitUntil,
+          request: mockRequest('POST', {
+            body: { email: `taker${i}@example.com` },
+            url: 'https://rrmacademy.org/api/survey/request',
+            headers: { 'CF-Connecting-IP': ip },
+          }),
+        });
+        await drainWaitUntil(waitUntil);
+        statuses.push((await parseResponse(res)).status);
+      }
+      assert.deepEqual(statuses.slice(0, 5), [500, 500, 500, 500, 500]);
+      assert.equal(statuses[5], 429, 'the 6th attempt from one IP must be refused, even while misconfigured');
+    } finally { stub.restore(); }
+  });
+
   it('refuses a repeat request for the same address inside the 10-minute cooldown', async () => {
     const email = 'repeat@example.com';
     const ctx = makeContext({ body: { email } });

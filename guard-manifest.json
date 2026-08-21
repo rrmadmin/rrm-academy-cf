@@ -11,7 +11,7 @@
       "note": "Authentication"
     },
     "functions/api/auth/signup.js": {
-      "hash": "c0f4e32da3f3295c88bf92b665969565399716f36f46582a38ad377860ffa63e",
+      "hash": "621cde07df9c35d75e7211b3ec7187042aee1a1e8b2ebe17e8d67f4e101bc0ef",
       "note": "Account creation"
     },
     "functions/api/auth/forgot-password.js": {
@@ -91,7 +91,7 @@
       "note": "Survey submission + PII pseudonymization"
     },
     "functions/api/survey/request.js": {
-      "hash": "527d5dcbc22ccf664f2c613991b6691baa0210dc9575376802aefae136c30ac9",
+      "hash": "539c0c7de1b32c73f8b4b536bc93600d59e73605f06b1cd8f76fed0538001fe3",
       "note": "Magic-link token generation"
     },
     "functions/api/newsletter/_mail.js": {
@@ -111,7 +111,7 @@
       "note": "CAN-SPAM unsubscribe (status update)"
     },
     "functions/api/newsletter/subscribe.js": {
-      "hash": "5453ae09cfbad92f431d10b2a8870a3928d3b1af8f708452f3611a240a94e012",
+      "hash": "3a04b12fa1466c498566277cf5aac95e553552703797d85d74a87df73da44cff",
       "note": "Public newsletter intake (rate-limited)"
     },
     "functions/api/search/semantic.js": {
@@ -199,7 +199,7 @@
       "note": "R2 image upload (file validation)"
     },
     "functions/api/pdf/request.js": {
-      "hash": "2e74d8c4e50d5932889633be411e6f62941073e66d795a8fc4fb087e58f853f0",
+      "hash": "3c40e62d8e767326d3554ad7d5bfc622cae5a4d91fe978158ac8d28b3126a098",
       "note": "PDF magic-link token generation"
     },
     "functions/api/pdf/redeem.js": {

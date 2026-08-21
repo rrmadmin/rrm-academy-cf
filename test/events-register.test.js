@@ -259,6 +259,21 @@ describe('POST /api/events/register -- refusals', () => {
     assert.equal(registrations(db).length, 0);
   });
 
+  it('checks the rate limit before the configuration guards', async () => {
+    // Order matters: a misconfigured account must not become an unmetered
+    // endpoint that answers 503 as fast as it is asked.
+    const ip = randomIp();
+    const misconfigured = makeEnv(undefined, { DB: undefined });
+    for (let i = 1; i <= 10; i++) {
+      const { status, body } = await submit(misconfigured, { ...VALID, email: `bot${i}@example.com` }, { ip });
+      assert.equal(status, 503, `request ${i} must still be a config error`);
+      assert.equal(body.error, 'service_unavailable');
+    }
+    const eleventh = await submit(misconfigured, { ...VALID, email: 'bot11@example.com' }, { ip });
+    assert.equal(eleventh.status, 429, 'the 11th attempt from one IP must be rate-limited even while misconfigured');
+    assert.equal(eleventh.body.error, 'rate_limited');
+  });
+
   it('the 3rd signup for one address is served and the 4th is refused', async () => {
     const email = 'repeat@example.com';
     for (let i = 1; i <= 3; i++) {
