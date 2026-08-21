@@ -8,7 +8,7 @@
  */
 import { checkRateLimit, CORS_HEADERS, optionsResponse } from './auth/_shared.js';
 import { sendGA4Event } from './_ga4.js';
-import { ALLOWED_CLIENT_EVENTS, REQUIRED_PARAMS, PII_REGEX, PII_VALUE_REGEX, RESERVED_PARAMS } from './_track-events.js';
+import { ALLOWED_CLIENT_EVENTS, REQUIRED_PARAMS, PII_REGEX, PII_VALUE_REGEX, RESERVED_PARAMS, LONG_PARAM_LIMITS } from './_track-events.js';
 import { log } from './_log.js';
 import { isBotRequest } from './_bot.js';
 
@@ -123,9 +123,15 @@ export async function onRequestPost(context) {
           headers: CORS_HEADERS,
         });
       }
-      const val = rawParams[key];
+      let val = rawParams[key];
       if (typeof val === 'string') {
-        if (val.length > 100) {
+        const longLimit = LONG_PARAM_LIMITS.get(key);
+        if (longLimit !== undefined) {
+          if (val.length > longLimit) {
+            val = val.slice(0, longLimit);
+            rawParams[key] = val;
+          }
+        } else if (val.length > 100) {
           return Response.json({ error: 'invalid_request', detail: `param "${key}" string value exceeds 100 chars` }, {
             status: 400,
             headers: CORS_HEADERS,
