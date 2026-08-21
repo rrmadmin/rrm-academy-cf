@@ -45,6 +45,17 @@ export const ALLOWED_EVENTS = new Set([
   ...ALLOWED_CLIENT_EVENTS,
 ]);
 
+// Per-param string length limits for params GA4 Measurement Protocol itself
+// allows to run long. Values are truncated to these limits (never rejected)
+// before the generic 100-char param validation runs. Limits mirror GA4 MP's
+// own documented caps: page_location 1000 chars, page_referrer 420 chars,
+// page_title 300 chars. Any param not listed here keeps the 100-char reject.
+export const LONG_PARAM_LIMITS = new Map([
+  ['page_location', 1000],
+  ['page_referrer', 420],
+  ['page_title', 300],
+]);
+
 // Required params per event. Client must supply ALL listed keys.
 // Optional params are not listed here -- they pass through after sanitization.
 export const REQUIRED_PARAMS = new Map([

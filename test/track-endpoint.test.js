@@ -398,6 +398,93 @@ describe('POST /api/track -- PII and reserved param stripping', () => {
   });
 });
 
+describe('POST /api/track -- long-param clamping (GA4 MP limits)', () => {
+  // page_location/page_referrer/page_title are clamped to GA4 Measurement
+  // Protocol's own limits instead of the generic 100-char reject (bug: paid
+  // Google Ads landing page_views 400'd since 2026-07-11 because
+  // page_location carries utm_*/gclid and easily exceeds 100 chars).
+  const CID = '7c9e6679-7425-40de-944b-e07fc1f90ae7';
+  const SID = 1757100000;
+
+  async function captureGa4Params(ctx, state) {
+    await Promise.all(ctx.waitUntil.promises);
+    const beacons = state.bodies.filter((b) => b && b.client_id === CID);
+    assert.equal(beacons.length, 1, 'exactly one GA4 Measurement Protocol call for this beacon');
+    return beacons[0];
+  }
+
+  it('accepts a page_view whose page_location carries utm_*/gclid and is ~150 chars (the reproduced bug)', async () => {
+    const { restore, state } = makeFetchStub();
+    try {
+      const adPageLocation = 'https://rrmacademy.org/endo-quiz/?utm_source=google&utm_medium=cpc' +
+        '&utm_campaign=google_ads_endo_quiz&utm_content=818477153915&gclid=EAIaIQobChMI-test';
+      assert.ok(adPageLocation.length > 100 && adPageLocation.length < 200, 'fixture must reproduce the ~150-char bug case');
+      const ctx = makeContext({
+        body: { event: 'page_view', params: { page_location: adPageLocation, page_referrer: '' }, cid: CID, sid: SID, sn: 1 },
+      });
+      const res = await onRequestPost(ctx);
+      assert.equal(res.status, 204, 'a >100-char page_location must no longer be rejected');
+      await captureGa4Params(ctx, state);
+    } finally { restore(); }
+  });
+
+  it('accepts and truncates page_location to exactly 1000 chars when it exceeds the limit', async () => {
+    const { restore, state } = makeFetchStub();
+    try {
+      const base = 'https://rrmacademy.org/';
+      const overLong = base + 'a'.repeat(1050 - base.length); // 1050 chars total, no query string
+      assert.equal(overLong.length, 1050);
+      const ctx = makeContext({
+        body: { event: 'page_view', params: { page_location: overLong, page_referrer: '' }, cid: CID, sid: SID, sn: 1 },
+      });
+      const res = await onRequestPost(ctx);
+      assert.equal(res.status, 204, 'an oversized page_location must be truncated, not rejected');
+      const mp = await captureGa4Params(ctx, state);
+      const p = mp.events[0].params;
+      assert.equal(p.page_location.length, 1000, 'page_location forwarded to GA4 must be truncated to exactly 1000 chars');
+      assert.equal(p.page_location, overLong.slice(0, 1000), 'truncation must be a plain 1000-char prefix');
+    } finally { restore(); }
+  });
+
+  it('accepts and truncates page_referrer to exactly 420 chars when it exceeds the limit', async () => {
+    const { restore, state } = makeFetchStub();
+    try {
+      const base = 'https://google.com/';
+      const overLong = base + 'a'.repeat(421 - base.length); // 421 chars total
+      assert.equal(overLong.length, 421);
+      const ctx = makeContext({
+        body: {
+          event: 'page_view',
+          params: { page_location: 'https://rrmacademy.org/', page_referrer: overLong },
+          cid: CID,
+          sid: SID,
+          sn: 1,
+        },
+      });
+      const res = await onRequestPost(ctx);
+      assert.equal(res.status, 204, 'an oversized page_referrer must be truncated, not rejected');
+      const mp = await captureGa4Params(ctx, state);
+      const p = mp.events[0].params;
+      assert.equal(p.page_referrer.length, 420, 'page_referrer forwarded to GA4 must be truncated to exactly 420 chars');
+      assert.equal(p.page_referrer, overLong.slice(0, 420), 'truncation must be a plain 420-char prefix');
+    } finally { restore(); }
+  });
+
+  it('still returns 400 for a non-exempt param (surface) exceeding 100 chars', async () => {
+    const { restore } = makeFetchStub();
+    try {
+      const ctx = makeContext({
+        body: { event: 'search_submit', params: { query_length: 5, surface: 'x'.repeat(101) } },
+      });
+      const res = await onRequestPost(ctx);
+      const parsed = await parseResponse(res);
+      assert.equal(parsed.status, 400, 'a non-exempt param over 100 chars must still be rejected');
+      assert.equal(parsed.body.error, 'invalid_request');
+      assert.match(parsed.body.detail, /param "surface" string value exceeds 100 chars/);
+    } finally { restore(); }
+  });
+});
+
 describe('OPTIONS /api/track -- CORS preflight', () => {
   it('returns 204 with CORS headers', () => {
     const res = onRequestOptions();
