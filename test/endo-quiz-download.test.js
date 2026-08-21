@@ -178,7 +178,7 @@ describe('POST /api/endo-quiz/download', () => {
     const [upload] = uploads();
     assert.ok(upload, 'no conversion was uploaded for an ad visitor');
     assert.equal(upload.body.events[0].adIdentifiers.gclid, 'Cj0KCQjw_abcdef123');
-    assert.equal(upload.body.destinations[0].productDestinationId, '7671519551');
+    assert.equal(upload.body.destinations[0].productDestinationId, '7728951095');
     assert.equal(upload.body.destinations[0].operatingAccount.accountId, '4262268858');
     assert.equal(upload.body.events[0].conversionValue, 1);
     assert.equal(upload.body.events[0].eventSource, 'WEB');

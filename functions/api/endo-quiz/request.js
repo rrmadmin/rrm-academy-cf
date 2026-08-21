@@ -14,7 +14,7 @@ import { log } from '../_log.js';
 import { validateEmail } from '../auth/_email-validate.js';
 import { verifyAndTagEmail } from '../_elv.js';
 import { json, optionsResponse, checkRateLimit, verifyTurnstile } from '../auth/_shared.js';
-import { sendGoogleAdsConversion, ENDO_QUIZ_CONVERSION_ACTION_ID } from '../_google-ads.js';
+import { sendGoogleAdsConversion, ENDO_QUIZ_EMAIL_CONVERSION_ACTION_ID } from '../_google-ads.js';
 
 const TIER_MAX_ITEMS = { tier1: 15, tier2: 15, tier3: 6 };
 const MAX_SYMPTOM_LEN = 200;
@@ -158,7 +158,7 @@ export async function onRequestPost(context) {
       })());
     }
 
-    sendGoogleAdsConversion(env, waitUntil, request.headers.get('Cookie') || '', ENDO_QUIZ_CONVERSION_ACTION_ID);
+    sendGoogleAdsConversion(env, waitUntil, request.headers.get('Cookie') || '', ENDO_QUIZ_EMAIL_CONVERSION_ACTION_ID);
     waitUntil(sendGA4Event(env, request, 'generate_lead', { lead_source: 'endo_quiz_ads', page_location: 'https://rrmacademy.org/endo-quiz/results/' }).catch(() => {}));
 
     const emailSubject = 'Your endometriosis symptom quiz results';
