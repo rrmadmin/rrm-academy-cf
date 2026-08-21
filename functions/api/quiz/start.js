@@ -15,9 +15,13 @@
  * there is no user input here beyond IP and the request's own Cookie
  * header, and sendGoogleAdsConversion is a silent no-op when the gclid
  * cookie is absent, so organic/non-ad visitors correctly get { ok: true }
- * with nothing uploaded. The conversion action is ONE_PER_CLICK, so this
- * start-of-quiz fire dedupes against the later email fire for the same
- * gclid -- Google counts one, not two.
+ * with nothing uploaded. Each conversion action is ONE_PER_CLICK, which
+ * dedupes repeat fires WITHIN that action only (reloading /start/ won't
+ * re-count for the same gclid) -- it does not dedupe across the two
+ * distinct actions in this funnel (QUIZ_CONVERSION_ACTION_ID here,
+ * QUIZ_EMAIL_CONVERSION_ACTION_ID on email capture), so a visitor who
+ * completes the whole funnel can legitimately record up to two
+ * conversions.
  */
 import { log } from '../_log.js';
 import { json, optionsResponse, checkRateLimit } from '../auth/_shared.js';
