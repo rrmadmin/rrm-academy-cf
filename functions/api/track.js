@@ -8,12 +8,37 @@
  */
 import { checkRateLimit, CORS_HEADERS, optionsResponse } from './auth/_shared.js';
 import { sendGA4Event } from './_ga4.js';
-import { ALLOWED_CLIENT_EVENTS, REQUIRED_PARAMS, PII_REGEX, PII_VALUE_REGEX, RESERVED_PARAMS, LONG_PARAM_LIMITS } from './_track-events.js';
+import { ALLOWED_CLIENT_EVENTS, REQUIRED_PARAMS, PII_REGEX, PII_VALUE_REGEX, RESERVED_PARAMS, LONG_PARAM_LIMITS, URL_SHAPED_LONG_PARAMS, isDigitRunOnlyMatch } from './_track-events.js';
 import { log } from './_log.js';
 import { isBotRequest } from './_bot.js';
 
 const EVENT_NAME_RE = /^[a-z][a-z0-9_]{0,39}$/;
 const PARAM_KEY_RE  = /^[a-z][a-z0-9_]{0,39}$/;
+
+function safeSlice(str, limit) {
+  if (str.length <= limit) return str;
+  let end = limit;
+  const code = str.charCodeAt(end - 1);
+  if (code >= 0xD800 && code <= 0xDBFF) end -= 1;
+  return str.slice(0, end);
+}
+
+function stripDigitRunQueryParams(urlString) {
+  let url;
+  try {
+    url = new URL(urlString);
+  } catch {
+    return null;
+  }
+  let changed = false;
+  for (const [key, value] of [...url.searchParams.entries()]) {
+    if (isDigitRunOnlyMatch(value)) {
+      url.searchParams.delete(key);
+      changed = true;
+    }
+  }
+  return changed ? url.toString() : urlString;
+}
 
 // Fixed enums for the AE-only entry_category/device_type hints (see onRequestPost
 // below). entry_category mirrors the value set classifySource()/buildSourceParams()
@@ -116,6 +141,7 @@ export async function onRequestPost(context) {
     }
 
     // Validate each key and value
+    const longParamRawValues = new Map();
     for (const key of paramKeys) {
       if (!PARAM_KEY_RE.test(key)) {
         return Response.json({ error: 'invalid_request', detail: `param key "${key}" must match ^[a-z][a-z0-9_]{0,39}$` }, {
@@ -124,13 +150,23 @@ export async function onRequestPost(context) {
         });
       }
       let val = rawParams[key];
+      if (LONG_PARAM_LIMITS.has(key) && typeof val !== 'string') {
+        return Response.json({ error: 'invalid_request', detail: `param "${key}" must be a string` }, {
+          status: 400,
+          headers: CORS_HEADERS,
+        });
+      }
       if (typeof val === 'string') {
         const longLimit = LONG_PARAM_LIMITS.get(key);
         if (longLimit !== undefined) {
-          if (val.length > longLimit) {
-            val = val.slice(0, longLimit);
-            rawParams[key] = val;
+          if (URL_SHAPED_LONG_PARAMS.has(key) && isDigitRunOnlyMatch(val)) {
+            val = stripDigitRunQueryParams(val) ?? val;
           }
+          longParamRawValues.set(key, val);
+          if (val.length > longLimit) {
+            val = safeSlice(val, longLimit);
+          }
+          rawParams[key] = val;
         } else if (val.length > 100) {
           return Response.json({ error: 'invalid_request', detail: `param "${key}" string value exceeds 100 chars` }, {
             status: 400,
@@ -169,7 +205,8 @@ export async function onRequestPost(context) {
       if (RESERVED_PARAMS.has(key)) continue;
       if (PII_REGEX.test(key)) continue;
       const val = rawParams[key];
-      if (typeof val === 'string' && PII_VALUE_REGEX.test(val)) continue;
+      const piiScreenVal = longParamRawValues.has(key) ? longParamRawValues.get(key) : val;
+      if (typeof piiScreenVal === 'string' && PII_VALUE_REGEX.test(piiScreenVal)) continue;
       sanitizedParams[key] = val;
     }
 

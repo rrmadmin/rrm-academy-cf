@@ -3,7 +3,7 @@
   "description": "Critical file integrity manifest. Run `npm run guard:update` after intentional changes.",
   "files": {
     "functions/api/auth/_shared.js": {
-      "hash": "11170d6d49c97c6a352cf2f076e190dc1404327b3bf2938474647c579919d6d0",
+      "hash": "37b153e20c36ae4aeaed18b4fb5b99ebbd1e09ddd3b873277ad99fad1ab34052",
       "note": "CORS, sessions, crypto, rate limiting"
     },
     "functions/api/auth/login.js": {
@@ -222,15 +222,15 @@
       "hash": "c8053c9818a055f56bdfe145bbab83ca1aa7566d2c512d96edcd6e6ca0f17eaa"
     },
     "functions/api/track.js": {
-      "hash": "4823142233cd7c307b97d5d43cce24858b1a2935f5c48b5728f4d71bdbb8f2c2",
+      "hash": "2b904aa125a4dae5fa726a877586867facb03a0a8213e3822e7726bea895a49b",
       "note": "Client analytics endpoint: rate limit + allowlist + PII strip + GA4 MP relay + AE mirror"
     },
     "functions/api/_track-events.js": {
-      "hash": "c8a699854b057579368c5c646ef59e728d0e04f5477e66d5c9e93f86d54a90ca",
+      "hash": "8b1ee6220ae13c34cebf02961cebd067a1b69553c5e04cbae81d194f919389d2",
       "note": "Allowed events, required params, PII_REGEX, reserved params (security invariants for /api/track)"
     },
     "functions/api/_ga4.js": {
-      "hash": "8939b044c854346d15478e5d36eab856b04b1e558be0ea64cc196a6cff430988",
+      "hash": "a4c292f33208171f1f7df220a349f945a538ca930419b08c4ebac87a7f3aaec8",
       "note": "GA4 MP relay: server-derived attribution PII screen (second pass) + page_location query/hash/userinfo strip"
     },
     "functions/api/_ga4-source.js": {
