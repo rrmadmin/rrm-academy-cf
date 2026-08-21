@@ -141,6 +141,15 @@ const PAGE_URL = 'https://rrmacademy.org/fertility-awareness-method-quiz/start/'
       document.getElementById('quiz').scrollIntoView({ behavior: prefersReducedMotion() ? 'auto' : 'smooth', block: 'start' });
     });
 
+    // Fires once per browser session: taking the quiz is a completed action for
+    // ad-recruited visitors regardless of whether they later request the
+    // email result. The endpoint no-ops without a gclid cookie, and the
+    // sessionStorage guard stops a page reload from refiring.
+    if (!sessionStorage.getItem('qz-start-conv')) {
+      try { sessionStorage.setItem('qz-start-conv', '1'); } catch (e) {}
+      fetch('/api/quiz/start', { method: 'POST', keepalive: true }).catch(function () {});
+    }
+
     trackEvent('gate_view');
   </script>
 

@@ -4,7 +4,7 @@ import { log } from '../_log.js';
 import { validateEmail } from '../auth/_email-validate.js';
 import { verifyAndTagEmail } from '../_elv.js';
 import { json, optionsResponse, checkRateLimit, verifyTurnstile } from '../auth/_shared.js';
-import { sendGoogleAdsConversion, QUIZ_CONVERSION_ACTION_ID } from '../_google-ads.js';
+import { sendGoogleAdsConversion, QUIZ_EMAIL_CONVERSION_ACTION_ID } from '../_google-ads.js';
 
 const METHOD_KEYS = new Set([
   'sdm', 'twoday', 'billings', 'creighton', 'femm', 'sensiplan', 'marquette',
@@ -189,7 +189,7 @@ export async function onRequestPost(context) {
       return json({ error: 'server_error' }, 500);
     }
 
-    sendGoogleAdsConversion(env, waitUntil, request.headers.get('Cookie') || '', QUIZ_CONVERSION_ACTION_ID);
+    sendGoogleAdsConversion(env, waitUntil, request.headers.get('Cookie') || '', QUIZ_EMAIL_CONVERSION_ACTION_ID);
 
     // Email (best-effort)
     const methodInfo = METHOD_EMAIL[primary];

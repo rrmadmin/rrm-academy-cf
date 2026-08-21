@@ -18,17 +18,17 @@
   "date": "2026-08-21",
   "instrument": "node scripts/quality/coverage.mjs (c8 --all over the full surface; full npm-test suite)",
   "full_surface": {
-   "files": 430,
-   "lines": 85798,
-   "covered": 34603,
-   "pct": 40.33
+   "files": 431,
+   "lines": 85862,
+   "covered": 34667,
+   "pct": 40.38
   },
   "by_category": {
    "PRODUCT-CODE": {
-    "files": 341,
-    "lines": 64394,
-    "covered": 29320,
-    "pct": 45.53
+    "files": 342,
+    "lines": 64458,
+    "covered": 29384,
+    "pct": 45.59
    },
    "CONTENT-TEMPLATE": {
     "files": 9,
@@ -56,13 +56,13 @@
    }
   },
   "product_code": {
-   "files": 341,
-   "lines": 64394,
-   "covered": 29320,
-   "pct": 45.53
+   "files": 342,
+   "lines": 64458,
+   "covered": 29384,
+   "pct": 45.59
   },
   "files_at_zero_in_full_report": 258,
-  "files_executed_in_full_report": 172,
+  "files_executed_in_full_report": 173,
   "highest_stakes_slice": {
    "slice": "national survey system (functions/api/survey/ + functions/api/endo-quiz/)",
    "files": [
@@ -544,9 +544,9 @@
    "category": "PRODUCT-CODE",
    "reason": "CF Pages Function (routed endpoint, middleware, or _-prefixed shared helper). Deployed on every push; defects ship directly to users.",
    "present": true,
-   "lines": 287,
-   "covered": 265,
-   "pct": 92.33
+   "lines": 300,
+   "covered": 278,
+   "pct": 92.66
   },
   {
    "file": "functions/api/_guide-pdfs.js",
@@ -2049,6 +2049,15 @@
    "present": true,
    "lines": 260,
    "covered": 260,
+   "pct": 100
+  },
+  {
+   "file": "functions/api/quiz/start.js",
+   "category": "PRODUCT-CODE",
+   "reason": "CF Pages Function (routed endpoint, middleware, or _-prefixed shared helper). Deployed on every push; defects ship directly to users.",
+   "present": true,
+   "lines": 51,
+   "covered": 51,
    "pct": 100
   },
   {
