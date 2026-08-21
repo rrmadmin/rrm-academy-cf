@@ -104,6 +104,7 @@
 | `POST /api/survey/event` | `survey/event.js` | Survey click beacon (rate-limited) |
 | `GET /api/survey/count` | `survey/count.js` | Public survey-taker counts (edge-cached) |
 | `POST /api/endo-quiz/request` | `endo-quiz/request.js` | Google Ads landing-flow single-step email capture (Turnstile + rate limit); stores pseudonymized symptoms tagged `source='ads'`, fires Google Ads conversion (live UPLOAD_CLICKS action 7671519551 via Data Manager) |
+| `POST /api/endo-quiz/start` | `endo-quiz/start.js` | Fires the same Google Ads conversion (action 7671519551) when an ad visitor loads `/endo-quiz/start/`, so starting the quiz counts even if the visitor never reaches the download or email gate. No body, no PII, no D1 write; rate-limited 10/15min. Silent no-op without a `gclid` cookie |
 | `POST /api/endo-quiz/download` | `endo-quiz/download.js` | Fires the same Google Ads conversion (action 7671519551) when an ad visitor downloads the ungated PDF summary on `/endo-quiz/results/` instead of reaching the email gate. No body, no PII, no D1 write; rate-limited 10/15min. Silent no-op without a `gclid` cookie |
 | `POST /api/contact/submit` | `contact/submit.js` | Contact form via SES (Turnstile + rate limit) |
 | `POST /api/partners/apply` | `partners/apply.js` | Partner application intake (Turnstile) |
