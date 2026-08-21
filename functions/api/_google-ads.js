@@ -55,7 +55,12 @@ const TOKEN_ENDPOINT = 'https://oauth2.googleapis.com/token';
 // Conversion actions of type UPLOAD_CLICKS in the Ad Grants account.
 export const NEWSLETTER_CONVERSION_ACTION_ID = '7671519545';
 export const QUIZ_CONVERSION_ACTION_ID = '7671519548';
-export const ENDO_QUIZ_CONVERSION_ACTION_ID = '7671519551';
+// Endo quiz funnel (2026-08-21): START is the primary action (drives Maximize
+// Conversions bidding); PDF download and email request are secondary actions
+// (observed, not bid on) so completion depth per keyword stays visible.
+export const ENDO_QUIZ_CONVERSION_ACTION_ID = '7671519551'; // Endo Quiz Start (primary)
+export const ENDO_QUIZ_PDF_CONVERSION_ACTION_ID = '7728951095'; // secondary
+export const ENDO_QUIZ_EMAIL_CONVERSION_ACTION_ID = '7728951098'; // secondary
 
 // gclid values are opaque alphanumeric-ish tokens Google generates; this is a
 // sanity bound, not a real format spec.
@@ -67,7 +72,9 @@ const ALERT_TO = 'administrator@rrmacademy.org';
 const CONVERSION_ACTION_NAMES = {
   [NEWSLETTER_CONVERSION_ACTION_ID]: 'Newsletter Signup',
   [QUIZ_CONVERSION_ACTION_ID]: 'Quiz',
-  [ENDO_QUIZ_CONVERSION_ACTION_ID]: 'Endo Quiz',
+  [ENDO_QUIZ_CONVERSION_ACTION_ID]: 'Endo Quiz Start',
+  [ENDO_QUIZ_PDF_CONVERSION_ACTION_ID]: 'Endo Quiz PDF Download',
+  [ENDO_QUIZ_EMAIL_CONVERSION_ACTION_ID]: 'Endo Quiz Email Request',
 };
 
 function conversionActionName(conversionActionId) {
