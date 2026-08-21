@@ -54,7 +54,12 @@ const TOKEN_ENDPOINT = 'https://oauth2.googleapis.com/token';
 
 // Conversion actions of type UPLOAD_CLICKS in the Ad Grants account.
 export const NEWSLETTER_CONVERSION_ACTION_ID = '7671519545';
-export const QUIZ_CONVERSION_ACTION_ID = '7671519548';
+// FABM quiz funnel (2026-08-21, mirrors the endo quiz funnel below): START is
+// the primary action (drives Maximize Conversions bidding); the post-quiz
+// email request is a secondary action (observed, not bid on) so completion
+// depth per keyword stays visible.
+export const QUIZ_CONVERSION_ACTION_ID = '7671519548'; // FABM Quiz Start (primary)
+export const QUIZ_EMAIL_CONVERSION_ACTION_ID = '7729254901'; // secondary
 // Endo quiz funnel (2026-08-21): START is the primary action (drives Maximize
 // Conversions bidding); PDF download and email request are secondary actions
 // (observed, not bid on) so completion depth per keyword stays visible.
@@ -71,7 +76,8 @@ const ALERT_TO = 'administrator@rrmacademy.org';
 
 const CONVERSION_ACTION_NAMES = {
   [NEWSLETTER_CONVERSION_ACTION_ID]: 'Newsletter Signup',
-  [QUIZ_CONVERSION_ACTION_ID]: 'Quiz',
+  [QUIZ_CONVERSION_ACTION_ID]: 'FABM Quiz Start',
+  [QUIZ_EMAIL_CONVERSION_ACTION_ID]: 'FABM Quiz Email Request',
   [ENDO_QUIZ_CONVERSION_ACTION_ID]: 'Endo Quiz Start',
   [ENDO_QUIZ_PDF_CONVERSION_ACTION_ID]: 'Endo Quiz PDF Download',
   [ENDO_QUIZ_EMAIL_CONVERSION_ACTION_ID]: 'Endo Quiz Email Request',
