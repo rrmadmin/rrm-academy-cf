@@ -114,7 +114,7 @@ const RULES = [
   [/^scripts\/(gen-image|stylize-from-photo|cover-add-title)\.mjs$/, 'ONE-OFF', 'Local creative operator tool; body is external image-AI API I/O plus sharp compositing, run by hand per asset, never in CI.'],
 
   // ---- scripts: live-platform drivers / post-deploy checks / operator I/O tools ----
-  [/^scripts\/(canary|qa-pre-deploy|qa-post-deploy|smoke-course-landings|verify-membership-mobile|verify-mobile-hamburger|verify-search-expand|screenshot-badges)\.mjs$/, 'E2E-DRIVER', 'Post-deploy/live-site check (HTTP or Playwright against the deployed stack); the correctness instrument is the run.'],
+  [/^scripts\/(canary|qa-pre-deploy|qa-post-deploy|smoke-course-landings|test-gated-content|verify-membership-mobile|verify-mobile-hamburger|verify-search-expand|screenshot-badges)\.mjs$/, 'E2E-DRIVER', 'Post-deploy/live-site check (HTTP or Playwright against the deployed stack); the correctness instrument is the run.'],
   [/^scripts\/red-team-ask\//, 'E2E-DRIVER', 'Adversarial probe battery driven against the live /ask endpoint.'],
   [/^scripts\/(embed-library|embed-library-ci|ai-search-corpus-upload|ai-search-provision|submit-indexnow|rebuild-dedupe-index)\.mjs$/, 'E2E-DRIVER', 'Body is live Vectorize/AI-Search/IndexNow/KV I/O against the deployed platform.'],
   [/^scripts\/ga4-.*\.mjs$/, 'E2E-DRIVER', 'Live GA4 Admin API configuration driver.'],
