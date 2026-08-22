@@ -132,6 +132,10 @@ export const EXTRA_DDL = [
     why: 'The three membership_state columns on wix_subscription are written by rrm-wix-stuc-sync (lapse-reason converge) and live in the ROOT migrations/ directory, which the test replay list does not read, and postdate the 2026-05-27 snapshot; added 2026-08-21 with the migration in the same commit so gates:schema-drift stays level with live once 034 is applied remotely. Until the remote apply, SD2 (STALE-PRESENT) is the expected and intended signal. Order matters: this file ALTERs wix_subscription, which schema.sql creates, so it must stay after schema.sql in the composition (EXTRA_DDL is applied last).',
   },
   {
+    path: 'migrations/035-overdue-email.sql',
+    why: 'The two overdue_email_* columns on wix_subscription are written by rrm-wix-stuc-sync (STUC overdue-renewal auto-email) and live in the ROOT migrations/ directory, which the test replay list does not read, and postdate the 2026-05-27 snapshot; added 2026-08-22 with the migration in the same commit so gates:schema-drift stays level with live once 035 is applied remotely. Until the remote apply, SD2 (STALE-PRESENT) is the expected and intended signal. Order matters: this file ALTERs wix_subscription, which schema.sql creates, so it must stay after schema.sql in the composition (EXTRA_DDL is applied last).',
+  },
+  {
     path: 'scripts/migrations/ai-search-docs.sql',
     why: 'ai_search_docs is excluded from POST_SNAPSHOT_MIGRATIONS because it predates the 2026-05-27 snapshot, and schema.sql does not inline it because a comment there wrongly recorded it as DROPPED (corrected 2026-07-31). It is NOT dropped: live rrm-auth still has it (verified 2026-07-31, columns identical to this file, differing only in the key collation noted in its own header) and scripts/ai-search-corpus-upload.mjs still writes to it. This entry is what keeps the composed mirror level with live, so gates:schema-drift reports no stale-absent drift for it.',
   },
