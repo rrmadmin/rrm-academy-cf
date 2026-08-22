@@ -418,6 +418,53 @@ function gateCS3() {
   return results;
 }
 
+// ---------- Gate CS4: Live — course gating config is enrollable -----------
+// Born 2026-08-22 from the breaking-up-with-ivf incident: a published
+// accessType='members' course with is_free=0 and no stripe_price_id passes
+// requireMember() in enroll.js, then falls into the paid branch and dead-ends
+// with "Course pricing not configured" for every member. Nothing caught it
+// until a paying member reported it. This gate asserts no published course
+// carries a flag combination the enroll endpoint cannot serve.
+function gateCS4() {
+  const results = [];
+  if (QUICK_MODE) {
+    results.push(warn(`CS4 skipped (--quick mode, no network queries)`));
+    return results;
+  }
+
+  let rows;
+  try {
+    rows = d1Query(
+      `SELECT id, access_type, is_free, stripe_price_id, coming_soon, status FROM course WHERE status = 'published'`
+    );
+  } catch (err) {
+    results.push(warn(`CS4 skipped: could not reach live D1 '${D1_NAME}' (${String(err.message).slice(0, 160)})`));
+    return results;
+  }
+  if (!rows.length) {
+    results.push(fail(`CS4: live D1 returned 0 published courses — query or data problem, refusing to pass on an empty set`));
+    return results;
+  }
+
+  let bad = 0;
+  for (const c of rows) {
+    // Members courses enroll via the free branch after requireMember(); a
+    // members course that is not is_free routes members into the paid branch.
+    if (c.access_type === 'members' && !c.is_free) {
+      bad++;
+      results.push(fail(`${c.id}: access_type='members' with is_free=0 — members hit the paid branch with no price ("Course pricing not configured")`));
+    }
+    // Non-members paid course must carry a Stripe price (coming_soon is
+    // rejected by enroll.js before the pricing branch, so it is exempt).
+    if (c.access_type !== 'members' && !c.is_free && !c.coming_soon && !c.stripe_price_id) {
+      bad++;
+      results.push(fail(`${c.id}: paid course with no stripe_price_id — enrollment dead-ends for every registered user`));
+    }
+  }
+  if (!bad) results.push(pass(`all ${rows.length} published courses have enrollable gating config`));
+  return results;
+}
+
 // ---------- Main ----------------------------------------------------------
 if (!JSON_MODE) {
   console.log(`${BOLD}RRM Academy — Courses Schema Drift Gates${RESET}`);
@@ -429,6 +476,7 @@ const gateSpecs = [
   { id: 'CS1', name: 'Static: migration CHECK == app VALID_* Sets', fn: gateCS1 },
   { id: 'CS2', name: 'Live: migration columns + CHECK == live D1',   fn: gateCS2 },
   { id: 'CS3', name: 'Static: step_rendition CHECK == rendition VALID_* Sets', fn: gateCS3 },
+  { id: 'CS4', name: 'Live: course gating config is enrollable', fn: gateCS4 },
 ];
 
 let totalFailures = 0;
