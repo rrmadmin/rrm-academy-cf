@@ -1,0 +1,49 @@
+-- 035-overdue-email.sql
+-- Per-episode idempotency for the STUC overdue-renewal auto-email -- additive migration on rrm-auth (D1).
+--
+-- WHY
+-- rrm-wix-stuc-sync derives membership_state='past_due' (migration 034) for a
+-- Wix member whose renewal date has passed while the row is still inside the
+-- status.js grace window. The overdue-renewal email ("the credit card on file
+-- ... failed") must go out ONCE per lapse episode, not once per 6h cron tick,
+-- and not again when the same member lapses a second time months later. That
+-- needs two stamps next to the roster row: when the email went out, and WHICH
+-- episode it was for. The episode key is the row's expected renewal date
+-- (next_expected_at, falling back to last_order_at), truncated to a UTC date,
+-- so a later lapse with a later expected date is a new episode and mails again.
+--
+-- One stamp alone is not enough: overdue_email_sent_at IS NOT NULL would
+-- silence the member forever, and clearing it on recovery would lose the send
+-- history. Storing the episode alongside keeps both.
+--
+-- This repo is the canonical home for the DDL because rrm-auth has ONE
+-- migration history (this repo). rrm-wix-stuc-sync/src/overdue-outreach.js
+-- writes both columns; nothing else reads them today.
+--
+-- ADDITIVE ONLY: two nullable TEXT columns. No index: the reading query is
+-- already filtered by membership_state (idx_wix_subscription_state, migration
+-- 034) over a roster of a few hundred rows.
+--
+-- NOT RE-RUNNABLE: SQLite has no ALTER TABLE ADD COLUMN IF NOT EXISTS, so a
+-- second run of these ALTERs errors with "duplicate column name". That is the
+-- intended signal that the migration already applied.
+--
+-- COLUMN NOTES
+-- overdue_email_sent_at: ISO timestamp of the last overdue email sent for this
+--   subscription (TEXT, matching the sibling TEXT date columns on this table;
+--   cancel_requested_at is the pre-existing INTEGER-epoch exception and is not
+--   touched here). Also read as the per-UTC-day send counter.
+-- overdue_email_episode: the episode key that send was for, 'YYYY-MM-DD'.
+--
+-- ROLLBACK: the columns are additive; the named revert is a value revert, not a
+-- schema one:
+--   UPDATE wix_subscription SET overdue_email_sent_at=NULL, overdue_email_episode=NULL;
+-- Note that reverting the values re-arms the email for every member it already
+-- reached, so the revert is only correct alongside OVERDUE_EMAIL_ENABLED="false".
+--
+-- Apply (by hand; no runner):
+--   npx wrangler d1 execute rrm-auth --local  --file=migrations/035-overdue-email.sql
+--   npx wrangler d1 execute rrm-auth --remote --file=migrations/035-overdue-email.sql
+
+ALTER TABLE wix_subscription ADD COLUMN overdue_email_sent_at TEXT;
+ALTER TABLE wix_subscription ADD COLUMN overdue_email_episode TEXT;
