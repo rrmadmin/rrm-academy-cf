@@ -111,23 +111,28 @@ async function handleEnroll(request, env, waitUntil) {
       return json({ ok: false, error: 'Not enrolled' }, 403);
     }
     if (wasNewlyEnrolled) {
-      if (course.accessType !== 'members') {
-        waitUntil((async () => {
-          const user = await db.prepare('SELECT email, name FROM user WHERE id = ?')
-            .bind(session.userId).first();
-          await notifyAdminEnrollment(env, {
+      const user = await db.prepare('SELECT email, name FROM user WHERE id = ?')
+        .bind(session.userId).first();
+      // Gating-test-harness accounts (administrator+test-*@rrmacademy.org) must not
+      // fire the admin notify email or the GA4 conversion event -- they enroll in
+      // live courses purely to verify access gating, and generate_lead feeds Ad
+      // Grants conversion data.
+      const isTestAccount = /^administrator\+test-[a-z0-9-]+@rrmacademy\.org$/i.test(user?.email || '');
+      if (!isTestAccount) {
+        if (course.accessType !== 'members') {
+          waitUntil(notifyAdminEnrollment(env, {
             studentEmail: user?.email || 'unknown',
             studentName: user?.name || '',
             courseTitle: course.title,
             courseId,
             isFree: true,
-          });
-        })().catch(() => {}));
+          }).catch(() => {}));
+        }
+        waitUntil(sendGA4Event(env, request, 'generate_lead', {
+          lead_source: course.accessType === 'members' ? 'member_course' : 'free_course',
+          items: [{ item_name: `Course: ${courseId}` }],
+        }).catch(() => {}));
       }
-      waitUntil(sendGA4Event(env, request, 'generate_lead', {
-        lead_source: course.accessType === 'members' ? 'member_course' : 'free_course',
-        items: [{ item_name: `Course: ${courseId}` }],
-      }).catch(() => {}));
     }
     return json({ ok: true, enrolled: true });
   }
@@ -207,12 +212,19 @@ async function handleEnroll(request, env, waitUntil) {
     log(env, waitUntil, 'courses', 'enroll_error', 'error', `stripe checkout: ${err.message}`, 0, 503);
     return json({ ok: false, error: 'Payment service unavailable. Please try again shortly.' }, 503);
   }
-  waitUntil(sendGA4Event(env, request, 'begin_checkout', {
-    page_location: entryUrl || request.headers.get('Referer') || SITE_URL,
-    currency: 'USD',
-    ...(course.priceCents && { value: course.priceCents / 100 }),
-    items: [{ item_name: `Course: ${courseId}` }],
-  }).catch(() => {}));
+  // Gating-test-harness accounts (administrator+test-*@rrmacademy.org) must not
+  // fire the GA4 begin_checkout event -- Stripe Checkout still runs so the
+  // harness can assert checkoutUrl comes back, but generate_lead/begin_checkout
+  // feed Ad Grants conversion data.
+  const isTestAccount = /^administrator\+test-[a-z0-9-]+@rrmacademy\.org$/i.test(user?.email || '');
+  if (!isTestAccount) {
+    waitUntil(sendGA4Event(env, request, 'begin_checkout', {
+      page_location: entryUrl || request.headers.get('Referer') || SITE_URL,
+      currency: 'USD',
+      ...(course.priceCents && { value: course.priceCents / 100 }),
+      items: [{ item_name: `Course: ${courseId}` }],
+    }).catch(() => {}));
+  }
   return json({ ok: true, enrolled: false, checkoutUrl: checkoutSession.url });
 }
 
