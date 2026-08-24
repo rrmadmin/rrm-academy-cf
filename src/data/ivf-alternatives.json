@@ -1,0 +1,180 @@
+{
+  "_comment": "SSOT for /ivf-alternatives/ comparison guide (category:compare). Built 2026-06-15. Leads with diagnose-the-cause/RRM as the overlooked alternative; neutral on donor/adoption/surrogacy. Citations curl-verified; Ganci 2026 (skeptical review) recharacterized honestly not as supportive; male-factor study corrected to Grande et al. (PMID 39930939); iNEST re-sourced to the in-paper 29-66% range.",
+  "published": "2026-06-15",
+  "modified": "2026-06-15",
+  "keyTakeaways": [
+    "The most overlooked alternative to IVF is a thorough diagnosis of the underlying condition causing infertility. Restorative Reproductive Medicine (RRM) and NaProTechnology identify and treat those conditions so couples can conceive naturally. Most couples labeled \"unexplained infertile\" are, in fact, undiagnosed.",
+    "The first published head-to-head comparison of RRM versus IVF registry data found a 41% crude live birth rate among 187 couples treated with RRM. For context, that is comparable to a single IVF cycle with subsequent embryo transfers. (<a href=\"/library/restorative-reproductive-medicine-rrm-outcomes-compared-to-in-vitro-fertilization-rec4qqhafqb8stlnd/\">Boyle et al., 2025</a>)",
+    "In a five-year cohort of 1,310 couples treated with NaProTechnology, including 27.5% with prior ART failures, the adjusted cumulative take-home baby rate was 62.1% at a median treatment duration of 10.9 months. Age-stratified rates: 83.7% (ages 18-30), 63.2% (31-35), 53.3% (36-40), 24.4% (over 40). (<a href=\"/library/natural-procreative-technology-naprotechnology-for-infertility-take-home-baby-ra-recv02qu0r8ycnzoa/\">Sanchez-Mendez et al., 2025</a>)",
+    "Couples who have already failed IVF can achieve meaningful live birth rates through RRM. In a cohort of 403 couples with a mean of 2.1 prior failed IVF cycles and mean female age of 37.2, the adjusted RRM live birth rate was 32.1%. (<a href=\"/library/healthy-singleton-pregnancies-from-restorative-reproductive-medicine-rrm-after-f-recior3akxtg2a6ya/\">Boyle and de Groot et al., 2018</a>)",
+    "Male factor is the sole or primary cause of infertility in approximately 20% of couples and a contributing factor in another 30-40%. A thorough andrological workup that treated the underlying male-factor cause achieved spontaneous pregnancy in 40.9% of couples, including 266 who had already been through ART without success. (<a href=\"/library/comprehensive-diagnostic-and-therapeutic-approach-to-male-factor-infertility-8decfdf8/\">Grande et al., 2025</a>)",
+    "A full course of IVF in the United States typically costs $40,000 to $60,000 or more across multiple cycles, medications, genetic testing, and monitoring. NaProTechnology costs a fraction of that, and the individual components are billed as standard medical procedures that are often covered by insurance when properly documented."
+  ],
+  "comparisonRows": [
+    {
+      "option": "Restorative Reproductive Medicine / NaProTechnology",
+      "whatItAddresses": "Identifies and corrects the underlying condition causing infertility: hormonal dysfunction, endometriosis, tubal disease, male factor, ovulatory disorders",
+      "bestFor": "Couples who want a diagnosis before bypassing; unexplained infertility; prior IVF failure; endometriosis; PCOS; recurrent loss; couples with male-factor findings",
+      "evidence": "41% crude live birth rate vs. IVF registry data (<a href=\"/library/restorative-reproductive-medicine-rrm-outcomes-compared-to-in-vitro-fertilization-rec4qqhafqb8stlnd/\">Boyle 2025</a>); 62.1% adjusted cumulative take-home baby rate across 1,310 couples (<a href=\"/library/natural-procreative-technology-naprotechnology-for-infertility-take-home-baby-ra-recv02qu0r8ycnzoa/\">Sanchez-Mendez 2025</a>)"
+    },
+    {
+      "option": "Ovulation induction and timed intercourse",
+      "whatItAddresses": "Stimulates or supports ovulation in cycles where ovulation is absent or weak; does not address structural, tubal, or male-factor causes",
+      "bestFor": "Anovulatory cycles (PCOS, hypothalamic dysfunction); short luteal phase; isolated ovulatory dysfunction with no other identified cause",
+      "evidence": "Letrozole and clomiphene are standard options for ovulation induction; evidence for benefit is clearest when anovulation is the identified cause. Where ovulation is already occurring, evidence of benefit over well-timed intercourse is limited."
+    },
+    {
+      "option": "Reproductive surgery",
+      "whatItAddresses": "Removes structural barriers: endometriosis, fibroids, tubal occlusion, adhesions, PCOS-related ovarian pathology, male varicocele and obstruction",
+      "bestFor": "Endometriosis (excision); blocked or damaged tubes; PCOS ovarian wedge resection; varicocele repair; uterine abnormalities; Asherman syndrome",
+      "evidence": "Spontaneous pregnancy in 40.9% of couples after thorough andrological workup and treatment (<a href=\"/library/comprehensive-diagnostic-and-therapeutic-approach-to-male-factor-infertility-8decfdf8/\">Grande et al., 2025</a>); see <a href=\"/fertility-preserving-surgery/\">fertility-preserving surgery guide</a>"
+    },
+    {
+      "option": "Intrauterine insemination (IUI)",
+      "whatItAddresses": "Places washed sperm directly in the uterus around ovulation; does not address structural disease, hormonal dysfunction, or male-factor causes beyond mild sperm concentration issues",
+      "bestFor": "Mild male-factor subfertility combined with ovulation induction; cervical-factor subfertility; limited evidence advantage over well-timed intercourse in unselected populations",
+      "evidence": "The evidence that IUI outperforms well-timed intercourse is weak in unselected couples. When IUI produces results, the ovulation-induction and timing component is usually the active ingredient, not the insemination itself."
+    },
+    {
+      "option": "Lifestyle and nutritional support",
+      "whatItAddresses": "Addresses modifiable contributors: body weight, insulin resistance, thyroid function, nutritional deficiencies, sleep, exercise",
+      "bestFor": "PCOS with insulin resistance; obesity-related anovulation; nutritional deficiencies affecting sperm or egg quality; as a foundation for any other treatment",
+      "evidence": "Lifestyle support is a foundation for other treatment rather than a standalone fix for structural or severe hormonal causes, and an RRM evaluation assesses it as part of the workup."
+    },
+    {
+      "option": "Donor gametes or embryo adoption",
+      "whatItAddresses": "Bypasses the couple's own gametes when egg or sperm quality is the barrier; does not address the recipient's uterine or hormonal environment",
+      "bestFor": "Severe diminished ovarian reserve; premature ovarian insufficiency; azoospermia without surgical correction; genetic conditions affecting gametes",
+      "evidence": "Success rates depend heavily on donor age and clinic protocols. RRM clinicians focus on the couple's own conception; donor pathways fall outside RRM's scope but are a path some couples choose. No effectiveness claims made here."
+    },
+    {
+      "option": "Adoption",
+      "whatItAddresses": "Builds a family through legal placement of a child who needs parents; does not involve medical treatment for infertility",
+      "bestFor": "Couples who choose to grow their family regardless of biological connection; those for whom medical treatment is not desired or has not succeeded",
+      "evidence": "Not a medical intervention; no clinical effectiveness metric applies. Many couples pursue adoption alongside or instead of medical treatment. RRM's focus is the couple's own conception, not a judgment about adoption as a path."
+    }
+  ],
+  "prose": {
+    "overview": "<p>When someone starts searching for alternatives to IVF, two very different categories appear. The first works around the cause of infertility: it retrieves eggs, fertilizes them in a laboratory, and transfers embryos into the uterus. The second identifies and corrects the cause. Most searches surface the first category prominently. The second category is harder to find, less familiar, and, for many couples, the more appropriate starting point.</p><p>This page covers both. It leads with the category most searches overlook: getting an actual diagnosis and treating the underlying condition through Restorative Reproductive Medicine (RRM) and NaProTechnology. It then covers ovulation induction, surgery, IUI, lifestyle support, and paths to parenthood that do not involve the couple's own conception. The goal is not to rank every option but to give couples enough information to ask the right questions before committing to a path.</p>",
+    "diagnoseFirst": "<p>The standard infertility workup most couples receive before being referred for IVF is genuinely limited. A progesterone level drawn on day three of the cycle tells almost nothing about luteal function. A standard HSG identifies gross tubal obstruction but cannot treat what it finds and misses partial occlusion. Laparoscopy for \"unexplained infertility\" is explicitly recommended against by major professional societies, despite the fact that endometriosis is found in a meaningful share of couples with no other explanation. The result: a couple is told their infertility is \"unexplained\" when in fact it is undiagnosed.</p><p>RRM and NaProTechnology treat an \"unexplained\" label as an unfinished workup. The system uses Creighton Model cycle charting as a clinical tool to generate timed hormonal data across the full cycle, not a single-day draw. It evaluates ovulatory function, luteal phase adequacy, cervical mucus quality, and the male partner's andrological health. When the history or chart raises concern about structural disease, diagnostic laparoscopy finds what a surface workup missed: stage IV endometriosis. Bilateral tubal occlusion. Adhesions binding the ovary. Multiple conditions, all present, none identified by the prior workup.</p><p>The published outcomes for this approach are substantial. The first head-to-head comparison of RRM against IVF registry data followed 187 couples treated at a single clinic in Dublin in 2019. Mean female age was 36.4 years; couples had been trying for a mean of 32.2 months; 19% had already been through IVF. The crude live birth rate was 41%, comparable to a single IVF cycle with subsequent embryo transfers. Singleton prematurity in the RRM cohort was 4.0%, compared to 11.8% for IVF singletons in national registry data. (<a href=\"/library/restorative-reproductive-medicine-rrm-outcomes-compared-to-in-vitro-fertilization-rec4qqhafqb8stlnd/\">Boyle et al., 2025</a>)</p><p>Sanchez-Mendez and colleagues (2025) followed 1,310 couples at a specialized clinic in Madrid over five years. This was a challenging population: 27.5% had prior ART failures; mean female age was 35.0; median infertility duration was 24 months. The adjusted cumulative take-home baby rate was 62.1% at a median treatment duration of 10.9 months. Age-stratified rates: 83.7% for ages 18-30, 63.2% for ages 31-35, 53.3% for ages 36-40, and 24.4% for women over 40. (<a href=\"/library/natural-procreative-technology-naprotechnology-for-infertility-take-home-baby-ra-recv02qu0r8ycnzoa/\">Sanchez-Mendez et al., 2025</a>)</p><p>The iNEST study was a prospective cohort that enrolled 834 couples treated with RRM across 10 clinics in four countries. Across the RRM cohort literature it reviewed, adjusted cumulative live birth rates ranged from 29% to 66% over up to two years of treatment. (<a href=\"/library/international-natural-procreative-technology-evaluation-and-surveillance-of-trea-recudgdct40otosdm/\">Stanford et al., 2022</a>)</p><p>For a full breakdown of how RRM compares with IVF on outcomes, costs, and risks, see <a href=\"/naprotechnology-vs-ivf/\">NaProTechnology vs. IVF</a> and <a href=\"/rrm-success-rates/\">RRM success rates</a>. For a foundational explanation of what RRM is and how it developed, see <a href=\"/what-is-rrm/\">What is restorative reproductive medicine?</a> and <a href=\"/naprotechnology/\">NaProTechnology</a>.</p>",
+    "medicalSurgical": "<p>Structural barriers to conception are among the most reliably treatable causes of infertility when they are actually identified. The problem is that many are missed by a standard workup. Once identified, each has a corresponding surgical approach.</p><h3>Endometriosis</h3><p>Endometriosis affects an estimated 1 in 10 women of reproductive age, and the median time to diagnosis is 9 years. Hormonal suppression masks symptoms. It does not remove disease. The restorative surgical standard is excision: removing the tissue rather than burning the surface, and providing the specimen for pathologic confirmation. Ablation can leave deeper disease behind and confirms nothing. For couples with endometriosis-associated infertility, excision removes the structural barrier and addresses the pelvic environment that endometriosis disrupts. See the <a href=\"/endometriosis/\">endometriosis guide</a> and <a href=\"/fertility-preserving-surgery/\">fertility-preserving surgery</a> for a full discussion of technique and outcomes.</p><h3>Tubal disease</h3><p>\"Blocked tubes\" does not automatically mean IVF. The anatomy of the blockage determines the options. Proximal occlusion, a blockage near the uterus, can often be addressed with a selective HSG or tubal cannulation, a catheter advanced under fluoroscopic or hysteroscopic guidance. A selective HSG is sometimes therapeutic, not only diagnostic. Distal disease may be addressed with fimbrioplasty or salpingostomy. There is no head-to-head randomized trial comparing bilateral salpingectomy against corrective tubal surgery. A trial of natural conception after reconstruction is a reasonable first step for many couples before committing to removal or bypass. See <a href=\"/fertility-preserving-surgery/\">fertility-preserving surgery</a>.</p><h3>PCOS and ovulatory dysfunction</h3><p>PCOS is the most common ovulatory disorder and a leading diagnosable cause of infertility. Ovulation-induction medications address anovulation cycle by cycle without correcting the underlying ovarian pathology. For selected patients, RRM ovarian wedge resection uses microsurgical technique to reduce the androgen-producing ovarian stroma, restoring spontaneous ovulation and achieving durable hormonal normalization rather than cycle-by-cycle management. See the <a href=\"/pcos/\">PCOS guide</a> for the full treatment discussion.</p><h3>Male factor: evaluation and surgery</h3><p>Male factor is the sole or primary cause of infertility in approximately 20% of couples and a contributing factor in another 30-40%. A thorough andrological evaluation, one that goes beyond a standard semen analysis to identify the underlying cause and treat it, achieved spontaneous pregnancy in 40.9% of couples in a 2025 multicentric study of 1,014 couples, including 266 who had already been through ART without success. That same workup cut the share labeled \"unexplained\" from the usual 30-50% down to 8%. (<a href=\"/library/comprehensive-diagnostic-and-therapeutic-approach-to-male-factor-infertility-8decfdf8/\">Grande et al., 2025</a>) Varicocele, the most common correctable cause of male infertility, responds well to microsurgical repair. Obstruction can in many cases be addressed with reconstruction that returns sperm to the ejaculate and makes natural conception possible. The male partner is half of the evaluation. Proceeding directly to sperm retrieval for a correctable cause bypasses a treatable problem and adds cost and procedure to both partners.",
+    "iui": "<p>IUI involves placing washed sperm directly in the uterus around the time of ovulation. It is commonly offered as a step between timed intercourse and IVF. The honest evidence on IUI is more limited than its widespread use suggests.</p><p>In unselected couples, the evidence that IUI outperforms well-timed intercourse is weak. A large randomized trial of couples with unexplained or mild male-factor subfertility found no significant difference in live birth rate between IUI and expectant management with timed intercourse. When IUI produces results, the ovulation-induction and careful timing component is usually the active ingredient, not the insemination itself. This matters because ovulation induction combined with timed intercourse is considerably less procedurally intensive than IUI, and less expensive.</p><p>IUI may offer benefit in specific, well-defined situations: cervical-factor subfertility, mild male-factor combined with concurrent ovulation induction, or donor-sperm insemination. For couples whose subfertility is structural or hormonal, IUI does not address the underlying cause. It moves sperm past the cervix; it does not restore a blocked tube, correct a luteal phase defect, or remove endometriosis. An accurate diagnosis first is more useful than a procedure that does not address what was actually found.</p>",
+    "lifestyle": "<p>Modifiable lifestyle factors can meaningfully affect fertility outcomes, and addressing them is a foundation for any other treatment, not an alternative to diagnosis.</p><p>Body weight, insulin resistance, thyroid function, and nutritional status all affect the hormonal environment required for ovulation and implantation. A thorough RRM evaluation assesses nutritional and metabolic status as part of the workup, because these factors are common, modifiable, and easy to miss. These are not marginal contributors. They are diagnosable and addressable.</p><p>For couples with PCOS and insulin resistance, reducing insulin resistance through nutrition and exercise can restore ovulatory cycles in some patients without medication. For couples where the male partner has elevated scrotal temperature from varicocele or occupational exposure, addressing that is a real intervention with documented outcomes. For couples with nutritional deficiencies affecting sperm parameters or egg quality, targeted correction is part of the workup.</p><p>Lifestyle modification alone is rarely sufficient for couples with structural disease, advanced hormonal dysfunction, or significant male-factor infertility. But it is rarely irrelevant, and an RRM evaluation assesses it as part of the full picture rather than treating it as a separate lane.</p>",
+    "otherPaths": "<p>Some couples, after a thorough evaluation, choose paths to parenthood that do not involve their own gametes. Others explore these options alongside medical treatment. These paths are worth naming honestly.</p><p>Donor eggs allow conception using a woman's uterus when her own egg quality is the limiting factor, for example in premature ovarian insufficiency or severe diminished ovarian reserve. Donor sperm is an option when male-factor infertility is not correctable surgically or medically. Embryo adoption involves adopting embryos created during another couple's IVF cycle and transferred to the recipient's uterus. Traditional adoption creates a family through the legal placement of a child who needs parents, without any medical treatment for infertility.</p><p>RRM clinicians focus on the couple's own conception, evaluating and treating the underlying causes that may be preventing it. These other paths fall outside RRM's clinical scope. They are paths some couples choose. This page does not make effectiveness claims about them or compare them against RRM outcomes; that would be an unfair comparison across fundamentally different goals.</p><p>Surrogacy involves a third party carrying a pregnancy for the couple. The legal and ethical landscape for surrogacy varies substantially by country and by state within the United States. Couples considering this path need both legal counsel and a clear understanding of the process before proceeding.</p>",
+    "howToChoose": "<p>The single most useful first step for most couples is a thorough diagnostic workup rather than a procedure. That means cycle charting and timed hormonal testing across the full cycle, not a single-day draw. It means evaluating both partners from the first appointment, not routing the male partner to a semen analysis as an afterthought. It means a clinical workup that treats \"unexplained\" as an unfinished question rather than a final answer.</p><p>A few practical considerations help narrow the path:</p><ul><li>If a diagnosis has never been made, diagnosis comes first. Ovulation induction, IUI, and procedural approaches all work better when they are matched to an identified cause.</li><li>If the concern is endometriosis, a restorative surgeon who performs excision, not ablation, is the specific referral to seek. See the <a href=\"/endometriosis/\">endometriosis guide</a>.</li><li>If PCOS is the concern, the full hormonal picture matters: insulin resistance, androgen levels, ovulatory function, and whether ovulation induction or a surgical option is appropriate for the individual case. See the <a href=\"/pcos/\">PCOS guide</a>.</li><li>If prior IVF has failed, the productive question is what the underlying condition was that IVF did not address. RRM provides that diagnostic step. The Boyle 2018 cohort documented a 32.1% adjusted live birth rate in couples with a mean of 2.1 prior failed IVF cycles, a population that most practices would have sent back for another IVF cycle.</li><li>If the question is cost, NaProTechnology costs a fraction of a full IVF course, and many of its components are covered by insurance when properly documented.</li><li>If time pressure is the concern, age matters in RRM as it does in IVF. The Sanchez-Mendez data show a 53.3% adjusted cumulative rate for ages 36-40 and 24.4% for women over 40. Starting the diagnostic workup now, rather than after additional IVF cycles, is almost always the faster path to an answer.</li></ul><p>To find an RRM clinician who practices NaProTechnology, FEMM, or another restorative approach, visit <a href=\"/providers/\">rrmacademy.org/providers/</a>. A thorough first evaluation typically covers one to three menstrual cycles and gives both partners, not just one, a clear clinical picture of what is actually happening.</p>"
+  },
+  "faqs": [
+    {
+      "question": "What is the best alternative to IVF?",
+      "answerHtml": "<p>The most overlooked alternative to IVF is a thorough diagnostic workup that identifies and treats the underlying condition causing infertility. Most couples searching for IVF alternatives have never received that workup. They have had a standard hormone panel, a basic semen analysis, and possibly an HSG, and been told their infertility is \"unexplained.\" In RRM practice, \"unexplained\" is treated as undiagnosed, not as a final answer.</p><p>Restorative Reproductive Medicine and NaProTechnology identify the actual cause, whether endometriosis, tubal disease, hormonal dysfunction, or male factor, and treat it so natural conception becomes possible. The first published head-to-head comparison of RRM against IVF registry data found a 41% crude live birth rate among 187 couples (<a href=\"/library/restorative-reproductive-medicine-rrm-outcomes-compared-to-in-vitro-fertilization-rec4qqhafqb8stlnd/\">Boyle et al., 2025</a>). Consult an RRM clinician for guidance specific to your situation.</p>"
+    },
+    {
+      "question": "Can I get pregnant without IVF?",
+      "answerHtml": "<p>In many cases, yes. Whether that is realistic depends on what is actually causing the difficulty conceiving, and that requires a thorough diagnostic workup that many couples have never received.</p><p>Across the RRM cohort studies, adjusted cumulative live birth rates have ranged from 29% to 66% over up to two years of treatment (<a href=\"/library/international-natural-procreative-technology-evaluation-and-surveillance-of-trea-recudgdct40otosdm/\">Stanford et al., 2022, iNEST</a>). Sanchez-Mendez and colleagues followed 1,310 couples with a mean age of 35 and found a 62.1% adjusted cumulative take-home baby rate, including couples who had already been through ART (<a href=\"/library/natural-procreative-technology-naprotechnology-for-infertility-take-home-baby-ra-recv02qu0r8ycnzoa/\">Sanchez-Mendez et al., 2025</a>). What makes natural conception possible is finding and treating the actual barrier. That is where the diagnostic workup starts. Consult an RRM clinician for guidance specific to your situation.</p>"
+    },
+    {
+      "question": "Is there a natural alternative to IVF?",
+      "answerHtml": "<p>Restorative Reproductive Medicine and NaProTechnology are the most evidence-supported natural alternatives to IVF. They aim to restore the conditions for natural conception rather than bypass them. The approach uses cycle charting as a clinical tool, timed hormonal testing, evaluation of both partners, and targeted treatment of identified causes including endometriosis excision, hormonal optimization, tubal surgery, and male-factor treatment.</p><p>The distinction from IVF is not \"natural\" versus \"medical.\" RRM uses real medicine: surgery, hormonal support, targeted diagnostics. The distinction is that RRM works to restore the body's own function rather than circumvent it. The underlying condition is the target. See <a href=\"/what-is-rrm/\">What is restorative reproductive medicine?</a> for the full explanation. Consult an RRM clinician for guidance specific to your situation.</p>"
+    },
+    {
+      "question": "What should I try before IVF?",
+      "answerHtml": "<p>Before committing to IVF, a thorough diagnostic workup of both partners is the most useful first step. That means timed hormonal testing across multiple cycle phases, not just a day-three draw. It means evaluating the male partner beyond a standard semen analysis, including a full andrological workup when semen parameters are abnormal. It means a diagnostic laparoscopy if the clinical picture suggests endometriosis or tubal disease.</p><p>In a 2025 study of 1,014 couples, including 266 who had already been through ART without success, a thorough andrological workup that treated the underlying male-factor cause achieved spontaneous pregnancy in 40.9% and cut the share labeled \"unexplained\" from 30-50% down to 8% (<a href=\"/library/comprehensive-diagnostic-and-therapeutic-approach-to-male-factor-infertility-8decfdf8/\">Grande et al., 2025</a>). A diagnosis is not a detour. It is the most direct path to an answer. To find an RRM clinician, visit <a href=\"/providers/\">rrmacademy.org/providers/</a>. Consult an RRM clinician for guidance specific to your situation.</p>"
+    },
+    {
+      "question": "Are alternatives to IVF as effective?",
+      "answerHtml": "<p>The evidence base for RRM and NaProTechnology has grown substantially and supports meaningful comparison. The metrics differ: IVF reports per-cycle live birth rates; NaProTechnology reports cumulative live birth rates per couple over a course of treatment. These are different denominators measuring different things.</p><p>The Boyle 2025 head-to-head comparison found a 41% crude live birth rate with RRM, comparable to a single IVF cycle with subsequent embryo transfers. Sanchez-Mendez 2025 found a 62.1% adjusted cumulative rate across 1,310 couples. A 2026 systematic review in <em>Fertility and Sterility</em> noted that controlled head-to-head trials of RRM versus IVF have not yet been conducted and called for them, so the comparison today rests on observational cohorts and on the difference in clinical approach (<a href=\"/library/the-effectiveness-and-safety-of-restorative-reproductive-medicine-rrm-compared-t-vrqg1wuo/\">Ganci et al., 2026</a>). Beyond the numbers, IVF works around the underlying condition. RRM corrects it. The comparison is not only about pregnancy rates. Consult an RRM clinician for guidance specific to your situation.</p>"
+    },
+    {
+      "question": "What are my options if IVF already failed?",
+      "answerHtml": "<p>A prior failed IVF cycle is a signal that the underlying condition was not addressed, not that pregnancy is impossible. RRM provides the diagnostic step that most failed-IVF couples never received: a thorough evaluation of what was causing the infertility and what can be treated.</p><p>Boyle and de Groot and colleagues (2018) studied 403 couples with a mean of 2.1 prior failed IVF cycles and a mean female age of 37.2 years. The adjusted RRM live birth rate was 32.1%. Women aged 35-38 achieved 37.5%. Ninety-two percent of babies were born at term (<a href=\"/library/healthy-singleton-pregnancies-from-restorative-reproductive-medicine-rrm-after-f-recior3akxtg2a6ya/\">Boyle and de Groot et al., 2018</a>). When IVF fails, the productive question is: what was the underlying condition the procedure did not address? Start there. Visit <a href=\"/providers/\">rrmacademy.org/providers/</a> to find an RRM clinician. Consult an RRM clinician for guidance specific to your situation.</p>"
+    },
+    {
+      "question": "Are there non-religious alternatives to IVF?",
+      "answerHtml": "<p>Restorative Reproductive Medicine and NaProTechnology are medical approaches. Their tools are diagnostic laparoscopy, timed hormonal testing, cycle charting as a clinical instrument, surgical excision of endometriosis, tubal repair, andrological evaluation, and targeted treatment of identified causes. None of these require religious adherence to be effective.</p><p>NaProTechnology developed within a Catholic academic tradition and is practiced by clinicians of many backgrounds. The published evidence base, including Boyle 2025 and Sanchez-Mendez 2025, comes from peer-reviewed journals and is grounded in outcome data, not doctrine. Many couples who pursue RRM are secular. They chose it because they want a diagnosis, because IVF's costs and risks concern them, or because IVF has already failed and they want to understand why. Find an RRM clinician at <a href=\"/providers/\">rrmacademy.org/providers/</a>. Consult an RRM clinician for guidance specific to your situation.</p>"
+    }
+  ],
+  "references": [
+    {
+      "n": 1,
+      "html": "Boyle P, Toth A, Minjeur M, Turczynski C. Restorative reproductive medicine (RRM) outcomes compared to in-vitro fertilization (IVF) for the treatment of infertility: a retrospective evaluation of a 2019 clinic cohort compared to one cycle of IVF. <em>Journal of Restorative Reproductive Medicine</em>. 2025;1. doi:10.63264/gejytw70. <a href=\"/library/restorative-reproductive-medicine-rrm-outcomes-compared-to-in-vitro-fertilization-rec4qqhafqb8stlnd/\">View in RRM Library</a>"
+    },
+    {
+      "n": 2,
+      "html": "Sanchez-Mendez JI, Lombarte M, Abengozar-Muela R, et al. Natural procreative technology (NaProTechnology) for infertility: take-home baby rate and clinical outcomes in a 5-year single-center cohort of 1,310 couples. <em>Frontiers in Reproductive Health</em>. 2025;7:1696679. doi:10.3389/frph.2025.1696679. PMID 41323405. <a href=\"/library/natural-procreative-technology-naprotechnology-for-infertility-take-home-baby-ra-recv02qu0r8ycnzoa/\">View in RRM Library</a>"
+    },
+    {
+      "n": 3,
+      "html": "Boyle PC, de Groot T, Andralojc KM, Parnell TA. Healthy singleton pregnancies from restorative reproductive medicine (RRM) after failed IVF. <em>Frontiers in Medicine</em>. 2018;5:210. doi:10.3389/fmed.2018.00210. PMID 30109231. <a href=\"/library/healthy-singleton-pregnancies-from-restorative-reproductive-medicine-rrm-after-f-recior3akxtg2a6ya/\">View in RRM Library</a>"
+    },
+    {
+      "n": 4,
+      "html": "Stanford JB, Parnell T, Kantor K, et al. International Natural Procreative Technology Evaluation and Surveillance of Treatment for Subfertility (iNEST): enrollment and methods. <em>Human Reproduction Open</em>. 2022;2022(3):hoac033. doi:10.1093/hropen/hoac033. PMID 35974874. <a href=\"/library/international-natural-procreative-technology-evaluation-and-surveillance-of-trea-recudgdct40otosdm/\">View in RRM Library</a>"
+    },
+    {
+      "n": 5,
+      "html": "Ganci D, Steeper M, Polyakov A, Sunkara SK, Wilkinson J, Lensen S. The effectiveness and safety of restorative reproductive medicine (RRM) compared to assisted reproductive technology or medically unassisted conception: a systematic review. <em>Fertility and Sterility</em>. 2026. doi:10.1016/j.fertnstert.2026.03.039. PMID 41966348. <a href=\"/library/the-effectiveness-and-safety-of-restorative-reproductive-medicine-rrm-compared-t-vrqg1wuo/\">View in RRM Library</a>"
+    },
+    {
+      "n": 6,
+      "html": "Grande G, Garolla A, Graziani A, et al. Comprehensive diagnostic and therapeutic approach to male factor infertility aimed at natural fertility: a multicentric retrospective cohort study. <em>Andrology</em>. 2025;13(8):2122-2130. doi:10.1111/andr.70006. PMID 39930939. <a href=\"/library/comprehensive-diagnostic-and-therapeutic-approach-to-male-factor-infertility-8decfdf8/\">View in RRM Library</a>"
+    },
+    {
+      "n": 7,
+      "html": "HFEA. Fertility treatment 2021: preliminary trends and figures. Human Fertilisation and Embryology Authority; 2021. Available at: <a href=\"https://www.hfea.gov.uk/about-us/publications/research-and-data/fertility-treatment-2021-preliminary-trends-and-figures/\" rel=\"noopener\">hfea.gov.uk</a>"
+    },
+    {
+      "n": 8,
+      "html": "Smith ADAC, Tilling K, Nelson SM, Lawlor DA. Live-birth rate associated with repeat in vitro fertilization treatment cycles. <em>JAMA</em>. 2015;314(24):2654-2662. doi:10.1001/jama.2015.17296. PMID 26717030. <a href=\"/library/livebirth-rate-associated-with-repeat-in-vitro-fertilization-treatment-cycles-rpeh9knj/\">View in RRM Library</a>"
+    },
+    {
+      "n": 9,
+      "html": "Katz P, Showstack J, Smith JF, et al. Costs of infertility treatment: results from an 18-month prospective cohort study. <em>Fertility and Sterility</em>. 2011;95(3):915-921. doi:10.1016/j.fertnstert.2010.11.026. PMID 21130988."
+    },
+    {
+      "n": 10,
+      "html": "Namavar Jahromi B, Parsanezhad ME, Shomali Z, et al. Ovarian hyperstimulation syndrome: a narrative review of its pathophysiology, risk factors, prevention, classification, and management. <em>Iranian Journal of Medical Sciences</em>. 2018;43(3):248-260. PMID 29892142. <a href=\"/library/ovarian-hyperstimulation-syndrome-a-narrative-review-of-its-pathophysiology-risk-6voywtd5/\">View in RRM Library</a>"
+    },
+    {
+      "n": 11,
+      "html": "Kiani AK, Miertus J, Barati S, et al. Complications related to in vitro reproductive techniques support the implementation of natural procreative technologies. <em>Acta Biomedica</em>. 2020;91(Suppl 13):e2020022. doi:10.23750/abm.v91i13-S.10525. PMID 33170179. <a href=\"/library/complications-related-to-in-vitro-reproductive-techniques-support-the-implementa-reclfeffnu2v67szk/\">View in RRM Library</a>"
+    }
+  ],
+  "about": [
+    {
+      "type": "MedicalCondition",
+      "name": "Infertility"
+    },
+    {
+      "type": "MedicalProcedure",
+      "name": "In Vitro Fertilization"
+    },
+    {
+      "type": "MedicalProcedure",
+      "name": "NaProTechnology"
+    },
+    {
+      "type": "MedicalTherapy",
+      "name": "Restorative Reproductive Medicine"
+    },
+    {
+      "type": "MedicalProcedure",
+      "name": "Ovulation induction"
+    },
+    {
+      "type": "MedicalProcedure",
+      "name": "Intrauterine insemination"
+    },
+    {
+      "type": "MedicalCondition",
+      "name": "Endometriosis"
+    },
+    {
+      "type": "MedicalCondition",
+      "name": "PCOS"
+    },
+    {
+      "type": "MedicalCondition",
+      "name": "Male infertility"
+    }
+  ]
+}

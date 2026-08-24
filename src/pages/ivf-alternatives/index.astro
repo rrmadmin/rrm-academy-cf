@@ -1,0 +1,222 @@
+---
+// /ivf-alternatives/ comparison guide (category: compare).
+// Conventions via GuideLayout. Content from the SSOT data file.
+// Leads with diagnose-the-cause / RRM as the overlooked alternative; neutral on
+// donor/adoption/surrogacy. Naomi clinical voice. Patient pathway = /providers/.
+import GuideLayout from '../../layouts/GuideLayout.astro';
+import data from '../../data/ivf-alternatives.json';
+
+const SLUG = 'ivf-alternatives';
+const PAGE_URL = `https://rrmacademy.org/${SLUG}/`;
+const { published: PUBLISHED, modified: MODIFIED } = data;
+
+const TOC_ITEMS = [
+  { href: '#key-takeaways', label: 'Key takeaways' },
+  { href: '#at-a-glance', label: 'At a glance' },
+  { href: '#diagnose-first', label: 'Diagnose the cause' },
+  { href: '#medical-surgical', label: 'Medical & surgical' },
+  { href: '#iui', label: 'IUI' },
+  { href: '#lifestyle', label: 'Lifestyle' },
+  { href: '#other-paths', label: 'Other paths' },
+  { href: '#how-to-choose', label: 'How to choose' },
+  { href: '#faq', label: 'FAQ' },
+  { href: '#references', label: 'References' },
+];
+
+const KEY_TAKEAWAYS_HTML = `<ul>\n${data.keyTakeaways.map((k) => `  <li>${k}</li>`).join('\n')}\n</ul>`;
+const FAQS = data.faqs;
+
+// articleSection MUST match the in-page H2 text exactly.
+const ARTICLE_SECTIONS = [
+  'Key Takeaways',
+  'Alternatives to IVF at a glance',
+  'Start by diagnosing the cause',
+  'Medical and surgical options',
+  'Intrauterine insemination (IUI)',
+  'Lifestyle and nutritional support',
+  'Other paths to parenthood',
+  'How to choose where to start',
+  'Frequently Asked Questions',
+  'Continue exploring',
+  'References',
+];
+
+const citationUrls = [...new Set(
+  data.references
+    .map((r) => (r.html.match(/\/library\/([a-z0-9-]+)\//) || [])[0])
+    .filter(Boolean)
+    .map((pth) => `https://rrmacademy.org${pth}`)
+)];
+
+const ABOUT_TYPE_MAP = { MedicalCondition: 'MedicalCondition', MedicalProcedure: 'MedicalProcedure', MedicalTherapy: 'MedicalTherapy' };
+
+const jsonLd = {
+  '@context': 'https://schema.org',
+  '@type': ['MedicalWebPage', 'Article'],
+  headline: 'Alternatives to IVF: What Are Your Options?',
+  description: 'Evidence-based alternatives to IVF, from diagnosing and treating the underlying cause with NaProTechnology to ovulation induction, surgery, IUI, and lifestyle support.',
+  url: PAGE_URL,
+  inLanguage: 'en',
+  author: { '@id': 'https://rrmacademy.org/#naomi-whittaker' },
+  publisher: { '@id': 'https://rrmacademy.org/#organization' },
+  datePublished: PUBLISHED,
+  dateModified: MODIFIED,
+  image: `https://rrmacademy.org/og/${SLUG}.png`,
+  mainEntityOfPage: { '@type': 'WebPage', '@id': PAGE_URL },
+  about: data.about.map((a) => ({ '@type': ABOUT_TYPE_MAP[a.type] || 'Thing', name: a.name })),
+  articleSection: ARTICLE_SECTIONS,
+  citation: citationUrls.map((u) => ({ '@type': 'MedicalScholarlyArticle', '@id': u })),
+};
+
+const faqSchema = {
+  '@context': 'https://schema.org',
+  '@type': 'FAQPage',
+  mainEntity: FAQS.map((f) => ({
+    '@type': 'Question',
+    name: f.question,
+    acceptedAnswer: { '@type': 'Answer', text: f.answerHtml.replace(/<[^>]+>/g, '') },
+  })),
+};
+---
+
+<GuideLayout
+  slug={SLUG}
+  jsonLd={jsonLd}
+  extraSchema={[faqSchema]}
+  tocItems={TOC_ITEMS}
+  faqs={FAQS}
+  keyTakeawaysHtml={KEY_TAKEAWAYS_HTML}
+>
+  <Fragment set:html={data.prose.overview} />
+
+  <section id="at-a-glance">
+    <h2>Alternatives to IVF at a glance</h2>
+    <p>This table summarizes the main alternatives. Several address different problems, so they are not ranked against each other. Each evidence cell links to the source.</p>
+    <div class="table-wrap">
+      <table class="alt-table">
+        <thead>
+          <tr>
+            <th scope="col">Option</th>
+            <th scope="col">What it addresses</th>
+            <th scope="col">Best suited for</th>
+            <th scope="col">Evidence</th>
+          </tr>
+        </thead>
+        <tbody>
+          {data.comparisonRows.map((row) => (
+            <tr>
+              <th scope="row">{row.option}</th>
+              <td>{row.whatItAddresses}</td>
+              <td>{row.bestFor}</td>
+              <td set:html={row.evidence} />
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <section id="diagnose-first">
+    <h2>Start by diagnosing the cause</h2>
+    <Fragment set:html={data.prose.diagnoseFirst} />
+  </section>
+
+  <section id="medical-surgical">
+    <h2>Medical and surgical options</h2>
+    <Fragment set:html={data.prose.medicalSurgical} />
+  </section>
+
+  <section id="iui">
+    <h2>Intrauterine insemination (IUI)</h2>
+    <Fragment set:html={data.prose.iui} />
+  </section>
+
+  <section id="lifestyle">
+    <h2>Lifestyle and nutritional support</h2>
+    <Fragment set:html={data.prose.lifestyle} />
+  </section>
+
+  <section id="other-paths">
+    <h2>Other paths to parenthood</h2>
+    <Fragment set:html={data.prose.otherPaths} />
+  </section>
+
+  <section id="how-to-choose">
+    <h2>How to choose where to start</h2>
+    <Fragment set:html={data.prose.howToChoose} />
+  </section>
+
+  <section id="continue-exploring">
+    <h2>Continue exploring</h2>
+    <ul>
+      <li><a href="/naprotechnology-vs-ivf/">NaProTechnology vs IVF: how they compare</a></li>
+      <li><a href="/rrm-success-rates/">RRM success rates: what the published evidence shows</a></li>
+      <li><a href="/what-is-rrm/">What is Restorative Reproductive Medicine?</a></li>
+      <li><a href="/naprotechnology/">NaProTechnology: a clinician's guide</a></li>
+      <li><a href="/fertility-preserving-surgery/">Fertility-preserving surgery</a></li>
+      <li><a href="/endometriosis/">Endometriosis: a restorative reproductive approach</a></li>
+      <li><a href="/pcos/">PCOS: a restorative reproductive approach</a></li>
+      <li><a href="/providers/">Find an RRM provider</a></li>
+    </ul>
+  </section>
+
+  <section id="references">
+    <h2>References</h2>
+    <ol class="references-list">
+      {data.references.map((r) => (
+        <li id={`ref-${r.n}`} set:html={r.html} />
+      ))}
+    </ol>
+  </section>
+</GuideLayout>
+
+<style>
+  .table-wrap {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    margin: var(--space-5) 0;
+  }
+  .alt-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.875rem;
+    min-width: 46rem;
+  }
+  .alt-table thead th {
+    background: var(--bg-surface);
+    text-align: left;
+    font-weight: 600;
+    color: var(--text-primary);
+    padding: var(--space-3);
+    border-bottom: 2px solid var(--border-color);
+    vertical-align: bottom;
+  }
+  .alt-table thead th:first-child { width: 18%; }
+  .alt-table tbody th {
+    text-align: left;
+    font-weight: 600;
+    color: var(--text-primary);
+    padding: var(--space-3);
+    border-bottom: 1px solid var(--border-color);
+    vertical-align: top;
+  }
+  .alt-table tbody th:first-child { border-left: 3px solid var(--purple-700); }
+  .alt-table tbody td {
+    padding: var(--space-3);
+    color: var(--text-secondary);
+    border-bottom: 1px solid var(--border-color);
+    vertical-align: top;
+    line-height: 1.5;
+  }
+  .alt-table tbody tr:last-child th,
+  .alt-table tbody tr:last-child td { border-bottom: none; }
+
+  .references-list {
+    font-size: 0.875rem;
+    color: var(--text-secondary);
+    line-height: 1.6;
+    padding-left: var(--space-4);
+  }
+  .references-list li { margin-bottom: var(--space-2); }
+  .references-list a { color: var(--accent); }
+</style>

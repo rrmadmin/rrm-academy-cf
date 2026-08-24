@@ -1,0 +1,110 @@
+---
+// /progesterone-for-recurrent-miscarriage/ comparison guide (category: compare).
+// Conventions via GuideLayout. Content from the SSOT data file.
+// NO drug doses/routes/brands. Honest evidence (PROMISE null, PRISM subgroup).
+// Restorative framing: diagnose luteal phase defect + targeted support. Naomi voice.
+import GuideLayout from '../../layouts/GuideLayout.astro';
+import data from '../../data/progesterone-for-recurrent-miscarriage.json';
+
+const SLUG = 'progesterone-for-recurrent-miscarriage';
+const PAGE_URL = `https://rrmacademy.org/${SLUG}/`;
+const { published: PUBLISHED, modified: MODIFIED } = data;
+
+const TOC_ITEMS = [
+  { href: '#key-takeaways', label: 'Key takeaways' },
+  { href: '#at-a-glance', label: 'At a glance' },
+  { href: '#when-it-helps', label: 'When it helps' },
+  { href: '#luteal-defect', label: 'Luteal phase defect' },
+  { href: '#restorative', label: 'The restorative approach' },
+  { href: '#beyond', label: 'Beyond progesterone' },
+  { href: '#what-to-ask', label: 'What to ask' },
+  { href: '#faq', label: 'FAQ' },
+  { href: '#references', label: 'References' },
+];
+const KEY_TAKEAWAYS_HTML = `<ul>\n${data.keyTakeaways.map((k) => `  <li>${k}</li>`).join('\n')}\n</ul>`;
+const FAQS = data.faqs;
+const ARTICLE_SECTIONS = [
+  'Key Takeaways',
+  'Progesterone and recurrent miscarriage at a glance',
+  'When progesterone helps, and when it does not',
+  'Luteal phase defect and progesterone insufficiency',
+  'The restorative approach: timed monitoring and targeted support',
+  'Recurrent miscarriage is more than progesterone',
+  'What to ask your clinician',
+  'Frequently Asked Questions',
+  'Continue exploring',
+  'References',
+];
+const citationUrls = [...new Set(data.references.map((r) => (r.html.match(/\/library\/([a-z0-9-]+)\//) || [])[0]).filter(Boolean).map((p) => `https://rrmacademy.org${p}`))];
+const ABOUT_TYPE_MAP = { MedicalCondition: 'MedicalCondition', MedicalProcedure: 'MedicalProcedure', MedicalTherapy: 'MedicalTherapy' };
+const jsonLd = {
+  '@context': 'https://schema.org', '@type': ['MedicalWebPage', 'Article'],
+  headline: 'Progesterone for Recurrent Miscarriage: What the Evidence Shows',
+  description: 'What the randomized evidence actually shows about progesterone and recurrent miscarriage, who benefits, and how a restorative workup differs from empiric treatment.',
+  url: PAGE_URL, inLanguage: 'en',
+  author: { '@id': 'https://rrmacademy.org/#naomi-whittaker' },
+  publisher: { '@id': 'https://rrmacademy.org/#organization' },
+  datePublished: PUBLISHED, dateModified: MODIFIED,
+  image: `https://rrmacademy.org/og/${SLUG}.png`,
+  mainEntityOfPage: { '@type': 'WebPage', '@id': PAGE_URL },
+  about: data.about.map((a) => ({ '@type': ABOUT_TYPE_MAP[a.type] || 'Thing', name: a.name })),
+  articleSection: ARTICLE_SECTIONS,
+  citation: citationUrls.map((u) => ({ '@type': 'MedicalScholarlyArticle', '@id': u })),
+};
+const faqSchema = { '@context': 'https://schema.org', '@type': 'FAQPage', mainEntity: FAQS.map((f) => ({ '@type': 'Question', name: f.question, acceptedAnswer: { '@type': 'Answer', text: f.answerHtml.replace(/<[^>]+>/g, '') } })) };
+---
+
+<GuideLayout slug={SLUG} jsonLd={jsonLd} extraSchema={[faqSchema]} tocItems={TOC_ITEMS} faqs={FAQS} keyTakeawaysHtml={KEY_TAKEAWAYS_HTML}>
+  <Fragment set:html={data.prose.overview} />
+
+  <section id="at-a-glance">
+    <h2>Progesterone and recurrent miscarriage at a glance</h2>
+    <p>What the evidence supports, by clinical situation, and how the restorative approach differs from empiric treatment. Each cited finding links to the source.</p>
+    <div class="table-wrap">
+      <table class="alt-table">
+        <thead><tr><th scope="col">Situation</th><th scope="col">What the evidence shows</th><th scope="col">The restorative approach</th></tr></thead>
+        <tbody>
+          {data.comparisonRows.map((row) => (
+            <tr><th scope="row">{row.situation}</th><td set:html={row.evidence} /><td set:html={row.rrmApproach} /></tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <section id="when-it-helps"><h2>When progesterone helps, and when it does not</h2><Fragment set:html={data.prose.whenItHelps} /></section>
+  <section id="luteal-defect"><h2>Luteal phase defect and progesterone insufficiency</h2><Fragment set:html={data.prose.lutealDefect} /></section>
+  <section id="restorative"><h2>The restorative approach: timed monitoring and targeted support</h2><Fragment set:html={data.prose.restorativeApproach} /></section>
+  <section id="beyond"><h2>Recurrent miscarriage is more than progesterone</h2><Fragment set:html={data.prose.beyondProgesterone} /></section>
+  <section id="what-to-ask"><h2>What to ask your clinician</h2><Fragment set:html={data.prose.whatToAsk} /></section>
+
+  <section id="continue-exploring">
+    <h2>Continue exploring</h2>
+    <ul>
+      <li><a href="/miscarriage/">Miscarriage and recurrent pregnancy loss</a></li>
+      <li><a href="/naprotechnology/">NaProTechnology: a clinician's guide</a></li>
+      <li><a href="/naprotechnology-vs-ivf/">NaProTechnology vs IVF</a></li>
+      <li><a href="/what-is-rrm/">What is Restorative Reproductive Medicine?</a></li>
+      <li><a href="/providers/">Find an RRM provider</a></li>
+    </ul>
+  </section>
+
+  <section id="references">
+    <h2>References</h2>
+    <ol class="references-list">{data.references.map((r) => (<li id={`ref-${r.n}`} set:html={r.html} />))}</ol>
+  </section>
+</GuideLayout>
+
+<style>
+  .table-wrap { overflow-x: auto; -webkit-overflow-scrolling: touch; margin: var(--space-5) 0; }
+  .alt-table { width: 100%; border-collapse: collapse; font-size: 0.875rem; min-width: 46rem; }
+  .alt-table thead th { background: var(--bg-surface); text-align: left; font-weight: 600; color: var(--text-primary); padding: var(--space-3); border-bottom: 2px solid var(--border-color); vertical-align: bottom; }
+  .alt-table thead th:first-child { width: 18%; }
+  .alt-table tbody th { text-align: left; font-weight: 600; color: var(--text-primary); padding: var(--space-3); border-bottom: 1px solid var(--border-color); vertical-align: top; }
+  .alt-table tbody th:first-child { border-left: 3px solid var(--purple-700); }
+  .alt-table tbody td { padding: var(--space-3); color: var(--text-secondary); border-bottom: 1px solid var(--border-color); vertical-align: top; line-height: 1.5; }
+  .alt-table tbody tr:last-child th, .alt-table tbody tr:last-child td { border-bottom: none; }
+  .references-list { font-size: 0.875rem; color: var(--text-secondary); line-height: 1.6; padding-left: var(--space-4); }
+  .references-list li { margin-bottom: var(--space-2); }
+  .references-list a { color: var(--accent); }
+</style>

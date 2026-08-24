@@ -1,0 +1,113 @@
+---
+// /best-pcos-treatment-for-pregnancy/ comparison guide (category: compare).
+// Conventions via GuideLayout. Content from the SSOT data file.
+// PCOS dual-labeled PCOS/PMOS. Restorative: correct metabolic-endocrine drivers,
+// restore ovulation; wedge resection restorative, drilling destructive. Naomi voice.
+import GuideLayout from '../../layouts/GuideLayout.astro';
+import data from '../../data/best-pcos-treatment-for-pregnancy.json';
+
+const SLUG = 'best-pcos-treatment-for-pregnancy';
+const PAGE_URL = `https://rrmacademy.org/${SLUG}/`;
+const { published: PUBLISHED, modified: MODIFIED } = data;
+
+const TOC_ITEMS = [
+  { href: '#key-takeaways', label: 'Key takeaways' },
+  { href: '#at-a-glance', label: 'At a glance' },
+  { href: '#underlying', label: 'Treat the cause first' },
+  { href: '#lifestyle', label: 'Metabolic correction' },
+  { href: '#ovulation-induction', label: 'Ovulation induction' },
+  { href: '#wedge', label: 'Wedge resection' },
+  { href: '#ivf', label: 'IVF' },
+  { href: '#how-to-choose', label: 'How to choose' },
+  { href: '#faq', label: 'FAQ' },
+  { href: '#references', label: 'References' },
+];
+const KEY_TAKEAWAYS_HTML = `<ul>\n${data.keyTakeaways.map((k) => `  <li>${k}</li>`).join('\n')}\n</ul>`;
+const FAQS = data.faqs;
+const ARTICLE_SECTIONS = [
+  'Key Takeaways',
+  'PCOS treatment options at a glance',
+  'Treat the underlying condition first',
+  'Lifestyle and metabolic correction',
+  'Ovulation induction',
+  'Ovarian wedge resection: the restorative surgical option',
+  'Does IVF treat PCOS?',
+  'How to choose your path',
+  'Frequently Asked Questions',
+  'Continue exploring',
+  'References',
+];
+const citationUrls = [...new Set(data.references.map((r) => (r.html.match(/\/library\/([a-z0-9-]+)\//) || [])[0]).filter(Boolean).map((p) => `https://rrmacademy.org${p}`))];
+const ABOUT_TYPE_MAP = { MedicalCondition: 'MedicalCondition', MedicalProcedure: 'MedicalProcedure', MedicalTherapy: 'MedicalTherapy' };
+const jsonLd = {
+  '@context': 'https://schema.org', '@type': ['MedicalWebPage', 'Article'],
+  headline: 'What Is the Best PCOS Treatment for Getting Pregnant?',
+  description: 'PCOS (PMOS) causes anovulation. A clinician-reviewed comparison of treatments that restore ovulation, from inositol and letrozole to ovarian wedge resection, versus IVF.',
+  url: PAGE_URL, inLanguage: 'en',
+  author: { '@id': 'https://rrmacademy.org/#naomi-whittaker' },
+  publisher: { '@id': 'https://rrmacademy.org/#organization' },
+  datePublished: PUBLISHED, dateModified: MODIFIED,
+  image: `https://rrmacademy.org/og/${SLUG}.png`,
+  mainEntityOfPage: { '@type': 'WebPage', '@id': PAGE_URL },
+  about: data.about.map((a) => ({ '@type': ABOUT_TYPE_MAP[a.type] || 'Thing', name: a.name })),
+  articleSection: ARTICLE_SECTIONS,
+  citation: citationUrls.map((u) => ({ '@type': 'MedicalScholarlyArticle', '@id': u })),
+};
+const faqSchema = { '@context': 'https://schema.org', '@type': 'FAQPage', mainEntity: FAQS.map((f) => ({ '@type': 'Question', name: f.question, acceptedAnswer: { '@type': 'Answer', text: f.answerHtml.replace(/<[^>]+>/g, '') } })) };
+---
+
+<GuideLayout slug={SLUG} jsonLd={jsonLd} extraSchema={[faqSchema]} tocItems={TOC_ITEMS} faqs={FAQS} keyTakeawaysHtml={KEY_TAKEAWAYS_HTML}>
+  <Fragment set:html={data.prose.overview} />
+
+  <section id="at-a-glance">
+    <h2>PCOS treatment options at a glance</h2>
+    <p>Six approaches, ordered as a restorative plan would consider them. They differ in whether they correct the underlying disorder or bypass it. Each evidence cell links to the source.</p>
+    <div class="table-wrap">
+      <table class="alt-table">
+        <thead><tr><th scope="col">Approach</th><th scope="col">What it does</th><th scope="col">Fertility impact</th><th scope="col">Evidence</th></tr></thead>
+        <tbody>
+          {data.comparisonRows.map((row) => (
+            <tr><th scope="row">{row.option}</th><td>{row.whatItDoes}</td><td>{row.fertilityImpact}</td><td set:html={row.evidence} /></tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <section id="underlying"><h2>Treat the underlying condition first</h2><Fragment set:html={data.prose.underlying} /></section>
+  <section id="lifestyle"><h2>Lifestyle and metabolic correction</h2><Fragment set:html={data.prose.lifestyle} /></section>
+  <section id="ovulation-induction"><h2>Ovulation induction</h2><Fragment set:html={data.prose.ovulationInduction} /></section>
+  <section id="wedge"><h2>Ovarian wedge resection: the restorative surgical option</h2><Fragment set:html={data.prose.wedgeResection} /></section>
+  <section id="ivf"><h2>Does IVF treat PCOS?</h2><Fragment set:html={data.prose.ivfForPcos} /></section>
+  <section id="how-to-choose"><h2>How to choose your path</h2><Fragment set:html={data.prose.howToChoose} /></section>
+
+  <section id="continue-exploring">
+    <h2>Continue exploring</h2>
+    <ul>
+      <li><a href="/pcos/">PCOS: a restorative reproductive approach</a></li>
+      <li><a href="/naprotechnology-vs-ivf/">NaProTechnology vs IVF</a></li>
+      <li><a href="/ivf-alternatives/">Alternatives to IVF</a></li>
+      <li><a href="/fertility-preserving-surgery/">Fertility-preserving surgery</a></li>
+      <li><a href="/providers/">Find an RRM provider</a></li>
+    </ul>
+  </section>
+
+  <section id="references">
+    <h2>References</h2>
+    <ol class="references-list">{data.references.map((r) => (<li id={`ref-${r.n}`} set:html={r.html} />))}</ol>
+  </section>
+</GuideLayout>
+
+<style>
+  .table-wrap { overflow-x: auto; -webkit-overflow-scrolling: touch; margin: var(--space-5) 0; }
+  .alt-table { width: 100%; border-collapse: collapse; font-size: 0.875rem; min-width: 46rem; }
+  .alt-table thead th { background: var(--bg-surface); text-align: left; font-weight: 600; color: var(--text-primary); padding: var(--space-3); border-bottom: 2px solid var(--border-color); vertical-align: bottom; }
+  .alt-table thead th:first-child { width: 18%; }
+  .alt-table tbody th { text-align: left; font-weight: 600; color: var(--text-primary); padding: var(--space-3); border-bottom: 1px solid var(--border-color); vertical-align: top; }
+  .alt-table tbody th:first-child { border-left: 3px solid var(--purple-700); }
+  .alt-table tbody td { padding: var(--space-3); color: var(--text-secondary); border-bottom: 1px solid var(--border-color); vertical-align: top; line-height: 1.5; }
+  .alt-table tbody tr:last-child th, .alt-table tbody tr:last-child td { border-bottom: none; }
+  .references-list { font-size: 0.875rem; color: var(--text-secondary); line-height: 1.6; padding-left: var(--space-4); }
+  .references-list li { margin-bottom: var(--space-2); }
+  .references-list a { color: var(--accent); }
+</style>
