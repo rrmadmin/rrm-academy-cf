@@ -11,7 +11,7 @@ const FAQS = data.faqs;
 const FB = data.factsBox;
 const ARTICLE_SECTIONS = ['Key Takeaways','What is the Marquette Method?','How does the Marquette Method work?','How is the Marquette Method taught?','How effective is the Marquette Method?','What is the Marquette Method used for?','How the Marquette Method supports restorative reproductive medicine','How to learn the Marquette Method','Frequently Asked Questions','Continue exploring','References'];
 const citationUrls = [...new Set(JSON.stringify(data).match(/https:\/\/pubmed\.ncbi\.nlm\.nih\.gov\/\d+/g) || [])];
-const ABOUT_TYPE_MAP = { MedicalCondition: 'MedicalCondition', MedicalProcedure: 'MedicalProcedure', MedicalTherapy: 'MedicalTherapy' };
+const ABOUT_TYPE_MAP: Record<string, string> = { MedicalCondition: 'MedicalCondition', MedicalProcedure: 'MedicalProcedure', MedicalTherapy: 'MedicalTherapy' };
 const jsonLd = {
   '@context': 'https://schema.org', '@type': ['MedicalWebPage', 'Article'],
   headline: "The Marquette Method",

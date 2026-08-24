@@ -11,7 +11,7 @@ const FAQS = data.faqs;
 const FB = data.factsBox;
 const ARTICLE_SECTIONS = ['Key Takeaways','What is the Billings Ovulation Method?','How does the Billings Ovulation Method work?','How is the Billings Ovulation Method taught?','How effective is the Billings Ovulation Method?','What is the Billings Ovulation Method used for?','How the Billings Ovulation Method supports restorative reproductive medicine','How to learn the Billings Ovulation Method','Frequently Asked Questions','Continue exploring','References'];
 const citationUrls = [...new Set(JSON.stringify(data).match(/https:\/\/pubmed\.ncbi\.nlm\.nih\.gov\/\d+/g) || [])];
-const ABOUT_TYPE_MAP = { MedicalCondition: 'MedicalCondition', MedicalProcedure: 'MedicalProcedure', MedicalTherapy: 'MedicalTherapy' };
+const ABOUT_TYPE_MAP: Record<string, string> = { MedicalCondition: 'MedicalCondition', MedicalProcedure: 'MedicalProcedure', MedicalTherapy: 'MedicalTherapy' };
 const jsonLd = {
   '@context': 'https://schema.org', '@type': ['MedicalWebPage', 'Article'],
   headline: "The Billings Ovulation Method",
