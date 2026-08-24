@@ -1,0 +1,216 @@
+---
+// /naprotechnology-vs-ivf/ comparison guide (category: compare).
+// Conventions via GuideLayout (breadcrumb, byline, TOC, Key Takeaways, FAQ,
+// disclaimer, BreadcrumbList schema). Content from the SSOT data file.
+// Prose is gianna-copywriter (Dr. Whittaker voice); figures curl-verified;
+// absolutist patient-copy hedged per QA. Patient pathway = /providers/.
+import GuideLayout from '../../layouts/GuideLayout.astro';
+import data from '../../data/naprotechnology-vs-ivf.json';
+
+const SLUG = 'naprotechnology-vs-ivf';
+const PAGE_URL = `https://rrmacademy.org/${SLUG}/`;
+const { published: PUBLISHED, modified: MODIFIED } = data;
+
+const TOC_ITEMS = [
+  { href: '#key-takeaways', label: 'Key takeaways' },
+  { href: '#at-a-glance', label: 'At a glance' },
+  { href: '#difference', label: 'The core difference' },
+  { href: '#success-rates', label: 'How success rates compare' },
+  { href: '#risks', label: 'Risks: IVF vs NaProTechnology' },
+  { href: '#cost', label: 'Cost comparison' },
+  { href: '#who-for', label: 'Who NaProTechnology is for' },
+  { href: '#faq', label: 'FAQ' },
+  { href: '#references', label: 'References' },
+];
+
+const KEY_TAKEAWAYS_HTML = `<ul>\n${data.keyTakeaways.map((k) => `  <li>${k}</li>`).join('\n')}\n</ul>`;
+
+const FAQS = data.faqs;
+
+// articleSection MUST match the in-page H2 text exactly.
+const ARTICLE_SECTIONS = [
+  'Key Takeaways',
+  'How NaProTechnology and IVF compare at a glance',
+  'What is the difference between NaProTechnology and IVF?',
+  'How do success rates compare?',
+  'What are the risks of IVF compared to NaProTechnology?',
+  'How much does NaProTechnology cost compared to IVF?',
+  'Who is NaProTechnology for?',
+  'Frequently Asked Questions',
+  'References',
+  'Continue exploring',
+];
+
+// Internal citation URLs (for schema citation[]) parsed from the references' /library/ links.
+const citationUrls = [...new Set(
+  data.references
+    .map((r) => (r.html.match(/\/library\/([a-z0-9-]+)\//) || [])[0])
+    .filter(Boolean)
+    .map((p) => `https://rrmacademy.org${p}`)
+)];
+
+const ABOUT_TYPE_MAP = { MedicalCondition: 'MedicalCondition', MedicalProcedure: 'MedicalProcedure', MedicalTherapy: 'MedicalTherapy' };
+
+const jsonLd = {
+  '@context': 'https://schema.org',
+  '@type': ['MedicalWebPage', 'Article'],
+  headline: 'NaProTechnology vs IVF: How Do They Compare?',
+  description: data.prose ? 'A clinician-reviewed, evidence-based comparison of NaProTechnology and IVF across outcomes, risks, cost, and who each approach serves.' : '',
+  url: PAGE_URL,
+  inLanguage: 'en',
+  author: { '@id': 'https://rrmacademy.org/#naomi-whittaker' },
+  publisher: { '@id': 'https://rrmacademy.org/#organization' },
+  datePublished: PUBLISHED,
+  dateModified: MODIFIED,
+  image: `https://rrmacademy.org/og/${SLUG}.png`,
+  mainEntityOfPage: { '@type': 'WebPage', '@id': PAGE_URL },
+  about: data.about.map((a) => ({ '@type': ABOUT_TYPE_MAP[a.type] || 'Thing', name: a.name })),
+  articleSection: ARTICLE_SECTIONS,
+  citation: citationUrls.map((u) => ({ '@type': 'MedicalScholarlyArticle', '@id': u })),
+};
+
+const faqSchema = {
+  '@context': 'https://schema.org',
+  '@type': 'FAQPage',
+  mainEntity: FAQS.map((f) => ({
+    '@type': 'Question',
+    name: f.question,
+    acceptedAnswer: { '@type': 'Answer', text: f.answerHtml.replace(/<[^>]+>/g, '') },
+  })),
+};
+---
+
+<GuideLayout
+  slug={SLUG}
+  jsonLd={jsonLd}
+  extraSchema={[faqSchema]}
+  tocItems={TOC_ITEMS}
+  faqs={FAQS}
+  keyTakeawaysHtml={KEY_TAKEAWAYS_HTML}
+>
+  <Fragment set:html={data.prose.intro} />
+
+  <section id="at-a-glance">
+    <h2>How NaProTechnology and IVF compare at a glance</h2>
+    <p>The two approaches answer different clinical questions, so several rows below are not like-for-like comparisons. Each cited figure links to the source study.</p>
+    <div class="table-wrap">
+      <table class="vs-table">
+        <thead>
+          <tr>
+            <th scope="col"></th>
+            <th scope="col">NaProTechnology</th>
+            <th scope="col">IVF</th>
+          </tr>
+        </thead>
+        <tbody>
+          {data.comparisonRows.map((row) => (
+            <tr>
+              <th scope="row">{row.dimension}</th>
+              <td set:html={row.napro} />
+              <td set:html={row.ivf} />
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <section id="difference">
+    <h2>What is the difference between NaProTechnology and IVF?</h2>
+    <Fragment set:html={data.prose.difference} />
+  </section>
+
+  <section id="success-rates">
+    <h2>How do success rates compare?</h2>
+    <Fragment set:html={data.prose.successRates} />
+  </section>
+
+  <section id="risks">
+    <h2>What are the risks of IVF compared to NaProTechnology?</h2>
+    <Fragment set:html={data.prose.risks} />
+  </section>
+
+  <section id="cost">
+    <h2>How much does NaProTechnology cost compared to IVF?</h2>
+    <Fragment set:html={data.prose.cost} />
+  </section>
+
+  <section id="who-for">
+    <h2>Who is NaProTechnology for?</h2>
+    <Fragment set:html={data.prose.whoFor} />
+  </section>
+
+  <section id="continue-exploring">
+    <h2>Continue exploring</h2>
+    <ul>
+      <li><a href="/what-is-rrm/">What is Restorative Reproductive Medicine?</a></li>
+      <li><a href="/naprotechnology/">NaProTechnology: a clinician's guide</a></li>
+      <li><a href="/rrm-success-rates/">RRM success rates: what the published evidence shows</a></li>
+      <li><a href="/fertility-awareness-methods-compared/">Fertility awareness methods compared</a></li>
+      <li><a href="/endometriosis/">Endometriosis: a restorative reproductive approach</a></li>
+      <li><a href="/pcos/">PCOS: a restorative reproductive approach</a></li>
+      <li><a href="/providers/">Find an RRM provider</a></li>
+    </ul>
+  </section>
+
+  <section id="references">
+    <h2>References</h2>
+    <ol class="references-list">
+      {data.references.map((r) => (
+        <li id={`ref-${r.n}`} set:html={r.html} />
+      ))}
+    </ol>
+  </section>
+</GuideLayout>
+
+<style>
+  .table-wrap {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    margin: var(--space-5) 0;
+  }
+  .vs-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.9375rem;
+    min-width: 34rem;
+  }
+  .vs-table thead th {
+    background: var(--bg-surface);
+    text-align: left;
+    font-weight: 600;
+    color: var(--text-primary);
+    padding: var(--space-3);
+    border-bottom: 2px solid var(--border-color);
+    vertical-align: bottom;
+  }
+  .vs-table thead th:nth-child(2) { border-left: 3px solid var(--purple-700); }
+  .vs-table tbody th {
+    text-align: left;
+    font-weight: 600;
+    color: var(--text-primary);
+    padding: var(--space-3);
+    border-bottom: 1px solid var(--border-color);
+    vertical-align: top;
+    width: 22%;
+  }
+  .vs-table tbody td {
+    padding: var(--space-3);
+    color: var(--text-secondary);
+    border-bottom: 1px solid var(--border-color);
+    vertical-align: top;
+    line-height: 1.5;
+  }
+  .vs-table tbody td:nth-child(2) { border-left: 3px solid var(--purple-700); }
+  .vs-table tbody tr:last-child th,
+  .vs-table tbody tr:last-child td { border-bottom: none; }
+
+  .references-list {
+    font-size: 0.875rem;
+    color: var(--text-secondary);
+    line-height: 1.6;
+    padding-left: var(--space-4);
+  }
+  .references-list li { margin-bottom: var(--space-2); }
+  .references-list a { color: var(--accent); }
+</style>
