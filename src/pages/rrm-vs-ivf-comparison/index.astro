@@ -41,7 +41,7 @@ const citationUrls = [...new Set(
     .map((p) => `https://rrmacademy.org${p}`)
 )];
 
-const ABOUT_TYPE_MAP = { MedicalCondition: 'MedicalCondition', MedicalProcedure: 'MedicalProcedure', MedicalTherapy: 'MedicalTherapy' };
+const ABOUT_TYPE_MAP: Record<string, string> = { MedicalCondition: 'MedicalCondition', MedicalProcedure: 'MedicalProcedure', MedicalTherapy: 'MedicalTherapy' };
 
 const jsonLd = {
   '@context': 'https://schema.org',

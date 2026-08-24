@@ -11,7 +11,7 @@ const FAQS = data.faqs;
 const FB = data.factsBox;
 const ARTICLE_SECTIONS = ['Key Takeaways','What is the Sympto-Thermal Method?','How does the Sympto-Thermal Method work?','How is the Sympto-Thermal Method taught?','How effective is the Sympto-Thermal Method?','What is the Sensiplan protocol?','What is the Sympto-Thermal Method used for?','How the Sympto-Thermal Method supports restorative reproductive medicine','How to learn the Sympto-Thermal Method','Frequently Asked Questions','Continue exploring','References'];
 const citationUrls = [...new Set(JSON.stringify(data).match(/https:\/\/pubmed\.ncbi\.nlm\.nih\.gov\/\d+/g) || [])];
-const ABOUT_TYPE_MAP = { MedicalCondition: 'MedicalCondition', MedicalProcedure: 'MedicalProcedure', MedicalTherapy: 'MedicalTherapy' };
+const ABOUT_TYPE_MAP: Record<string, string> = { MedicalCondition: 'MedicalCondition', MedicalProcedure: 'MedicalProcedure', MedicalTherapy: 'MedicalTherapy' };
 const jsonLd = {
   '@context': 'https://schema.org', '@type': ['MedicalWebPage', 'Article'],
   headline: "The Sympto-Thermal Method",
