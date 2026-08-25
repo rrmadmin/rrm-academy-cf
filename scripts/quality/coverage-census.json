@@ -18,17 +18,17 @@
   "date": "2026-08-25",
   "instrument": "node scripts/quality/coverage.mjs (c8 --all over the full surface; full npm-test suite)",
   "full_surface": {
-   "files": 405,
-   "lines": 80404,
-   "covered": 32099,
-   "pct": 39.92
+   "files": 407,
+   "lines": 81106,
+   "covered": 32580,
+   "pct": 40.17
   },
   "by_category": {
    "PRODUCT-CODE": {
-    "files": 316,
-    "lines": 58992,
-    "covered": 26816,
-    "pct": 45.46
+    "files": 318,
+    "lines": 59694,
+    "covered": 27297,
+    "pct": 45.73
    },
    "CONTENT-TEMPLATE": {
     "files": 9,
@@ -56,13 +56,13 @@
    }
   },
   "product_code": {
-   "files": 316,
-   "lines": 58992,
-   "covered": 26816,
-   "pct": 45.46
+   "files": 318,
+   "lines": 59694,
+   "covered": 27297,
+   "pct": 45.73
   },
-  "files_at_zero_in_full_report": 239,
-  "files_executed_in_full_report": 166,
+  "files_at_zero_in_full_report": 240,
+  "files_executed_in_full_report": 167,
   "highest_stakes_slice": {
    "slice": "national survey system (functions/api/survey/ + functions/api/endo-quiz/)",
    "files": [
@@ -136,11 +136,11 @@
   },
   {
    "file": "functions/_middleware.js",
-   "fn": "onRequest",
-   "line": 213,
-   "cc": 55,
+   "fn": "handleRequest",
+   "line": 304,
+   "cc": 58,
    "coverage": 0,
-   "crap": 3080
+   "crap": 3422
   },
   {
    "file": "functions/api/search/semantic.js",
@@ -257,7 +257,7 @@
   {
    "file": "functions/_middleware.js",
    "fn": "sendAiBotEvent",
-   "line": 117,
+   "line": 173,
    "cc": 30,
    "coverage": 0,
    "crap": 930
@@ -361,6 +361,12 @@
    "fns": 6
   },
   {
+   "file": "functions/_middleware.js",
+   "worst": 3422,
+   "total": 4984,
+   "fns": 11
+  },
+  {
    "file": "functions/api/auth/google-callback.js",
    "worst": 4422,
    "total": 4938,
@@ -371,12 +377,6 @@
    "worst": 2756,
    "total": 4298,
    "fns": 31
-  },
-  {
-   "file": "functions/_middleware.js",
-   "worst": 3080,
-   "total": 4248,
-   "fns": 8
   },
   {
    "file": "scripts/verify-citations.mjs",
@@ -472,7 +472,7 @@
    "category": "PRODUCT-CODE",
    "reason": "CF Pages Function (routed endpoint, middleware, or _-prefixed shared helper). Deployed on every push; defects ship directly to users.",
    "present": false,
-   "lines": 449,
+   "lines": 544,
    "covered": 0,
    "pct": 0
   },
@@ -688,9 +688,9 @@
    "category": "PRODUCT-CODE",
    "reason": "CF Pages Function (routed endpoint, middleware, or _-prefixed shared helper). Deployed on every push; defects ship directly to users.",
    "present": true,
-   "lines": 458,
-   "covered": 458,
-   "pct": 100
+   "lines": 471,
+   "covered": 465,
+   "pct": 98.72
   },
   {
    "file": "functions/api/admin/courses/[id]/attachments.js",
@@ -760,9 +760,9 @@
    "category": "PRODUCT-CODE",
    "reason": "CF Pages Function (routed endpoint, middleware, or _-prefixed shared helper). Deployed on every push; defects ship directly to users.",
    "present": true,
-   "lines": 277,
-   "covered": 277,
-   "pct": 100
+   "lines": 290,
+   "covered": 284,
+   "pct": 97.93
   },
   {
    "file": "functions/api/admin/ecosystem.js",
@@ -814,7 +814,7 @@
    "category": "PRODUCT-CODE",
    "reason": "CF Pages Function (routed endpoint, middleware, or _-prefixed shared helper). Deployed on every push; defects ship directly to users.",
    "present": false,
-   "lines": 245,
+   "lines": 249,
    "covered": 0,
    "pct": 0
   },
@@ -1939,9 +1939,9 @@
    "category": "PRODUCT-CODE",
    "reason": "CF Pages Function (routed endpoint, middleware, or _-prefixed shared helper). Deployed on every push; defects ship directly to users.",
    "present": true,
-   "lines": 1111,
-   "covered": 1111,
-   "pct": 100
+   "lines": 1135,
+   "covered": 1133,
+   "pct": 99.82
   },
   {
    "file": "functions/events/_tracking.js",
@@ -2073,10 +2073,10 @@
    "file": "scripts/audit-glossary-links.mjs",
    "category": "PRODUCT-CODE",
    "reason": "Local deterministic analysis of glossary.json link classes; unit-tested (glossary-link-classifier.test.js), 80% covered today.",
-   "present": true,
+   "present": false,
    "lines": 101,
-   "covered": 81,
-   "pct": 80.19
+   "covered": 0,
+   "pct": 0
   },
   {
    "file": "scripts/audit-textbook-fact-coverage.mjs",
@@ -2520,6 +2520,15 @@
    "pct": 53.96
   },
   {
+   "file": "scripts/gates/validate-content-review.mjs",
+   "category": "PRODUCT-CODE",
+   "reason": "Deterministic CI/pre-commit proof gate; it decides whether deploys are allowed and must itself be trustworthy.",
+   "present": true,
+   "lines": 302,
+   "covered": 290,
+   "pct": 96.02
+  },
+  {
    "file": "scripts/gates/validate-courses-schema.mjs",
    "category": "PRODUCT-CODE",
    "reason": "Deterministic CI/pre-commit proof gate; it decides whether deploys are allowed and must itself be trustworthy.",
@@ -2617,6 +2626,15 @@
    "lines": 97,
    "covered": 58,
    "pct": 59.79
+  },
+  {
+   "file": "scripts/gates/validate-page-function-methods.mjs",
+   "category": "PRODUCT-CODE",
+   "reason": "Deterministic CI/pre-commit proof gate; it decides whether deploys are allowed and must itself be trustworthy.",
+   "present": true,
+   "lines": 251,
+   "covered": 236,
+   "pct": 94.02
   },
   {
    "file": "scripts/gates/validate-payment-pipeline.mjs",
