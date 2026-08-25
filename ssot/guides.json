@@ -439,27 +439,6 @@
       "usesGuideLayout": true
     },
     {
-      "slug": "ivf-alternatives",
-      "category": "compare",
-      "file": "ivf-alternatives/index.astro",
-      "title": "Alternatives to IVF",
-      "description": "Evidence-based alternatives to IVF, from diagnosing and treating the underlying cause to ovulation induction, surgery, IUI, and lifestyle support.",
-      "og_title": "Alternatives to IVF: What Are Your Options?",
-      "og_description": "Evidence-based alternatives to IVF, starting with diagnosing the underlying cause through NaProTechnology, plus surgery, ovulation induction, IUI, and lifestyle support.",
-      "author": "Dr. Naomi Whittaker",
-      "read_time": "16 min read",
-      "accent": "var(--purple-700)",
-      "in_guides_catalogue": true,
-      "in_shell_guides_nav": true,
-      "_order": 14.6,
-      "pageTitle": "Alternatives to IVF: Diagnosis, Surgery & More | RRM Academy",
-      "pageDescription": "Explore evidence-based alternatives to IVF, from diagnosing the underlying cause with NaProTechnology to ovulation induction, surgery, IUI, and lifestyle support.",
-      "pageH1": "Alternatives to IVF: What Are Your Options?",
-      "breadcrumbName": "Alternatives to IVF",
-      "authorId": "#naomi-whittaker",
-      "usesGuideLayout": true
-    },
-    {
       "slug": "best-treatment-for-endometriosis",
       "category": "compare",
       "file": "best-treatment-for-endometriosis/index.astro",
