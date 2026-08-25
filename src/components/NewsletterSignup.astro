@@ -24,6 +24,7 @@ const {
 } = Astro.props;
 
 const uniqueInputId = inputId ?? `newsletter-email-${crypto.randomUUID().slice(0, 8)}`;
+const uniqueNameId = `newsletter-name-${crypto.randomUUID().slice(0, 8)}`;
 ---
 
 <div class:list={['newsletter-signup', { 'newsletter-signup--compact': compact }]}>
@@ -32,6 +33,23 @@ const uniqueInputId = inputId ?? `newsletter-email-${crypto.randomUUID().slice(0
   {compact && <p class="newsletter-label">{heading}</p>}
 
   <form class="newsletter-form" data-newsletter-form>
+    {/* First name is required so the list can be addressed by name. Before
+        2026-08-25 this form collected email only, and newsletter_subscriber.name
+        went unwritten on every website signup, which is how 3,266 active
+        subscribers ended up with no name to greet. */}
+    <div class="newsletter-row newsletter-row--name">
+      <label for={uniqueNameId} class="sr-only">First name</label>
+      <input
+        type="text"
+        id={uniqueNameId}
+        name="firstName"
+        placeholder="First name"
+        required
+        autocomplete="given-name"
+        maxlength="100"
+        class="newsletter-input"
+      />
+    </div>
     <div class="newsletter-row">
       <label for={uniqueInputId} class="sr-only">Email address</label>
       <input
@@ -107,8 +125,10 @@ const uniqueInputId = inputId ?? `newsletter-email-${crypto.randomUUID().slice(0
       const feedback = form.querySelector('[data-newsletter-feedback]');
       const emailInput = form.querySelector('input[name="email"]');
       const email = emailInput.value.trim();
+      const nameInput = form.querySelector('input[name="firstName"]');
+      const firstName = nameInput ? nameInput.value.trim() : '';
 
-      if (!email) return;
+      if (!email || !firstName) return;
 
       btn.disabled = true;
       btn.textContent = '...';
@@ -137,6 +157,7 @@ const uniqueInputId = inputId ?? `newsletter-email-${crypto.randomUUID().slice(0
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
             email,
+            firstName,
             website: form.querySelector('input[name="website"]').value,
             turnstileToken,
           }),
@@ -147,6 +168,7 @@ const uniqueInputId = inputId ?? `newsletter-email-${crypto.randomUUID().slice(0
           feedback.textContent = data.message || 'You are subscribed!';
           feedback.classList.add('newsletter-feedback--success');
           emailInput.value = '';
+          if (nameInput) nameInput.value = '';
         } else {
           feedback.textContent = data.error || 'Something went wrong.';
           feedback.classList.add('newsletter-feedback--error');
@@ -201,6 +223,11 @@ const uniqueInputId = inputId ?? `newsletter-email-${crypto.randomUUID().slice(0
   .newsletter-row {
     display: flex;
     gap: var(--space-2);
+  }
+  /* Name sits on its own row so the email + button pair keeps its inline shape,
+     including inside the narrow footer column where the compact variant lives. */
+  .newsletter-row--name {
+    margin-bottom: var(--space-2);
   }
   .newsletter-input {
     flex: 1;
