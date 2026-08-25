@@ -7,6 +7,7 @@ import { sendTransactionalEmail } from '../_mail-lanes.js';
 import { SITE_URL } from '../auth/_shared.js';
 import { STUC_MEMBER_WHERE } from './_shared.js';
 import { log } from '../_log.js';
+import { greetingLine } from '../_greeting.js';
 
 const EVENT_SHARE_LINK_RECIPIENTS = ['naomimwhittaker@gmail.com'];
 
@@ -223,11 +224,9 @@ export async function notifyNewPost(env, db, post, authorName) {
     const bodyPreviewText = bodyPreview ? `${bodyPreview}\n` : '';
 
     buildEmail = (m) => {
-      const greeting = m.first_name && m.first_name.trim()
-        ? `Hi ${escapeHtml(m.first_name.trim())},`
-        : 'Hi,';
+      const greeting = greetingLine(m.first_name);
       const html = `
-    <p>${greeting}</p>
+    <p>${escapeHtml(greeting)}</p>
     ${openerHtml}
     <p><strong>${escapeHtml(eventTitle)}</strong></p>
     ${dateLine}${speakerLineHtml}${bodyPreviewHtml}
@@ -241,11 +240,9 @@ export async function notifyNewPost(env, db, post, authorName) {
     subject = sanitizeSubject(`${authorName} posted in Save the Uterus Club`);
 
     buildEmail = (m) => {
-      const greeting = m.first_name && m.first_name.trim()
-        ? `Hi ${escapeHtml(m.first_name.trim())},`
-        : 'Hi,';
+      const greeting = greetingLine(m.first_name);
       const html = `
-    <p>${greeting}</p>
+    <p>${escapeHtml(greeting)}</p>
     <p><strong>${safeAuthor}</strong> posted in the Save the Uterus Club community.</p>
     <p>Sign in to read and reply.</p>
     <p><a href="${link}">View post</a></p>
@@ -322,7 +319,7 @@ export async function notifyEventShareLink(env, db, post) {
       : 'Hi,';
 
     const html = `
-    <p>${greeting}</p>
+    <p>${escapeHtml(greeting)}</p>
     <p>A new Save the Uterus Club event was just posted and the public landing page is live with og:image and title ready to share.</p>
     <p><strong>${safeTitle}</strong></p>
     ${dateLine}${speakerLineHtml}
@@ -376,13 +373,11 @@ export async function notifyReply(env, db, postId, parentId, replierId, replierN
   const link = `${SITE_URL}/community/`;
   const preview = replyContent.slice(0, 200);
 
-  const greeting = recipient.first_name && recipient.first_name.trim()
-    ? `Hi ${escapeHtml(recipient.first_name.trim())},`
-    : 'Hi,';
+  const greeting = greetingLine(recipient.first_name);
 
   const subject = sanitizeSubject(`${replierName} replied to your ${targetLabel} in Save the Uterus Club`);
   const html = `
-    <p>${greeting}</p>
+    <p>${escapeHtml(greeting)}</p>
     <p><strong>${escapeHtml(replierName)}</strong> replied to your ${targetLabel}:</p>
     <blockquote style="border-left:3px solid #ddd;padding-left:12px;color:#555;">${escapeHtml(preview)}${replyContent.length > 200 ? '...' : ''}</blockquote>
     <p><a href="${link}">View conversation</a></p>

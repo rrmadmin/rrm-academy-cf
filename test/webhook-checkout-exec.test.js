@@ -323,6 +323,54 @@ describe('_webhook-checkout -- course purchase', () => {
   });
   const enrollOk = { 'INSERT INTO enrollment': { run: { success: true, meta: { changes: 1 } } } };
 
+  // A Link or wallet buyer completes checkout with customer_details.name = null
+  // even though signup already told us who they are, so reading Stripe for the
+  // greeting said "Hi there" to people whose name was sitting in the user row.
+  it('greets a course buyer by the name on the account, not the one Stripe collected', async () => {
+    const ctx = ctxFor(courseSession({ customer_details: { email: 'buyer@example.com', name: null } }), {
+      dbMap: {
+        ...enrollOk,
+        'SELECT first_name, name FROM user WHERE email': { first: { first_name: 'Katura', name: 'Katura Smoker' } },
+      },
+    });
+    await run(ctx);
+    const mail = mailTo(ctx, 'Your course is ready');
+    assert.ok(mail, 'the confirmation must still send');
+    assert.match(mail.body.Content.Simple.Body.Text.Data, /^Hi Katura,/);
+  });
+
+  // Precedence, not just fallback. donor_gift showed the checkout name is the
+  // PAYER's: five of 25 rows carried a different human than the account holder.
+  // So when the two disagree the account has to win, and this is the assertion
+  // that a "Stripe first, account second" ordering cannot pass.
+  it('prefers the account name over a different name typed at checkout', async () => {
+    const ctx = ctxFor(courseSession({ customer_details: { email: 'buyer@example.com', name: 'William Robson' } }), {
+      dbMap: {
+        ...enrollOk,
+        'SELECT first_name, name FROM user WHERE email': { first: { first_name: 'Hannah', name: 'Hannah Whiting' } },
+      },
+    });
+    await run(ctx);
+    const text = mailTo(ctx, 'Your course is ready').body.Content.Simple.Body.Text.Data;
+    assert.match(text, /^Hi Hannah,/);
+    assert.ok(!/William/.test(text), 'the cardholder name must not be used to greet the account holder');
+  });
+
+  // ~2,476 user rows carry no name at all from the Wix-era import. The greeting
+  // has to read as ordinary copy for them, not as a visible blank.
+  it('greets a buyer we have never had a name for without leaving a hole', async () => {
+    const ctx = ctxFor(courseSession({ customer_details: { email: 'buyer@example.com', name: null } }), {
+      dbMap: {
+        ...enrollOk,
+        'SELECT first_name, name FROM user WHERE email': { first: { first_name: '', name: '' } },
+      },
+    });
+    await run(ctx);
+    const text = mailTo(ctx, 'Your course is ready').body.Content.Simple.Body.Text.Data;
+    assert.match(text, /^Hi there,/);
+    assert.ok(!/Hi ,|Hi undefined|Hi null/.test(text), 'no half-rendered greeting');
+  });
+
   it('enrolls the buyer against the real payment intent and confirms by email', async () => {
     const ctx = ctxFor(courseSession(), { dbMap: enrollOk });
     assert.equal(await run(ctx), null);

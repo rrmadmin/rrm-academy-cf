@@ -23,6 +23,7 @@
  * Prefixed with _ so CF Pages does not treat it as a route handler.
  */
 import { STUC_BROADCAST_SENDER } from '../community/_email.js';
+import { greetingLine } from '../_greeting.js';
 
 export const REGISTER_FROM = STUC_BROADCAST_SENDER;
 export const REGISTER_REPLY_TO = 'administrator@rrmacademy.org';
@@ -110,8 +111,7 @@ export function buildLinkEmail(event, { kind = 'register', firstName = null } = 
     kind === 'reminder' ? `Today: ${title}` : `Your link for ${title}`
   );
 
-  const greetingName = firstName && String(firstName).trim() ? String(firstName).trim() : null;
-  const greeting = greetingName ? `Hi ${greetingName},` : 'Hi,';
+  const greeting = greetingLine(firstName);
 
   const opener = kind === 'reminder'
     ? `Today is the day. You are registered for this free Save the Uterus Club call, and here is your link again.`
