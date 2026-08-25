@@ -159,6 +159,22 @@ if echo "$STAGED" | grep -qE '^scripts/migrate-courses-to-d1\.sql$|^functions/ap
   fi
 fi
 
+# --- Content review sign-off gate: guides registry or page content ---
+#     A guide does not go live unread. Seven comparison guides shipped without
+#     the clinical review they were built to wait for on 2026-08-24, published
+#     off a branch named held/ by a session that read "exists in a branch, 404s
+#     live" as a defect to repair. --quick skips the git-history staleness check.
+if echo "$STAGED" | grep -qE '^ssot/guides\.json$|^src/data/.*\.json$|^scripts/gates/validate-content-review'; then
+  node scripts/gates/validate-content-review.mjs --quick
+  if [ $? -ne 0 ]; then
+    echo ""
+    echo "Commit blocked by content review sign-off gate."
+    echo "A guide is missing a dated clinical sign-off, or a sign-off is stale."
+    echo "Add \"reviewer\": { \"name\": \"...\", \"reviewed_at\": \"YYYY-MM-DD\" } once a clinician has read it."
+    exit 1
+  fi
+fi
+
 # --- Page-function HTTP method gate: any staged CF Pages route ---
 #     A route that serves HTML or an image to a link-preview crawler must
 #     answer HEAD, not just GET. Crawlers commonly probe with HEAD first, and
