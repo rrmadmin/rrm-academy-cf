@@ -83,12 +83,68 @@ function withSecurityHeaders(response) {
  * Fires an Arrivl pageview hit (AI bot analytics).
  * Called with ctx.waitUntil() so it never blocks the response.
  */
+/**
+ * Paths whose URLs never egress to Arrivl: the auth-gated set needsAuth
+ * protects (account, gated community, ask, STUC migrate) plus login/signup,
+ * whose ?redirect= query carries the visitor's intended destination. Applied
+ * to the request URL AND to a same-origin Referer, because a suppressed page
+ * is the referrer of the very next click and would otherwise leak one hop
+ * later. Named distinctly from needsAuth's own locals on purpose: the guard
+ * script pins those by regex.
+ */
+function arrivlSuppressedPath(pathname) {
+  const p = String(pathname || '').toLowerCase();
+  const publicCommunityCrawl =
+    p === '/community' ||
+    p === '/community/' ||
+    p === '/community/areas' ||
+    p.startsWith('/community/areas/');
+  return (
+    p === '/account' || p.startsWith('/account/') ||
+    ((p === '/community' || p.startsWith('/community/')) && !publicCommunityCrawl) ||
+    p === '/ask' || p.startsWith('/ask/') ||
+    p.startsWith('/save-the-uterus-club/migrate') ||
+    p === '/login' || p.startsWith('/login/') ||
+    p === '/signup' || p.startsWith('/signup/')
+  );
+}
+
+/**
+ * The Referer as Arrivl may see it: empty when it is a same-origin (or
+ * preview-origin) URL whose path is suppressed above -- forwarding it
+ * verbatim would re-leak exactly what the URL gate withheld. An unparsable
+ * Referer is withheld too; a cross-origin one passes through untouched.
+ */
+function arrivlSafeReferer(request) {
+  const raw = request.headers.get('Referer') || '';
+  if (!raw) return '';
+  try {
+    const ref = new URL(raw);
+    const sameSite = ref.hostname.endsWith('rrmacademy.org') || ref.hostname.endsWith('.pages.dev');
+    if (sameSite && arrivlSuppressedPath(ref.pathname)) return '';
+    return raw;
+  } catch {
+    return '';
+  }
+}
+
 async function sendArrivlPageview(request, env) {
   if (!env.ARRIVL_WEBSITE_KEY) return;
+
+  // AI-bot analytics means AI BOTS: human pageviews (URL, UA, referer, IP)
+  // have no business reaching arrivl.ai. The gate and the gated-path
+  // suppression below mirror sendAiBotEvent, which always had both; this
+  // function shipped without either (found in the 2026-08-25 adversarial
+  // review, alongside the login-redirect leak it transitively closes -- an
+  // unauthenticated /login/?redirect=<protected-url> pageview no longer
+  // egresses at all unless a listed AI bot fetched it).
+  const ua = request.headers.get('User-Agent') || '';
+  if (!detectAiBot(ua)) return;
 
   const url = new URL(request.url);
   if (url.hostname === 'library.rrmacademy.org') return;
   if (url.pathname.startsWith('/api/')) return;
+  if (arrivlSuppressedPath(url.pathname)) return;
   const accept = request.headers.get('Accept') || '';
   if (!accept.includes('text/html')) return;
 
@@ -98,7 +154,7 @@ async function sendArrivlPageview(request, env) {
   const params = new URLSearchParams({
     url: request.url,
     userAgent: request.headers.get('User-Agent') || '',
-    ref: request.headers.get('Referer') || '',
+    ref: arrivlSafeReferer(request),
     ip,
     websiteKey: env.ARRIVL_WEBSITE_KEY,
   });
@@ -210,7 +266,42 @@ function shouldCanonicalize(pathname) {
   return CASE_CANONICAL_PREFIXES.some(p => lower.startsWith(p)) && lower !== pathname;
 }
 
+/**
+ * The exported entry wraps the real handler so the CF Pages preview-domain
+ * noindex applies to EVERY response shape without an early return. The old
+ * shape (an if-pages.dev branch that ran context.next() and RETURNED near the
+ * top) silently disabled every block below it -- and because rrm-router
+ * proxies apex traffic to the rrm-academy.pages.dev origin, "below it" meant
+ * the needsAuth page gates, the trailing-slash redirect, and the auth-hint
+ * self-heal never ran for REAL production requests (found live 2026-08-25:
+ * anonymous /ask/ served the full page). Now every request, apex or preview,
+ * runs the same middleware; preview responses just gain the noindex header at
+ * the tail. The router keeps stripping that header for apex traffic, exactly
+ * as before.
+ */
 export async function onRequest(context) {
+  const isPreviewHost = new URL(context.request.url).hostname.endsWith('.pages.dev');
+  let response;
+  try {
+    response = await handleRequest(context);
+  } catch {
+    // The deleted preview branch carried this exact net for context.next();
+    // it now covers every throw out of the whole handler, on every host, so
+    // an unexpected failure renders the branded 500 with security headers
+    // instead of the platform's raw error page.
+    response = withSecurityHeaders(await render500Page(context, context.request));
+  }
+  if (!isPreviewHost) return response;
+  const headers = new Headers(response.headers);
+  headers.set('X-Robots-Tag', 'noindex');
+  return new Response(response.body, {
+    status: response.status,
+    statusText: response.statusText,
+    headers,
+  });
+}
+
+async function handleRequest(context) {
   const { request, env } = context;
   const url = new URL(request.url);
 
@@ -259,23 +350,6 @@ export async function onRequest(context) {
   }
 
 
-  // Block search engine indexing of CF Pages preview domains
-  if (url.hostname.endsWith('.pages.dev')) {
-    let response;
-    try {
-      response = await context.next();
-    } catch {
-      return withSecurityHeaders(await render500Page(context, request));
-    }
-    const headers = new Headers(response.headers);
-    headers.set('X-Robots-Tag', 'noindex');
-    return withSecurityHeaders(new Response(response.body, {
-      status: response.status,
-      statusText: response.statusText,
-      headers,
-    }));
-  }
-
   // Fire Arrivl and AI-bot analytics asynchronously -- does not block the response.
   // GA4 page_view is now fired client-side by ga-session.ts via /api/track.
   context.waitUntil(
@@ -289,12 +363,19 @@ export async function onRequest(context) {
   // CF Pages _headers /* rule corrupts ALL 3xx responses (static, _redirects,
   // AND function returns) into 200 with empty/mangled body. The only reliable
   // redirect is an HTML body with meta refresh + JS fallback.
+  // GET-only and /mcp-excluded, mirroring rrm-router's needsTrailingSlash():
+  // a 301 on a write method turns it into a GET and drops the body (POST
+  // /events/register would break), and /mcp is a Function with no /mcp/ form.
+  // Both hazards were masked while the old preview branch swallowed apex
+  // traffic ahead of this block; the 2026-08-25 unmasking makes them real.
   if (
+    request.method === 'GET' &&
     !url.pathname.endsWith('/') &&
     url.pathname !== '/api' &&
     !url.pathname.startsWith('/api/') &&
     !url.pathname.startsWith('/cdn-cgi/') &&
     url.pathname !== '/health' &&
+    url.pathname !== '/mcp' &&
     !url.pathname.includes('.')
   ) {
     const target = `${url.origin}${url.pathname}/${url.search}`;
@@ -310,7 +391,10 @@ export async function onRequest(context) {
   }
 
   // 301 redirect: library.rrmacademy.org -> rrmacademy.org/library
-  if (url.hostname === 'library.rrmacademy.org') {
+  // GET-only, like the trailing-slash block above: a 301 turns a write method
+  // into a GET and drops the body, and both redirects run for 100% of apex
+  // traffic since the 2026-08-25 preview-branch unmasking.
+  if (request.method === 'GET' && url.hostname === 'library.rrmacademy.org') {
     const path = url.pathname.startsWith('/library') ? url.pathname : `/library${url.pathname}`;
     return withSecurityHeaders(Response.redirect(
       `https://rrmacademy.org${path}${url.search}`,
@@ -319,7 +403,7 @@ export async function onRequest(context) {
   }
 
   // Redirect mixed-case URLs to lowercase for all canonical prefixes
-  if (shouldCanonicalize(url.pathname)) {
+  if (request.method === 'GET' && shouldCanonicalize(url.pathname)) {
     return withSecurityHeaders(Response.redirect(
       `${url.origin}${url.pathname.toLowerCase()}${url.search}`,
       301
