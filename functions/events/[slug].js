@@ -1109,3 +1109,27 @@ export async function onRequestGet({ request, params, env }) {
     },
   });
 }
+
+/**
+ * HEAD must answer the same status as GET.
+ *
+ * Link-preview crawlers, X's among them, commonly probe a URL with HEAD before
+ * fetching it. This route exported only onRequestGet, so CF Pages had no
+ * handler for HEAD and answered 404 while GET returned a clean 200 with a full
+ * set of og: and twitter: tags. The card never rendered, and nothing on the
+ * page or in the image was wrong, which is why it read as an OG problem.
+ *
+ * Every static Astro page already answers HEAD (CF Pages serves assets for
+ * both verbs) and the OG image route uses a catch-all onRequest, so this file
+ * was the only shareable surface on the site with the gap. Six other functions
+ * in this repo already export onRequestHead; this is sibling divergence.
+ *
+ * Delegating is safe here specifically because onRequestGet is read-only: one
+ * D1 SELECT and a render, no writes, no waitUntil, no mail. Event view
+ * tracking is client-side (functions/events/_tracking.js ships markup, not a
+ * server write), so a HEAD cannot inflate a counter. The runtime drops the
+ * body for HEAD. Pattern matches functions/api/fund-supporters.js.
+ */
+export async function onRequestHead(context) {
+  return onRequestGet(context);
+}
