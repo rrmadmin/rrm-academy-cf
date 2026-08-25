@@ -25,6 +25,7 @@ import { readSupporterConsent, deriveDisplayName, recordSupporterGift } from './
 import { countCampaignGifts } from './_campaign-count.js';
 import { sendTracked } from '../newsletter/_mail.js';
 import { greetingLine } from '../_greeting.js';
+import { isJoinDenied, maskEmailForLog } from './_join-denylist.js';
 
 // Monthly tier price fallback, used only when session.amount_total is 0 or missing
 // (Stripe has not billed the first invoice yet). Mirrors stucTierCentsFallback in the
@@ -151,6 +152,29 @@ export async function handleCheckoutCompleted(db, event, env, request, waitUntil
       session.customer_details.email !== session.customer_email) {
     log(env, waitUntil, 'billing', 'checkout_email_mismatch', 'warn',
       `client_ref=${session.client_reference_id} pre=${session.customer_email} edited=${session.customer_details.email}`);
+  }
+
+  // STUC join denylist: a subscription checkout, or a payment (donation) checkout
+  // stamped stuc_context='1' by create-checkout.js, from a denied email is reversed
+  // here rather than refused pre-emptively -- Stripe's own async payment methods and
+  // 3DS confirmations mean the checkout can complete after create-checkout.js already
+  // returned. Skip every member/donor-side effect below: no account link/creation, no
+  // welcome/receipt email, no donor_gift row, no GA4 purchase event.
+  {
+    const checkoutEmail = (session.customer_details?.email || session.customer_email || '')
+      .toLowerCase().trim().replace(/[\r\n]/g, '');
+    const stucContextDonation = session.mode === 'payment' && session.metadata?.stuc_context === '1';
+    if (isJoinDenied(checkoutEmail) && (session.mode === 'subscription' || stucContextDonation)) {
+      await reverseJoinDenylistCheckout(session, env, waitUntil);
+      env.EVENTS?.writeDataPoint({
+        blobs: ['billing', 'join-denylist', 'webhook-cancelled',
+          session.subscription || session.payment_intent || session.id, ''],
+        indexes: ['join-denylist-cancelled'],
+      });
+      log(env, waitUntil, 'billing', 'join_denylist_webhook_cancel', 'warn',
+        `session=${session.id} email=${maskEmailForLog(checkoutEmail)}`);
+      return null;
+    }
   }
 
   // Link Stripe customer to D1 user, or auto-create account for anonymous checkout
@@ -913,6 +937,67 @@ export async function handleCheckoutExpired(db, event, env, waitUntil) {
  * 2. Anonymous, email matches existing account -> link stripe_customer_id
  * 3. Anonymous, no account -> create account, send welcome email with password-setup link
  */
+/**
+ * Cancels the subscription and/or refunds the initial payment for a completed
+ * checkout that belongs to a denied email. Idempotent: a redelivered webhook
+ * re-running against an already-cancelled subscription or already-refunded
+ * payment_intent must not throw uncaught -- both "already" error shapes from
+ * Stripe are caught and treated as success (a real failure is logged so it
+ * surfaces to the admin digest, per join_denylist_refund_error).
+ */
+async function reverseJoinDenylistCheckout(session, env, waitUntil) {
+  const stripe = getStripeClient(env);
+  let paymentIntentId = null;
+
+  if (session.mode === 'subscription' && session.subscription) {
+    let subscription = null;
+    try {
+      subscription = await stripe.subscriptions.retrieve(session.subscription, { expand: ['latest_invoice'] });
+    } catch (err) {
+      log(env, waitUntil, 'billing', 'join_denylist_refund_error', 'error',
+        `subscription retrieve ${session.subscription}: ${err.message}`);
+    }
+    if (subscription?.latest_invoice && typeof subscription.latest_invoice === 'object') {
+      paymentIntentId = subscription.latest_invoice.payment_intent || null;
+    }
+    if (!subscription || subscription.status !== 'canceled') {
+      try {
+        await stripe.subscriptions.cancel(session.subscription);
+      } catch (err) {
+        if (!/already.*cancel|no such subscription/i.test(err.message || '')) {
+          log(env, waitUntil, 'billing', 'join_denylist_refund_error', 'error',
+            `subscription cancel ${session.subscription}: ${err.message}`);
+        }
+      }
+    }
+  } else if (session.mode === 'payment') {
+    paymentIntentId = session.payment_intent || null;
+    if (!paymentIntentId) {
+      try {
+        const fullSession = await stripe.checkout.sessions.retrieve(session.id);
+        paymentIntentId = fullSession.payment_intent || null;
+      } catch (err) {
+        log(env, waitUntil, 'billing', 'join_denylist_refund_error', 'error',
+          `session retrieve ${session.id}: ${err.message}`);
+      }
+    }
+  }
+
+  if (paymentIntentId) {
+    try {
+      await stripe.refunds.create({ payment_intent: paymentIntentId });
+    } catch (err) {
+      if (!/already.*refund/i.test(err.message || '')) {
+        log(env, waitUntil, 'billing', 'join_denylist_refund_error', 'error',
+          `refund ${paymentIntentId}: ${err.message}`);
+      }
+    }
+  } else {
+    log(env, waitUntil, 'billing', 'join_denylist_refund_error', 'error',
+      `no payment_intent found for session ${session.id}`);
+  }
+}
+
 async function ensureAccountForCheckout(db, session, env, waitUntil) {
   const customerId = session.customer;
   const email = (session.customer_details?.email || session.customer_email || '').toLowerCase().trim().replace(/[\r\n]/g, '');

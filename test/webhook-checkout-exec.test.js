@@ -839,6 +839,122 @@ describe('_webhook-checkout -- resolving a deferred payment intent', () => {
   });
 });
 
+describe('_webhook-checkout -- STUC join denylist', () => {
+  const DENIED_EMAIL = 'drduane@factsaboutfertility.org';
+
+  function ctxWithEvents(sessionObject, opts = {}) {
+    const eventCalls = [];
+    const ctx = ctxFor(sessionObject, {
+      ...opts,
+      env: {
+        ...opts.env,
+        EVENTS: { writeDataPoint: (dp) => eventCalls.push(dp) },
+      },
+    });
+    ctx.eventCalls = eventCalls;
+    return ctx;
+  }
+
+  it('cancels the subscription, refunds the invoice payment_intent and skips account creation', async () => {
+    const stub = withStripe({
+      '/v1/subscriptions/sub_denied': {
+        id: 'sub_denied', object: 'subscription', status: 'active',
+        latest_invoice: { id: 'in_denied', payment_intent: 'pi_denied' },
+      },
+      '/v1/refunds': { id: 're_denied', payment_intent: 'pi_denied' },
+    });
+    try {
+      const ctx = ctxWithEvents(session({
+        mode: 'subscription',
+        subscription: 'sub_denied',
+        payment_intent: null,
+        customer_details: { email: DENIED_EMAIL, name: 'D. Duane' },
+        metadata: { tier: 'hero' },
+      }));
+      assert.equal(await run(ctx, stub), null, 'denylist path answers the normal 2xx acknowledgment shape');
+
+      const subCalls = ctx.stripeCalls.filter(c => c.url.includes('/v1/subscriptions/sub_denied'));
+      assert.ok(subCalls.length >= 2, 'must both retrieve (for the invoice) and cancel the subscription');
+      const refundCall = ctx.stripeCalls.find(c => c.url.includes('/v1/refunds'));
+      assert.ok(refundCall, 'must refund the payment_intent behind the subscription');
+
+      assert.equal(stmts(ctx, 'INSERT INTO user').length, 0, 'a denied member must never get an account');
+      assert.equal(stmts(ctx, 'UPDATE user SET stripe_customer_id').length, 0);
+      assert.equal(ctx.sent.length, 0, 'no welcome or admin-notify email for a denied member');
+      assert.equal(ctx.ga4.length, 0, 'no purchase event for a denylisted checkout');
+
+      const cancelledEvent = ctx.eventCalls.find(dp => dp.indexes?.[0] === 'join-denylist-cancelled');
+      assert.ok(cancelledEvent, 'must fire the join-denylist-cancelled analytics event');
+      assert.ok(!JSON.stringify(cancelledEvent).includes(DENIED_EMAIL), 'the raw denied email must never reach analytics');
+    } finally { stub.restore(); }
+  });
+
+  it('is idempotent when Stripe redelivers against an already-cancelled, already-refunded checkout', async () => {
+    const stub = withStripe({
+      '/v1/subscriptions/sub_denied2': (call) => {
+        if (call.url.includes('/cancel')) {
+          return new Response(JSON.stringify({ error: { message: 'This subscription has already been canceled.' } }), {
+            status: 400, headers: { 'content-type': 'application/json' },
+          });
+        }
+        return { id: 'sub_denied2', object: 'subscription', status: 'canceled', latest_invoice: { id: 'in_x', payment_intent: 'pi_denied2' } };
+      },
+      '/v1/refunds': () => new Response(JSON.stringify({ error: { message: 'Charge already refunded.' } }), {
+        status: 400, headers: { 'content-type': 'application/json' },
+      }),
+    });
+    try {
+      const ctx = ctxWithEvents(session({
+        mode: 'subscription',
+        subscription: 'sub_denied2',
+        payment_intent: null,
+        customer_details: { email: DENIED_EMAIL, name: 'D. Duane' },
+        metadata: { tier: 'hero' },
+      }));
+      assert.equal(await run(ctx, stub), null, 'a redelivered denylist webhook must not throw uncaught');
+    } finally { stub.restore(); }
+  });
+
+  it('leaves an unrelated allowed member fully untouched', async () => {
+    const ctx = ctxFor(session({
+      mode: 'subscription', subscription: 'sub_allowed', payment_intent: null,
+      customer_details: { email: 'member@example.com', name: 'A Member' },
+      metadata: { tier: 'hero' },
+    }));
+    await run(ctx);
+    assert.ok(mailTo(ctx, 'Welcome to the Save the Uterus Club'), 'a non-denied member must still get the welcome email');
+  });
+
+  it('refunds a STUC-context donation from the denied email and skips donor_gift', async () => {
+    const stub = withStripe({ '/v1/refunds': { id: 're_donation', payment_intent: 'pi_stuc_donation' } });
+    try {
+      const ctx = ctxWithEvents(session({
+        mode: 'payment',
+        payment_intent: 'pi_stuc_donation',
+        customer_details: { email: DENIED_EMAIL, name: 'D. Duane' },
+        metadata: { type: 'donation', stuc_context: '1' },
+      }));
+      assert.equal(await run(ctx, stub), null);
+      const refundCall = ctx.stripeCalls.find(c => c.url.includes('/v1/refunds'));
+      assert.ok(refundCall, 'a STUC-context donation from a denied email must be refunded');
+      assert.equal(stmts(ctx, 'INSERT INTO donor_gift').length, 0, 'no donor_gift row for a reversed STUC-context donation');
+      assert.equal(ctx.sent.length, 0);
+    } finally { stub.restore(); }
+  });
+
+  it('leaves a non-STUC donation from the denied email completely alone', async () => {
+    const ctx = ctxFor(session({
+      mode: 'payment',
+      payment_intent: 'pi_plain_donation',
+      customer_details: { email: DENIED_EMAIL, name: 'D. Duane' },
+      metadata: { type: 'donation' },
+    }));
+    await run(ctx);
+    const gift = stmts(ctx, 'INSERT INTO donor_gift')[0];
+    assert.ok(gift, 'a plain (non-STUC-context) donation from the denied email must be recorded normally');
+  });
+});
+
 describe('_webhook-checkout -- Wix migration handoff with a confirmed subscription', () => {
   const futureIso = new Date(Date.now() + 20 * 86400_000).toISOString().slice(0, 10);
   const migrationSession = (overrides = {}) => session({

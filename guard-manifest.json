@@ -43,7 +43,7 @@
       "note": "Webhook + signature verification"
     },
     "functions/api/create-checkout.js": {
-      "hash": "ccb08c6b7d82038d4255295a2bf56ef452bfadcdccd751cb29e56e14499c4bdf",
+      "hash": "9010fe39e4d6b110769fd9112d918f84122a991bd4bde39de7d4acc729002b5d",
       "note": "Stripe checkout"
     },
     "functions/api/billing/status.js": {
@@ -55,7 +55,7 @@
       "note": "Stripe portal"
     },
     "functions/api/billing/_webhook-checkout.js": {
-      "hash": "52c32db29987ccc229e236f0849603890f0e70cb99323b3f41af087fd25efa95",
+      "hash": "44243e06e7056094f5d7b01403e8af65c55613d601b562d2a5b2702a93b85778",
       "note": "Stripe checkout completion handler"
     },
     "functions/api/billing/_webhook-subscription.js": {
