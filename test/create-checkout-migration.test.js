@@ -317,3 +317,29 @@ describe('create-checkout: canary requests never touch the Wix migration handoff
     );
   });
 });
+
+describe('create-checkout: the subscription session collects a member name', () => {
+  // The STUC join flow has no name field of our own -- the tier buttons hand
+  // straight off to Stripe Checkout, so customer_details.name is the only source
+  // of a member's name. On the 'auto' default Stripe renders the cardholder-name
+  // field for card payers but not for Link/wallet payers, and on 2026-08-24 a Link
+  // payer joined with email + ZIP only and landed in D1 with no name at all.
+  const checkoutSource = readFileSync(new URL('../functions/api/create-checkout.js', import.meta.url), 'utf8');
+  const subscriptionBranch = checkoutSource.slice(
+    checkoutSource.indexOf("mode: 'subscription',"),
+    checkoutSource.indexOf('sessionParams.subscription_data')
+  );
+
+  it('isolates a non-empty subscription sessionParams block to assert against', () => {
+    assert.ok(subscriptionBranch.length > 100, 'the slice markers must still bracket the subscription session params');
+    assert.ok(!subscriptionBranch.includes("mode: 'payment'"), 'the slice must not bleed into the donation branch');
+  });
+
+  it("sets billing_address_collection: 'required' so every payment method is asked for a name", () => {
+    assert.ok(
+      /billing_address_collection:\s*'required'/.test(subscriptionBranch),
+      "the subscription checkout must require the billing address -- without it Stripe asks Link and wallet payers for no name, " +
+      'and the member lands in D1 nameless'
+    );
+  });
+});

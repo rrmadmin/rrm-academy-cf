@@ -363,6 +363,15 @@ async function handleCheckout(request, env, waitUntil) {
       success_url: `${origin}/save-the-uterus-club/thank-you/?session_id={CHECKOUT_SESSION_ID}`,
       cancel_url: `${origin}/save-the-uterus-club/`,
       metadata: { tier: effectiveTier },
+      // The STUC join flow has no name field of our own -- the tier buttons hand
+      // straight off to Stripe Checkout, so customer_details.name is the ONLY
+      // source of a member's name. Left on the 'auto' default, Checkout renders
+      // the cardholder-name field for card payers but NOT for Link/wallet payers,
+      // who complete checkout with name = null (burned 2026-08-24: a Link payer
+      // joined with email + ZIP only and landed in D1 with no name at all).
+      // 'required' collects name + full billing address for every payment method,
+      // and the address is worth having on a 501(c)(3) donor record anyway.
+      billing_address_collection: 'required',
       custom_text: {
         submit: { message: 'Your monthly donation supports evidence-based reproductive health education through the RRM Foundation, a 501(c)(3) nonprofit.' },
       },

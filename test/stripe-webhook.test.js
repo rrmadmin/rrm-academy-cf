@@ -608,7 +608,7 @@ describe('stripe-webhook -- checkout event routing', () => {
 
   it('rolls back the dedup row when the checkout handler returns its 500', async () => {
     const evt = event('checkout.session.completed', completedSession());
-    const db = webhookDb({ fail: { 'SELECT id, stripe_customer_id FROM user': 'D1_ERROR: locked' } });
+    const db = webhookDb({ fail: { 'SELECT id, stripe_customer_id, name, first_name, last_name FROM user': 'D1_ERROR: locked' } });
     const parsed = await parseResponse(await onRequestPost(makeCtx({ db, request: signedRequest(evt) })));
     assert.equal(parsed.status, 500);
     assert.equal(parsed.body.error, 'Account linkage failed');
