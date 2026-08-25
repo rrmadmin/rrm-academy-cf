@@ -1,0 +1,47 @@
+{
+ "repo": "rrm-academy-cf",
+ "component": "old-admin-offline",
+ "captured_at": "2026-08-25T14:00:00Z",
+ "provenance": {
+  "derived_from_head": "0204bd0a407766537c87892448d5f0cc38e686b7",
+  "fields": {
+   "build_cmd": "discovered",
+   "test_cmd": "discovered",
+   "deploy": "human-confirmed (push to main -> deploy.yml CI; no local deploy command)",
+   "reversibility": "human-confirmed"
+  }
+ },
+ "deploy_target_exists": true,
+ "reversibility": "prod (revert = git revert of the deletion commits + push; the deleted handlers restore verbatim from history)",
+ "commands": {
+  "test": {
+   "body": "node --experimental-strip-types --test test/*.test.js test/*.test.mjs scripts/gates/*.test.mjs tests/gates/*.test.mjs tests/unit/campaign-snapshot.test.mjs tests/unit/campaigns-schema.test.mjs tests/unit/canonical-lockdown.test.mjs tests/unit/supporter-gift.test.mjs tests/unit/fund-thermo.test.mts tests/unit/membership-metrics.test.mjs tests/unit/membership-report-endpoint.test.mjs tests/unit/membership-middleware-invariant.test.mjs",
+   "approved_hash": "f7ef07962d30c52cba91503aec0637362171a05b84745327c54be7e9841d95e9",
+   "bucket": "local-pure"
+  },
+  "test_post_edit": {
+   "body": "node --experimental-strip-types --test test/*.test.js test/*.test.mjs scripts/gates/*.test.mjs tests/gates/*.test.mjs tests/unit/campaign-snapshot.test.mjs tests/unit/campaigns-schema.test.mjs tests/unit/canonical-lockdown.test.mjs tests/unit/supporter-gift.test.mjs tests/unit/fund-thermo.test.mts",
+   "approved_hash": "31ba8bb38147e3bdfdf0f219c3d091c985cfa9248201a80a75d37b81a96b55a0",
+   "bucket": "local-pure"
+  },
+  "build": {
+   "body": "node src/lib/enrich-glossary.mjs && node scripts/build-og-index.mjs && node scripts/generate-page-dates.mjs && node scripts/build-library-feed.mjs && node scripts/build-guides-data.mjs && node scripts/build-guide-reviews.mjs && node scripts/sync-library-count.mjs && node scripts/regen-agent-skills-digests.mjs && node scripts/check-render-gate-ids.mjs && SITE_SSOT_ENABLED=${SITE_SSOT_ENABLED:-1} node scripts/ssot-prebuild.mjs && astro build && npx pagefind --site dist && node scripts/build-infographic-assets.mjs",
+   "approved_hash": "802954c62d81d04fe3c7bf7771ab203f485e1df9e6eeaaac978292410ca0e119",
+   "bucket": "local-pure",
+   "note": "ssot-prebuild + astro build; network-fetching build steps run as repo CI does; approved in contract"
+  },
+  "lint": {
+   "body": "eslint functions/",
+   "approved_hash": "edf9bde9d91b1f4d8d3324717300ffda1f08b42c984709539e04d9110bcbd0a5",
+   "bucket": "local-pure"
+  }
+ },
+ "deploy": {
+  "mechanism": "push branch; Brian merges claude/old-admin-offline to main; deploy.yml is the deploy",
+  "bucket": "human-go"
+ },
+ "extra_hard_stops": [
+  "any edit outside: src/pages/admin/, functions/api/admin/, functions/admin/, docs/reference/old-admin/, guard-manifest.json (wix-migration-link entry only), package.json (test line only), named test files"
+ ],
+ "contract": "approved by Brian 2026-08-25 in-session (five keepers: cleanup, seo, courses/, faqs/, ecosystem, _middleware)"
+}

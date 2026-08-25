@@ -40,12 +40,10 @@ import {
 } from './_d1-sqlite.mjs';
 import { mockRequest, mockEnv, mockWaitUntil, parseResponse, stubExternalFetch, randomIp } from './_helpers.js';
 import { hashPassword } from '../functions/api/auth/_shared.js';
-import { validateMonthParam } from '../functions/api/admin/_membership-metrics.js';
 
 const login = await import('../functions/api/auth/login.js');
 const signup = await import('../functions/api/auth/signup.js');
 const members = await import('../functions/api/community/members.js');
-const membershipReport = await import('../functions/api/admin/membership-report.js');
 const donorGift = await import('../functions/api/billing/_donor-gift.js');
 
 let net;
@@ -369,173 +367,12 @@ describe('community/_shared.js -- the membership gate and the roster (COLUMN col
   });
 });
 
-// ===================================================== membership report ===
-
-function reportDb(seed) {
-  return sqliteD1({ seed });
-}
-
-async function getReport(db, query = '') {
-  const stub = stubExternalFetch();
-  try {
-    const response = await membershipReport.onRequestGet({
-      request: new Request(`https://rrmacademy.org/api/admin/membership-report${query}`, {
-        headers: { Authorization: 'Bearer test-admin-secret' },
-      }),
-      env: mockEnv({ DB: db, ADMIN_API_SECRET: 'test-admin-secret', STRIPE_RESTRICTED_KEY: '' }),
-    });
-    return { status: response.status, body: await response.json() };
-  } finally {
-    stub.restore();
-  }
-}
-
 const daysAgo = (n) => new Date(Date.now() - n * 86400e3).toISOString();
 
-describe('admin/membership-report.js -- the seven identity joins (COLUMN collation)', () => {
-  it('counts a Wix member, and their tier and amount, when the subscription spells the address differently (:116/:122/:125)', async () => {
-    const db = reportDb((s) => {
-      insertUser(s, { id: 'usr_ada', email: 'Ada@Example.COM', role: 'member' });
-      insertWixSubscription(s, { email: 'ada@example.com', tier: 'hero', amount_cents: 1900 });
-    });
-
-    const { status, body } = await getReport(db);
-
-    assert.equal(status, 200);
-    // :267 (STUC_MEMBER_WHERE) put them on the roster at all.
-    assert.equal(body.stuc.wix_count, 1, 'the paying Wix member is missing from the report entirely');
-    // :116 has_wix, :122 wix_tier, :125 wix_amount_cents -- three separate
-    // correlated subqueries, each resolving the same person across a case
-    // difference. A wrong tier or a zeroed amount is a wrong revenue headline.
-    assert.equal(body.stuc.active_by_tier.hero, 1, 'the tier subquery lost the row');
-    assert.equal(body.stuc.active_by_tier.member, 0, 'a lost tier subquery silently defaults everyone to member');
-    assert.equal(body.stuc.monthly_cents, 1900, 'the amount subquery lost the row, understating MRR');
-    db.close();
-  });
-
-  it('joins a Stripe member to their gift history across a case difference, so the lapse watchlist is dated (:182)', async () => {
-    const db = reportDb((s) => {
-      insertUser(s, {
-        id: 'usr_bob', email: 'Bob@Example.com', role: 'member',
-        stripe_customer_id: 'cus_bob', created_at: daysAgo(400),
-      });
-      insertLabel(s, 'usr_bob', 'Save the Uterus Club \u{1F3F7}\u{FE0F}');
-      insertDonorGift(s, {
-        email: 'bob@example.com', source: 'stripe', kind: 'membership',
-        entity: 'academy', occurred_at: daysAgo(100),
-      });
-    });
-
-    const { status, body } = await getReport(db);
-
-    assert.equal(status, 200);
-    const flagged = body.stuc.watchlist.find((w) => w.kind === 'lapsed_payment');
-    assert.ok(flagged, 'a member 100 days past their last payment must be flagged');
-    assert.equal(flagged.email, 'Bob@Example.com');
-    // The distinguishing assertion: a MISSED join leaves last_gift_at NULL, and
-    // computeLapsed then falls back to created_at and reports days = null. A
-    // dated flag proves the LEFT JOIN actually matched the gift row.
-    assert.equal(typeof flagged.days, 'number', 'the gift join missed: the watchlist entry has no date behind it');
-    assert.ok(Math.abs(flagged.days - 100) <= 1, `expected ~100 days since last gift, got ${flagged.days}`);
-    db.close();
-  });
-
-  /**
-   * MEASURED, not assumed: the `COLLATE NOCASE` on the three correlated donor
-   * subqueries (:194 display_name, :197 amount_cents, :214 lapsed display_name)
-   * changes NO output, on any fixture. `GROUP BY lower(d.email)` has already
-   * folded the spellings, and each query carries exactly one min()/max()
-   * aggregate, so SQLite's bare-column rule makes `d.email` take its value from
-   * the same row the subquery's ORDER BY ... LIMIT 1 lands on. The subquery
-   * therefore resolves to that row whether or not it can see the other spelling.
-   * Verified by running both variants over five fixture shapes (upper-first,
-   * lower-first, name-missing on either end, three spellings): identical results
-   * every time.
-   *
-   * So these two tests do NOT claim to hold the collation. They hold what those
-   * subqueries actually decide -- WHICH gift names and prices the donor -- which
-   * is a live regression surface: swapping ASC for DESC in either one silently
-   * reports the wrong name and the wrong amount to Naomi's outreach list.
-   */
-  it('names and prices a new recurring donor from their FIRST gift, across spellings (:194/:197)', async () => {
-    // The endpoint (no ?month=) resolves its default report month via
-    // validateMonthParam(null, Date.now()) in ET, not the UTC calendar month --
-    // deriving the fixture the same way keeps day(5)/day(20) inside the
-    // endpoint's actual [startUtc, endUtc) window even in the few hours around
-    // UTC midnight on the 1st when the UTC and ET months disagree.
-    const month = validateMonthParam(null, Date.now());
-    const [fy, fm] = month.split('-').map(Number);
-    const day = (d) => new Date(Date.UTC(fy, fm - 1, d, 12)).toISOString();
-    const db = reportDb((s) => {
-      insertDonorGift(s, {
-        email: 'CARA@example.com', display_name: 'Cara First', kind: 'recurring',
-        entity: 'foundation', amount_cents: 2500, occurred_at: day(5),
-      });
-      insertDonorGift(s, {
-        email: 'cara@example.com', display_name: 'Cara Later', kind: 'recurring',
-        entity: 'foundation', amount_cents: 9900, occurred_at: day(20),
-      });
-    });
-
-    const { status, body } = await getReport(db);
-
-    assert.equal(status, 200);
-    assert.equal(body.foundation.new_recurring.length, 1, 'one human was reported as two new recurring donors');
-    const donor = body.foundation.new_recurring[0];
-    assert.equal(donor.email, 'cara@example.com');
-    assert.equal(donor.display_name, 'Cara First', 'the subquery must name the donor from their EARLIEST recurring gift');
-    assert.equal(donor.amount_cents, 2500, 'the pledge amount must come from the same earliest gift, not the latest');
-    assert.equal(body.headline.total_supporters, 1, 'one human must count once');
-    assert.equal(body.foundation.lapsed_recurring.length, 0, 'a donor who gave this month is not lapsed');
-    db.close();
-  });
-
-  it('names a lapsed recurring donor from their LATEST gift, across spellings (:214)', async () => {
-    const db = reportDb((s) => {
-      insertDonorGift(s, {
-        email: 'DANA@example.com', display_name: 'Dana Maiden', kind: 'recurring',
-        entity: 'foundation', amount_cents: 2500, occurred_at: daysAgo(400),
-      });
-      insertDonorGift(s, {
-        email: 'dana@example.com', display_name: 'Dana Married', kind: 'recurring',
-        entity: 'foundation', amount_cents: 2500, occurred_at: daysAgo(200),
-      });
-    });
-
-    const { status, body } = await getReport(db);
-
-    assert.equal(status, 200);
-    assert.equal(body.foundation.lapsed_recurring.length, 1, 'one human was reported as two lapsed donors');
-    const lapsed = body.foundation.lapsed_recurring[0];
-    assert.equal(lapsed.email, 'dana@example.com');
-    assert.equal(lapsed.display_name, 'Dana Married', 'outreach must use the name from the MOST RECENT gift');
-    // days_since_last is measured to the END of the reporting month, not to
-    // now (the report describes that month's state), so the exact number floats
-    // with how much of the current month is left. The load-bearing part is that
-    // it is measured from the LATEST gift (200 days) and not the earliest (400).
-    assert.ok(
-      lapsed.days_since_last >= 200 && lapsed.days_since_last <= 200 + 31,
-      `days_since_last must measure from the latest gift (~200d to month end), got ${lapsed.days_since_last}`
-    );
-    assert.ok(
-      body.actions.some((a) => a.who === 'Naomi' && a.what.includes('Dana Married')),
-      'the outreach action must name the donor, not fall back to a bare address'
-    );
-    db.close();
-  });
-
-  it('a staff account with no payment row is counted as staff, not as a paying member', async () => {
-    const db = reportDb((s) => {
-      insertUser(s, { id: 'usr_mod', email: 'Mod@Example.com', role: 'mod' });
-    });
-    const { status, body } = await getReport(db);
-    assert.equal(status, 200);
-    assert.equal(body.stuc.staff_count, 1);
-    assert.equal(body.stuc.wix_count, 0);
-    assert.equal(body.stuc.monthly_cents, 0, 'complimentary accounts must never inflate MRR');
-    db.close();
-  });
-});
+// The admin/membership-report.js identity-join coverage moved out with the
+// handler itself (old-admin-offline, 2026-08-25): the report now lives in
+// rrm-backoffice functions/api/membership.js, whose own suite carries the
+// email-collation matrix (test/money-d1.test.js).
 
 // ============================================================ donor gift ===
 
