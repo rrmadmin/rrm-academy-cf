@@ -43,5 +43,18 @@
  "extra_hard_stops": [
   "any edit outside: src/pages/admin/, functions/api/admin/, functions/admin/, docs/reference/old-admin/, guard-manifest.json (wix-migration-link entry only), package.json (test line only), named test files"
  ],
- "contract": "approved by Brian 2026-08-25 in-session (five keepers: cleanup, seo, courses/, faqs/, ecosystem, _middleware)"
+ "contract": "approved by Brian 2026-08-25 in-session (five keepers: cleanup, seo, courses/, faqs/, ecosystem, _middleware)",
+ "review_record": {
+  "deterministic_scanner": "scan-delta PASS, zero new HIGH; 4 LOW silent-catch = pre-existing annotated swallows in untouched middleware regions, signed in converge.arise-allowlist.json",
+  "non_claude_tracer": "gemini-hunter 7 findings: 2 duplicate the adversarial review (pages.dev early-return, auth-hint heal gap); 5 pre-existing out-of-scope (self-heal after logout, WebSocket header strip, sql-gate appended-clause limitation, trailing-slash 301 POST semantics, analytics /api exact match) -- all surfaced in the HELD report, none introduced by this delta",
+  "adversarial_review": "wf_ffc8316c-7c9 full mode: 13 confirmed. FIX-NOW APPLIED (commit b5948eb9): 410 above trailing-slash redirect (3 findings, one cause), X-Robots-Tag on 410 (2 findings, one cause). OUT-OF-SCOPE SURFACED to Brian as follow-ups (pre-existing, deny-list forbids touching): pages.dev early-return auth bypass (CRITICAL -- preview hosts skip needsAuth + the admin 410), Arrivl beacon unbounded egress x2 (HIGH). ACCEPT-DOCUMENT signed: /admin percent-encoding normalization (deleted pages, nothing behind the check to protect), auth-hint self-heal concurrency cost, bare-/admin-via-301 (superseded by the applied fix).",
+  "delta_review": "wf_4f38dffa-0e3 delta mode on b5948eb9: ZERO findings survived refutation (K-clean terminal round). Residue defer-to-stub-debt: no automated test exercises root-middleware onRequest, so the 410's existence/ordering is pinned only by the guard hash + the deploy-day curl smoke; accept-document x2 (pages.dev previews answer 404 not 410 -- harmless, pages deleted, previews noindexed; percent-encoded /admin forms fall through to a 404 with nothing behind them)."
+ },
+ "stub_debt": [
+  "FOLLOW-UP (pre-existing, CRITICAL): functions/_middleware.js pages.dev early-return bypasses needsAuth + the admin 410 on *.pages.dev preview hosts -- move the noindex header injection to the response tail; own component/commit, NOT this branch (deny-list)",
+  "FOLLOW-UP (pre-existing, HIGH x2): Arrivl beacon fires unconditionally (no bot gate, and login redirects embed the original protected URL that the beacon then re-transmits) -- scope sendArrivlPageview like sendAiBotEvent",
+  "KEEPER RE-POINTS (each retires a kept handler): cleanup.js -> move the daily cleanup into a worker cron or backoffice; seo.js -> re-register the Google OAuth redirect URI off rrmacademy.org; courses/ + faqs/ -> backoffice CRM surfaces + skill re-points; ecosystem.js -> satellite sync direct to D1",
+  "dm-queue has NO actionable UI until the backoffice dm-queue-page ships (accepted in contract)",
+  "Middleware test harness: nothing automated executes functions/_middleware.js onRequest (the TDZ the review caught proved the blind spot); the deploy-day curl smoke (410 on /admin + /Admin/, 401 on unauthenticated kept /api/admin/cleanup) is the compensating check until a harness exists"
+ ]
 }
