@@ -71,7 +71,7 @@
       "note": "HMAC-SHA256 magic-link token for Wix-to-Stripe donor migration"
     },
     "functions/_middleware.js": {
-      "hash": "0000aeaca84f079c7818068b1e451f7a136aeaaee1e166f92680bec64657bc70",
+      "hash": "f402888409d737a87860b0e59858cefff0474ebeee371c5f2ca0e8c66eaff18b",
       "note": "Auth gating"
     },
     "wrangler.toml": {
@@ -145,10 +145,6 @@
     "functions/api/admin/cleanup.js": {
       "hash": "033cb9e410cdbbd8a5103307608a3419f7721a0daf2d417751de07b049838583",
       "note": "Expired data deletion from D1"
-    },
-    "functions/api/admin/wix-migration-link.js": {
-      "hash": "58131eb4bdd6b8dd93b9b353a9a7cad6722472ec18484b89e76412d6555fc6c0",
-      "note": "Admin endpoint: manually link wix_subscription to CF user (Layer 4 reconciliation)"
     },
     "scripts/guard.mjs": {
       "hash": "1f9c38155df5fa02899d60fc960a050acec6c665c5e4477c10446b57954a12da",
