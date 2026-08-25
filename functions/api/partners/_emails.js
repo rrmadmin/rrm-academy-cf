@@ -164,7 +164,7 @@ Submitted: ${partner.created_at}
 Blurb:
 ${partner.blurb || '(none)'}
 
-Review at: https://rrmacademy.org/admin/partners/`;
+Records live in D1 table \`partners\` pending a backoffice partners surface.`;
 
   const html = `<p><strong>New Educational Partner application received.</strong></p>
 
@@ -183,7 +183,7 @@ Review at: https://rrmacademy.org/admin/partners/`;
 
 ${partner.blurb ? `<p><strong>Blurb:</strong><br>${escapeHtml(partner.blurb)}</p>` : '<p><em>No blurb provided.</em></p>'}
 
-<p><a href="https://rrmacademy.org/admin/partners/">Review application in admin</a></p>`;
+<p>Records live in D1 table <code>partners</code> pending a backoffice partners surface.</p>`;
 
   return sendEmail(env, {
     from: FROM,

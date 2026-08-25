@@ -173,6 +173,19 @@ export async function onRequestPut(context) {
     return json({ ok: false, error: 'invalid_participants' }, 400);
   }
 
+  if (body.isFree !== undefined && typeof body.isFree !== 'boolean' && body.isFree !== 0 && body.isFree !== 1 && body.isFree !== '0' && body.isFree !== '1') {
+    return json({ ok: false, error: 'invalid_is_free' }, 400);
+  }
+  if (body.hasCertificate !== undefined && typeof body.hasCertificate !== 'boolean' && body.hasCertificate !== 0 && body.hasCertificate !== 1 && body.hasCertificate !== '0' && body.hasCertificate !== '1') {
+    return json({ ok: false, error: 'invalid_has_certificate' }, 400);
+  }
+  if (body.selfPaced !== undefined && typeof body.selfPaced !== 'boolean' && body.selfPaced !== 0 && body.selfPaced !== 1 && body.selfPaced !== '0' && body.selfPaced !== '1') {
+    return json({ ok: false, error: 'invalid_self_paced' }, 400);
+  }
+  if (body.comingSoon !== undefined && typeof body.comingSoon !== 'boolean' && body.comingSoon !== 0 && body.comingSoon !== 1 && body.comingSoon !== '0' && body.comingSoon !== '1') {
+    return json({ ok: false, error: 'invalid_coming_soon' }, 400);
+  }
+
   if (body.sortOrder !== undefined && !Number.isInteger(body.sortOrder)) {
     return json({ ok: false, error: 'invalid_sort_order' }, 400);
   }
