@@ -24,17 +24,37 @@ under-report the same way.
 
 ## Done today
 
-**7 comparison pages published and live.** `/naprotechnology-vs-ivf/`,
-`/rrm-vs-ivf-comparison/`, `/ivf-alternatives/`,
-`/best-treatment-for-endometriosis/`, `/best-pcos-treatment-for-pregnancy/`,
-`/endometriosis-excision-vs-ablation/`, `/progesterone-for-recurrent-miscarriage/`.
-All 200, indexable, in `sitemap-0.xml`, registered in `ssot/guides.json` at
-`_order` 15-21 and in `rrm-router` `ASTRO_ROUTES`.
+**7 comparison pages published, then taken down the same evening.** They went
+live off `held/compare-and-method-guides` without the content review the hold
+existed to wait for, and were pulled a few hours later. Do not plan against
+them being live.
 
-This was the single highest-yield item in the audit and it was pure waste: the
-Ad Grants "Long-Tail Questions" campaign runs a dedicated **IVF-Alternatives**
-ad group with bare `ivf` deliberately kept out of negatives, so paid budget was
-buying exactly the intent `/ivf-alternatives/` now answers organically.
+Current state as of 2026-08-25:
+
+- **`/ivf-alternatives/` is dead permanently.** Killed on Brian's call. It
+  presented IUI, donor sperm, donor eggs, embryo adoption and surrogacy as
+  options in RRM Academy's own voice, 25 references against zero in the other
+  six, and its own SSOT note recorded the premise as "neutral on
+  donor/adoption/surrogacy". Removed from the repo, from the held branch, and
+  from `rrm-router`'s `ASTRO_ROUTES` and `MARKDOWN_MAP`; the path is a permanent
+  `GONE_EXACT` 410. **A future page at this URL must be written from scratch.**
+- **The other six are held, not dead**, at 410 pending Naomi's review:
+  `/naprotechnology-vs-ivf/`, `/rrm-vs-ivf-comparison/`,
+  `/best-treatment-for-endometriosis/`, `/best-pcos-treatment-for-pregnancy/`,
+  `/endometriosis-excision-vs-ablation/`,
+  `/progesterone-for-recurrent-miscarriage/`. Removed from the repo and from
+  `ssot/guides.json`; their `ASTRO_ROUTES` wiring is deliberately left in place
+  so a republish is a `GONE_EXACT` deletion rather than a re-plumb.
+
+The audit ranked this the single highest-yield item because the Ad Grants
+"Long-Tail Questions" campaign runs a dedicated **IVF-Alternatives** ad group
+with bare `ivf` deliberately kept out of negatives. That reasoning no longer
+supports building this page: the organic answer to that intent was the page that
+turned out to be off-message. Verified 2026-08-25 that no ad and no sitelink
+asset in the account points at any of the seven, and all 11 live ad destinations
+return 200, so there is no paid exposure to fix. If that intent is still worth
+answering organically, it needs a page written to RRM Academy's actual position
+on donor gametes, not a restore.
 
 Not merged, deliberately: the 5 FABM method guides on that branch, which had
 already shipped by another path and are live. Merging would have reverted them
