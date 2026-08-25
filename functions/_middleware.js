@@ -257,6 +257,28 @@ export async function onRequest(context) {
     ])
   );
 
+  // The old admin is OFFLINE (Brian, 2026-08-21; shipped 2026-08-25). The
+  // pages were deleted and admin.rrmacademy.org (the backoffice) is the only
+  // admin, so every /admin path answers 410 Gone before Pages would 404 it.
+  // Sits ABOVE the trailing-slash redirect on purpose: /admin without the
+  // slash answers 410 directly instead of a 301 hop a scanner or browser
+  // would cache toward a route that is itself permanently gone. Deliberately
+  // does NOT match /api/admin/* (pathname starts with /api/), where the kept
+  // machine endpoints (cleanup, seo OAuth callback, courses, faqs, ecosystem)
+  // still serve behind their own auth. The data models of the deleted pages
+  // live in docs/reference/old-admin/. X-Robots-Tag mirrors this file's
+  // header-level noindex convention for tools that never parse the body.
+  const adminPathLower = url.pathname.toLowerCase();
+  const isAdminPage = adminPathLower === '/admin' || adminPathLower.startsWith('/admin/');
+  if (isAdminPage) {
+    return withSecurityHeaders(new Response(
+      '<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="robots" content="noindex"><title>Admin moved</title></head>'
+      + '<body style="font-family:system-ui,sans-serif;padding:3rem;"><p>This admin moved to '
+      + '<a href="https://admin.rrmacademy.org">admin.rrmacademy.org</a>.</p></body></html>',
+      { status: 410, headers: { 'Content-Type': 'text/html; charset=utf-8', 'X-Robots-Tag': 'noindex' } }
+    ));
+  }
+
   // Universal trailing-slash redirect for HTML pages.
   // CF Pages _headers /* rule corrupts ALL 3xx responses (static, _redirects,
   // AND function returns) into 200 with empty/mangled body. The only reliable
@@ -364,23 +386,6 @@ export async function onRequest(context) {
       }));
     }
     return withSecurityHeaders(response);
-  }
-
-  // The old admin is OFFLINE (Brian, 2026-08-21; shipped 2026-08-25). The
-  // pages were deleted and admin.rrmacademy.org (the backoffice) is the only
-  // admin, so every /admin path answers 410 Gone before Pages would 404 it.
-  // This deliberately does NOT match /api/admin/* (pathname starts with
-  // /api/), where the kept machine endpoints (cleanup, seo OAuth callback,
-  // courses, faqs, ecosystem) still serve behind their own auth. The data
-  // models of the deleted pages live in docs/reference/old-admin/.
-  const isAdminPage = pathnameLower === '/admin' || pathnameLower.startsWith('/admin/');
-  if (isAdminPage) {
-    return withSecurityHeaders(new Response(
-      '<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="robots" content="noindex"><title>Admin moved</title></head>'
-      + '<body style="font-family:system-ui,sans-serif;padding:3rem;"><p>This admin moved to '
-      + '<a href="https://admin.rrmacademy.org">admin.rrmacademy.org</a>.</p></body></html>',
-      { status: 410, headers: { 'Content-Type': 'text/html; charset=utf-8' } }
-    ));
   }
 
   // Auth-hint self-heal for general (non-protected) navigations.
