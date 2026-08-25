@@ -181,9 +181,10 @@ describe('GET /api/events/remind -- who gets a reminder', () => {
     db.close();
   });
 
-  it('ignores an event outside the 12-hour window, in both directions', async () => {
+  it('ignores an event outside the window, in both directions', async () => {
     const db = await seededDb((s) => {
       insertEvent(s, { id: 'post_tomorrow', slug: 'tomorrow-call', event_date: inHours(30) });
+      // -2h is beyond LOOKBACK_MS (90 min), so this one stays out of scope.
       insertEvent(s, { id: 'post_gone', slug: 'gone-call', event_date: inHours(-2) });
       insertRegistration(s, { id: 'r_far', postId: 'post_tomorrow', email: 'far@example.com' });
       insertRegistration(s, { id: 'r_past', postId: 'post_gone', email: 'past@example.com' });
@@ -198,6 +199,26 @@ describe('GET /api/events/remind -- who gets a reminder', () => {
     assert.ok(
       registrations(db).every((r) => r.reminder_sent_at === null),
       'an out-of-window registration must not be stamped',
+    );
+    db.close();
+  });
+
+  // Regression: 2026-08-24. The window was forward-only (`event_date >= now`),
+  // so it selected NOTHING once a call had begun and the 21 registrations for
+  // the Vavilov free call could never be reminded. An in-progress call must
+  // still be reminded while it is genuinely joinable.
+  it('still reminds an event that has ALREADY STARTED, inside the lookback', async () => {
+    const db = await seededDb((s) => {
+      insertEvent(s, { id: 'post_live', slug: 'live-call', event_date: inHours(-0.5) });
+      insertRegistration(s, { id: 'r_live', postId: 'post_live', email: 'live@example.com' });
+    });
+    const { body } = await sweep(makeEnv(db));
+
+    assert.equal(body.sent, 1, 'a call that started 30 min ago must still send');
+    assert.deepEqual(recipients(net), ['live@example.com']);
+    assert.ok(
+      registrations(db).find((r) => r.id === 'r_live').reminder_sent_at !== null,
+      'the in-progress reminder must be stamped so it cannot repeat',
     );
     db.close();
   });

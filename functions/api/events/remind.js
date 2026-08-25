@@ -4,7 +4,9 @@
  * Day-of reminder sweep for FREE Save the Uterus Club events. Re-sends the
  * joining-link email (built by ./_email.js, the same builder POST
  * /api/events/register uses) to every registration that has not had one, for
- * every free event starting in the next 12 hours.
+ * every free event starting in the next 12 hours, or started within the last
+ * 90 minutes (see LOOKBACK_MS: a forward-only window goes inert exactly when
+ * the reminder matters most, at the moment the call begins).
  *
  * AUTH
  * ----
@@ -44,6 +46,21 @@ import { buildLinkEmail, REGISTER_FROM, REGISTER_REPLY_TO } from './_email.js';
 
 /** How far ahead a start time may be and still count as "today". */
 const WINDOW_MS = 12 * 60 * 60 * 1000;
+/**
+ * How far PAST a start time an event still qualifies.
+ *
+ * A forward-only window goes inert at the exact moment the reminder matters
+ * most: `event_date >= now` stops matching the second the call begins, so a
+ * sweep that runs at 20:05 for a 20:00 call selects nothing. That is what
+ * happened on 2026-08-24 (Vavilov free call): all 21 registrations still had
+ * `reminder_sent_at IS NULL` after the call had started and no sweep could
+ * ever pick them up again.
+ *
+ * 90 minutes is chosen to cover a typical call's length, so a late registrant
+ * or a driver that missed its earlier ticks still gets the link while the call
+ * is genuinely joinable, and not after it has ended.
+ */
+const LOOKBACK_MS = 90 * 60 * 1000;
 /** Hard ceiling on messages per invocation. The remainder waits for the next run. */
 const MAX_SENDS = 200;
 /** Gap between sequential sends. Deliverability pacing, not a rate limit. */
@@ -75,7 +92,7 @@ export async function onRequestGet({ request, env, waitUntil }) {
   }
 
   const now = Date.now();
-  const nowIso = new Date(now).toISOString();
+  const sinceIso = new Date(now - LOOKBACK_MS).toISOString();
   const untilIso = new Date(now + WINDOW_MS).toISOString();
 
   let events;
@@ -86,7 +103,7 @@ export async function onRequestGet({ request, env, waitUntil }) {
        WHERE channel = 'stuc' AND type = 'event' AND is_free = 1
          AND event_date >= ? AND event_date <= ?
        ORDER BY event_date ASC`
-    ).bind(nowIso, untilIso).all();
+    ).bind(sinceIso, untilIso).all();
   } catch (err) {
     log(env, waitUntil, 'events', 'remind_lookup_error', 'error', err.message, 0, 500);
     return json({ ok: false, error: 'server_error' }, 500);
