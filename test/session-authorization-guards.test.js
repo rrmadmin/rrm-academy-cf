@@ -20,7 +20,7 @@
  * validateSession refuses a blocked user before the middleware ever runs its
  * own check (`if (row.blocked) return null`, _shared.js), reading `u.blocked`
  * off a JOIN against the same user row. So on a single consistent snapshot the
- * middleware's `!user.blocked` cannot fire, and the existing glossary-admin
+ * middleware's `!user.blocked` cannot fire, and the existing faqs-admin
  * "blocked superadmin -> 401" tests are in fact pinning validateSession, not
  * the middleware. Under mutation they behave identically: deleting EITHER guard
  * alone still yields 401, which is precisely why neither mutant died.
@@ -55,7 +55,7 @@ import { faultyDb } from './_glossary-fixtures.mjs';
 import { validateSession, getSessionIdFromCookie } from '../functions/api/auth/_shared.js';
 
 const adminMiddleware = await import('../functions/api/admin/_middleware.js');
-const glossaryTerms = await import('../functions/api/admin/glossary/terms/index.js');
+const faqsIndex = await import('../functions/api/admin/faqs/index.js');
 
 /** A fixed instant, so `now === expires_at` is a value we choose, not a race. */
 const NOW_S = 1_800_000_000; // 2027-01-15T08:00:00Z
@@ -68,7 +68,7 @@ const SESSION_JOIN_READ = 'FROM session s';
 
 function adminRequest(cookie) {
   return mockRequest('GET', {
-    url: 'https://rrmacademy.org/api/admin/glossary/terms',
+    url: 'https://rrmacademy.org/api/admin/faqs',
     headers: cookie ? { Cookie: `session=${cookie}` } : {},
   });
 }
@@ -166,7 +166,7 @@ describe('an expired session cannot reach an /api/admin/* handler', () => {
       data: {},
       waitUntil: mockWaitUntil(),
     };
-    context.next = () => glossaryTerms.onRequestGet(context);
+    context.next = () => faqsIndex.onRequestGet(context);
     const { status, body } = await parseResponse(await adminMiddleware.onRequest(context));
 
     assert.equal(status, 401);
@@ -279,7 +279,7 @@ describe('admin/_middleware.js -- its OWN blocked check, on the one path that re
   });
 
   it('and the admin endpoint therefore answers 401, not 200, mid-race', async () => {
-    const { response } = await runMiddleware(db, (ctx) => glossaryTerms.onRequestGet(ctx));
+    const { response } = await runMiddleware(db, (ctx) => faqsIndex.onRequestGet(ctx));
     const { status, body } = await parseResponse(response);
     assert.equal(status, 401, 'a superadmin blocked mid-request must not keep admin access');
     assert.equal(body.error, 'Unauthorized');
@@ -304,7 +304,7 @@ describe('admin/_middleware.js -- its OWN blocked check, on the one path that re
     let seen = null;
     context.next = () => {
       seen = context.data.user;
-      return glossaryTerms.onRequestGet(context);
+      return faqsIndex.onRequestGet(context);
     };
     const { status } = await parseResponse(await adminMiddleware.onRequest(context));
 
@@ -343,7 +343,7 @@ describe('admin/_middleware.js -- the catch arm, which nothing had executed', ()
       data: {},
       waitUntil: mockWaitUntil(),
     };
-    context.next = () => glossaryTerms.onRequestGet(context);
+    context.next = () => faqsIndex.onRequestGet(context);
     const parsed = await parseResponse(await adminMiddleware.onRequest(context));
     real.close();
     return { parsed, context };

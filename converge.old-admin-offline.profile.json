@@ -1,0 +1,60 @@
+{
+ "repo": "rrm-academy-cf",
+ "component": "old-admin-offline",
+ "captured_at": "2026-08-25T14:00:00Z",
+ "provenance": {
+  "derived_from_head": "0204bd0a407766537c87892448d5f0cc38e686b7",
+  "fields": {
+   "build_cmd": "discovered",
+   "test_cmd": "discovered",
+   "deploy": "human-confirmed (push to main -> deploy.yml CI; no local deploy command)",
+   "reversibility": "human-confirmed"
+  }
+ },
+ "deploy_target_exists": true,
+ "reversibility": "prod (revert = git revert of the deletion commits + push; the deleted handlers restore verbatim from history)",
+ "commands": {
+  "test": {
+   "body": "node --experimental-strip-types --test test/*.test.js test/*.test.mjs scripts/gates/*.test.mjs tests/gates/*.test.mjs tests/unit/campaign-snapshot.test.mjs tests/unit/campaigns-schema.test.mjs tests/unit/canonical-lockdown.test.mjs tests/unit/supporter-gift.test.mjs tests/unit/fund-thermo.test.mts tests/unit/membership-metrics.test.mjs tests/unit/membership-report-endpoint.test.mjs tests/unit/membership-middleware-invariant.test.mjs",
+   "approved_hash": "f7ef07962d30c52cba91503aec0637362171a05b84745327c54be7e9841d95e9",
+   "bucket": "local-pure"
+  },
+  "test_post_edit": {
+   "body": "node --experimental-strip-types --test test/*.test.js test/*.test.mjs scripts/gates/*.test.mjs tests/gates/*.test.mjs tests/unit/campaign-snapshot.test.mjs tests/unit/campaigns-schema.test.mjs tests/unit/canonical-lockdown.test.mjs tests/unit/supporter-gift.test.mjs tests/unit/fund-thermo.test.mts",
+   "approved_hash": "31ba8bb38147e3bdfdf0f219c3d091c985cfa9248201a80a75d37b81a96b55a0",
+   "bucket": "local-pure"
+  },
+  "build": {
+   "body": "node src/lib/enrich-glossary.mjs && node scripts/build-og-index.mjs && node scripts/generate-page-dates.mjs && node scripts/build-library-feed.mjs && node scripts/build-guides-data.mjs && node scripts/build-guide-reviews.mjs && node scripts/sync-library-count.mjs && node scripts/regen-agent-skills-digests.mjs && node scripts/check-render-gate-ids.mjs && SITE_SSOT_ENABLED=${SITE_SSOT_ENABLED:-1} node scripts/ssot-prebuild.mjs && astro build && npx pagefind --site dist && node scripts/build-infographic-assets.mjs",
+   "approved_hash": "802954c62d81d04fe3c7bf7771ab203f485e1df9e6eeaaac978292410ca0e119",
+   "bucket": "local-pure",
+   "note": "ssot-prebuild + astro build; network-fetching build steps run as repo CI does; approved in contract"
+  },
+  "lint": {
+   "body": "eslint functions/",
+   "approved_hash": "edf9bde9d91b1f4d8d3324717300ffda1f08b42c984709539e04d9110bcbd0a5",
+   "bucket": "local-pure"
+  }
+ },
+ "deploy": {
+  "mechanism": "push branch; Brian merges claude/old-admin-offline to main; deploy.yml is the deploy",
+  "bucket": "human-go"
+ },
+ "extra_hard_stops": [
+  "any edit outside: src/pages/admin/, functions/api/admin/, functions/admin/, docs/reference/old-admin/, guard-manifest.json (wix-migration-link entry only), package.json (test line only), named test files"
+ ],
+ "contract": "approved by Brian 2026-08-25 in-session (five keepers: cleanup, seo, courses/, faqs/, ecosystem, _middleware)",
+ "review_record": {
+  "deterministic_scanner": "scan-delta PASS, zero new HIGH; 4 LOW silent-catch = pre-existing annotated swallows in untouched middleware regions, signed in converge.arise-allowlist.json",
+  "non_claude_tracer": "gemini-hunter 7 findings: 2 duplicate the adversarial review (pages.dev early-return, auth-hint heal gap); 5 pre-existing out-of-scope (self-heal after logout, WebSocket header strip, sql-gate appended-clause limitation, trailing-slash 301 POST semantics, analytics /api exact match) -- all surfaced in the HELD report, none introduced by this delta",
+  "adversarial_review": "wf_ffc8316c-7c9 full mode: 13 confirmed. FIX-NOW APPLIED (commit b5948eb9): 410 above trailing-slash redirect (3 findings, one cause), X-Robots-Tag on 410 (2 findings, one cause). OUT-OF-SCOPE SURFACED to Brian as follow-ups (pre-existing, deny-list forbids touching): pages.dev early-return auth bypass (CRITICAL -- preview hosts skip needsAuth + the admin 410), Arrivl beacon unbounded egress x2 (HIGH). ACCEPT-DOCUMENT signed: /admin percent-encoding normalization (deleted pages, nothing behind the check to protect), auth-hint self-heal concurrency cost, bare-/admin-via-301 (superseded by the applied fix).",
+  "delta_review": "wf_4f38dffa-0e3 delta mode on b5948eb9: ZERO findings survived refutation (K-clean terminal round). Residue defer-to-stub-debt: no automated test exercises root-middleware onRequest, so the 410's existence/ordering is pinned only by the guard hash + the deploy-day curl smoke; accept-document x2 (pages.dev previews answer 404 not 410 -- harmless, pages deleted, previews noindexed; percent-encoded /admin forms fall through to a 404 with nothing behind them)."
+ },
+ "stub_debt": [
+  "FOLLOW-UP (pre-existing, CRITICAL): functions/_middleware.js pages.dev early-return bypasses needsAuth + the admin 410 on *.pages.dev preview hosts -- move the noindex header injection to the response tail; own component/commit, NOT this branch (deny-list)",
+  "FOLLOW-UP (pre-existing, HIGH x2): Arrivl beacon fires unconditionally (no bot gate, and login redirects embed the original protected URL that the beacon then re-transmits) -- scope sendArrivlPageview like sendAiBotEvent",
+  "KEEPER RE-POINTS (each retires a kept handler): cleanup.js -> move the daily cleanup into a worker cron or backoffice; seo.js -> re-register the Google OAuth redirect URI off rrmacademy.org; courses/ + faqs/ -> backoffice CRM surfaces + skill re-points; ecosystem.js -> satellite sync direct to D1",
+  "dm-queue has NO actionable UI until the backoffice dm-queue-page ships (accepted in contract)",
+  "Middleware test harness: nothing automated executes functions/_middleware.js onRequest (the TDZ the review caught proved the blind spot); the deploy-day curl smoke (410 on /admin + /Admin/, 401 on unauthenticated kept /api/admin/cleanup) is the compensating check until a harness exists"
+ ]
+}
