@@ -6,6 +6,9 @@
  */
 const DENIED_EMAILS = new Set([
   'drduane@factsaboutfertility.org',
+  'margueritekenny@yahoo.com',
+  'duanem@duq.edu',
+  'info@factsaboutfertility.org',
 ]);
 
 export function isJoinDenied(email) {
