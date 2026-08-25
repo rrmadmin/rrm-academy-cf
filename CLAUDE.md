@@ -14,7 +14,9 @@
 > SECRET=$(op read 'op://Automation/<redacted>/credential')
 > curl -sS https://rrmacademy.org/api/admin/ecosystem -H "Authorization: Bearer $SECRET" | jq 'keys'
 > ```
-> Same secret gates 7 endpoints: `/api/admin/cleanup`, `/api/admin/ecosystem`, `/api/admin/search-queries`, `/api/admin/wix-migration-link`, `/api/admin/wix-migration-email`, `/api/newsletter/send`, `/api/newsletter/rss-check`. After editing the ecosystem JSON in the satellite, re-sync to D1 with `node scripts/sync-ecosystem.mjs` then verify with the curl above.
+> Same secret gates 4 endpoints: `/api/admin/cleanup`, `/api/admin/ecosystem`, `/api/newsletter/send`, `/api/newsletter/rss-check`. (`search-queries` and the `wix-migration-*` trio were deleted 2026-08-25 with the old admin -- see `docs/reference/old-admin/`; the observatory reads rrm-analytics D1 directly now.) After editing the ecosystem JSON in the satellite, re-sync to D1 with `node scripts/sync-ecosystem.mjs` then verify with the curl above.
+>
+> **The old `/admin` dashboard is OFFLINE (2026-08-25).** Every `/admin` path answers 410 from `functions/_middleware.js`; the admin is the rrm-backoffice at admin.rrmacademy.org. Kept `/api/admin/*` machine endpoints: `cleanup` (observatory cron), `seo` (Google OAuth redirect URI for rrm-seo-monitor), `courses/` + `faqs/` (session-gated, used by the courses-update / recording-to-course / readability-rewrite-batch skills), `ecosystem`. Data models of the deleted pages: `docs/reference/old-admin/`.
 
 ## Quick Reference
 
