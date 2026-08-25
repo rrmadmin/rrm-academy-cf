@@ -398,7 +398,9 @@ test('scan records an oversized string as a counted skip instead of dropping it 
 test('the prepared-statement floor is armed close enough to the measurement to bite', () => {
   // A floor far below the true count is an anti-vacuity assertion that asserts
   // nothing. 600 against a measured 777 tolerated a 23% silent collapse.
-  const measured = 777;
+  // Re-measured 2026-08-25 after old-admin-offline deleted ~18 admin handlers
+  // (~95 prepared statements left on purpose with them): 655.
+  const measured = 655;
   assert.ok(MIN_PREPARED <= measured, `floor ${MIN_PREPARED} must not exceed the measurement`);
   assert.ok(
     measured - MIN_PREPARED <= 40,
@@ -425,20 +427,9 @@ test('scan reports a parse failure rather than silently covering nothing', () =>
   assert.equal(result.checked, 0);
 });
 
-test('the admin DM queue endpoints prepare cleanly (the dm_* tables are real)', () => {
-  // An adversarial verifier reading only schema.sql called these five tables
-  // nonexistent and proposed deleting the endpoints. They are live; this test
-  // is the standing refutation.
-  const result = scan({
-    files: [
-      join(PROJECT_ROOT, 'functions/api/admin/dm-queue.js'),
-      join(PROJECT_ROOT, 'functions/api/admin/dm-queue/[id].js'),
-    ],
-  });
-  assert.equal(result.findings.length, 0);
-  assert.equal(result.skips.length, 0);
-  assert.ok(result.checked >= 5, `expected the dm-queue SQL to be checked, prepared ${result.checked}`);
-});
+// The admin dm-queue endpoints were deleted 2026-08-25 with the rest of the
+// old admin (old-admin-offline); the dm_* tables stay live and are read by
+// the backoffice's /api/standup/dm, so their SQL coverage lives there now.
 
 test('rename-slugs.mjs SQL prepares: no faq.answer, no course_step.content_md', () => {
   const abs = join(PROJECT_ROOT, 'scripts/glossary/rename-slugs.mjs');
