@@ -20,6 +20,7 @@ import { sendGA4Event } from './_ga4.js';
 import { classifySource, extractUtm, getClientId, deriveSessionId } from './_ga4-source.js';
 import { isBotRequest } from './_bot.js';
 import { getStripeClient } from './billing/_shared.js';
+import { isJoinDenied, isStucContextRequest, maskEmailForLog } from './billing/_join-denylist.js';
 import {
   lookupPendingWixMigration, validateOffAmount, validateFrequency,
   acquireMigrationHandoffLock, clampTrialEnd, findBlockingActiveSubscription,
@@ -146,6 +147,17 @@ async function handleCheckout(request, env, waitUntil) {
 
   // --- One-time donation ---
   if (mode === 'payment') {
+    const stucContext = isStucContextRequest(request, entry_url, entry_referrer, campaign);
+    if (isJoinDenied(userEmail) && stucContext) {
+      env.EVENTS?.writeDataPoint({
+        blobs: ['billing', 'join-denylist', 'checkout-refused', userId || 'anon', ''],
+        indexes: ['join-denylist-refused'],
+      });
+      log(env, waitUntil, 'billing', 'join_denylist_refused', 'warn',
+        userId ? `user=${userId}` : `email=${maskEmailForLog(userEmail)}`);
+      return json({ ok: false, error: 'Payment service temporarily unavailable. Please try again.' }, 503);
+    }
+
     const cents = Number(amount);
     if (!Number.isInteger(cents) || cents < 500) {
       return json({ ok: false, error: 'Minimum donation is $5' }, 400);
@@ -202,6 +214,7 @@ async function handleCheckout(request, env, waitUntil) {
       ...(entry_platform && { ga_entry_platform: entry_platform }),
       ...(campaign && { campaign }),
       ...(isCanary && { canary: '1' }),
+      ...(stucContext && { stuc_context: '1' }),
     };
 
     // billing_address_collection is set unconditionally above; this campaign adds
@@ -244,6 +257,16 @@ async function handleCheckout(request, env, waitUntil) {
 
   // --- Recurring membership ---
   if (mode === 'subscription') {
+    if (isJoinDenied(userEmail)) {
+      env.EVENTS?.writeDataPoint({
+        blobs: ['billing', 'join-denylist', 'checkout-refused', userId || 'anon', ''],
+        indexes: ['join-denylist-refused'],
+      });
+      log(env, waitUntil, 'billing', 'join_denylist_refused', 'warn',
+        userId ? `user=${userId}` : `email=${maskEmailForLog(userEmail)}`);
+      return json({ ok: false, error: 'Payment service temporarily unavailable. Please try again.' }, 503);
+    }
+
     // --- Wix migration: validate optional wix_sub_id input ---
     const wixSubIdInput = body.wix_sub_id;
     if (wixSubIdInput !== undefined && wixSubIdInput !== null) {
