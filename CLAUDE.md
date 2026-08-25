@@ -48,7 +48,7 @@ GitHub Actions: fetch-data.mjs       ← WORKER_AUTH_TOKEN, full or single-recor
 src/data/articles.json → Astro build → rrmacademy.org/library
 ```
 
-**Worker endpoint:** `https://rrm-library-worker.administrator-cloudflare.workers.dev/articles` (all) or `?id=recXXX` (single). Filters: `is_published = 1 AND is_retracted = 0 AND type NOT IN ('faq', 'post', 'course', 'guide')`. Use exclusion filter (NOT IN) so new research types are included by default.
+**Worker endpoint:** `https://rrm-library-worker.administrator-cloudflare.workers.dev/articles` (all) or `?id=recXXX` (single). Filters: `status = 'published' AND is_retracted = 0 AND (type IS NULL OR type NOT IN <EXCLUDED_TYPES>)` (rrm-library-worker `src/index.js`, `baseWhere`). Use exclusion filter (NOT IN) so new research types are included by default. **`is_published` is NOT the field the feed reads.** Setting `is_published = 0` alone leaves an article in `/articles`, in `articles.json` and on the live site; a takedown must set `status = 'archived'` (burned 2026-08-24). Reserve `is_retracted = 1` for papers that were actually retracted.
 
 **Ingest endpoint:** POST `/ingest` with Bearer auth. Creates new articles at `intake` status. Enrichment cron picks them up automatically.
 
