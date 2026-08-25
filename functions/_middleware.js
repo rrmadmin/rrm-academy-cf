@@ -83,6 +83,51 @@ function withSecurityHeaders(response) {
  * Fires an Arrivl pageview hit (AI bot analytics).
  * Called with ctx.waitUntil() so it never blocks the response.
  */
+/**
+ * Paths whose URLs never egress to Arrivl: the auth-gated set needsAuth
+ * protects (account, gated community, ask, STUC migrate) plus login/signup,
+ * whose ?redirect= query carries the visitor's intended destination. Applied
+ * to the request URL AND to a same-origin Referer, because a suppressed page
+ * is the referrer of the very next click and would otherwise leak one hop
+ * later. Named distinctly from needsAuth's own locals on purpose: the guard
+ * script pins those by regex.
+ */
+function arrivlSuppressedPath(pathname) {
+  const p = String(pathname || '').toLowerCase();
+  const publicCommunityCrawl =
+    p === '/community' ||
+    p === '/community/' ||
+    p === '/community/areas' ||
+    p.startsWith('/community/areas/');
+  return (
+    p === '/account' || p.startsWith('/account/') ||
+    ((p === '/community' || p.startsWith('/community/')) && !publicCommunityCrawl) ||
+    p === '/ask' || p.startsWith('/ask/') ||
+    p.startsWith('/save-the-uterus-club/migrate') ||
+    p === '/login' || p.startsWith('/login/') ||
+    p === '/signup' || p.startsWith('/signup/')
+  );
+}
+
+/**
+ * The Referer as Arrivl may see it: empty when it is a same-origin (or
+ * preview-origin) URL whose path is suppressed above -- forwarding it
+ * verbatim would re-leak exactly what the URL gate withheld. An unparsable
+ * Referer is withheld too; a cross-origin one passes through untouched.
+ */
+function arrivlSafeReferer(request) {
+  const raw = request.headers.get('Referer') || '';
+  if (!raw) return '';
+  try {
+    const ref = new URL(raw);
+    const sameSite = ref.hostname.endsWith('rrmacademy.org') || ref.hostname.endsWith('.pages.dev');
+    if (sameSite && arrivlSuppressedPath(ref.pathname)) return '';
+    return raw;
+  } catch {
+    return '';
+  }
+}
+
 async function sendArrivlPageview(request, env) {
   if (!env.ARRIVL_WEBSITE_KEY) return;
 
@@ -99,20 +144,7 @@ async function sendArrivlPageview(request, env) {
   const url = new URL(request.url);
   if (url.hostname === 'library.rrmacademy.org') return;
   if (url.pathname.startsWith('/api/')) return;
-  const arrivlPathLower = url.pathname.toLowerCase();
-  const arrivlPublicCommunityCrawl =
-    arrivlPathLower === '/community' ||
-    arrivlPathLower === '/community/' ||
-    arrivlPathLower === '/community/areas' ||
-    arrivlPathLower.startsWith('/community/areas/');
-  if (
-    arrivlPathLower === '/account' || arrivlPathLower.startsWith('/account/') ||
-    ((arrivlPathLower === '/community' || arrivlPathLower.startsWith('/community/')) && !arrivlPublicCommunityCrawl) ||
-    arrivlPathLower === '/ask' || arrivlPathLower.startsWith('/ask/') ||
-    arrivlPathLower.startsWith('/save-the-uterus-club/migrate') ||
-    arrivlPathLower === '/login' || arrivlPathLower.startsWith('/login/') ||
-    arrivlPathLower === '/signup' || arrivlPathLower.startsWith('/signup/')
-  ) return;
+  if (arrivlSuppressedPath(url.pathname)) return;
   const accept = request.headers.get('Accept') || '';
   if (!accept.includes('text/html')) return;
 
@@ -122,7 +154,7 @@ async function sendArrivlPageview(request, env) {
   const params = new URLSearchParams({
     url: request.url,
     userAgent: request.headers.get('User-Agent') || '',
-    ref: request.headers.get('Referer') || '',
+    ref: arrivlSafeReferer(request),
     ip,
     websiteKey: env.ARRIVL_WEBSITE_KEY,
   });
@@ -249,7 +281,16 @@ function shouldCanonicalize(pathname) {
  */
 export async function onRequest(context) {
   const isPreviewHost = new URL(context.request.url).hostname.endsWith('.pages.dev');
-  const response = await handleRequest(context);
+  let response;
+  try {
+    response = await handleRequest(context);
+  } catch {
+    // The deleted preview branch carried this exact net for context.next();
+    // it now covers every throw out of the whole handler, on every host, so
+    // an unexpected failure renders the branded 500 with security headers
+    // instead of the platform's raw error page.
+    response = withSecurityHeaders(await render500Page(context, context.request));
+  }
   if (!isPreviewHost) return response;
   const headers = new Headers(response.headers);
   headers.set('X-Robots-Tag', 'noindex');
@@ -350,7 +391,10 @@ async function handleRequest(context) {
   }
 
   // 301 redirect: library.rrmacademy.org -> rrmacademy.org/library
-  if (url.hostname === 'library.rrmacademy.org') {
+  // GET-only, like the trailing-slash block above: a 301 turns a write method
+  // into a GET and drops the body, and both redirects run for 100% of apex
+  // traffic since the 2026-08-25 preview-branch unmasking.
+  if (request.method === 'GET' && url.hostname === 'library.rrmacademy.org') {
     const path = url.pathname.startsWith('/library') ? url.pathname : `/library${url.pathname}`;
     return withSecurityHeaders(Response.redirect(
       `https://rrmacademy.org${path}${url.search}`,
@@ -359,7 +403,7 @@ async function handleRequest(context) {
   }
 
   // Redirect mixed-case URLs to lowercase for all canonical prefixes
-  if (shouldCanonicalize(url.pathname)) {
+  if (request.method === 'GET' && shouldCanonicalize(url.pathname)) {
     return withSecurityHeaders(Response.redirect(
       `${url.origin}${url.pathname.toLowerCase()}${url.search}`,
       301
