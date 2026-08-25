@@ -14,7 +14,7 @@ const PAGE_URL = `https://rrmacademy.org${PAGE_PATH}`;
 const PUBLISH_DATE = '2026-07-03';
 const LAST_MODIFIED = (pageDates as { dates: Record<string, string> }).dates[PAGE_PATH] || PUBLISH_DATE;
 
-const META_DESCRIPTION = 'A free guide to building your Restorative Reproductive Medicine care team. Learn the four types of RRM support, from medical management to cycle charting, and download the full PDF guide by Dr. Rebecca Vavilov.';
+const META_DESCRIPTION = 'A free guide to building your Restorative Reproductive Medicine care team. Learn the four types of RRM support, from medical management to cycle charting, and download the full PDF guide by Rebecca Vavilov, PhD.';
 
 const FAQS = [
   {
@@ -29,8 +29,8 @@ const FAQS = [
   },
   {
     question: 'Is the full guide free?',
-    answerHtml: '<p>"Developing Your RRM Care Team" is a free downloadable PDF written by Dr. Rebecca Vavilov, PhD, BCDNH, LEHP, covering all four categories of support in more depth, with real care-team examples.</p>',
-    answerText: '"Developing Your RRM Care Team" is a free downloadable PDF written by Dr. Rebecca Vavilov, PhD, BCDNH, LEHP, covering all four categories of support in more depth, with real care-team examples.',
+    answerHtml: '<p>"Developing Your RRM Care Team" is a free downloadable PDF written by Rebecca Vavilov, PhD, BCDNH, LEHP, covering all four categories of support in more depth, with real care-team examples.</p>',
+    answerText: '"Developing Your RRM Care Team" is a free downloadable PDF written by Rebecca Vavilov, PhD, BCDNH, LEHP, covering all four categories of support in more depth, with real care-team examples.',
   },
 ];
 
@@ -57,7 +57,7 @@ const articleRaw = buildArticle({
   url: PAGE_URL,
   datePublished: PUBLISH_DATE,
   dateModified: LAST_MODIFIED,
-  authorName: 'Dr. Rebecca Vavilov',
+  authorName: 'Rebecca Vavilov, PhD',
   description: META_DESCRIPTION,
   articleSection: 'Care Team',
 }) as Record<string, unknown> & { '@context'?: unknown };
@@ -83,7 +83,7 @@ const jsonLd = {
 ---
 <BaseLayout
   title="Developing Your RRM Care Team"
-  description="A free guide to building your Restorative Reproductive Medicine care team. Learn the four types of RRM support, from medical management to cycle charting, and download the full PDF guide by Dr. Rebecca Vavilov."
+  description="A free guide to building your Restorative Reproductive Medicine care team. Learn the four types of RRM support, from medical management to cycle charting, and download the full PDF guide by Rebecca Vavilov, PhD."
   canonicalUrl="https://rrmacademy.org/rrm-care-team"
   ogType="article"
   publishDate={PUBLISH_DATE}
@@ -107,14 +107,14 @@ const jsonLd = {
       <h1>Developing Your RRM Care Team</h1>
 
       <p class="author-byline">
-        By <strong>Dr. Rebecca Vavilov, PhD, BCDNH, LEHP, Fertility Awareness Educator</strong> &mdash; RRM Academy Contributor
+        By <strong>Rebecca Vavilov, PhD, BCDNH, LEHP, Fertility Awareness Educator</strong> &mdash; RRM Academy Contributor
         <span class="byline-sep" aria-hidden="true">&middot;</span>
         <LastUpdated path={PAGE_PATH} />
       </p>
 
       <article class="prose">
 
-        <p class="pillar-lead"><strong>There's no single "right team" for building a Restorative Reproductive Medicine (RRM) care team.</strong> Support for your hormonal and reproductive health can span medical, natural, educational, and emotional disciplines, and the team that works for you may look different from what works for someone else. This guide, written by naturopath and fertility awareness educator Dr. Rebecca Vavilov, breaks down the four main types of RRM support so you can build the team that fits your needs.</p>
+        <p class="pillar-lead"><strong>There's no single "right team" for building a Restorative Reproductive Medicine (RRM) care team.</strong> Support for your hormonal and reproductive health can span medical, natural, educational, and emotional disciplines, and the team that works for you may look different from what works for someone else. This guide, written by naturopath and fertility awareness educator Rebecca Vavilov, PhD, breaks down the four main types of RRM support so you can build the team that fits your needs.</p>
 
         <section id="medical-management">
           <h2>Medical Management</h2>
