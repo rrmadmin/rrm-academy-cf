@@ -11,7 +11,7 @@
  * NOTE: Old library slug redirects are handled by the rrm-router Worker,
  * not here (avoids loading the 500KB redirect map on every request).
  */
-import { getSessionIdFromCookie, validateSession, sessionCookie, authHintCookie, clearAuthHintCookie, roleAtLeast } from './api/auth/_shared.js';
+import { getSessionIdFromCookie, validateSession, sessionCookie, authHintCookie, clearAuthHintCookie } from './api/auth/_shared.js';
 
 const ARRIVL_ENDPOINT = 'https://arrivl.ai/api/v1/intake/pageview';
 
@@ -366,61 +366,21 @@ export async function onRequest(context) {
     return withSecurityHeaders(response);
   }
 
-  // Admin pages: require session + superadmin role
+  // The old admin is OFFLINE (Brian, 2026-08-21; shipped 2026-08-25). The
+  // pages were deleted and admin.rrmacademy.org (the backoffice) is the only
+  // admin, so every /admin path answers 410 Gone before Pages would 404 it.
+  // This deliberately does NOT match /api/admin/* (pathname starts with
+  // /api/), where the kept machine endpoints (cleanup, seo OAuth callback,
+  // courses, faqs, ecosystem) still serve behind their own auth. The data
+  // models of the deleted pages live in docs/reference/old-admin/.
   const isAdminPage = pathnameLower === '/admin' || pathnameLower.startsWith('/admin/');
   if (isAdminPage) {
-    if (!env.DB) {
-      return withSecurityHeaders(new Response('Service Unavailable', { status: 503, headers: { 'Retry-After': '120' } }));
-    }
-    // Static assets under admin prefixes don't need session validation.
-    const isStaticAdmin = /\.(?:js|mjs|css|png|jpg|jpeg|webp|svg|woff2?|ico|json|map|gif|avif)(?:\?|$)/i.test(url.pathname);
-    if (isStaticAdmin) return context.next();
-    const sessionId = getSessionIdFromCookie(request);
-    if (!sessionId) {
-      return withSecurityHeaders(htmlRedirect(`https://rrmacademy.org/login/?redirect=${encodeURIComponent(url.pathname + url.search)}`));
-    }
-
-    let session;
-    try {
-      session = await validateSession(env.DB, sessionId);
-    } catch {
-      return withSecurityHeaders(new Response('Service Unavailable', { status: 503, headers: { 'Retry-After': '120' } }));
-    }
-    if (!session) {
-      const adminLoginRedirect = `https://rrmacademy.org/login/?redirect=${encodeURIComponent(url.pathname + url.search)}`;
-      return withSecurityHeaders(htmlRedirectWithCookies(adminLoginRedirect, [
-        'session=; Path=/; HttpOnly; Secure; SameSite=Lax; Max-Age=0',
-        clearAuthHintCookie(),
-      ]));
-    }
-
-    // Carve-out (decided 2026-07-17): /admin/membership is Naomi-facing and gates
-    // at admin, NOT superadmin. Every OTHER /admin/* path stays superadmin.
-    const isMembershipPage = pathnameLower === '/admin/membership' || pathnameLower.startsWith('/admin/membership/');
-    const requiredRole = isMembershipPage ? 'admin' : 'superadmin';
-
-    // role is already returned by validateSession (via the JOIN on user).
-    if (!roleAtLeast(session.role, requiredRole)) {
-      return withSecurityHeaders(new Response('Forbidden', { status: 403 }));
-    }
-
-    let response;
-    try {
-      response = await context.next();
-    } catch {
-      return withSecurityHeaders(new Response('Service Unavailable', { status: 503, headers: { 'Retry-After': '120' } }));
-    }
-    if (session.renewed) {
-      const headers = new Headers(response.headers);
-      headers.append('Set-Cookie', sessionCookie(session.cookieId, session.expiresAt));
-      headers.append('Set-Cookie', authHintCookie(session.expiresAt));
-      return withSecurityHeaders(new Response(response.body, {
-        status: response.status,
-        statusText: response.statusText,
-        headers,
-      }));
-    }
-    return withSecurityHeaders(response);
+    return withSecurityHeaders(new Response(
+      '<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="robots" content="noindex"><title>Admin moved</title></head>'
+      + '<body style="font-family:system-ui,sans-serif;padding:3rem;"><p>This admin moved to '
+      + '<a href="https://admin.rrmacademy.org">admin.rrmacademy.org</a>.</p></body></html>',
+      { status: 410, headers: { 'Content-Type': 'text/html; charset=utf-8' } }
+    ));
   }
 
   // Auth-hint self-heal for general (non-protected) navigations.
