@@ -184,9 +184,15 @@ export const MIN_TABLES = 75;
  * immediately.
  *
  * Ratchet: raise it after any run that legitimately increases coverage. Never
- * lower it to make a red run green - a drop is the finding.
+ * lower it to make a red run green - a drop is the finding. The one lowering
+ * so far IS a finding with a name: old-admin-offline (2026-08-25) deleted
+ * ~18 admin handlers and their ~95 prepared statements on purpose (the old
+ * rrmacademy.org/admin decommission; the surviving reports live in
+ * rrm-backoffice, whose own suite prepares them). Real count after the
+ * deletion: 655. The floor re-bases just under it with the same ~4% headroom
+ * the 750 floor gave 777.
  */
-export const MIN_PREPARED = 750;
+export const MIN_PREPARED = 630;
 
 /**
  * Splits SQL into statements, respecting `--` line comments, `/* *\/` block

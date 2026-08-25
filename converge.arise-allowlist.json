@@ -1,0 +1,36 @@
+{
+ "signed": [
+  {
+   "file": "functions/_middleware.js",
+   "line": 108,
+   "rule": "silent-catch",
+   "severity": "LOW",
+   "reason": "pre-existing annotated swallow in code untouched by old-admin-offline (the delta only removed the /admin gate block and added a static 410 return with no catch); line shift made the delta scanner attribute it as new",
+   "signed_by": "converge old-admin-offline run, surfaced to Brian in the HELD report 2026-08-25"
+  },
+  {
+   "file": "functions/_middleware.js",
+   "line": 161,
+   "rule": "silent-catch",
+   "severity": "LOW",
+   "reason": "pre-existing annotated swallow in code untouched by old-admin-offline (the delta only removed the /admin gate block and added a static 410 return with no catch); line shift made the delta scanner attribute it as new",
+   "signed_by": "converge old-admin-offline run, surfaced to Brian in the HELD report 2026-08-25"
+  },
+  {
+   "file": "functions/_middleware.js",
+   "line": 178,
+   "rule": "silent-catch",
+   "severity": "LOW",
+   "reason": "pre-existing annotated swallow in code untouched by old-admin-offline (the delta only removed the /admin gate block and added a static 410 return with no catch); line shift made the delta scanner attribute it as new",
+   "signed_by": "converge old-admin-offline run, surfaced to Brian in the HELD report 2026-08-25"
+  },
+  {
+   "file": "functions/_middleware.js",
+   "line": 409,
+   "rule": "silent-catch",
+   "severity": "LOW",
+   "reason": "pre-existing annotated swallow in code untouched by old-admin-offline (the delta only removed the /admin gate block and added a static 410 return with no catch); line shift made the delta scanner attribute it as new",
+   "signed_by": "converge old-admin-offline run, surfaced to Brian in the HELD report 2026-08-25"
+  }
+ ]
+}
