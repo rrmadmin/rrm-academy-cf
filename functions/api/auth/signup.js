@@ -10,6 +10,7 @@ import {
   getSessionIdFromCookie, hashToken, COMMON_PASSWORD_ERROR,
 } from './_shared.js';
 import { validateEmail } from './_email-validate.js';
+import { greetingLine } from '../_greeting.js';
 import { verifyAndTagEmail, verifyEmailELV } from '../_elv.js';
 import { logEmailFailure } from '../_ses.js';
 import { sendTransactionalEmail } from '../_mail-lanes.js';
@@ -23,10 +24,10 @@ function escapeHtml(s) {
 }
 
 async function sendWelcomeAskEmail(env, email, firstName) {
-  const greeting = firstName || 'there';
+  const greeting = greetingLine(firstName);
   const subject = "You're in. Ask RRM Academy anything.";
   const text = [
-    `Hi ${greeting},`,
+    greeting,
     '',
     'Welcome to RRM Academy. Your free account is active.',
     '',
@@ -41,7 +42,7 @@ async function sendWelcomeAskEmail(env, email, firstName) {
   ].join('\n');
   const html = [
     '<!DOCTYPE html><html><body style="font-family:sans-serif;max-width:600px;margin:0 auto;padding:24px;color:#1a1a1a">',
-    `<p>Hi ${escapeHtml(greeting)},</p>`,
+    `<p>${escapeHtml(greeting)}</p>`,
     '<p>Welcome to RRM Academy. Your free account is active.</p>',
     '<p>You can now use <strong>/ask</strong> &mdash; our conversational research layer that answers questions from our entire library.<br>',
     '<a href="https://rrmacademy.org/ask/">Head to rrmacademy.org/ask/ to get started.</a></p>',

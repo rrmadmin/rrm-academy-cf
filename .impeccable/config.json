@@ -1,0 +1,14 @@
+{
+  "detector": {
+    "ignoreRules": [],
+    "ignoreFiles": [],
+    "ignoreValues": [
+      {
+        "rule": "overused-font",
+        "value": "inter",
+        "createdAt": "2026-08-25T13:02:24.583Z",
+        "reason": "Inter is the documented UI face in this repo's design-system SSOT (docs/design/design-system.json fonts.ui, self-hosted via @fontsource), used across 59 src files; CLAUDE.md requires using the system rather than choosing fonts per component. Not introduced here: git diff shows no font-family line changed in NewsletterSignup.astro."
+      }
+    ]
+  }
+}

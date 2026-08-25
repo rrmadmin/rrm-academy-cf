@@ -11,7 +11,7 @@
       "note": "Authentication"
     },
     "functions/api/auth/signup.js": {
-      "hash": "621cde07df9c35d75e7211b3ec7187042aee1a1e8b2ebe17e8d67f4e101bc0ef",
+      "hash": "0aa41d43f3c339d58240af6171a5775631ee5cd1d56e0116925dc93d863bb9a9",
       "note": "Account creation"
     },
     "functions/api/auth/forgot-password.js": {
@@ -55,7 +55,7 @@
       "note": "Stripe portal"
     },
     "functions/api/billing/_webhook-checkout.js": {
-      "hash": "f1367d75aeb5f9717342a0bcd6191c7ab0b941d95aed744f3f7056c057a27d24",
+      "hash": "52c32db29987ccc229e236f0849603890f0e70cb99323b3f41af087fd25efa95",
       "note": "Stripe checkout completion handler"
     },
     "functions/api/billing/_webhook-subscription.js": {
@@ -85,6 +85,10 @@
     "functions/api/_elv.js": {
       "hash": "914db66516bebeb77d187268f8c93d64fb7d0b914b894186b513ada6cd108684",
       "note": "EmailListVerify SMTP validation"
+    },
+    "functions/api/_greeting.js": {
+      "hash": "11ca00d9065a0b55b6bdb3669e629a79c3214746a4ec03f5eca00e5150527b7e",
+      "note": "Shared email greeting (no-name fallback for the ~2,476 nameless rows)"
     },
     "functions/api/survey/submit.js": {
       "hash": "e72906161135a9de27cd72747f2b412bcd970d4258006f20f9884b164e14a6de",

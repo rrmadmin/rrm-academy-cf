@@ -465,11 +465,16 @@ describe('_email.js notifyNewPost -- a discussion post', () => {
   const send = (authorId, authorName) =>
     notifyNewPost(envFor(harness), harness, { id: 'p1', authorId, type: 'discussion' }, authorName);
 
-  it('greets a member by first name, and falls back to a bare greeting without one', async () => {
+  // The no-name greeting moved from a bare "Hi," to "Hi there," on 2026-08-25
+  // when every sender was pointed at the shared _greeting.js helper. 2,476 of
+  // 4,037 user rows have no name, so this is ordinary copy for most of the
+  // list, and it should not read as a truncated personalization.
+  it('greets a member by first name, and reads as ordinary copy without one', async () => {
     await send('u_other', 'Naomi');
     assert.match(htmlOf(forRecipient(stub, 'named@example.com')), /<p>Hi Wanda,<\/p>/);
     assert.match(textOf(forRecipient(stub, 'named@example.com')), /^Hi Wanda,/);
-    assert.match(htmlOf(forRecipient(stub, 'anon@example.com')), /<p>Hi,<\/p>/);
+    assert.match(htmlOf(forRecipient(stub, 'anon@example.com')), /<p>Hi there,<\/p>/);
+    assert.match(textOf(forRecipient(stub, 'anon@example.com')), /^Hi there,/);
   });
 
   it('links to the post and says who posted', async () => {
@@ -889,11 +894,11 @@ describe('_email.js notifyReply', () => {
     assert.equal(stub.ses.length, 0, 'the recipient lookup filters blocked = 0');
   });
 
-  it('greets by first name when there is one, and bare when there is not', async () => {
+  it('greets by first name when there is one, and reads as ordinary copy when there is not', async () => {
     await reply('p1', null);
     assert.match(htmlOf(stub.ses[0]), /<p>Hi Pat,<\/p>/);
     await reply('p1', 'c1');
-    assert.match(htmlOf(stub.ses[1]), /<p>Hi,<\/p>/);
+    assert.match(htmlOf(stub.ses[1]), /<p>Hi there,<\/p>/);
   });
 
   it('quotes the first 200 characters and marks longer replies as truncated', async () => {

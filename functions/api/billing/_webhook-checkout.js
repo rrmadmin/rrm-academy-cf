@@ -24,6 +24,7 @@ import { recordDonorGift, giftFromCheckoutSession } from './_donor-gift.js';
 import { readSupporterConsent, deriveDisplayName, recordSupporterGift } from './_supporter-gift.js';
 import { countCampaignGifts } from './_campaign-count.js';
 import { sendTracked } from '../newsletter/_mail.js';
+import { greetingLine } from '../_greeting.js';
 
 // Monthly tier price fallback, used only when session.amount_total is 0 or missing
 // (Stripe has not billed the first invoice yet). Mirrors stucTierCentsFallback in the
@@ -98,6 +99,38 @@ export function buildStucAdminNotice(session, tier, tierLabel) {
     `Timestamp:    ${new Date().toISOString()}`,
   ].join('\n');
   return { subject, text };
+}
+
+/**
+ * The first name to greet this checkout's customer by: the account first, the
+ * checkout session second.
+ *
+ * The account is the better source and the session is the fallback, not the
+ * other way round. A Link or wallet payer completes checkout with
+ * customer_details.name = null even when signup already told us exactly who
+ * they are, so reading Stripe first greeted paying course buyers "Hi there"
+ * while their name sat in the user row (found 2026-08-25).
+ *
+ * Call AFTER ensureAccountForCheckout so it sees a name that call just
+ * backfilled. Returns '' when nobody has ever given us one, which is the normal
+ * case for the ~2,476 nameless Wix-era rows; greetingLine handles that.
+ *
+ * A failed lookup degrades to the Stripe name rather than throwing. This runs
+ * only to choose a salutation, and a receipt that says "Hi there" is a far
+ * better outcome than a 500 that makes Stripe retry the whole event.
+ */
+async function resolveGreetingName(db, email, session, env, waitUntil) {
+  const stripeName = String(session.customer_details?.name || '').trim();
+  if (!email) return stripeName;
+  try {
+    const row = await db.prepare(
+      'SELECT first_name, name FROM user WHERE email = ? COLLATE NOCASE'
+    ).bind(email).first();
+    return String(row?.first_name || '').trim() || String(row?.name || '').trim() || stripeName;
+  } catch (err) {
+    log(env, waitUntil, 'billing', 'greeting_lookup_failed', 'warn', err.message, 0, 0);
+    return stripeName;
+  }
 }
 
 /**
@@ -234,12 +267,13 @@ export async function handleCheckoutCompleted(db, event, env, request, waitUntil
       isFree: false,
     }).catch(() => {}));
     if (email && env.AWS_ACCESS_KEY_ID) {
+      const greeting = greetingLine(await resolveGreetingName(db, email, session, env, waitUntil));
       waitUntil(sendEmailSafe(env, waitUntil, {
         to: email,
         subject: 'Your course is ready',
         source: 'billing/checkout-course',
         text: [
-          `Hi ${name || 'there'},`,
+          greeting,
           '',
           'Your course purchase is confirmed and your course is ready to start.',
           '',
@@ -287,10 +321,12 @@ export async function handleCheckoutCompleted(db, event, env, request, waitUntil
   const tier = session.metadata?.tier || '';
   if (session.mode === 'subscription' && stucTiers[tier]) {
     const email = (session.customer_details?.email || session.customer_email || '').toLowerCase().trim().replace(/[\r\n]/g, '') || null;
-    const name = (session.customer_details?.name || '').slice(0, 200);
     const tierLabel = stucTiers[tier];
 
     if (email && env.AWS_ACCESS_KEY_ID) {
+      // Resolved once for all three member emails below (migration pending,
+      // migration complete, new-member welcome) so they cannot drift apart.
+      const greeting = greetingLine(await resolveGreetingName(db, email, session, env, waitUntil));
       const isMigrationDonor = typeof session.metadata?.wix_subscription_id === 'string' &&
         /^wxs_[a-z0-9_-]+$/i.test(session.metadata.wix_subscription_id);
 
@@ -322,7 +358,7 @@ export async function handleCheckoutCompleted(db, event, env, request, waitUntil
             subject: 'Your donation switch is in progress',
             source: 'billing/checkout-membership-migration-pending',
             text: [
-              `Hi ${name || 'there'},`,
+              greeting,
               '',
               'Your donation switch is in progress. Your card needs an extra confirmation step.',
               '',
@@ -382,7 +418,7 @@ export async function handleCheckoutCompleted(db, event, env, request, waitUntil
           subject: 'Your donation switch is complete',
           source: 'billing/checkout-membership-migration',
           text: [
-            `Hi ${name || 'there'},`,
+            greeting,
             '',
             'Your switch over to our new payment system is complete. Thank you for staying with us.',
             '',
@@ -406,7 +442,7 @@ export async function handleCheckoutCompleted(db, event, env, request, waitUntil
           subject: 'Welcome to the Save the Uterus Club',
           source: 'billing/checkout-membership',
           text: [
-            `Hi ${name || 'there'},`,
+            greeting,
             '',
             `Welcome to the Save the Uterus Club! You're now a ${tierLabel} member.`,
             '',
