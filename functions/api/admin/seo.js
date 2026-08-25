@@ -104,7 +104,11 @@ export async function onRequestGet(context) {
         try {
           const resp = await fetch(cbUrl, { headers: workerHeaders, redirect: 'manual' });
           if (resp.status === 302) {
-            return new Response(null, { status: 302, headers: { Location: '/admin/seo' } });
+            return new Response(
+              '<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="robots" content="noindex"><title>SEO monitor reauthorized</title></head>'
+              + '<body style="font-family:system-ui,sans-serif;padding:3rem;"><p>Google Search Console reauthorized for the SEO monitor.</p></body></html>',
+              { status: 200, headers: { 'Content-Type': 'text/html; charset=utf-8', 'X-Robots-Tag': 'noindex' } }
+            );
           }
           const data = await resp.json();
           return json(data, resp.status);
