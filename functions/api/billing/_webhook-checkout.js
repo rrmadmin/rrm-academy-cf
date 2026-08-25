@@ -919,13 +919,54 @@ async function ensureAccountForCheckout(db, session, env, waitUntil) {
   }).catch(() => {}));
 
   // Case 2: Anonymous checkout -- check if email matches existing account
-  const existing = await db.prepare('SELECT id, stripe_customer_id FROM user WHERE email = ? COLLATE NOCASE')
-    .bind(email).first();
+  const existing = await db.prepare(
+    'SELECT id, stripe_customer_id, name, first_name, last_name FROM user WHERE email = ? COLLATE NOCASE'
+  ).bind(email).first();
 
   if (existing) {
-    if (customerId && !existing.stripe_customer_id) {
-      await db.prepare('UPDATE user SET stripe_customer_id = ?, updated_at = datetime(\'now\') WHERE id = ?')
-        .bind(customerId, existing.id).run();
+    // Backfill a blank name from the checkout. Wix-era imported rows carry empty
+    // name/first_name/last_name, and this path (unlike Case 3) never wrote them,
+    // so a paying member could stay permanently nameless in D1 -- which breaks
+    // first-name personalization in every email we send them.
+    //
+    // Only a name Stripe actually collected is used. derivedFirstName falls back
+    // to the email local part, which is fine as a seed for a brand-new row but
+    // would stamp junk like "Elainelucier" onto a real account, so the guard is
+    // on the trimmed Stripe name and the split is redone from it.
+    const stripeName = name.trim();
+    const nameIsBlank = !String(existing.name || '').trim() &&
+      !String(existing.first_name || '').trim() &&
+      !String(existing.last_name || '').trim();
+    const backfillName = !!stripeName && nameIsBlank;
+
+    const statements = [];
+    if (backfillName) {
+      const [backfillFirst, ...backfillRest] = stripeName.split(/\s+/);
+      statements.push(db.prepare(
+        "UPDATE user SET name = ?, first_name = ?, last_name = ?, updated_at = datetime('now') " +
+        "WHERE id = ? AND COALESCE(TRIM(name), '') = '' AND COALESCE(TRIM(first_name), '') = '' " +
+        "AND COALESCE(TRIM(last_name), '') = ''"
+      ).bind(
+        stripeName.slice(0, 200),
+        backfillFirst.slice(0, 100),
+        backfillRest.join(' ').slice(0, 100) || null,
+        existing.id,
+      ));
+    }
+
+    const linkCustomer = !!customerId && !existing.stripe_customer_id;
+    if (linkCustomer) {
+      statements.push(db.prepare(
+        "UPDATE user SET stripe_customer_id = ?, updated_at = datetime('now') WHERE id = ?"
+      ).bind(customerId, existing.id));
+    }
+
+    if (statements.length) await db.batch(statements);
+
+    if (backfillName) {
+      log(env, waitUntil, 'billing', 'name_backfilled', 'ok', `user ${existing.id} from checkout`);
+    }
+    if (linkCustomer) {
       log(env, waitUntil, 'billing', 'stripe_linked', 'ok', `${customerId} -> user ${existing.id} (by email)`);
     } else if (customerId && existing.stripe_customer_id && existing.stripe_customer_id !== customerId) {
       log(env, waitUntil, 'billing', 'stripe_customer_mismatch', 'warning',

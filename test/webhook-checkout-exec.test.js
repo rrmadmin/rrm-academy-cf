@@ -145,7 +145,7 @@ describe('_webhook-checkout -- account linkage', () => {
   it('normalizes a mixed-case, padded address before looking the account up', async () => {
     const ctx = ctxFor(session({ customer_details: { email: '  Buyer@Example.COM  ', name: 'Ada' } }));
     await run(ctx);
-    const lookup = stmts(ctx, 'SELECT id, stripe_customer_id FROM user WHERE email')[0];
+    const lookup = stmts(ctx, 'SELECT id, stripe_customer_id, name, first_name, last_name FROM user WHERE email')[0];
     assert.ok(lookup);
     assert.deepEqual(lookup.bound, ['buyer@example.com']);
     assert.ok(lookup.sql.includes('COLLATE NOCASE'));
@@ -153,7 +153,7 @@ describe('_webhook-checkout -- account linkage', () => {
 
   it('links an anonymous checkout to an existing account that has no Stripe id yet', async () => {
     const ctx = ctxFor(session(), {
-      dbMap: { 'SELECT id, stripe_customer_id FROM user WHERE email': { first: { id: 'usr_7', stripe_customer_id: null } } },
+      dbMap: { 'SELECT id, stripe_customer_id, name, first_name, last_name FROM user WHERE email': { first: { id: 'usr_7', stripe_customer_id: null } } },
     });
     await run(ctx);
     const link = stmts(ctx, 'UPDATE user SET stripe_customer_id')[0];
@@ -161,9 +161,56 @@ describe('_webhook-checkout -- account linkage', () => {
     assert.equal(stmts(ctx, 'INSERT OR IGNORE INTO user').length, 0);
   });
 
+  // A Wix-era imported row carries name/first_name/last_name = ''. Before
+  // 2026-08-24 this path linked the Stripe id and returned, so a paying member
+  // stayed permanently nameless and every email addressed them as nobody.
+  it('backfills a blank existing account from the name Stripe collected', async () => {
+    const ctx = ctxFor(session(), {
+      dbMap: {
+        'SELECT id, stripe_customer_id, name, first_name, last_name FROM user WHERE email': {
+          first: { id: 'usr_7', stripe_customer_id: null, name: '', first_name: '', last_name: '' },
+        },
+      },
+    });
+    await run(ctx);
+    const backfill = stmts(ctx, 'UPDATE user SET name = ?')[0];
+    assert.ok(backfill, 'a blank row must take the checkout name');
+    assert.deepEqual(backfill.bound, ['Ada Lovelace', 'Ada', 'Lovelace', 'usr_7']);
+    assert.ok(backfill.sql.includes("COALESCE(TRIM(name), '') = ''"), 'the write must re-check blankness in SQL');
+    assert.equal(stmts(ctx, 'INSERT OR IGNORE INTO user').length, 0);
+  });
+
+  it('leaves an existing name alone', async () => {
+    const ctx = ctxFor(session(), {
+      dbMap: {
+        'SELECT id, stripe_customer_id, name, first_name, last_name FROM user WHERE email': {
+          first: { id: 'usr_7', stripe_customer_id: null, name: 'Augusta King', first_name: 'Augusta', last_name: 'King' },
+        },
+      },
+    });
+    await run(ctx);
+    assert.equal(stmts(ctx, 'UPDATE user SET name = ?').length, 0, 'a named account must not be renamed by a checkout');
+    assert.ok(stmts(ctx, 'UPDATE user SET stripe_customer_id')[0], 'the Stripe link still happens');
+  });
+
+  // derivedFirstName falls back to the email local part. That is an acceptable
+  // seed for a brand-new row, but stamping "Elainelucier" onto a real account
+  // is worse than leaving it blank -- emails address people by first_name.
+  it('does not stamp the email-derived guess on an existing account', async () => {
+    const ctx = ctxFor(session({ customer_details: { email: 'elainelucier@example.com', name: null } }), {
+      dbMap: {
+        'SELECT id, stripe_customer_id, name, first_name, last_name FROM user WHERE email': {
+          first: { id: 'usr_7', stripe_customer_id: null, name: '', first_name: '', last_name: '' },
+        },
+      },
+    });
+    await run(ctx);
+    assert.equal(stmts(ctx, 'UPDATE user SET name = ?').length, 0, 'no Stripe name means no backfill');
+  });
+
   it('alerts the administrator instead of overwriting a different linked customer', async () => {
     const ctx = ctxFor(session(), {
-      dbMap: { 'SELECT id, stripe_customer_id FROM user WHERE email': { first: { id: 'usr_7', stripe_customer_id: 'cus_OTHER' } } },
+      dbMap: { 'SELECT id, stripe_customer_id, name, first_name, last_name FROM user WHERE email': { first: { id: 'usr_7', stripe_customer_id: 'cus_OTHER' } } },
     });
     await run(ctx);
     assert.equal(stmts(ctx, 'UPDATE user SET stripe_customer_id').length, 0, 'the existing link must be left alone');
@@ -249,7 +296,7 @@ describe('_webhook-checkout -- account linkage', () => {
   });
 
   it('answers 500 so Stripe retries when the account link fails outright', async () => {
-    const ctx = ctxFor(session(), { dbMap: { 'SELECT id, stripe_customer_id FROM user WHERE email': { throws: 'D1_ERROR: database is locked' } } });
+    const ctx = ctxFor(session(), { dbMap: { 'SELECT id, stripe_customer_id, name, first_name, last_name FROM user WHERE email': { throws: 'D1_ERROR: database is locked' } } });
     const result = await run(ctx);
     const parsed = await parseResponse(result);
     assert.equal(parsed.status, 500);
