@@ -86,9 +86,33 @@ function withSecurityHeaders(response) {
 async function sendArrivlPageview(request, env) {
   if (!env.ARRIVL_WEBSITE_KEY) return;
 
+  // AI-bot analytics means AI BOTS: human pageviews (URL, UA, referer, IP)
+  // have no business reaching arrivl.ai. The gate and the gated-path
+  // suppression below mirror sendAiBotEvent, which always had both; this
+  // function shipped without either (found in the 2026-08-25 adversarial
+  // review, alongside the login-redirect leak it transitively closes -- an
+  // unauthenticated /login/?redirect=<protected-url> pageview no longer
+  // egresses at all unless a listed AI bot fetched it).
+  const ua = request.headers.get('User-Agent') || '';
+  if (!detectAiBot(ua)) return;
+
   const url = new URL(request.url);
   if (url.hostname === 'library.rrmacademy.org') return;
   if (url.pathname.startsWith('/api/')) return;
+  const arrivlPathLower = url.pathname.toLowerCase();
+  const arrivlPublicCommunityCrawl =
+    arrivlPathLower === '/community' ||
+    arrivlPathLower === '/community/' ||
+    arrivlPathLower === '/community/areas' ||
+    arrivlPathLower.startsWith('/community/areas/');
+  if (
+    arrivlPathLower === '/account' || arrivlPathLower.startsWith('/account/') ||
+    ((arrivlPathLower === '/community' || arrivlPathLower.startsWith('/community/')) && !arrivlPublicCommunityCrawl) ||
+    arrivlPathLower === '/ask' || arrivlPathLower.startsWith('/ask/') ||
+    arrivlPathLower.startsWith('/save-the-uterus-club/migrate') ||
+    arrivlPathLower === '/login' || arrivlPathLower.startsWith('/login/') ||
+    arrivlPathLower === '/signup' || arrivlPathLower.startsWith('/signup/')
+  ) return;
   const accept = request.headers.get('Accept') || '';
   if (!accept.includes('text/html')) return;
 
@@ -210,7 +234,33 @@ function shouldCanonicalize(pathname) {
   return CASE_CANONICAL_PREFIXES.some(p => lower.startsWith(p)) && lower !== pathname;
 }
 
+/**
+ * The exported entry wraps the real handler so the CF Pages preview-domain
+ * noindex applies to EVERY response shape without an early return. The old
+ * shape (an if-pages.dev branch that ran context.next() and RETURNED near the
+ * top) silently disabled every block below it -- and because rrm-router
+ * proxies apex traffic to the rrm-academy.pages.dev origin, "below it" meant
+ * the needsAuth page gates, the trailing-slash redirect, and the auth-hint
+ * self-heal never ran for REAL production requests (found live 2026-08-25:
+ * anonymous /ask/ served the full page). Now every request, apex or preview,
+ * runs the same middleware; preview responses just gain the noindex header at
+ * the tail. The router keeps stripping that header for apex traffic, exactly
+ * as before.
+ */
 export async function onRequest(context) {
+  const isPreviewHost = new URL(context.request.url).hostname.endsWith('.pages.dev');
+  const response = await handleRequest(context);
+  if (!isPreviewHost) return response;
+  const headers = new Headers(response.headers);
+  headers.set('X-Robots-Tag', 'noindex');
+  return new Response(response.body, {
+    status: response.status,
+    statusText: response.statusText,
+    headers,
+  });
+}
+
+async function handleRequest(context) {
   const { request, env } = context;
   const url = new URL(request.url);
 
@@ -259,23 +309,6 @@ export async function onRequest(context) {
   }
 
 
-  // Block search engine indexing of CF Pages preview domains
-  if (url.hostname.endsWith('.pages.dev')) {
-    let response;
-    try {
-      response = await context.next();
-    } catch {
-      return withSecurityHeaders(await render500Page(context, request));
-    }
-    const headers = new Headers(response.headers);
-    headers.set('X-Robots-Tag', 'noindex');
-    return withSecurityHeaders(new Response(response.body, {
-      status: response.status,
-      statusText: response.statusText,
-      headers,
-    }));
-  }
-
   // Fire Arrivl and AI-bot analytics asynchronously -- does not block the response.
   // GA4 page_view is now fired client-side by ga-session.ts via /api/track.
   context.waitUntil(
@@ -289,12 +322,19 @@ export async function onRequest(context) {
   // CF Pages _headers /* rule corrupts ALL 3xx responses (static, _redirects,
   // AND function returns) into 200 with empty/mangled body. The only reliable
   // redirect is an HTML body with meta refresh + JS fallback.
+  // GET-only and /mcp-excluded, mirroring rrm-router's needsTrailingSlash():
+  // a 301 on a write method turns it into a GET and drops the body (POST
+  // /events/register would break), and /mcp is a Function with no /mcp/ form.
+  // Both hazards were masked while the old preview branch swallowed apex
+  // traffic ahead of this block; the 2026-08-25 unmasking makes them real.
   if (
+    request.method === 'GET' &&
     !url.pathname.endsWith('/') &&
     url.pathname !== '/api' &&
     !url.pathname.startsWith('/api/') &&
     !url.pathname.startsWith('/cdn-cgi/') &&
     url.pathname !== '/health' &&
+    url.pathname !== '/mcp' &&
     !url.pathname.includes('.')
   ) {
     const target = `${url.origin}${url.pathname}/${url.search}`;
