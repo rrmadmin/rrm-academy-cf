@@ -9,6 +9,9 @@ const DENIED_EMAILS = new Set([
   'margueritekenny@yahoo.com',
   'duanem@duq.edu',
   'mduanemd@icloud.com',
+  'mduanemd@gmail.com',
+  'mduanemd@yahoo.com',
+  'drduane@mdforlife.org',
   'info@factsaboutfertility.org',
 ]);
 
