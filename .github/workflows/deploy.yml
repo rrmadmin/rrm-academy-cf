@@ -566,6 +566,13 @@ jobs:
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
         run: npm run gates:schema-drift
 
+      - name: Validate content review sign-off gates (always)
+        # CR0-CR3: every guide registered in ssot/guides.json carries a dated
+        # clinical sign-off, and no sign-off is stale relative to the content it
+        # vouches for. Needs full git history for CR2 (checkout is fetch-depth 0).
+        # Falsification harness: scripts/gates/validate-content-review.test.mjs
+        run: npm run gates:content-review
+
       - name: Validate page-function HTTP method gates (always)
         # HM0-HM2: every CF Pages route that serves HTML or an image to a
         # link-preview crawler must answer HEAD, not only GET. CF Pages 404s an

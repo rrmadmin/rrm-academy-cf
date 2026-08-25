@@ -806,6 +806,35 @@ The gate **parses both sides and compares value-sets** — it does NOT diff DDL 
 
 **Auto-fires:** pre-commit on any staged `functions/**` `.js`/`.mjs`; CI deploy step "Validate page-function HTTP method gates (always)".
 
+## Content Review Sign-Off Proof Gates
+
+`scripts/gates/validate-content-review.mjs` asserts that a guide registered in `ssot/guides.json` carries a **dated clinical sign-off**, and that the sign-off is **not stale** relative to the content it vouches for.
+
+**The incident (2026-08-24).** Seven comparison guides went live without the clinical review they were built to wait for. They were published off a branch literally named `held/compare-and-method-guides`, by a session that read "these pages exist in a branch and 404 on the live site" as a DEFECT TO REPAIR rather than as content deliberately withheld -- its own commit message says "finished and 404 on the live site ... the 7 pages that are genuinely missing". The same commit also declined to bring over `ssot/citation-ledger.json` and `scripts/gates/validate-citations.mjs`, calling the gate "its own decision", so it shipped the content while leaving behind the gate that branch had built for it. A later audit of the six survivors found 174 uncited numeric or outcome claims, 78 statements affirming or normalising IVF/IUI/donor pathways, and one outright miscitation; the seventh was deleted outright. Nothing stopped any of it, because `held/` is a naming convention rather than an enforced state and no check asked whether a human had read the page.
+
+**Schema** extends the `reviewer` block that already existed in `guides.json` (7 of 22 guides had one, none had a date):
+
+```json
+"reviewer": { "name": "Dr. Naomi Whittaker, MD", "reviewed_at": "2026-08-25" }
+```
+
+`name` already drives the rendered "Reviewed by" byline. `reviewed_at` is a date the **reviewer asserts** -- never one a script stamps or infers from git, because a gate whose own records were invented certifies nothing.
+
+| Gate | What it prevents |
+|------|------------------|
+| **CR0** Registry + grandfather integrity | A registry that failed to load reporting success; a grandfather entry naming a slug that is no longer registered (rot); a reason under 30 chars; a slug in both grandfather lists. |
+| **CR1** Every guide has a dated sign-off | A new guide going live unread. A reviewer NAME with no date does not satisfy it, and neither does a malformed date. |
+| **CR2** No sign-off is stale | **The load-bearing gate.** `reviewed_at` is compared against the content file's last commit date (`src/data/<slug>.json`, else the page component). Editing a page after sign-off re-opens the sign-off, so a one-time byline cannot vouch for three later rewrites. WARN-skips when git history is unavailable, so it never false-blocks. |
+| **CR3** Sign-off is by a clinician | A non-clinician name driving a byline that tells patients a clinician read it. |
+
+**Two grandfather lists, deliberately separate.** `UNREVIEWED_AT_GATE_LANDING` (15 slugs) is *nobody has read this*; `UNDATED_AT_GATE_LANDING` (7 slugs) is *a named clinician read it and no one recorded when*. Conflating the two would repeat the same flattening that let seven unread pages ship. **Both lists are the review queue, not an exemption, and both are closed to new pages.** Clear an entry from the second by ASKING the reviewer for the date; do not guess it from git.
+
+**Falsification harness:** `scripts/gates/validate-content-review.test.mjs` -- 8 tests, 6 of which plant a defect and assert the gate goes RED, including the original incident shape, an undated byline, a malformed date, a non-clinician reviewer, a rotted grandfather entry, and a real git-repo fixture proving CR2 catches content edited after sign-off.
+
+**Commands:** `npm run gates:content-review` | `:check` (--quick, no git) | `--gate CR2` | `--json`
+
+**Auto-fires:** pre-commit on staged `ssot/guides.json` or `src/data/*.json`; CI deploy step "Validate content review sign-off gates (always)".
+
 ## Citation Integrity
 
 **Never insert academic citations from model knowledge.** Hallucinated PMIDs, DOIs, and references are an existential threat to a medical education site.

@@ -89,6 +89,8 @@
     "gates:removed-ids": "node scripts/gates/check-removed-ids.mjs",
     "gates:share": "node scripts/gates/validate-share-button.mjs",
     "gates:page-methods": "node scripts/gates/validate-page-function-methods.mjs",
+    "gates:content-review": "node scripts/gates/validate-content-review.mjs",
+    "gates:content-review:check": "node scripts/gates/validate-content-review.mjs --quick",
     "gates:email-verify": "node scripts/gates/validate-email-verification.mjs",
     "gates:infographic": "node scripts/gates/validate-infographic-svg.mjs",
     "gates:email-trickle": "node scripts/gates/validate-email-trickle.mjs",
