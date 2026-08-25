@@ -363,11 +363,15 @@ async function handleRequest(context) {
   // CF Pages _headers /* rule corrupts ALL 3xx responses (static, _redirects,
   // AND function returns) into 200 with empty/mangled body. The only reliable
   // redirect is an HTML body with meta refresh + JS fallback.
-  // GET-only and /mcp-excluded, mirroring rrm-router's needsTrailingSlash():
-  // a 301 on a write method turns it into a GET and drops the body (POST
-  // /events/register would break), and /mcp is a Function with no /mcp/ form.
-  // Both hazards were masked while the old preview branch swallowed apex
-  // traffic ahead of this block; the 2026-08-25 unmasking makes them real.
+  // GET-only with /mcp and /404 excluded, mirroring rrm-router's
+  // needsTrailingSlash(): a 301 on a write method turns it into a GET and
+  // drops the body (POST /events/register would break); /mcp is a Function
+  // with no /mcp/ form; and /404 is the ONE flat .html in the build, so
+  // Pages 308s /404/ back to /404 and slashing it here made an infinite
+  // redirect loop that turned the router's catch-all (which fetches /404
+  // for every unknown URL) into a site-wide 502 (found live 2026-08-25,
+  // hours after the unmasking). These hazards were masked while the old
+  // preview branch swallowed apex traffic ahead of this block.
   if (
     request.method === 'GET' &&
     !url.pathname.endsWith('/') &&
@@ -376,6 +380,7 @@ async function handleRequest(context) {
     !url.pathname.startsWith('/cdn-cgi/') &&
     url.pathname !== '/health' &&
     url.pathname !== '/mcp' &&
+    url.pathname !== '/404' &&
     !url.pathname.includes('.')
   ) {
     const target = `${url.origin}${url.pathname}/${url.search}`;
