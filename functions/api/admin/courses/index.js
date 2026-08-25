@@ -180,6 +180,19 @@ export async function onRequestPost(context) {
     return json({ ok: false, error: 'invalid_participants' }, 400);
   }
 
+  if (isFree !== undefined && typeof isFree !== 'boolean' && isFree !== 0 && isFree !== 1 && isFree !== '0' && isFree !== '1') {
+    return json({ ok: false, error: 'invalid_is_free' }, 400);
+  }
+  if (hasCertificate !== undefined && typeof hasCertificate !== 'boolean' && hasCertificate !== 0 && hasCertificate !== 1 && hasCertificate !== '0' && hasCertificate !== '1') {
+    return json({ ok: false, error: 'invalid_has_certificate' }, 400);
+  }
+  if (selfPaced !== undefined && typeof selfPaced !== 'boolean' && selfPaced !== 0 && selfPaced !== 1 && selfPaced !== '0' && selfPaced !== '1') {
+    return json({ ok: false, error: 'invalid_self_paced' }, 400);
+  }
+  if (comingSoon !== undefined && typeof comingSoon !== 'boolean' && comingSoon !== 0 && comingSoon !== 1 && comingSoon !== '0' && comingSoon !== '1') {
+    return json({ ok: false, error: 'invalid_coming_soon' }, 400);
+  }
+
   const resolvedAccessType = accessType ?? 'public';
   if (!VALID_ACCESS_TYPES.has(resolvedAccessType)) {
     return json({ ok: false, error: 'invalid_access_type' }, 400);

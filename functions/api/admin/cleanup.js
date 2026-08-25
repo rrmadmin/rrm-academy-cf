@@ -108,7 +108,7 @@ export async function onRequestPost({ request, env, waitUntil }) {
       pruned.search_log = r.meta.changes;
     }
   } catch (err) {
-    log(env, waitUntil, 'admin', 'cleanup_search_log_error', 'error', err.message);
+    errors.push(`search_log: ${err.message}`);
   }
 
   const total = pruned.sessions + pruned.password_resets + pruned.email_verifications + pruned.webhook_events + pruned.newsletter_events + pruned.pdf_tokens + pruned.email_log + pruned.search_log;
