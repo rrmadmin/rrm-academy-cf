@@ -782,6 +782,30 @@ The gate **parses both sides and compares value-sets** — it does NOT diff DDL 
 
 **A file header is not a deployment record.** `2026-06-28-email-event.sql` sat excluded for a month on the strength of a `DRAFT / HELD` header it had outlived. Settle applied-vs-held by querying live, then keep this gate green.
 
+## Page-Function HTTP Method Proof Gates
+
+`scripts/gates/validate-page-function-methods.mjs` asserts that every Cloudflare Pages route which serves something a link-preview crawler fetches also answers **HEAD**, not only GET.
+
+**The incident (2026-08-25).** STUC event invites would not render a link card on X. Every OG surface was correct: `twitter:card` was `summary_large_image`, the image URLs were absolute HTTPS returning valid 1200x630 PNGs, exactly one tag of each kind sat at byte ~5100 so no crawler truncation reached them, robots.txt allowed the crawler on both page and image, there was no bot challenge, and the redirects were single-hop. GET returned 200. **HEAD returned 404.** `functions/events/[slug].js` exported only `onRequestGet`, so CF Pages had no handler for HEAD on that route and fell through to a 404. Crawlers commonly probe with HEAD before fetching, and a 404 there ends the unfurl before a single tag is read. Nothing caught it: not a test, not a lint, not a deploy check, not an /arise run, because the page was a clean 200 in every browser. It was also plain sibling divergence, six other functions already exported `onRequestHead`.
+
+**Scope.** Route modules under `functions/` **excluding `functions/api/**`**, that serve `text/html` OR an image content-type. API endpoints are reached programmatically or by redirect, nobody posts a link to one, and forcing HEAD on them would be scope creep over handlers that carry side effects on GET. Enumeration is from disk, never a hand-maintained list (the payment gates' PG0 lesson). **The image half is not padding** -- a crawler probes the `og:image` URL as well as the page, and the first draft of this gate scoped to HTML only and immediately lost `functions/og/[[path]].js`, the most card-critical route on the site.
+
+| Gate | What it prevents |
+|------|------------------|
+| **HM0** Enumeration integrity | A crawler-fetched route no gate reads. Fails on: an enumeration below `MIN_IN_SCOPE`; a `COVERAGE_SENTINELS` route dropping out of the scan (silent narrowing); an `EXCLUDED` entry naming a file that no longer exists (rot) or carrying a reason under 40 chars. |
+| **HM1** Every route answers HEAD | A module exporting only `onRequestGet` (or any set without `onRequest`/`onRequestHead`). Comments are stripped first, so a docstring mentioning `onRequestHead` cannot fake compliance. |
+| **HM2** Coverage meta-assertion | A broken extractor reporting success by checking nothing. |
+
+**Answering HEAD** means exporting `onRequest` (catch-all, serves every verb) or `onRequestHead`. Delegating HEAD to GET is only safe when the GET handler is **read-only** -- the gate cannot prove that, so say why it holds in the comment on each delegation. `functions/events/[slug].js` is the reference: one D1 SELECT and a render, no writes, no `waitUntil`, no mail, and its view tracking is client-side markup rather than a server write, so a crawler's HEAD cannot inflate a counter.
+
+**EXCLUDED today:** `functions/save-the-uterus-club/migrate.js`, a tokenized magic-link landing bound to one member -- never posted publicly and deliberately should not unfurl a preview of a private account action.
+
+**Falsification harness:** `scripts/gates/validate-page-function-methods.test.mjs` builds throwaway fixture repos and proves the gate goes RED on the original defect, on an image route with no HEAD, and on an empty scan, and proves a comment cannot satisfy it. A gate nobody has watched fail is a decoration.
+
+**Commands:** `npm run gates:page-methods` | `--gate HM1` | `--json`
+
+**Auto-fires:** pre-commit on any staged `functions/**` `.js`/`.mjs`; CI deploy step "Validate page-function HTTP method gates (always)".
+
 ## Citation Integrity
 
 **Never insert academic citations from model knowledge.** Hallucinated PMIDs, DOIs, and references are an existential threat to a medical education site.
