@@ -18,17 +18,17 @@
   "date": "2026-08-25",
   "instrument": "node scripts/quality/coverage.mjs (c8 --all over the full surface; full npm-test suite)",
   "full_surface": {
-   "files": 433,
-   "lines": 86426,
-   "covered": 35158,
-   "pct": 40.68
+   "files": 434,
+   "lines": 86578,
+   "covered": 35265,
+   "pct": 40.73
   },
   "by_category": {
    "PRODUCT-CODE": {
-    "files": 343,
-    "lines": 64809,
-    "covered": 29875,
-    "pct": 46.1
+    "files": 344,
+    "lines": 64961,
+    "covered": 29982,
+    "pct": 46.15
    },
    "CONTENT-TEMPLATE": {
     "files": 9,
@@ -56,13 +56,13 @@
    }
   },
   "product_code": {
-   "files": 343,
-   "lines": 64809,
-   "covered": 29875,
-   "pct": 46.1
+   "files": 344,
+   "lines": 64961,
+   "covered": 29982,
+   "pct": 46.15
   },
   "files_at_zero_in_full_report": 255,
-  "files_executed_in_full_report": 178,
+  "files_executed_in_full_report": 179,
   "highest_stakes_slice": {
    "slice": "national survey system (functions/api/survey/ + functions/api/endo-quiz/)",
    "files": [
@@ -97,10 +97,10 @@
   {
    "file": "functions/api/create-checkout.js",
    "fn": "handleCheckout",
-   "line": 60,
-   "cc": 106,
+   "line": 61,
+   "cc": 116,
    "coverage": 0,
-   "crap": 11342
+   "crap": 13572
   },
   {
    "file": "functions/api/email/events.js",
@@ -337,16 +337,16 @@
  ],
  "crap_top_files": [
   {
+   "file": "functions/api/create-checkout.js",
+   "worst": 13572,
+   "total": 13590,
+   "fns": 4
+  },
+  {
    "file": "functions/api/email/events.js",
    "worst": 9506,
    "total": 11660,
    "fns": 10
-  },
-  {
-   "file": "functions/api/create-checkout.js",
-   "worst": 11342,
-   "total": 11360,
-   "fns": 4
   },
   {
    "file": "scripts/css-audit/audit.mjs",
@@ -1287,6 +1287,15 @@
    "pct": 100
   },
   {
+   "file": "functions/api/billing/_join-denylist.js",
+   "category": "PRODUCT-CODE",
+   "reason": "CF Pages Function (routed endpoint, middleware, or _-prefixed shared helper). Deployed on every push; defects ship directly to users.",
+   "present": true,
+   "lines": 44,
+   "covered": 44,
+   "pct": 100
+  },
+  {
    "file": "functions/api/billing/_migration-handoff.js",
    "category": "PRODUCT-CODE",
    "reason": "CF Pages Function (routed endpoint, middleware, or _-prefixed shared helper). Deployed on every push; defects ship directly to users.",
@@ -1327,9 +1336,9 @@
    "category": "PRODUCT-CODE",
    "reason": "CF Pages Function (routed endpoint, middleware, or _-prefixed shared helper). Deployed on every push; defects ship directly to users.",
    "present": true,
-   "lines": 1116,
-   "covered": 1078,
-   "pct": 96.59
+   "lines": 1201,
+   "covered": 1141,
+   "pct": 95
   },
   {
    "file": "functions/api/billing/_webhook-invoice.js",
@@ -1768,7 +1777,7 @@
    "category": "PRODUCT-CODE",
    "reason": "CF Pages Function (routed endpoint, middleware, or _-prefixed shared helper). Deployed on every push; defects ship directly to users.",
    "present": false,
-   "lines": 442,
+   "lines": 465,
    "covered": 0,
    "pct": 0
   },
