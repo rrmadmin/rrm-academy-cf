@@ -698,13 +698,21 @@ describe('POST /api/admin/courses -- the row it actually writes', () => {
     assert.equal(row(d, 'SELECT self_paced FROM course').self_paced, 0);
   });
 
-  it('coerces every boolean flag through bool(), so "1" is on and "true" is off', async () => {
+  it('coerces every boolean flag through bool() for recognized boolean-ish values', async () => {
     const d = db();
-    await post(d, { body: { ...MINIMAL, isFree: '1', hasCertificate: true, comingSoon: 'true' } });
+    await post(d, { body: { ...MINIMAL, isFree: '1', hasCertificate: true, comingSoon: '0' } });
     const c = row(d, 'SELECT is_free, has_certificate, coming_soon FROM course');
     assert.equal(c.is_free, 1);
     assert.equal(c.has_certificate, 1);
     assert.equal(c.coming_soon, 0);
+  });
+
+  it('rejects an unrecognized boolean-ish string instead of silently coercing it to false', async () => {
+    const d = db();
+    const { status, body } = await parseResponse(await post(d, { body: { ...MINIMAL, comingSoon: 'true' } }));
+    assert.equal(status, 400);
+    assert.equal(body.error, 'invalid_coming_soon');
+    assert.equal(rows(d, 'SELECT id FROM course').length, 0, 'a rejected create must not write');
   });
 
   it('serialises the JSON columns, and round-trips them through the read endpoint', async () => {
@@ -994,14 +1002,22 @@ describe('PUT /api/admin/courses/[id] -- the update it actually performs', () =>
     assert.equal(c.participants, 12);
   });
 
-  it('coerces the four boolean flags through bool()', async () => {
+  it('coerces the four boolean flags through bool() for recognized boolean-ish values', async () => {
     const d = db((s) => seedCourse(s, { is_free: 1, has_certificate: 1, self_paced: 1, coming_soon: 1 }));
-    await putOne(d, { body: { isFree: false, hasCertificate: '1', selfPaced: 0, comingSoon: 'yes' } });
+    await putOne(d, { body: { isFree: false, hasCertificate: '1', selfPaced: 0, comingSoon: '0' } });
     const c = row(d, 'SELECT is_free, has_certificate, self_paced, coming_soon FROM course');
     assert.equal(c.is_free, 0);
     assert.equal(c.has_certificate, 1);
     assert.equal(c.self_paced, 0);
     assert.equal(c.coming_soon, 0);
+  });
+
+  it('rejects an unrecognized boolean-ish string on PUT instead of silently coercing it to false', async () => {
+    const d = db((s) => seedCourse(s, { coming_soon: 1 }));
+    const { status, body } = await parseResponse(await putOne(d, { body: { comingSoon: 'yes' } }));
+    assert.equal(status, 400);
+    assert.equal(body.error, 'invalid_coming_soon');
+    assert.equal(row(d, 'SELECT coming_soon FROM course').coming_soon, 1, 'a rejected update must not write');
   });
 
   it('re-serialises each JSON column from the request value', async () => {
