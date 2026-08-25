@@ -23,6 +23,30 @@ guard-manifest.json
 
 STAGED=$(git diff --cached --name-only)
 
+# --- node_modules guard: refuse a staged path named node_modules ---
+#     .gitignore's `node_modules/` entry has a trailing slash, so it matches a real
+#     DIRECTORY and never a SYMLINK of that name. A `git add -A` sweeps the link in
+#     as a 120000 blob. It has reached this repo's main twice (bfff4ab7, 0d98895e),
+#     the second time as a link pointing at its own path, which destroys the local
+#     dependency tree (ELOOP on every import). CI is green both times because CI
+#     runs `npm ci` into a clean workspace, so nothing else catches it -- the merge
+#     job and every fresh clone break instead.
+#     --diff-filter=AM so the recovery commit (`git rm --cached node_modules`) is
+#     never itself blocked. Bypass: ALLOW_NODE_MODULES_COMMIT=1
+if [ -z "${ALLOW_NODE_MODULES_COMMIT:-}" ]; then
+  NM_STAGED=$(git diff --cached --name-only --diff-filter=AM | awk -F/ '$NF == "node_modules"')
+  if [ -n "$NM_STAGED" ]; then
+    echo ""
+    echo "Commit blocked: a path named node_modules is staged."
+    echo "$NM_STAGED" | sed 's/^/  /'
+    echo ""
+    echo "This is almost always a symlink swept in by 'git add -A'; .gitignore does not catch it."
+    echo "Unstage it with:  git rm --cached <path>"
+    echo "Deliberate?       ALLOW_NODE_MODULES_COMMIT=1 git commit ..."
+    exit 1
+  fi
+fi
+
 # --- CSS token guard: any staged .astro/.css/.js style surface ---
 # Blocks undefined-var criticals (var(--x) that resolves nowhere -- the
 # white-cards-in-dark-mode bug class). Zero verified false positives.

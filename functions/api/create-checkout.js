@@ -167,6 +167,14 @@ async function handleCheckout(request, env, waitUntil) {
       }],
       success_url: `${origin}/donate/thank-you/?session_id={CHECKOUT_SESSION_ID}`,
       cancel_url: `${origin}/donate/`,
+      // Same reason as the subscription session below: customer_details.name is
+      // the only name a donation ever gets, and on the 'auto' default Stripe puts
+      // the name field INSIDE the card block, so a Link or wallet payer is never
+      // asked and arrives with name = null. That lands a nameless row in
+      // donor_gift and a "Donor name: (not set)" admin email. Required for every
+      // donation, not just provider-directory: a 501(c)(3) wants the address on
+      // the donor record regardless of which campaign brought them in.
+      billing_address_collection: 'required',
     };
 
     sessionParams.payment_intent_data = {
@@ -196,8 +204,9 @@ async function handleCheckout(request, env, waitUntil) {
       ...(isCanary && { canary: '1' }),
     };
 
+    // billing_address_collection is set unconditionally above; this campaign adds
+    // a phone number and the public-supporter consent field on top of it.
     if (campaign === 'provider-directory') {
-      sessionParams.billing_address_collection = 'required';
       sessionParams.phone_number_collection = { enabled: true };
       sessionParams.custom_fields = [{
         key: 'show_supporter',

@@ -318,7 +318,7 @@ describe('create-checkout: canary requests never touch the Wix migration handoff
   });
 });
 
-describe('create-checkout: the subscription session collects a member name', () => {
+describe('create-checkout: every checkout session collects a name', () => {
   // The STUC join flow has no name field of our own -- the tier buttons hand
   // straight off to Stripe Checkout, so customer_details.name is the only source
   // of a member's name. On the 'auto' default Stripe renders the cardholder-name
@@ -340,6 +340,45 @@ describe('create-checkout: the subscription session collects a member name', () 
       /billing_address_collection:\s*'required'/.test(subscriptionBranch),
       "the subscription checkout must require the billing address -- without it Stripe asks Link and wallet payers for no name, " +
       'and the member lands in D1 nameless'
+    );
+  });
+});
+
+describe('create-checkout: the donation session collects a donor name', () => {
+  // Same defect class as the subscription session. A Link or wallet donor is
+  // never shown the card block's name field, so customer_details.name is null,
+  // donor_gift.display_name lands empty and the admin email reads
+  // "Donor name: (not set)". Before 2026-08-25 only the provider-directory
+  // campaign required the billing address; every other donation did not.
+  const checkoutSource = readFileSync(new URL('../functions/api/create-checkout.js', import.meta.url), 'utf8');
+  const donationBranch = checkoutSource.slice(
+    checkoutSource.indexOf("mode: 'payment',"),
+    checkoutSource.indexOf('sessionParams.payment_intent_data')
+  );
+  const providerDirectoryBlock = checkoutSource.slice(
+    checkoutSource.indexOf("if (campaign === 'provider-directory') {"),
+    checkoutSource.indexOf('let checkoutSession;')
+  );
+
+  it('isolates a non-empty donation sessionParams block to assert against', () => {
+    assert.ok(donationBranch.length > 100, 'the slice markers must still bracket the donation session params');
+    assert.ok(!donationBranch.includes("mode: 'subscription'"), 'the slice must not bleed into the subscription branch');
+    assert.ok(providerDirectoryBlock.length > 50, 'the provider-directory slice markers must still bracket that block');
+  });
+
+  it("sets billing_address_collection: 'required' on the base donation session", () => {
+    assert.ok(
+      /billing_address_collection:\s*'required'/.test(donationBranch),
+      'every donation must require the billing address, not just the provider-directory campaign -- ' +
+      'otherwise a Link donor produces a nameless donor_gift row'
+    );
+  });
+
+  it('does not re-set billing_address_collection inside the provider-directory campaign block', () => {
+    assert.ok(
+      !/billing_address_collection\s*=/.test(providerDirectoryBlock),
+      'the campaign block must layer phone + custom_fields on top of the unconditional setting, not restate it -- ' +
+      'a second assignment is where the two copies drift apart'
     );
   });
 });
