@@ -159,6 +159,23 @@ if echo "$STAGED" | grep -qE '^scripts/migrate-courses-to-d1\.sql$|^functions/ap
   fi
 fi
 
+# --- Page-function HTTP method gate: any staged CF Pages route ---
+#     A route that serves HTML or an image to a link-preview crawler must
+#     answer HEAD, not just GET. Crawlers commonly probe with HEAD first, and
+#     CF Pages 404s a verb the module does not export -- which silently killed
+#     every X link card for the STUC event invites on 2026-08-25 while the page
+#     itself was a clean 200 in every browser. Static, no network, instant.
+if echo "$STAGED" | grep -qE '^functions/.*\.(js|mjs)$|^scripts/gates/validate-page-function-methods'; then
+  node scripts/gates/validate-page-function-methods.mjs
+  if [ $? -ne 0 ]; then
+    echo ""
+    echo "Commit blocked by page-function HTTP method gate."
+    echo "A crawler-fetched route does not answer HEAD; its link previews will silently fail."
+    echo "Export onRequestHead (delegating to a read-only GET handler) or use a catch-all onRequest."
+    exit 1
+  fi
+fi
+
 # --- SQL column/table existence gate: any staged JS that can hold SQL ---
 #     Every static SQL string is PREPAREd against an in-memory SQLite built from
 #     schema.sql + the replayed migrations. SQLite resolves column names at

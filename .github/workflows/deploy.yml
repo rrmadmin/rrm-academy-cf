@@ -566,6 +566,14 @@ jobs:
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
         run: npm run gates:schema-drift
 
+      - name: Validate page-function HTTP method gates (always)
+        # HM0-HM2: every CF Pages route that serves HTML or an image to a
+        # link-preview crawler must answer HEAD, not only GET. CF Pages 404s an
+        # unexported verb, which ends an unfurl before any og: tag is read.
+        # Static analysis, no network. Falsification harness:
+        # scripts/gates/validate-page-function-methods.test.mjs
+        run: npm run gates:page-methods
+
       - name: Validate share button gates (always)
         # SB1-SB4 static gates: navigator.share primary branch, .catch() on
         # writeText, aria-label="Share", .action-label visible in .copied state.
