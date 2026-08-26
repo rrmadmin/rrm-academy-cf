@@ -72,8 +72,10 @@ describe('conversion ledger -- type derivation', () => {
     ['lead non-string source',   'generate_lead',   { lead_source: 7 },                              'other'],
     ['signup email',             'sign_up',         { method: 'email' },                             'email'],
     ['signup google',            'sign_up',         { method: 'google' },                            'google'],
+    ['signup checkout',          'sign_up',         { method: 'checkout' },                          'checkout'],
     ['signup other method',      'sign_up',         { method: 'facebook' },                          'other'],
     ['signup missing method',    'sign_up',         {},                                              'other'],
+    ['signup non-string method', 'sign_up',         { method: 42 },                                  'other'],
     ['page_view',                'page_view',       { page_location: 'https://rrmacademy.org/' },    null],
     ['unlisted event',           'survey_complete', { lead_source: 'endo_survey' },                  null],
   ];
@@ -594,8 +596,46 @@ describe('conversion ledger -- dedup_key', () => {
       }
       const written = rows(db);
       assert.equal(written.length, 1, 'the redelivery is ignored');
-      assert.equal(written[0].dedup_key, 'evt_retry_1');
+      assert.equal(written[0].dedup_key, 'purchase:evt_retry_1');
       assert.equal(fetchStub.ga4.length, 2, 'both GA4 sends still go out');
+    } finally { fetchStub.restore(); db.close(); }
+  });
+
+  // One Stripe checkout.session.completed relays BOTH a sign_up (for an account
+  // the checkout just created) and a purchase, and _webhook-checkout.js passes
+  // the same gaOverrides -- so the same event.id -- to both. On a bare dedup key
+  // the second INSERT collides on the UNIQUE index and INSERT OR IGNORE drops it
+  // without a word, silently undercounting one of the two in the table built to
+  // stop undercounting.
+  it('writes both rows for two different events sharing one Stripe event id', async () => {
+    const fetchStub = stubExternalFetch();
+    const db = ledgerD1();
+    try {
+      const env = mockEnv({ DB: db, CONVERSION_LEDGER: '1' });
+      const overrides = { client_id: 'GA1.1.9.9', session_id: 1738000000, user_id: 'usr_new', event_id: 'evt_shared' };
+      await sendGA4Event(env, makeRequest(), 'sign_up', { method: 'checkout' }, overrides);
+      await sendGA4Event(env, makeRequest(), 'purchase', donation, overrides);
+      const written = rows(db);
+      assert.equal(written.length, 2, 'the qualified keys differ, so neither row is dropped');
+      assert.deepEqual(written.map((r) => r.event), ['sign_up', 'purchase']);
+      assert.deepEqual(written.map((r) => r.dedup_key), ['sign_up:evt_shared', 'purchase:evt_shared']);
+      assert.deepEqual(written.map((r) => r.type), ['checkout', 'donation']);
+    } finally { fetchStub.restore(); db.close(); }
+  });
+
+  it('still writes one row when the same event name and event id arrive twice', async () => {
+    const fetchStub = stubExternalFetch();
+    const db = ledgerD1();
+    try {
+      const env = mockEnv({ DB: db, CONVERSION_LEDGER: '1' });
+      // Qualification must not weaken redelivery idempotency: a redelivered
+      // checkout replays the SAME sign_up under the same Stripe event id.
+      for (let i = 0; i < 2; i += 1) {
+        await sendGA4Event(env, makeRequest(), 'sign_up', { method: 'checkout' }, { event_id: 'evt_shared' });
+      }
+      const written = rows(db);
+      assert.equal(written.length, 1, 'the redelivery is still ignored');
+      assert.equal(written[0].dedup_key, 'sign_up:evt_shared');
     } finally { fetchStub.restore(); db.close(); }
   });
 
@@ -621,7 +661,7 @@ describe('conversion ledger -- dedup_key', () => {
       const env = mockEnv({ DB: db, CONVERSION_LEDGER: '1' });
       await sendGA4Event(env, makeRequest(), 'purchase', donation, { event_id: 'evt_a' });
       await sendGA4Event(env, makeRequest(), 'purchase', donation, { event_id: 'evt_b' });
-      assert.deepEqual(rows(db).map((r) => r.dedup_key), ['evt_a', 'evt_b']);
+      assert.deepEqual(rows(db).map((r) => r.dedup_key), ['purchase:evt_a', 'purchase:evt_b']);
     } finally { fetchStub.restore(); db.close(); }
   });
 
@@ -637,7 +677,26 @@ describe('conversion ledger -- dedup_key', () => {
       const written = rows(db);
       assert.equal(written.length, 5, 'the four null keys all land');
       for (const row of written.slice(0, 4)) assert.equal(row.dedup_key, null);
-      assert.equal(written[4].dedup_key.length, 128);
+      assert.equal(written[4].dedup_key.length, 128, 'the qualified key is capped as a whole');
+      assert.ok(written[4].dedup_key.startsWith('purchase:e'));
+    } finally { fetchStub.restore(); db.close(); }
+  });
+
+  it('binds null rather than a bare event name when no event_id is supplied', async () => {
+    const fetchStub = stubExternalFetch();
+    const db = ledgerD1();
+    try {
+      const env = mockEnv({ DB: db, CONVERSION_LEDGER: '1' });
+      // Qualification must not invent a key for the unkeyed callers -- a
+      // 'purchase:' prefix with nothing after it would make every client-beacon
+      // purchase collide with every other one and land exactly one row ever.
+      for (let i = 0; i < 3; i += 1) {
+        await sendGA4Event(env, makeRequest(), 'purchase', donation);
+        await sendGA4Event(env, makeRequest(), 'sign_up', { method: 'email' });
+      }
+      const written = rows(db);
+      assert.equal(written.length, 6);
+      for (const row of written) assert.equal(row.dedup_key, null);
     } finally { fetchStub.restore(); db.close(); }
   });
 
@@ -711,7 +770,7 @@ describe('conversion ledger -- caller-supplied params are screened at the ledger
       const [row] = rows(db);
       assert.equal(row.session_id, '1723500000');
       assert.equal(row.client_id, '1234567890.1723500000');
-      assert.equal(row.dedup_key, 'evt_ident');
+      assert.equal(row.dedup_key, 'purchase:evt_ident');
     } finally { fetchStub.restore(); db.close(); }
   });
 });
@@ -748,7 +807,7 @@ describe('conversion ledger -- runs without GA4 credentials', () => {
       assert.equal(row.type, 'course');
       assert.equal(row.value_cents, 4999);
       assert.equal(row.utm_campaign, 'aug_push', 'attribution is still resolved from the request');
-      assert.equal(row.dedup_key, 'evt_no_creds');
+      assert.equal(row.dedup_key, 'purchase:evt_no_creds');
     } finally { restoreWarn(); fetchStub.restore(); db.close(); }
   });
 

@@ -313,6 +313,87 @@ describe('_webhook-checkout -- account linkage', () => {
   });
 });
 
+// ------------------------------------------------------- signup reporting ---
+
+/**
+ * GA4 recorded 14 sign_ups over 28 days while rrm-auth created 24 accounts. The
+ * gap was this handler: it auto-creates an account for any anonymous buyer and
+ * never told GA4, so every conversions surface undercounted registrations by
+ * however many people arrived through Stripe instead of through /signup/.
+ *
+ * The signal these tests hold is CREATION, not existence. `ensureAccountForCheckout`
+ * reports created:true only where its INSERT OR IGNORE reports meta.changes === 1,
+ * so a repeat purchase, a logged-in checkout and the losing side of a concurrent
+ * race all stay silent.
+ */
+describe('_webhook-checkout -- signup reporting', () => {
+  const signUps = (ctx) => ctx.ga4.filter(c => c.body.events[0].name === 'sign_up');
+
+  it('reports sign_up with method=checkout when the checkout creates the account', async () => {
+    const ctx = ctxFor(session({ metadata: { ga_client_id: 'GA1.1.123.456', ga_session_id: '1738000000' } }));
+    await run(ctx);
+    assert.ok(stmts(ctx, 'INSERT OR IGNORE INTO user')[0], 'precondition: the account was created');
+
+    const [signUp, ...extra] = signUps(ctx);
+    assert.ok(signUp, `expected a sign_up, got: ${ctx.ga4.map(c => c.body.events[0].name)}`);
+    assert.equal(extra.length, 0, 'exactly one sign_up per created account');
+    assert.equal(signUp.body.events[0].params.method, 'checkout',
+      'purchase-created signups must stay separable from organic email/google ones');
+    assert.equal(signUp.body.client_id, 'GA1.1.123.456', 'the buyer identity, not the Stripe server identity');
+    assert.equal(signUp.body.events[0].params.session_id, 1738000000);
+    assert.equal(signUp.body.user_properties?.user_role?.value, 'registered');
+  });
+
+  it('reports the sign_up alongside the purchase off one Stripe delivery', async () => {
+    const ctx = ctxFor(session());
+    await run(ctx);
+    const names = ctx.ga4.map(c => c.body.events[0].name).sort();
+    assert.deepEqual(names, ['purchase', 'sign_up'], 'both events reach GA4 from the one checkout');
+  });
+
+  it('reports no sign_up when the address matched an existing account', async () => {
+    const ctx = ctxFor(session(), {
+      dbMap: { 'SELECT id, stripe_customer_id, name, first_name, last_name FROM user WHERE email': { first: { id: 'usr_7', stripe_customer_id: null } } },
+    });
+    await run(ctx);
+    assert.equal(stmts(ctx, 'INSERT OR IGNORE INTO user').length, 0, 'precondition: nothing was created');
+    assert.equal(signUps(ctx).length, 0, 'a repeat purchase by an existing user is not a signup');
+  });
+
+  it('reports no sign_up for a logged-in checkout', async () => {
+    const ctx = ctxFor(session({ client_reference_id: 'usr_42' }));
+    await run(ctx);
+    assert.equal(signUps(ctx).length, 0);
+  });
+
+  it('reports no sign_up when a concurrent request won the insert', async () => {
+    // meta.changes === 0 means SQLite ignored OUR insert. The winner's own
+    // delivery reports the signup; reporting it here too would double-count.
+    const ctx = ctxFor(session(), { dbMap: { 'INSERT OR IGNORE INTO user': { run: { success: true, meta: { changes: 0 } } } } });
+    await run(ctx);
+    assert.equal(signUps(ctx).length, 0);
+  });
+
+  it('reports no sign_up when Stripe sent no address to create an account from', async () => {
+    const ctx = ctxFor(session({ customer_details: { email: '', name: '' }, customer_email: null }));
+    await run(ctx);
+    assert.equal(signUps(ctx).length, 0);
+  });
+
+  it('still reports the sign_up when SES is unconfigured and no welcome could be mailed', async () => {
+    // The account row is real whether or not the welcome email went out, so the
+    // registration is real too.
+    const ctx = ctxFor(session(), { env: { AWS_ACCESS_KEY_ID: undefined } });
+    await run(ctx);
+    assert.ok(stmts(ctx, 'INSERT OR IGNORE INTO user')[0]);
+    assert.equal(signUps(ctx).length, 1);
+  });
+
+  // A denylisted checkout returns before any account work, so it reports no
+  // sign_up for the same reason it reports no purchase. That is asserted whole
+  // by the join-denylist describe below (`ctx.ga4.length === 0`).
+});
+
 // ------------------------------------------------------ course purchase ---
 
 describe('_webhook-checkout -- course purchase', () => {
