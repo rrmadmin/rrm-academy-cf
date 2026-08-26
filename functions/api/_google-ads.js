@@ -47,6 +47,16 @@
  * swallow the alarm that exists to catch exactly this kind of outage. A
  * suppressed alert (real cap hit, KV present) still logs its own AE row so
  * suppression is never invisible.
+ *
+ * Retry: a transient network throw (fetch itself throwing/timing out, not an
+ * HTTP error status) on either the token fetch or the ingest fetch gets ONE
+ * retry of the whole upload, fresh token included, after a ~2s delay -- see
+ * uploadConversionWithRetry(). HTTP-status failures (token_401, upload_4xx/
+ * 5xx) are never retried: a 5xx from Google could double-record the click,
+ * and the ingest is not idempotent on the wire. A retry attempt logs its own
+ * 'conversion_retry' AE row before waiting; the final conversion_ok/
+ * conversion_error row and the alert email fire only after the retry (or
+ * lack of one) resolves, so neither logging contract nor alert timing change.
  */
 
 import { log } from './_log.js';
@@ -182,6 +192,29 @@ async function uploadConversion(env, gclid, conversionActionId) {
   }
 }
 
+// Transient network failures (fetch throwing, not an HTTP error status) get
+// one retry of the WHOLE upload, fresh token fetch included. HTTP-status
+// failures (token_401, upload_4xx/5xx) are never retried here -- a 5xx from
+// Google could double-record, and this call is not idempotent on the wire.
+const RETRYABLE_MESSAGE_PREFIXES = ['token_network:', 'upload_network:'];
+const RETRY_DELAY_MS = 2000;
+
+function isRetryableUploadError(err) {
+  const message = err?.message;
+  return typeof message === 'string' && RETRYABLE_MESSAGE_PREFIXES.some((prefix) => message.startsWith(prefix));
+}
+
+async function uploadConversionWithRetry(env, waitUntil, gclid, conversionActionId) {
+  try {
+    return await uploadConversion(env, gclid, conversionActionId);
+  } catch (err) {
+    if (!isRetryableUploadError(err)) throw err;
+    log(env, waitUntil, 'google_ads', 'conversion_retry', 'warn', err.message, 0, 0, [gclid, conversionActionId]);
+    await new Promise((resolve) => setTimeout(resolve, RETRY_DELAY_MS));
+    return uploadConversion(env, gclid, conversionActionId);
+  }
+}
+
 /**
  * Fail-OPEN rate check for alert mail -- the inverse posture of
  * checkRateLimit's normal fail-closed default. A missing COMMUNITY_KV
@@ -290,7 +323,7 @@ export function sendGoogleAdsConversion(env, waitUntil, cookieHeader, conversion
     const gclid = parseGclidCookie(cookieHeader);
     if (!gclid) return;
 
-    const task = uploadConversion(env, gclid, conversionActionId).then(async (requestId) => {
+    const task = uploadConversionWithRetry(env, waitUntil, gclid, conversionActionId).then(async (requestId) => {
       log(env, waitUntil, 'google_ads', 'conversion_ok', 'ok', conversionActionId, 0, 200, [gclid, requestId]);
       await sendConversionSuccessEmail(env, waitUntil, conversionActionId, gclid, requestId);
     }).catch(async (err) => {
