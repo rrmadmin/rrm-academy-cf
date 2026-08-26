@@ -151,7 +151,7 @@ function runGate(id, name, fn) {
 }
 
 // ---------- Load ----------------------------------------------------------
-function loadGuides() {
+export function loadGuides() {
   const p = join(PROJECT_ROOT, 'ssot/guides.json');
   if (!existsSync(p)) return [];
   const d = JSON.parse(readFileSync(p, 'utf8'));
@@ -161,7 +161,7 @@ const GUIDES = loadGuides();
 
 /** The file whose edits should re-open a sign-off: the content SSOT if there is
  *  one, otherwise the page component. */
-function contentSourceOf(g) {
+export function contentSourceOf(g) {
   const data = `src/data/${g.slug}.json`;
   if (existsSync(join(PROJECT_ROOT, data))) return data;
   if (g.file && existsSync(join(PROJECT_ROOT, `src/pages/${g.file}`))) return `src/pages/${g.file}`;
@@ -169,7 +169,7 @@ function contentSourceOf(g) {
 }
 
 /** Last commit date for a path, or null when git cannot answer. */
-function lastCommitISO(rel) {
+export function lastCommitISO(rel) {
   try {
     const out = execFileSync('git', ['log', '-1', '--format=%cI', '--', rel],
       { cwd: PROJECT_ROOT, encoding: 'utf8', stdio: ['ignore', 'pipe', 'ignore'] }).trim();
@@ -177,10 +177,10 @@ function lastCommitISO(rel) {
   } catch { return null; }
 }
 
-const isISODate = (s) => typeof s === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(s) && !Number.isNaN(Date.parse(s));
+export const isISODate = (s) => typeof s === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(s) && !Number.isNaN(Date.parse(s));
 
 // ---------- CR0 -----------------------------------------------------------
-function gateCR0() {
+export function gateCR0() {
   const r = [];
   if (GUIDES.length < MIN_GUIDES) {
     r.push(fail(`only ${GUIDES.length} guides read from ssot/guides.json, floor ${MIN_GUIDES} — the registry failed to load, the repo did not shrink`));
@@ -206,7 +206,7 @@ function gateCR0() {
 }
 
 // ---------- CR1: every guide has a sign-off -------------------------------
-function gateCR1() {
+export function gateCR1() {
   const r = [];
   for (const g of GUIDES) {
     const neverReviewed = g.slug in UNREVIEWED_AT_GATE_LANDING;
@@ -233,7 +233,7 @@ function gateCR1() {
 }
 
 // ---------- CR2: the sign-off is not stale --------------------------------
-function gateCR2() {
+export function gateCR2() {
   if (QUICK) return warn('skipped in --quick mode (needs git history)');
   const r = [];
   let checked = 0;
@@ -261,7 +261,7 @@ function gateCR2() {
 }
 
 // ---------- CR3: reviewer identity ----------------------------------------
-function gateCR3() {
+export function gateCR3() {
   const r = [];
   for (const g of GUIDES) {
     const rev = g.reviewer;

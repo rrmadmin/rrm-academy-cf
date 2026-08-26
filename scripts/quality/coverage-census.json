@@ -1,6 +1,6 @@
 {
  "_note": "Every first-party executable file (census-rules.mjs SURFACE_ROOTS) is accounted for here, and scripts/quality/coverage.mjs FAILS its run if the enumerated surface drifts from this file or a new file matches no classification rule. A file is either PRODUCT-CODE (inside the gated coverage denominator) or excluded below with a category and written reason — never silently. Regenerate with: node scripts/quality/coverage.mjs && node scripts/quality/census.mjs",
- "_generated": "2026-08-25",
+ "_generated": "2026-08-26",
  "_categories": {
   "PRODUCT-CODE": "Deployed or deploy-chain code whose defects ship to users: CF Pages Functions (every route + _helper under functions/), build-time data fetchers and shared logic (src/lib), client bundles (src/scripts), Astro build integrations, and the CI gate/guard/build scripts that decide whether a deploy is allowed. This is the gated denominator. Uncovered PRODUCT-CODE is debt, listed so it is visible and countable, never argued away.",
   "CONTENT-TEMPLATE": "Files where line coverage is the wrong instrument because they are content, data constants, or scaffolding: reference-only endpoint templates (header forbids importing), typed data constants consumed by Astro templates, and Astro endpoint modules (*.md.ts / rss.xml.ts) that only execute inside the Astro build container. Their correctness instruments are the build itself, verify-build-output, the data deploy-guard floors, and the e2e suite.",
@@ -15,20 +15,20 @@
   "ratchet_rule": "The floor may only move UP. Arm at the measured floor rounded down; never arm a number that is red on arrival. Raise it after a coverage drive lands, by editing this value to the new measured floor rounded down."
  },
  "_measured": {
-  "date": "2026-08-25",
+  "date": "2026-08-26",
   "instrument": "node scripts/quality/coverage.mjs (c8 --all over the full surface; full npm-test suite)",
   "full_surface": {
    "files": 407,
-   "lines": 81106,
-   "covered": 32580,
-   "pct": 40.17
+   "lines": 81113,
+   "covered": 32674,
+   "pct": 40.28
   },
   "by_category": {
    "PRODUCT-CODE": {
     "files": 318,
-    "lines": 59694,
-    "covered": 27297,
-    "pct": 45.73
+    "lines": 59699,
+    "covered": 27391,
+    "pct": 45.88
    },
    "CONTENT-TEMPLATE": {
     "files": 9,
@@ -50,19 +50,19 @@
    },
    "ONE-OFF": {
     "files": 44,
-    "lines": 7191,
+    "lines": 7193,
     "covered": 0,
     "pct": 0
    }
   },
   "product_code": {
    "files": 318,
-   "lines": 59694,
-   "covered": 27297,
-   "pct": 45.73
+   "lines": 59699,
+   "covered": 27391,
+   "pct": 45.88
   },
-  "files_at_zero_in_full_report": 240,
-  "files_executed_in_full_report": 167,
+  "files_at_zero_in_full_report": 239,
+  "files_executed_in_full_report": 168,
   "highest_stakes_slice": {
    "slice": "national survey system (functions/api/survey/ + functions/api/endo-quiz/)",
    "files": [
@@ -2073,10 +2073,10 @@
    "file": "scripts/audit-glossary-links.mjs",
    "category": "PRODUCT-CODE",
    "reason": "Local deterministic analysis of glossary.json link classes; unit-tested (glossary-link-classifier.test.js), 80% covered today.",
-   "present": false,
+   "present": true,
    "lines": 101,
-   "covered": 0,
-   "pct": 0
+   "covered": 89,
+   "pct": 88.11
   },
   {
    "file": "scripts/audit-textbook-fact-coverage.mjs",
@@ -2632,9 +2632,9 @@
    "category": "PRODUCT-CODE",
    "reason": "Deterministic CI/pre-commit proof gate; it decides whether deploys are allowed and must itself be trustworthy.",
    "present": true,
-   "lines": 251,
-   "covered": 236,
-   "pct": 94.02
+   "lines": 256,
+   "covered": 241,
+   "pct": 94.14
   },
   {
    "file": "scripts/gates/validate-payment-pipeline.mjs",
@@ -3487,7 +3487,7 @@
    "category": "ONE-OFF",
    "reason": "One-shot local operation (data insert, staging helper, CRM fix, avatar backfill, recording upload, hook install); record of a finished operation.",
    "present": false,
-   "lines": 275,
+   "lines": 277,
    "covered": 0,
    "pct": 0
   },
