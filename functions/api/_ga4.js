@@ -64,6 +64,12 @@ const LEDGER_USER_EVENTS = new Set(['sign_up', 'generate_lead', 'begin_checkout'
 const STUC_ITEM_RE = /^STUC (.+)$/i;
 const COURSE_ITEM_RE = /^Course: /i;
 
+// sign_up `method` values that pass through to `type` verbatim. Every call site
+// that fires sign_up must appear here or its registrations all collapse into
+// 'other': 'email' (auth/signup.js), 'google' (auth/google-callback.js),
+// 'checkout' (billing/_webhook-checkout.js).
+const SIGN_UP_METHODS = new Set(['email', 'google', 'checkout']);
+
 /**
  * Deterministic `type` column derivation, per the contract written into
  * migrations/036-conversion-ledger.sql. Every branch falls back to 'other'
@@ -94,7 +100,11 @@ export function deriveLedgerType(eventName, params = {}) {
     return safeSlice(source, LEDGER_SHORT_CAP);
   }
   if (eventName === 'sign_up') {
-    return params.method === 'email' || params.method === 'google' ? params.method : 'other';
+    // 'checkout' is the Stripe-webhook auto-created account
+    // (billing/_webhook-checkout.js), kept distinct from the two organic
+    // methods so a purchase-created registration never reads as a person who
+    // chose to sign up. Anything unlisted still derives 'other'.
+    return SIGN_UP_METHODS.has(params.method) ? params.method : 'other';
   }
   return null;
 }
@@ -202,6 +212,19 @@ async function writeConversionLedger(env, request, eventName, params, sourcePara
   // permits unlimited nulls, so the unkeyed callers are unaffected. This closes
   // the one window stripe-webhook.js's webhook_event dedup cannot: a handler
   // that wrote a ledger row and then returned 500, which Stripe redelivers.
+  //
+  // QUALIFIED BY EVENT NAME, and it has to be. One Stripe
+  // checkout.session.completed now relays TWO ledger-writing events -- the
+  // sign_up for an account that checkout just created and the purchase for what
+  // was bought -- and both carry the same event.id. On the bare key the second
+  // INSERT collides with the first and INSERT OR IGNORE drops it silently, so
+  // the ledger would record whichever of the two ran first and nothing else.
+  // Qualifying keeps redelivery idempotent per event while letting distinct
+  // events off one Stripe delivery coexist. The event_id is validated and
+  // capped first, then the composed key is capped again, so the column bound
+  // is still at most LEDGER_LONG_CAP.
+  const eventId = ledgerText(overrides?.event_id, LEDGER_LONG_CAP);
+  const dedupKey = eventId ? safeSlice(`${eventName}:${eventId}`, LEDGER_LONG_CAP) : null;
   await env.DB.prepare(`
     INSERT OR IGNORE INTO conversion_event
       (event, type, value_cents, client_id, session_id, user_id, entry_source, entry_category, utm_campaign, item, dedup_key)
@@ -224,7 +247,7 @@ async function writeConversionLedger(env, request, eventName, params, sourcePara
     ledgerSafeText(pick('entry_category'), LEDGER_SHORT_CAP),
     ledgerSafeText(pick('utm_campaign'), LEDGER_SHORT_CAP),
     ledgerSafeText(params.items?.[0]?.item_name, LEDGER_LONG_CAP),
-    ledgerText(overrides?.event_id, LEDGER_LONG_CAP),
+    dedupKey,
   ).run();
 }
 
@@ -236,8 +259,11 @@ let warnedLedgerFlag = false;
  *   deriving from request headers. Used by stripe-webhook to replay the real user identity.
  *   `user_id` is the same replay for the first-party ledger's person key: it never
  *   reaches the GA4 payload, only conversion_event.user_id, and only on the events
- *   LEDGER_USER_EVENTS allows. `event_id` is ledger-only too: the idempotency key
- *   bound to conversion_event.dedup_key.
+ *   LEDGER_USER_EVENTS allows. `event_id` is ledger-only too: it becomes
+ *   conversion_event.dedup_key as '<eventName>:<event_id>'. One caller may pass
+ *   the SAME event_id to several events off one upstream delivery (a Stripe
+ *   checkout relays both sign_up and purchase), so the key is qualified by event
+ *   name; it is an idempotency key per event, not per delivery.
  */
 export async function sendGA4Event(env, request, eventName, params = {}, overrides = {}) {
   // Only '1' enables the ledger, and only '0'/absent are the other legitimate

@@ -178,8 +178,9 @@ export async function handleCheckoutCompleted(db, event, env, request, waitUntil
   }
 
   // Link Stripe customer to D1 user, or auto-create account for anonymous checkout
+  let accountLink;
   try {
-    await ensureAccountForCheckout(db, session, env, waitUntil);
+    accountLink = await ensureAccountForCheckout(db, session, env, waitUntil);
   } catch (linkErr) {
     log(env, waitUntil, 'billing', 'account_link_fail', 'error', linkErr.message, 0, 500);
     // Return 5xx for every checkout type (course, donation, subscription) so the
@@ -345,6 +346,17 @@ export async function handleCheckoutCompleted(db, event, env, request, waitUntil
   if (typeof event.id === 'string' && event.id) gaOverrides.event_id = event.id;
 
   const pageLocation = (session.cancel_url || session.success_url || SITE_URL).replace(/\?.*$/, '');
+
+  // GA4: a checkout that BORE an account reports the signup, so the conversions
+  // surfaces stop undercounting registrations by everyone who arrived through
+  // Stripe rather than through /signup/. method='checkout' is deliberately
+  // distinct from the organic 'email' and 'google' methods (auth/signup.js,
+  // auth/google-callback.js) so purchase-created signups stay separable from
+  // people who chose to register. Gated on accountLink.created, so a repeat
+  // purchase by an existing user reports nothing.
+  if (accountLink?.created) {
+    waitUntil(sendGA4Event(env, request, 'sign_up', { method: 'checkout' }, gaOverrides).catch(() => {}));
+  }
 
   // GA4: track completed course purchase
   if (session.metadata?.type === 'course') {
@@ -958,6 +970,15 @@ export async function handleCheckoutExpired(db, event, env, waitUntil) {
  * 1. Logged-in user (client_reference_id set) -> link stripe_customer_id
  * 2. Anonymous, email matches existing account -> link stripe_customer_id
  * 3. Anonymous, no account -> create account, send welcome email with password-setup link
+ *
+ * Returns { created, userId }. `created` is true on exactly one path: case 3's
+ * INSERT OR IGNORE reporting meta.changes === 1, which is SQLite telling us THIS
+ * statement inserted the row. Every other exit -- no address, logged-in link,
+ * existing-account link, and the concurrent-race branch where changes === 0 and
+ * some other request won the insert -- returns created: false. That makes it a
+ * genuine account-birth signal rather than "an account exists now", which is
+ * what the caller's sign_up send needs: a repeat purchase by an existing user,
+ * and the losing side of a race, must not report a signup.
  */
 /**
  * Cancels the subscription and/or refunds the initial payment for a completed
@@ -1026,7 +1047,7 @@ async function ensureAccountForCheckout(db, session, env, waitUntil) {
 
   if (!email) {
     log(env, waitUntil, 'billing', 'no_checkout_email', 'skipped', session.id);
-    return;
+    return { created: false, userId: null };
   }
 
   // Case 1: User was logged in (client_reference_id = D1 user ID)
@@ -1052,7 +1073,7 @@ async function ensureAccountForCheckout(db, session, env, waitUntil) {
         log(env, waitUntil, 'billing', 'stripe_linked', 'ok', `${customerId} -> user ${session.client_reference_id} (by ID)`);
       }
     }
-    return;
+    return { created: false, userId: session.client_reference_id };
   }
 
   // ELV tag (non-blocking -- payment already completed, just tag for CRM)
@@ -1132,7 +1153,7 @@ async function ensureAccountForCheckout(db, session, env, waitUntil) {
         }).catch(() => {}));
       }
     }
-    return;
+    return { created: false, userId: existing.id };
   }
 
   // Case 3: No account exists -- auto-create one
@@ -1175,7 +1196,7 @@ async function ensureAccountForCheckout(db, session, env, waitUntil) {
       }
     }
     log(env, waitUntil, 'billing', 'stripe_linked', 'ok', `${email} concurrent, linked ${customerId}`);
-    return;
+    return { created: false, userId: null };
   }
   log(env, waitUntil, 'billing', 'auto_account_created', 'ok', `${id} ${email} stripe=${customerId}`);
 
@@ -1220,4 +1241,6 @@ async function ensureAccountForCheckout(db, session, env, waitUntil) {
   } else {
     log(env, waitUntil, 'billing', 'welcome_email_skipped', 'skipped', `${email} account=${id} (SES not configured)`);
   }
+
+  return { created: true, userId: id };
 }
