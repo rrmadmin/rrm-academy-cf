@@ -207,6 +207,73 @@ describe('conversion ledger -- flag gating', () => {
   });
 });
 
+// ------------------------------------------------------------- event scope ---
+
+describe('conversion ledger -- event scope', () => {
+  // The relay carries every server-side event; the ledger carries five. These
+  // three are the engagement signals that were landing rows before the scope
+  // gate, and the GA4 send must be untouched by their exclusion.
+  for (const [eventName, params] of [
+    ['scroll_depth', { percent_scrolled: 90 }],
+    ['user_engagement', { engagement_time_msec: 15000 }],
+    ['cta_click', { id: 'hero-primary', page: '/endometriosis/' }],
+  ]) {
+    it(`writes no row for ${eventName} while GA4 still receives it`, async () => {
+      const fetchStub = stubExternalFetch();
+      const db = ledgerD1();
+      try {
+        const env = mockEnv({ DB: db, CONVERSION_LEDGER: '1' });
+        await sendGA4Event(env, makeRequest(), eventName, params);
+        assert.equal(fetchStub.ga4.length, 1, 'the GA4 send is unchanged');
+        assert.deepEqual(rows(db), [], 'no ledger row outside the five funnel events');
+      } finally { fetchStub.restore(); db.close(); }
+    });
+  }
+
+  for (const [eventName, params] of [
+    ['page_view', { page_location: 'https://rrmacademy.org/' }],
+    ['sign_up', { method: 'email' }],
+    ['generate_lead', { lead_source: 'newsletter' }],
+    ['begin_checkout', { value: 25, items: [{ item_name: 'Donation' }] }],
+    ['purchase', { value: 25, items: [{ item_name: 'Donation' }] }],
+  ]) {
+    it(`still writes a row for ${eventName}`, async () => {
+      const fetchStub = stubExternalFetch();
+      const db = ledgerD1();
+      try {
+        const env = mockEnv({ DB: db, CONVERSION_LEDGER: '1' });
+        await sendGA4Event(env, makeRequest(), eventName, params);
+        assert.equal(fetchStub.ga4.length, 1);
+        const written = rows(db);
+        assert.equal(written.length, 1);
+        assert.equal(written[0].event, eventName);
+      } finally { fetchStub.restore(); db.close(); }
+    });
+  }
+
+  // The scope gate sits ahead of resolveLedgerUserId, so an out-of-scope event
+  // carrying a live session cookie never reaches the session lookup either.
+  it('resolves no session for an out-of-scope event carrying a live session', async () => {
+    const fetchStub = stubExternalFetch();
+    const RAW_SESSION = 'sess_scope_gate_cookie_value';
+    const db = ledgerD1({
+      seed(sqlite) { insertUser(sqlite, { id: 'usr_scope_1', email: 'scope@example.com' }); },
+    });
+    await insertSession(db._sqlite, {
+      rawId: RAW_SESSION,
+      userId: 'usr_scope_1',
+      expiresAt: Math.floor(Date.now() / 1000) + 3600,
+    });
+    try {
+      const env = mockEnv({ DB: db, CONVERSION_LEDGER: '1' });
+      await sendGA4Event(env, makeRequest({ cookie: `session=${RAW_SESSION}` }), 'scroll_depth', { percent_scrolled: 50 });
+      assert.deepEqual(rows(db), []);
+      const sessionReads = db._calls.filter((c) => /FROM session/i.test(c.sql));
+      assert.equal(sessionReads.length, 0, 'an out-of-scope event must not attempt the session lookup');
+    } finally { fetchStub.restore(); db.close(); }
+  });
+});
+
 // ----------------------------------------------------------- entry_source ---
 
 describe('conversion ledger -- entry_source', () => {
