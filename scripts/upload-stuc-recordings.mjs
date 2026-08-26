@@ -43,6 +43,8 @@ const COURSES = [
   { id: 'functional-lab-testing-napro', mp4FileId: null, transcriptDocId: '1ln6g4BFS7s4AkrbPYxUMWtsflUIMiFrdcN5j9_lkbMg' },
   { id: 'medical-trauma-endometriosis', mp4FileId: '13MY00aza5PiQ_gDcMu7z1hIX4Egm__Au', transcriptDocId: '1Z_z_ilhUsyh7qHkYxLYysB1rsuMu5Dy0XDmt30zlYoc' },
   { id: 'breaking-up-with-ivf', mp4FileId: '1j6RGArBJ8znYqgatyFbFESc4tuGMtel_', transcriptDocId: '1XJu5sSXeVTyNVGT9TQSIA8hILk6WIOZLUGG_hwCGZYY' },
+  { id: 'introduction-to-rrm', mp4FileId: '1jE5Q_phMfPVMNV02R-wO2wOPcGrTVnR5', transcriptDocId: '1FxcuyMTIHGwsoxtL444XzOuxNQ2Qd0S1EWLowHikf8Q' },
+  { id: 'red-light-therapy', mp4FileId: '1NlO4esMrgYvje7C_CF-_kBmS5cKPXqQb', transcriptDocId: '1B7kG6gVUjU-RqLGWLLlqM7lmq3puzB66sX3WK8_0mu8' },
 ];
 
 const TMP = '/tmp';
