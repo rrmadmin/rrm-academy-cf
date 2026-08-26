@@ -32,8 +32,22 @@
 -- it is why the column is nullable rather than defaulted. stripe-webhook.js
 -- already dedupes deliveries via the webhook_event table, so this key only
 -- matters in the 5xx-retry window where a handler partially ran before
--- returning 500 and Stripe redelivered; exactly one ledger-writing GA4 send
--- fires per checkout event, so one Stripe event id maps to at most one row.
+-- returning 500 and Stripe redelivered.
+--
+-- THE KEY IS QUALIFIED BY EVENT NAME: _ga4.js binds '<event>:<event_id>', not
+-- the bare event id, capped as a whole to 128 chars. When this table landed,
+-- exactly one ledger-writing GA4 send fired per checkout event, so a bare
+-- Stripe event id mapped to at most one row. That stopped being true when
+-- _webhook-checkout.js began relaying sign_up (method='checkout') for an
+-- account the checkout had just created, alongside the purchase for what was
+-- bought: two ledger events off ONE Stripe delivery, sharing one event.id.
+-- Unqualified, the second INSERT would collide on this UNIQUE index and
+-- INSERT OR IGNORE would drop it without a word -- a silent undercount of
+-- whichever event lost the race, in the exact table built to stop
+-- undercounting. Qualification keeps redelivery idempotent per event while
+-- letting distinct events off one delivery coexist. The DDL is unchanged: the
+-- column and its UNIQUE index were always right, only what the relay binds
+-- into them needed to carry the event name.
 --
 -- RETENTION: 400 days. Documented purge (scheduling is signed C7 stub_debt):
 --   DELETE FROM conversion_event WHERE ts < datetime('now', '-400 days');
@@ -42,7 +56,9 @@
 --   purchase / begin_checkout : items[0].item_name -> 'donation' | 'course'
 --                               | 'stuc_<tier>' | 'other'
 --   generate_lead             : params.lead_source verbatim | 'other'
---   sign_up                   : params.method ('email' | 'google') | 'other'
+--   sign_up                   : params.method ('email' | 'google' | 'checkout')
+--                               | 'other'. 'checkout' is a Stripe-created
+--                               account, kept separable from organic signups.
 --   page_view                 : NULL
 -- A PII-shaped item_name or lead_source derives 'other', never the raw value.
 --
