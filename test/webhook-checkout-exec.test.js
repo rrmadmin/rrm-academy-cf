@@ -650,6 +650,20 @@ describe('_webhook-checkout -- membership subscription', () => {
     assert.equal(mailTo(ctx, 'Your donation switch is complete'), undefined);
   });
 
+  it('sends no status email at all when the Stripe status read fails, rather than guessing pending', async () => {
+    // A subscription IS present (unlike the previous test), so a status read is
+    // attempted; the default fetch stub has no Stripe route and throws. A null
+    // status from a failed read must not fall into the "not active" branch --
+    // the sub could actually be active, and "in progress" would be a false
+    // pending notification.
+    const ctx = ctxFor(stucSession({ metadata: { tier: 'hero', wix_subscription_id: 'wxs_abc123' } }), {
+      dbMap: { 'FROM wix_subscription WHERE wix_subscription_id': { first: { email: 'donor@example.com', tier: 'hero', amount_cents: 1900, next_expected_at: null, stripe_subscription_id: null } } },
+    });
+    await run(ctx);
+    assert.equal(mailTo(ctx, 'Your donation switch is in progress'), undefined, 'a failed status read must not guess pending');
+    assert.equal(mailTo(ctx, 'Your donation switch is complete'), undefined);
+  });
+
   it('defers the migration flip and releases the lock when the Stripe sub is not yet active', async () => {
     const ctx = ctxFor(stucSession({ metadata: { tier: 'hero', wix_subscription_id: 'wxs_abc123' } }), {
       dbMap: {
@@ -663,6 +677,23 @@ describe('_webhook-checkout -- membership subscription', () => {
     assert.ok(release.sql.includes('stripe_subscription_id IS NULL'));
     assert.equal(stmts(ctx, "migration_status='stripe_active'").length, 0, 'the flip must not happen on an unconfirmed sub');
     assert.equal(mailTo(ctx, 'cancel Wix sub'), undefined, 'admin must not be told to cancel Wix yet');
+  });
+
+  it('leaves the lock in place when the Stripe status read fails, unlike a confirmed not-ready status', async () => {
+    // Unlike the previous test (a real 'incomplete'/etc status, safe to release
+    // the lock for an immediate retry), a read FAILURE gives no real status --
+    // the sub could already be active. Clearing the lock here would invite a
+    // retry that mints a duplicate subscription. The default fetch stub has no
+    // Stripe route and throws, matching an outage.
+    const ctx = ctxFor(stucSession({ metadata: { tier: 'hero', wix_subscription_id: 'wxs_abc123' } }), {
+      dbMap: {
+        'FROM wix_subscription WHERE wix_subscription_id': { first: { email: 'donor@example.com', tier: 'hero', amount_cents: 1900, next_expected_at: null, stripe_subscription_id: null } },
+      },
+    });
+    await run(ctx);
+    assert.equal(stmts(ctx, 'SET migration_handoff_started_at = NULL').length, 0, 'a failed read must not release the lock');
+    assert.equal(stmts(ctx, "migration_status='stripe_active'").length, 0, 'the flip must not happen without a confirmed status');
+    assert.equal(mailTo(ctx, 'cancel Wix sub'), undefined);
   });
 
   it('alerts the administrator when an already-migrated donor starts a second Stripe subscription', async () => {
@@ -746,6 +777,24 @@ describe('_webhook-checkout -- one-time donation', () => {
     const purchase = ctx.ga4.find(c => c.body.events[0].name === 'purchase');
     assert.equal(purchase.body.events[0].params.value, 250);
     assert.deepEqual(purchase.body.events[0].params.items, [{ item_name: 'Donation' }]);
+  });
+
+  it('keys the conversion ledger row to the account an anonymous donation matched, not client_id', async () => {
+    // Without this, an anonymous donor who already has an account writes this
+    // purchase under their client_id while every later logged-in row of theirs
+    // keys to their user id -- one human counts as two first-time buyers in
+    // the backoffice funnel cohorts.
+    const ctx = ctxFor(session({ amount_total: 25000, metadata: { type: 'donation' } }), {
+      dbMap: {
+        'SELECT id, stripe_customer_id, name, first_name, last_name FROM user WHERE email':
+          { first: { id: 'usr_existing_1', stripe_customer_id: null, name: 'Ada Lovelace', first_name: '', last_name: '' } },
+      },
+      env: { CONVERSION_LEDGER: '1' },
+    });
+    assert.equal(await run(ctx), null);
+    const ledgerRow = stmts(ctx, 'INSERT OR IGNORE INTO conversion_event')[0];
+    assert.ok(ledgerRow, 'the ledger row must be written');
+    assert.equal(ledgerRow.bound[5], 'usr_existing_1', 'the ledger person key must be the matched account, not a client_id');
   });
 
   it('leaves the gift to the payment-intent-keyed daemon when the session has no PI', async () => {
@@ -916,6 +965,21 @@ describe('_webhook-checkout -- resolving a deferred payment intent', () => {
       assert.equal(await run(ctx, stub), null, 'a free enrollment must still succeed');
       const enroll = ctx.db._calls.find(c => c.sql.includes('INSERT INTO enrollment'));
       assert.equal(enroll.bound[3], 'cs_test_session', 'a $0 charge cannot be refunded, so the cs_ id is safe here');
+    } finally { stub.restore(); }
+  });
+
+  it('reports the resolved pi_ to GA4, not the cs_ session id the raw event carried', async () => {
+    // session.payment_intent is null on the raw event for an async payment
+    // method; the enrollment write above already uses the resolved pi_.
+    // Without the fix, GA4 would record the cs_ id while enrollment recorded
+    // the pi_, so the two systems disagree on the transaction identity.
+    const stub = withStripe({ '/v1/checkout/sessions/': { id: 'cs_test_session', object: 'checkout.session', payment_intent: 'pi_resolved_later' } });
+    try {
+      const ctx = ctxFor(courseSession(), { dbMap: enrollOk });
+      await run(ctx, stub);
+      const purchase = ctx.ga4.find(c => c.body.events[0].name === 'purchase');
+      assert.ok(purchase);
+      assert.equal(purchase.body.events[0].params.transaction_id, 'pi_resolved_later');
     } finally { stub.restore(); }
   });
 });
