@@ -200,6 +200,14 @@ export async function handleCheckoutCompleted(db, event, env, request, waitUntil
   // their user id. Null for a genuinely anonymous checkout, and nothing is
   // passed in that case.
   let ledgerUserId = session.client_reference_id || null;
+  if (!ledgerUserId && typeof accountLink?.userId === 'string' && accountLink.userId) {
+    ledgerUserId = accountLink.userId;
+  }
+
+  // Real Stripe payment_intent for the course-purchase GA4 send below (async payment
+  // methods leave session.payment_intent null on the raw event); resolved inside the
+  // course branch, read by the GA4 send outside it.
+  let paymentIntentId = null;
 
   // Course purchase: create enrollment
   if (session.metadata?.type === 'course') {
@@ -237,7 +245,7 @@ export async function handleCheckoutCompleted(db, event, env, request, waitUntil
     // WHERE stripe_payment_intent = charge.payment_intent (pi_...) filter could never match
     // and a fully-refunded student would keep access. Retrieve the session to resolve the
     // PI; only fall back to session.id if Stripe genuinely has no PI (free/100%-discount).
-    let paymentIntentId = session.payment_intent || null;
+    paymentIntentId = session.payment_intent || null;
     if (!paymentIntentId) {
       try {
         const stripe = getStripeClient(env);
@@ -364,7 +372,7 @@ export async function handleCheckoutCompleted(db, event, env, request, waitUntil
       page_location: pageLocation,
       currency: 'USD',
       value: (session.amount_total || 0) / 100,
-      transaction_id: session.payment_intent || session.id,
+      transaction_id: paymentIntentId || session.id,
       items: [{ item_name: `Course: ${session.metadata.courseId || 'unknown'}` }],
       ...(session.metadata?.ga_source && { utm_source: session.metadata.ga_source }),
       ...(session.metadata?.ga_medium && { utm_medium: session.metadata.ga_medium }),
@@ -393,6 +401,7 @@ export async function handleCheckoutCompleted(db, event, env, request, waitUntil
         // checkout.session.completed fires before 3DS confirms; an incomplete sub
         // should get a "in progress" email, not a false confirmation.
         let migrationEmailSubStatus = null;
+        let migrationEmailReadFailed = false;
         if (env.STRIPE_SECRET_KEY && session.subscription) {
           try {
             const stripeForEmail = getStripeClient(env);
@@ -401,6 +410,7 @@ export async function handleCheckoutCompleted(db, event, env, request, waitUntil
           } catch (subEmailErr) {
             log(env, waitUntil, 'billing', 'migration_email_sub_retrieve_fail', 'error',
               `${session.metadata.wix_subscription_id}: ${subEmailErr.message}`);
+            migrationEmailReadFailed = true;
           }
         }
 
@@ -410,6 +420,12 @@ export async function handleCheckoutCompleted(db, event, env, request, waitUntil
           // (the sub could already be active). Log and let Phase 7 cron reconcile.
           log(env, waitUntil, 'billing', 'migration_email_no_subscription', 'warning',
             `${session.metadata.wix_subscription_id}: session.subscription missing on completed checkout; skipping status email`);
+        } else if (migrationEmailReadFailed) {
+          // The Stripe status read threw -- same "don't guess" posture as the no-subscription
+          // branch above. Sending "in progress" here could be a false pending notification if
+          // the sub is actually active. Log and let Phase 7 cron reconcile.
+          log(env, waitUntil, 'billing', 'migration_email_status_unknown', 'warning',
+            `${session.metadata.wix_subscription_id}: Stripe status read failed; skipping status email`);
         } else if (migrationEmailSubStatus !== 'active' && migrationEmailSubStatus !== 'trialing') {
           waitUntil(sendEmailSafe(env, waitUntil, {
             to: email,
@@ -609,6 +625,7 @@ export async function handleCheckoutCompleted(db, event, env, request, waitUntil
           // and skip the migration flip. Phase 7 cron Sweep 2 will reconcile slow-3DS donors
           // whose subs eventually become active.
           let stripeSubStatus = null;
+          let stripeReadFailed = false;
           try {
             if (env.STRIPE_SECRET_KEY && session.subscription) {
               const stripe = getStripeClient(env);
@@ -616,17 +633,28 @@ export async function handleCheckoutCompleted(db, event, env, request, waitUntil
               stripeSubStatus = sub.status;
             }
           } catch (stripeReadErr) {
-            // Stripe API hiccup — log and fail-CLOSED (skip UPDATE) for safety.
+            // Stripe API hiccup — log and fail-CLOSED. Fail-closed here means leaving the
+            // lock in place, not clearing it: a real not-ready status clears the lock so
+            // the donor can retry without the 15-min penalty, but an UNKNOWN status is not
+            // a real not-ready status -- the sub could already be active, and clearing the
+            // lock would invite a retry that mints a duplicate subscription. Leave it for
+            // the 15-minute sweep to reclaim.
             log(env, waitUntil, 'billing', 'metadata_stripe_retrieve_fail', 'error',
               `${wixSubIdMeta}: ${stripeReadErr.message}`);
             env.EVENTS?.writeDataPoint({
               blobs: ['billing', 'stuc-migration', 'stripe-retrieve-error', wixSubIdMeta, session.subscription || ''],
               indexes: ['stripe-retrieve-error'],
             });
-            stripeSubStatus = 'unknown';
+            stripeReadFailed = true;
           }
 
-          if (stripeSubStatus !== 'active' && stripeSubStatus !== 'trialing') {
+          if (stripeReadFailed) {
+            // Skip the migration flip (same as the not-ready branch) but do NOT clear the
+            // lock -- see the catch block above.
+            log(env, waitUntil, 'billing', 'metadata_handoff_deferred', 'info',
+              `${wixSubIdMeta}: Stripe status read failed; skipping UPDATE without releasing lock`);
+            migrationHandled = true;
+          } else if (stripeSubStatus !== 'active' && stripeSubStatus !== 'trialing') {
             // Sub is not yet usable — clear the lock so the donor can retry, but DO NOT
             // flip migration_status or email admin. Phase 7 cron handles slow-3DS reconciliation.
             // arise-ignore unbatched-writes -- single write in an early-return branch; no multi-table write here
