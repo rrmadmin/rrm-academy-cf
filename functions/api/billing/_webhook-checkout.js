@@ -192,6 +192,14 @@ export async function handleCheckoutCompleted(db, event, env, request, waitUntil
     });
   }
 
+  // The rrm-auth user this checkout belongs to, for the first-party conversion
+  // ledger's person key (functions/api/_ga4.js). A webhook request carries no
+  // session cookie of ours, so without this a registered buyer's purchase row
+  // would key to their client_id while every earlier row of theirs keys to
+  // their user id. Null for a genuinely anonymous checkout, and nothing is
+  // passed in that case.
+  let ledgerUserId = session.client_reference_id || null;
+
   // Course purchase: create enrollment
   if (session.metadata?.type === 'course') {
     const courseId = session.metadata.courseId;
@@ -212,6 +220,7 @@ export async function handleCheckoutCompleted(db, event, env, request, waitUntil
         });
       }
     }
+    ledgerUserId = userId;
 
     if (!getCourse(courseId)) {
       log(env, waitUntil, 'billing', 'course_not_found', 'error', `${courseId} user=${userId}`);
@@ -321,6 +330,19 @@ export async function handleCheckoutCompleted(db, event, env, request, waitUntil
     const sid = Number(session.metadata.ga_session_id);
     if (Number.isFinite(sid)) gaOverrides.session_id = sid;
   }
+  // Ledger-only (never reaches the GA4 payload): the three purchase sends
+  // below all carry this override, so a replayed purchase lands on the same
+  // person key as the buyer's own earlier rows.
+  if (typeof ledgerUserId === 'string' && ledgerUserId) gaOverrides.user_id = ledgerUserId;
+  // Ledger-only as well: the idempotency key for conversion_event's
+  // INSERT OR IGNORE. stripe-webhook.js already dedupes deliveries through the
+  // webhook_event table, so this matters only in the retry window where this
+  // handler wrote a purchase row and then returned 500 -- Stripe redelivers,
+  // the dedup row was rolled back, and without the key the same purchase lands
+  // twice. Exactly one of the three sends below fires per session (course,
+  // donation and subscription are mutually exclusive), so one Stripe event id
+  // maps to at most one ledger row.
+  if (typeof event.id === 'string' && event.id) gaOverrides.event_id = event.id;
 
   const pageLocation = (session.cancel_url || session.success_url || SITE_URL).replace(/\?.*$/, '');
 
