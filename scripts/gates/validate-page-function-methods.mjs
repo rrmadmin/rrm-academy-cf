@@ -64,7 +64,7 @@ const BOLD = '\x1b[1m', RESET = '\x1b[0m';
  * Value: reason, 40+ characters, checked by HM0. HM0 also FAILS on an entry
  * whose file no longer exists, so this map cannot rot into cover for real drift.
  */
-const EXCLUDED = {
+export const EXCLUDED = {
   'functions/save-the-uterus-club/migrate.js':
     'Tokenized magic-link landing for the STUC Wix-to-Stripe migration, not a shareable URL. Each link is bound to one member and one token, it is never posted publicly, and it deliberately should not unfurl a preview of a private account action.',
 };
@@ -74,7 +74,7 @@ const EXCLUDED = {
  * enumeration, the scan has silently narrowed and the gate is worth less than
  * it looks. Same anti-vacuity idea as the payment gates' COVERAGE_SENTINELS.
  */
-const COVERAGE_SENTINELS = [
+export const COVERAGE_SENTINELS = [
   'functions/events/[slug].js',
   'functions/og/[[path]].js',
 ];
@@ -124,7 +124,7 @@ function runGate(id, name, fn) {
 }
 
 // ---------- Enumeration ---------------------------------------------------
-function walk(dir, out = []) {
+export function walk(dir, out = []) {
   const abs = join(PROJECT_ROOT, dir);
   if (!existsSync(abs)) return out;
   for (const entry of readdirSync(abs)) {
@@ -158,7 +158,7 @@ const HTML_ROUTES = ALL_ROUTES.filter((f) => {
 const IN_SCOPE = HTML_ROUTES.filter((f) => !(f in EXCLUDED));
 
 /** Which method exports a module declares. */
-function exportsOf(rel) {
+export function exportsOf(rel) {
   const src = read(rel);
   if (src === null) return null;
   const s = strip(src);
@@ -172,7 +172,7 @@ function exportsOf(rel) {
 const answersHead = (ex) => ex && (ex.has('onRequest') || ex.has('onRequestHead'));
 
 // ---------- HM0 -----------------------------------------------------------
-function gateHM0() {
+export function gateHM0() {
   const r = [];
   r.push(pass(`enumerated ${ALL_ROUTES.length} route modules under functions/ (excluding functions/api/ and _-prefixed)`));
 
@@ -207,7 +207,7 @@ function gateHM0() {
 }
 
 // ---------- HM1 -----------------------------------------------------------
-function gateHM1() {
+export function gateHM1() {
   const r = [];
   for (const f of IN_SCOPE) {
     const ex = exportsOf(f);
@@ -227,7 +227,7 @@ function gateHM1() {
 }
 
 // ---------- HM2 -----------------------------------------------------------
-function gateHM2() {
+export function gateHM2() {
   const checked = IN_SCOPE.length;
   if (checked < MIN_IN_SCOPE) {
     return fail(`only ${checked} routes actually checked, floor ${MIN_IN_SCOPE} — a broken extractor must not report success by checking nothing`);
@@ -236,6 +236,10 @@ function gateHM2() {
 }
 
 // ---------- Run -----------------------------------------------------------
+// Importing this module for its functions/constants (the test harness does)
+// must not run the gates or call process.exit.
+const INVOKED_DIRECTLY = process.argv[1] && process.argv[1].endsWith('validate-page-function-methods.mjs');
+if (INVOKED_DIRECTLY) {
 runGate('HM0', 'Page-route enumeration integrity', gateHM0);
 runGate('HM1', 'Every crawler-fetched route answers HEAD', gateHM1);
 runGate('HM2', 'Coverage meta-assertion (anti-vacuity)', gateHM2);
@@ -249,3 +253,4 @@ if (JSON_MODE) {
     : `${RED}${BOLD}FAIL: ${totalFailures} gate(s) failed${RESET}`);
 }
 process.exit(totalFailures === 0 ? 0 : 1);
+}

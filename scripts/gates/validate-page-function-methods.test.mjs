@@ -143,3 +143,39 @@ test('ANTI-VACUITY: an empty scan fails HM2 rather than reporting success', () =
   assert.match(out, /the scan has broken, not the repo shrunk|must not report success by checking nothing/);
   rmSync(root, { recursive: true, force: true });
 });
+
+// ---------------------------------------------------------------------------
+// In-process tests. Everything above drives the CLI via execFileSync so it
+// exercises the real entrypoint (exit codes, --json, env var root override).
+// c8 cannot instrument a subprocess, so these call the exported functions
+// directly in this process -- same behavior, and it is what actually shows up
+// as PRODUCT-CODE coverage in the census.
+import { gateHM0, gateHM1, gateHM2, walk, exportsOf, EXCLUDED, COVERAGE_SENTINELS }
+  from './validate-page-function-methods.mjs';
+
+test('in-process: walk() enumerates this repo\'s functions/ tree', () => {
+  const routes = walk('functions');
+  assert.ok(Array.isArray(routes) && routes.length > 0);
+  assert.ok(routes.includes('functions/events/[slug].js'));
+  assert.ok(!routes.some((f) => f.startsWith('functions/api/')), 'api/ must be excluded from the walk itself');
+});
+
+test('in-process: exportsOf() reads real export sets off disk', () => {
+  const ex = exportsOf('functions/events/[slug].js');
+  assert.ok(ex.has('onRequestGet') && ex.has('onRequestHead'));
+  assert.equal(exportsOf('functions/does-not-exist.js'), null);
+});
+
+test('in-process: gateHM0/HM1/HM2 run clean against the real repo', () => {
+  for (const fn of [gateHM0, gateHM1, gateHM2]) {
+    const r = fn();
+    const arr = Array.isArray(r) ? r : [r];
+    assert.ok(arr.every((x) => x.ok !== false), `expected all-pass, got: ${JSON.stringify(arr.filter((x) => x.ok === false))}`);
+  }
+});
+
+test('in-process: EXCLUDED and COVERAGE_SENTINELS are non-empty and consistent', () => {
+  assert.ok(Object.keys(EXCLUDED).length >= 1);
+  assert.ok(COVERAGE_SENTINELS.length >= 2);
+  for (const s of COVERAGE_SENTINELS) assert.ok(walk('functions').includes(s), `sentinel ${s} must actually be in the walk`);
+});

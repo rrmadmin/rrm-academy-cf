@@ -137,3 +137,38 @@ test('ANTI-VACUITY: a registry that fails to load does not report success', () =
   assert.match(out, /the registry failed to load, the repo did not shrink/);
   clean(root);
 });
+
+// ---------------------------------------------------------------------------
+// In-process tests, same rationale as the HEAD gate's: subprocess CLI tests
+// above verify real entrypoint behavior, but c8 cannot instrument a subprocess.
+// These call the exported functions directly against the real repo so the
+// module shows up as covered PRODUCT-CODE, not a c8 blind spot.
+import { gateCR0, gateCR1, gateCR2, gateCR3, loadGuides, contentSourceOf, isISODate }
+  from './validate-content-review.mjs';
+
+test('in-process: loadGuides() reads the real ssot/guides.json', () => {
+  const guides = loadGuides();
+  assert.ok(guides.length >= 15);
+  assert.ok(guides.some((g) => g.slug === 'endometriosis'));
+});
+
+test('in-process: isISODate rejects everything a reviewer might mistype', () => {
+  assert.ok(isISODate('2026-08-25'));
+  for (const bad of ['yesterday', '2026-13-45', '08/25/2026', '', null, undefined, 20260825]) {
+    assert.equal(isISODate(bad), false, `${JSON.stringify(bad)} must not pass as a date`);
+  }
+});
+
+test('in-process: contentSourceOf() locates a real guide\'s content file', () => {
+  const guides = loadGuides();
+  const withData = guides.find((g) => g.slug === 'rrm-success-rates');
+  assert.equal(contentSourceOf(withData), 'src/data/rrm-success-rates.json');
+});
+
+test('in-process: CR0-CR3 run clean against the real repo', () => {
+  for (const fn of [gateCR0, gateCR1, gateCR2, gateCR3]) {
+    const r = fn();
+    const arr = Array.isArray(r) ? r : [r];
+    assert.ok(arr.every((x) => x.ok !== false), `expected all-pass, got: ${JSON.stringify(arr.filter((x) => x.ok === false))}`);
+  }
+});
