@@ -8,6 +8,12 @@ name = "rrm-academy"
 pages_build_output_dir = "dist"
 compatibility_date = "2025-01-01"
 
+[vars]
+# First-party conversion ledger (migrations/036-conversion-ledger.sql).
+# "1" enables the additive INSERT in functions/api/_ga4.js; any other value
+# (or an absent var) leaves the GA4 relay exactly as it was.
+CONVERSION_LEDGER = "1"
+
 [[kv_namespaces]]
 binding = "SURVEY_TOKENS"
 id = "ef52bc09f1b44b5f8e3367372be8d63d"
