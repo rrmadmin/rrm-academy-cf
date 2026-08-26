@@ -75,12 +75,14 @@ export const NEWSLETTER_CONVERSION_ACTION_ID = '7671519545';
 // depth per keyword stays visible.
 export const QUIZ_CONVERSION_ACTION_ID = '7671519548'; // FABM Quiz Start (primary)
 export const QUIZ_EMAIL_CONVERSION_ACTION_ID = '7729254901'; // secondary
+export const QUIZ_RESULTS_CONVERSION_ACTION_ID = '7735340854'; // secondary
 // Endo quiz funnel (2026-08-21): START is the primary action (drives Maximize
 // Conversions bidding); PDF download and email request are secondary actions
 // (observed, not bid on) so completion depth per keyword stays visible.
 export const ENDO_QUIZ_CONVERSION_ACTION_ID = '7671519551'; // Endo Quiz Start (primary)
 export const ENDO_QUIZ_PDF_CONVERSION_ACTION_ID = '7728951095'; // secondary
 export const ENDO_QUIZ_EMAIL_CONVERSION_ACTION_ID = '7728951098'; // secondary
+export const ENDO_QUIZ_RESULTS_CONVERSION_ACTION_ID = '7735340851'; // secondary
 
 // gclid values are opaque alphanumeric-ish tokens Google generates; this is a
 // sanity bound, not a real format spec.
@@ -93,9 +95,11 @@ const CONVERSION_ACTION_NAMES = {
   [NEWSLETTER_CONVERSION_ACTION_ID]: 'Newsletter Signup',
   [QUIZ_CONVERSION_ACTION_ID]: 'FABM Quiz Start',
   [QUIZ_EMAIL_CONVERSION_ACTION_ID]: 'FABM Quiz Email Request',
+  [QUIZ_RESULTS_CONVERSION_ACTION_ID]: 'FABM Quiz Results Reached',
   [ENDO_QUIZ_CONVERSION_ACTION_ID]: 'Endo Quiz Start',
   [ENDO_QUIZ_PDF_CONVERSION_ACTION_ID]: 'Endo Quiz PDF Download',
   [ENDO_QUIZ_EMAIL_CONVERSION_ACTION_ID]: 'Endo Quiz Email Request',
+  [ENDO_QUIZ_RESULTS_CONVERSION_ACTION_ID]: 'Endo Quiz Results Reached',
 };
 
 function conversionActionName(conversionActionId) {

@@ -78,6 +78,11 @@ const PAGE_URL = 'https://rrmacademy.org/endo-quiz/results/';
     }
 
     function init(handoff) {
+      if (!sessionStorage.getItem('ec-results-conv')) {
+        try { sessionStorage.setItem('ec-results-conv', '1'); } catch (e) {}
+        fetch('/api/endo-quiz/results', { method: 'POST', keepalive: true }).catch(function () {});
+      }
+
       const score = handoff.score;
       const counts = {
         tier1: (handoff.symptoms.tier1 || []).length,
