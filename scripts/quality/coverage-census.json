@@ -20,15 +20,15 @@
   "full_surface": {
    "files": 407,
    "lines": 81113,
-   "covered": 32674,
-   "pct": 40.28
+   "covered": 32585,
+   "pct": 40.17
   },
   "by_category": {
    "PRODUCT-CODE": {
     "files": 318,
-    "lines": 59699,
-    "covered": 27391,
-    "pct": 45.88
+    "lines": 59701,
+    "covered": 27302,
+    "pct": 45.73
    },
    "CONTENT-TEMPLATE": {
     "files": 9,
@@ -50,19 +50,19 @@
    },
    "ONE-OFF": {
     "files": 44,
-    "lines": 7193,
+    "lines": 7191,
     "covered": 0,
     "pct": 0
    }
   },
   "product_code": {
    "files": 318,
-   "lines": 59699,
-   "covered": 27391,
-   "pct": 45.88
+   "lines": 59701,
+   "covered": 27302,
+   "pct": 45.73
   },
-  "files_at_zero_in_full_report": 239,
-  "files_executed_in_full_report": 168,
+  "files_at_zero_in_full_report": 240,
+  "files_executed_in_full_report": 167,
   "highest_stakes_slice": {
    "slice": "national survey system (functions/api/survey/ + functions/api/endo-quiz/)",
    "files": [
@@ -78,14 +78,7 @@
    "state": "928/928 lines (100%). Executed suites: test/survey-request.test.js, test/survey-submit.test.js, test/survey-endpoints.test.js, test/endo-quiz-request.test.js, test/endo-quiz-download.test.js. The two load-bearing invariants are asserted by running the handlers against SEPARATE databases: identity (email + rec_id) lands only in SURVEY_DB while symptoms land only in SURVEY_SYMPTOMS_DB with no address in the SQL or any bound value; and a failed symptom write deletes the D1 token claim and restores the original KV token record so the participant can resubmit. The endo-quiz (Google Ads) half runs on real SQLite engines built from the committed rrm-survey-symptoms migration, and asserts the same split plus the asymmetry either side of it: a failed symptom write is a 500 with no identity row, a failed identity write still counts the submission and alerts an administrator by rec_id."
   }
  },
- "_line_exclusions": [
-  {
-   "file": "functions/api/admin/enrollments.js",
-   "lines": "the `if (!env.DB) return 503 Database unavailable` guard",
-   "mechanism": "c8 ignore start/stop in the source, next to the same explanation",
-   "reason": "UNREACHABLE, and kept as defence in depth rather than deleted. onRequestGet calls requireSuperAdmin(request, env.DB) first, and functions/api/auth/_shared.js answers `if (!db) return 500 Server misconfigured` before doing anything else, so control cannot arrive at the 503 with a falsy env.DB. Proven by execution in test/admin-enrollments.test.js (\"500s when the DB binding is absent\"), which asserts the 500 the endpoint actually produces; a test asserting 503 would have been asserting a response this endpoint cannot return, and reaching it would have required an env object that lies about its own bindings. Delete the ignore hints, not the guard, if requireSuperAdmin ever stops checking its db argument."
-  }
- ],
+ "_line_exclusions": [],
  "_followup_estimate_hours": {
   "PRODUCT-CODE functions/api (survey path + Stripe webhook cluster + identity path + training analytics + FABM quiz API + endo-quiz DONE)": "survey/ is at 100%; the billing webhook cluster is executed rather than grepped (test/_json-module-hook.mjs made the module graph importable); tranche 2 put the identity path (auth login/signup, community membership gate + roster, admin membership-report, donor rollups, webhook dedup) on a real SQLite engine loaded with the committed schema (test/_d1-sqlite.mjs); tranche 3 did the same for the five PRODUCT surfaces that were sitting under a green repo-wide floor -- training analytics (courses/progress.js 100%, admin/enrollments.js 96.7%), the FABM quiz API (quiz/request.js, quiz/event.js, courses/quiz.js, courses/_quiz-content.js all 100%, on a SURVEY_DB harness built from the committed rrm-survey migrations), and library/deploy-record.js 100%; and tranche 4 closed the endo-quiz half of the national survey system (request.js 0 -> 100% and download.js 0 -> 100%, on separate SURVEY_DB and SURVEY_SYMPTOMS_DB engines) plus the last two lines of admin/enrollments.js. Remaining: ~120 endpoint files still absent from any test, 85-115h to ~80% lines. Next worst by CRAP: functions/api/billing/_webhook-subscription.js and functions/api/create-checkout.js",
   "PRODUCT-CODE CLOSED in tranche 4: scripts/build-library-feed.mjs (was 0%, 75 lines)": "Was the last zero in the library render surface, and was recorded here as not coverable as written: both paths were resolved at module scope from import.meta.url, so importing it read the real 32MB gitignored src/data/articles.json and rewrote public/library-feed.jsonl, and on a clean CI checkout it took the existsSync early-exit and covered nothing. Closed 2026-07-31 by the smallest production change that removes the obstacle -- buildLibraryFeed({articlesPath, outPath, logger}) defaulting to the same two constants, main() for the CLI -- verified by rebuilding the real 4053-record feed and diffing it byte for byte against what main produced (identical, sha256 0edf193c193bafa9297abff7567ccf52fd22265ce1c639d0fbe0e795fd0fb4ae). Now 154/154 lines, 100% branches, with the CLI entry exercised as a real subprocess.",
@@ -2073,10 +2066,10 @@
    "file": "scripts/audit-glossary-links.mjs",
    "category": "PRODUCT-CODE",
    "reason": "Local deterministic analysis of glossary.json link classes; unit-tested (glossary-link-classifier.test.js), 80% covered today.",
-   "present": true,
+   "present": false,
    "lines": 101,
-   "covered": 89,
-   "pct": 88.11
+   "covered": 0,
+   "pct": 0
   },
   {
    "file": "scripts/audit-textbook-fact-coverage.mjs",
@@ -3199,7 +3192,7 @@
    "category": "PRODUCT-CODE",
    "reason": "The quality instrument itself (coverage/CRAP/mutation/census). A measurement tool that is wrong is worse than no tool; its pure logic is unit-testable.",
    "present": false,
-   "lines": 826,
+   "lines": 828,
    "covered": 0,
    "pct": 0
   },
@@ -3487,7 +3480,7 @@
    "category": "ONE-OFF",
    "reason": "One-shot local operation (data insert, staging helper, CRM fix, avatar backfill, recording upload, hook install); record of a finished operation.",
    "present": false,
-   "lines": 277,
+   "lines": 275,
    "covered": 0,
    "pct": 0
   },
