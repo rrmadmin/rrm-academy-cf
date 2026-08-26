@@ -155,6 +155,11 @@ const PAGE_URL = 'https://rrmacademy.org/fertility-awareness-method-quiz/results
       document.getElementById('result').hidden = false;
       trackEvent('result_view');
 
+      if (!sessionStorage.getItem('qz-results-conv')) {
+        try { sessionStorage.setItem('qz-results-conv', '1'); } catch (e) {}
+        fetch('/api/quiz/results', { method: 'POST', keepalive: true }).catch(function () {});
+      }
+
       document.querySelectorAll('#result .rz-card').forEach(function (card) {
         card.addEventListener('click', function () { trackEvent('cta_click'); });
       });
