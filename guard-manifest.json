@@ -230,7 +230,7 @@
       "note": "Allowed events, required params, PII_REGEX, reserved params (security invariants for /api/track)"
     },
     "functions/api/_ga4.js": {
-      "hash": "0bea323f39587ccc0fb4480b35cb154b766eae8708bc6ac8716028765462c9f0",
+      "hash": "13c916d4c91ed15a5cfadb7a4282971c380affd4039b69945a1fa502655192bb",
       "note": "GA4 MP relay: server-derived attribution PII screen (second pass) + page_location query/hash/userinfo strip"
     },
     "functions/api/_ga4-source.js": {

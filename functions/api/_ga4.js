@@ -4,6 +4,10 @@
  *
  * Usage: fire-and-forget after successful actions:
  *   sendGA4Event(env, request, 'purchase', { value: 10.00, currency: 'USD' }).catch(() => {});
+ *
+ * Every event relayed here is sent to GA4. The first-party conversion ledger
+ * below is narrower on purpose: it records only the five funnel events in
+ * LEDGER_EVENTS, and every other event returns from the ledger write untouched.
  */
 
 import { buildSourceParams, getClientId, parseCookie } from './_ga4-source.js';
@@ -28,6 +32,20 @@ const REGISTERED_USER_EVENTS = new Set(['sign_up', 'signup_from_ask']);
 // converse does NOT hold: the ledger is our own record, so it still writes when
 // GA4_MEASUREMENT_ID/GA4_API_SECRET are absent and no send happens at all --
 // a credential lapse is precisely when an independent record earns its keep.
+//
+// SCOPE. The ledger answers funnel questions, so it records exactly the five
+// events below and nothing else. sendGA4Event is the relay for every server-side
+// event on the site, engagement signals included (scroll_depth, user_engagement,
+// cta_click), and those were landing rows that no funnel question asks about
+// while inflating a table meant to stay conversion-shaped. GA4 still receives
+// every one of them; only the ledger write is narrowed.
+const LEDGER_EVENTS = Object.freeze(new Set([
+  'page_view',
+  'sign_up',
+  'generate_lead',
+  'begin_checkout',
+  'purchase',
+]));
 
 // TEXT caps applied on the way into the row, AFTER ledgerSafeText's PII screen.
 // These are a defensive width bound, not a sanitizer; the screen is.
@@ -298,6 +316,10 @@ export async function sendGA4Event(env, request, eventName, params = {}, overrid
     // so the two paths cannot drift apart.
     const writeLedger = async () => {
       if (env.CONVERSION_LEDGER !== '1' || !env.DB) return;
+      // Scope gate, ahead of the user-id resolution and the INSERT: an event
+      // outside LEDGER_EVENTS costs the ledger nothing, not even a session
+      // lookup.
+      if (!LEDGER_EVENTS.has(eventName)) return;
       try {
         await writeConversionLedger(env, request, eventName, params, sourceParams, clientId, overrides);
       } catch (err) {
