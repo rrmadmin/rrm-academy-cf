@@ -111,22 +111,22 @@ export async function onRequestPost(context) {
     return json({ ok: false, error: 'question_too_long' }, 400);
   }
 
-  if (basicAnswer !== undefined && typeof basicAnswer === 'string' && basicAnswer.length > 50000) {
+  if (basicAnswer !== undefined && basicAnswer !== null && (typeof basicAnswer !== 'string' || basicAnswer.length > 50000)) {
     return json({ ok: false, error: 'basicAnswer_too_long' }, 400);
   }
-  if (schemaAnswer !== undefined && typeof schemaAnswer === 'string' && schemaAnswer.length > 5000) {
+  if (schemaAnswer !== undefined && schemaAnswer !== null && (typeof schemaAnswer !== 'string' || schemaAnswer.length > 5000)) {
     return json({ ok: false, error: 'schemaAnswer_too_long' }, 400);
   }
-  if (publishedAnswer !== undefined && typeof publishedAnswer === 'string' && publishedAnswer.length > 100000) {
+  if (publishedAnswer !== undefined && publishedAnswer !== null && (typeof publishedAnswer !== 'string' || publishedAnswer.length > 100000)) {
     return json({ ok: false, error: 'publishedAnswer_too_long' }, 400);
   }
-  if (seoTitle !== undefined && typeof seoTitle === 'string' && seoTitle.length > 200) {
+  if (seoTitle !== undefined && seoTitle !== null && (typeof seoTitle !== 'string' || seoTitle.length > 200)) {
     return json({ ok: false, error: 'seoTitle_too_long' }, 400);
   }
-  if (seoDescription !== undefined && typeof seoDescription === 'string' && seoDescription.length > 500) {
+  if (seoDescription !== undefined && seoDescription !== null && (typeof seoDescription !== 'string' || seoDescription.length > 500)) {
     return json({ ok: false, error: 'seoDescription_too_long' }, 400);
   }
-  if (body.faqCode !== undefined && typeof body.faqCode === 'string' && body.faqCode.length > 50) {
+  if (body.faqCode !== undefined && body.faqCode !== null && (typeof body.faqCode !== 'string' || body.faqCode.length > 50)) {
     return json({ ok: false, error: 'faqCode_too_long' }, 400);
   }
 

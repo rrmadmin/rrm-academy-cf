@@ -154,19 +154,19 @@ export async function onRequestPost(context) {
     return json({ ok: false, error: 'title_too_long' }, 400);
   }
 
-  if (description !== undefined && typeof description === 'string' && description.length > 50000) {
+  if (description !== undefined && description !== null && (typeof description !== 'string' || description.length > 50000)) {
     return json({ ok: false, error: 'description_too_long' }, 400);
   }
-  if (shortDescription !== undefined && typeof shortDescription === 'string' && shortDescription.length > 50000) {
+  if (shortDescription !== undefined && shortDescription !== null && (typeof shortDescription !== 'string' || shortDescription.length > 50000)) {
     return json({ ok: false, error: 'short_description_too_long' }, 400);
   }
-  if (image !== undefined && typeof image === 'string' && image.length > 500) {
+  if (image !== undefined && image !== null && (typeof image !== 'string' || image.length > 500)) {
     return json({ ok: false, error: 'image_too_long' }, 400);
   }
-  if (imageAlt !== undefined && typeof imageAlt === 'string' && imageAlt.length > 500) {
+  if (imageAlt !== undefined && imageAlt !== null && (typeof imageAlt !== 'string' || imageAlt.length > 500)) {
     return json({ ok: false, error: 'image_alt_too_long' }, 400);
   }
-  if (stripePriceId !== undefined && typeof stripePriceId === 'string' && stripePriceId.length > 100) {
+  if (stripePriceId !== undefined && stripePriceId !== null && (typeof stripePriceId !== 'string' || stripePriceId.length > 100)) {
     return json({ ok: false, error: 'stripe_price_id_too_long' }, 400);
   }
 
