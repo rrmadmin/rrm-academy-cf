@@ -65,10 +65,18 @@ describe('webhook-checkout 3DS-incomplete guard (Bug #11)', () => {
     );
   });
 
-  it('fails closed on Stripe API error (does NOT flip migration_status)', () => {
+  it('fails closed on Stripe API error (does NOT flip migration_status, does NOT clear the lock)', () => {
+    // A read failure gives no real status -- the sub could already be active.
+    // Unlike a confirmed not-ready status, it must skip BOTH the migration flip
+    // AND the lock-clear UPDATE (clearing the lock here would invite a retry
+    // that mints a duplicate subscription); the 15-minute sweep reclaims it.
     assert.ok(
-      /stripeSubStatus\s*=\s*'unknown'/.test(source),
-      'Stripe API errors must fail closed (set status to unknown which skips UPDATE)'
+      /stripeReadFailed\s*=\s*true/.test(source),
+      'Stripe API errors must be tracked distinctly from a real not-ready status'
+    );
+    assert.ok(
+      /if\s*\(stripeReadFailed\)\s*\{[\s\S]{0,500}migrationHandled\s*=\s*true/.test(source),
+      'A read failure must skip the migration flip without attempting the lock-clear UPDATE'
     );
   });
 });
