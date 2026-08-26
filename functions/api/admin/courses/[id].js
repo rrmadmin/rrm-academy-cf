@@ -147,19 +147,19 @@ export async function onRequestPut(context) {
     }
   }
 
-  if (body.description !== undefined && typeof body.description === 'string' && body.description.length > 50000) {
+  if (body.description !== undefined && body.description !== null && (typeof body.description !== 'string' || body.description.length > 50000)) {
     return json({ ok: false, error: 'description_too_long' }, 400);
   }
-  if (body.shortDescription !== undefined && typeof body.shortDescription === 'string' && body.shortDescription.length > 50000) {
+  if (body.shortDescription !== undefined && body.shortDescription !== null && (typeof body.shortDescription !== 'string' || body.shortDescription.length > 50000)) {
     return json({ ok: false, error: 'short_description_too_long' }, 400);
   }
-  if (body.image !== undefined && typeof body.image === 'string' && body.image.length > 500) {
+  if (body.image !== undefined && body.image !== null && (typeof body.image !== 'string' || body.image.length > 500)) {
     return json({ ok: false, error: 'image_too_long' }, 400);
   }
-  if (body.imageAlt !== undefined && typeof body.imageAlt === 'string' && body.imageAlt.length > 500) {
+  if (body.imageAlt !== undefined && body.imageAlt !== null && (typeof body.imageAlt !== 'string' || body.imageAlt.length > 500)) {
     return json({ ok: false, error: 'image_alt_too_long' }, 400);
   }
-  if (body.stripePriceId !== undefined && typeof body.stripePriceId === 'string' && body.stripePriceId.length > 100) {
+  if (body.stripePriceId !== undefined && body.stripePriceId !== null && (typeof body.stripePriceId !== 'string' || body.stripePriceId.length > 100)) {
     return json({ ok: false, error: 'stripe_price_id_too_long' }, 400);
   }
 

@@ -265,6 +265,34 @@ describe('PUT /api/admin/faqs/[id] -- update', () => {
     assert.equal(status, 400);
     assert.equal(body.error, 'invalid_category');
   });
+
+  it('returns 400 when a string-capped field is a non-string, non-null value (object)', async () => {
+    const req = mockRequest('PUT', {
+      url: 'https://rrmacademy.org/api/admin/faqs/faq_abc123',
+      body: { basicAnswer: { not: 'a string' } },
+    });
+    const env = mockEnv();
+    const wt = mockWaitUntil();
+    const res = await onRequestPut(makeContext(req, env, wt, ADMIN_USER, { id: 'faq_abc123' }));
+    const { status, body } = await parseResponse(res);
+
+    assert.equal(status, 400);
+    assert.equal(body.error, 'basicAnswer_too_long');
+  });
+
+  it('returns 400 for a non-integer sortOrder', async () => {
+    const req = mockRequest('PUT', {
+      url: 'https://rrmacademy.org/api/admin/faqs/faq_abc123',
+      body: { sortOrder: 'first' },
+    });
+    const env = mockEnv();
+    const wt = mockWaitUntil();
+    const res = await onRequestPut(makeContext(req, env, wt, ADMIN_USER, { id: 'faq_abc123' }));
+    const { status, body } = await parseResponse(res);
+
+    assert.equal(status, 400);
+    assert.equal(body.error, 'invalid_sort_order');
+  });
 });
 
 describe('DELETE /api/admin/faqs/[id]', () => {

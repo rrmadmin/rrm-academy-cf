@@ -210,10 +210,10 @@
       "hash": "733854b25946ef2acd0ee19a6d2ccba73821b6fbc6672d12193551c400c10f82"
     },
     "functions/api/admin/faqs/index.js": {
-      "hash": "1f43037c674d0a852259f963888b17f52c87c6e2820eb2ecaf1789e4f75dcad0"
+      "hash": "d2583480199490dbd8dd0e57c6835fb9c6c91ae4703bf9e25794aaf82d61bbe0"
     },
     "functions/api/admin/faqs/[id].js": {
-      "hash": "daf356349ff6a6e5ff2aa557db6e28e2e4e513e221a5b02c590e0bccf0512bb1"
+      "hash": "1f474e96e613a6c0f54178abe46e3af81e8dadc3e59fb0caca20b5c5c41635ff"
     },
     "functions/api/admin/faqs/[id]/library-refs.js": {
       "hash": "253d41bd4f6ead3e6d78dda01c100cf65fd87c753102285151d06129131fa0b9"

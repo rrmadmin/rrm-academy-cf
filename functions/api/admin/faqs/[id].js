@@ -138,22 +138,22 @@ export async function onRequestPut(context) {
     faqCode: 'faq_code',
   };
 
-  if (body.basicAnswer !== undefined && typeof body.basicAnswer === 'string' && body.basicAnswer.length > 50000) {
+  if (body.basicAnswer !== undefined && body.basicAnswer !== null && (typeof body.basicAnswer !== 'string' || body.basicAnswer.length > 50000)) {
     return json({ ok: false, error: 'basicAnswer_too_long' }, 400);
   }
-  if (body.schemaAnswer !== undefined && typeof body.schemaAnswer === 'string' && body.schemaAnswer.length > 5000) {
+  if (body.schemaAnswer !== undefined && body.schemaAnswer !== null && (typeof body.schemaAnswer !== 'string' || body.schemaAnswer.length > 5000)) {
     return json({ ok: false, error: 'schemaAnswer_too_long' }, 400);
   }
-  if (body.publishedAnswer !== undefined && typeof body.publishedAnswer === 'string' && body.publishedAnswer.length > 100000) {
+  if (body.publishedAnswer !== undefined && body.publishedAnswer !== null && (typeof body.publishedAnswer !== 'string' || body.publishedAnswer.length > 100000)) {
     return json({ ok: false, error: 'publishedAnswer_too_long' }, 400);
   }
-  if (body.seoTitle !== undefined && typeof body.seoTitle === 'string' && body.seoTitle.length > 200) {
+  if (body.seoTitle !== undefined && body.seoTitle !== null && (typeof body.seoTitle !== 'string' || body.seoTitle.length > 200)) {
     return json({ ok: false, error: 'seoTitle_too_long' }, 400);
   }
-  if (body.seoDescription !== undefined && typeof body.seoDescription === 'string' && body.seoDescription.length > 500) {
+  if (body.seoDescription !== undefined && body.seoDescription !== null && (typeof body.seoDescription !== 'string' || body.seoDescription.length > 500)) {
     return json({ ok: false, error: 'seoDescription_too_long' }, 400);
   }
-  if (body.faqCode !== undefined && typeof body.faqCode === 'string' && body.faqCode.length > 50) {
+  if (body.faqCode !== undefined && body.faqCode !== null && (typeof body.faqCode !== 'string' || body.faqCode.length > 50)) {
     return json({ ok: false, error: 'faqCode_too_long' }, 400);
   }
   if (body.category !== undefined && !VALID_CATEGORIES.has(body.category)) {
@@ -169,6 +169,9 @@ export async function onRequestPut(context) {
     if (body.question.length > 500) {
       return json({ ok: false, error: 'question_too_long' }, 400);
     }
+  }
+  if (body.sortOrder !== undefined && !Number.isInteger(body.sortOrder)) {
+    return json({ ok: false, error: 'invalid_sort_order' }, 400);
   }
 
   const setClauses = [];

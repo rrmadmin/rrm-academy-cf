@@ -20,6 +20,7 @@
  *            and may drift). Exit 1 on mismatch.
  */
 import { readFile, writeFile } from 'node:fs/promises';
+import { existsSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { ESLint } from 'eslint';
 import { enumerateSurface, classify, CATEGORIES } from './lib/census-rules.mjs';
@@ -775,14 +776,10 @@ const census = {
       state: `${surveyAgg.covered}/${surveyAgg.lines} lines (${surveyAgg.pct}%). Executed suites: test/survey-request.test.js, test/survey-submit.test.js, test/survey-endpoints.test.js, test/endo-quiz-request.test.js, test/endo-quiz-download.test.js. The two load-bearing invariants are asserted by running the handlers against SEPARATE databases: identity (email + rec_id) lands only in SURVEY_DB while symptoms land only in SURVEY_SYMPTOMS_DB with no address in the SQL or any bound value; and a failed symptom write deletes the D1 token claim and restores the original KV token record so the participant can resubmit. The endo-quiz (Google Ads) half runs on real SQLite engines built from the committed rrm-survey-symptoms migration, and asserts the same split plus the asymmetry either side of it: a failed symptom write is a 500 with no identity row, a failed identity write still counts the submission and alerts an administrator by rec_id.`,
     },
   },
-  _line_exclusions: [
-    {
-      file: 'functions/api/admin/enrollments.js',
-      lines: 'the `if (!env.DB) return 503 Database unavailable` guard',
-      mechanism: 'c8 ignore start/stop in the source, next to the same explanation',
-      reason: 'UNREACHABLE, and kept as defence in depth rather than deleted. onRequestGet calls requireSuperAdmin(request, env.DB) first, and functions/api/auth/_shared.js answers `if (!db) return 500 Server misconfigured` before doing anything else, so control cannot arrive at the 503 with a falsy env.DB. Proven by execution in test/admin-enrollments.test.js ("500s when the DB binding is absent"), which asserts the 500 the endpoint actually produces; a test asserting 503 would have been asserting a response this endpoint cannot return, and reaching it would have required an env object that lies about its own bindings. Delete the ignore hints, not the guard, if requireSuperAdmin ever stops checking its db argument.',
-    },
-  ],
+  // No current c8-ignore line exclusions. When adding one, name the exact
+  // file + lines + mechanism + reason (see the --check validation below,
+  // which fails the run if any entry's `file` no longer exists on disk).
+  _line_exclusions: [],
   _followup_estimate_hours: {
     'PRODUCT-CODE functions/api (survey path + Stripe webhook cluster + identity path + training analytics + FABM quiz API + endo-quiz DONE)': 'survey/ is at 100%; the billing webhook cluster is executed rather than grepped (test/_json-module-hook.mjs made the module graph importable); tranche 2 put the identity path (auth login/signup, community membership gate + roster, admin membership-report, donor rollups, webhook dedup) on a real SQLite engine loaded with the committed schema (test/_d1-sqlite.mjs); tranche 3 did the same for the five PRODUCT surfaces that were sitting under a green repo-wide floor -- training analytics (courses/progress.js 100%, admin/enrollments.js 96.7%), the FABM quiz API (quiz/request.js, quiz/event.js, courses/quiz.js, courses/_quiz-content.js all 100%, on a SURVEY_DB harness built from the committed rrm-survey migrations), and library/deploy-record.js 100%; and tranche 4 closed the endo-quiz half of the national survey system (request.js 0 -> 100% and download.js 0 -> 100%, on separate SURVEY_DB and SURVEY_SYMPTOMS_DB engines) plus the last two lines of admin/enrollments.js. Remaining: ~120 endpoint files still absent from any test, 85-115h to ~80% lines. Next worst by CRAP: functions/api/billing/_webhook-subscription.js and functions/api/create-checkout.js',
     'PRODUCT-CODE CLOSED in tranche 4: scripts/build-library-feed.mjs (was 0%, 75 lines)': 'Was the last zero in the library render surface, and was recorded here as not coverable as written: both paths were resolved at module scope from import.meta.url, so importing it read the real 32MB gitignored src/data/articles.json and rewrote public/library-feed.jsonl, and on a clean CI checkout it took the existsSync early-exit and covered nothing. Closed 2026-07-31 by the smallest production change that removes the obstacle -- buildLibraryFeed({articlesPath, outPath, logger}) defaulting to the same two constants, main() for the CLI -- verified by rebuilding the real 4053-record feed and diffing it byte for byte against what main produced (identical, sha256 0edf193c193bafa9297abff7567ccf52fd22265ce1c639d0fbe0e795fd0fb4ae). Now 154/154 lines, 100% branches, with the CLI entry exercised as a real subprocess.',
@@ -807,6 +804,11 @@ if (CHECK) {
     else if (have.get(f) !== cat) problems.push(`category drift for ${f}: committed=${have.get(f)} rules=${cat}`);
   }
   for (const f of have.keys()) if (!want.has(f)) problems.push(`stale entry (file gone): ${f}`);
+  for (const exclusion of committed._line_exclusions ?? []) {
+    if (!existsSync(resolve(ROOT, exclusion.file))) {
+      problems.push(`_line_exclusions entry names a file that no longer exists: ${exclusion.file}`);
+    }
+  }
   if (problems.length > 0) {
     console.error('[census] --check FAILED:');
     for (const p of problems) console.error('  - ' + p);
