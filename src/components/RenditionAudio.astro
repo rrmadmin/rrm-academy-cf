@@ -1,9 +1,12 @@
 ---
 /**
  * RenditionAudio: "Listen" tab panel for the course step player (Honen
- * Phase 1). Audio binary streaming is deferred to Phase 4: this panel lazy-
- * fetches GET /api/courses/rendition?format=audio (metadata only: duration,
- * voice) and shows a "coming soon" state. No binary playback yet.
+ * Phase 4). The panel lazy-fetches GET /api/courses/rendition?format=audio
+ * for metadata (duration, voice) exactly like the other tabs, then the
+ * player's renderAudio mounts an <audio controls preload="none"> whose src is
+ * the gated byte endpoint GET /api/courses/audio?stepId= (cookie auth rides
+ * along same-origin). The element is built at render time, so a panel that
+ * never passed the gate never holds a media URL.
  */
 interface Props {
   stepId: string;
@@ -18,7 +21,8 @@ const { stepId } = Astro.props;
 
   <div class="rendition-audio" data-rendition-audio hidden>
     <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3 18v-6a9 9 0 0 1 18 0v6"/><path d="M21 19a2 2 0 0 1-2 2h-1a2 2 0 0 1-2-2v-3a2 2 0 0 1 2-2h3zM3 19a2 2 0 0 0 2 2h1a2 2 0 0 0 2-2v-3a2 2 0 0 0-2-2H3z"/></svg>
-    <p class="rendition-audio__title">Audio narration coming soon</p>
+    <p class="rendition-audio__title">Listen to this lesson</p>
+    <div class="rendition-audio__player" data-rendition-audio-player></div>
     <p class="rendition-audio__meta" data-rendition-audio-meta></p>
   </div>
 
@@ -44,6 +48,14 @@ const { stepId } = Astro.props;
     font-weight: 600;
     color: var(--text-primary);
     margin-bottom: var(--space-1);
+  }
+  .rendition-audio__player {
+    margin: var(--space-4) auto var(--space-3);
+    max-width: 32rem;
+  }
+  .rendition-audio__player audio {
+    width: 100%;
+    display: block;
   }
   .rendition-audio__meta {
     font-size: 0.875rem;
