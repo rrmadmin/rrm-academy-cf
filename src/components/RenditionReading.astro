@@ -4,8 +4,13 @@
  * (Honen Phase 1). Empty shell; the player's inline script lazy-fetches
  * GET /api/courses/rendition?format=reading on first activation, injects the
  * sanitized html into .article-content, and fills the read-time line from
- * wordCount. Reuses the player's existing .article-content styles. The primary
- * "Read" tab (step.type === 'article') uses the page's own block, not this one.
+ * wordCount. Reuses the player's existing .article-content styles.
+ *
+ * The primary "Read" panel (step.type === 'article') is the page's own block,
+ * not this one, but it is no longer a dead end: it hydrates from the same
+ * endpoint through the same fetchRendition/renderReading helpers when the step
+ * carries a published reading rendition, and falls back to its static
+ * placeholder when it does not.
  */
 interface Props {
   stepId: string;
