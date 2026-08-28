@@ -1,4 +1,4 @@
-# Start Here: Can You Trust This Thing?
+# Module 0: Skepticism Is the Right Starting Point
 
 AI Essentials for the Busy Clinician. Byline: Brian Whittaker. Status: DRAFT for Brian review.
 Terms: none on purpose. Length target: 7 minutes. This module comes before everything else.

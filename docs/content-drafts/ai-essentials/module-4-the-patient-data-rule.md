@@ -1,4 +1,4 @@
-# Module 4: The Patient Data Rule
+# Module 4: Working Safely with Patient Data
 
 AI Essentials for the Busy Clinician. Byline: Brian Whittaker. Status: DRAFT v3 (terms retuned for clinical audience) for Brian review.
 Terms: none new. PHI and BAA are assumed knowledge for this audience; this module teaches the AI-specific rules and skills, not the vocabulary. Length target: 7 minutes.

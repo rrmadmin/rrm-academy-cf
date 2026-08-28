@@ -1,4 +1,4 @@
-# Module 2: Make It Useful
+# Module 2: Three Habits for Reliable Results
 
 AI Essentials for the Busy Clinician. Byline: Brian Whittaker. Status: DRAFT v2 (lightened) for Brian review.
 Terms: context, working memory (context window), grounding. Length target: 8 minutes.

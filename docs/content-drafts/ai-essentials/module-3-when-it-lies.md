@@ -1,4 +1,4 @@
-# Module 3: When It Lies
+# Module 3: Fluency Is Not Accuracy
 
 AI Essentials for the Busy Clinician. Byline: Brian Whittaker. Status: DRAFT v3 (terms retuned) for Brian review.
 Terms: hallucination, fabricated citation. (Verification is a habit, not vocabulary; this audience needs no definition of the word.) Length target: 7 minutes.

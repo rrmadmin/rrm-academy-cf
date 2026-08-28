@@ -1,4 +1,4 @@
-# Module 1: Meet the Tools
+# Module 1: Your First Useful Prompt
 
 AI Essentials for the Busy Clinician. Byline: Brian Whittaker. Status: DRAFT v2 (lightened) for Brian review.
 Terms: AI assistant, prompt. Length target: 7 minutes including the exercise.
