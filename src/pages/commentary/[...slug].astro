@@ -65,9 +65,12 @@ const relatedSections = [
 
 const htmlContent = await parseMarkdown(post.content || '');
 
-// Meta description from excerpt
+// Meta description mirrors the JSON-LD description verbatim (post.excerpt).
+// Never truncate here -- a truncated meta description here would diverge
+// from the curated jsonLd.description set below, and mid-word "..." cuts
+// have leaked into search results in the past.
 const metaDescription = post.excerpt
-  ? post.excerpt.slice(0, 155) + (post.excerpt.length > 155 ? '...' : '')
+  ? post.excerpt
   : `${post.title} - RRM Academy Commentary`;
 
 // Schema.org JSON-LD

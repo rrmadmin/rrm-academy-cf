@@ -140,9 +140,12 @@ if (article.pages) journalParts.push(article.pages);
 if (article.year) journalParts.push(String(article.year));
 const journalLine = journalParts.join(', ');
 
-// Build description for meta
+// Meta description mirrors the JSON-LD abstract verbatim (article.abstract).
+// Never truncate here -- a truncated meta description here would diverge
+// from the curated abstract emitted in the JSON-LD below, and mid-word "..."
+// cuts have leaked into search results in the past (see commentary template).
 const metaDescription = article.abstract
-  ? article.abstract.slice(0, 155) + (article.abstract.length > 155 ? '...' : '')
+  ? article.abstract
   : `${article.title} - RRM Research Library`;
 
 // Build DOI URL
