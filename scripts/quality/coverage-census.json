@@ -1,6 +1,6 @@
 {
  "_note": "Every first-party executable file (census-rules.mjs SURFACE_ROOTS) is accounted for here, and scripts/quality/coverage.mjs FAILS its run if the enumerated surface drifts from this file or a new file matches no classification rule. A file is either PRODUCT-CODE (inside the gated coverage denominator) or excluded below with a category and written reason — never silently. Regenerate with: node scripts/quality/coverage.mjs && node scripts/quality/census.mjs",
- "_generated": "2026-08-27",
+ "_generated": "2026-08-28",
  "_categories": {
   "PRODUCT-CODE": "Deployed or deploy-chain code whose defects ship to users: CF Pages Functions (every route + _helper under functions/), build-time data fetchers and shared logic (src/lib), client bundles (src/scripts), Astro build integrations, and the CI gate/guard/build scripts that decide whether a deploy is allowed. This is the gated denominator. Uncovered PRODUCT-CODE is debt, listed so it is visible and countable, never argued away.",
   "CONTENT-TEMPLATE": "Files where line coverage is the wrong instrument because they are content, data constants, or scaffolding: reference-only endpoint templates (header forbids importing), typed data constants consumed by Astro templates, and Astro endpoint modules (*.md.ts / rss.xml.ts) that only execute inside the Astro build container. Their correctness instruments are the build itself, verify-build-output, the data deploy-guard floors, and the e2e suite.",
@@ -15,20 +15,20 @@
   "ratchet_rule": "The floor may only move UP. Arm at the measured floor rounded down; never arm a number that is red on arrival. Raise it after a coverage drive lands, by editing this value to the new measured floor rounded down."
  },
  "_measured": {
-  "date": "2026-08-27",
+  "date": "2026-08-28",
   "instrument": "node scripts/quality/coverage.mjs (c8 --all over the full surface; full npm-test suite)",
   "full_surface": {
-   "files": 409,
-   "lines": 81610,
-   "covered": 33109,
-   "pct": 40.57
+   "files": 411,
+   "lines": 81793,
+   "covered": 33275,
+   "pct": 40.68
   },
   "by_category": {
    "PRODUCT-CODE": {
-    "files": 320,
-    "lines": 60196,
-    "covered": 27826,
-    "pct": 46.23
+    "files": 322,
+    "lines": 60379,
+    "covered": 27992,
+    "pct": 46.36
    },
    "CONTENT-TEMPLATE": {
     "files": 9,
@@ -56,13 +56,13 @@
    }
   },
   "product_code": {
-   "files": 320,
-   "lines": 60196,
-   "covered": 27826,
-   "pct": 46.23
+   "files": 322,
+   "lines": 60379,
+   "covered": 27992,
+   "pct": 46.36
   },
   "files_at_zero_in_full_report": 241,
-  "files_executed_in_full_report": 168,
+  "files_executed_in_full_report": 170,
   "highest_stakes_slice": {
    "slice": "national survey system (functions/api/survey/ + functions/api/endo-quiz/)",
    "files": [
@@ -1425,6 +1425,15 @@
    "pct": 100
   },
   {
+   "file": "functions/api/courses/_rendition-access.js",
+   "category": "PRODUCT-CODE",
+   "reason": "CF Pages Function (routed endpoint, middleware, or _-prefixed shared helper). Deployed on every push; defects ship directly to users.",
+   "present": true,
+   "lines": 91,
+   "covered": 91,
+   "pct": 100
+  },
+  {
    "file": "functions/api/courses/_sanitize.js",
    "category": "PRODUCT-CODE",
    "reason": "CF Pages Function (routed endpoint, middleware, or _-prefixed shared helper). Deployed on every push; defects ship directly to users.",
@@ -1450,6 +1459,15 @@
    "lines": 49,
    "covered": 49,
    "pct": 100
+  },
+  {
+   "file": "functions/api/courses/audio.js",
+   "category": "PRODUCT-CODE",
+   "reason": "CF Pages Function (routed endpoint, middleware, or _-prefixed shared helper). Deployed on every push; defects ship directly to users.",
+   "present": true,
+   "lines": 154,
+   "covered": 146,
+   "pct": 94.8
   },
   {
    "file": "functions/api/courses/certificate.js",
@@ -1501,8 +1519,8 @@
    "category": "PRODUCT-CODE",
    "reason": "CF Pages Function (routed endpoint, middleware, or _-prefixed shared helper). Deployed on every push; defects ship directly to users.",
    "present": true,
-   "lines": 156,
-   "covered": 156,
+   "lines": 94,
+   "covered": 94,
    "pct": 100
   },
   {
@@ -2087,8 +2105,8 @@
    "reason": "Local deterministic analysis of glossary.json link classes; unit-tested (glossary-link-classifier.test.js), 80% covered today.",
    "present": true,
    "lines": 101,
-   "covered": 89,
-   "pct": 88.11
+   "covered": 81,
+   "pct": 80.19
   },
   {
    "file": "scripts/audit-textbook-fact-coverage.mjs",
@@ -2852,8 +2870,8 @@
    "reason": "Infographic pipeline entry points; unit-tested (infographic-*.test.js).",
    "present": true,
    "lines": 74,
-   "covered": 60,
-   "pct": 81.08
+   "covered": 59,
+   "pct": 79.72
   },
   {
    "file": "scripts/infographic-render.mjs",
