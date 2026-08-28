@@ -88,6 +88,11 @@ const hasSecondaryReading = showTabs && effectivePrimary !== 'reading' && presen
 const hasSecondaryFlashcards = showTabs && presentFormats.has('flashcards');
 const hasSecondaryQuiz = showTabs && effectivePrimary !== 'quiz' && presentFormats.has('quiz');
 const hasSecondaryAudio = showTabs && presentFormats.has('audio');
+// Text-first courses: an article step whose body IS a published reading
+// rendition. The build-time hint gates the runtime fetch, so an article step
+// without one never calls the endpoint and keeps its static fallback verbatim.
+const hasPrimaryReading =
+  step.type === 'article' && effectivePrimary === 'reading' && renditionFormats.includes('reading');
 ---
 <BaseLayout
   title={`${step.title} | ${course.title}`}
@@ -179,11 +184,15 @@ const hasSecondaryAudio = showTabs && presentFormats.has('audio');
 
         {step.type === 'article' && (
           <div class="article-content" role="tabpanel" data-rendition-panel="reading" data-rendition-primary>
-            {step.content ? (
-              <Fragment set:html={step.content} />
-            ) : (
-              <p class="article-placeholder">Article content for "{step.title}" will be available here.</p>
-            )}
+            <p class="article-readtime" data-rendition-readtime hidden></p>
+            <div class="article-body" data-rendition-html>
+              {step.content ? (
+                <Fragment set:html={step.content} />
+              ) : (
+                <p class="article-placeholder">Article content for "{step.title}" will be available here.</p>
+              )}
+            </div>
+            <div class="article-notice" data-rendition-message hidden></div>
           </div>
         )}
 
@@ -360,6 +369,10 @@ const hasSecondaryAudio = showTabs && presentFormats.has('audio');
         var nextBtn = document.getElementById('next-lesson-btn');
         if (nextBtn) nextBtn.classList.add('btn--disabled');
       }
+      // Shared with the rendition script below (same pattern as unlockNextButton)
+      // so a members-course 403 on the reading fetch lands on this one CTA state
+      // instead of a second, weaker message.
+      window.showMembershipLapsedPaywall = showMembershipLapsedPaywall;
 
       // guestReadable course, visitor not logged in / not enrolled: let them READ
       // the lesson. Only the quiz + certificate require an account (the quiz block
@@ -1127,13 +1140,17 @@ const hasSecondaryAudio = showTabs && presentFormats.has('audio');
     tStepId: step.id,
     tPrimaryFormat: effectivePrimary,
     tShowTabs: showTabs,
+    tHasPrimaryReading: hasPrimaryReading,
+    tIsMembersCourse: (course as any).accessType === 'members',
   }}>
     (function () {
-      if (!tShowTabs) return;
       var tabBar = document.querySelector('[data-lesson-tabs]');
-      if (!tabBar) return;
+      // A text-first lesson has one format and therefore no tab bar, but its
+      // primary article panel still hydrates from the reading rendition below.
+      var tabsOn = !!(tShowTabs && tabBar);
+      if (!tabsOn && !tHasPrimaryReading) return;
 
-      var tabs = Array.prototype.slice.call(tabBar.querySelectorAll('[data-tab]'));
+      var tabs = tabsOn ? Array.prototype.slice.call(tabBar.querySelectorAll('[data-tab]')) : [];
       var panels = Array.prototype.slice.call(document.querySelectorAll('[data-rendition-panel]'));
       var loaded = {}; // format -> true once content (or a terminal state) is rendered
 
@@ -1151,23 +1168,28 @@ const hasSecondaryAudio = showTabs && presentFormats.has('audio');
           }
         } catch (e) {}
       }
-      var hasAuthHint = /(?:^|;\s*)rrm_auth=1(?:;|$)/.test(document.cookie || '');
-      if (!hasAuthHint) {
-        clearFlashcardKeys();
-        window.__rrmUserIdReady__ = Promise.resolve(null);
-      } else {
-        window.__rrmUserIdReady__ = fetch('/api/auth/session', { credentials: 'same-origin' })
-          .then(function (r) { return r.json(); })
-          .then(function (data) {
-            if (data && data.ok && data.user && data.user.id) {
-              window.__rrmUserId__ = data.user.id;
-              return data.user.id;
-            } else {
-              clearFlashcardKeys();
-              return null;
-            }
-          })
-          .catch(function () { return null; });
+      // Scoped to the tab surface: only the flashcards renderer consumes this,
+      // and flashcards exist only as a secondary panel. A tab-less text-first
+      // lesson must not start paying for an auth fetch it has no use for.
+      if (tabsOn) {
+        var hasAuthHint = /(?:^|;\s*)rrm_auth=1(?:;|$)/.test(document.cookie || '');
+        if (!hasAuthHint) {
+          clearFlashcardKeys();
+          window.__rrmUserIdReady__ = Promise.resolve(null);
+        } else {
+          window.__rrmUserIdReady__ = fetch('/api/auth/session', { credentials: 'same-origin' })
+            .then(function (r) { return r.json(); })
+            .then(function (data) {
+              if (data && data.ok && data.user && data.user.id) {
+                window.__rrmUserId__ = data.user.id;
+                return data.user.id;
+              } else {
+                clearFlashcardKeys();
+                return null;
+              }
+            })
+            .catch(function () { return null; });
+        }
       }
 
       function panelFor(format) {
@@ -1186,13 +1208,41 @@ const hasSecondaryAudio = showTabs && presentFormats.has('audio');
         if (loading) loading.hidden = true;
       }
 
+      // Logged-out reader on an article-primary lesson. Reading needs only a
+      // session; enrollment (Mark Complete, certificate) comes from the
+      // sales-page CTA the signup flow returns them to.
+      function showReadingSignupPanel(panel) {
+        var box = panel.querySelector('[data-rendition-message]');
+        if (!box) return;
+        var dest = encodeURIComponent(window.location.pathname + window.location.search);
+        box.classList.add('article-signup');
+        box.innerHTML =
+          '<p class="article-signup__title">Create a free account to read this lesson</p>' +
+          '<p class="article-signup__text">This course is free. Create an account to read every lesson, track your progress, and earn your certificate.</p>' +
+          '<div class="article-signup__actions">' +
+          '<a class="btn btn--primary" href="/signup/?redirect=' + dest + '">Create a free account</a>' +
+          '<a class="btn btn--secondary" href="/login/?redirect=' + dest + '">Log in</a>' +
+          '</div>';
+        box.hidden = false;
+        var body = panel.querySelector('[data-rendition-html]');
+        if (body) body.hidden = true;
+      }
+
       // Translate a rendition fetch failure into a quiet in-panel state. A 404
       // on a format that was in renditions[] is a removed-format message, never
       // an error toast. 401/403 surface the gate state gracefully.
+      //
+      // The primary article panel diverges on two of these: a 404 leaves the
+      // page's own static fallback exactly as it shipped (a step with no
+      // published reading is not an error), and a 401 is the free-account
+      // panel rather than the secondary tab's one-line message.
       function handleFailure(panel, status, error) {
+        var isPrimary = panel.hasAttribute('data-rendition-primary');
         if (status === 404 || error === 'rendition_not_available') {
+          if (isPrimary) return;
           showMessage(panel, 'This format is no longer available for this lesson.');
         } else if (status === 401 || error === 'Not authenticated') {
+          if (isPrimary) { showReadingSignupPanel(panel); return; }
           var box = panel.querySelector('[data-rendition-message]');
           if (box) {
             box.innerHTML = 'Please <a href="/login/?redirect=' + encodeURIComponent(window.location.pathname + window.location.search) + '">sign in</a> to view this format.';
@@ -1202,6 +1252,12 @@ const hasSecondaryAudio = showTabs && presentFormats.has('audio');
         } else if (error === 'Previous step not completed') {
           showMessage(panel, 'Complete the previous step to unlock this format.');
         } else if (status === 403 || error === 'Not enrolled') {
+          // Members course: the membership CTA is the one state for a lapsed
+          // member, same as the progress path renders.
+          if (isPrimary && tIsMembersCourse && window.showMembershipLapsedPaywall) {
+            window.showMembershipLapsedPaywall();
+            return;
+          }
           showMessage(panel, 'Enroll in this course to access this format.');
         } else {
           showMessage(panel, 'This format could not be loaded. Please try refreshing.');
@@ -1233,11 +1289,13 @@ const hasSecondaryAudio = showTabs && presentFormats.has('audio');
           });
       }
 
-      // --- Reading ---
+      // --- Reading (secondary tab panel and the primary article panel) ---
       function renderReading(data, panel) {
         var wrap = panel.querySelector('[data-rendition-reading]');
         var html = panel.querySelector('[data-rendition-html]');
-        if (html) html.innerHTML = data.html || '';
+        // Empty html leaves the target alone, so the primary panel keeps its
+        // static fallback rather than blanking the lesson.
+        if (html && data.html) html.innerHTML = data.html;
         var readtime = panel.querySelector('[data-rendition-readtime]');
         if (readtime && typeof data.wordCount === 'number' && data.wordCount > 0) {
           var mins = Math.max(1, Math.round(data.wordCount / 200));
@@ -1512,12 +1570,25 @@ const hasSecondaryAudio = showTabs && presentFormats.has('audio');
         if (render) fetchRendition(format, panel, render);
       }
 
-      tabs.forEach(function (t) {
-        t.addEventListener('click', function () { activate(t.getAttribute('data-tab')); });
-      });
+      if (tabsOn) {
+        tabs.forEach(function (t) {
+          t.addEventListener('click', function () { activate(t.getAttribute('data-tab')); });
+        });
 
-      // Default tab = primary rendition (step.type). Activate on load.
-      activate(tPrimaryFormat);
+        // Default tab = primary rendition (step.type). Activate on load.
+        activate(tPrimaryFormat);
+      }
+
+      // Primary article panel: hydrate on load from the published reading
+      // rendition. activate() deliberately skips primary panels, so this is
+      // the only path that fills one, and it runs whether or not tabs exist.
+      if (tHasPrimaryReading) {
+        var primaryReadingPanel = panelFor('reading');
+        if (primaryReadingPanel && primaryReadingPanel.hasAttribute('data-rendition-primary')) {
+          loaded.reading = true;
+          fetchRendition('reading', primaryReadingPanel, renderReading);
+        }
+      }
     })();
   </script>
 
@@ -2155,6 +2226,51 @@ const hasSecondaryAudio = showTabs && presentFormats.has('audio');
     font-size: 0.9375rem;
     text-align: center;
     padding: var(--space-16) 0;
+  }
+  .article-readtime[hidden],
+  .article-body[hidden],
+  .article-notice[hidden] { display: none; }
+  /* Read time header — mirrors the secondary Read tab's line. */
+  .article-readtime {
+    font-size: 0.75rem;
+    font-weight: 500;
+    color: var(--text-tertiary);
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    margin-bottom: var(--space-4);
+  }
+  .article-notice {
+    color: var(--text-muted);
+    font-size: 0.875rem;
+    text-align: center;
+  }
+  /* Free-account state: article-primary lesson, no session (rendition 401). */
+  .article-signup {
+    background: var(--bg-surface);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-md);
+    padding: var(--space-8) var(--space-6);
+  }
+  /* Scoped under .article-content so the panel's own margins beat the
+     .article-content :global(p) rule these paragraphs would otherwise inherit. */
+  .article-content :global(.article-signup__title) {
+    font-family: var(--font-display);
+    font-size: 1.5rem;
+    line-height: 1.25;
+    color: var(--text-primary);
+    margin: 0 0 var(--space-3);
+  }
+  .article-content :global(.article-signup__text) {
+    font-size: 0.9375rem;
+    color: var(--text-secondary);
+    max-width: 420px;
+    margin: 0 auto var(--space-5);
+  }
+  .article-content :global(.article-signup__actions) {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-3);
+    justify-content: center;
   }
 
   /* Guest preview banner — guestReadable courses, logged-out visitors */
