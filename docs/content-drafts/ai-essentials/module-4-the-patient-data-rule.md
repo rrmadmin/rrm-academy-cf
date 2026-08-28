@@ -1,7 +1,7 @@
 # Module 4: The Patient Data Rule
 
-AI Essentials for the Busy Clinician. Byline: Brian Whittaker. Status: DRAFT v2 (lightened) for Brian review.
-Terms: PHI, de-identify, BAA. Length target: 7 minutes.
+AI Essentials for the Busy Clinician. Byline: Brian Whittaker. Status: DRAFT v3 (terms retuned for clinical audience) for Brian review.
+Terms: none new. PHI and BAA are assumed knowledge for this audience; this module teaches the AI-specific rules and skills, not the vocabulary. Length target: 7 minutes.
 
 EDITORIAL NOTE: safe-practice framing, not legal advice; say so to the learner.
 
@@ -17,11 +17,11 @@ One rule, one skill, one contract question. This is the module that lets your pr
 
 The moment you press enter, that text is on an outside company's servers under an ordinary consumer contract. Deleting the chat does not un-send it. The rule is absolute on purpose: bright lines survive busy days.
 
-> **Term: PHI.** Health information connected to an identifiable person. Combinations count: a rare condition plus a small town plus an age identifies someone with no name attached.
+### The part worth restating, even to professionals
 
-### What counts as identifying
+You know what PHI is. The part that trips people in AI use is that identifiability is judged by combinations, not by the identifier checklist: "a 41-year-old teacher in [small town] with [rare condition] seen Tuesday" identifies a person with no name, date of birth, or record number anywhere in it. Text bound for an AI tool gets held to that standard. When in doubt, it is identifying.
 
-Names, birth dates, record numbers, photos, voice recordings, obviously. But also combinations: "a 41-year-old teacher in [small town] with [rare condition] seen Tuesday" identifies a person. When in doubt, it is identifying.
+> **Worth restating: combinations identify.** A rare condition plus a small town plus an age singles a patient out with every formal identifier stripped. Judge AI-bound text by that standard, not by the 18-identifier checklist.
 
 ### The skill: de-identify, then use freely
 
@@ -33,17 +33,17 @@ Nearly everything AI does well works just as well on an anonymous version. Three
 
 Then use it freely: *"Draft the questions a woman in her late 30s with recurrent early miscarriage will likely ask, with plain-language answers I can adapt."* Everything useful survived. Nobody is findable.
 
-> **Term: De-identify.** Strip, generalize, reread as a neighbor. Keeps AI's clinical usefulness inside the rule.
+> **The de-identification skill: strip, generalize, reread as a neighbor.** Three moves, and AI's clinical usefulness stays available inside the rule.
 
-### The contract question: BAA
+### The contract question
 
-Real patient data can flow to an AI product under exactly one arrangement: a signed **BAA**, the healthcare contract where the vendor accepts legal responsibility for patient data. That is what makes legitimate scribes and EHR AI possible. Three things to remember:
+Real patient data can flow to an AI product under exactly one arrangement: a signed BAA with that vendor, for that product. That is what makes legitimate scribes and EHR AI possible. Three things to remember:
 
 - "HIPAA-compliant" on a website is marketing. A signed BAA in your files is the fact. Ask "where is our signed BAA?" before go-live.
 - A BAA covers that product only. Never anyone's personal ChatGPT.
 - A BAA covers data, not quality. The scribe's notes still get clinician review, every note.
 
-> **Term: BAA.** The signed contract that permits one specific product to handle patient data. Verify it exists; it never replaces review.
+> **The BAA question.** Before any patient-data AI goes live: "where is our signed BAA for this product?" It covers that product only, and it never replaces clinician review.
 
 ### The three lanes, on one card
 
@@ -84,8 +84,10 @@ Real patient data can flow to an AI product under exactly one arrangement: a sig
 
 ## Flashcards (3)
 
+Practice cards, not vocabulary: this audience knows PHI and BAA; the cards drill the AI-specific rules.
+
 | Front | Back |
 |---|---|
-| PHI | Health info connected to an identifiable person; combinations of ordinary details count. *Never enters everyday AI tools.* |
-| De-identify | Strip, generalize, reread as a neighbor. *Keeps AI's clinical value inside the rule.* |
-| BAA | The signed contract permitting one product to handle patient data. *Ask "where is our signed BAA?" It never replaces review.* |
+| The patient data rule | Patient information never goes into ChatGPT, Claude, Gemini, or any everyday AI tool. No exceptions; disclosure happens at send, and deleting the chat undoes nothing. |
+| De-identify for AI: the three moves | Strip identifiers, generalize the details, reread as a neighbor. Combinations identify: judge AI-bound text by that standard, not the identifier checklist. |
+| The BAA question | Before any patient-data AI goes live: "where is our signed BAA for this product?" It covers that product only, and it never replaces clinician review. |

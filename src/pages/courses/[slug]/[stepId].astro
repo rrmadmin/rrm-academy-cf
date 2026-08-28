@@ -1526,10 +1526,28 @@ const hasPrimaryReading =
         });
       }
 
-      // --- Audio (Phase 4 deferred: metadata-only coming-soon) ---
+      // --- Audio ---
+      // Metadata (duration, voice) comes from the same rendition endpoint every
+      // other tab uses; the bytes come from the gated /api/courses/audio stream,
+      // which re-runs the identical gate on each request. The element is built
+      // here rather than shipped in the markup so a panel that never passed the
+      // gate never holds a media URL.
       function renderAudio(data, panel) {
         var box = panel.querySelector('[data-rendition-audio]');
+        var mount = panel.querySelector('[data-rendition-audio-player]');
         var meta = panel.querySelector('[data-rendition-audio-meta]');
+        if (mount) {
+          mount.textContent = '';
+          var audio = document.createElement('audio');
+          audio.controls = true;
+          audio.preload = 'none';
+          audio.setAttribute('aria-label', 'Audio narration of this lesson');
+          audio.src = '/api/courses/audio?stepId=' + encodeURIComponent(tStepId);
+          audio.addEventListener('error', function () {
+            showMessage(panel, 'This audio could not be played. Please try refreshing.');
+          });
+          mount.appendChild(audio);
+        }
         if (meta) {
           var parts = [];
           if (typeof data.duration === 'number' && data.duration > 0) {

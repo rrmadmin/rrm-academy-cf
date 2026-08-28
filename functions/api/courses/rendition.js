@@ -1,7 +1,9 @@
 /**
  * GET /api/courses/rendition?stepId=&format=
  *
- * Runtime read path for step renditions (spec 3.3). Trust anchor (3.3.1):
+ * Runtime read path for step renditions (spec 3.3). Trust anchor (3.3.1),
+ * gate matrix (3.3.2) and step-lock live in _rendition-access.js, shared
+ * verbatim with the audio byte path (audio.js) so the two cannot drift:
  * the owning course is resolved from course_step.course_id via a live D1
  * JOIN; content is served ONLY when rendition + step + course are all
  * status='published'. Never trusts a caller-supplied courseId.
@@ -15,10 +17,10 @@
  * content_json parse failure -> 500 server_error (logged internally).
  */
 import {
-  json, optionsResponse, getSessionIdFromCookie, validateSession, generateId,
+  json, optionsResponse, getSessionIdFromCookie, validateSession,
 } from '../auth/_shared.js';
 import { log } from '../_log.js';
-import { requireMember } from '../community/_shared.js';
+import { resolvePublishedRendition } from './_rendition-access.js';
 
 const VALID_FORMATS = new Set(['reading', 'flashcards', 'quiz', 'audio']);
 
@@ -45,73 +47,9 @@ export async function onRequestGet({ request, env, waitUntil }) {
       return json({ ok: false, error: 'invalid_format' }, 400);
     }
 
-    // Trust-anchor JOIN (spec 3.3.1). Statuses checked in JS so draft /
-    // archived / missing are indistinguishable in the response.
-    const row = await db.prepare(`
-      SELECT r.content_json, r.status AS rendition_status, r.word_count,
-             s.course_id, s.status AS step_status,
-             c.status AS course_status, c.access_type, c.is_free, c.settings_json
-      FROM step_rendition r
-      JOIN course_step s ON s.id = r.step_id
-      JOIN course c ON c.id = s.course_id
-      WHERE r.step_id = ?1 AND r.format = ?2
-    `).bind(stepId, format).first();
-
-    if (
-      !row ||
-      row.rendition_status !== 'published' ||
-      row.step_status !== 'published' ||
-      row.course_status !== 'published'
-    ) {
-      return json({ ok: false, error: 'rendition_not_available' }, 404);
-    }
-
-    const courseId = row.course_id;
-
-    if (row.access_type === 'members') {
-      // Live membership re-check; membership IS the grant (mirrors stream/token.js).
-      const memberResult = await requireMember(request, env);
-      if (memberResult instanceof Response) return memberResult;
-    } else if (!Number(row.is_free)) {
-      // Paid course: active enrollment in the RESOLVED course required.
-      if (session.role === 'superadmin') {
-        await db.prepare(
-          'INSERT INTO enrollment (id, user_id, course_id) VALUES (?, ?, ?)' +
-          ' ON CONFLICT(user_id, course_id) DO UPDATE SET revoked_at = NULL'
-        ).bind(generateId(), session.userId, courseId).run();
-      }
-      const enrollment = await db.prepare(
-        'SELECT id FROM enrollment WHERE user_id = ? AND course_id = ? AND revoked_at IS NULL'
-      ).bind(session.userId, courseId).first();
-      if (!enrollment) return json({ ok: false, error: 'Not enrolled' }, 403);
-    }
-    // Free course: session is enough (stream/token.js all-free precedent,
-    // intentional divergence from quiz.js documented in spec 3.3.2).
-
-    // Step-lock from LIVE D1 ordering (published steps only).
-    let settings = null;
-    if (row.settings_json) {
-      try { settings = JSON.parse(row.settings_json); } catch { settings = null; }
-    }
-    if (settings?.stepOrder === 'fixed') {
-      const { results: ordered } = await db.prepare(`
-        SELECT s.id FROM course_step s
-        JOIN course_section sec ON sec.id = s.section_id
-        WHERE s.course_id = ? AND s.status = 'published'
-        ORDER BY sec.sort_order ASC, s.sort_order ASC
-      `).bind(courseId).all();
-      const ids = (ordered || []).map((r) => r.id);
-      const idx = ids.indexOf(stepId);
-      if (idx > 0) {
-        const prevStepId = ids[idx - 1];
-        const prev = await db.prepare(
-          'SELECT completed FROM step_progress WHERE user_id = ? AND course_id = ? AND step_id = ?'
-        ).bind(session.userId, courseId, prevStepId).first();
-        if (!prev?.completed) {
-          return json({ ok: false, error: 'Previous step not completed' }, 403);
-        }
-      }
-    }
+    const gate = await resolvePublishedRendition({ request, env, session, stepId, format });
+    if (gate.denied) return gate.denied;
+    const row = gate.row;
 
     let content;
     try {

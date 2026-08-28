@@ -1,7 +1,7 @@
 # Module 3: When It Lies
 
-AI Essentials for the Busy Clinician. Byline: Brian Whittaker. Status: DRAFT v2 (lightened) for Brian review.
-Terms: hallucination, fabricated citation, verification. Length target: 7 minutes.
+AI Essentials for the Busy Clinician. Byline: Brian Whittaker. Status: DRAFT v3 (terms retuned) for Brian review.
+Terms: hallucination, fabricated citation. (Verification is a habit, not vocabulary; this audience needs no definition of the word.) Length target: 7 minutes.
 
 ## Orientation
 
@@ -25,7 +25,7 @@ Ask for a reference and the AI will produce one: authors, title, journal, DOI, a
 
 ### The checking habit, sized to stakes
 
-**Verification** is not re-researching everything:
+Verification here does not mean re-researching everything:
 
 - **Rewrites of your own material, tone, formatting:** you reading it is the check.
 - **Facts going to a patient or into a decision:** check the numbers and claims against a source you trust.
@@ -33,7 +33,7 @@ Ask for a reference and the AI will produce one: authors, title, journal, DOI, a
 
 Two helpers: ask the AI "what are you least sure about here?" (often genuinely useful), and remember that grounded work (Module 2) needs far less checking. That is another reason to give it the document.
 
-> **Term: Verification.** Check output against a trusted source before use, scaled to stakes. Citations always.
+> **The verification habit.** Check output against a trusted source before use, scaled to stakes. Citations always, no exceptions.
 
 ### The frame
 
@@ -75,4 +75,4 @@ Treat it like a bright, tireless helper who is sometimes confidently wrong and n
 |---|---|
 | Hallucination | Confident, fluent, false; no tell in the prose. *Your review captures the value safely.* |
 | Fabricated citation | Perfect-looking, possibly nonexistent. *Retrieve every one yourself. Thirty seconds.* |
-| Verification | Check against trusted sources, scaled to stakes. *Own-material rewrites: light. Patient-facing facts: always. Citations: no exceptions.* |
+| The verification habit | Check against trusted sources, scaled to stakes. *Own-material rewrites: light. Patient-facing facts: always. Citations: no exceptions.* |
