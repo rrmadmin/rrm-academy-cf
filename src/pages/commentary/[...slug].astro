@@ -272,6 +272,8 @@ const canonicalUrl = `https://rrmacademy.org/commentary/${post.slug}/`;
   markdownUrl={`/commentary/${post.slug}.md`}
   ogType="article"
   ogImage={post.coverImageUrl}
+  ogImageWidth={post.coverImageUrl ? 1024 : undefined}
+  ogImageHeight={post.coverImageUrl ? 1024 : undefined}
   publishDate={post.publishDate}
   jsonLd={finalJsonLd}
 >

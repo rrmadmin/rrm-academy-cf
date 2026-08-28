@@ -143,10 +143,11 @@ const rssFeed = (() => {
 const resolvedOgImage = ogImage
   ? (ogImage.startsWith('http') ? ogImage : `${siteOrigin}${ogImage}`)
   : `${siteOrigin}${conventionOgPath}`;
-// Twitter requires JPG/PNG — swap .webp for .jpg for twitter:image only
-const resolvedTwitterImage = resolvedOgImage.endsWith('.webp')
-  ? resolvedOgImage.replace(/\.webp$/, '.jpg')
-  : resolvedOgImage;
+// Twitter requires JPG/PNG — swap .webp for .jpg for twitter:image only.
+// Must survive a cache-busting query string (cover URLs end in `.webp?v=N`,
+// so an endsWith('.webp') test silently never fired — found 2026-08-28 when
+// a commentary tweet card rendered with an empty image slot).
+const resolvedTwitterImage = resolvedOgImage.replace(/\.webp(\?|$)/, '.jpg$1');
 
 // Default JSON-LD payload (Organization + WebSite from SSOT) — only used when
 // the page does not pass an explicit jsonLd prop. Phase 3 (2026-04-29).
