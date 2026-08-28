@@ -99,9 +99,24 @@ if (post.author) {
     ? { '@type': 'Person', '@id': 'https://rrmacademy.org/#naomi-whittaker', name: post.author }
     : { '@type': 'Person', name: post.author };
 }
+// D1 `posts.updated_at` is either a SQLite `datetime('now')` value
+// ("YYYY-MM-DD HH:MM:SS") or an ISO string with milliseconds+Z, depending on
+// which code path last wrote the row. Normalize both to a Z-suffixed ISO
+// string so BlogPosting.dateModified is valid per schema.org regardless of
+// which format the row carries. Mirrors faqs/[...slug].astro's toIsoUtc.
+function toIsoUtc(ts: string | undefined | null): string | null {
+  if (!ts) return null;
+  if (ts.includes('T')) return ts.endsWith('Z') ? ts : ts + 'Z';
+  return ts.replace(' ', 'T') + 'Z';
+}
+
 if (post.publishDate) {
   jsonLd.datePublished = post.publishDate;
-  jsonLd.dateModified = post.publishDate;
+  // dateModified reflects the real last-edit timestamp (posts.updated_at),
+  // never a copy of datePublished -- a post that was only just published
+  // and never edited since still has updated_at = its creation time, so
+  // this only diverges from datePublished when a genuine edit happened.
+  jsonLd.dateModified = toIsoUtc(post.lastModified) || post.publishDate;
 }
 if (post.coverImageUrl) {
   jsonLd.image = post.coverImageUrl.startsWith('http') ? post.coverImageUrl : `https://rrmacademy.org${post.coverImageUrl}`;
