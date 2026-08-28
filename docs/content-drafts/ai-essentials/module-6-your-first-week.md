@@ -1,4 +1,4 @@
-# Module 6: Your First Week with AI
+# Module 6: Five Practical Wins in Your First Week
 
 AI Essentials for the Busy Clinician. Byline: Brian Whittaker. Status: DRAFT v2 (lightened) for Brian review.
 Terms: web search (in-chat), ambient scribe. Length target: 8 minutes. Certificate module.

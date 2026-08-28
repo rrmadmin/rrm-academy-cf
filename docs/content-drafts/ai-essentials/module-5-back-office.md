@@ -1,4 +1,4 @@
-# Module 5: The Back Office Goldmine
+# Module 5: Finding the Hours in Your Back Office
 
 AI Essentials for the Busy Clinician. Byline: Brian Whittaker. Status: DRAFT for Brian review.
 Terms: none new. Length target: 8 minutes.
