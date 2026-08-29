@@ -17,7 +17,7 @@ import { log } from '../_log.js';
 // keeping per-row payloads bounded as the corpus grows.
 const POST_COLUMNS =
   'id, slug, title, content, excerpt, author, content_pillar, ' +
-  'cover_image_url, publish_date, word_count, seo_keywords, updated_at';
+  'cover_image_url, publish_date, word_count, seo_keywords, updated_at, meta_description';
 
 const MAX_LIMIT = 200;
 
@@ -115,5 +115,6 @@ function mapRow(r) {
     seoKeywords: r.seo_keywords,
     audioUrl: '',
     lastModified: r.updated_at,
+    metaDescription: r.meta_description || '',
   };
 }
