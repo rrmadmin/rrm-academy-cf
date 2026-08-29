@@ -1,0 +1,14 @@
+-- 038-posts-meta-description.sql
+-- Adds a nullable meta_description column to posts (rrm-auth D1).
+--
+-- WHY
+-- /api/blog/posts and src/pages/commentary/[...slug].astro currently derive
+-- <meta name="description"> from posts.excerpt, which also drives the
+-- BlogPosting JSON-LD `description` field. This column lets a post carry a
+-- dedicated, SEO-tuned meta description distinct from the excerpt shown in
+-- article cards and JSON-LD, without disturbing either of those surfaces.
+--
+-- No default: existing rows get NULL, which the page treats as "not set" and
+-- falls back to the excerpt-based description exactly as it does today. This
+-- migration does not backfill any values -- that is a separate, later step.
+ALTER TABLE posts ADD COLUMN meta_description TEXT;
