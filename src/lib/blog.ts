@@ -17,6 +17,7 @@ export interface BlogPost {
   seoKeywords: string;
   audioUrl: string;
   lastModified: string;
+  metaDescription: string;
 }
 
 /**

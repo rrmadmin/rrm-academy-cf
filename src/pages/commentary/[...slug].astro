@@ -65,13 +65,18 @@ const relatedSections = [
 
 const htmlContent = await parseMarkdown(post.content || '');
 
-// Meta description mirrors the JSON-LD description verbatim (post.excerpt).
-// Never truncate here -- a truncated meta description here would diverge
-// from the curated jsonLd.description set below, and mid-word "..." cuts
-// have leaked into search results in the past.
-const metaDescription = post.excerpt
-  ? post.excerpt
-  : `${post.title} - RRM Academy Commentary`;
+// Meta description prefers the dedicated posts.meta_description column when
+// set. Falling back to post.excerpt mirrors the JSON-LD description verbatim
+// (see jsonLd.description below), which is deliberate: it's the same
+// fallback behavior as before this column existed. Never truncate either
+// value here -- a truncated meta description would diverge from the curated
+// jsonLd.description set below, and mid-word "..." cuts have leaked into
+// search results in the past.
+const metaDescription = post.metaDescription
+  ? post.metaDescription
+  : post.excerpt
+    ? post.excerpt
+    : `${post.title} - RRM Academy Commentary`;
 
 // Schema.org JSON-LD
 const isWhittakerPost = ['Naomi Whittaker', 'Naomi Whittaker, MD', 'Dr. Naomi Whittaker', 'Dr. Naomi Whittaker, MD'].includes(post.author);

@@ -30,12 +30,21 @@
  */
 import { describe, it } from 'node:test';
 import assert from 'node:assert/strict';
+import { readFileSync } from 'node:fs';
 import { mockRequest, mockEnv, mockWaitUntil, parseResponse } from './_helpers.js';
-import { sqliteD1 } from './_d1-sqlite.mjs';
+import { sqliteD1, SCHEMA_SQL } from './_d1-sqlite.mjs';
 import { onRequestGet, onRequestOptions } from '../functions/api/blog/posts.js';
 
 const SITE = 'https://rrmacademy.org';
 const TOKEN = 'build-token-value';
+
+// posts.meta_description lives in migrations/038-posts-meta-description.sql,
+// in the ROOT migrations/ directory, which the test replay list does not
+// read (see test/_d1-sqlite.mjs POST_SNAPSHOT_MIGRATIONS). Composed the same
+// way test/ga4-conversion-ledger.test.js layers migrations/036 on SCHEMA_SQL.
+const POSTS_SCHEMA_SQL =
+  SCHEMA_SQL + '\n' +
+  readFileSync(new URL('../migrations/038-posts-meta-description.sql', import.meta.url), 'utf8');
 
 function ctx(url, env, { auth = `Bearer ${TOKEN}` } = {}) {
   const headers = auth === null ? {} : { Authorization: auth };
@@ -54,8 +63,8 @@ function envWith(harness, overrides = {}) {
 function seedPost(sqlite, { id, slug, title = 'A title', status = 'published', publishDate = '2026-01-01', ...rest }) {
   sqlite.prepare(
     `INSERT INTO posts (id, slug, title, content, excerpt, author, content_pillar,
-      cover_image_url, publish_date, status, word_count, seo_keywords, created_at, updated_at)
-     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
+      cover_image_url, publish_date, status, word_count, seo_keywords, created_at, updated_at, meta_description)
+     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
   ).run(
     id,
     slug,
@@ -71,11 +80,12 @@ function seedPost(sqlite, { id, slug, title = 'A title', status = 'published', p
     rest.seoKeywords ?? 'rrm, endo',
     rest.createdAt ?? '2026-01-01 00:00:00',
     rest.updatedAt ?? '2026-02-02 00:00:00',
+    rest.metaDescription ?? null,
   );
 }
 
 function db(opts) {
-  return sqliteD1(opts);
+  return sqliteD1({ ...opts, schemaSql: POSTS_SCHEMA_SQL });
 }
 
 // ------------------------------------------------------------------ auth ---
@@ -206,7 +216,24 @@ describe('GET /api/blog/posts?id= -- single post, any status', () => {
         seoKeywords: 'a, b',
         audioUrl: '',
         lastModified: '2026-05-06 07:08:09',
+        metaDescription: '',
       });
+    } finally {
+      harness.close();
+    }
+  });
+
+  it('surfaces posts.meta_description when the column is set', async () => {
+    const harness = db({
+      seed(s) {
+        seedPost(s, { id: 'rec_meta', slug: 'meta-post', metaDescription: 'A curated SEO description.' });
+      },
+    });
+    try {
+      const { body } = await parseResponse(
+        await onRequestGet(ctx(`${SITE}/api/blog/posts?id=rec_meta`, envWith(harness)))
+      );
+      assert.equal(body.data.metaDescription, 'A curated SEO description.');
     } finally {
       harness.close();
     }
