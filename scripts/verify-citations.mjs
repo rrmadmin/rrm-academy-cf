@@ -41,6 +41,29 @@ const SKIP_DOMAINS = [
   'library.rrmacademy.org',
 ];
 
+// Domains that block automated/non-browser HTTP clients (login walls, bot
+// checks, aggressive rate limiting against datacenter IPs) even though the
+// linked page is legitimate for a real reader. A CI runner hitting these
+// gets a 403/429/soft-block, not evidence the link is dead, so these get a
+// soft WARN instead of FAIL -- same treatment as the existing 403 branch in
+// verifyHTTP(), just decided up front by domain instead of by response.
+// Do NOT add ordinary domains here -- this is only for known bot-blockers.
+export const BOT_BLOCKING_DOMAINS = [
+  'instagram.com',
+  'www.instagram.com',
+  'facebook.com',
+  'www.facebook.com',
+  'x.com',
+  'twitter.com',
+  'www.twitter.com',
+  'linkedin.com',
+  'www.linkedin.com',
+];
+
+export function isBotBlockingDomain(url) {
+  try { return BOT_BLOCKING_DOMAINS.includes(new URL(url).hostname); } catch { return false; }
+}
+
 // --- String similarity (Dice coefficient) ---
 
 function bigrams(str) {
@@ -499,6 +522,15 @@ async function main() {
 
         // For URLs (or academic citations that failed all APIs), try HTTP
         if (item.url) {
+          if (isBotBlockingDomain(item.url)) {
+            item.result = {
+              status: 'WARN',
+              detail: 'Domain blocks automated checkers -- soft-pass, verify manually if needed',
+              sources: ['domain-allowlist'],
+            };
+            return;
+          }
+
           const httpResult = await verifyHTTPRL(item.url, item.anchorText);
           if (httpResult) {
             let status = 'PASS';
@@ -591,4 +623,4 @@ async function main() {
   }
 }
 
-main();
+if (import.meta.url === `file://${process.argv[1]}`) main();
