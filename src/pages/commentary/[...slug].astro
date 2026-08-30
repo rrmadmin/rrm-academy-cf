@@ -66,12 +66,11 @@ const relatedSections = [
 const htmlContent = await parseMarkdown(post.content || '');
 
 // Meta description prefers the dedicated posts.meta_description column when
-// set. Falling back to post.excerpt mirrors the JSON-LD description verbatim
-// (see jsonLd.description below), which is deliberate: it's the same
-// fallback behavior as before this column existed. Never truncate either
-// value here -- a truncated meta description would diverge from the curated
-// jsonLd.description set below, and mid-word "..." cuts have leaked into
-// search results in the past.
+// set, falling back to post.excerpt (the same fallback behavior as before
+// this column existed). jsonLd.description below is set to this exact
+// value -- the two must never diverge. Never truncate either value here --
+// a truncated meta description would diverge from jsonLd.description, and
+// mid-word "..." cuts have leaked into search results in the past.
 const metaDescription = post.metaDescription
   ? post.metaDescription
   : post.excerpt
@@ -129,9 +128,10 @@ if (post.publishDate) {
 if (post.coverImageUrl) {
   jsonLd.image = post.coverImageUrl.startsWith('http') ? post.coverImageUrl : `https://rrmacademy.org${post.coverImageUrl}`;
 }
-if (post.excerpt) {
-  jsonLd.description = post.excerpt;
-}
+// Mirrors the <meta name="description"> value above exactly -- see the
+// metaDescription comment for the preference order (meta_description column,
+// then excerpt, then a title-based fallback). These must never diverge.
+jsonLd.description = metaDescription;
 
 // For Dr. Whittaker's physician spotlight, add Person schema via @graph
 const whittakerPersonNode = {
