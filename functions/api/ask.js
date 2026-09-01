@@ -11,7 +11,7 @@
 import { json, optionsResponse, getSessionIdFromCookie, validateSession, roleAtLeast, bearerUnauthorized } from './auth/_shared.js';
 import { validateBody } from './_validate.js';
 import { log } from './_log.js';
-import { logSearchQuery, hashIp, extractRequestMeta } from './_search_log.js';
+import { logSearchQuery, logAskAnswer, promptHash, hashIp, extractRequestMeta } from './_search_log.js';
 import { SYSTEM_PROMPT } from './_ask_prompt.js';
 import { requireMember } from './community/_shared.js';
 import { withIdempotency } from './_idempotency.js';
@@ -153,11 +153,15 @@ async function callUpstream(context, message, user, effectiveTier) {
       throw Object.assign(new Error('upstream_error'), { httpStatus: 502, errorCode: 'upstream_error' });
     }
 
+    const v2Model = v2Data.model || '@cf/meta/llama-3.3-70b-instruct-fp8-fast';
+
     if (v2Data.answer.length === 0) {
       return {
         answer: "I don't have information from the RRM Library that directly addresses this question. Try rephrasing, or browse [/library/](https://rrmacademy.org/library/) for related research.",
         citations: [],
         fallback: true,
+        model: v2Model,
+        usage: null,
       };
     }
 
@@ -172,7 +176,7 @@ async function callUpstream(context, message, user, effectiveTier) {
           })
       : [];
 
-    return { answer: v2Data.answer, citations };
+    return { answer: v2Data.answer, citations, model: v2Model, usage: v2Data.usage || null };
   }
 
   // v1 path: legacy NLWeb AI Search proxy
@@ -232,7 +236,7 @@ async function callUpstream(context, message, user, effectiveTier) {
         })
     : [];
 
-  return { answer, citations };
+  return { answer, citations, model: 'nlweb-v1', usage: null };
 }
 
 async function handleAuthedAsk(context, session) {
@@ -340,19 +344,38 @@ async function handleAuthedAsk(context, session) {
 
   const { user_agent_short, referer_path } = extractRequestMeta(request);
   const ipHash = await hashIp(request.headers.get('cf-connecting-ip') || '');
+  const logSource = context.data?.searchV2 === 'all' ? 'ask_v2' : 'ask';
   // PF-F: move logging off the response-hot path. ANALYTICS_DB is a separate
   // D1 binding; an outage there should not 503 every /ask response.
-  waitUntil(logSearchQuery(env, {
-    source: context.data?.searchV2 === 'all' ? 'ask_v2' : 'ask',
-    query: message,
-    user_id: user.id,
-    ip_hash: ipHash,
-    results_count: null,
-    duration_ms: durationMs,
-    http_status: httpStatus,
-    user_agent_short,
-    referer_path,
-  }).catch(() => {}));
+  waitUntil((async () => {
+    const searchLogId = await logSearchQuery(env, {
+      source: logSource,
+      query: message,
+      user_id: user.id,
+      ip_hash: ipHash,
+      results_count: null,
+      duration_ms: durationMs,
+      http_status: httpStatus,
+      user_agent_short,
+      referer_path,
+    });
+    await logAskAnswer(env, {
+      search_log_id: searchLogId,
+      source: logSource,
+      query: message,
+      answer: result.answer,
+      citations: result.citations,
+      fallback: result.fallback ? 1 : 0,
+      model: result.model,
+      prompt_hash: await promptHash(SYSTEM_PROMPT),
+      tokens_in: result.usage?.prompt_tokens ?? null,
+      tokens_out: result.usage?.completion_tokens ?? null,
+      duration_ms: durationMs,
+      user_id: user.id,
+      ip_hash: ipHash,
+      eval_tag: null,
+    });
+  })().catch(() => {}));
 
   const tomorrow = new Date();
   tomorrow.setUTCDate(tomorrow.getUTCDate() + 1);
@@ -364,7 +387,12 @@ async function handleAuthedAsk(context, session) {
     'RateLimit-Reset': askResetS,
   };
 
-  const payload = { ...result, _meta: META };
+  const payload = {
+    answer: result.answer,
+    citations: result.citations,
+    ...(result.fallback ? { fallback: true } : {}),
+    _meta: META,
+  };
   if (wantsSSE) {
     return sseResponse(payload, 200, askRlHeaders);
   }
