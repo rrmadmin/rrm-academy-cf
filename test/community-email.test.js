@@ -705,6 +705,74 @@ describe('_email.js notifyNewPost -- an event post', () => {
   });
 });
 
+// ============================= notifyNewPost: near vs far event phrasing ===
+
+describe('_email.js notifyNewPost -- near vs far event phrasing', () => {
+  let harness, stub, clock;
+  // 2026-08-05T01:00:00Z is Tuesday, August 4 (9:00 PM) in America/New_York --
+  // same fixture as the "an event post" suite above. `now` values below use
+  // T12:00:00Z so the ET calendar date matches the UTC calendar date, keeping
+  // the day-diff arithmetic easy to reason about in the test itself.
+  const TUESDAY_NIGHT_ET = '2026-08-05T01:00:00.000Z';
+
+  beforeEach(() => {
+    harness = db((s) => {
+      addUser(s, { id: BRIAN_ID, email: 'brian@example.com', kind: 'staff', role: 'admin' });
+      addUser(s, { id: 'm1', email: 'm1@example.com', kind: 'wix', firstName: 'Wanda' });
+    });
+    stub = stubExternalFetch();
+    clock = collapseTrickleDelay();
+  });
+  afterEach(() => { clock.restore(); stub.restore(); harness.close(); });
+
+  const sendEvent = (post, now) =>
+    notifyNewPost(envFor(harness), harness, { id: 'p1', authorId: BRIAN_ID, type: 'event', ...post }, 'Brian Whittaker', now);
+
+  it('keeps "this Tuesday" phrasing when the event is a few days out', async () => {
+    const now = new Date('2026-08-01T12:00:00.000Z').getTime(); // 3 days before, ET
+    await sendEvent({ title: 'Endo Q&A', event_date: TUESDAY_NIGHT_ET }, now);
+    assert.equal(subjects(stub)[0], 'Save the Uterus Club live event this Tuesday: Endo Q&A');
+    assert.match(htmlOf(stub.ses[0]), /live call is this Tuesday, August 4[^<]*Eastern, and you are invited\./);
+  });
+
+  it('keeps "this Tuesday" phrasing for a same-day event (0 days out)', async () => {
+    const now = new Date('2026-08-04T12:00:00.000Z').getTime(); // same ET calendar day
+    await sendEvent({ title: 'Endo Q&A', event_date: TUESDAY_NIGHT_ET }, now);
+    assert.equal(subjects(stub)[0], 'Save the Uterus Club live event this Tuesday: Endo Q&A');
+  });
+
+  it('keeps "this Tuesday" phrasing at the 6-days-out boundary (still near)', async () => {
+    const now = new Date('2026-07-29T12:00:00.000Z').getTime(); // 6 days before, ET
+    await sendEvent({ title: 'Endo Q&A', event_date: TUESDAY_NIGHT_ET }, now);
+    assert.equal(subjects(stub)[0], 'Save the Uterus Club live event this Tuesday: Endo Q&A');
+    assert.match(htmlOf(stub.ses[0]), /live call is this Tuesday, August 4/);
+  });
+
+  it('switches to "Tuesday, August 4" phrasing at the exact 7-days-out boundary', async () => {
+    const now = new Date('2026-07-28T12:00:00.000Z').getTime(); // exactly 7 days before, ET
+    await sendEvent({ title: 'Endo Q&A', event_date: TUESDAY_NIGHT_ET }, now);
+    assert.equal(subjects(stub)[0], 'Save the Uterus Club live event Tuesday, August 4: Endo Q&A');
+    const html = htmlOf(stub.ses[0]);
+    assert.match(html, /live call is Tuesday, August 4[^<]*Eastern, and you are invited\./);
+    assert.ok(!/is this Tuesday/.test(html), 'a 7-day-out event must not say "this Tuesday"');
+    assert.ok(!/on Tuesday/.test(html), 'far phrasing must not add "on" either');
+  });
+
+  it('uses "Tuesday, August 4" phrasing for an event two weeks out', async () => {
+    const now = new Date('2026-07-21T12:00:00.000Z').getTime(); // 14 days before, ET
+    await sendEvent({ title: 'Endo Q&A', event_date: TUESDAY_NIGHT_ET, speaker: 'Dr. Jane Roe' }, now);
+    assert.equal(subjects(stub)[0], 'Save the Uterus Club live event Tuesday, August 4: Endo Q&A with Dr. Jane Roe');
+    assert.match(htmlOf(stub.ses[0]), /Our next Save the Uterus Club live call is Tuesday, August 4[^<]*Eastern, and you are invited\./);
+  });
+
+  it('keeps "this Tuesday" phrasing for a past event date (unchanged fallback)', async () => {
+    const now = new Date('2026-08-20T12:00:00.000Z').getTime(); // 16 days AFTER the event
+    await sendEvent({ title: 'Endo Q&A', event_date: TUESDAY_NIGHT_ET }, now);
+    assert.equal(subjects(stub)[0], 'Save the Uterus Club live event this Tuesday: Endo Q&A');
+    assert.match(htmlOf(stub.ses[0]), /live call is this Tuesday, August 4/);
+  });
+});
+
 describe('_email.js notifyNewPost -- defensive date-formatting fallbacks', () => {
   let harness, stub, clock, realIntl;
   const TUESDAY_NIGHT_ET = '2026-08-05T01:00:00.000Z';

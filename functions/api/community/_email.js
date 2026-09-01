@@ -52,6 +52,33 @@ function escapeHtml(str) {
     .replace(/'/g, '&#39;');
 }
 
+function nyDateOnlyUTC(date) {
+  const parts = new Intl.DateTimeFormat('en-US', {
+    timeZone: 'America/New_York',
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+  }).formatToParts(date);
+  const map = {};
+  for (const p of parts) map[p.type] = p.value;
+  return Date.UTC(Number(map.year), Number(map.month) - 1, Number(map.day));
+}
+
+// Calendar-day difference between an event and "now", both resolved in
+// America/New_York -- never raw UTC milliseconds, so an evening-Eastern event
+// (already past midnight UTC) doesn't come out one day off. Exported so it can
+// be unit-tested directly and so notifyNewPost can inject `now` for tests.
+// Returns null (never throws) if either date is unparseable or Intl fails.
+export function daysUntilEventEastern(eventDate, now = Date.now()) {
+  try {
+    const nowDate = now instanceof Date ? now : new Date(now);
+    if (isNaN(eventDate.getTime()) || isNaN(nowDate.getTime())) return null;
+    return Math.round((nyDateOnlyUTC(eventDate) - nyDateOnlyUTC(nowDate)) / 86400000);
+  } catch {
+    return null;
+  }
+}
+
 function formatEventDate(isoUtc) {
   if (!isoUtc) return null;
   try {
@@ -98,7 +125,7 @@ function authorFrom(authorId, authorName) {
   return `"${safeName}" <community@rrmacademy.org>`;
 }
 
-export async function notifyNewPost(env, db, post, authorName) {
+export async function notifyNewPost(env, db, post, authorName, now = Date.now()) {
   // 15-minute cooldown via KV
   if (env.COMMUNITY_KV) {
     const lastSent = await env.COMMUNITY_KV.get('community:last_post_email');
@@ -142,6 +169,13 @@ export async function notifyNewPost(env, db, post, authorName) {
     // Weekday in Eastern time — members must see the live-event day right in the
     // subject line (hard rule 2026-07-15).
     let weekday = null;
+    // "this Monday" is only true within a 7-day window; further out it reads as
+    // misleading (an event 2+ weeks away is not "this" anything). Past/unparseable
+    // dates keep the original "this <weekday>" shape unchanged -- isNearEvent
+    // defaults true and daysUntilEventEastern() only overrides it to false for a
+    // genuinely far-future event (see daysUntilEventEastern doc comment).
+    let isNearEvent = true;
+    let monthDay = null;
     if (post.event_date) {
       const ed = new Date(post.event_date);
       if (!isNaN(ed.getTime())) {
@@ -151,6 +185,17 @@ export async function notifyNewPost(env, db, post, authorName) {
             weekday: 'long',
           }).format(ed);
         } catch { weekday = null; }
+        if (weekday) {
+          const daysOut = daysUntilEventEastern(ed, now);
+          isNearEvent = daysOut === null || daysOut < 7;
+          try {
+            monthDay = new Intl.DateTimeFormat('en-US', {
+              timeZone: 'America/New_York',
+              month: 'long',
+              day: 'numeric',
+            }).format(ed);
+          } catch { monthDay = null; }
+        }
       }
     }
 
@@ -165,7 +210,9 @@ export async function notifyNewPost(env, db, post, authorName) {
     if (!titlePortion) titlePortion = 'New Save the Uterus Club event';
 
     const subjectBase = weekday
-      ? `${PREFIX} live event this ${weekday}: ${titlePortion}`
+      ? (isNearEvent
+          ? `${PREFIX} live event this ${weekday}: ${titlePortion}`
+          : `${PREFIX} live event ${weekday}${monthDay ? `, ${monthDay}` : ''}: ${titlePortion}`)
       : `${PREFIX} live event: ${titlePortion}`;
     const speakerSuffix = speaker ? ` with ${speaker}` : '';
     subject = sanitizeSubject(subjectBase + speakerSuffix);
@@ -193,9 +240,13 @@ export async function notifyNewPost(env, db, post, authorName) {
           }).format(ed2);
         } catch { dateTimeNoWeekday = null; }
       }
-      openerCore = dateTimeNoWeekday
-        ? `Our next Save the Uterus Club live call is this ${weekday}, ${dateTimeNoWeekday} Eastern, and you are invited.`
-        : `Our next Save the Uterus Club live call is this ${weekday}, and you are invited.`;
+      openerCore = isNearEvent
+        ? (dateTimeNoWeekday
+            ? `Our next Save the Uterus Club live call is this ${weekday}, ${dateTimeNoWeekday} Eastern, and you are invited.`
+            : `Our next Save the Uterus Club live call is this ${weekday}, and you are invited.`)
+        : (dateTimeNoWeekday
+            ? `Our next Save the Uterus Club live call is ${weekday}, ${dateTimeNoWeekday} Eastern, and you are invited.`
+            : `Our next Save the Uterus Club live call is ${weekday}, and you are invited.`);
     } else {
       openerCore = 'Our next Save the Uterus Club live call is coming up, and you are invited.';
     }
