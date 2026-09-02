@@ -1,0 +1,105 @@
+{
+  "courseId": "introduction-to-rrm",
+  "sourceUid": "39891b73a57c6d0f68daf4fc8f867413",
+  "sourceDuration": 4043,
+  "approved": true,
+  "contentStart": 800,
+  "contentEnd": 3847,
+  "trimmedChitChat": {
+    "startTrimmed": "00:00:00-00:13:20 \u2014 pre-call tech troubleshooting (frozen computer, screen-share setup), slide-sharing fumbling, waiting-room admissions",
+    "endTrimmed": "01:04:07-01:07:23 \u2014 attendee thank-you/testimonial (mild personal disclosure), mutual praise, goodbyes"
+  },
+  "lessons": [
+    {
+      "order": 1,
+      "sectionId": "irrm-welcome-what-is-rrm",
+      "stepId": "irrm-welcome-what-is-rrm-1",
+      "title": "Welcome: Why You're Here and What RRM Actually Is",
+      "startTimeSeconds": 800,
+      "endTimeSeconds": 1235,
+      "durationSeconds": 435,
+      "topicSummary": "Save the Uterus Club welcome and introduction of Rebecca Vavilov. Validating common patient experiences (dismissed symptoms, 'normal' labs, band-aid birth control), the two approaches to reproductive health, and the definition of restorative reproductive medicine: find the cause, treat the disease, restore function. Check-engine-light analogy; the cycle as a vital sign."
+    },
+    {
+      "order": 2,
+      "sectionId": "irrm-diagnostic-roadmap",
+      "stepId": "irrm-diagnostic-roadmap-1",
+      "title": "Finding the Cause: The RRM Diagnostic and Treatment Roadmap",
+      "startTimeSeconds": 1235,
+      "endTimeSeconds": 1514,
+      "durationSeconds": 279,
+      "topicSummary": "The RRM workup: FABM cycle charting and biomarkers, comprehensive health history, cycle-timed hormonal evaluations, structural evaluation (imaging, diagnostic laparoscopy), male factor never overlooked. Treatment phase: restorative medications, bioidentical hormones, restorative surgery, whole-person support. What RRM is NOT (not just charting, not anti-science, not only for infertility, not only for religious patients)."
+    },
+    {
+      "order": 3,
+      "sectionId": "irrm-history",
+      "stepId": "irrm-history-1",
+      "title": "A Short History of Reproductive Medicine",
+      "startTimeSeconds": 1514,
+      "endTimeSeconds": 1791,
+      "durationSeconds": 277,
+      "topicSummary": "Cycle wisdom from ancient civilizations to modern science: the fertile window hypothesis, von Baer's discovery of the mammalian egg, Stein-Leventhal and PCOS, Odeblad's cervical fluid research, the 1960s pill and Clomid, IVF in the 1970s, and NaProTechnology's development in the 1980s-90s as the first complete medical-surgical system built on cycle charting."
+    },
+    {
+      "order": 4,
+      "sectionId": "irrm-rrm-vs-ivf",
+      "stepId": "irrm-rrm-vs-ivf-1",
+      "title": "RRM and IVF: Two Different Questions",
+      "startTimeSeconds": 1791,
+      "endTimeSeconds": 2068,
+      "durationSeconds": 277,
+      "topicSummary": "Side-by-side comparison: driving questions (restore vs bypass), diagnostic workup depth, male factor evaluation, conception route, live birth rates, preterm delivery and multiples, cost and insurance billability, and what the patient gains after treatment whether or not a baby results."
+    },
+    {
+      "order": 5,
+      "sectionId": "irrm-clinical-evidence",
+      "stepId": "irrm-clinical-evidence-1",
+      "title": "The Clinical Evidence: Unexplained Is Unacceptable",
+      "startTimeSeconds": 2068,
+      "endTimeSeconds": 2297,
+      "durationSeconds": 229,
+      "topicSummary": "Study walk-through: Boyle's review of 95 couples with prior failed ART (0% unexplained infertility after NaPro workup), the 1,310-couple retrospective cohort (62.1% adjusted cumulative take-home baby rate, success by age band), and the NeoFertility 403-patient cohort with prior failed IVF (32.1% overall live birth rate)."
+    },
+    {
+      "order": 6,
+      "sectionId": "irrm-academy-resources",
+      "stepId": "irrm-academy-resources-1",
+      "title": "RRM Academy, Save the Uterus Club, and What's Coming",
+      "startTimeSeconds": 2297,
+      "endTimeSeconds": 2648,
+      "durationSeconds": 351,
+      "topicSummary": "Tour of RRM Academy resources: research library, courses, endo self-survey; Save the Uterus Club membership and community; upcoming projects including the RRM provider directory, patient guides, and quizzes. Ends with the handoff back to the host."
+    },
+    {
+      "order": 7,
+      "sectionId": "irrm-patient-led-change",
+      "stepId": "irrm-patient-led-change-1",
+      "title": "Patients Lead the Change: Privacy, Vetting, and Trust",
+      "startTimeSeconds": 2648,
+      "endTimeSeconds": 2977,
+      "durationSeconds": 329,
+      "topicSummary": "Discussion: why patient-led reform matters, how the platform handles data privacy versus commercial apps, and how speakers are vetted (including the red light therapy guest) against viral misinformation like sham endometriosis saliva tests."
+    },
+    {
+      "order": 8,
+      "sectionId": "irrm-marketing-traps",
+      "stepId": "irrm-marketing-traps-1",
+      "title": "Root-Cause Marketing Traps and Cooperative Hormone Therapy",
+      "startTimeSeconds": 2977,
+      "endTimeSeconds": 3395,
+      "durationSeconds": 418,
+      "topicSummary": "Warning about predatory clinics adopting 'RRM' and 'root cause' language without cycle-as-vital-sign fundamentals; the nuance of cyclical cooperative hormone therapy in a fertile population versus menopause HRT; the post-ovulation implantation window; why these nuances are lost in social media sound bites."
+    },
+    {
+      "order": 9,
+      "sectionId": "irrm-advocacy-qa",
+      "stepId": "irrm-advocacy-qa-1",
+      "title": "Q&A: The Federal Advocacy Win",
+      "startTimeSeconds": 3395,
+      "endTimeSeconds": 3847,
+      "durationSeconds": 452,
+      "topicSummary": "Audience question on federal advocacy: recap of the federal fertility-benefits comment period where roughly 8 of 10 of 6,000+ comments supported root-cause approaches, what the proposed bills would mean for access to restorative surgery, and how lobbying budgets shape reproductive healthcare policy."
+    }
+  ],
+  "notes": "DRAFT. 9 lessons, contiguous chain: 800->1235->1514->1791->2068->2297->2648->2977->3395->3847. Content ~50.8 min of a 67.4-min recording. Boundaries set from the verbatim transcript. contentStart 800s: Naomi's 'All right. Welcome everyone' lands ~00:13:30 inside the 00:12:30 block (estimated by word count); 800s starts a hair early per convention. contentEnd 3847s (01:04:07): trims the attendee testimonial + goodbyes. No member-specific medical Q&A found in the content span (Elaine's question is policy advocacy, kept)."
+}

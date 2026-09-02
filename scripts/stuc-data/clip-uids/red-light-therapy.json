@@ -1,0 +1,134 @@
+{
+  "rlt-welcome-journey-1": {
+    "clipUid": "95559b2904aa50b75b805819dee840e2",
+    "sourceUid": "5c2ef14e77bc627bbfe5c7fbf7de9f81",
+    "startTimeSeconds": 285,
+    "endTimeSeconds": 850,
+    "durationSeconds": 565,
+    "title": "Welcome: From Midwife to Certified Light Therapist",
+    "sectionId": "rlt-welcome-journey",
+    "order": 1,
+    "name": "red-light-therapy-rlt-welcome-journey-1.mp4"
+  },
+  "rlt-protocols-not-gadgets-1": {
+    "clipUid": "acba754533418bc83f48defe7a373140",
+    "sourceUid": "5c2ef14e77bc627bbfe5c7fbf7de9f81",
+    "startTimeSeconds": 850,
+    "endTimeSeconds": 1142,
+    "durationSeconds": 292,
+    "title": "Protocols, Not Gadgets: What Serious Light Therapy Looks Like",
+    "sectionId": "rlt-protocols-not-gadgets",
+    "order": 2,
+    "name": "red-light-therapy-rlt-protocols-not-gadgets-1.mp4"
+  },
+  "rlt-what-is-pbm-1": {
+    "clipUid": "c3a3911fbacb5922e16bd7d6c7b542a6",
+    "sourceUid": "5c2ef14e77bc627bbfe5c7fbf7de9f81",
+    "startTimeSeconds": 1142,
+    "endTimeSeconds": 1667,
+    "durationSeconds": 525,
+    "title": "Photobiomodulation 101: Wavelengths, Technique, and History",
+    "sectionId": "rlt-what-is-pbm",
+    "order": 3,
+    "name": "red-light-therapy-rlt-what-is-pbm-1.mp4"
+  },
+  "rlt-mechanism-1": {
+    "clipUid": "db2b815c7a3fed0b3c87170e9c5d0b76",
+    "sourceUid": "5c2ef14e77bc627bbfe5c7fbf7de9f81",
+    "startTimeSeconds": 1667,
+    "endTimeSeconds": 2024,
+    "durationSeconds": 357,
+    "title": "How It Works: Mitochondria, ATP, and Nitric Oxide",
+    "sectionId": "rlt-mechanism",
+    "order": 4,
+    "name": "red-light-therapy-rlt-mechanism-1.mp4"
+  },
+  "rlt-womens-health-applications-1": {
+    "clipUid": "8d44a8980fdeee92a861669f843001d1",
+    "sourceUid": "5c2ef14e77bc627bbfe5c7fbf7de9f81",
+    "startTimeSeconds": 2024,
+    "endTimeSeconds": 2469,
+    "durationSeconds": 445,
+    "title": "Applications Across Women's Health",
+    "sectionId": "rlt-womens-health-applications",
+    "order": 5,
+    "name": "red-light-therapy-rlt-womens-health-applications-1.mp4"
+  },
+  "rlt-ovarian-ecosystem-1": {
+    "clipUid": "169c2ecbdecae85dd89f3dba58d67930",
+    "sourceUid": "5c2ef14e77bc627bbfe5c7fbf7de9f81",
+    "startTimeSeconds": 2469,
+    "endTimeSeconds": 2832,
+    "durationSeconds": 363,
+    "title": "Tending the Soil: The Ovarian Ecosystem, Sunlight, and Melatonin",
+    "sectionId": "rlt-ovarian-ecosystem",
+    "order": 6,
+    "name": "red-light-therapy-rlt-ovarian-ecosystem-1.mp4"
+  },
+  "rlt-evidence-scrutiny-1": {
+    "clipUid": "fb7f82764529d69d7b3b81b573cf4df7",
+    "sourceUid": "5c2ef14e77bc627bbfe5c7fbf7de9f81",
+    "startTimeSeconds": 2832,
+    "endTimeSeconds": 3210,
+    "durationSeconds": 378,
+    "title": "Scrutinizing the Fertility Claims: What the Evidence Actually Says",
+    "sectionId": "rlt-evidence-scrutiny",
+    "order": 7,
+    "name": "red-light-therapy-rlt-evidence-scrutiny-1.mp4"
+  },
+  "rlt-pcos-dosage-1": {
+    "clipUid": "c9da5899b89eb9d77ab83bfb1e979e99",
+    "sourceUid": "5c2ef14e77bc627bbfe5c7fbf7de9f81",
+    "startTimeSeconds": 3210,
+    "endTimeSeconds": 3542,
+    "durationSeconds": 332,
+    "title": "PCOS, Dosage, and What Clients Actually Report",
+    "sectionId": "rlt-pcos-dosage",
+    "order": 8,
+    "name": "red-light-therapy-rlt-pcos-dosage-1.mp4"
+  },
+  "rlt-pregnancy-hypertension-1": {
+    "clipUid": "e72d9480e0f14ffedc2e0babf6939701",
+    "sourceUid": "5c2ef14e77bc627bbfe5c7fbf7de9f81",
+    "startTimeSeconds": 3542,
+    "endTimeSeconds": 3952,
+    "durationSeconds": 410,
+    "title": "Hypertension in Pregnancy, TBI, and the Integration Gap",
+    "sectionId": "rlt-pregnancy-hypertension",
+    "order": 9,
+    "name": "red-light-therapy-rlt-pregnancy-hypertension-1.mp4"
+  },
+  "rlt-devices-protocols-1": {
+    "clipUid": "6c65923a8634e0e141c433c240c59595",
+    "sourceUid": "5c2ef14e77bc627bbfe5c7fbf7de9f81",
+    "startTimeSeconds": 3952,
+    "endTimeSeconds": 4531,
+    "durationSeconds": 579,
+    "title": "Lasers vs LEDs, Predatory Devices, and Pelvic Protocols",
+    "sectionId": "rlt-devices-protocols",
+    "order": 10,
+    "name": "red-light-therapy-rlt-devices-protocols-1.mp4"
+  },
+  "rlt-environment-integration-1": {
+    "clipUid": "1ef8db5bba0f6c7dbec25338f1946197",
+    "sourceUid": "5c2ef14e77bc627bbfe5c7fbf7de9f81",
+    "startTimeSeconds": 4531,
+    "endTimeSeconds": 5116,
+    "durationSeconds": 585,
+    "title": "Light Environment, Antibiotic Resistance, and Getting This Into Medicine",
+    "sectionId": "rlt-environment-integration",
+    "order": 11,
+    "name": "red-light-therapy-rlt-environment-integration-1.mp4"
+  },
+  "rlt-practical-qa-1": {
+    "clipUid": "21eb774491f44e87c481be9a56e4f907",
+    "sourceUid": "5c2ef14e77bc627bbfe5c7fbf7de9f81",
+    "startTimeSeconds": 5116,
+    "endTimeSeconds": 5577,
+    "durationSeconds": 461,
+    "title": "Practical Q&A: Cycle Timing, Pregnancy, and the Fibroid Investigation",
+    "sectionId": "rlt-practical-qa",
+    "order": 12,
+    "name": "red-light-therapy-rlt-practical-qa-1.mp4"
+  }
+}
