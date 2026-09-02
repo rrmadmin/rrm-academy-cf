@@ -344,7 +344,11 @@ export async function onRequestPost({ request, env, waitUntil }) {
           }
           await db.batch(batch);
         }
-        log(env, waitUntil, 'newsletter', 'bounce', bounceType === 'Permanent' ? 'error' : 'warn', email, 0, 0);
+        // Permanent bounce is routine mail hygiene, not a system malfunction; logging it at 'error'
+        // inflated the observatory's worker-error count and the morning digest since 2026-03-10. The
+        // permanent/soft distinction is still recorded in email_log.detail and subscriber.bounce_count;
+        // the bounce RATE alarm lives in the observatory daemon ses-bounce-complaint.
+        log(env, waitUntil, 'newsletter', 'bounce', 'warn', email, 0, 0);
       } catch (err) {
         log(env, waitUntil, 'newsletter', 'bounce_loop_error', 'error', err?.message || 'unknown', 0, 0);
         processingError = true;
