@@ -44,6 +44,12 @@ import {
  * Mirrors the entity identifiers asserted on Wikidata Q139936526.
  */
 export const NAOMI_SAME_AS: readonly string[] = [
+  // Her own domain FIRST: the entity hub (naomiwhittakermd.com) declares the
+  // same Person under this @id and links back here, so both graphs resolve to
+  // ONE Naomi instead of two. Added 2026-09-01; it had been in the
+  // ecosystem-identity registry since launch but never reached this array.
+  'https://naomiwhittakermd.com/#naomi-whittaker',
+  'https://naomiwhittakermd.com/',
   'https://orcid.org/0000-0003-3706-3112',
   'https://www.wikidata.org/wiki/Q139936526',
   'https://openalex.org/A5035074827',

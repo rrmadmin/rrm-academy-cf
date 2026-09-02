@@ -1,6 +1,6 @@
 {
  "_note": "Every first-party executable file (census-rules.mjs SURFACE_ROOTS) is accounted for here, and scripts/quality/coverage.mjs FAILS its run if the enumerated surface drifts from this file or a new file matches no classification rule. A file is either PRODUCT-CODE (inside the gated coverage denominator) or excluded below with a category and written reason — never silently. Regenerate with: node scripts/quality/coverage.mjs && node scripts/quality/census.mjs",
- "_generated": "2026-08-28",
+ "_generated": "2026-09-02",
  "_categories": {
   "PRODUCT-CODE": "Deployed or deploy-chain code whose defects ship to users: CF Pages Functions (every route + _helper under functions/), build-time data fetchers and shared logic (src/lib), client bundles (src/scripts), Astro build integrations, and the CI gate/guard/build scripts that decide whether a deploy is allowed. This is the gated denominator. Uncovered PRODUCT-CODE is debt, listed so it is visible and countable, never argued away.",
   "CONTENT-TEMPLATE": "Files where line coverage is the wrong instrument because they are content, data constants, or scaffolding: reference-only endpoint templates (header forbids importing), typed data constants consumed by Astro templates, and Astro endpoint modules (*.md.ts / rss.xml.ts) that only execute inside the Astro build container. Their correctness instruments are the build itself, verify-build-output, the data deploy-guard floors, and the e2e suite.",
@@ -15,20 +15,20 @@
   "ratchet_rule": "The floor may only move UP. Arm at the measured floor rounded down; never arm a number that is red on arrival. Raise it after a coverage drive lands, by editing this value to the new measured floor rounded down."
  },
  "_measured": {
-  "date": "2026-08-28",
+  "date": "2026-09-02",
   "instrument": "node scripts/quality/coverage.mjs (c8 --all over the full surface; full npm-test suite)",
   "full_surface": {
-   "files": 411,
-   "lines": 81793,
-   "covered": 33275,
-   "pct": 40.68
+   "files": 412,
+   "lines": 82216,
+   "covered": 33895,
+   "pct": 41.23
   },
   "by_category": {
    "PRODUCT-CODE": {
     "files": 322,
-    "lines": 60379,
-    "covered": 27992,
-    "pct": 46.36
+    "lines": 60583,
+    "covered": 28612,
+    "pct": 47.23
    },
    "CONTENT-TEMPLATE": {
     "files": 9,
@@ -37,8 +37,8 @@
     "pct": 11.88
    },
    "E2E-DRIVER": {
-    "files": 35,
-    "lines": 8337,
+    "files": 36,
+    "lines": 8556,
     "covered": 0,
     "pct": 0
    },
@@ -57,12 +57,12 @@
   },
   "product_code": {
    "files": 322,
-   "lines": 60379,
-   "covered": 27992,
-   "pct": 46.36
+   "lines": 60583,
+   "covered": 28612,
+   "pct": 47.23
   },
-  "files_at_zero_in_full_report": 241,
-  "files_executed_in_full_report": 170,
+  "files_at_zero_in_full_report": 239,
+  "files_executed_in_full_report": 173,
   "highest_stakes_slice": {
    "slice": "national survey system (functions/api/survey/ + functions/api/endo-quiz/)",
    "files": [
@@ -177,14 +177,6 @@
    "crap": 1980
   },
   {
-   "file": "functions/api/ask.js",
-   "fn": "callUpstream",
-   "line": 102,
-   "cc": 41,
-   "coverage": 0,
-   "crap": 1722
-  },
-  {
    "file": "functions/api/partners/apply.js",
    "fn": "_handlePost",
    "line": 31,
@@ -215,14 +207,6 @@
    "cc": 34,
    "coverage": 0,
    "crap": 1190
-  },
-  {
-   "file": "functions/api/ask.js",
-   "fn": "handleAuthedAsk",
-   "line": 238,
-   "cc": 32,
-   "coverage": 0,
-   "crap": 1056
   },
   {
    "file": "scripts/extract-article-facts.mjs",
@@ -275,7 +259,7 @@
   {
    "file": "scripts/verify-citations.mjs",
    "fn": "verifyHTTP",
-   "line": 254,
+   "line": 277,
    "cc": 28,
    "coverage": 0,
    "crap": 812
@@ -307,7 +291,7 @@
   {
    "file": "scripts/verify-citations.mjs",
    "fn": "main",
-   "line": 416,
+   "line": 439,
    "cc": 27,
    "coverage": 0,
    "crap": 756
@@ -327,6 +311,22 @@
    "cc": 26,
    "coverage": 0,
    "crap": 702
+  },
+  {
+   "file": "src/lib/fetch-glossary-data.mjs",
+   "fn": "fetchAll",
+   "line": 118,
+   "cc": 25,
+   "coverage": 0,
+   "crap": 650
+  },
+  {
+   "file": "functions/api/fund-supporters.js",
+   "fn": "onRequestGet",
+   "line": 17,
+   "cc": 24,
+   "coverage": 0,
+   "crap": 600
   }
  ],
  "crap_top_files": [
@@ -375,8 +375,8 @@
   {
    "file": "scripts/verify-citations.mjs",
    "worst": 812,
-   "total": 3792,
-   "fns": 23
+   "total": 3834,
+   "fns": 24
   },
   {
    "file": "scripts/build-og-index.mjs",
@@ -389,12 +389,6 @@
    "worst": 2970,
    "total": 3000,
    "fns": 2
-  },
-  {
-   "file": "functions/api/ask.js",
-   "worst": 1722,
-   "total": 2974,
-   "fns": 12
   },
   {
    "file": "scripts/guard.mjs",
@@ -449,6 +443,12 @@
    "worst": 1482,
    "total": 1594,
    "fns": 9
+  },
+  {
+   "file": "scripts/build-canonical-facts.mjs",
+   "worst": 600,
+   "total": 1306,
+   "fns": 6
   }
  ],
  "files": [
@@ -476,8 +476,8 @@
    "reason": "CF Pages Function (routed endpoint, middleware, or _-prefixed shared helper). Deployed on every push; defects ship directly to users.",
    "present": false,
    "lines": 12,
-   "covered": 0,
-   "pct": 0
+   "covered": 12,
+   "pct": 100
   },
   {
    "file": "functions/api/_bot.js",
@@ -609,10 +609,10 @@
    "file": "functions/api/_search_log.js",
    "category": "PRODUCT-CODE",
    "reason": "CF Pages Function (routed endpoint, middleware, or _-prefixed shared helper). Deployed on every push; defects ship directly to users.",
-   "present": false,
-   "lines": 79,
-   "covered": 0,
-   "pct": 0
+   "present": true,
+   "lines": 159,
+   "covered": 131,
+   "pct": 82.38
   },
   {
    "file": "functions/api/_ses.js",
@@ -834,10 +834,10 @@
    "file": "functions/api/ask.js",
    "category": "PRODUCT-CODE",
    "reason": "CF Pages Function (routed endpoint, middleware, or _-prefixed shared helper). Deployed on every push; defects ship directly to users.",
-   "present": false,
-   "lines": 471,
-   "covered": 0,
-   "pct": 0
+   "present": true,
+   "lines": 499,
+   "covered": 312,
+   "pct": 62.52
   },
   {
    "file": "functions/api/ask/sandbox.js",
@@ -1159,8 +1159,8 @@
    "category": "PRODUCT-CODE",
    "reason": "CF Pages Function (routed endpoint, middleware, or _-prefixed shared helper). Deployed on every push; defects ship directly to users.",
    "present": true,
-   "lines": 119,
-   "covered": 119,
+   "lines": 120,
+   "covered": 120,
    "pct": 100
   },
   {
@@ -1186,8 +1186,8 @@
    "category": "PRODUCT-CODE",
    "reason": "CF Pages Function (routed endpoint, middleware, or _-prefixed shared helper). Deployed on every push; defects ship directly to users.",
    "present": true,
-   "lines": 396,
-   "covered": 396,
+   "lines": 447,
+   "covered": 447,
    "pct": 100
   },
   {
@@ -2073,6 +2073,15 @@
    "pct": 0
   },
   {
+   "file": "scripts/ask-eval/run.mjs",
+   "category": "E2E-DRIVER",
+   "reason": "Fires a question bank at the live /api/ask (or the eval worker) and archives transcripts; body is live HTTP + D1 I/O, run by hand. Landed on main via #138 without a census rule and blocked every claude/ merge until classified (2026-09-01).",
+   "present": false,
+   "lines": 219,
+   "covered": 0,
+   "pct": 0
+  },
+  {
    "file": "scripts/audit-author-coverage.mjs",
    "category": "E2E-DRIVER",
    "reason": "Operator tool whose body is live D1/R2/ELV I/O (audits, snapshots, content cleanup, CRM verification) against production data.",
@@ -2716,9 +2725,9 @@
    "category": "PRODUCT-CODE",
    "reason": "Deterministic CI/pre-commit proof gate; it decides whether deploys are allowed and must itself be trustworthy.",
    "present": true,
-   "lines": 946,
-   "covered": 920,
-   "pct": 97.25
+   "lines": 950,
+   "covered": 924,
+   "pct": 97.26
   },
   {
    "file": "scripts/gates/verify-library-curation.mjs",
@@ -2870,8 +2879,8 @@
    "reason": "Infographic pipeline entry points; unit-tested (infographic-*.test.js).",
    "present": true,
    "lines": 74,
-   "covered": 59,
-   "pct": 79.72
+   "covered": 60,
+   "pct": 81.08
   },
   {
    "file": "scripts/infographic-render.mjs",
@@ -3274,7 +3283,7 @@
    "category": "PRODUCT-CODE",
    "reason": "The quality instrument itself (coverage/CRAP/mutation/census). A measurement tool that is wrong is worse than no tool; its pure logic is unit-testable.",
    "present": false,
-   "lines": 152,
+   "lines": 153,
    "covered": 0,
    "pct": 0
   },
@@ -3552,10 +3561,10 @@
    "file": "scripts/verify-citations.mjs",
    "category": "PRODUCT-CODE",
    "reason": "Deploy-blocking guard/check: runs in CI or pre-commit and gates what ships.",
-   "present": false,
-   "lines": 594,
-   "covered": 0,
-   "pct": 0
+   "present": true,
+   "lines": 626,
+   "covered": 108,
+   "pct": 17.25
   },
   {
    "file": "scripts/verify-crm-elv.mjs",
@@ -3661,7 +3670,7 @@
    "category": "PRODUCT-CODE",
    "reason": "Build-time data fetcher / shared logic. Feeds every deploy (fetch-all -> src/data -> astro build); silent failure here is a data-loss deploy.",
    "present": false,
-   "lines": 72,
+   "lines": 73,
    "covered": 0,
    "pct": 0
   },
@@ -3823,7 +3832,7 @@
    "category": "PRODUCT-CODE",
    "reason": "Build-time data fetcher / shared logic. Feeds every deploy (fetch-all -> src/data -> astro build); silent failure here is a data-loss deploy.",
    "present": false,
-   "lines": 352,
+   "lines": 358,
    "covered": 0,
    "pct": 0
   },
