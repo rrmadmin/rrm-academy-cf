@@ -67,8 +67,15 @@
       "title": "RRM Academy, Save the Uterus Club, and What's Coming",
       "startTimeSeconds": 2297,
       "endTimeSeconds": 2648,
-      "durationSeconds": 351,
-      "topicSummary": "Tour of RRM Academy resources: research library, courses, endo self-survey; Save the Uterus Club membership and community; upcoming projects including the RRM provider directory, patient guides, and quizzes. Ends with the handoff back to the host."
+      "durationSeconds": 348.5,
+      "topicSummary": "Tour of RRM Academy resources: research library, courses, endo self-survey; Save the Uterus Club membership and community; upcoming projects including the RRM provider directory, patient guides, and quizzes. Ends with the handoff back to the host.",
+      "removedInterior": [
+        {
+          "startTimeSeconds": 2622.98,
+          "endTimeSeconds": 2625.48,
+          "reason": "Naomi refers to Rebecca Vavilov as \"Dr. Vavilov\"; Rebecca holds a PhD and is never styled Dr./Doctor. Cut excised; join is seamless (\"...hand it back over to Dr. Whitaker now. That was such a good overview...\")."
+        }
+      ]
     },
     {
       "order": 7,
@@ -78,7 +85,14 @@
       "startTimeSeconds": 2648,
       "endTimeSeconds": 2977,
       "durationSeconds": 329,
-      "topicSummary": "Discussion: why patient-led reform matters, how the platform handles data privacy versus commercial apps, and how speakers are vetted (including the red light therapy guest) against viral misinformation like sham endometriosis saliva tests."
+      "topicSummary": "Discussion: why patient-led reform matters, how the platform handles data privacy versus commercial apps, and how speakers are vetted (including the red light therapy guest) against viral misinformation like sham endometriosis saliva tests.",
+      "mutedAudio": [
+        {
+          "startTimeSeconds": 2667.55,
+          "endTimeSeconds": 2668.31,
+          "reason": "Audio muted over the word \"Dr.\" only (Brian 2026-09-01: reads as a split-second dropout). Sentence and the surname are otherwise intact; verified -76.9 dB in-window vs -14.8/-24.3 dB either side, and the \"Vavilov\" onset is bit-identical to source."
+        }
+      ]
     },
     {
       "order": 8,
@@ -101,5 +115,5 @@
       "topicSummary": "Audience question on federal advocacy: recap of the federal fertility-benefits comment period where roughly 8 of 10 of 6,000+ comments supported root-cause approaches, what the proposed bills would mean for access to restorative surgery, and how lobbying budgets shape reproductive healthcare policy."
     }
   ],
-  "notes": "DRAFT. 9 lessons, contiguous chain: 800->1235->1514->1791->2068->2297->2648->2977->3395->3847. Content ~50.8 min of a 67.4-min recording. Boundaries set from the verbatim transcript. contentStart 800s: Naomi's 'All right. Welcome everyone' lands ~00:13:30 inside the 00:12:30 block (estimated by word count); 800s starts a hair early per convention. contentEnd 3847s (01:04:07): trims the attendee testimonial + goodbyes. No member-specific medical Q&A found in the content span (Elaine's question is policy advocacy, kept)."
+  "notes": "DRAFT. 9 lessons, contiguous chain: 800->1235->1514->1791->2068->2297->2648->2977->3395->3847. Content ~50.8 min of a 67.4-min recording. Boundaries set from the verbatim transcript. contentStart 800s: Naomi's 'All right. Welcome everyone' lands ~00:13:30 inside the 00:12:30 block (estimated by word count); 800s starts a hair early per convention. contentEnd 3847s (01:04:07): trims the attendee testimonial + goodbyes. No member-specific medical Q&A found in the content span (Elaine's question is policy advocacy, kept). [CORRECTED 2026-09-01, Brian: two \"Dr. Vavilov\" references removed. L6 has a 2.5s excision (2622.98-2625.48) so its clip is 348.5s, not 351s; L7 has a 0.76s audio mute over the word \"Dr.\" at 2667.55-2668.31, length unchanged. Both lessons are now re-encoded uploads, NOT Stream clips of the source, so re-running clip-source.py would REGRESS them - it skips steps already present in clip-uids, but do not delete those entries.]"
 }
