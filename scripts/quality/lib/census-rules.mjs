@@ -92,6 +92,7 @@ const OVERRIDES = new Map([
   ['scripts/update-campaign-snapshot.mjs', ['PRODUCT-CODE', 'Recurring cron refresh of the committed campaign snapshot; has unit tests (tests/unit/campaign-snapshot.test.mjs) over its pure shaping.']],
   ['scripts/regenerate-glossary-seed.mjs', ['ONE-OFF', 'Manual local regeneration of migrate-glossary-data.sql from glossary.json; run rarely, by hand, never in CI. Promote to PRODUCT-CODE if it regains routine use.']],
   ['scripts/glossary/rename-slugs.mjs', ['ONE-OFF', 'One-shot AEO slug-rename campaign across glossary tables; record of a finished rename.']],
+  ['scripts/ask-eval/run.mjs', ['E2E-DRIVER', 'Fires a question bank at the live /api/ask (or the eval worker) and archives transcripts; body is live HTTP + D1 I/O, run by hand. Landed on main via #138 without a census rule and blocked every claude/ merge until classified (2026-09-01).']],
   ['scripts/glossary/bulk-load-sources.mjs', ['E2E-DRIVER', 'Bulk-load of authoritative source definitions into live rrm-auth D1 from the External Sourcing Sheet; body is live D1 I/O.']],
   ['scripts/audit-glossary-links.mjs', ['PRODUCT-CODE', 'Local deterministic analysis of glossary.json link classes; unit-tested (glossary-link-classifier.test.js), 80% covered today.']],
   ['scripts/compute-word-counts.mjs', ['PRODUCT-CODE', 'Recurring thin-page backfill tool; pure word-count core is fixture-tested (compute-word-counts-fixture.test.js). The D1 I/O wrapper is the uncovered remainder.']],
