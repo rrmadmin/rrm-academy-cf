@@ -55,18 +55,20 @@
     "name": "introduction-to-rrm-irrm-clinical-evidence-1.mp4"
   },
   "irrm-academy-resources-1": {
-    "clipUid": "01e550d94c68a4f7f2eb3bb786203c7b",
+    "clipUid": "6a94d706216837c411aacae64374f5ad",
     "sourceUid": "39891b73a57c6d0f68daf4fc8f867413",
     "startTimeSeconds": 2297,
     "endTimeSeconds": 2648,
-    "durationSeconds": 351,
+    "durationSeconds": 348.5,
     "title": "RRM Academy, Save the Uterus Club, and What's Coming",
     "sectionId": "irrm-academy-resources",
     "order": 6,
-    "name": "introduction-to-rrm-irrm-academy-resources-1.mp4"
+    "name": "introduction-to-rrm-irrm-academy-resources-1.mp4",
+    "source": "re-encoded locally from the Drive master and UPLOADED (not a Stream clip) to carry the Dr.-Vavilov corrections",
+    "supersedes": "01e550d94c68a4f7f2eb3bb786203c7b"
   },
   "irrm-patient-led-change-1": {
-    "clipUid": "c293c9b11a144dde70446dc3344f4080",
+    "clipUid": "1197f75838eacf63b1fe8a447f8b843d",
     "sourceUid": "39891b73a57c6d0f68daf4fc8f867413",
     "startTimeSeconds": 2648,
     "endTimeSeconds": 2977,
@@ -74,7 +76,9 @@
     "title": "Patients Lead the Change: Privacy, Vetting, and Trust",
     "sectionId": "irrm-patient-led-change",
     "order": 7,
-    "name": "introduction-to-rrm-irrm-patient-led-change-1.mp4"
+    "name": "introduction-to-rrm-irrm-patient-led-change-1.mp4",
+    "source": "re-encoded locally from the Drive master and UPLOADED (not a Stream clip) to carry the Dr.-Vavilov corrections",
+    "supersedes": "c293c9b11a144dde70446dc3344f4080"
   },
   "irrm-marketing-traps-1": {
     "clipUid": "181e5a0967c2850551959b64883c8592",
