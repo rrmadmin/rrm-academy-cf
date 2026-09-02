@@ -238,7 +238,7 @@
       "note": "Traffic-source classification: utm value PII screen (first pass) + 100-char clamp + paid/email overrides"
     },
     "functions/api/email/events.js": {
-      "hash": "9bd41fadde6cf5650e8bdf2960491047af6e3dd1dd3f4a2613020661784903d6",
+      "hash": "0d6e1d30c111717a72a85ea6071d2e72a2182eec0f7dd28cf1b3673080ab151c",
       "note": "SNS SES event ingestion (RSA signature + webhook_event dedup)"
     }
   }
