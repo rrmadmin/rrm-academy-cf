@@ -1,0 +1,101 @@
+{
+  "irrm-welcome-what-is-rrm-1": {
+    "clipUid": "3994ee0a66bf0dee177732594fe63866",
+    "sourceUid": "39891b73a57c6d0f68daf4fc8f867413",
+    "startTimeSeconds": 800,
+    "endTimeSeconds": 1235,
+    "durationSeconds": 435,
+    "title": "Welcome: Why You're Here and What RRM Actually Is",
+    "sectionId": "irrm-welcome-what-is-rrm",
+    "order": 1,
+    "name": "introduction-to-rrm-irrm-welcome-what-is-rrm-1.mp4"
+  },
+  "irrm-diagnostic-roadmap-1": {
+    "clipUid": "721d969fe3929b9957a1fcd2c3b3b6a8",
+    "sourceUid": "39891b73a57c6d0f68daf4fc8f867413",
+    "startTimeSeconds": 1235,
+    "endTimeSeconds": 1514,
+    "durationSeconds": 279,
+    "title": "Finding the Cause: The RRM Diagnostic and Treatment Roadmap",
+    "sectionId": "irrm-diagnostic-roadmap",
+    "order": 2,
+    "name": "introduction-to-rrm-irrm-diagnostic-roadmap-1.mp4"
+  },
+  "irrm-history-1": {
+    "clipUid": "653e7e59bc658f39409e638b82c2471f",
+    "sourceUid": "39891b73a57c6d0f68daf4fc8f867413",
+    "startTimeSeconds": 1514,
+    "endTimeSeconds": 1791,
+    "durationSeconds": 277,
+    "title": "A Short History of Reproductive Medicine",
+    "sectionId": "irrm-history",
+    "order": 3,
+    "name": "introduction-to-rrm-irrm-history-1.mp4"
+  },
+  "irrm-rrm-vs-ivf-1": {
+    "clipUid": "400fa9fae6f03feb83f70637f495c7fc",
+    "sourceUid": "39891b73a57c6d0f68daf4fc8f867413",
+    "startTimeSeconds": 1791,
+    "endTimeSeconds": 2068,
+    "durationSeconds": 277,
+    "title": "RRM and IVF: Two Different Questions",
+    "sectionId": "irrm-rrm-vs-ivf",
+    "order": 4,
+    "name": "introduction-to-rrm-irrm-rrm-vs-ivf-1.mp4"
+  },
+  "irrm-clinical-evidence-1": {
+    "clipUid": "8782510e7ca0879aa831f25274aab208",
+    "sourceUid": "39891b73a57c6d0f68daf4fc8f867413",
+    "startTimeSeconds": 2068,
+    "endTimeSeconds": 2297,
+    "durationSeconds": 229,
+    "title": "The Clinical Evidence: Unexplained Is Unacceptable",
+    "sectionId": "irrm-clinical-evidence",
+    "order": 5,
+    "name": "introduction-to-rrm-irrm-clinical-evidence-1.mp4"
+  },
+  "irrm-academy-resources-1": {
+    "clipUid": "01e550d94c68a4f7f2eb3bb786203c7b",
+    "sourceUid": "39891b73a57c6d0f68daf4fc8f867413",
+    "startTimeSeconds": 2297,
+    "endTimeSeconds": 2648,
+    "durationSeconds": 351,
+    "title": "RRM Academy, Save the Uterus Club, and What's Coming",
+    "sectionId": "irrm-academy-resources",
+    "order": 6,
+    "name": "introduction-to-rrm-irrm-academy-resources-1.mp4"
+  },
+  "irrm-patient-led-change-1": {
+    "clipUid": "c293c9b11a144dde70446dc3344f4080",
+    "sourceUid": "39891b73a57c6d0f68daf4fc8f867413",
+    "startTimeSeconds": 2648,
+    "endTimeSeconds": 2977,
+    "durationSeconds": 329,
+    "title": "Patients Lead the Change: Privacy, Vetting, and Trust",
+    "sectionId": "irrm-patient-led-change",
+    "order": 7,
+    "name": "introduction-to-rrm-irrm-patient-led-change-1.mp4"
+  },
+  "irrm-marketing-traps-1": {
+    "clipUid": "181e5a0967c2850551959b64883c8592",
+    "sourceUid": "39891b73a57c6d0f68daf4fc8f867413",
+    "startTimeSeconds": 2977,
+    "endTimeSeconds": 3395,
+    "durationSeconds": 418,
+    "title": "Root-Cause Marketing Traps and Cooperative Hormone Therapy",
+    "sectionId": "irrm-marketing-traps",
+    "order": 8,
+    "name": "introduction-to-rrm-irrm-marketing-traps-1.mp4"
+  },
+  "irrm-advocacy-qa-1": {
+    "clipUid": "518fc341b8b86b299d133c9e3f4b678c",
+    "sourceUid": "39891b73a57c6d0f68daf4fc8f867413",
+    "startTimeSeconds": 3395,
+    "endTimeSeconds": 3847,
+    "durationSeconds": 452,
+    "title": "Q&A: The Federal Advocacy Win",
+    "sectionId": "irrm-advocacy-qa",
+    "order": 9,
+    "name": "introduction-to-rrm-irrm-advocacy-qa-1.mp4"
+  }
+}

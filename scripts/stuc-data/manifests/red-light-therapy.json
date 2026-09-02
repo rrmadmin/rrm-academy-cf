@@ -1,0 +1,135 @@
+{
+  "courseId": "red-light-therapy",
+  "sourceUid": "5c2ef14e77bc627bbfe5c7fbf7de9f81",
+  "sourceDuration": 5751,
+  "approved": true,
+  "contentStart": 285,
+  "contentEnd": 5577,
+  "trimmedChitChat": {
+    "startTrimmed": "00:00:00-00:04:45 \u2014 pre-event private conversation (tech check, conference chat, Gentle Birth app backstory retold on-record later)",
+    "endTrimmed": "01:32:57-01:35:51 \u2014 socials plug, next-day networking-event promo, thank-yous, goodbyes"
+  },
+  "lessons": [
+    {
+      "order": 1,
+      "sectionId": "rlt-welcome-journey",
+      "stepId": "rlt-welcome-journey-1",
+      "title": "Welcome: From Midwife to Certified Light Therapist",
+      "startTimeSeconds": 285,
+      "endTimeSeconds": 850,
+      "durationSeconds": 565,
+      "topicSummary": "Save the Uterus Club welcome and introduction of Tracy Donegan (registered midwife, founder of GentleBirth, author of Mindful Pregnancy, certified light therapist). Tracy's background: 14 years as a midwife, the GentleBirth app, and her initial skepticism of red light therapy claims before investigating the research."
+    },
+    {
+      "order": 2,
+      "sectionId": "rlt-protocols-not-gadgets",
+      "stepId": "rlt-protocols-not-gadgets-1",
+      "title": "Protocols, Not Gadgets: What Serious Light Therapy Looks Like",
+      "startTimeSeconds": 850,
+      "endTimeSeconds": 1142,
+      "durationSeconds": 292,
+      "topicSummary": "Why the therapy is not one-and-done: three-cycle protocols with monthly check-ins, health history and circadian light assessment. Oral mucositis as the flagship established use, standard of care in UK pediatric oncology units, and why it remains underused in the US."
+    },
+    {
+      "order": 3,
+      "sectionId": "rlt-what-is-pbm",
+      "stepId": "rlt-what-is-pbm-1",
+      "title": "Photobiomodulation 101: Wavelengths, Technique, and History",
+      "startTimeSeconds": 1142,
+      "endTimeSeconds": 1667,
+      "durationSeconds": 525,
+      "topicSummary": "The proper term photobiomodulation (PBM); panels vs lasers; key wavelengths (660 nm window, 808-830 nm deep penetration); skin-contact application technique and why air gaps waste energy; non-thermal safety rules; blue light for newborn jaundice as precedent; Mester's early experiments and NASA research."
+    },
+    {
+      "order": 4,
+      "sectionId": "rlt-mechanism",
+      "stepId": "rlt-mechanism-1",
+      "title": "How It Works: Mitochondria, ATP, and Nitric Oxide",
+      "startTimeSeconds": 1667,
+      "endTimeSeconds": 2024,
+      "durationSeconds": 357,
+      "topicSummary": "The cellular mechanism: chromophores absorb light, nitric oxide is displaced, ATP production rises, circulation improves, inflammation falls, stem cells are stimulated. Safety precautions (tattoos), clinical observations after cesarean, the post-COVID smell/taste recovery study in pregnant women, and the size of the evidence base (~1,800 RCTs, 13,000+ papers)."
+    },
+    {
+      "order": 5,
+      "sectionId": "rlt-womens-health-applications",
+      "stepId": "rlt-womens-health-applications-1",
+      "title": "Applications Across Women's Health",
+      "startTimeSeconds": 2024,
+      "endTimeSeconds": 2469,
+      "durationSeconds": 445,
+      "topicSummary": "Post-cesarean wound healing, mastitis, intimate health in menopause, lichen sclerosus. Wavelengths as prescriptions and the three-month re-evaluation rule. The Russian research tradition: low-level lasers on acupuncture points and intrauterine laser treatment of endometritis."
+    },
+    {
+      "order": 6,
+      "sectionId": "rlt-ovarian-ecosystem",
+      "stepId": "rlt-ovarian-ecosystem-1",
+      "title": "Tending the Soil: The Ovarian Ecosystem, Sunlight, and Melatonin",
+      "startTimeSeconds": 2469,
+      "endTimeSeconds": 2832,
+      "durationSeconds": 363,
+      "topicSummary": "Fertility support framed as supporting the whole ovarian ecosystem rather than chasing egg quality; the role of natural sunlight in hormonal balance; melatonin as the cellular maintenance crew; night light exposure, metabolic effects, and miscarriage risk; the D Minder app for vitamin D."
+    },
+    {
+      "order": 7,
+      "sectionId": "rlt-evidence-scrutiny",
+      "stepId": "rlt-evidence-scrutiny-1",
+      "title": "Scrutinizing the Fertility Claims: What the Evidence Actually Says",
+      "startTimeSeconds": 2832,
+      "endTimeSeconds": 3210,
+      "durationSeconds": 378,
+      "topicSummary": "Why many manufacturer-cited fertility studies are weak or confounded; the 2017 Morin study of ~1,000 IVF patients (laser vs acupuncture vs sham, non-significant trend toward better live birth); men's health applications including testicular pain and prostatitis protocols."
+    },
+    {
+      "order": 8,
+      "sectionId": "rlt-pcos-dosage",
+      "stepId": "rlt-pcos-dosage-1",
+      "title": "PCOS, Dosage, and What Clients Actually Report",
+      "startTimeSeconds": 3210,
+      "endTimeSeconds": 3542,
+      "durationSeconds": 332,
+      "topicSummary": "PBM and blood glucose in PCOS; the Arndt-Schulz dose-response law (too little does nothing, correct power reaches target tissue); clinical observations of improved cervical mucus and regulated luteal phases; why Tracy refers clients to RRM practitioners for root-cause workup."
+    },
+    {
+      "order": 9,
+      "sectionId": "rlt-pregnancy-hypertension",
+      "stepId": "rlt-pregnancy-hypertension-1",
+      "title": "Hypertension in Pregnancy, TBI, and the Integration Gap",
+      "startTimeSeconds": 3542,
+      "endTimeSeconds": 3952,
+      "durationSeconds": 410,
+      "topicSummary": "Brazilian research on light therapy for hypertension in pregnancy; intranasal devices normalizing blood pressure without harming mother or baby; labor pain and menstrual pain applications from China and Japan; the three-month objective-metric tracking approach; discussion of US healthcare fragmentation and layering low-risk therapies (laser plus progesterone for TBI)."
+    },
+    {
+      "order": 10,
+      "sectionId": "rlt-devices-protocols",
+      "stepId": "rlt-devices-protocols-1",
+      "title": "Lasers vs LEDs, Predatory Devices, and Pelvic Protocols",
+      "startTimeSeconds": 3952,
+      "endTimeSeconds": 4531,
+      "durationSeconds": 579,
+      "topicSummary": "Technical distinction between collimated lasers and scattering LEDs; predatory device marketing and invalid citations; cesarean scar healing beyond the surface (adhesion and isthmocele prevention); the 25-minute protocol with autonomic regulation; vaginal probe use on mucosal tissue; the partner-assisted protocol and why a receptive, relaxed state matters."
+    },
+    {
+      "order": 11,
+      "sectionId": "rlt-environment-integration",
+      "stepId": "rlt-environment-integration-1",
+      "title": "Light Environment, Antibiotic Resistance, and Getting This Into Medicine",
+      "startTimeSeconds": 4531,
+      "endTimeSeconds": 5116,
+      "durationSeconds": 585,
+      "topicSummary": "Modern light environments and fight-or-flight physiology; challenging the sun-avoidance myth; University of Virginia 405 nm blue light research re-sensitizing MRSA to antibiotics; the case for pre/intra/post-operative PBM in gynecology and oncology; the patient-as-scientist research network idea, funding, and preeclampsia trial ambitions; consumer panels as ambient light, not therapy."
+    },
+    {
+      "order": 12,
+      "sectionId": "rlt-practical-qa",
+      "stepId": "rlt-practical-qa-1",
+      "title": "Practical Q&A: Cycle Timing, Pregnancy, and the Fibroid Investigation",
+      "startTimeSeconds": 5116,
+      "endTimeSeconds": 5577,
+      "durationSeconds": 461,
+      "topicSummary": "When in the cycle to start laser therapy; pausing pelvic treatment after ovulation until a pregnancy test; surgical timing; the ongoing fibroid investigation cohort with follow-up imaging planned; future possibilities including liver support, myopia, and intrahepatic cholestasis of pregnancy."
+    }
+  ],
+  "notes": "DRAFT. 12 lessons, contiguous chain: 285->850->1142->1667->2024->2469->2832->3210->3542->3952->4531->5116->5577. Content ~88.2 min of a 95.9-min recording. Boundaries set from the verbatim transcript. contentStart 285s: Naomi's 'welcome everyone. So glad you're here' lands ~00:04:50 inside the 00:04:29 block; 285s starts a hair early per convention. contentEnd 5577s (01:32:57): keeps the preeclampsia exchange, trims socials plug + next-day event promo + goodbyes. No member-specific medical Q&A in the content span; client anecdotes are Tracy's own cohort descriptions, de-identified."
+}
