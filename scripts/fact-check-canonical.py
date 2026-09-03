@@ -39,6 +39,17 @@ import time
 from datetime import datetime, timezone
 from pathlib import Path
 
+# pplx usage attribution (2026-09-03): logs every api.perplexity.ai call from
+# this process to ~/iCode/.run-log/pplx-usage.jsonl with caller ancestry, so
+# spend on the one shared key is attributable. No-op if the module is absent.
+try:
+    import os as _pu_os, sys as _pu_sys
+    _pu_sys.path.insert(0, _pu_os.path.expanduser('~/iCode/scripts'))
+    import pplx_usage as _pu
+    _pu.install()
+except Exception:
+    pass
+
 SCRIPT_DIR = Path(__file__).resolve().parent
 PROJECT_DIR = SCRIPT_DIR.parent
 
