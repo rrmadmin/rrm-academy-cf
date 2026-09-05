@@ -22,6 +22,12 @@
  * configured yet" -- a silent no-op, not an error, since this augments an
  * already-successful user-facing response.
  *
+ * GOOGLE_ADS_STUC_ACTION_ID / GOOGLE_ADS_DONATION_ACTION_ID (optional CF
+ * Pages env vars) override STUC_PURCHASE_CONVERSION_ACTION_ID /
+ * DONATION_CONVERSION_ACTION_ID via resolveValueActionIds() below -- lets a
+ * real id be wired in (and lets tests exercise the real upload path) before
+ * Task 9's create-value-actions.py run is copied into the constants.
+ *
  * Every attempted upload (success or failure) logs the gclid to Analytics
  * Engine via log() -- see _log.js -- so a stale-secret failure (e.g. a dead
  * OAuth client secret returning token_401) leaves a replayable audit row
@@ -402,6 +408,24 @@ export function sendGoogleAdsValueConversion(env, waitUntil, { clickId, conversi
 
 // Two new UPLOAD_CLICKS conversion actions with VALUE, section 3.3. Ids
 // created by skills/ads-sitting/helpers/create-value-actions.py (Task 9 of
-// the first-touch-attribution plan); frozen here once known.
+// the first-touch-attribution plan); frozen here once known. Overridable
+// per-environment via GOOGLE_ADS_STUC_ACTION_ID / GOOGLE_ADS_DONATION_ACTION_ID
+// -- see resolveValueActionIds().
 export const STUC_PURCHASE_CONVERSION_ACTION_ID = 'PENDING_TASK_9';
 export const DONATION_CONVERSION_ACTION_ID = 'PENDING_TASK_9';
+
+/**
+ * Resolves the two server-upload value conversion action ids, preferring an
+ * env override over the frozen constants above -- lets a real id be wired
+ * in (or exercised in a test) before Task 9's printed ids are copied into
+ * the constants. A blank/whitespace-only env value falls through to the
+ * constant rather than resolving to an empty string.
+ */
+export function resolveValueActionIds(env) {
+  const stucOverride = typeof env?.GOOGLE_ADS_STUC_ACTION_ID === 'string' ? env.GOOGLE_ADS_STUC_ACTION_ID.trim() : '';
+  const donationOverride = typeof env?.GOOGLE_ADS_DONATION_ACTION_ID === 'string' ? env.GOOGLE_ADS_DONATION_ACTION_ID.trim() : '';
+  return {
+    stuc: stucOverride || STUC_PURCHASE_CONVERSION_ACTION_ID,
+    donation: donationOverride || DONATION_CONVERSION_ACTION_ID,
+  };
+}
