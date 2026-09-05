@@ -13,6 +13,11 @@ on:
       - 'scripts/build-og-index.mjs'
       - 'scripts/ssot-prebuild.mjs'
       - 'docs/design/design-system.manual.json'
+      # The committed CTA digest is an input to the enforcing dist gate below;
+      # a digest recommit must rebuild or the gate keeps judging a stale floor.
+      - 'docs/cta-map.json'
+      - 'scripts/check-cta-map.mjs'
+      - 'scripts/lib/cta-*.mjs'
       - 'package.json'
       - 'package-lock.json'
       - 'functions/**'
