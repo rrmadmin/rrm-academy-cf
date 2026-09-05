@@ -161,6 +161,18 @@ describe('conversion ledger -- cta_click type derivation', () => {
       assert.equal(written[0].type, 'donate.hero.donate');
     } finally { fetchStub.restore(); db.close(); }
   });
+
+  it('ignores a client-supplied value on cta_click -- value_cents lands NULL even when the caller sends one', async () => {
+    const fetchStub = stubExternalFetch();
+    const db = ledgerD1();
+    try {
+      const env = mockEnv({ DB: db, CONVERSION_LEDGER: '1' });
+      await sendGA4Event(env, makeRequest(), 'cta_click', { id: 'donate.hero.donate', page: '/donate/', value: 999999 });
+      const written = rows(db);
+      assert.equal(written.length, 1);
+      assert.equal(written[0].value_cents, null, 'a cta_click row must never trust a caller-supplied value into value_cents');
+    } finally { fetchStub.restore(); db.close(); }
+  });
 });
 
 // ------------------------------------------------------------- flag gating ---

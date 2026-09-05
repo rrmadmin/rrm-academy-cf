@@ -261,7 +261,9 @@ async function writeConversionLedger(env, request, eventName, params, sourcePara
   `).bind(
     eventName,
     ledgerText(deriveLedgerType(eventName, params), LEDGER_SHORT_CAP),
-    ledgerValueCents(params.value),
+    // cta_click is relayed unauthenticated from the client (/api/track), so a
+    // caller-supplied `value` on it is untrusted -- never let it land as money.
+    eventName === 'cta_click' ? null : ledgerValueCents(params.value),
     ledgerText(clientId, LEDGER_LONG_CAP),
     ledgerText(sessionId, LEDGER_LONG_CAP),
     userId,

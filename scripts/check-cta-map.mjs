@@ -16,16 +16,28 @@
 //                    the files.
 //
 // docs/cta-map.json/.md are a FAMILY DIGEST -- one row per distinct
-// (pageFamily, ctaId), never one row per page. Library/blog/course pages
-// are generated at deploy time from D1 content, so a per-page map would
-// grow and reshuffle on every content publish (it did: 12 MB, one row per
-// of ~4,650 pages) and fail `--check` on every routine library/commentary
-// deploy that touched zero templates. The digest is small and changes only
-// when a TEMPLATE's CTAs change -- exactly when a developer should recommit
-// it. The full per-page map (every occurrence, every page) is still
-// produced, as a build artifact at `dist/cta-map.json` -- gitignored,
-// regenerated every dist-mode run, useful for local debugging, never
-// committed and never part of the `--check` comparison.
+// (pageFamily, ctaId), never one row per page, and carrying no counts of
+// any kind. Library/blog/course pages are generated at deploy time from D1
+// content, so a per-page map (or a page-count column) reshuffles on every
+// content publish (measured: 12 MB, one row per page of ~4,650 pages; a
+// chrome id's page-count column read the whole site's page total and moved
+// on every routine publish too) and would fail `--check` on a deploy that
+// touched zero templates. `--check` is therefore a COVERAGE FLOOR, not a
+// byte comparison: every (pageFamily, ctaId) key in the committed digest
+// must still exist in a fresh build, or the check fails naming the missing
+// keys (a template dropped a CTA); a fresh key absent from the committed
+// digest only WARNs and exits 0 (content state revealed a template CTA --
+// e.g. a closed-cohort modal that only renders for some courses -- commit
+// the row at leisure). `label`/`elementType` changes on an existing key are
+// not compared -- label text is copy and changes legitimately. The digest
+// is small and changes only when a TEMPLATE's CTAs change -- exactly when
+// a developer should recommit it. The full per-page map (every occurrence,
+// every page) is still produced, as a build artifact at
+// `.cta-map/full.json` (repo root, gitignored, regenerated every dist-mode
+// run, useful for local debugging, never committed, never part of the
+// `--check` comparison, and NEVER written under `dist/` -- that directory
+// is deployed to the live site verbatim). The dist-mode PASS line still
+// prints the total page and element counts.
 //
 // Run via `npm run build` (source mode, pre-astro-build), as a step in
 // deploy.yml (dist mode --check, post-astro-build), and as a step in
@@ -33,7 +45,7 @@
 //
 // Spec: docs/superpowers/specs/2026-09-05-attribution-cta-map-ltv-design.md §4.3/§4.4
 
-import { readFileSync, writeFileSync, readdirSync, statSync, existsSync, mkdtempSync } from 'node:fs';
+import { readFileSync, writeFileSync, readdirSync, statSync, existsSync, mkdtempSync, mkdirSync } from 'node:fs';
 import { join, relative } from 'node:path';
 import { tmpdir } from 'node:os';
 import { fileURLToPath } from 'node:url';
@@ -48,6 +60,7 @@ import {
   isChromeCta,
   stripScriptBodies,
   cmpCodepoint,
+  compareDigestKeys,
 } from './lib/cta-map-rules.mjs';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
@@ -55,7 +68,7 @@ const REPO_ROOT = resolve(__dirname, '..');
 const REQUIRED_IDS_PATH = resolve(REPO_ROOT, 'src/data/cta-required-ids.json');
 const DIGEST_JSON_PATH = resolve(REPO_ROOT, 'docs/cta-map.json');
 const DIGEST_MD_PATH = resolve(REPO_ROOT, 'docs/cta-map.md');
-const DIST_ARTIFACT_JSON_PATH = resolve(REPO_ROOT, 'dist/cta-map.json');
+const FULL_ARTIFACT_JSON_PATH = resolve(REPO_ROOT, '.cta-map/full.json');
 
 function walk(dir, extFilter) {
   const out = [];
@@ -181,26 +194,29 @@ function buildDistOutput() {
  * One row per distinct (pageFamily, ctaId) -- pageFamily is the ctaId's own
  * page token, i.e. the route family, not the individual rendered page path.
  * `label` and `elementType` come from the FIRST occurrence encountered in
- * `rows` (rows are in file-walk order at this point, which is itself
- * deterministic -- `readdirSync().sort()` per directory). `pageCount` is
- * the number of distinct rendered pages carrying that id.
+ * `rows`, which are already sorted by (page, ctaId) at this point (see the
+ * `rows.sort(...)` call in `buildDistOutput`, above), so the "first"
+ * occurrence for a given key is deterministic across runs.
+ *
+ * Deliberately carries NO page-count field: a chrome id (header/footer/
+ * nav-mobile) renders on every page, so its count would be the site's total
+ * page count -- which moves on every routine library/blog/course publish
+ * and would turn `--check` red on a deploy that touched zero templates. The
+ * digest's whole reason for existing is to change only when a TEMPLATE's
+ * CTAs change; a count derived from content volume defeats that. Per-page
+ * counts, when useful for local debugging, are still derivable from the
+ * full per-page artifact (`.cta-map/full.json`).
  */
 function buildFamilyDigest(rows) {
   const byKey = new Map();
   for (const r of rows) {
     const pageFamily = r.ctaId.split('.')[0];
-    const key = `${pageFamily} ${r.ctaId}`;
-    let entry = byKey.get(key);
-    if (!entry) {
-      entry = { pageFamily, ctaId: r.ctaId, elementType: r.elementType, label: r.label, pageCount: 0, _pages: new Set() };
-      byKey.set(key, entry);
-    }
-    if (!entry._pages.has(r.page)) {
-      entry._pages.add(r.page);
-      entry.pageCount++;
+    const key = `${pageFamily} ${r.ctaId}`;
+    if (!byKey.has(key)) {
+      byKey.set(key, { pageFamily, ctaId: r.ctaId, elementType: r.elementType, label: r.label });
     }
   }
-  const digestRows = [...byKey.values()].map(({ _pages, ...rest }) => rest);
+  const digestRows = [...byKey.values()];
   digestRows.sort((a, b) => cmpCodepoint(a.pageFamily, b.pageFamily) || cmpCodepoint(a.ctaId, b.ctaId));
   return digestRows;
 }
@@ -209,7 +225,7 @@ function renderDigestMd(digestRows) {
   let md = '# CTA Map (family digest)\n\n';
   md += 'Generated by `scripts/check-cta-map.mjs --mode=dist`. Never hand-edited.\n\n';
   md += 'One row per distinct (page family, CTA id) -- not one row per rendered page. ';
-  md += 'The full per-page map is a build artifact at `dist/cta-map.json` (gitignored, not committed).\n\n';
+  md += 'The full per-page map is a build artifact at `.cta-map/full.json` (repo root, gitignored, not committed).\n\n';
   const byFamily = new Map();
   for (const r of digestRows) {
     if (!byFamily.has(r.pageFamily)) byFamily.set(r.pageFamily, []);
@@ -217,48 +233,13 @@ function renderDigestMd(digestRows) {
   }
   const families = [...byFamily.keys()].sort(cmpCodepoint);
   for (const family of families) {
-    md += `## ${family}\n\n| CTA id | Element | Label | Pages |\n|---|---|---|---|\n`;
+    md += `## ${family}\n\n| CTA id | Element | Label |\n|---|---|---|\n`;
     for (const r of byFamily.get(family)) {
-      md += `| \`${r.ctaId}\` | ${r.elementType} | ${r.label || '(no text)'} | ${r.pageCount} |\n`;
+      md += `| \`${r.ctaId}\` | ${r.elementType} | ${r.label || '(no text)'} |\n`;
     }
     md += '\n';
   }
   return md;
-}
-
-// ------------------------------------------------------------ tiny diff ---
-
-// Minimal LCS-based unified-diff renderer, no external dependency. The
-// digest is small (a few hundred rows at most, by design -- see the header
-// comment), so an O(n*m) LCS is fine.
-function unifiedDiff(labelA, linesA, labelB, linesB) {
-  const n = linesA.length;
-  const m = linesB.length;
-  const dp = Array.from({ length: n + 1 }, () => new Array(m + 1).fill(0));
-  for (let i = n - 1; i >= 0; i--) {
-    for (let j = m - 1; j >= 0; j--) {
-      dp[i][j] = linesA[i] === linesB[j] ? dp[i + 1][j + 1] + 1 : Math.max(dp[i + 1][j], dp[i][j + 1]);
-    }
-  }
-  const out = [`--- ${labelA}`, `+++ ${labelB}`];
-  let i = 0;
-  let j = 0;
-  while (i < n && j < m) {
-    if (linesA[i] === linesB[j]) {
-      out.push(`  ${linesA[i]}`);
-      i++;
-      j++;
-    } else if (dp[i + 1][j] >= dp[i][j + 1]) {
-      out.push(`- ${linesA[i]}`);
-      i++;
-    } else {
-      out.push(`+ ${linesB[j]}`);
-      j++;
-    }
-  }
-  while (i < n) out.push(`- ${linesA[i++]}`);
-  while (j < m) out.push(`+ ${linesB[j++]}`);
-  return out.join('\n');
 }
 
 function runDistMode({ check }) {
@@ -270,44 +251,55 @@ function runDistMode({ check }) {
   }
 
   // The full per-page artifact is always written on a clean run -- it is
-  // NOT part of the --check comparison (dist/ is gitignored, regenerated
-  // every run, and exists purely for local debugging of a specific page).
-  writeFileSync(DIST_ARTIFACT_JSON_PATH, JSON.stringify(rows, null, 2) + '\n');
+  // NOT part of the --check comparison and lives OUTSIDE dist/ (repo root
+  // `.cta-map/`, gitignored, regenerated every run, purely for local
+  // debugging of a specific page). dist/ is uploaded to the live site
+  // verbatim, so nothing meant to stay internal is written under it.
+  mkdirSync(dirname(FULL_ARTIFACT_JSON_PATH), { recursive: true });
+  writeFileSync(FULL_ARTIFACT_JSON_PATH, JSON.stringify(rows, null, 2) + '\n');
 
   const digestRows = buildFamilyDigest(rows);
   const digestJson = JSON.stringify(digestRows, null, 2) + '\n';
   const digestMd = renderDigestMd(digestRows);
 
   if (check) {
+    // A COVERAGE FLOOR, not byte equality: content state (which pages
+    // happen to be published/rendered right now) legitimately adds or
+    // removes non-chrome rows without any template changing, so a byte
+    // diff would redden this gate on every routine library/blog/course
+    // publish. Only a MISSING committed key -- a template dropped a CTA --
+    // fails the gate; an EXTRA fresh key only warns.
     const existingJson = existsSync(DIGEST_JSON_PATH) ? readFileSync(DIGEST_JSON_PATH, 'utf8') : null;
-    const existingMd = existsSync(DIGEST_MD_PATH) ? readFileSync(DIGEST_MD_PATH, 'utf8') : null;
-    if (existingJson !== digestJson || existingMd !== digestMd) {
+    const committedRows = existingJson ? JSON.parse(existingJson) : [];
+    const { missing, extra } = compareDigestKeys(committedRows, digestRows);
+
+    if (missing.length > 0) {
       const tmp = mkdtempSync(join(tmpdir(), 'cta-map-check-'));
       const tmpJsonPath = join(tmp, 'cta-map.json');
       const tmpMdPath = join(tmp, 'cta-map.md');
       writeFileSync(tmpJsonPath, digestJson);
       writeFileSync(tmpMdPath, digestMd);
-      console.error('FAIL: docs/cta-map.json/.md (family digest) are stale against a fresh build.');
-      console.error(`  Fresh output kept at ${tmp} for inspection (not deleted).`);
-      if (existingJson !== digestJson) {
-        console.error('');
-        console.error(unifiedDiff('docs/cta-map.json (committed)', (existingJson ?? '').split('\n'), tmpJsonPath, digestJson.split('\n')));
-      }
-      if (existingMd !== digestMd) {
-        console.error('');
-        console.error(unifiedDiff('docs/cta-map.md (committed)', (existingMd ?? '').split('\n'), tmpMdPath, digestMd.split('\n')));
-      }
+      console.error(`FAIL: ${missing.length} CTA(s) in the committed docs/cta-map.json are missing from a fresh build:`);
+      for (const key of missing) console.error(`  ${key}`);
       console.error('');
-      console.error('  Fix: run `npm run build && node scripts/check-cta-map.mjs --mode=dist` locally and commit the result.');
+      console.error(`  A template dropped a CTA. Fresh output kept at ${tmp} for inspection (not deleted).`);
+      console.error('  If this is a deliberate change, run `npm run build && node scripts/check-cta-map.mjs --mode=dist` locally and commit the result.');
       process.exit(1);
     }
-    console.log(`PASS (dist mode --check): ${pageCount} pages, ${rows.length} data-cta elements, ${digestRows.length}-row family digest matches a fresh build`);
+
+    if (extra.length > 0) {
+      console.warn(`WARN: ${extra.length} CTA(s) in a fresh build are not yet in the committed docs/cta-map.json (content state revealed a template CTA -- e.g. a closed-cohort modal that only renders for some courses):`);
+      for (const key of extra) console.warn(`  ${key}`);
+      console.warn('  Recommit at leisure: `npm run build && node scripts/check-cta-map.mjs --mode=dist`.');
+    }
+
+    console.log(`PASS (dist mode --check): ${pageCount} pages, ${rows.length} data-cta elements, ${digestRows.length}-row family digest covers every committed CTA${extra.length ? ` (${extra.length} new key(s), see WARN above)` : ''}`);
     return;
   }
 
   writeFileSync(DIGEST_JSON_PATH, digestJson);
   writeFileSync(DIGEST_MD_PATH, digestMd);
-  console.log(`PASS (dist mode): ${pageCount} pages, ${rows.length} data-cta elements, ${digestRows.length}-row family digest written to docs/cta-map.json + .md (full per-page map at dist/cta-map.json)`);
+  console.log(`PASS (dist mode): ${pageCount} pages, ${rows.length} data-cta elements, ${digestRows.length}-row family digest written to docs/cta-map.json + .md (full per-page map at .cta-map/full.json)`);
 }
 
 function main() {

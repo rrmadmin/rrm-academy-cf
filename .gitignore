@@ -1,5 +1,8 @@
 node_modules/
 dist/
+# Full per-page CTA map artifact (scripts/check-cta-map.mjs --mode=dist);
+# never under dist/ -- that directory deploys to the live site verbatim.
+.cta-map/
 .astro/
 src/data/articles.json
 src/data/posts.json
