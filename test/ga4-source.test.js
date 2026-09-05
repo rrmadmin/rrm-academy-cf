@@ -1,7 +1,7 @@
 // test/ga4-source.test.js
 import { describe, it } from 'node:test';
 import assert from 'node:assert/strict';
-import { classifySource, extractUtm, classifyPaid, deriveSessionId, buildSourceParams } from '../functions/api/_ga4-source.js';
+import { classifySource, extractUtm, classifyPaid, deriveSessionId, buildSourceParams, parseFirstTouch } from '../functions/api/_ga4-source.js';
 
 describe('classifySource', () => {
   it('returns direct for empty referrer', () => {
@@ -418,5 +418,89 @@ describe('buildSourceParams paid override', () => {
     const params = await buildSourceParams(req, 'test-client-id');
     assert.equal(params.entry_category, 'paid');
     assert.equal(params.entry_platform, 'direct');
+  });
+});
+
+describe('parseFirstTouch', () => {
+  it('returns null when the cookie is absent', () => {
+    assert.equal(parseFirstTouch(''), null);
+    assert.equal(parseFirstTouch('other_cookie=1'), null);
+  });
+
+  it('parses every field and derives ft_at as ISO from d', () => {
+    const cookie = 'rrm_ft=' + encodeURIComponent('s=google&m=cpc&c=q3_push&k=ad1&l=%2Fendo-quiz%2F&g=gEAIaIQtest&d=1757030400');
+    const result = parseFirstTouch(cookie);
+    assert.equal(result.ft_source, 'google');
+    assert.equal(result.ft_medium, 'cpc');
+    assert.equal(result.ft_campaign, 'q3_push');
+    assert.equal(result.ft_content, 'ad1');
+    assert.equal(result.ft_landing, '/endo-quiz/');
+    assert.equal(result.click_id, 'EAIaIQtest');
+    assert.equal(result.ft_at, new Date(1757030400 * 1000).toISOString());
+  });
+
+  it('strips the kind marker prefix from click_id, leaving only the value', () => {
+    const cookie = 'rrm_ft=' + encodeURIComponent('g=bBRAID_VALUE_HERE');
+    assert.equal(parseFirstTouch(cookie).click_id, 'BRAID_VALUE_HERE');
+  });
+
+  it('screens an email-shaped field to absent rather than passing it through', () => {
+    const cookie = 'rrm_ft=' + encodeURIComponent('s=google&k=someone%40example.com');
+    const result = parseFirstTouch(cookie);
+    assert.equal(result.ft_source, 'google');
+    assert.equal('ft_content' in result, false);
+  });
+
+  it('screens a bare 13-19 digit run field to absent', () => {
+    const cookie = 'rrm_ft=' + encodeURIComponent('s=google&c=1234567890123456');
+    const result = parseFirstTouch(cookie);
+    assert.equal('ft_campaign' in result, false);
+    assert.equal(result.ft_source, 'google');
+  });
+
+  it('returns null when every field was screened out', () => {
+    const cookie = 'rrm_ft=' + encodeURIComponent('k=someone%40example.com');
+    assert.equal(parseFirstTouch(cookie), null);
+  });
+
+  it('caps a field at 100 chars', () => {
+    const long = 'a'.repeat(150);
+    const cookie = 'rrm_ft=' + encodeURIComponent(`s=${long}`);
+    assert.equal(parseFirstTouch(cookie).ft_source.length, 100);
+  });
+
+  it('an unparseable d leaves ft_at unset without discarding the rest', () => {
+    const cookie = 'rrm_ft=' + encodeURIComponent('s=google&d=not-a-number');
+    const result = parseFirstTouch(cookie);
+    assert.equal(result.ft_source, 'google');
+    assert.equal('ft_at' in result, false);
+  });
+});
+
+describe('buildSourceParams spreads first-touch attribution', () => {
+  function fakeRequest(headers = {}) {
+    return {
+      url: 'https://rrmacademy.org/api/track',
+      headers: { get(name) { return headers[name] || null; } },
+    };
+  }
+
+  it('carries ft_* alongside last-touch utm_* without overwriting either', async () => {
+    const req = fakeRequest({
+      'Cookie': 'entry_url=' + encodeURIComponent('https://rrmacademy.org/?utm_source=organic_google&utm_campaign=today') +
+        '; rrm_ft=' + encodeURIComponent('s=google&m=cpc&c=q3_push&d=1757030400'),
+    });
+    const params = await buildSourceParams(req, 'test-client-id');
+    assert.equal(params.utm_source, 'organic_google', 'last-touch utm_source is untouched');
+    assert.equal(params.utm_campaign, 'today', 'last-touch utm_campaign is untouched');
+    assert.equal(params.ft_source, 'google');
+    assert.equal(params.ft_medium, 'cpc');
+    assert.equal(params.ft_campaign, 'q3_push');
+  });
+
+  it('omits ft_* entirely when no rrm_ft cookie is present', async () => {
+    const req = fakeRequest({ 'Cookie': 'entry_url=' + encodeURIComponent('https://rrmacademy.org/') });
+    const params = await buildSourceParams(req, 'test-client-id');
+    assert.equal('ft_source' in params, false);
   });
 });
