@@ -252,6 +252,111 @@ if (!jsonLd) {
           document.cookie = 'entry_url=' + encodeURIComponent(u) + ';path=/;SameSite=Lax;Secure';
         }
       } catch (e) {}
+      // rrm_ft: first-touch attribution, 90-day first-party cookie (D-4).
+      // Written ONLY when absent -- a returning visitor keeps their first
+      // touch even when arriving on a brand-new campaign, which is the
+      // whole point (last-touch is already covered by entry_ref/entry_url
+      // above). Every field is screened for the two PII shapes a client
+      // script can reasonably re-implement (email; a bare 13-19 digit run)
+      // before the cookie is written; a matching field is written empty
+      // rather than blocking the whole write. The write aborts entirely
+      // (nothing set) if the encoded record exceeds 1KB.
+      try {
+        if (!document.cookie.includes('rrm_ft=')) {
+          var ftEmailRe = /[\w.+-]+@[\w-]+\.[\w.-]+/;
+          var ftDigitRunRe = /\b(?:\d[ -]?){13,19}\b/;
+          var ftScreen = function (v) {
+            if (!v) return '';
+            return (ftEmailRe.test(v) || ftDigitRunRe.test(v)) ? '' : v;
+          };
+          var ftCap = function (v, n) { return v ? v.slice(0, n) : v; };
+
+          var ftParams = new URLSearchParams(location.search);
+          var ftUtmSource = ftParams.get('utm_source') || '';
+          var ftUtmMedium = ftParams.get('utm_medium') || '';
+          var ftUtmCampaign = ftParams.get('utm_campaign') || '';
+          var ftUtmContent = ftParams.get('utm_content') || '';
+          var ftUtmTerm = ftParams.get('utm_term') || '';
+
+          // Click id detection: gclid/gbraid/wbraid, one-letter kind marker
+          // ('g'/'b'/'w') so the server can tell them apart without a
+          // second cookie field. A click id forces medium 'cpc', same
+          // precedence _ga4-source.js's classifyPaid() applies server-side.
+          var ftClickIdKind = '';
+          var ftClickIdValue = '';
+          if (ftParams.get('gclid')) { ftClickIdKind = 'g'; ftClickIdValue = ftParams.get('gclid'); }
+          else if (ftParams.get('gbraid')) { ftClickIdKind = 'b'; ftClickIdValue = ftParams.get('gbraid'); }
+          else if (ftParams.get('wbraid')) { ftClickIdKind = 'w'; ftClickIdValue = ftParams.get('wbraid'); }
+
+          var ftSource, ftMedium, ftCategory;
+          if (ftClickIdKind) {
+            ftSource = ftUtmSource || 'google';
+            ftMedium = 'cpc';
+          } else if (ftUtmSource) {
+            ftSource = ftUtmSource;
+            ftMedium = ftUtmMedium || '(none)';
+          } else {
+            // Referrer classification, same precedence order as
+            // _ga4-source.js classifySource(): AI agents, then search
+            // engines, then social, then bare referral hostname, else
+            // direct. Self-domain referrers count as direct.
+            var ftRef = document.referrer || '';
+            var ftHost = '';
+            try { ftHost = ftRef ? new URL(ftRef).hostname : ''; } catch (e) { ftHost = ''; }
+            var ftSelf = ['rrmacademy.org', 'www.rrmacademy.org', 'library.rrmacademy.org'];
+            if (!ftHost || ftSelf.indexOf(ftHost) !== -1) {
+              ftSource = '(direct)'; ftMedium = '(none)';
+            } else if (/chatgpt\.com|chat\.openai\.com|perplexity\.ai|claude\.ai|gemini\.google\.com|bard\.google\.com|copilot\.microsoft\.com|bing\.com\/chat|you\.com|grokipedia\.com|x\.ai/i.test(ftRef)) {
+              ftSource = ftHost; ftMedium = 'ai';
+            } else if (/^(www\.)?google\.|bing\.com|yahoo\.|duckduckgo\.com|baidu\.com|yandex\.|ecosia\.org/i.test(ftHost)) {
+              ftSource = ftHost.replace(/^www\./, ''); ftMedium = 'organic';
+            } else if (/instagram\.com|facebook\.com|fb\.com|linkedin\.com|lnkd\.in|t\.co|twitter\.com|x\.com|youtube\.com|youtu\.be|pinterest\.com|reddit\.com|tiktok\.com/i.test(ftHost)) {
+              ftSource = ftHost; ftMedium = 'social';
+            } else {
+              ftSource = ftHost; ftMedium = 'referral';
+            }
+          }
+
+          var ftReferrerHost = '';
+          try { ftReferrerHost = document.referrer ? new URL(document.referrer).hostname : ''; } catch (e) { ftReferrerHost = ''; }
+
+          // One-time bridge: seed g from the legacy 30-day gclid cookie when
+          // this write finds no click id in the CURRENT url. A visitor
+          // mid-window at deploy time still gets a first-touch click id
+          // instead of a blank one.
+          if (!ftClickIdKind) {
+            var ftLegacyGclidMatch = document.cookie.match(/(?:^|;\s*)gclid=([^;]*)/);
+            if (ftLegacyGclidMatch) {
+              try {
+                ftClickIdKind = 'g';
+                ftClickIdValue = decodeURIComponent(ftLegacyGclidMatch[1]);
+              } catch (e) { ftClickIdKind = ''; ftClickIdValue = ''; }
+            }
+          }
+
+          var ftFields = {
+            s: ftCap(ftScreen(ftSource), 100),
+            m: ftCap(ftScreen(ftMedium), 100),
+            c: ftCap(ftScreen(ftUtmCampaign), 100),
+            k: ftCap(ftScreen(ftUtmContent), 100),
+            t: ftCap(ftScreen(ftUtmTerm), 100),
+            g: ftClickIdValue ? ftCap(ftClickIdKind + ftScreen(ftClickIdValue), 512) : '',
+            r: ftCap(ftScreen(ftReferrerHost), 100),
+            l: ftCap(ftScreen(location.pathname), 100),
+            d: String(Math.floor(Date.now() / 1000)),
+          };
+
+          var ftParts = [];
+          for (var ftKey in ftFields) {
+            if (ftFields[ftKey]) ftParts.push(ftKey + '=' + encodeURIComponent(ftFields[ftKey]));
+          }
+          var ftEncoded = ftParts.join('&');
+
+          if (ftEncoded.length <= 1024) {
+            document.cookie = 'rrm_ft=' + ftEncoded + ';max-age=7776000;path=/;SameSite=Lax;Secure';
+          }
+        }
+      } catch (e) {}
       // list_source: non-UTM custom param appended to email links so we can
       // attribute conversions back to the original subscriber-acquisition surface
       // (endo-survey signup, course page, etc.). 30-day cookie survives internal
