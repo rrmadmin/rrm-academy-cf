@@ -540,7 +540,7 @@ const relatedCourses = course.relatedCourses
     <section class="course-section course-section--alt">
       <div class="container container--narrow">
         <h2>About This Course</h2>
-        <div class="course-description prose">
+        <div class="course-description prose" data-cta-content>
           {course.description.split('\n\n').map((para: string) => {
             if (para.startsWith('•')) {
               const items = para.split('\n').filter((l: string) => l.trim());

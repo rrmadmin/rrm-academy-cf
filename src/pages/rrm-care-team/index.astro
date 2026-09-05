@@ -156,7 +156,7 @@ const jsonLd = {
             {FAQS.map((f) => (
               <details>
                 <summary>{f.question}</summary>
-                <div class="faq-answer" set:html={f.answerHtml} />
+                <div class="faq-answer" data-cta-content set:html={f.answerHtml} />
               </details>
             ))}
           </div>

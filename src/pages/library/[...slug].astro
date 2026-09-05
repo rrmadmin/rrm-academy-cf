@@ -336,14 +336,14 @@ const citationMeta = {
            This is the primary readable surface for editorials -- crawlers and LLMs read the
            full 1,500+ word response here, not just the abstract. -->
       {isEditorial && editorialBodyHtml && (
-        <section class="editorial-body" aria-label="Editorial response">
+        <section class="editorial-body" data-cta-content aria-label="Editorial response">
           <Fragment set:html={editorialBodyHtml} />
         </section>
       )}
 
       <!-- Synopsis (above abstract for SEO/AEO -- structured, citable content first) -->
       {article.insights && (
-        <section class="article-insights" aria-label="Synopsis">
+        <section class="article-insights" data-cta-content aria-label="Synopsis">
           {article.infographic ? (
             <div class="synopsis-hero">
               <div class="synopsis-hero__text">
@@ -533,14 +533,14 @@ const citationMeta = {
            This is the primary readable surface for editorials -- crawlers and LLMs read the
            full 1,500+ word response here, not just the abstract. -->
       {isEditorial && editorialBodyHtml && (
-        <section class="editorial-body" aria-label="Editorial response">
+        <section class="editorial-body" data-cta-content aria-label="Editorial response">
           <Fragment set:html={editorialBodyHtml} />
         </section>
       )}
 
       <!-- Synopsis (above abstract for SEO/AEO -- structured, citable content first) -->
       {article.insights && (
-        <section class="article-insights" aria-label="Synopsis">
+        <section class="article-insights" data-cta-content aria-label="Synopsis">
           {article.infographic ? (
             <div class="synopsis-hero">
               <div class="synopsis-hero__text">

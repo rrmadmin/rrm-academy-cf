@@ -341,6 +341,42 @@ function isWithinRanges(index, ranges) {
   return ranges.some(([start, end]) => index >= start && index < end);
 }
 
+// Byte ranges of every element carrying `data-cta-content` (an authored
+// content body -- commentary and library bodies, guide and FAQ bodies,
+// course step bodies), for the "in-prose link is copy, not a CTA" exemption
+// (spec §4.3). Regex-nested like taggedFormRanges, tracking depth by the
+// SAME tag name so a `<div data-cta-content>` body containing nested divs
+// is not truncated at the first inner `</div>`.
+export function contentBodyRanges(html) {
+  const ranges = [];
+  const openRe = /<([a-z][\w-]*)\b([^>]*)>/g;
+  let m;
+  while ((m = openRe.exec(html)) !== null) {
+    const [, tagName, attrsRaw] = m;
+    if (!hasAttrPresence(attrsRaw, 'data-cta-content')) continue;
+    const start = m.index;
+    const nestedRe = new RegExp(`<(/?)${tagName}\\b[^>]*>`, 'g');
+    nestedRe.lastIndex = openRe.lastIndex;
+    let depth = 1;
+    let end = html.length;
+    let mm;
+    while ((mm = nestedRe.exec(html)) !== null) {
+      if (mm[1] === '/') {
+        depth--;
+        if (depth === 0) {
+          end = mm.index + mm[0].length;
+          break;
+        }
+      } else {
+        depth++;
+      }
+    }
+    ranges.push([start, end]);
+    openRe.lastIndex = end;
+  }
+  return ranges;
+}
+
 /**
  * Runs rules 2 and 2b against one rendered page's HTML. `html` is the FULL
  * page (dist mode's unit is a whole rendered file, not a component).
@@ -350,9 +386,11 @@ export function findDistModeViolations(pagePath, html, requiredIdSet) {
   const scripts = extractInlineScripts(html);
   const outerScanHtml = stripScriptBodies(html);
   const formRanges = taggedFormRanges(outerScanHtml);
+  const contentRanges = contentBodyRanges(outerScanHtml);
   const tagRe = /<(a|button|form)\b([^>]*)>/g;
   let m;
   while ((m = tagRe.exec(outerScanHtml)) !== null) {
+    if (isWithinRanges(m.index, contentRanges)) continue;
     const [, tag, attrsRaw] = m;
     const dataCtaMatch = attrsRaw.match(/\sdata-cta\s*=\s*["']([^"']*)["']/);
     const id = attr(attrsRaw, 'id');
