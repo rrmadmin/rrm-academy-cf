@@ -18,6 +18,12 @@ One row per distinct (page family, CTA id) -- not one row per rendered page. The
 | `account.card.join-stuc-member` | a | Join the Save the Uterus Club |
 | `account.card.manage-billing` | button | Manage Billing |
 
+## app-shell
+
+| CTA id | Element | Label |
+|---|---|---|
+| `app-shell.sticky.donate` | a | Donate |
+
 ## community
 
 | CTA id | Element | Label |
