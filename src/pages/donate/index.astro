@@ -102,7 +102,7 @@ const jsonLd = {
               <li>Exclusive resources and podcast library</li>
               <li>Research and impact updates</li>
             </ul>
-            <button class="btn btn--secondary tier-btn" data-tier="member">Become a Member</button>
+            <button class="btn btn--secondary tier-btn" data-tier="member" data-cta="donate.tiers.join-stuc-member">Become a Member</button>
           </div>
 
           <div class="tier-card tier-featured card">
@@ -116,7 +116,7 @@ const jsonLd = {
               <li>Priority access to new resources</li>
               <li>Deeper involvement in advocacy</li>
             </ul>
-            <button class="btn btn--primary tier-btn" data-tier="hero">Become a Hero</button>
+            <button class="btn btn--primary tier-btn" data-tier="hero" data-cta="donate.tiers.join-stuc-hero">Become a Hero</button>
           </div>
 
           <div class="tier-card card">
@@ -129,11 +129,11 @@ const jsonLd = {
               <li>Quarterly Q&A with Dr. Whittaker</li>
               <li>Direct input on content priorities</li>
             </ul>
-            <button class="btn btn--secondary tier-btn" data-tier="superhero">Become a Super Hero</button>
+            <button class="btn btn--secondary tier-btn" data-tier="superhero" data-cta="donate.tiers.join-stuc-superhero">Become a Super Hero</button>
           </div>
         </div>
 
-        <p class="donate-tier-link"><a href="/save-the-uterus-club/">Learn more about membership benefits</a></p>
+        <p class="donate-tier-link"><a href="/save-the-uterus-club/" data-cta="donate.inline.join-stuc-member">Learn more about membership benefits</a></p>
         <p class="donate-tax">
           All membership proceeds support our 501(c)(3) educational mission. Donations are tax-deductible.<br />
           EIN: 93-4594315 &middot; <a href="/contact/">Contact us</a> for other ways to give.
@@ -157,7 +157,7 @@ const jsonLd = {
               <input type="number" id="custom-amount" class="form-input" min="5" max="999999" placeholder="Enter amount" />
             </div>
           </div>
-          <button id="donate-btn" class="btn btn--primary donate-submit-btn">Give $25</button>
+          <button id="donate-btn" class="btn btn--primary donate-submit-btn" data-cta="donate.hero.donate">Give $25</button>
           <p id="donate-error" class="donate-error" hidden></p>
           <p class="donate-onetime-alt">
             Or <a href="https://www.paypal.com/donate/?hosted_button_id=WHTRDKEMDN496" target="_blank" rel="noopener noreferrer">donate via PayPal</a>

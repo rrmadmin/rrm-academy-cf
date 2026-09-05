@@ -12,7 +12,7 @@ const navItems = [
     { label: 'FAQs', href: '/faqs/' },
     { label: 'Courses', href: '/courses/' },
   ]},
-  { label: 'Join Us', href: '/save-the-uterus-club/', id: 'stuc-nav-link' },
+  { label: 'Join Us', href: '/save-the-uterus-club/', id: 'stuc-nav-link', cta: 'header.sticky.join-stuc-member' },
 ];
 
 // Mobile menu — comprehensive nav (more items than desktop, grouped with icons)
@@ -156,7 +156,7 @@ const totalStaggerSlots = _staggerAcc;
                 <svg class="chevron" width="10" height="10" viewBox="0 0 10 10"><path d="M2.5 4L5 6.5L7.5 4" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
               </button>
             ) : (
-              <a href={item.href} class="nav-link" id={item.id}>{item.label}</a>
+              <a href={item.href} class="nav-link" id={item.id} data-cta={item.cta}>{item.label}</a>
             )}
             {item.children && (
               <div class="dropdown">
@@ -174,7 +174,7 @@ const totalStaggerSlots = _staggerAcc;
       <!-- Account row pinned to the TOP of the drawer: auth-aware. Default = logged-out
            (Sign in); the auth script swaps in the user's photo/initials + name on session. -->
       <div class="mobile-nav-header">
-        <a href="/account/" class="mobile-account" id="mobile-account-row" data-track-cta="account-mobile-nav">
+        <a href="/account/" class="mobile-account" id="mobile-account-row" data-track-cta="account-mobile-nav" data-cta="nav-mobile.sidebar.account">
           <span class="mobile-account__avatar" id="mobile-account-avatar">
             <svg class="mobile-account__person" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
             <img class="mobile-account__photo" id="mobile-account-photo" alt="" decoding="async" hidden />
@@ -226,7 +226,7 @@ const totalStaggerSlots = _staggerAcc;
       <!-- Mobile-only footer inside nav panel (account row moved to the top header) -->
       <div class="mobile-nav-footer">
         <div class="mobile-nav-footer__actions" style={`--stagger:${totalStaggerSlots}`}>
-          <a href="/donate/" class="donate-btn mobile-donate" data-track-cta="donate-mobile-nav">
+          <a href="/donate/" class="donate-btn mobile-donate" data-track-cta="donate-mobile-nav" data-cta="nav-mobile.sidebar.donate">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
             Donate
           </a>
@@ -247,8 +247,8 @@ const totalStaggerSlots = _staggerAcc;
       <button type="button" class="desktop-search-btn" id="desktop-search-trigger" data-open-search-modal aria-label="Open search" aria-haspopup="dialog" aria-expanded="false" aria-controls="mss-modal">
         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
       </button>
-      <a href="/account/" class="btn btn--secondary btn--pill" id="desktop-account-btn" data-track-cta="account-header">Account</a>
-      <a href="/donate/" class="donate-btn" id="desktop-donate-btn" data-track-cta="donate-header">Donate</a>
+      <a href="/account/" class="btn btn--secondary btn--pill" id="desktop-account-btn" data-track-cta="account-header" data-cta="header.sticky.account">Account</a>
+      <a href="/donate/" class="donate-btn" id="desktop-donate-btn" data-track-cta="donate-header" data-cta="header.sticky.donate">Donate</a>
     </div>
 
     <MobileSearchModal />

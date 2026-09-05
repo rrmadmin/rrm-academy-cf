@@ -7,9 +7,13 @@ import superheroes from '../data/superheroes.json';
 
 interface Props {
   heading?: string;
+  /** data-cta id for the "Become a Super Hero" link. Two call sites today
+      (homepage, courses index) render this in different page contexts, so
+      each must pass its own id -- no shared default. */
+  ctaId: string;
 }
 
-const { heading = 'Supported by our Uterus Super Heroes' } = Astro.props;
+const { heading = 'Supported by our Uterus Super Heroes', ctaId } = Astro.props;
 ---
 {superheroes.length > 0 && (
   <section class="shl" aria-labelledby="shl-heading" data-pagefind-ignore>
@@ -29,7 +33,7 @@ const { heading = 'Supported by our Uterus Super Heroes' } = Astro.props;
         </li>
       ))}
     </ul>
-    <p class="shl__cta"><a href="/save-the-uterus-club/">Become a Super Hero</a></p>
+    <p class="shl__cta"><a href="/save-the-uterus-club/" data-cta={ctaId}>Become a Super Hero</a></p>
   </section>
 )}
 

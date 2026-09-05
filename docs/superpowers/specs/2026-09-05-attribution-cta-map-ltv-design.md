@@ -358,9 +358,12 @@ and in `merge.yml`:
    `data-checkout`, `data-enroll` attribute targets `/donate`, `/api/create-
    checkout`, `/api/billing/portal`, `/save-the-uterus-club`,
    `/api/newsletter/subscribe`, `/api/endo-quiz/*`, `/api/survey/*`,
-   `/courses/*/enroll`, `/signup`, `/login`, `/account`, `/providers`, or
-   `mailto:` MUST carry `data-cta` matching the regex with tokens from the
-   vocabulary. Otherwise the build fails naming file and line.
+   `/courses/*/enroll`, `/courses/*/waitlist`, or `mailto:`, or whose `rel`
+   contains `sponsored`, MUST carry `data-cta` matching the regex with
+   tokens from the vocabulary. Otherwise the build fails naming file and
+   line. Navigation targets (account, login, signup, the provider
+   directory) are not policed; chrome links to them carry data-cta by
+   choice.
 2b. Rule 2's href/action/data-* scan cannot see an id-plus-listener button
     (`#donate-btn`, `#manage-billing-btn`) or a `mailto:` fallback a script
     builds at runtime -- there is no href for step 2 to read. So: any

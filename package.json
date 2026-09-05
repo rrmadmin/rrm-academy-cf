@@ -5,7 +5,7 @@
   "type": "module",
   "scripts": {
     "dev": "astro dev",
-    "build": "node src/lib/enrich-glossary.mjs && node scripts/build-og-index.mjs && node scripts/generate-page-dates.mjs && node scripts/build-library-feed.mjs && node scripts/build-guides-data.mjs && node scripts/build-guide-reviews.mjs && node scripts/sync-library-count.mjs && node scripts/regen-agent-skills-digests.mjs && node scripts/check-render-gate-ids.mjs && SITE_SSOT_ENABLED=${SITE_SSOT_ENABLED:-1} node scripts/ssot-prebuild.mjs && astro build && npx pagefind --site dist && node scripts/build-infographic-assets.mjs",
+    "build": "node src/lib/enrich-glossary.mjs && node scripts/build-og-index.mjs && node scripts/generate-page-dates.mjs && node scripts/build-library-feed.mjs && node scripts/build-guides-data.mjs && node scripts/build-guide-reviews.mjs && node scripts/sync-library-count.mjs && node scripts/regen-agent-skills-digests.mjs && node scripts/check-render-gate-ids.mjs && node scripts/check-cta-map.mjs --mode=source && SITE_SSOT_ENABLED=${SITE_SSOT_ENABLED:-1} node scripts/ssot-prebuild.mjs && astro build && npx pagefind --site dist && node scripts/build-infographic-assets.mjs",
     "build:astro": "astro build",
     "build:fixture": "node scripts/build-fixture.mjs",
     "verify-build-output": "node scripts/verify-build-output.mjs",

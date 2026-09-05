@@ -2,7 +2,8 @@
   "pages": [
     "home", "donate", "stuc", "endo-quiz", "endo-quiz-results",
     "endo-survey", "course", "course-step", "library-record", "guide",
-    "faqs", "header", "footer", "nav-mobile", "error"
+    "faqs", "header", "footer", "nav-mobile", "error",
+    "account", "community", "developers", "providers", "misc"
   ],
   "zones": [
     "hero", "tiers", "card", "inline", "sidebar", "sticky", "modal", "error",

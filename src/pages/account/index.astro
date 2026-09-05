@@ -79,7 +79,7 @@ for (const c of coursesData) {
             <div id="billing-loading" class="account-placeholder">Loading billing info...</div>
             <div id="billing-none" hidden>
               <p class="account-placeholder">You don't have an active membership.</p>
-              <a href="/save-the-uterus-club/" class="btn btn--secondary btn--sm" style="margin-top: var(--space-4); display: inline-flex;">Join the Save the Uterus Club</a>
+              <a href="/save-the-uterus-club/" class="btn btn--secondary btn--sm" style="margin-top: var(--space-4); display: inline-flex;" data-cta="account.card.join-stuc-member">Join the Save the Uterus Club</a>
             </div>
             <div id="billing-active" hidden>
               <dl class="account-details">
@@ -91,9 +91,9 @@ for (const c of coursesData) {
                 <dd id="billing-date"></dd>
               </dl>
               <p id="billing-cancel-notice" class="billing-cancel-notice" hidden>Your membership will end at the next donation date.</p>
-              <button id="manage-billing-btn" class="btn btn--secondary btn--sm" style="margin-top: var(--space-4);">Manage Billing</button>
+              <button id="manage-billing-btn" class="btn btn--secondary btn--sm" style="margin-top: var(--space-4);" data-cta="account.card.manage-billing">Manage Billing</button>
               <div id="manage-billing-wix-note" hidden class="billing-wix-note">
-                <p>Your recurring donation is processed through our legacy platform. To update your card, change your amount, or cancel, email <a href="mailto:support@rrmacademy.org">support@rrmacademy.org</a> — we'll respond within 1 business day.</p>
+                <p>Your recurring donation is processed through our legacy platform. To update your card, change your amount, or cancel, email <a href="mailto:support@rrmacademy.org" data-cta="account.card.contact">support@rrmacademy.org</a> — we'll respond within 1 business day.</p>
               </div>
               <div id="billing-payments" hidden>
                 <h3 class="billing-history-heading">Payment History</h3>

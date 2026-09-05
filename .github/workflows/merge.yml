@@ -74,6 +74,12 @@ jobs:
       - name: Lint
         run: npm run lint
 
+      - name: CTA map (source)
+        run: node scripts/check-cta-map.mjs --mode=source
+
+      - name: CTA map rule fixtures
+        run: node --experimental-strip-types --test test/check-cta-map.test.mjs
+
       - name: Test
         run: npm test
 
