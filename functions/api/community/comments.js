@@ -7,7 +7,7 @@
 import { json, optionsResponse, generateId, checkRateLimit } from '../auth/_shared.js';
 import { log } from '../_log.js';
 import { requireMember, displayName, canDeleteComment, roleAtLeast, tierFromLabel, TIER_LABELS } from './_shared.js';
-import { notifyReply } from './_email.js';
+import { notifyReply, notifyCommentAlert } from './_email.js';
 import { withIdempotency } from '../_idempotency.js';
 
 const ARCHIVE_CHANNELS = ['members', 'masterclass'];
@@ -175,17 +175,34 @@ async function _handlePost(context) {
       VALUES (?, ?, ?, ?, ?)
     `).bind(id, postId, user.id, parentId || null, content.trim()).run();
 
+    const alertArgs = {
+      postId,
+      commentId: id,
+      commenterId: user.id,
+      commenterName: displayName(user),
+      content: content.trim(),
+    };
+
     const wuFn = typeof context.waitUntil === 'function' ? context.waitUntil.bind(context) : null;
     if (wuFn) {
       wuFn(
         notifyReply(env, db, postId, parentId || null, user.id, displayName(user), content.trim())
           .catch(err => log(env, waitUntil, 'community', 'comment_notification_failed', 'warn', err.message, 0, 0))
       );
+      wuFn(
+        notifyCommentAlert(env, db, alertArgs)
+          .catch(err => log(env, waitUntil, 'community', 'comment_alert_failed', 'warn', err.message, 0, 0))
+      );
     } else {
       try {
         await notifyReply(env, db, postId, parentId || null, user.id, displayName(user), content.trim());
       } catch (err) {
         log(env, waitUntil, 'community', 'comment_notification_failed', 'warn', err.message, 0, 0);
+      }
+      try {
+        await notifyCommentAlert(env, db, alertArgs);
+      } catch (err) {
+        log(env, waitUntil, 'community', 'comment_alert_failed', 'warn', err.message, 0, 0);
       }
     }
 

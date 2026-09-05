@@ -46,6 +46,11 @@ const POST_A = 'p_com_a';          // authored by memberA, channel stuc
 const POST_ARCHIVE = 'p_com_arch'; // channel members (archive)
 const POST_ORPHANED = 'p_com_gone';
 
+const ALERT_TO = 'naomimwhittaker@gmail.com';
+
+/** Every address SES was actually handed, across all calls in the current test. */
+const sesRecipients = () => fetchStub.ses.flatMap(c => c.body.Destination.ToAddresses);
+
 function ctx(db, { who = 'memberA', body, url = URL_, env: envOverrides = {}, method = 'POST', waitUntil = mockWaitUntil() } = {}) {
   const context = {
     request: mockRequest(method, {
@@ -399,10 +404,66 @@ describe('POST /api/community/comments -- the write, verified by reading the row
   it('emails the POST author when someone else comments, via waitUntil', async () => {
     const waitUntil = mockWaitUntil();
     await create(db, { who: 'memberB', waitUntil, body: { postId: POST_A, content: 'nice post' } });
-    assert.equal(waitUntil.promises.length, 1, 'the notification is deferred, not awaited inline');
+    assert.equal(waitUntil.promises.length, 2,
+      'both the thread reply notice and the host comment alert are deferred, not awaited inline');
     await drainWaitUntil(waitUntil);
+    // COMMUNITY_COMMENT_ALERT_TO is unset in mockEnv, so the host alert is a
+    // silent no-op here and the only send is the thread notice.
     assert.equal(fetchStub.ses.length, 1);
     assert.equal(fetchStub.ses[0].body.Destination.ToAddresses[0], 'a@example.com');
+  });
+
+  it('dispatches the host comment alert for a TOP-LEVEL comment', async () => {
+    const waitUntil = mockWaitUntil();
+    await create(db, {
+      who: 'memberB', waitUntil,
+      env: { COMMUNITY_COMMENT_ALERT_TO: ALERT_TO },
+      body: { postId: POST_A, content: 'nice post' },
+    });
+    await drainWaitUntil(waitUntil);
+    assert.deepEqual(sesRecipients().sort(), ['a@example.com', ALERT_TO]);
+    const alertCall = fetchStub.ses.find(c => c.body.Destination.ToAddresses.includes(ALERT_TO));
+    assert.equal(alertCall.body.Content.Simple.Subject.Data, 'New STUC comment from Bob B on "Title"');
+    assert.equal(alertCall.body.FromEmailAddress, '"Save the Uterus Club" <community@rrmacademy.org>');
+    assert.match(alertCall.body.Content.Simple.Body.Text.Data, /nice post/);
+  });
+
+  it('dispatches the host comment alert for a REPLY as well', async () => {
+    insertComment(db._sqlite, { id: 'c_parent_alert', postId: POST_A, authorId: USERS.memberA });
+    const waitUntil = mockWaitUntil();
+    await create(db, {
+      who: 'memberB', waitUntil,
+      env: { COMMUNITY_COMMENT_ALERT_TO: ALERT_TO },
+      body: { postId: POST_A, content: 'a threaded reply', parentId: 'c_parent_alert' },
+    });
+    await drainWaitUntil(waitUntil);
+    assert.ok(sesRecipients().includes(ALERT_TO), 'a reply must alert the host list too');
+    const alertCall = fetchStub.ses.find(c => c.body.Destination.ToAddresses.includes(ALERT_TO));
+    assert.match(alertCall.body.Content.Simple.Body.Text.Data, /a threaded reply/);
+  });
+
+  it('a failing host alert does not take the thread notice or the 201 down with it', async () => {
+    const broken = throwingOn(db, 'SELECT title FROM community_post');
+    const waitUntil = mockWaitUntil();
+    const { status } = await parseResponse(await create(broken, {
+      who: 'memberB', waitUntil,
+      env: { COMMUNITY_COMMENT_ALERT_TO: ALERT_TO },
+      body: { postId: POST_A, content: 'alert lookup explodes' },
+    }));
+    await drainWaitUntil(waitUntil);
+    assert.equal(status, 201);
+    assert.deepEqual(sesRecipients(), ['a@example.com'],
+      'the thread notice still goes out; only the alert is lost');
+  });
+
+  it('dispatches the host alert on the no-waitUntil inline path too', async () => {
+    const { status } = await parseResponse(await create(db, {
+      who: 'memberB', waitUntil: null,
+      env: { COMMUNITY_COMMENT_ALERT_TO: ALERT_TO },
+      body: { postId: POST_A, content: 'inline alert path' },
+    }));
+    assert.equal(status, 201);
+    assert.deepEqual(sesRecipients().sort(), ['a@example.com', ALERT_TO]);
   });
 
   it('does not email you when you comment on your own post', async () => {

@@ -106,6 +106,10 @@ const WORKSPACE_FROM_DEFAULT = 'RRM Academy <surveys@rrmacademy.org>';
 // sender identity instead of failing loudly.
 const WORKSPACE_FROM_MAP = {
   accounts: 'RRM Academy <receipts@rrmacademy.org>',
+  // community@rrmacademy.org is itself a registered send-as identity on the
+  // virtualassistant@ mailbox (it is how STUC mail is already sent by hand),
+  // so this key maps to its own address rather than a substitute.
+  community: '"Save the Uterus Club" <community@rrmacademy.org>',
 };
 
 /**
@@ -248,9 +252,16 @@ export async function sendViaWorkspace(env, { from, to, subject, html, text, rep
  * Google Workspace when the recipient's domain is on Microsoft 365 and the
  * Workspace secrets are configured; otherwise (or on Workspace failure)
  * falls back to SES. Throws only if the final lane attempt throws.
+ *
+ * `opts.lane === 'workspace'` pins the send to the Workspace lane regardless
+ * of the recipient's MX (used where landing in Gmail's Primary tab is the
+ * point of the send, e.g. the STUC comment alert to a personal Gmail). It
+ * skips the MX sniff only -- the missing-secrets and array-recipient guards
+ * still route to SES first, and a Workspace failure still logs lane_fallback
+ * and retries on SES. Any other value, or no value, is today's behavior.
  */
 export async function sendTransactionalEmail(env, opts) {
-  const { to, subject, log } = opts;
+  const { to, subject, log, lane } = opts;
 
   const workspaceConfigured = !!(env.GOG_CLIENT_ID && env.GOG_CLIENT_SECRET && env.VA_GMAIL_REFRESH_TOKEN);
   if (!workspaceConfigured) {
@@ -261,7 +272,7 @@ export async function sendTransactionalEmail(env, opts) {
     return sendEmail(env, opts);
   }
 
-  const useWorkspace = await isM365Recipient(to);
+  const useWorkspace = lane === 'workspace' || await isM365Recipient(to);
   if (!useWorkspace) {
     return sendEmail(env, opts);
   }

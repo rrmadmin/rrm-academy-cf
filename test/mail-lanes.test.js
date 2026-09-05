@@ -400,6 +400,108 @@ describe('sendTransactionalEmail -- routing decisions', () => {
     } finally { stub.restore(); }
   });
 
+  it("lane 'workspace' pins the Workspace lane without an MX lookup", async () => {
+    const db = mockDB();
+    const env = mockEnv({ DB: db, ...WORKSPACE_ENV });
+    const stub = stubMailLaneFetch({
+      // A DNS answer that would route this recipient to SES if the sniff ran.
+      dns: () => mxAnswer('aspmx.l.google.com.'),
+      gmail: () => ({ ok: true, json: async () => ({ id: 'gmail-msg-pinned-1' }) }),
+    });
+    try {
+      const result = await sendTransactionalEmail(env, {
+        from: '"Save the Uterus Club" <community@rrmacademy.org>',
+        to: 'someone@route-lane-pinned.test',
+        subject: 'Pinned subject',
+        html: '<p>Hello</p>',
+        text: 'Hello',
+        lane: 'workspace',
+        log: { db, category: 'transactional', source: 'test/mail-lanes' },
+      });
+      assert.equal(stub.dns.length, 0, 'a pinned lane must skip the MX sniff entirely');
+      assert.equal(stub.gmail.length, 1);
+      assert.equal(stub.ses.length, 0);
+      assert.equal(result.messageId, 'gmail-msg-pinned-1');
+      assert.equal(
+        fromHeaderOf(stub.gmail[0]),
+        '"Save the Uterus Club" <community@rrmacademy.org>',
+        'the community@ local-part resolves to its own registered send-as identity'
+      );
+
+      const sendRow = db._calls.find((c) => c.sql.includes('INSERT INTO email_log'));
+      assert.equal(sendRow.bound[8], 'workspace');
+    } finally { stub.restore(); }
+  });
+
+  it("lane 'workspace' still logs lane_fallback and retries on SES when Gmail fails", async () => {
+    const db = mockDB();
+    const env = mockEnv({ DB: db, ...WORKSPACE_ENV });
+    const stub = stubMailLaneFetch({
+      gmail: () => ({ ok: false, status: 503, text: async () => 'unavailable' }),
+      ses: () => ({ ok: true, status: 200, json: async () => ({ MessageId: 'ses-pinned-fallback' }), text: async () => '{}' }),
+    });
+    try {
+      const result = await sendTransactionalEmail(env, {
+        from: '"Save the Uterus Club" <community@rrmacademy.org>',
+        to: 'someone@route-lane-pinned-fallback.test',
+        subject: 'Pinned subject',
+        text: 'Hello',
+        lane: 'workspace',
+        log: { db, category: 'transactional', source: 'test/mail-lanes' },
+      });
+      assert.equal(stub.dns.length, 0);
+      assert.equal(stub.gmail.length, 1);
+      assert.equal(stub.ses.length, 1, 'a pinned lane must still fail toward SES');
+      assert.equal(result.messageId, 'ses-pinned-fallback');
+
+      const logRows = db._calls.filter((c) => c.sql.includes('INSERT INTO email_log'));
+      const fallbackRow = logRows.find((r) => r.bound[0] === 'lane_fallback');
+      assert.ok(fallbackRow, 'a lane_fallback row must be written before the SES retry');
+      assert.equal(fallbackRow.bound[8], 'workspace');
+      assert.match(fallbackRow.bound[5], /Gmail send failed \(503\)/);
+    } finally { stub.restore(); }
+  });
+
+  it("lane 'workspace' with no Workspace secrets configured routes to SES, never a broken Gmail attempt", async () => {
+    const db = mockDB();
+    const env = mockEnv({ DB: db });
+    const stub = stubMailLaneFetch();
+    try {
+      await sendTransactionalEmail(env, {
+        from: '"Save the Uterus Club" <community@rrmacademy.org>',
+        to: 'someone@route-lane-nosecrets.test',
+        subject: 'Pinned subject',
+        text: 'Hello',
+        lane: 'workspace',
+        log: { db, category: 'transactional', source: 'test/mail-lanes' },
+      });
+      assert.equal(stub.token.length, 0);
+      assert.equal(stub.gmail.length, 0);
+      assert.equal(stub.ses.length, 1);
+    } finally { stub.restore(); }
+  });
+
+  it('an unrecognized lane value leaves the MX sniff in charge (non-M365 -> SES)', async () => {
+    const db = mockDB();
+    const env = mockEnv({ DB: db, ...WORKSPACE_ENV });
+    const stub = stubMailLaneFetch({
+      dns: () => mxAnswer('aspmx.l.google.com.'),
+    });
+    try {
+      await sendTransactionalEmail(env, {
+        from: 'RRM Academy <accounts@mail.rrmacademy.org>',
+        to: 'someone@route-lane-bogus.test',
+        subject: 'Test subject',
+        text: 'Hello',
+        lane: 'carrier-pigeon',
+        log: { db, category: 'transactional', source: 'test/mail-lanes' },
+      });
+      assert.equal(stub.dns.length, 1, 'an unknown lane must not skip the sniff');
+      assert.equal(stub.gmail.length, 0);
+      assert.equal(stub.ses.length, 1);
+    } finally { stub.restore(); }
+  });
+
   it('sendTransactionalEmail throws when the final lane attempt throws (SES down, no Workspace configured)', async () => {
     const db = mockDB();
     const env = mockEnv({ DB: db });
