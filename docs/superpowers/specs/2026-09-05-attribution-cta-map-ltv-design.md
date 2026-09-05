@@ -188,16 +188,20 @@ in `test/funnel-api.test.js` that asserts against it. The fixture is not
 sha-asserted today; this change graduates it to `schema/` with a `.sha256`
 sidecar, matching how the other vendored DDL in that repo is tracked.
 
-Stripe (`create-checkout.js`): session and payment-intent metadata gain
-`ft_source`, `ft_medium`, `ft_campaign`, `ft_landing`, `ft_at`, `click_id`
-(the visitor's first-touch click id, from `rrm_ft.g`) and `gclid_last` (the
-CURRENT `gclid` cookie, read server-side from the Cookie header at checkout
-time -- Stripe caps 50 keys and 500 chars per value; all of these are far
-off). The checkout webhook forwards `ft_*`/`click_id` into the `purchase`
-GA4 event params, so the ledger purchase row carries the buyer's first
-touch even though the webhook request has no browser cookies; `gclid_last`
-is read separately by section 3.3's uploader and is never written to the
-ledger's `click_id` column, which stays first-touch-only.
+Stripe (`create-checkout.js` and `courses/enroll.js`, the two Stripe session
+creators): session and payment-intent metadata gain `ft_source`,
+`ft_medium`, `ft_campaign`, `ft_landing`, `ft_at`, `click_id` (the visitor's
+first-touch click id, from `rrm_ft.g`) and `gclid_last` (the CURRENT
+`gclid` cookie, read server-side from the Cookie header at checkout time --
+Stripe caps 50 keys and 500 chars per value; all of these are far off).
+Course-checkout sessions carry the same six `ft_*` keys plus `gclid_last`
+so the webhook's course branch has the same fields to forward as the
+donation/subscription branches do. The checkout webhook forwards
+`ft_*`/`click_id` into the `purchase` GA4 event params, so the ledger
+purchase row carries the buyer's first touch even though the webhook
+request has no browser cookies; `gclid_last` is read separately by section
+3.3's uploader and is never written to the ledger's `click_id` column,
+which stays first-touch-only.
 
 `donor_gift` gains no columns. It cannot join to `conversion_event` on
 `dedup_key`: `donor_gift.source_id` is the Stripe payment_intent id

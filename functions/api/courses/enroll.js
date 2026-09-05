@@ -24,7 +24,7 @@ import { withIdempotency } from '../_idempotency.js';
 import { log } from '../_log.js';
 import { getCourse, getIncludedCourseIds } from './_shared.js';
 import { sendGA4Event } from '../_ga4.js';
-import { classifySource, extractUtm, getClientId, deriveSessionId } from '../_ga4-source.js';
+import { classifySource, extractUtm, getClientId, deriveSessionId, parseFirstTouch, parseGclidCookie } from '../_ga4-source.js';
 import { notifyAdminEnrollment } from './_notify-admin.js';
 import { requireMember } from '../community/_shared.js';
 
@@ -175,6 +175,21 @@ async function handleEnroll(request, env, waitUntil) {
   const dateStr = new Date().toLocaleDateString('en-CA', { timeZone: 'America/New_York' });
   const gaSessionId = await deriveSessionId(clientId, dateStr);
 
+  // First-touch attribution, same shape as create-checkout.js: this is the
+  // OTHER Stripe session creator, and the webhook's course branch spreads
+  // ft_* forward assuming every course session carries them.
+  const firstTouch = parseFirstTouch(cookies) || {};
+  const gclidLast = parseGclidCookie(cookies);
+  const ftMetadata = {
+    ...(firstTouch.ft_source && { ft_source: firstTouch.ft_source.slice(0, 500) }),
+    ...(firstTouch.ft_medium && { ft_medium: firstTouch.ft_medium.slice(0, 500) }),
+    ...(firstTouch.ft_campaign && { ft_campaign: firstTouch.ft_campaign.slice(0, 500) }),
+    ...(firstTouch.ft_landing && { ft_landing: firstTouch.ft_landing.slice(0, 500) }),
+    ...(firstTouch.ft_at && { ft_at: firstTouch.ft_at.slice(0, 500) }),
+    ...(firstTouch.click_id && { click_id: firstTouch.click_id.slice(0, 500) }),
+    ...(gclidLast && { gclid_last: gclidLast.slice(0, 500) }),
+  };
+
   const origin = SITE_URL;
   const sessionParams = {
     mode: 'payment',
@@ -184,7 +199,7 @@ async function handleEnroll(request, env, waitUntil) {
     payment_intent_data: {
       description: `Course: ${course.title}`,
       statement_descriptor_suffix: 'COURSE',
-      metadata: { type: 'course', courseId: course.id },
+      metadata: { type: 'course', courseId: course.id, ...ftMetadata },
     },
     metadata: {
       type: 'course',
@@ -194,6 +209,7 @@ async function handleEnroll(request, env, waitUntil) {
       ga_source: gaSource,
       ga_medium: gaMedium,
       ...(gaCampaign && { ga_campaign: gaCampaign }),
+      ...ftMetadata,
     },
     client_reference_id: session.userId,
   };
