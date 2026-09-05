@@ -14,6 +14,10 @@ compatibility_date = "2025-01-01"
 # (or an absent var) leaves the GA4 relay exactly as it was.
 CONVERSION_LEDGER = "1"
 
+# STUC comment alert list — comma-separated addresses mailed on every new
+# community comment; an empty value disables the alert entirely.
+COMMUNITY_COMMENT_ALERT_TO = "naomimwhittaker@gmail.com"
+
 [[kv_namespaces]]
 binding = "SURVEY_TOKENS"
 id = "ef52bc09f1b44b5f8e3367372be8d63d"
