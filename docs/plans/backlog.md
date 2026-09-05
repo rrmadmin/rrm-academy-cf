@@ -4,6 +4,8 @@
 
 ## Priority
 
+- [ ] Remove the legacy data-track-cta attribute and LEGACY_CTA_RENAME_MAP fallback branch from track-auto.ts, one release after 2026-09-05's CTA map ship. Grep every .astro file for data-track-cta first -- none should remain outside track-auto.ts's own listener code once this lands.
+
 ### SEO Audit 2026-04-18 -- Remaining Open Items
 
 Most April audit items shipped 2026-04-19 / 2026-04-20 (Physician entity, policy pages, Organization trust fields, BreadcrumbList, IndexNow, sitemap chunking, CF managed-robots-txt unblock, timestamp system, pillar inline-author flatten, commentary/library hub linked @graph). See `projects/whittaker-ai/public/reports/rrmacademy/2026-04-18/index.html` for full audit + current state (80/100 from 68/100 baseline). Remaining open actionable items:
