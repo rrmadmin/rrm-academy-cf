@@ -40,7 +40,7 @@ import { mockEnv, mockKVJson, stubExternalFetch } from './_helpers.js';
 import { sqliteD1, insertUser, insertWixSubscription, insertLabel } from './_d1-sqlite.mjs';
 
 const {
-  notifyNewPost, notifyEventShareLink, notifyReply,
+  notifyNewPost, notifyEventShareLink, notifyReply, notifyCommentAlert,
 } = await import('../functions/api/community/_email.js');
 
 const STUC_LABEL = 'Save the Uterus Club \u{1F3F7}\u{FE0F}';
@@ -1005,5 +1005,200 @@ describe('_email.js notifyReply', () => {
     try {
       await assert.doesNotReject(() => reply('p1', null));
     } finally { failing.restore(); }
+  });
+});
+
+/**
+ * _email.js notifyCommentAlert -- the operator alert on every new STUC comment.
+ *
+ * THE FAILURE THAT MATTERS
+ * Two things, and both are about WHO gets mail. (1) The alert list is an env
+ * var, so an unset var must send to nobody rather than defaulting to someone;
+ * (2) the commenter must never be alerted about her own comment, which is the
+ * live case here because the sole configured recipient is also a club admin who
+ * comments. Both assertions below are set equality over the SES payloads.
+ *
+ * WHAT IS FAKED
+ * SES, via stubExternalFetch, exactly as the notifyReply suite above. The
+ * workspace-lane pin is asserted once against a local Gmail/OAuth fetch router
+ * (stubExternalFetch deliberately routes neither host); the lane's own fallback
+ * and no-secrets behavior live in test/mail-lanes.test.js.
+ */
+describe('_email.js notifyCommentAlert', () => {
+  const ALERT_TO = NAOMI_PERSONAL;
+  let harness, stub;
+
+  beforeEach(() => {
+    harness = db((s) => {
+      addUser(s, { id: 'u_talker', email: 'talker@example.com', kind: 'wix' });
+      addUser(s, { id: NAOMI_ID, email: NAOMI_PERSONAL, kind: 'wix', role: 'admin' });
+      addPost(s, { id: 'p_alert', authorId: 'u_talker', title: 'Cycle charting basics' });
+      addPost(s, { id: 'p_alert_event', authorId: 'u_talker', type: 'event', title: 'March live call', slug: 'march-live-call' });
+      // community_post.title is NOT NULL, so the empty-title case is '' (or blanks), never null.
+      addPost(s, { id: 'p_alert_untitled', authorId: 'u_talker', title: '   ' });
+    });
+    stub = stubExternalFetch();
+  });
+  afterEach(() => { stub.restore(); harness.close(); });
+
+  const alert = (overrides = {}, envOverrides = {}) =>
+    notifyCommentAlert(
+      envFor(harness, { COMMUNITY_COMMENT_ALERT_TO: ALERT_TO, ...envOverrides }),
+      harness,
+      {
+        postId: 'p_alert',
+        commentId: 'c_alert',
+        commenterId: 'u_talker',
+        commenterName: 'Robin',
+        content: 'This finally made the mucus observations click for me.',
+        ...overrides,
+      }
+    );
+
+  it('mails every configured recipient exactly once', async () => {
+    await alert({}, { COMMUNITY_COMMENT_ALERT_TO: `${ALERT_TO}, second@example.com` });
+    assert.deepEqual(toAddresses(stub).sort(), ['naomimwhittaker@gmail.com', 'second@example.com']);
+  });
+
+  it('trims, lowercases and de-duplicates the configured list', async () => {
+    await alert({}, { COMMUNITY_COMMENT_ALERT_TO: '  Naomimwhittaker@Gmail.com , naomimwhittaker@gmail.com ,,  ' });
+    assert.deepEqual(toAddresses(stub), ['naomimwhittaker@gmail.com']);
+  });
+
+  it('sends nothing when COMMUNITY_COMMENT_ALERT_TO is unset', async () => {
+    await notifyCommentAlert(envFor(harness), harness, {
+      postId: 'p_alert', commentId: 'c1', commenterId: 'u_talker', commenterName: 'Robin', content: 'hi',
+    });
+    assert.deepEqual(toAddresses(stub), []);
+  });
+
+  it('sends nothing when COMMUNITY_COMMENT_ALERT_TO is empty or only separators', async () => {
+    await alert({}, { COMMUNITY_COMMENT_ALERT_TO: '' });
+    await alert({}, { COMMUNITY_COMMENT_ALERT_TO: ' , , ' });
+    assert.deepEqual(toAddresses(stub), []);
+  });
+
+  it('never alerts the commenter about her own comment', async () => {
+    await alert({ commenterId: NAOMI_ID, commenterName: 'Dr. Naomi Whittaker' });
+    assert.deepEqual(toAddresses(stub), [], 'the sole recipient authored the comment');
+  });
+
+  it('still alerts the other recipients when one of them is the commenter', async () => {
+    await alert(
+      { commenterId: NAOMI_ID, commenterName: 'Dr. Naomi Whittaker' },
+      { COMMUNITY_COMMENT_ALERT_TO: `${ALERT_TO},cohost@example.com` }
+    );
+    assert.deepEqual(toAddresses(stub), ['cohost@example.com']);
+  });
+
+  it('matches the commenter address case-insensitively', async () => {
+    await alert({ commenterId: NAOMI_ID }, { COMMUNITY_COMMENT_ALERT_TO: 'NAOMIMWHITTAKER@GMAIL.COM' });
+    assert.deepEqual(toAddresses(stub), []);
+  });
+
+  it('subject names the commenter and the post title', async () => {
+    await alert();
+    assert.equal(subjects(stub)[0], 'New STUC comment from Robin on "Cycle charting basics"');
+  });
+
+  it('sends the FULL comment text, not a truncated preview', async () => {
+    const long = 'x'.repeat(600) + ' END';
+    await alert({ content: long });
+    assert.match(textOf(stub.ses[0]), /x{600} END/);
+    assert.match(htmlOf(stub.ses[0]), /x{600} END/);
+    assert.ok(!htmlOf(stub.ses[0]).includes('...'), 'the alert must never elide the comment');
+  });
+
+  it('escapes member-authored comment text and the commenter name', async () => {
+    await alert({ commenterName: '<b>Robin</b>', content: '<img src=x onerror=alert(1)>' });
+    const html = htmlOf(stub.ses[0]);
+    assert.ok(!html.includes('<img'), 'comment text must not become markup');
+    assert.ok(!html.includes('<b>Robin</b>'), 'the commenter name must not become markup');
+    assert.match(html, /&lt;img src=x onerror=alert\(1\)&gt;/);
+  });
+
+  it('links the post at its per-post URL and always offers the community reply link', async () => {
+    await alert();
+    const html = htmlOf(stub.ses[0]);
+    assert.match(html, /href="https:\/\/rrmacademy\.org\/community\/post\/p_alert">Cycle charting basics<\/a>/);
+    assert.match(html, /href="https:\/\/rrmacademy\.org\/community\/">Reply in the community</);
+    assert.match(textOf(stub.ses[0]), /https:\/\/rrmacademy\.org\/community\/post\/p_alert/);
+    assert.match(textOf(stub.ses[0]), /Reply in the community: https:\/\/rrmacademy\.org\/community\//);
+  });
+
+  it('links an EVENT post by id too -- slug is an event-only column and must not steer the link', async () => {
+    await alert({ postId: 'p_alert_event' });
+    const html = htmlOf(stub.ses[0]);
+    assert.match(html, /href="https:\/\/rrmacademy\.org\/community\/post\/p_alert_event">March live call<\/a>/);
+    assert.ok(!html.includes('/events/'), 'the alert links the club thread, never the public event page');
+  });
+
+  it('still sends, titled "a post", when the post row is missing', async () => {
+    await alert({ postId: 'p_does_not_exist' });
+    assert.deepEqual(toAddresses(stub), [ALERT_TO]);
+    assert.equal(subjects(stub)[0], 'New STUC comment from Robin on "a post"');
+    // The link is built from the id we were handed, so it survives a missing row.
+    assert.match(htmlOf(stub.ses[0]), /href="https:\/\/rrmacademy\.org\/community\/post\/p_does_not_exist">a post<\/a>/);
+  });
+
+  it('escapes a postId carrying quote characters instead of breaking out of the href', async () => {
+    await alert({ postId: 'p" onmouseover="alert(1)' });
+    const html = htmlOf(stub.ses[0]);
+    assert.ok(!html.includes('onmouseover="alert(1)"'), 'a hostile id must not escape the href attribute');
+    assert.match(html, /&quot; onmouseover=&quot;/);
+  });
+
+  it('titles a blank-titled post "a post" rather than an empty quote', async () => {
+    await alert({ postId: 'p_alert_untitled' });
+    assert.equal(subjects(stub)[0], 'New STUC comment from Robin on "a post"');
+  });
+
+  it('sends from the Save the Uterus Club identity and records the alert source in email_log', async () => {
+    await alert();
+    assert.equal(senders(stub)[0], '"Save the Uterus Club" <community@rrmacademy.org>');
+    const rows = emailLogRows(harness).filter(r => r.source === 'community/comment-alert');
+    assert.equal(rows.length, 1);
+    assert.equal(rows[0].event, 'send');
+    assert.equal(rows[0].email, ALERT_TO);
+  });
+
+  it('swallows a send failure instead of throwing at the caller', async () => {
+    const failing = stubExternalFetch({ ses: () => ({ ok: false, status: 400, text: async () => 'SES down' }) });
+    try {
+      await assert.doesNotReject(() => alert());
+    } finally { failing.restore(); }
+  });
+
+  it('pins the Workspace lane: a Gmail recipient goes via the Gmail API with no MX lookup', async () => {
+    // stubExternalFetch routes neither googleapis host, so this test supplies
+    // its own router; the point is that lane:'workspace' reached the mailer.
+    const original = globalThis.fetch;
+    const seen = [];
+    globalThis.fetch = async (input, init) => {
+      const url = (input && typeof input === 'object' && input.url) ? input.url : String(input);
+      seen.push(url);
+      if (url.includes('oauth2.googleapis.com')) {
+        return { ok: true, json: async () => ({ access_token: 'tok', expires_in: 3600 }) };
+      }
+      if (url.includes('gmail.googleapis.com')) {
+        return { ok: true, json: async () => ({ id: 'gmail-alert-1' }) };
+      }
+      throw new Error(`unrouted request to ${url}`);
+    };
+    try {
+      await notifyCommentAlert(
+        envFor(harness, {
+          COMMUNITY_COMMENT_ALERT_TO: ALERT_TO,
+          GOG_CLIENT_ID: 'cid', GOG_CLIENT_SECRET: 'secret', VA_GMAIL_REFRESH_TOKEN: 'refresh',
+        }),
+        harness,
+        { postId: 'p_alert', commentId: 'c1', commenterId: 'u_talker', commenterName: 'Robin', content: 'hi' }
+      );
+      assert.equal(seen.filter(u => u.includes('cloudflare-dns.com')).length, 0, 'the pinned lane must skip the MX sniff');
+      assert.equal(seen.filter(u => u.includes('gmail.googleapis.com')).length, 1);
+      assert.equal(seen.filter(u => u.includes('amazonaws.com')).length, 0, 'a successful Gmail send must not also hit SES');
+      const rows = emailLogRows(harness).filter(r => r.source === 'community/comment-alert');
+      assert.equal(rows[0].detail, 'gmail:gmail-alert-1');
+    } finally { globalThis.fetch = original; }
   });
 });

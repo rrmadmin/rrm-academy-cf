@@ -445,3 +445,73 @@ export async function notifyReply(env, db, postId, parentId, replierId, replierN
     log: { db, source: 'community/reply', category: 'transactional' },
   }).catch(err => console.error(`Failed to email ${recipient.email}:`, err.message));
 }
+
+/**
+ * Alerts a configured address list about every new STUC comment (top-level and
+ * reply). Distinct from notifyReply, which mails the thread participant: this
+ * is an operator/host alert so Naomi sees club conversation as it happens.
+ *
+ * Recipients come from env.COMMUNITY_COMMENT_ALERT_TO (comma-separated). An
+ * absent or empty var is a silent no-op -- the same posture as the
+ * NEWSLETTER_SECRET gating elsewhere in this repo, so an unconfigured preview
+ * environment does not log errors on every comment.
+ *
+ * Pinned to the Workspace lane: the initial recipient is a personal Gmail and
+ * the whole point of the alert is landing in Primary, not SES's shared pool.
+ * Never throws -- a failed alert must not fail the comment write.
+ */
+// `commentId` is part of the caller's contract (comments.js passes the row it
+// just inserted) but is not rendered: the alert links to the post, not to a
+// per-comment anchor that no page implements.
+export async function notifyCommentAlert(env, db, { postId, commentId: _commentId, commenterId, commenterName, content }) {
+  const raw = typeof env.COMMUNITY_COMMENT_ALERT_TO === 'string' ? env.COMMUNITY_COMMENT_ALERT_TO : '';
+  const recipients = [...new Set(
+    raw.split(',').map(s => s.trim().toLowerCase()).filter(Boolean)
+  )];
+  if (!recipients.length) return;
+
+  let commenterEmail = null;
+  if (commenterId) {
+    const commenter = await db.prepare('SELECT email FROM user WHERE id = ?').bind(commenterId).first();
+    commenterEmail = commenter?.email ? String(commenter.email).toLowerCase() : null;
+  }
+
+  // Naomi commenting in her own club must not alert Naomi.
+  const targets = recipients.filter(email => email !== commenterEmail);
+  if (!targets.length) return;
+
+  const post = await db.prepare('SELECT title FROM community_post WHERE id = ?').bind(postId).first();
+  const postTitle = (post?.title && String(post.title).trim()) || 'a post';
+  // Same per-post URL notifyNewPost links to. Keyed on the id we were handed,
+  // not on `slug` -- slug is an event-only column (posts.js refuses it on any
+  // other type), so a slug-derived link would strand every discussion comment
+  // on the club index. This link works whether or not the post row was found.
+  const postLink = `${SITE_URL}/community/post/${postId}`;
+  const communityLink = `${SITE_URL}/community/`;
+
+  const safeName = escapeHtml(commenterName || 'A member');
+  const safeTitle = escapeHtml(postTitle);
+  const body = typeof content === 'string' ? content : '';
+
+  const subject = sanitizeSubject(`New STUC comment from ${commenterName || 'a member'} on "${postTitle}"`);
+
+  const html = `
+    <p><strong>${safeName}</strong> commented on <a href="${escapeHtml(postLink)}">${safeTitle}</a>.</p>
+    <blockquote style="border-left:3px solid #ddd;padding-left:12px;color:#555;white-space:pre-wrap;">${escapeHtml(body)}</blockquote>
+    <p><a href="${communityLink}">Reply in the community</a></p>
+  `;
+  const text = `${commenterName || 'A member'} commented on "${postTitle}".\n${postLink}\n\n${body}\n\nReply in the community: ${communityLink}`;
+
+  await Promise.all(targets.map(to =>
+    sendTransactionalEmail(env, {
+      from: '"Save the Uterus Club" <community@rrmacademy.org>',
+      to,
+      subject,
+      html,
+      text,
+      replyTo: 'administrator@rrmacademy.org',
+      lane: 'workspace',
+      log: { db, source: 'community/comment-alert', category: 'transactional' },
+    }).catch(err => console.error(`Failed to email ${to}:`, err.message))
+  ));
+}
