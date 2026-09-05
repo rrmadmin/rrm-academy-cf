@@ -140,6 +140,10 @@ export const EXTRA_DDL = [
     why: 'conversion_event is written by the GA4 relay choke point (functions/api/_ga4.js, behind the CONVERSION_LEDGER flag) and read by the RRM Backoffice /funnel page; it lives in the ROOT migrations/ directory, which the test replay list does not read, and postdates the 2026-05-27 snapshot; added 2026-08-25 with the migration in the same change. The migration is being applied to remote rrm-auth before this ships, so gates:schema-drift stays level with live; until that apply lands, SD2 (STALE-PRESENT) is the expected and intended signal.',
   },
   {
+    path: 'migrations/039-first-touch-attribution.sql',
+    why: 'The seven ft_source/ft_medium/ft_campaign/ft_landing/ft_at/click_id/transaction_id columns on conversion_event are written by the same GA4 relay choke point (functions/api/_ga4.js) and read by the RRM Backoffice /funnel and /membership pages; it lives in the ROOT migrations/ directory, which the test replay list does not read, and postdates the 2026-05-27 snapshot; added 2026-09-05 with the migration in the same change (converge component first-touch-attribution). The migration is applied to remote rrm-auth before the code that binds these columns deploys, so gates:schema-drift stays level with live; until that apply lands, SD2 (STALE-PRESENT) is the expected and intended signal. Order matters: this file ALTERs conversion_event, which 036 creates, so it must stay after the 036 entry in this array.',
+  },
+  {
     path: 'migrations/038-posts-meta-description.sql',
     why: 'posts.meta_description is read by functions/api/blog/posts.js and src/pages/commentary/[...slug].astro (dedicated SEO meta description, falling back to excerpt); it lives in the ROOT migrations/ directory, which the test replay list does not read, and postdates the 2026-05-27 snapshot. Applied to remote rrm-auth before this ships (verified via PRAGMA table_info), so gates:schema-drift already sees it live -- this entry keeps the composed mirror level with production. Order matters: this file ALTERs posts, which schema.sql creates, so it must stay after schema.sql in the composition (EXTRA_DDL is applied last).',
   },
