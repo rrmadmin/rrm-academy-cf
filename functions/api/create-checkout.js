@@ -17,7 +17,7 @@ import {
 } from './auth/_shared.js';
 import { log } from './_log.js';
 import { sendGA4Event } from './_ga4.js';
-import { classifySource, extractUtm, getClientId, deriveSessionId } from './_ga4-source.js';
+import { classifySource, extractUtm, getClientId, deriveSessionId, parseFirstTouch, parseGclidCookie } from './_ga4-source.js';
 import { isBotRequest } from './_bot.js';
 import { getStripeClient } from './billing/_shared.js';
 import { isJoinDenied, isStucContextRequest, maskEmailForLog } from './billing/_join-denylist.js';
@@ -145,6 +145,27 @@ async function handleCheckout(request, env, waitUntil) {
   const dateStr = new Date().toLocaleDateString('en-CA', { timeZone: 'America/New_York' });
   const sessionId = await deriveSessionId(clientId, dateStr);
 
+  // First-touch attribution and the CURRENT click, read straight from the
+  // request's own Cookie header -- unlike ga_source/ga_medium/ga_campaign
+  // above, these never come from the POST body, because the body's
+  // entry_referrer/entry_url are last-touch only and never see a cookie.
+  // Stripe caps metadata at 500 chars per value; every field here is
+  // already capped well under that by its cookie-side/parser-side cap, but
+  // .slice(0,500) is applied anyway as the same defensive width bound the
+  // ga_* fields above get.
+  const cookieHeader = request.headers.get('Cookie') || '';
+  const firstTouch = parseFirstTouch(cookieHeader) || {};
+  const gclidLast = parseGclidCookie(cookieHeader);
+  const ftMetadata = {
+    ...(firstTouch.ft_source && { ft_source: firstTouch.ft_source.slice(0, 500) }),
+    ...(firstTouch.ft_medium && { ft_medium: firstTouch.ft_medium.slice(0, 500) }),
+    ...(firstTouch.ft_campaign && { ft_campaign: firstTouch.ft_campaign.slice(0, 500) }),
+    ...(firstTouch.ft_landing && { ft_landing: firstTouch.ft_landing.slice(0, 500) }),
+    ...(firstTouch.ft_at && { ft_at: firstTouch.ft_at.slice(0, 500) }),
+    ...(firstTouch.click_id && { click_id: firstTouch.click_id.slice(0, 500) }),
+    ...(gclidLast && { gclid_last: gclidLast.slice(0, 500) }),
+  };
+
   // --- One-time donation ---
   if (mode === 'payment') {
     const stucContext = isStucContextRequest(request, entry_url, entry_referrer, campaign);
@@ -192,7 +213,7 @@ async function handleCheckout(request, env, waitUntil) {
     sessionParams.payment_intent_data = {
       description: 'Donation to RRM Foundation',
       statement_descriptor_suffix: 'DONATION',
-      metadata: { type: 'donation', ...(campaign && { campaign }), ...(isCanary && { canary: '1' }) },
+      metadata: { type: 'donation', ...ftMetadata, ...(campaign && { campaign }), ...(isCanary && { canary: '1' }) },
     };
 
     if (stripeCustomerId) {
@@ -212,6 +233,7 @@ async function handleCheckout(request, env, waitUntil) {
       ...(gaCampaign && { ga_campaign: gaCampaign }),
       ...(entry_category && { ga_entry_category: entry_category }),
       ...(entry_platform && { ga_entry_platform: entry_platform }),
+      ...ftMetadata,
       ...(campaign && { campaign }),
       ...(isCanary && { canary: '1' }),
       ...(stucContext && { stuc_context: '1' }),
@@ -425,6 +447,7 @@ async function handleCheckout(request, env, waitUntil) {
       ...(gaCampaign && { ga_campaign: gaCampaign }),
       ...(entry_category && { ga_entry_category: entry_category }),
       ...(entry_platform && { ga_entry_platform: entry_platform }),
+      ...ftMetadata,
       ...(isCanary && { canary: '1' }),
     };
 
@@ -433,7 +456,7 @@ async function handleCheckout(request, env, waitUntil) {
     // tierFromPriceOrAmount() short-circuit for all new Stripe-era subscriptions.
     sessionParams.subscription_data = {
       ...(trialEndUnix ? { trial_end: trialEndUnix } : {}),
-      metadata: { tier: effectiveTier, ...migrationMetadata, ...(isCanary && { canary: '1' }) },
+      metadata: { tier: effectiveTier, ...migrationMetadata, ...ftMetadata, ...(isCanary && { canary: '1' }) },
     };
 
     let checkoutSession;
