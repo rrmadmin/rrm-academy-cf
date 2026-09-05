@@ -336,9 +336,11 @@ and is the only place a new token is added.
   `user_id` trail on every click is well past what the funnel questions
   need, so a `cta_click` row keys to `client_id` only, logged-in or not.
   Migration 036's header TYPE-derivation comment block is amended in the
-  same commit that adds the branch. `FUNNEL_EVENTS` and `TYPED_EVENTS` in
-  the backoffice `functions/api/funnel.js` are NOT extended: `cta_click`
-  must never appear as a sixth funnel stage. The section 5.1 CTA table is
+  same commit that adds the branch. The stages and by-type queries in the
+  backoffice `functions/api/funnel.js` gain an explicit `FUNNEL_EVENTS`
+  filter so `cta_click` (and any future ledger event) cannot surface as a
+  stage, and `FUNNEL_EVENTS`/`TYPED_EVENTS` themselves are unchanged. The
+  section 5.1 CTA table is
   its own aggregate query, joining click rows to `begin_checkout` and
   `purchase` on `client_id` (present on both sides of a `cta_click` row,
   which carries no `user_id`) rather than on the funnel's `PERSON_SQL`
