@@ -25,7 +25,8 @@ import { sqliteD1, SCHEMA_SQL, insertUser, insertSession } from './_d1-sqlite.mj
 
 const LEDGER_SCHEMA_SQL =
   SCHEMA_SQL + '\n' +
-  readFileSync(new URL('../migrations/036-conversion-ledger.sql', import.meta.url), 'utf8');
+  readFileSync(new URL('../migrations/036-conversion-ledger.sql', import.meta.url), 'utf8') + '\n' +
+  readFileSync(new URL('../migrations/039-first-touch-attribution.sql', import.meta.url), 'utf8');
 
 function ledgerD1({ seed } = {}) {
   return sqliteD1({ seed, schemaSql: LEDGER_SCHEMA_SQL });
@@ -49,6 +50,18 @@ function makeRequest({ cookie = '', entryRef = '', entryUrl = 'https://rrmacadem
 }
 
 // -------------------------------------------------------------- type table ---
+
+describe('conversion ledger -- migration 039 composes onto 036', () => {
+  it('PRAGMA table_info reports all seven first-touch columns', () => {
+    const db = ledgerD1();
+    try {
+      const columns = db._sqlite.prepare('PRAGMA table_info(conversion_event)').all().map((r) => r.name);
+      for (const col of ['ft_source', 'ft_medium', 'ft_campaign', 'ft_landing', 'ft_at', 'click_id', 'transaction_id']) {
+        assert.ok(columns.includes(col), `conversion_event.${col} missing after composing 039 onto 036`);
+      }
+    } finally { db.close(); }
+  });
+});
 
 describe('conversion ledger -- type derivation', () => {
   // Every branch of the contract in migrations/036-conversion-ledger.sql,
