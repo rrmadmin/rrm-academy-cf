@@ -1,6 +1,7 @@
 # Attribution, CTA map, and STUC LTV -- design
 
-Status: DRAFT for Brian's review, 2026-09-05. Child of the GA4 Improvement
+Status: REV 2 after /arise deep spec review (2 CRITICAL, 9 HIGH, 6 MEDIUM
+found, all applied), 2026-09-05. Pending Brian's review. Child of the GA4 Improvement
 Program (`2026-08-27-ga4-improvement-program.md`): this spec executes that
 program's A0 experiment, supersedes its A1 with a first-touch model Brian
 chose in session, and adds two workstreams the program did not have (the CTA
@@ -46,9 +47,6 @@ map and the LTV surfaces). Brian's four decisions, made 2026-09-05:
   tracking; `cta_click` fires only for elements with the freeform
   `data-track-cta` attribute (header, footer, homepage hero). Click to
   checkout drop-off on the money buttons is unmeasured.
-- `ShareKit.astro` emits event names (`copy-caption`, `download-square`,
-  `x-intent`, ...) that the `/api/track` allowlist rejects with 400; that
-  instrumentation has never reached GA4.
 
 ## 2. A0 experiment (in flight; readout gates section 3.2 only)
 
@@ -96,52 +94,117 @@ Client (`BaseLayout.astro`, same GPC-guarded block as today):
 - New cookie `rrm_ft`, written ONLY when absent, `max-age=7776000`
   (90 days), `path=/; SameSite=Lax; Secure`. Value is a compact
   URL-encoded record: `s` source, `m` medium, `c` campaign, `k` content,
-  `t` term, `g` gclid (or gbraid/wbraid with a one-letter kind), `r`
-  referrer host, `l` landing path, `d` epoch seconds. Derived client-side
-  from `location.search` and `document.referrer` with the same precedence
-  the server uses (utm_* beats referrer classification; a click id forces
-  medium `cpc`). Each field capped at 100 chars; total cookie under 1 KB.
+  `t` term, `g` click id (or gbraid/wbraid, with a one-letter kind marker),
+  `r` referrer host, `l` landing path, `d` epoch seconds. Derived
+  client-side from `location.search` and `document.referrer` with the same
+  precedence the server uses (utm_* beats referrer classification; a click
+  id forces medium `cpc`). Before the cookie is written, every field is
+  screened by a small inline regex covering the two branches of
+  `PII_VALUE_REGEX` a client script can reasonably re-implement (email
+  shape; a bare 13-19 digit run); a field that matches is written empty
+  rather than blocking the write. `s`/`m`/`c`/`k`/`t`/`r`/`l` are each
+  capped at 100 chars; `g` gets its own 512-char cap, matching
+  `_google-ads.js`'s `GCLID_RE` bound rather than the 100-char param cap
+  (Google click ids run longer than a UTM value ever does). The write
+  aborts the cookie entirely -- nothing is set -- if the encoded total
+  exceeds 1 KB, rather than truncating a field and corrupting it; that
+  ceiling holds only as long as every field but `g` stays at its 100-char
+  cap.
 - A returning visitor with an existing `rrm_ft` keeps it even when arriving
   on a new campaign. That is the first-touch definition. The existing
   session-scoped `entry_ref`/`entry_url` keep working as last touch, so
   nothing that reads them changes.
-- The 30-day `gclid` cookie is retired in favor of `rrm_ft.g`; `_google-ads.js`
-  reads the new location. Google's own click-through window for uploaded
-  conversions is 90 days, matching the cookie.
+- The 30-day `gclid` cookie is NOT retired. It stays exactly as today --
+  30 days, overwritten on every new ad click -- and remains the sole
+  source for every Google Ads conversion upload, existing and new
+  (section 3.3). `rrm_ft.g` is a separate, first-touch-only value: it holds
+  the click id from the visitor's FIRST paid click, feeds the ledger's
+  `click_id` column and the acquisition-source reporting in section 5, and
+  is never uploaded to Google Ads -- last-click is still what the account's
+  bidding and the existing eight upload actions run on, and retiring the
+  30-day cookie in favor of a 90-day first-touch one would silently break
+  all of them. One-time bridge: the first time `rrm_ft` is written after
+  this deploys, if a legacy `gclid` cookie is already present, `g` is
+  seeded from it, so a visitor mid-window at deploy time still gets a
+  first-touch click id instead of a blank one.
 
 Server (`_ga4-source.js` `buildSourceParams`):
 
 - Parse `rrm_ft`, PII-screen every field with `PII_VALUE_REGEX` at the same
   boundary as `extractUtm`, and emit `ft_source`, `ft_medium`,
-  `ft_campaign`, `ft_content`, `ft_landing`, `ft_days` (age in days at event
-  time) as event params on every relayed event. Last-touch params are
+  `ft_campaign`, `ft_content`, `ft_landing`, `ft_at` (ISO timestamp derived
+  from `d`) as event params on every relayed event. Last-touch params are
   unchanged.
+- `create-checkout.js` cannot read `rrm_ft` or `gclid` today: it derives
+  attribution entirely from the POST body (`entry_referrer`/`entry_url`),
+  which is last-touch and never sees a cookie. It now also parses `rrm_ft`
+  and the `gclid` cookie straight from the request's `Cookie` header, via a
+  small shared helper added to `_ga4-source.js` (the same cookie parser
+  `buildSourceParams` already uses), so the two checkout pages themselves
+  are untouched. The cookie is the source of truth for first touch and for
+  the current click id; the body's `entry_referrer`/`entry_url` keep
+  supplying last-touch source the way they do today.
 
-Ledger (migration 039, additive, `rrm-auth`):
+Ledger (migration 039, additive, `rrm-auth`; header follows the shape
+migrations 034 and 036 established -- WHY, PII class including which screen
+`click_id` and `transaction_id` each get, apply commands, and a
+partial-apply recovery note: SQLite has no `ADD COLUMN IF NOT EXISTS`, so a
+failed run is resumed by executing the remaining `ALTER TABLE` statements
+individually by hand, never by re-running the file):
 
 ```
-ALTER TABLE conversion_event ADD COLUMN ft_source   TEXT;
-ALTER TABLE conversion_event ADD COLUMN ft_medium   TEXT;
-ALTER TABLE conversion_event ADD COLUMN ft_campaign TEXT;
-ALTER TABLE conversion_event ADD COLUMN ft_landing  TEXT;
-ALTER TABLE conversion_event ADD COLUMN ft_at       TEXT;   -- ISO, from d
-ALTER TABLE conversion_event ADD COLUMN click_id    TEXT;   -- gclid/gbraid/wbraid, screened
+ALTER TABLE conversion_event ADD COLUMN ft_source      TEXT;
+ALTER TABLE conversion_event ADD COLUMN ft_medium      TEXT;
+ALTER TABLE conversion_event ADD COLUMN ft_campaign    TEXT;
+ALTER TABLE conversion_event ADD COLUMN ft_landing     TEXT;
+ALTER TABLE conversion_event ADD COLUMN ft_at          TEXT;   -- ISO, from d
+ALTER TABLE conversion_event ADD COLUMN click_id       TEXT;   -- first-touch gclid/gbraid/wbraid, PII-screened
+ALTER TABLE conversion_event ADD COLUMN transaction_id TEXT;   -- Stripe pi_/sub_ id, opaque: length-capped only, exempt from the digit-run PII screen
 CREATE INDEX IF NOT EXISTS idx_conversion_event_ft ON conversion_event (ft_source, ft_medium, ft_campaign);
+CREATE INDEX IF NOT EXISTS idx_conversion_event_transaction ON conversion_event (transaction_id);
 ```
 
-`_ga4.js` binds them in the existing single INSERT OR IGNORE, screened by
-`ledgerSafeText`. Rows written before 039 keep NULLs; the funnel page's
-"earliest ledger row" first touch remains the fallback for them.
+`ft_content` is emitted to GA4 as an event param but deliberately carries no
+ledger column -- the ledger's free-text budget stays scoped to what the
+funnel and LTV surfaces actually group by.
+
+`_ga4.js` binds the new columns in the existing single INSERT OR IGNORE.
+`click_id` is screened by `ledgerSafeText` like every other free-text
+column. `transaction_id` is bound from the existing `transaction_id` param
+the webhook already sends on `begin_checkout` and `purchase`: it is an
+opaque Stripe identifier, not free text, so it is exempt from the
+digit-run branch of the PII screen the way `session_id`/`client_id`/
+`user_id`/`dedup_key` already are, and only the length cap applies. Rows
+written before 039 keep NULLs; the funnel page's "earliest ledger row"
+first touch remains the fallback for them.
+
+This migration has more homes than the SQL file itself, all landing in one
+commit: `migrations/039-first-touch-attribution.sql`; a new `EXTRA_DDL`
+entry in rrm-academy-cf's `scripts/gates/validate-sql-columns.mjs`, carrying
+the same kind of provenance `why` string the existing entries for 031/033/
+034/035 do; and, in rrm-backoffice, both `test/fixtures/conversion-event.sql`
+(the vendored read-only copy of the table) and the `EXPECTED` column array
+in `test/funnel-api.test.js` that asserts against it. The fixture is not
+sha-asserted today; this change graduates it to `schema/` with a `.sha256`
+sidecar, matching how the other vendored DDL in that repo is tracked.
 
 Stripe (`create-checkout.js`): session and payment-intent metadata gain
 `ft_source`, `ft_medium`, `ft_campaign`, `ft_landing`, `ft_at`, `click_id`
-(Stripe caps 50 keys and 500 chars per value; both are far off). The
-checkout webhook forwards them into the `purchase` GA4 event params, so the
-ledger purchase row carries the buyer's first touch even though the webhook
-request has no browser cookies.
+(the visitor's first-touch click id, from `rrm_ft.g`) and `gclid_last` (the
+CURRENT `gclid` cookie, read server-side from the Cookie header at checkout
+time -- Stripe caps 50 keys and 500 chars per value; all of these are far
+off). The checkout webhook forwards `ft_*`/`click_id` into the `purchase`
+GA4 event params, so the ledger purchase row carries the buyer's first
+touch even though the webhook request has no browser cookies; `gclid_last`
+is read separately by section 3.3's uploader and is never written to the
+ledger's `click_id` column, which stays first-touch-only.
 
-`donor_gift` gains no columns; it joins to `conversion_event` on
-`dedup_key = 'purchase:<stripe event id>'`, which the webhook already binds.
+`donor_gift` gains no columns. It cannot join to `conversion_event` on
+`dedup_key`: `donor_gift.source_id` is the Stripe payment_intent id
+(`pi_...`), while `dedup_key` is built from the webhook's Stripe *event* id
+(`evt_...`) -- the two are never the same value. It joins instead on
+`donor_gift.source_id = conversion_event.transaction_id`, both populated
+from the same payment_intent id.
 
 ### 3.2 GA4 session scope (conditional on section 2)
 
@@ -155,14 +218,44 @@ path match for URL carry, test files `test/track-endpoint.test.js` and
 Two new UPLOAD_CLICKS conversion actions in account 426-226-8858,
 `STUC Subscription (server upload)` category SUBSCRIBE_PAID and
 `Donation (server upload)` category PURCHASE (Google has no donation
-category), both with value. `_webhook-checkout.js` calls the existing
-uploader with `click_id` from Stripe metadata, `conversion_value` in USD,
-`currency_code`, and the Stripe payment intent id as the order id (Google
-dedupes on it). Creation of the actions is a one-time API call recorded in
+category), both with value.
+
+The existing `uploadConversion(env, gclid, conversionActionId)` cannot
+carry any of this: it hardcodes `conversionValue: 1.0`, has no order-id
+field, and takes a bare `gclid` string rather than a click-id kind. It is
+replaced with `uploadConversion(env, { clickId, clickIdKind,
+conversionActionId, conversionValue, currency, orderId })`. The existing
+eight call sites (newsletter, both quiz funnels) keep behaving exactly as
+today by passing the current defaults (`clickIdKind: 'gclid'`,
+`conversionValue: 1.0`, `currency: 'USD'`, no `orderId`); `adIdentifiers` is
+built keyed by `clickIdKind` (`gclid`/`gbraid`/`wbraid`) rather than always
+`{ gclid }`.
+
+`_webhook-checkout.js` calls the new signature with `clickId` from the
+`gclid_last` Stripe metadata key (section 3.1 -- the CURRENT click at
+checkout time, preserving last-click for Ads uploads exactly as today),
+`orderId` set to `session.payment_intent || session.id` for donations and
+`session.subscription || session.id` for subscriptions, and
+`conversionValue` derived the same way the `purchase` GA4 send in that file
+already derives its dollar value: `amount_total || stucTierCentsFallback[tier]`,
+converted to dollars. Google dedupes on the order id, but that is a second
+line of defense, not the only one: the upload call sits behind the same
+`webhook_event` dedup that already protects the ledger write, so a Stripe
+redelivery does not re-attempt the upload at all rather than relying on
+Google to catch a duplicate order id.
+
+The `_google-ads.js` failure-alert email's "roughly 30-day click window"
+wording stays correct as written, because the `gclid` cookie it describes
+is unchanged by this spec (section 3.1's #2 fix) -- only the ledger's own
+first-touch `click_id` is new, and that is never what this email is about.
+
+Creation of the actions is a one-time API call recorded in
 `skills/ads-sitting/helpers/`; the action ids become frozen constants in
 `_google-ads.js` and in the backoffice `functions/api/ads.js` funnel
-constants. The grant account cannot bid on value, so the point is
-reporting, not bidding.
+constants. The Data Manager order-id field name must be verified against
+the live API at implementation time, the same way this file's header
+records having verified the existing fields against the live endpoint. The
+grant account cannot bid on value, so the point is reporting, not bidding.
 
 ### 3.4 Guardrails
 
@@ -181,39 +274,72 @@ reporting, not bidding.
 `data-cta="<page>.<zone>.<intent>"`, lowercase, hyphenated tokens, regex
 `^[a-z0-9-]+\.[a-z0-9-]+\.[a-z0-9-]+$`.
 
-- `page`: route slug (`home`, `donate`, `stuc`, `endo-quiz-results`,
-  `course-<slug>`, `library-record`, `header`, `footer` for site-wide
-  chrome, `nav-mobile`).
-- `zone`: `hero`, `tiers`, `card`, `inline`, `sidebar`, `sticky`, `modal`,
-  `error`, `column-<n>` for footer columns.
+- `page`: a closed list of route FAMILIES, never a slug: `home`, `donate`,
+  `stuc`, `endo-quiz`, `endo-quiz-results`, `endo-survey`, `course`,
+  `course-step`, `library-record`, `guide`, `faqs`, `header`, `footer` for
+  site-wide chrome, `nav-mobile`, `error`. Per-page distinction (which
+  course, which library record) comes from the ledger row's own
+  `page_location`/pathname, which it already stores -- `page` never carries
+  a slug.
+- `zone`: a closed list, footer columns enumerated rather than
+  parameterized: `hero`, `tiers`, `card`, `inline`, `sidebar`, `sticky`,
+  `modal`, `error`, `footer-col-1`, `footer-col-2`, `footer-col-3`,
+  `footer-col-4`.
 - `intent` (closed list, extended only in the vocabulary file):
   `donate`, `join-stuc-member`, `join-stuc-hero`, `join-stuc-superhero`,
   `manage-billing`, `newsletter`, `quiz-start`, `quiz-email`, `quiz-pdf`,
   `survey-start`, `course-enroll`, `course-checkout`, `signup`, `login`,
-  `account`, `providers`, `contact`, `learn`.
+  `account`, `providers`, `contact`, `learn`, `home`, `retry`.
+
+The lint gate enforces a 64-character maximum on the composed id (matching
+`LEDGER_SHORT_CAP`, the same cap the ledger's `type` column binds against),
+not the 100-char figure a naive reading of the regex might suggest; the
+regex itself is unchanged.
 
 Vocabulary lives in `src/data/cta-vocabulary.json` (pages, zones, intents)
 and is the only place a new token is added.
 
 ### 4.2 Instrumentation
 
-- `track-auto.ts` reads `[data-cta]` (and, for one release, the legacy
+- `/api/track`'s `REQUIRED_PARAMS` already demands `id` and `page` for
+  `cta_click` (`_track-events.js`); `track-auto.ts` has to actually send
+  them. It reads `[data-cta]` (and, for one release, the legacy
   `[data-track-cta]`, mapped through a rename table so old and new never
-  double-fire) and sends `cta_click` with params `cta` (full id),
-  `cta_page`, `cta_zone`, `cta_intent`. The freeform ids in Header, Footer
-  and `index.astro` are renamed to the new form in the same PR; the legacy
-  attribute is removed the release after.
+  double-fire) and sends `cta_click` with `id` (the full `page.zone.intent`
+  cta id) and `page` (`location.pathname`), plus `cta_zone` and
+  `cta_intent`. There is no separate `cta`/`cta_page` param name: `id` IS
+  the cta id and `page` IS the path, matching the allowlist exactly rather
+  than inventing a parallel naming that would still fail the required-param
+  check. `REQUIRED_PARAMS` itself stays `['id', 'page']`. The freeform ids
+  in Header, Footer, `index.astro`, and `500.astro` (page token `error`,
+  intents `home` and `retry` for its two buttons) are renamed to the new
+  form in the same PR; the legacy attribute is removed the release after.
+  Guarded/touched files for this workstream: `functions/api/_track-events.js`,
+  `functions/api/track.js`, `test/track-endpoint.test.js`, and
+  `functions/api/_ga4.js`. Because gate AG4 skips `track-auto.ts` (a client
+  file, not a server allowlist), a runtime-shaped test is added alongside
+  the unit tests: a real POST to `/api/track` with the new `cta_click`
+  payload shape, asserting a 2xx response and the resulting GA4 params.
 - The three donate tiers, the STUC join button, Manage Billing, the footer
   STUC link, all three email forms (newsletter, endo-quiz email, survey
   gate) and the `mailto:` error fallbacks get ids.
-- `cta_click` joins `LEDGER_EVENTS` with `type` = the full cta id (100-char
-  cap already applies) and `value_cents` NULL. Expected volume is low
-  thousands per month; the 400-day purge covers it. Click-to-checkout and
-  click-to-purchase are then per-person joins the funnel page already
-  knows how to make.
-- `ShareKit.astro` event names are corrected to allowlisted snake_case
-  (`share_click` with `network` param; `copy_citation`), which is a bug fix
-  ridden along because the same file is touched.
+- `cta_click` joins `LEDGER_EVENTS`. `deriveLedgerType` (`_ga4.js`) gains a
+  `cta_click` branch returning the screened `params.id` (the same
+  PII/length screen the `generate_lead` branch already applies to
+  `lead_source`), with `value_cents` NULL. `cta_click` is deliberately NOT
+  added to `LEDGER_USER_EVENTS`: like `page_view`, it is excluded there on
+  volume -- it is the CTA map's highest-frequency event, and a per-person
+  `user_id` trail on every click is well past what the funnel questions
+  need, so a `cta_click` row keys to `client_id` only, logged-in or not.
+  Migration 036's header TYPE-derivation comment block is amended in the
+  same commit that adds the branch. `FUNNEL_EVENTS` and `TYPED_EVENTS` in
+  the backoffice `functions/api/funnel.js` are NOT extended: `cta_click`
+  must never appear as a sixth funnel stage. The section 5.1 CTA table is
+  its own aggregate query, joining click rows to `begin_checkout` and
+  `purchase` on `client_id` (present on both sides of a `cta_click` row,
+  which carries no `user_id`) rather than on the funnel's `PERSON_SQL`
+  person-key expression. Expected volume is low thousands per month; the
+  400-day purge covers it.
 
 ### 4.3 Lint gate and generated map
 
@@ -229,6 +355,18 @@ and in `merge.yml`:
    `/courses/*/enroll`, `/signup`, `/login`, `/account`, `/providers`, or
    `mailto:` MUST carry `data-cta` matching the regex with tokens from the
    vocabulary. Otherwise the build fails naming file and line.
+2b. Rule 2's href/action/data-* scan cannot see an id-plus-listener button
+    (`#donate-btn`, `#manage-billing-btn`) or a `mailto:` fallback a script
+    builds at runtime -- there is no href for step 2 to read. So: any
+    element whose `id` appears as a string literal inside an inline
+    `<script>` in the same file that ALSO contains the literal
+    `/api/create-checkout`, `/api/billing/portal`, or `mailto:` MUST carry
+    `data-cta`. A committed allowlist, `src/data/cta-required-ids.json`,
+    names the known money-button ids that must carry `data-cta`; the gate
+    checks it against `dist/`. `/` and `javascript:` targets are
+    deliberately out of scope for rules 2 and 2b (no money or PII crosses
+    either); `500.astro`'s two ids are migrated to `data-cta` by hand as
+    part of this change rather than caught by either rule.
 3. Within one rendered page, duplicate `data-cta` values fail (the reason
    for the zone token). Site-wide chrome is exempt from the per-page
    duplicate rule but must be unique within the component.
@@ -253,38 +391,62 @@ vendored from rrm-academy-cf as today).
 - First-touch dimension: stage counts and forward paths grouped by
   `ft_source`/`ft_medium`/`ft_campaign`, falling back to the earliest-row
   method when `ft_*` is NULL, and labeled which method produced the row.
-- CTA table: for each `cta` id in the window, clicks, unique persons,
-  persons reaching `begin_checkout` within the same session, persons with
-  a `purchase` within 7 days, and the resulting rates. Labels from
-  `docs/cta-map.json` (fetched from the academy repo at build time, vendored
-  read-only like the schema). Pages with more than one CTA render as a
-  grouped block so hero versus tiers versus footer is one glance.
+- CTA table: for each `cta` id in the window, clicks, unique `client_id`s,
+  `client_id`s reaching `begin_checkout` within the same session,
+  `client_id`s with a `purchase` within 7 days, and the resulting rates.
+  This is a query of its own, joined on `client_id` rather than the
+  funnel's `PERSON_SQL` expression, because `cta_click` rows carry no
+  `user_id` (section 4.2); `FUNNEL_EVENTS` and `TYPED_EVENTS` are not
+  extended to include it. Labels from `docs/cta-map.json` (fetched from the
+  academy repo at build time, vendored read-only like the schema). Pages
+  with more than one CTA render as a grouped block so hero versus tiers
+  versus footer is one glance.
 
 ### 5.2 `/membership` LTV panel
 
-Data: `wix_subscription` (tier, amount_cents, frequency, status,
-started_at, lapsed_at, cycle_count, contact_id, email), `donor_gift`
-(additional gifts by the same email or contact), `conversion_event`
-(first touch and entry path for the person).
+Data: `wix_subscription` has no INSERT anywhere in this repo for a
+Stripe-native member -- it is a Wix-era table, and its `cycle_count` column
+has no Stripe-era writer at all -- so realized subscription revenue is not
+read from it. It comes instead from Stripe paid invoices, read through the
+existing restricted key and the `scanStripe()` helper `/membership` already
+uses (cached in `REPORT_CACHE` the same way), unioned with `wix_payment`
+rows for the Wix era. `wix_subscription` is used only for tier and status
+on legacy rows; `cycle_count` is not used anywhere in this panel. Member
+identity across sources is the Stripe customer email joined
+`COLLATE NOCASE` to `contact`/`user`. `donor_gift` supplies additional
+gifts by the same email or contact; `conversion_event` supplies first touch
+and entry path for the person.
 
 Definitions, fixed and displayed on the page:
 
 - Realized LTV per member = sum of paid subscription cycles + gifts, cents.
 - Monthly churn per segment = lapses in month / active at month start,
-  trailing 6 months.
-- Expected lifetime months = 1 / churn (capped at 36 when churn is under
-  1/36 so a small segment cannot print an infinite number).
+  trailing 6 months. When active-at-month-start is 0, the cell renders
+  "--" and is excluded from totals rather than dividing by zero.
+- Expected lifetime months = 1 / churn, capped at 36 when churn is under
+  1/36 -- including when churn is exactly 0 -- so a small or zero-churn
+  segment cannot print an infinite number; the cap is applied before any
+  division is attempted.
 - Expected LTV per segment = ARPU x expected lifetime months.
 
 Four tabs, each a table plus a 12-month sparkline:
 
-1. By plan: member ($9), hero ($19), superhero ($99), complimentary
-   (membership_state), legacy Wix. Annual does not exist today; the column
-   appears when `frequency` first carries a non-MONTH value.
+1. By plan: member ($9), hero ($19), superhero ($99), complimentary, legacy
+   Wix. Complimentary is derived the same way `/membership`'s existing
+   `partitionRoster()` already partitions the roster today: staff role
+   (`user.role` in mod/admin/superadmin) -- NOT `membership_state`, which
+   holds lapse reasons, not complimentary status. Annual does not exist
+   today; the column appears when `frequency` first carries a non-MONTH
+   value.
 2. By acquisition source: `ft_source`/`ft_medium` from the person's
-   earliest ledger row carrying `ft_*`; a bucket "before first-touch
-   tracking" holds everyone else so historical members are counted, not
-   hidden.
+   earliest ledger row carrying `ft_*`. Two buckets hold everyone else, so
+   historical members are counted rather than hidden, and split by cause
+   rather than lumped together: "before first-touch tracking" for rows
+   dated before the 039 deploy date (expected -- the field did not exist
+   yet), and "attribution redacted" for rows dated on or after that date
+   with `ft_source` still NULL (the value was screened out or genuinely
+   absent). Without the split, a redacted row from live tracking would look
+   identical to one from before tracking existed.
 3. By entry path: the person's first non-page_view ledger event type
    (`endo_quiz_ads`, `newsletter`, `endo_survey`, course enroll, `checkout`
    sign-up, direct join).
@@ -320,13 +482,18 @@ same reason the existing funnel windows are frozen.
    039 applied remote before deploy; proof = a synthetic first-touch
    session followed by a real $5 donation on a test card shows `ft_*` in
    the ledger row, in Stripe metadata, and in the BigQuery `purchase`
-   event; the Ads upload log records the click id.
+   event; the Ads upload log records the click id; and a second, later ad
+   click from the same returning visitor re-attributes the 30-day `gclid`
+   cookie for last-click Ads uploads while `rrm_ft` (the first-touch
+   record) is unchanged, pinned by a test.
 3. Workstream 2 as `cta-map`: lint gate red on a deliberately untagged
-   button in CI, green on the tagged tree; `docs/cta-map.json` committed;
-   `cta_click` rows appearing within minutes of deploy with the new ids.
+   button in CI, including an id-plus-listener button caught only by rule
+   2b, green on the tagged tree; `docs/cta-map.json` committed; `cta_click`
+   rows appearing within minutes of deploy with the new ids.
 4. Workstream 3 as `funnel-cta-and-ltv`: backoffice deploy with the pinned
    wrangler; smoke legs for the new routes; LTV totals tie to `/revenue`
-   and `/membership` within one cent for the same window.
+   and `/membership` within one cent for the same window; the CTA table's
+   `client_id` join proven on a synthetic click-to-purchase pair.
 
 Reverts: each workstream is one revert; 039 columns are additive and can
 stay populated through a revert.
