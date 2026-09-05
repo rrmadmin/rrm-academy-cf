@@ -58,6 +58,12 @@ export const LONG_PARAM_LIMITS = new Map([
 
 // Required params per event. Client must supply ALL listed keys.
 // Optional params are not listed here -- they pass through after sanitization.
+// cta_click additionally carries two OPTIONAL params (not required, not
+// listed here): cta_zone and cta_intent, both derived client-side from the
+// data-cta id's own zone/intent tokens
+// (docs/superpowers/specs/2026-09-05-attribution-cta-map-ltv-design.md §4.2).
+// They need no allowlist entry: neither is in RESERVED_PARAMS or matches
+// PII_REGEX, so both pass through the existing generic string path.
 export const REQUIRED_PARAMS = new Map([
   ['page_view',          ['page_location']],
   ['cta_click',          ['id', 'page']],

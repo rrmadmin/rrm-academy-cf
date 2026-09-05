@@ -102,7 +102,41 @@ describe('POST /api/track -- happy path', () => {
       assert.equal(dp.blobs[1], 'scroll_depth', 'second blob must be the event name');
       assert.ok(Array.isArray(dp.indexes), 'writeDataPoint must have indexes array');
       assert.equal(dp.indexes[0], 'scroll_depth', 'index must be the event name');
+      // Drain the queued sendGA4Event promise before restoring fetch, so its
+      // eventual fetch() call lands on this test's own stub rather than
+      // leaking into whichever test runs next.
+      await Promise.all(ctx.waitUntil.promises);
     } finally { restore(); }
+  });
+});
+
+describe('POST /api/track -- cta_click carries cta_zone and cta_intent (runtime shape, AG4 does not check track-auto.ts)', () => {
+  it('accepts the full data-cta-derived payload and forwards it to GA4', async () => {
+    const fetchStub = makeFetchStub();
+    try {
+      const ctx = makeContext({
+        body: {
+          event: 'cta_click',
+          params: {
+            id: 'donate.hero.donate',
+            page: '/donate/',
+            cta_zone: 'hero',
+            cta_intent: 'donate',
+          },
+        },
+      });
+      const res = await onRequestPost(ctx);
+      assert.equal(res.status, 204, 'the endpoint must accept the full cta_click payload shape');
+      await Promise.all(ctx.waitUntil.promises);
+      assert.equal(fetchStub.state.callCount, 1);
+      const body = fetchStub.state.bodies[0];
+      const evt = body.events.find((e) => e.name === 'cta_click');
+      assert.ok(evt, 'GA4 payload must contain the cta_click event');
+      assert.equal(evt.params.id, 'donate.hero.donate');
+      assert.equal(evt.params.page, '/donate/');
+      assert.equal(evt.params.cta_zone, 'hero');
+      assert.equal(evt.params.cta_intent, 'donate');
+    } finally { fetchStub.restore(); }
   });
 });
 

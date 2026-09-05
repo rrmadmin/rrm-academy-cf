@@ -129,6 +129,40 @@ describe('conversion ledger -- type derivation', () => {
   });
 });
 
+describe('conversion ledger -- cta_click type derivation', () => {
+  for (const [label, params, expected] of [
+    ['a real vocabulary id',       { id: 'donate.hero.donate' },                'donate.hero.donate'],
+    ['missing id',                 {},                                          'other'],
+    ['empty id',                   { id: '' },                                  'other'],
+    ['non-string id',              { id: 42 },                                  'other'],
+    ['a PII-shaped id (should not happen past the lint gate, screened anyway)', { id: 'someone@example.com' }, 'other'],
+    ['an id that does not match the page.zone.intent shape', { id: 'not-a-cta-id' }, 'other'],
+    ['an id with too few tokens',  { id: 'donate.hero' },                       'other'],
+  ]) {
+    it(`cta_click / ${label} -> ${expected}`, () => {
+      assert.equal(deriveLedgerType('cta_click', params), expected);
+    });
+  }
+
+  it('a cta_click row carries no user_id even with a live session cookie, and no value_cents', async () => {
+    const fetchStub = stubExternalFetch();
+    const RAW_SESSION = 'sess_cta_click_no_user';
+    const db = ledgerD1({
+      seed(sqlite) { insertUser(sqlite, { id: 'usr_cta_1', email: 'cta@example.com' }); },
+    });
+    await insertSession(db._sqlite, { rawId: RAW_SESSION, userId: 'usr_cta_1', expiresAt: Math.floor(Date.now() / 1000) + 3600 });
+    try {
+      const env = mockEnv({ DB: db, CONVERSION_LEDGER: '1' });
+      await sendGA4Event(env, makeRequest({ cookie: `session=${RAW_SESSION}` }), 'cta_click', { id: 'donate.hero.donate', page: '/donate/' });
+      const written = rows(db);
+      assert.equal(written.length, 1);
+      assert.equal(written[0].user_id, null, 'cta_click must never carry a user_id, even with a live session');
+      assert.equal(written[0].value_cents, null);
+      assert.equal(written[0].type, 'donate.hero.donate');
+    } finally { fetchStub.restore(); db.close(); }
+  });
+});
+
 // ------------------------------------------------------------- flag gating ---
 
 describe('conversion ledger -- flag gating', () => {
@@ -225,13 +259,12 @@ describe('conversion ledger -- flag gating', () => {
 // ------------------------------------------------------------- event scope ---
 
 describe('conversion ledger -- event scope', () => {
-  // The relay carries every server-side event; the ledger carries five. These
-  // three are the engagement signals that were landing rows before the scope
+  // The relay carries every server-side event; the ledger carries six. These
+  // two are the engagement signals that were landing rows before the scope
   // gate, and the GA4 send must be untouched by their exclusion.
   for (const [eventName, params] of [
     ['scroll_depth', { percent_scrolled: 90 }],
     ['user_engagement', { engagement_time_msec: 15000 }],
-    ['cta_click', { id: 'hero-primary', page: '/endometriosis/' }],
   ]) {
     it(`writes no row for ${eventName} while GA4 still receives it`, async () => {
       const fetchStub = stubExternalFetch();
@@ -240,7 +273,7 @@ describe('conversion ledger -- event scope', () => {
         const env = mockEnv({ DB: db, CONVERSION_LEDGER: '1' });
         await sendGA4Event(env, makeRequest(), eventName, params);
         assert.equal(fetchStub.ga4.length, 1, 'the GA4 send is unchanged');
-        assert.deepEqual(rows(db), [], 'no ledger row outside the five funnel events');
+        assert.deepEqual(rows(db), [], 'no ledger row outside the six scoped events');
       } finally { fetchStub.restore(); db.close(); }
     });
   }
@@ -251,6 +284,7 @@ describe('conversion ledger -- event scope', () => {
     ['generate_lead', { lead_source: 'newsletter' }],
     ['begin_checkout', { value: 25, items: [{ item_name: 'Donation' }] }],
     ['purchase', { value: 25, items: [{ item_name: 'Donation' }] }],
+    ['cta_click', { id: 'donate.hero.donate', page: '/donate/' }],
   ]) {
     it(`still writes a row for ${eventName}`, async () => {
       const fetchStub = stubExternalFetch();
