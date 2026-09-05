@@ -459,6 +459,49 @@ Any `?redirect=`/`?next=` param that becomes a client-side `window.location.href
 - **Open/click pixels**: `s` (send_id) + `u` (subscriber_id) validated against `/^[0-9a-f-]{36}$/i`; KV-backed rate limit `pixel:${ip}` 600/min; INSERT INTO `newsletter_event` scoped with `WHERE EXISTS (SELECT 1 FROM newsletter_subscriber WHERE id = ?)`.
 - **Scripts**: `verify-crm-elv.mjs` (bulk verify; treats `error` as `errored` bucket per `_elv.js` fail-open policy — NOT tagged elv:error), `import-newsletter-subscribers.mjs` (ELV-filtered import + `SUPPRESSION_TAGS` exclusion + re-sync UPDATE flipping existing rows whose contact carries a suppression tag), `segment-newsletter.mjs` (tag-based segmentation).
 
+## Infrastructure (observed 2026-09-05)
+
+Live discovery against the Cloudflare API, GitHub, and launchd on both Macs. Entity JSON: `~/iCode/config/ecosystem-identity/infra/rrma.json`. Map: https://claude.ai/code/artifact/a5a339c7-7470-4b73-bf55-8a4005827b2d (index: https://claude.ai/code/artifact/a0b01c62-4aa4-417f-aa15-d948ae9d549e). Rerun: `cd ~/iCode/config/ecosystem-identity/infra && node discover/cf.mjs rrm && bash gates.sh`. The same block is now in `rrm-academy-internal/ecosystem.json` under `infrastructure.observed_2026_09_05` (with a `drift` list), synced to D1 `system_config`.
+
+**Account:** Cloudflare `ecf2c5bc8b5ebd634bcb587b3890910a` (slug `rrm`), 24 active zones. Only three zones serve anything: `rrmacademy.org` (site + workers, 65 DNS records), `naomiwhittakermd.com` (Pages `naomi-site`), `femtechmvp.com` (Cloudflare Email Routing only). The other 21 are parked. Registrar detail is doc-sourced, not observed: the discovery token gets HTTP 403 (10000) on `/accounts/:id/registrar/domains`.
+
+**Pages projects on this account (6):**
+
+| Project | Hosts | Repo | Last deploy |
+|---|---|---|---|
+| `rrm-academy` | `rrm-academy.pages.dev` (apex is served through the `rrm-router` worker, not a Pages custom domain) | this repo | 2026-09-05 |
+| `rrm-backoffice` | `admin.rrmacademy.org`, `rrm-backoffice.pages.dev` | `rrmadmin/rrm-backoffice` | 2026-09-01 |
+| `naomi-site` | `naomiwhittakermd.com`, `www.`, `naomi-site.pages.dev` | `rrmadmin/naomi-site` | 2026-09-02 |
+| `rrm-training-reports` | `reports.rrmacademy.org` | `rrmadmin/rrm-surgical-fellowship` (no repo link on the project) | 2026-08-27 |
+| `rrm-feed` | `rrm-feed.pages.dev` | `rrmadmin/rrm-feed` | 2026-08-15 |
+| `scout-feed` | `scout-feed.pages.dev` | `rrmadmin/rrm-feed` | 2026-08-12 (301 shim only) |
+
+**Workers: 26 on the account.** Routed ones matter to this repo, because a request to the apex hits them before Pages:
+
+| Worker | Route |
+|---|---|
+| `rrm-router` | `rrmacademy.org/*`, `www.rrmacademy.org/*`, `linkinbio.rrmacademy.org/*` |
+| `rrm-fingerprint-worker` | `fp.rrmacademy.org/*`, `fp.rrm.foundation/*` |
+| `rrm-library-worker` | `mcp-library.rrmacademy.org/*` |
+| `library-redirect` | `library.rrmacademy.org/*` (301 to `/library/`) |
+| `ahrefs--bot-analytics` | `*rrmacademy.org/*` |
+
+Cron workers: `rrm-observatory` 43, `rrm-backlinks` 5, `rrm-fingerprint-worker` 4, `rrm-library-worker` 4, `rrm-seo-monitor` 4, and one each for `overwatch-worker`, `rrm-feed`, `rrm-grant-scan`, `rrm-marketing-intel`, `rrm-naomi-report`, `rrm-wix-sync`.
+
+Twelve observed workers were not in `ecosystem.json`'s `workers` block before 2026-09-05 (eleven real surfaces plus `zz-ask-eval-delete-me`, a disposable eval harness): `agentic-inbox`, `ahrefs--bot-analytics`, `ai-search-spike-worker`, `byitsfruit-router`, `claude-telegram`, `ig-donation-relay`, `library-redirect`, `moltworker`, `rrm-grant-scan`, `rrm-naomi-report`, `rrm-webhook-listener`, `zz-ask-eval-delete-me`. They are now named with their roles in that file. **Correction:** `ecosystem.json` lists a worker `rrm-finance-sync`; no worker by that name exists on the rrm account. Do not assume it is deployed.
+
+**Data (live counts, not the three-item summary that used to be here):** 10 D1 databases on the account, largest first: `rrm-library` (198 MB), `rrm-fingerprint` (29 MB), `rrm-auth` (24 MB), `rrm-analytics` (6.6 MB), `rrm-survey-symptoms` (2.0 MB), `rrm-backlinks` (1.6 MB), `rrm-observatory` (1.4 MB), `rrm-survey` (0.8 MB), `naproebook-leads`, `femtech-mvp`. 6 R2 buckets: `rrm-assets`, `rrmacademy-logs`, `ivf-clinic-corpus`, `naproebook-assets`, `agentic-inbox`, `cloudflare-managed-a142682d`. 17 KV namespaces, including `COMMUNITY_KV`, `SURVEY_TOKENS`, `LIBRARY_INDEX`, `MARKETING_INTEL_KV`, `SEO_BASELINES`, `DAEMON_STATE`, `CONVERGENCE_KV`, `rrm-backoffice-cache`, and `rrm-scout-SCOUT_STATE` (keeps the pre-rename name on purpose; `rrm-feed` binds it as `FEED_STATE`).
+
+**Access (5 apps):** `RRM Backoffice` (`admin.rrmacademy.org` + `rrm-backoffice.pages.dev` + previews, 24h, four policies including two service tokens), `RRM Training Reports (private)` (`reports.rrmacademy.org/docs`, 720h, Brian + Naomi + Tracey), `FleetView` and `FleetView (preview URLs)` (24h, rrmacademy org), `Agentic Inbox` (`inbox.whittaker.ai`). Service tokens: `rrm-backoffice board-sync` (expires 2027-08-27), `rrm-observatory membership-report`, `Agentic Inbox MCP`.
+
+**Email:** Cloudflare Email Routing is enabled on `femtechmvp.com` only, with 2 rules; `rrmacademy.org` does not use it. Mailboxes are Google Workspace. Transactional mail is Amazon SES (`SPF include:amazonses.com` alongside `include:_spf.google.com`), which is what the newsletter and auth sends above ride on. Verified routing destinations: `administrator@rrmacademy.org`, `bwhittaker@rrmacademy.org`, `brianrwhittaker@gmail.com`, `naomimwhittaker@gmail.com`. `baileynlong@gmail.com` is unverified.
+
+**Local automation:** 60 launchd jobs across two Macs, 46 on blue-imac and 14 on black-macbook-pro. The ones that touch this repo's data or deploys: `com.rrm.library-audit-waves` (21:15), `com.rrm.library-verify-weekly` (Sun + Wed 10:00), `com.rrm.library-fix-apply-weekly` (Mon 10:00), `com.rrm.library-review-watch` (09:15), `com.rrm.citation-census-weekly` (Sat 09:15), `org.rrmacademy.glossary-staging-daily` (10:00), `org.rrmacademy.branch-drain-daily` (08:50), `org.rrmacademy.fleet-sync` (08:30, 13:07, 19:07), `org.rrmacademy.master-loop` (07:30), `org.rrmacademy.offsite-backup` (02:45). On the MacBook: `gsc-daily-check` (08:17), `aeo-digest` (07:03), `mobile-responsiveness` (Sun 06:15), `ga4-bq` (Sun 07:19), `consideration-set-audit` (Mon 09:00). Loaded-but-idle: `briefing.morning`, `briefing.evening`, `briefing.weekly`, `ga4-bq-smoke`, `sam-uei-watch`, and the blue-imac copy of `aeo-digest` are all NOT loaded; the MacBook `aeo-digest` is the live one.
+
+**What watches it:** `rrm-observatory` runs 59 registered daemons packed into 43 Cloudflare cron slots (one slot can fan out to several daemons; the slot floor is 5 minutes). It binds D1 `rrm-observatory`, `rrm-auth` and `rrm-fingerprint`, eight Analytics Engine datasets (`worker-events` plus `ae_backlinks_detail`, `ae_content_detail`, `ae_cost_detail`, `ae_email_detail`, `ae_infra_detail`, `ae_security_detail`, `ae_seo_detail`), and service bindings to `rrm-feed`, `rrm-library-intake`, `rrm-library-worker`, `rrm-seo-monitor`. `overwatch-worker` is the independent 5-minute sentinel. GA4 property 526304690 (`G-TSWRY7XLR0`).
+
+**What backs it up:** nightly 02:45 from blue-imac, `rclone copy` plus `rclone check --one-way` (copy-only, never a mirror) into Backblaze B2 bucket `rrm-offsite-01` (US East) under Object Lock in compliance mode for 60 days; the writer key can neither delete nor read. Covers every non-staging R2 bucket and every D1 on the rrm and fsp accounts, plus D1 `neofertility-content` on the neo account. Deadman: observatory daemons `offsite-backup-freshness` and `launchd-liveness`. Runbook: `tools/offsite-backup/README.md` in `rrmadmin/rrm-tools`.
+
 ## Operational Automation
 
 n8n.rrmacademy.org (RackNerd VPS) RETIRED 2026-05-08, decommissioned 2026-08-05 -- historical archive, not live infrastructure. Do not build on it.
@@ -466,7 +509,7 @@ n8n.rrmacademy.org (RackNerd VPS) RETIRED 2026-05-08, decommissioned 2026-08-05 
 | Workflow | Schedule | What |
 |----------|----------|------|
 | Daily Cleanup | `0 5 * * *` (rrm-observatory cron) | POST `/api/admin/cleanup` -- prunes expired sessions, resets, verifications, webhook events >7d |
-| Down Detector (`HxxCkFOPbrXa0r08`) | RETIRED | Formerly checked site/library data every 5 min via n8n; no replacement wired yet |
+| Down Detector (`HxxCkFOPbrXa0r08`) | RETIRED | Formerly checked site/library data every 5 min via n8n. **Corrected 2026-09-05:** it IS replaced. `overwatch-worker` runs the same 5-minute sentinel cron (`*/5 * * * *`) and `rrm-observatory` carries 59 daemons over 43 cron slots. See the Infrastructure section above. |
 
 `/api/newsletter/rss-check` is orphaned pending decision -- its former n8n caller no longer exists; see `functions/api/newsletter/rss-check.js` (flag-only, not touched by this sweep).
 
