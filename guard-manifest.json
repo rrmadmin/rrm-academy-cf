@@ -55,7 +55,7 @@
       "note": "Stripe portal"
     },
     "functions/api/billing/_webhook-checkout.js": {
-      "hash": "84d4ff5a7f4bb971a911151f9da6044be64a28904e2ea8e5b5133fc68d74186b",
+      "hash": "320b1db54594650b814b7a33adc5f47b4c7ff979f1015ad2b191922c7d0de394",
       "note": "Stripe checkout completion handler"
     },
     "functions/api/billing/_webhook-subscription.js": {
