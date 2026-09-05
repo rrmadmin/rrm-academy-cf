@@ -123,4 +123,5 @@ export const RESERVED_PARAMS = new Set([
   'list_source',
   'client_id',
   'device_type',
+  'transaction_id',
 ]);

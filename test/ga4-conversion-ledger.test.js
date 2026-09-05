@@ -428,6 +428,40 @@ describe('conversion ledger -- failure isolation', () => {
     } finally { console.warn = originalWarn; fetchStub.restore(); }
   });
 
+  it('a ledger INSERT failure also produces one AE datapoint with action ledger_write_failed, without throwing or touching the GA4 send', async () => {
+    const fetchStub = stubExternalFetch();
+    const originalWarn = console.warn;
+    console.warn = () => {};
+    const aeCalls = [];
+    try {
+      const env = mockEnv({
+        DB: {
+          prepare() {
+            return {
+              bind() { return this; },
+              async first() { throw new Error('D1_ERROR: no such column: ft_source'); },
+              async run() { throw new Error('D1_ERROR: no such column: ft_source'); },
+            };
+          },
+        },
+        CONVERSION_LEDGER: '1',
+        EVENTS: { writeDataPoint(point) { aeCalls.push(point); } },
+      });
+      await assert.doesNotReject(() => sendGA4Event(env, makeRequest(), 'purchase', {
+        value: 49.99,
+        items: [{ item_name: 'Donation' }],
+      }));
+      assert.equal(fetchStub.ga4.length, 1, 'the GA4 Measurement Protocol call still went out');
+
+      const ledgerFailures = aeCalls.filter((p) => p.blobs?.[2] === 'ledger_write_failed');
+      assert.equal(ledgerFailures.length, 1, 'exactly one ledger_write_failed AE datapoint');
+      assert.equal(ledgerFailures[0].blobs[0], 'rrm-academy');
+      assert.equal(ledgerFailures[0].blobs[1], 'ga4');
+      assert.equal(ledgerFailures[0].blobs[3], 'error');
+      assert.ok(ledgerFailures[0].blobs[4].includes('Error'), 'detail carries the error name');
+    } finally { console.warn = originalWarn; fetchStub.restore(); }
+  });
+
   it('a ledger DB that throws synchronously on prepare still leaves sendGA4Event resolved', async () => {
     const fetchStub = stubExternalFetch();
     const originalWarn = console.warn;
