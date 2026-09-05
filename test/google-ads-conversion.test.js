@@ -289,3 +289,46 @@ describe('_google-ads.js uploadConversion payload shape', () => {
     assert.equal(stub.ingestCalls.length, 0);
   });
 });
+
+describe('sendGoogleAdsValueConversion placeholder-action-id guard', () => {
+  it('is a no-op when conversionActionId is the PENDING_TASK_9 placeholder', async (t) => {
+    const stub = stubGoogleAdsFetch({
+      tokenImpl: () => { throw new Error('must not be called'); },
+      ingestImpl: () => { throw new Error('must not be called'); },
+    });
+    t.after(() => stub.restore());
+
+    const env = googleAdsEnv();
+    const waitUntil = mockWaitUntil();
+    googleAds.sendGoogleAdsValueConversion(env, waitUntil, {
+      clickId: 'abcdefghij1234567890',
+      conversionActionId: 'PENDING_TASK_9',
+      conversionValue: 25,
+      orderId: 'pi_test_pending',
+    });
+    await drainWaitUntil(waitUntil);
+
+    assert.equal(stub.tokenCalls.length, 0);
+    assert.equal(stub.ingestCalls.length, 0);
+  });
+
+  it('uploads normally once a real conversionActionId replaces the placeholder', async (t) => {
+    const stub = stubGoogleAdsFetch({
+      tokenImpl: () => okTokenResponse(),
+      ingestImpl: () => okIngestResponse(),
+    });
+    t.after(() => stub.restore());
+
+    const env = googleAdsEnv();
+    const waitUntil = mockWaitUntil();
+    googleAds.sendGoogleAdsValueConversion(env, waitUntil, {
+      clickId: 'abcdefghij1234567890',
+      conversionActionId: googleAds.NEWSLETTER_CONVERSION_ACTION_ID,
+      conversionValue: 25,
+      orderId: 'pi_test_real_id',
+    });
+    await drainWaitUntil(waitUntil);
+
+    assert.equal(stub.ingestCalls.length, 1);
+  });
+});

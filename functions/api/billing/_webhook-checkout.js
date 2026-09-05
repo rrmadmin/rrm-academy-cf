@@ -26,6 +26,7 @@ import { countCampaignGifts } from './_campaign-count.js';
 import { sendTracked } from '../newsletter/_mail.js';
 import { greetingLine } from '../_greeting.js';
 import { isJoinDenied, maskEmailForLog } from './_join-denylist.js';
+import { sendGoogleAdsValueConversion, STUC_PURCHASE_CONVERSION_ACTION_ID, DONATION_CONVERSION_ACTION_ID } from '../_google-ads.js';
 
 // Monthly tier price fallback, used only when session.amount_total is 0 or missing
 // (Stripe has not billed the first invoice yet). Mirrors stucTierCentsFallback in the
@@ -947,6 +948,21 @@ Manually set migration_status='stripe_active' and stripe_subscription_id to the 
       ...(session.metadata?.ft_at && { ft_at: session.metadata.ft_at }),
       ...(session.metadata?.click_id && { click_id: session.metadata.click_id }),
     }, gaOverrides).catch(() => {}));
+    // Google Ads value upload (section 3.3). Sits inside the same
+    // webhook_event-deduped handler as the ledger write above, so a Stripe
+    // redelivery does not re-attempt the upload at all -- Google's own
+    // order-id dedup is a second line of defense, not the only one. Uses
+    // gclid_last (the CURRENT click at checkout time), not click_id (the
+    // first-touch id): last-click is what the account's bidding and every
+    // existing upload action run on, unchanged by this spec. No-op when
+    // gclid_last is absent (an organic/no-ad donor).
+    sendGoogleAdsValueConversion(env, waitUntil, {
+      clickId: session.metadata?.gclid_last,
+      conversionActionId: DONATION_CONVERSION_ACTION_ID,
+      conversionValue: (session.amount_total || 0) / 100,
+      currency: 'USD',
+      orderId: session.payment_intent || session.id,
+    });
   } else if (session.mode === 'subscription' && stucTiers[tier]) {
     // amount_total is 0 for trial-clamped migration checkouts (subscription_data.trial_end
     // delays the first invoice), which would otherwise report $0 subscription revenue.
@@ -970,6 +986,13 @@ Manually set migration_status='stripe_active' and stripe_subscription_id to the 
       ...(session.metadata?.ft_at && { ft_at: session.metadata.ft_at }),
       ...(session.metadata?.click_id && { click_id: session.metadata.click_id }),
     }, gaOverrides).catch(() => {}));
+    sendGoogleAdsValueConversion(env, waitUntil, {
+      clickId: session.metadata?.gclid_last,
+      conversionActionId: STUC_PURCHASE_CONVERSION_ACTION_ID,
+      conversionValue: (session.amount_total || stucTierCentsFallback[tier] || 0) / 100,
+      currency: 'USD',
+      orderId: session.subscription || session.id,
+    });
   }
 
   return null;
