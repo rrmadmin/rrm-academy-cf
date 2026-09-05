@@ -1,6 +1,18 @@
 import { describe, it } from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
+import {
+  mockRequest, mockEnv, mockWaitUntil, parseResponse, drainWaitUntil, stubExternalFetch, stripeRoutes,
+} from './_helpers.js';
+
+const { onRequestPost } = await import('../functions/api/create-checkout.js');
+
+// Builds an rrm_ft cookie exactly the way BaseLayout.astro's writer does --
+// see test/ga4-source.test.js's ftCookie() for the wire-format rationale.
+function ftCookie(fields) {
+  const parts = Object.keys(fields).map((key) => key + '=' + encodeURIComponent(fields[key]));
+  return 'rrm_ft=' + parts.join('&');
+}
 
 // Union of create-checkout.js + billing/_migration-handoff.js — the migration SQL
 // and lock/clamp/validation logic was extracted to the helper module on
@@ -413,5 +425,92 @@ describe('create-checkout first-touch attribution metadata (Phase 3.1)', () => {
       source.indexOf('sessionParams.subscription_data = {') + 300
     );
     assert.match(subDataBlock, /\.\.\.ftMetadata/);
+  });
+});
+
+// EXECUTED behavioral tests: the two describe blocks above only prove the
+// source contains the right regex shapes. Neither actually runs
+// onRequestPost, so neither can catch a real leak -- ft_term is never even
+// parsed into ft_* metadata (parseFirstTouch has no 't' mapping), so the
+// static "caps every ft_* value at 500 chars" assertion above would stay
+// green even if an email-shaped utm_term somehow reached Stripe. These tests
+// run the real handler with a real (stubbed-network) Stripe client and walk
+// every metadata value the request would actually send.
+describe('create-checkout first-touch attribution metadata -- EXECUTED', () => {
+  let net;
+
+  function stubStripe(overrides = {}) {
+    return stubExternalFetch({
+      stripe: stripeRoutes({
+        '/v1/checkout/sessions': { id: 'cs_test_ft_exec', url: 'https://checkout.stripe.com/c/pay/cs_test_ft_exec' },
+        ...overrides,
+      }),
+    });
+  }
+
+  function walkNoEmailShape(form) {
+    for (const [key, value] of form.entries()) {
+      if (!key.includes('metadata')) continue;
+      assert.ok(
+        !/[\w.+-]+@[\w-]+\.[\w.-]+/.test(value),
+        `metadata value for ${key} contains an email shape: ${value}`
+      );
+    }
+  }
+
+  it('donation: an email-shaped rrm_ft.t never reaches Stripe metadata, and a clean ft_campaign does', async () => {
+    net = stubStripe();
+    try {
+      const cookie = ftCookie({ s: 'google', m: 'cpc', c: 'q3_push', t: 'jane@example.com' });
+      const request = mockRequest('POST', {
+        url: 'https://rrmacademy.org/api/create-checkout',
+        headers: { Cookie: cookie, 'CF-Connecting-IP': '203.0.113.5' },
+        body: { mode: 'payment', amount: 2500 },
+      });
+      const waitUntil = mockWaitUntil();
+      const env = mockEnv();
+      const res = await onRequestPost({ request, env, waitUntil });
+      await drainWaitUntil(waitUntil);
+      const { status, body } = await parseResponse(res);
+      assert.equal(status, 200, JSON.stringify(body));
+
+      const call = net.calls.find((c) => c.service === 'stripe');
+      assert.ok(call, 'a Stripe checkout session must be created');
+      const form = new URLSearchParams(call.body);
+
+      assert.equal(form.get('metadata[ft_campaign]'), 'q3_push');
+      assert.equal(form.get('payment_intent_data[metadata][ft_campaign]'), 'q3_push');
+      walkNoEmailShape(form);
+    } finally {
+      net.restore();
+    }
+  });
+
+  it('subscription: an email-shaped rrm_ft.t never reaches Stripe metadata, and a clean ft_campaign does', async () => {
+    net = stubStripe();
+    try {
+      const cookie = ftCookie({ s: 'google', m: 'cpc', c: 'q3_push', t: 'jane@example.com' });
+      const request = mockRequest('POST', {
+        url: 'https://rrmacademy.org/api/create-checkout',
+        headers: { Cookie: cookie, 'CF-Connecting-IP': '203.0.113.6' },
+        body: { mode: 'subscription', tier: 'member' },
+      });
+      const waitUntil = mockWaitUntil();
+      const env = mockEnv({ STRIPE_PRICE_MEMBER: 'price_test_member' });
+      const res = await onRequestPost({ request, env, waitUntil });
+      await drainWaitUntil(waitUntil);
+      const { status, body } = await parseResponse(res);
+      assert.equal(status, 200, JSON.stringify(body));
+
+      const call = net.calls.find((c) => c.service === 'stripe');
+      assert.ok(call, 'a Stripe checkout session must be created');
+      const form = new URLSearchParams(call.body);
+
+      assert.equal(form.get('metadata[ft_campaign]'), 'q3_push');
+      assert.equal(form.get('subscription_data[metadata][ft_campaign]'), 'q3_push');
+      walkNoEmailShape(form);
+    } finally {
+      net.restore();
+    }
   });
 });
