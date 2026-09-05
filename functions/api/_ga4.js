@@ -264,8 +264,11 @@ async function writeConversionLedger(env, request, eventName, params, sourcePara
     ledgerSafeText(pick('click_id'), LEDGER_LONG_CAP),
     // transaction_id: opaque Stripe identifier (pi_/sub_/cs_...), exempt
     // from the digit-run PII screen the way session_id/client_id/user_id/
-    // dedup_key already are -- length cap only.
-    ledgerText(params.transaction_id, LEDGER_SHORT_CAP),
+    // dedup_key already are -- length cap only. LEDGER_LONG_CAP, not SHORT:
+    // _webhook-checkout.js falls back to session.id (cs_test_/cs_live_, 66
+    // chars) on zero-amount and no-subscription-yet checkouts, which the
+    // short cap would silently truncate.
+    ledgerText(params.transaction_id, LEDGER_LONG_CAP),
   ).run();
 }
 
