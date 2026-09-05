@@ -41,14 +41,15 @@ One row per distinct (page family, CTA id) -- not one row per rendered page. The
 
 | CTA id | Element | Label |
 |---|---|---|
+| `course.hero.course-checkout` | a | Enroll at NeoFertility |
 | `course.hero.course-enroll` | button | Start Learning |
 | `course.hero.join-stuc-member` | a | Join Save the Uterus Club |
 | `course.hero.login` | a | Already a member? Log in |
+| `course.inline.course-checkout` | a | Enroll at NeoFertility |
 | `course.inline.course-enroll` | button | Enroll Now |
 | `course.inline.join-stuc-member` | a | Join the Club |
 | `course.inline.join-stuc-superhero` | a | Become a Super Hero |
 | `course.inline.login` | a | Log in |
-| `course.modal.waitlist` | form | Email address Notify Me |
 
 ## developers
 
