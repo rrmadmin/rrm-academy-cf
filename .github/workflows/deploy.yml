@@ -143,8 +143,14 @@ jobs:
         id: data-cache
         with:
           path: src/data
-          key: site-data-${{ steps.date.outputs.date }}
+          # Keyed per RUN, not per day. actions/cache never SAVES on an exact
+          # key hit, so a per-day key meant the 2nd and later runs of a day
+          # restored what the 1st run saved and silently reverted every
+          # glossary term applied in between. With a run-unique key every run
+          # saves, and restore-keys pulls the newest same-day entry first.
+          key: site-data-${{ steps.date.outputs.date }}-${{ github.run_id }}
           restore-keys: |
+            site-data-${{ steps.date.outputs.date }}-
             site-data-
 
       - name: Restore git-committed data files over cache
@@ -188,12 +194,28 @@ jobs:
           npm run fetch-faqs
           echo "FAQs: $(node -e "console.log(require('./src/data/faqs.json').length)")"
 
-      - name: Fetch single glossary term (dispatch)
-        if: ${{ github.event.client_payload.glossary_term_id }}
+      - name: Fetch glossary (dispatch)
+        # Two payload shapes reach this step:
+        #   glossary_term_id: 'term_<slug>'  -> RECORD_ID set  -> fetchSingle()
+        #   glossary_refetch: 'all'          -> RECORD_ID ''   -> fetchAll()
+        # fetch-glossary-data.mjs treats an empty RECORD_ID as absent
+        # (`const main = recordId ? ... : fetchAll`), so the empty string is
+        # the switch. rrm-glossary-review always dispatches the 'all' shape:
+        # one dispatch per apply sweep, never one per slug.
+        if: ${{ github.event.client_payload.glossary_term_id || github.event.client_payload.glossary_refetch == 'all' }}
         env:
           LIBRARY_BUILD_TOKEN: ${{ secrets.LIBRARY_BUILD_TOKEN }}
           RECORD_ID: ${{ github.event.client_payload.glossary_term_id }}
+          # Informational only, for the run log. Passed as an env var and never
+          # interpolated into the shell body: the payload is caller-controlled.
+          GLOSSARY_TERM_IDS: ${{ join(github.event.client_payload.glossary_term_ids, ' ') }}
         run: |
+          if [ -n "${RECORD_ID:-}" ]; then
+            echo "Glossary dispatch mode: single term ($RECORD_ID)"
+          else
+            echo "Glossary dispatch mode: full refetch"
+            echo "Glossary term ids: ${GLOSSARY_TERM_IDS:-none}"
+          fi
           npm run fetch-glossary
           echo "Glossary terms: $(node -e "console.log(require('./src/data/glossary.json').terms.length)")"
 
@@ -243,7 +265,7 @@ jobs:
           "
 
       - name: Fetch all data
-        if: ${{ !inputs.skip_fetch && !github.event.client_payload.record_id && !github.event.client_payload.article_id && !github.event.client_payload.faq_id && !github.event.client_payload.glossary_term_id && !github.event.client_payload.course_id }}
+        if: ${{ !inputs.skip_fetch && !github.event.client_payload.record_id && !github.event.client_payload.article_id && !github.event.client_payload.faq_id && !github.event.client_payload.glossary_term_id && !github.event.client_payload.course_id && !github.event.client_payload.glossary_refetch }}
         env:
           LIBRARY_BUILD_TOKEN: ${{ secrets.LIBRARY_BUILD_TOKEN }}
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
