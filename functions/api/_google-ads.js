@@ -368,6 +368,16 @@ export function sendGoogleAdsValueConversion(env, waitUntil, { clickId, conversi
       return;
     }
     if (!clickId || !GCLID_RE.test(clickId)) return;
+    // Placeholder guard (Task 9 not yet run): a conversion action id of
+    // 'PENDING_TASK_9' means the real action doesn't exist in the Ads
+    // account yet. Log a no-op instead of uploading to a nonexistent
+    // action id (which would surface as a live upload_4xx failure and fire
+    // the failure alert email for every donation/subscription purchase
+    // until Brian runs create-value-actions.py by hand).
+    if (conversionActionId === 'PENDING_TASK_9') {
+      log(env, waitUntil, 'google_ads', 'conversion_pending_task_9', 'warn', conversionActionId, 0, 0, [clickId, orderId]);
+      return;
+    }
 
     // gclid_last only ever holds a gclid (the 30-day cookie is written from the
     // gclid query param alone), so the kind is fixed here; the gbraid/wbraid
