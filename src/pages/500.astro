@@ -14,8 +14,8 @@ import BaseLayout from '../layouts/BaseLayout.astro';
         We hit an unexpected error while loading this page. It is not you, it is us, and we are looking into it.
       </p>
       <div class="server-error__actions">
-        <a class="btn btn--primary" href="/" data-track-cta="500-home">Back to homepage</a>
-        <a class="btn btn--secondary" href="javascript:location.reload()" data-track-cta="500-retry">Try again</a>
+        <a class="btn btn--primary" href="/" data-track-cta="500-home" data-cta="error.error.home">Back to homepage</a>
+        <a class="btn btn--secondary" href="javascript:location.reload()" data-track-cta="500-retry" data-cta="error.error.retry">Try again</a>
       </div>
       <nav class="server-error__links" aria-label="Helpful links">
         <ul>

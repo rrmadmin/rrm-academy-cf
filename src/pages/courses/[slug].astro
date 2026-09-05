@@ -412,7 +412,7 @@ const relatedCourses = course.relatedCourses
               ) : isAffiliate ? (
                 <div class="hero-cta-static">
                   <span class="course-hero__price">{price}</span>
-                  <a href={course.affiliateUrl} class="btn btn--primary btn--lg affiliate-cta-btn" target="_blank" rel="noopener sponsored">
+                  <a href={course.affiliateUrl} class="btn btn--primary btn--lg affiliate-cta-btn" target="_blank" rel="noopener sponsored" data-cta="course.hero.course-checkout">
                     Enroll at NeoFertility
                     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-left: 4px; vertical-align: middle;"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
                   </a>
@@ -433,14 +433,14 @@ const relatedCourses = course.relatedCourses
                   <!-- Static: members-only default (logged-out / non-member). JS swaps to enrolled or member-start when applicable. -->
                   <div class="hero-cta-static hero-cta-members" id="members-cta-join">
                     <span class="course-hero__price course-hero__price--members">Free for Members</span>
-                    <a href="/save-the-uterus-club/" class="btn btn--primary btn--lg">Join Save the Uterus Club</a>
-                    <a href={`/login/?redirect=/courses/${course.slug}/`} class="course-login-link">Already a member? Log in</a>
+                    <a href="/save-the-uterus-club/" class="btn btn--primary btn--lg" data-cta="course.hero.join-stuc-member">Join Save the Uterus Club</a>
+                    <a href={`/login/?redirect=/courses/${course.slug}/`} class="course-login-link" data-cta="course.hero.login">Already a member? Log in</a>
                     <p class="members-hero__note">Included with any Save the Uterus Club tier, from $9/mo. Cancel anytime.</p>
                   </div>
                   <!-- Active member, not yet enrolled: hidden until JS confirms membership -->
                   <div class="hero-cta-static hero-cta-members" id="members-cta-start" hidden>
                     <span class="members-tier-badge" id="members-tier-badge">Included with your membership</span>
-                    <button class="btn btn--primary btn--lg enroll-btn" data-course-id={course.id} data-free="true">Start Learning</button>
+                    <button class="btn btn--primary btn--lg enroll-btn" data-course-id={course.id} data-free="true" data-cta="course.hero.course-enroll">Start Learning</button>
                   </div>
                   <!-- Active member, already enrolled: standard continue UI -->
                   <div class="hero-cta-enrolled" hidden>
@@ -464,10 +464,10 @@ const relatedCourses = course.relatedCourses
                     ) : (
                       <span class="course-hero__price">{price}</span>
                     )}
-                    <button class="btn btn--primary btn--lg enroll-btn" data-course-id={course.id} data-free={String(course.isFree)}>
+                    <button class="btn btn--primary btn--lg enroll-btn" data-course-id={course.id} data-free={String(course.isFree)} data-cta="course.hero.course-enroll">
                       {course.isFree ? 'Start Learning' : 'Enroll Now'}
                     </button>
-                    <a href={`/login/?redirect=/courses/${course.slug}/`} class="course-login-link">Log in</a>
+                    <a href={`/login/?redirect=/courses/${course.slug}/`} class="course-login-link" data-cta="course.hero.login">Log in</a>
                   </div>
                   <!-- Dynamic: replaced by JS when enrollment status is known -->
                   <div class="hero-cta-enrolled" hidden>
@@ -669,20 +669,20 @@ const relatedCourses = course.relatedCourses
         ) : isAffiliate ? (
           <>
             <p class="section-sub">Enrollment and payment handled by NeoFertility.</p>
-            <a href={course.affiliateUrl} class="btn btn--primary btn--lg affiliate-cta-btn" target="_blank" rel="noopener sponsored">
+            <a href={course.affiliateUrl} class="btn btn--primary btn--lg affiliate-cta-btn" target="_blank" rel="noopener sponsored" data-cta="course.inline.course-checkout">
               Enroll at NeoFertility
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-left: 4px; vertical-align: middle;"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
             </a>
           </>
         ) : isMembers ? (
           <>
-            <p class="section-sub">This course is included with any Save the Uterus Club tier ($9, $19, or $99/month). Members already? <a href={`/login/?redirect=/courses/${course.slug}/`}>Log in</a>.</p>
-            <a href="/save-the-uterus-club/" class="btn btn--primary btn--lg">Join the Club</a>
+            <p class="section-sub">This course is included with any Save the Uterus Club tier ($9, $19, or $99/month). Members already? <a href={`/login/?redirect=/courses/${course.slug}/`} data-cta="course.inline.login">Log in</a>.</p>
+            <a href="/save-the-uterus-club/" class="btn btn--primary btn--lg" data-cta="course.inline.join-stuc-member">Join the Club</a>
           </>
         ) : (
           <>
             <p class="section-sub">{course.isFree ? 'This course is completely free.' : `One-time payment of ${price}. Lifetime access.`}</p>
-            <button class="btn btn--primary btn--lg enroll-btn" data-course-id={course.id} data-free={String(course.isFree)}>
+            <button class="btn btn--primary btn--lg enroll-btn" data-course-id={course.id} data-free={String(course.isFree)} data-cta="course.inline.course-enroll">
               {course.isFree ? 'Start Learning' : 'Enroll Now'}
             </button>
           </>
@@ -702,7 +702,7 @@ const relatedCourses = course.relatedCourses
           <div class="waitlist-modal__body" id="waitlist-modal-body">
             <h2 id="waitlist-modal-title" class="waitlist-modal__title">Join the Waitlist</h2>
             <p class="waitlist-modal__sub">Enrollment for the current cohort is closed. Drop your email and we'll notify you when the <strong>{nextCohortLabel}</strong> cohort opens.</p>
-            <form class="waitlist-form" id="waitlist-modal-form" data-waitlist-form data-course-id={course.id}>
+            <form class="waitlist-form" id="waitlist-modal-form" data-waitlist-form data-course-id={course.id} data-cta="course.modal.waitlist">
               <label for="waitlist-modal-email" class="visually-hidden">Email address</label>
               <input id="waitlist-modal-email" type="email" name="email" class="waitlist-input" placeholder="Your email address" required autocomplete="email" />
               <input type="text" name="website" tabindex="-1" autocomplete="off" style="position:absolute;left:-9999px" aria-hidden="true" />

@@ -493,6 +493,9 @@ jobs:
           PUBLIC_SHELL_ROUTES: ${{ vars.PUBLIC_SHELL_ROUTES || '' }}
         run: npm run build
 
+      - name: CTA map (dist, enforcing)
+        run: node scripts/check-cta-map.mjs --mode=dist --check
+
       - name: Verify generated data files
         # Post-build floor check on data files generated during npm run build
         # (not in the pre-build Verify step because they don't exist yet there).

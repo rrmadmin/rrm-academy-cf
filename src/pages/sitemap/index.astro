@@ -61,11 +61,11 @@ const coreLinks = [
   { title: 'Home', href: '/' },
   { title: 'About', href: '/about/' },
   { title: 'Contact', href: '/contact/' },
-  { title: 'Donate', href: '/donate/' },
+  { title: 'Donate', href: '/donate/', cta: 'misc.card.donate' },
   { title: 'Press & Media Kit', href: '/press/' },
   { title: 'Find a Doctor or Teacher', href: '/providers/' },
   { title: 'Educational Partners', href: '/partners/' },
-  { title: 'Save the Uterus Club', href: '/save-the-uterus-club/' },
+  { title: 'Save the Uterus Club', href: '/save-the-uterus-club/', cta: 'misc.card.join-stuc-member' },
   { title: 'Original Research', href: '/original-research/' },
   { title: 'Endometriosis Self-Survey', href: '/endo-survey/' },
   { title: 'IVF Success Calculator', href: '/ivf-success-calculator/' },
@@ -135,7 +135,7 @@ const jsonLd = {
         <h2 id="sm-sections">Sections</h2>
         <ul class="sitemap-list sitemap-list--wrap">
           {hubLinks.map((l) => (
-            <li><a href={l.href}>{l.title}</a></li>
+            <li><a href={l.href} data-cta={('cta' in l ? l.cta : undefined)}>{l.title}</a></li>
           ))}
         </ul>
       </section>
@@ -144,7 +144,7 @@ const jsonLd = {
         <h2 id="sm-guides">Guides &amp; Pillars</h2>
         <ul class="sitemap-list">
           {guides.map((l) => (
-            <li><a href={l.href}>{l.title}</a></li>
+            <li><a href={l.href} data-cta={('cta' in l ? l.cta : undefined)}>{l.title}</a></li>
           ))}
         </ul>
       </section>
@@ -167,7 +167,7 @@ const jsonLd = {
         <h2 id="sm-courses">Courses</h2>
         <ul class="sitemap-list">
           {courses.map((l) => (
-            <li><a href={l.href}>{l.title}</a></li>
+            <li><a href={l.href} data-cta={('cta' in l ? l.cta : undefined)}>{l.title}</a></li>
           ))}
         </ul>
       </section>
@@ -176,7 +176,7 @@ const jsonLd = {
         <h2 id="sm-commentary">Commentary</h2>
         <ul class="sitemap-list">
           {posts.map((l) => (
-            <li><a href={l.href}>{l.title}</a></li>
+            <li><a href={l.href} data-cta={('cta' in l ? l.cta : undefined)}>{l.title}</a></li>
           ))}
         </ul>
       </section>
@@ -185,7 +185,7 @@ const jsonLd = {
         <h2 id="sm-faqs">FAQs</h2>
         <ul class="sitemap-list">
           {faqs.map((l) => (
-            <li><a href={l.href}>{l.title}</a></li>
+            <li><a href={l.href} data-cta={('cta' in l ? l.cta : undefined)}>{l.title}</a></li>
           ))}
         </ul>
       </section>
@@ -194,7 +194,7 @@ const jsonLd = {
         <h2 id="sm-glossary">Glossary ({glossaryTerms.length} terms)</h2>
         <ul class="sitemap-list">
           {glossaryTerms.map((l) => (
-            <li><a href={l.href}>{l.title}</a></li>
+            <li><a href={l.href} data-cta={('cta' in l ? l.cta : undefined)}>{l.title}</a></li>
           ))}
         </ul>
       </section>
@@ -203,7 +203,7 @@ const jsonLd = {
         <h2 id="sm-core">Core Pages</h2>
         <ul class="sitemap-list sitemap-list--wrap">
           {coreLinks.map((l) => (
-            <li><a href={l.href}>{l.title}</a></li>
+            <li><a href={l.href} data-cta={('cta' in l ? l.cta : undefined)}>{l.title}</a></li>
           ))}
         </ul>
       </section>

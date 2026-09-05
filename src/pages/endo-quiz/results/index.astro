@@ -26,14 +26,14 @@ const PAGE_URL = 'https://rrmacademy.org/endo-quiz/results/';
           <div class="rz-why"><p id="result-interp"></p></div>
 
           <div class="rz-pdf">
-            <button type="button" id="rz-pdf-download" class="btn btn--secondary btn--lg">Download PDF summary</button>
+            <button type="button" id="rz-pdf-download" class="btn btn--secondary btn--lg" data-cta="endo-quiz-results.card.quiz-pdf">Download PDF summary</button>
             <p id="rz-pdf-msg" class="gate-msg" role="status" aria-live="polite"></p>
           </div>
 
           <section class="ec-gate card" id="ec-gate" aria-labelledby="ec-gate-title">
             <h2 id="ec-gate-title">Get a copy of your results by email</h2>
             <p>We will send your results summary to your inbox along with links to learn more.</p>
-            <form id="ec-email-form" novalidate>
+            <form id="ec-email-form" novalidate data-cta="endo-quiz-results.modal.quiz-email">
               <div class="form-group">
                 <label for="ec-email" class="form-label">Email address</label>
                 <input type="email" id="ec-email" name="email" class="form-input" placeholder="you@example.com" autocomplete="email" required />

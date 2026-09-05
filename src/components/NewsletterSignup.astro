@@ -14,6 +14,10 @@ interface Props {
   compact?: boolean;
   /** Optional explicit input id. Auto-generated if omitted. */
   inputId?: string;
+  /** data-cta id for the form. Defaults to the Footer placement -- the only
+      call site today (grep confirmed 2026-09-05). Pass an explicit value
+      from any future non-footer call site. */
+  ctaId?: string;
 }
 
 const {
@@ -21,6 +25,7 @@ const {
   subtext = 'Get new research commentary and course updates delivered to your inbox.',
   compact = false,
   inputId,
+  ctaId = 'footer.inline.newsletter',
 } = Astro.props;
 
 const uniqueInputId = inputId ?? `newsletter-email-${crypto.randomUUID().slice(0, 8)}`;
@@ -32,7 +37,7 @@ const uniqueNameId = `newsletter-name-${crypto.randomUUID().slice(0, 8)}`;
   {!compact && subtext && <p class="newsletter-subtext">{subtext}</p>}
   {compact && <p class="newsletter-label">{heading}</p>}
 
-  <form class="newsletter-form" data-newsletter-form>
+  <form class="newsletter-form" data-newsletter-form data-cta={ctaId}>
     {/* First name is required so the list can be addressed by name. Before
         2026-08-25 this form collected email only, and newsletter_subscriber.name
         went unwritten on every website signup, which is how 3,266 active
