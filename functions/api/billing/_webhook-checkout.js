@@ -26,7 +26,7 @@ import { countCampaignGifts } from './_campaign-count.js';
 import { sendTracked } from '../newsletter/_mail.js';
 import { greetingLine } from '../_greeting.js';
 import { isJoinDenied, maskEmailForLog } from './_join-denylist.js';
-import { sendGoogleAdsValueConversion, STUC_PURCHASE_CONVERSION_ACTION_ID, DONATION_CONVERSION_ACTION_ID } from '../_google-ads.js';
+import { sendGoogleAdsValueConversion, resolveValueActionIds } from '../_google-ads.js';
 
 // Monthly tier price fallback, used only when session.amount_total is 0 or missing
 // (Stripe has not billed the first invoice yet). Mirrors stucTierCentsFallback in the
@@ -145,6 +145,7 @@ async function resolveGreetingName(db, email, session, env, waitUntil) {
  */
 export async function handleCheckoutCompleted(db, event, env, request, waitUntil) {
   const session = event.data.object;
+  const adsValueActionIds = resolveValueActionIds(env);
 
   // Warn when logged-in user edited their email at checkout — account link uses
   // client_reference_id (pre-checkout identity) but confirmation email goes to
@@ -958,7 +959,7 @@ Manually set migration_status='stripe_active' and stripe_subscription_id to the 
     // gclid_last is absent (an organic/no-ad donor).
     sendGoogleAdsValueConversion(env, waitUntil, {
       clickId: session.metadata?.gclid_last,
-      conversionActionId: DONATION_CONVERSION_ACTION_ID,
+      conversionActionId: adsValueActionIds.donation,
       conversionValue: (session.amount_total || 0) / 100,
       currency: 'USD',
       orderId: session.payment_intent || session.id,
@@ -988,7 +989,7 @@ Manually set migration_status='stripe_active' and stripe_subscription_id to the 
     }, gaOverrides).catch(() => {}));
     sendGoogleAdsValueConversion(env, waitUntil, {
       clickId: session.metadata?.gclid_last,
-      conversionActionId: STUC_PURCHASE_CONVERSION_ACTION_ID,
+      conversionActionId: adsValueActionIds.stuc,
       conversionValue: (session.amount_total || stucTierCentsFallback[tier] || 0) / 100,
       currency: 'USD',
       orderId: session.subscription || session.id,
