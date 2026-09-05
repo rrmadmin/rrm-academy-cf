@@ -49,6 +49,12 @@
   },
   {
     "pageFamily": "course",
+    "ctaId": "course.hero.course-checkout",
+    "elementType": "a",
+    "label": "Enroll at NeoFertility"
+  },
+  {
+    "pageFamily": "course",
     "ctaId": "course.hero.course-enroll",
     "elementType": "button",
     "label": "Start Learning"
@@ -64,6 +70,12 @@
     "ctaId": "course.hero.login",
     "elementType": "a",
     "label": "Already a member? Log in"
+  },
+  {
+    "pageFamily": "course",
+    "ctaId": "course.inline.course-checkout",
+    "elementType": "a",
+    "label": "Enroll at NeoFertility"
   },
   {
     "pageFamily": "course",
@@ -88,12 +100,6 @@
     "ctaId": "course.inline.login",
     "elementType": "a",
     "label": "Log in"
-  },
-  {
-    "pageFamily": "course",
-    "ctaId": "course.modal.waitlist",
-    "elementType": "form",
-    "label": "Email address Notify Me"
   },
   {
     "pageFamily": "developers",
