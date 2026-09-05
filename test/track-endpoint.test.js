@@ -330,6 +330,23 @@ describe('POST /api/track -- PII and reserved param stripping', () => {
     } finally { restore(); }
   });
 
+  it('strips a client-sent transaction_id before it reaches GA4', async () => {
+    const { restore, state } = makeFetchStub();
+    try {
+      const ctx = makeContext({
+        body: {
+          event: 'cta_click',
+          params: { id: 'donate', page: '/', transaction_id: 'pi_client_spoofed' },
+        },
+      });
+      const res = await onRequestPost(ctx);
+      assert.equal(res.status, 204, 'reserved keys should be dropped silently, not cause rejection');
+      await Promise.all(ctx.waitUntil.promises);
+      const sent = state.bodies[0]?.events?.[0]?.params || {};
+      assert.equal('transaction_id' in sent, false, 'transaction_id is server-supplied only; a client value must be stripped');
+    } finally { restore(); }
+  });
+
   it('does not reject when params become empty after PII strip if required params survive', async () => {
     const { restore } = makeFetchStub();
     try {

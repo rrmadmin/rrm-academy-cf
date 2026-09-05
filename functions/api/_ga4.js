@@ -12,6 +12,7 @@
 
 import { buildSourceParams, getClientId, parseCookie } from './_ga4-source.js';
 import { PII_VALUE_REGEX } from './_track-events.js';
+import { log } from './_log.js';
 import { getSessionIdFromCookie, validateSession } from './auth/_shared.js';
 
 const GA4_ENDPOINT = 'https://www.google-analytics.com/mp/collect';
@@ -264,10 +265,14 @@ async function writeConversionLedger(env, request, eventName, params, sourcePara
     ledgerSafeText(pick('click_id'), LEDGER_LONG_CAP),
     // transaction_id: opaque Stripe identifier (pi_/sub_/cs_...), exempt
     // from the digit-run PII screen the way session_id/client_id/user_id/
-    // dedup_key already are -- length cap only. LEDGER_LONG_CAP, not SHORT:
-    // _webhook-checkout.js falls back to session.id (cs_test_/cs_live_, 66
-    // chars) on zero-amount and no-subscription-yet checkouts, which the
-    // short cap would silently truncate.
+    // dedup_key already are -- length cap only. That exemption is safe
+    // because transaction_id is in _track-events.js's RESERVED_PARAMS: any
+    // value a client POSTs to /api/track under that key is stripped before
+    // it reaches here, so only server-supplied Stripe identifiers ever
+    // arrive. LEDGER_LONG_CAP, not SHORT: _webhook-checkout.js falls back
+    // to session.id (cs_test_/cs_live_, 66 chars) on zero-amount and
+    // no-subscription-yet checkouts, which the short cap would silently
+    // truncate.
     ledgerText(params.transaction_id, LEDGER_LONG_CAP),
   ).run();
 }
@@ -373,6 +378,11 @@ export async function sendGA4Event(env, request, eventName, params = {}, overrid
         // Name only. Row values and sourceParams carry per-person attribution
         // and must never reach a log line.
         console.warn('GA4 ledger write failed', eventName, err?.name || 'Error');
+        // Also surface to Analytics Engine / the morning digest -- a
+        // migration-ordering mistake ("no such column") would otherwise
+        // silently black out the whole ledger with only a console.warn
+        // nobody is watching.
+        log(env, null, 'ga4', 'ledger_write_failed', 'error', `${err?.name || 'Error'}: ${(err?.message || '').slice(0, 80)}`, 0, 0);
       }
     };
 
