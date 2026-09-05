@@ -421,6 +421,17 @@ describe('buildSourceParams paid override', () => {
   });
 });
 
+// Builds an rrm_ft cookie exactly the way BaseLayout.astro's writer does:
+// each field value individually encodeURIComponent-ed, joined with a raw
+// (unencoded) '&', and the whole thing assigned as the cookie value with
+// NO outer encode. This is the actual wire format parseFirstTouch parses --
+// never wrap the joined body in an outer encodeURIComponent here, that
+// models a cookie shape the writer never produces.
+function ftCookie(fields) {
+  const parts = Object.keys(fields).map((key) => key + '=' + encodeURIComponent(fields[key]));
+  return 'rrm_ft=' + parts.join('&');
+}
+
 describe('parseFirstTouch', () => {
   it('returns null when the cookie is absent', () => {
     assert.equal(parseFirstTouch(''), null);
@@ -428,7 +439,7 @@ describe('parseFirstTouch', () => {
   });
 
   it('parses every field and derives ft_at as ISO from d', () => {
-    const cookie = 'rrm_ft=' + encodeURIComponent('s=google&m=cpc&c=q3_push&k=ad1&l=%2Fendo-quiz%2F&g=gEAIaIQtest&d=1757030400');
+    const cookie = ftCookie({ s: 'google', m: 'cpc', c: 'q3_push', k: 'ad1', l: '/endo-quiz/', g: 'gEAIaIQtest', d: '1757030400' });
     const result = parseFirstTouch(cookie);
     assert.equal(result.ft_source, 'google');
     assert.equal(result.ft_medium, 'cpc');
@@ -440,40 +451,53 @@ describe('parseFirstTouch', () => {
   });
 
   it('strips the kind marker prefix from click_id, leaving only the value', () => {
-    const cookie = 'rrm_ft=' + encodeURIComponent('g=bBRAID_VALUE_HERE');
+    const cookie = ftCookie({ g: 'bBRAID_VALUE_HERE' });
     assert.equal(parseFirstTouch(cookie).click_id, 'BRAID_VALUE_HERE');
   });
 
   it('screens an email-shaped field to absent rather than passing it through', () => {
-    const cookie = 'rrm_ft=' + encodeURIComponent('s=google&k=someone%40example.com');
+    const cookie = ftCookie({ s: 'google', k: 'someone@example.com' });
     const result = parseFirstTouch(cookie);
     assert.equal(result.ft_source, 'google');
     assert.equal('ft_content' in result, false);
   });
 
   it('screens a bare 13-19 digit run field to absent', () => {
-    const cookie = 'rrm_ft=' + encodeURIComponent('s=google&c=1234567890123456');
+    const cookie = ftCookie({ s: 'google', c: '1234567890123456' });
     const result = parseFirstTouch(cookie);
     assert.equal('ft_campaign' in result, false);
     assert.equal(result.ft_source, 'google');
   });
 
   it('returns null when every field was screened out', () => {
-    const cookie = 'rrm_ft=' + encodeURIComponent('k=someone%40example.com');
+    const cookie = ftCookie({ k: 'someone@example.com' });
     assert.equal(parseFirstTouch(cookie), null);
   });
 
   it('caps a field at 100 chars', () => {
     const long = 'a'.repeat(150);
-    const cookie = 'rrm_ft=' + encodeURIComponent(`s=${long}`);
+    const cookie = ftCookie({ s: long });
     assert.equal(parseFirstTouch(cookie).ft_source.length, 100);
   });
 
   it('an unparseable d leaves ft_at unset without discarding the rest', () => {
-    const cookie = 'rrm_ft=' + encodeURIComponent('s=google&d=not-a-number');
+    const cookie = ftCookie({ s: 'google', d: 'not-a-number' });
     const result = parseFirstTouch(cookie);
     assert.equal(result.ft_source, 'google');
     assert.equal('ft_at' in result, false);
+  });
+
+  it('a literal % in utm_campaign round-trips intact (single decode, not double)', () => {
+    const cookie = ftCookie({ c: '50%off' });
+    assert.equal(parseFirstTouch(cookie).ft_campaign, '50%off');
+  });
+
+  it('a field whose encoded form contains %26 (an & inside a value) survives the split', () => {
+    const cookie = ftCookie({ s: 'google', k: 'a&b', d: '1757030400' });
+    const result = parseFirstTouch(cookie);
+    assert.equal(result.ft_content, 'a&b');
+    assert.equal(result.ft_source, 'google', 'the field after the embedded & is unaffected');
+    assert.equal(result.ft_at, new Date(1757030400 * 1000).toISOString(), 'the field after the embedded & is unaffected');
   });
 });
 
@@ -488,7 +512,7 @@ describe('buildSourceParams spreads first-touch attribution', () => {
   it('carries ft_* alongside last-touch utm_* without overwriting either', async () => {
     const req = fakeRequest({
       'Cookie': 'entry_url=' + encodeURIComponent('https://rrmacademy.org/?utm_source=organic_google&utm_campaign=today') +
-        '; rrm_ft=' + encodeURIComponent('s=google&m=cpc&c=q3_push&d=1757030400'),
+        '; ' + ftCookie({ s: 'google', m: 'cpc', c: 'q3_push', d: '1757030400' }),
     });
     const params = await buildSourceParams(req, 'test-client-id');
     assert.equal(params.utm_source, 'organic_google', 'last-touch utm_source is untouched');

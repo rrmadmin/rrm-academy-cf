@@ -62,6 +62,9 @@
 import { log } from './_log.js';
 import { sendEmail } from './_ses.js';
 import { checkRateLimit } from './auth/_shared.js';
+// GCLID_RE is staged for a value-upload entry point landing in a later task
+// (first-touch click_id validation before Google Ads conversion upload) --
+// unused here today, do not delete as dead code.
 import { parseGclidCookie, GCLID_RE } from './_ga4-source.js';
 
 const GOOGLE_ADS_CUSTOMER_ID = '4262268858';

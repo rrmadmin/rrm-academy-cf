@@ -213,13 +213,28 @@ export function parseCookie(cookieHeader, name) {
  *
  * Returns null when the cookie is absent or empty, so `buildSourceParams`
  * can spread the result unconditionally with `...(parsed || {})`.
+ *
+ * Deliberately does NOT go through `parseCookie`: the writer applies
+ * `encodeURIComponent` per FIELD (never to the joined body), so the raw
+ * `Cookie:` header carries exactly one encoding layer, with true `&`/`=`
+ * field/pair delimiters left unencoded and any `&`/`=`/`%` INSIDE a value
+ * escaped away by that per-field encode. `parseCookie`'s single
+ * `decodeURIComponent` over the whole matched value would decode those
+ * escaped delimiters too, before the split ever runs -- collapsing a value
+ * containing `%26` (an encoded `&`) into an extra, bogus field boundary, and
+ * throwing on a value containing a literal `%` (e.g. `50%off`, written as
+ * `50%25off`) once that value had already been decoded once. Splitting the
+ * still-encoded raw body first, then decoding each field's value exactly
+ * once, is the only order that reverses the writer's encoding correctly.
  */
 const FIRST_TOUCH_STRING_MAX = 100;
 const FIRST_TOUCH_CLICK_ID_MAX = 512;
 
 export function parseFirstTouch(cookieHeader) {
-  const raw = parseCookie(cookieHeader, 'rrm_ft');
-  if (!raw) return null;
+  if (!cookieHeader) return null;
+  const match = cookieHeader.match(/(?:^|;\s*)rrm_ft=([^;]*)/);
+  if (!match || !match[1]) return null;
+  const raw = match[1];
 
   const fields = {};
   for (const part of raw.split('&')) {
