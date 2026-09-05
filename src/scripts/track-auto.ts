@@ -110,7 +110,7 @@ if (typeof window !== 'undefined' && typeof document !== 'undefined') {
         const id = newId || (legacyId ? LEGACY_CTA_RENAME_MAP[legacyId] : null);
         if (!id) return;
 
-        const [page, zone, intent] = id.includes('.') ? id.split('.') : [];
+        const [, zone, intent] = id.includes('.') ? id.split('.') : [];
 
         track('cta_click', {
           id,

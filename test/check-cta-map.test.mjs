@@ -7,6 +7,7 @@
  */
 import { describe, it } from 'node:test';
 import assert from 'node:assert/strict';
+import { readFileSync } from 'node:fs';
 import {
   checkLiteralCtaValidity,
   checkComponentDuplicates,
@@ -15,6 +16,7 @@ import {
   extractCtaOccurrences,
   isChromeCta,
   cmpCodepoint,
+  compareDigestKeys,
 } from '../scripts/lib/cta-map-rules.mjs';
 
 describe('source mode -- literal validity', () => {
@@ -390,5 +392,51 @@ describe('dist mode -- rule 2b handler tracing, additional shapes (finding #2)',
     const v = findDistModeViolations('/endo-survey/', html, new Set());
     assert.equal(v.length, 1);
     assert.match(v[0].label, /also-donate-btn/);
+  });
+});
+
+describe('compareDigestKeys (C1: coverage floor, not byte equality)', () => {
+  const baseRow = { pageFamily: 'donate', ctaId: 'donate.hero.donate', elementType: 'a', label: 'Give' };
+  const otherRow = { pageFamily: 'account', ctaId: 'account.card.manage-billing', elementType: 'button', label: 'Manage Billing' };
+
+  it('an identical fresh digest has no missing and no extra keys', () => {
+    const { missing, extra } = compareDigestKeys([baseRow], [baseRow]);
+    assert.deepEqual(missing, []);
+    assert.deepEqual(extra, []);
+  });
+
+  it('a fresh digest with one extra row (e.g. a closed-cohort modal that only renders sometimes) passes with a warning, not a failure', () => {
+    const { missing, extra } = compareDigestKeys([baseRow], [baseRow, otherRow]);
+    assert.deepEqual(missing, [], 'an extra key must never fail the coverage floor');
+    assert.deepEqual(extra, ['account account.card.manage-billing']);
+  });
+
+  it('a fresh digest missing a committed row fails, naming it', () => {
+    const { missing, extra } = compareDigestKeys([baseRow, otherRow], [baseRow]);
+    assert.deepEqual(missing, ['account account.card.manage-billing']);
+    assert.deepEqual(extra, []);
+  });
+
+  it('a label/elementType change on an existing key is neither missing nor extra -- label text is copy, not coverage', () => {
+    const relabeled = { ...baseRow, label: 'Give Now', elementType: 'button' };
+    const { missing, extra } = compareDigestKeys([baseRow], [relabeled]);
+    assert.deepEqual(missing, []);
+    assert.deepEqual(extra, []);
+  });
+
+  it('an empty committed digest (first run) reports every fresh row as extra, never missing', () => {
+    const { missing, extra } = compareDigestKeys([], [baseRow, otherRow]);
+    assert.deepEqual(missing, []);
+    assert.equal(extra.length, 2);
+  });
+});
+
+describe('committed docs/cta-map.json shape (C1: no pageCount)', () => {
+  it('carries no pageCount field on any row', () => {
+    const rows = JSON.parse(readFileSync(new URL('../docs/cta-map.json', import.meta.url), 'utf8'));
+    assert.ok(rows.length > 0, 'the committed digest must not be empty');
+    for (const row of rows) {
+      assert.equal(Object.hasOwn(row, 'pageCount'), false, `row ${row.pageFamily} ${row.ctaId} must not carry pageCount`);
+    }
   });
 });

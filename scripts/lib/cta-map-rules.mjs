@@ -223,7 +223,9 @@ function idHandlerContainsLiteral(script, id, literalPositions) {
   const declRe = new RegExp(`(?:var|let|const)\\s+(\\w+)\\s*=\\s*document\\s*\\.\\s*(?:getElementById\\(['"]${idEsc}['"]\\)|querySelector\\(['"]#${idEsc}['"]\\))`);
   const declMatch = script.match(declRe);
   const selfPatterns = [...directPatterns];
-  if (declMatch) selfPatterns.push(escapeRegExp(declMatch[1]));
+  // \b-anchored: a bare variable name must not match as a substring of a
+  // longer identifier (e.g. `giveBtn` inside `giveBtnFoo.addEventListener`).
+  if (declMatch) selfPatterns.push(`\\b${escapeRegExp(declMatch[1])}\\b`);
   const starts = handlerStartsForSelves(script, selfPatterns);
   return starts.some((start) => withinWindowOfAnyLiteral(script, literalPositions, [start]));
 }
@@ -248,7 +250,7 @@ function selectorHandlerContainsLiteral(script, selectorPrefixSrc, literalPositi
   const declRe = new RegExp(`(?:var|let|const)\\s+(\\w+)\\s*=\\s*${queryCallSrc}`);
   const declMatch = script.match(declRe);
   const starts = [];
-  if (declMatch) starts.push(...handlerStartsForSelves(script, [escapeRegExp(declMatch[1])]));
+  if (declMatch) starts.push(...handlerStartsForSelves(script, [`\\b${escapeRegExp(declMatch[1])}\\b`]));
 
   const queryRe = new RegExp(queryCallSrc, 'g');
   let m;
@@ -462,4 +464,28 @@ export function isChromeCta(ctaId) {
 // three-way result on every engine, every locale, forever.
 export function cmpCodepoint(a, b) {
   return a < b ? -1 : a > b ? 1 : 0;
+}
+
+/** The digest's identity key for one row: (pageFamily, ctaId), never label/elementType/counts. */
+export function digestRowKey(row) {
+  return `${row.pageFamily} ${row.ctaId}`;
+}
+
+/**
+ * The `--check` coverage floor: every (pageFamily, ctaId) key present in
+ * `committedRows` must still exist in `freshRows`, or the gate must fail
+ * naming what is missing (a template dropped a CTA). A key present in
+ * `freshRows` but absent from `committedRows` is not a failure -- content
+ * state can reveal a template CTA that was never rendered before (a course
+ * whose closed-cohort waitlist modal only renders once a cohort actually
+ * closes) -- it is reported separately so the caller can WARN and exit 0.
+ * Deliberately does not compare `label`/`elementType`: those are copy and
+ * change legitimately without indicating a coverage regression.
+ */
+export function compareDigestKeys(committedRows, freshRows) {
+  const committedKeys = new Set(committedRows.map(digestRowKey));
+  const freshKeys = new Set(freshRows.map(digestRowKey));
+  const missing = [...committedKeys].filter((k) => !freshKeys.has(k)).sort(cmpCodepoint);
+  const extra = [...freshKeys].filter((k) => !committedKeys.has(k)).sort(cmpCodepoint);
+  return { missing, extra };
 }

@@ -3,406 +3,348 @@
     "pageFamily": "about",
     "ctaId": "about.card.join-stuc-member",
     "elementType": "a",
-    "label": "Join the Save the Uterus Club",
-    "pageCount": 1
+    "label": "Join the Save the Uterus Club"
   },
   {
     "pageFamily": "account",
     "ctaId": "account.card.contact",
     "elementType": "a",
-    "label": "support@rrmacademy.org",
-    "pageCount": 1
+    "label": "support@rrmacademy.org"
   },
   {
     "pageFamily": "account",
     "ctaId": "account.card.join-stuc-member",
     "elementType": "a",
-    "label": "Join the Save the Uterus Club",
-    "pageCount": 1
+    "label": "Join the Save the Uterus Club"
   },
   {
     "pageFamily": "account",
     "ctaId": "account.card.manage-billing",
     "elementType": "button",
-    "label": "Manage Billing",
-    "pageCount": 1
+    "label": "Manage Billing"
   },
   {
     "pageFamily": "community",
     "ctaId": "community.card.join-stuc-member",
     "elementType": "a",
-    "label": "Join the Club",
-    "pageCount": 4
+    "label": "Join the Club"
   },
   {
     "pageFamily": "community",
     "ctaId": "community.hero.join-stuc-member",
     "elementType": "a",
-    "label": "Join the Save the Uterus Club",
-    "pageCount": 2
+    "label": "Join the Save the Uterus Club"
   },
   {
     "pageFamily": "contact",
     "ctaId": "contact.card.contact",
     "elementType": "a",
-    "label": "contact@rrmacademy.org",
-    "pageCount": 1
+    "label": "contact@rrmacademy.org"
   },
   {
     "pageFamily": "course",
     "ctaId": "course.hero.course-enroll",
     "elementType": "button",
-    "label": "Start Learning",
-    "pageCount": 12
+    "label": "Start Learning"
   },
   {
     "pageFamily": "course",
     "ctaId": "course.hero.join-stuc-member",
     "elementType": "a",
-    "label": "Join Save the Uterus Club",
-    "pageCount": 8
+    "label": "Join Save the Uterus Club"
   },
   {
     "pageFamily": "course",
     "ctaId": "course.hero.login",
     "elementType": "a",
-    "label": "Already a member? Log in",
-    "pageCount": 12
+    "label": "Already a member? Log in"
   },
   {
     "pageFamily": "course",
     "ctaId": "course.inline.course-enroll",
     "elementType": "button",
-    "label": "Enroll Now",
-    "pageCount": 4
+    "label": "Enroll Now"
   },
   {
     "pageFamily": "course",
     "ctaId": "course.inline.join-stuc-member",
     "elementType": "a",
-    "label": "Join the Club",
-    "pageCount": 8
+    "label": "Join the Club"
   },
   {
     "pageFamily": "course",
     "ctaId": "course.inline.join-stuc-superhero",
     "elementType": "a",
-    "label": "Become a Super Hero",
-    "pageCount": 1
+    "label": "Become a Super Hero"
   },
   {
     "pageFamily": "course",
     "ctaId": "course.inline.login",
     "elementType": "a",
-    "label": "Log in",
-    "pageCount": 8
+    "label": "Log in"
   },
   {
     "pageFamily": "course",
     "ctaId": "course.modal.waitlist",
     "elementType": "form",
-    "label": "Email address Notify Me",
-    "pageCount": 1
+    "label": "Email address Notify Me"
   },
   {
     "pageFamily": "developers",
     "ctaId": "developers.card.contact",
     "elementType": "a",
-    "label": "info@rrmacademy.org",
-    "pageCount": 5
+    "label": "info@rrmacademy.org"
   },
   {
     "pageFamily": "developers",
     "ctaId": "developers.inline.contact",
     "elementType": "a",
-    "label": "info@rrmacademy.org",
-    "pageCount": 1
+    "label": "info@rrmacademy.org"
   },
   {
     "pageFamily": "donate",
     "ctaId": "donate.hero.donate",
     "elementType": "button",
-    "label": "Give $25",
-    "pageCount": 1
+    "label": "Give $25"
   },
   {
     "pageFamily": "donate",
     "ctaId": "donate.inline.join-stuc-member",
     "elementType": "a",
-    "label": "Learn more about membership benefits",
-    "pageCount": 1
+    "label": "Learn more about membership benefits"
   },
   {
     "pageFamily": "donate",
     "ctaId": "donate.tiers.join-stuc-hero",
     "elementType": "button",
-    "label": "Become a Hero",
-    "pageCount": 1
+    "label": "Become a Hero"
   },
   {
     "pageFamily": "donate",
     "ctaId": "donate.tiers.join-stuc-member",
     "elementType": "button",
-    "label": "Become a Member",
-    "pageCount": 1
+    "label": "Become a Member"
   },
   {
     "pageFamily": "donate",
     "ctaId": "donate.tiers.join-stuc-superhero",
     "elementType": "button",
-    "label": "Become a Super Hero",
-    "pageCount": 1
+    "label": "Become a Super Hero"
   },
   {
     "pageFamily": "endo-quiz-results",
     "ctaId": "endo-quiz-results.card.quiz-pdf",
     "elementType": "button",
-    "label": "Download PDF summary",
-    "pageCount": 1
+    "label": "Download PDF summary"
   },
   {
     "pageFamily": "endo-quiz-results",
     "ctaId": "endo-quiz-results.modal.quiz-email",
     "elementType": "form",
-    "label": "Email address Anonymized responses may be used for research. Privacy Policy Emai",
-    "pageCount": 1
+    "label": "Email address Anonymized responses may be used for research. Privacy Policy Emai"
   },
   {
     "pageFamily": "endo-survey",
     "ctaId": "endo-survey.card.survey-start",
     "elementType": "form",
-    "label": "Get My Survey Link We'll send your survey link and occasional educational update",
-    "pageCount": 1
+    "label": "Get My Survey Link We'll send your survey link and occasional educational update"
   },
   {
     "pageFamily": "error",
     "ctaId": "error.error.home",
     "elementType": "a",
-    "label": "Back to homepage",
-    "pageCount": 1
+    "label": "Back to homepage"
   },
   {
     "pageFamily": "error",
     "ctaId": "error.error.retry",
     "elementType": "a",
-    "label": "Try again",
-    "pageCount": 1
+    "label": "Try again"
   },
   {
     "pageFamily": "footer",
     "ctaId": "footer.footer-col-2.join-stuc-member",
     "elementType": "a",
-    "label": "Save the Uterus Club",
-    "pageCount": 4644
+    "label": "Save the Uterus Club"
   },
   {
     "pageFamily": "footer",
     "ctaId": "footer.footer-col-2.providers",
     "elementType": "a",
-    "label": "Find a Doctor or Teacher",
-    "pageCount": 4644
+    "label": "Find a Doctor or Teacher"
   },
   {
     "pageFamily": "footer",
     "ctaId": "footer.footer-col-4.account",
     "elementType": "a",
-    "label": "My Account",
-    "pageCount": 4644
+    "label": "My Account"
   },
   {
     "pageFamily": "footer",
     "ctaId": "footer.footer-col-4.donate",
     "elementType": "a",
-    "label": "Donate",
-    "pageCount": 4644
+    "label": "Donate"
   },
   {
     "pageFamily": "footer",
     "ctaId": "footer.inline.newsletter",
     "elementType": "form",
-    "label": "First name Email address Subscribe",
-    "pageCount": 4644
+    "label": "First name Email address Subscribe"
   },
   {
     "pageFamily": "guide",
     "ctaId": "guide.inline.donate",
     "elementType": "a",
-    "label": "Support RRM Education",
-    "pageCount": 1
+    "label": "Support RRM Education"
   },
   {
     "pageFamily": "header",
     "ctaId": "header.sticky.account",
     "elementType": "a",
-    "label": "Account",
-    "pageCount": 4644
+    "label": "Account"
   },
   {
     "pageFamily": "header",
     "ctaId": "header.sticky.donate",
     "elementType": "a",
-    "label": "Donate",
-    "pageCount": 4644
+    "label": "Donate"
   },
   {
     "pageFamily": "header",
     "ctaId": "header.sticky.join-stuc-member",
     "elementType": "a",
-    "label": "Join Us",
-    "pageCount": 4644
+    "label": "Join Us"
   },
   {
     "pageFamily": "home",
     "ctaId": "home.hero.learn",
     "elementType": "a",
-    "label": "Start Learning",
-    "pageCount": 1
+    "label": "Start Learning"
   },
   {
     "pageFamily": "home",
     "ctaId": "home.hero.survey-start",
     "elementType": "a",
-    "label": "Take the Endo Self-Assessment",
-    "pageCount": 1
+    "label": "Take the Endo Self-Assessment"
   },
   {
     "pageFamily": "home",
     "ctaId": "home.inline.donate",
     "elementType": "a",
-    "label": "Donate",
-    "pageCount": 1
+    "label": "Donate"
   },
   {
     "pageFamily": "home",
     "ctaId": "home.inline.join-stuc-superhero",
     "elementType": "a",
-    "label": "Become a Super Hero",
-    "pageCount": 1
+    "label": "Become a Super Hero"
   },
   {
     "pageFamily": "home",
     "ctaId": "home.inline.learn",
     "elementType": "a",
-    "label": "For Patients",
-    "pageCount": 1
+    "label": "For Patients"
   },
   {
     "pageFamily": "home",
     "ctaId": "home.inline.providers",
     "elementType": "a",
-    "label": "For Clinicians",
-    "pageCount": 1
+    "label": "For Clinicians"
   },
   {
     "pageFamily": "library-record",
     "ctaId": "library-record.inline.donate",
     "elementType": "a",
-    "label": "Support this work",
-    "pageCount": 4053
+    "label": "Support this work"
   },
   {
     "pageFamily": "linkinbio",
     "ctaId": "linkinbio.card.join-stuc-member",
     "elementType": "a",
-    "label": "Save the Uterus Club Our member community with Dr. Whittaker: live calls, member",
-    "pageCount": 2
+    "label": "Save the Uterus Club Our member community with Dr. Whittaker: live calls, member"
   },
   {
     "pageFamily": "maintenance",
     "ctaId": "maintenance.card.contact",
     "elementType": "a",
-    "label": "contact@rrmacademy.org",
-    "pageCount": 1
+    "label": "contact@rrmacademy.org"
   },
   {
     "pageFamily": "nav-mobile",
     "ctaId": "nav-mobile.sidebar.account",
     "elementType": "a",
-    "label": "Sign in Save articles, track courses",
-    "pageCount": 4644
+    "label": "Sign in Save articles, track courses"
   },
   {
     "pageFamily": "nav-mobile",
     "ctaId": "nav-mobile.sidebar.donate",
     "elementType": "a",
-    "label": "Donate",
-    "pageCount": 4644
+    "label": "Donate"
   },
   {
     "pageFamily": "press",
     "ctaId": "press.card.contact",
     "elementType": "a",
-    "label": "contact@rrmacademy.org",
-    "pageCount": 1
+    "label": "contact@rrmacademy.org"
   },
   {
     "pageFamily": "press",
     "ctaId": "press.hero.contact",
     "elementType": "a",
-    "label": "Media inquiries",
-    "pageCount": 1
+    "label": "Media inquiries"
   },
   {
     "pageFamily": "press",
     "ctaId": "press.inline.contact",
     "elementType": "a",
-    "label": "contact@rrmacademy.org",
-    "pageCount": 1
+    "label": "contact@rrmacademy.org"
   },
   {
     "pageFamily": "press",
     "ctaId": "press.repeat.contact",
     "elementType": "a",
-    "label": "contact@rrmacademy.org",
-    "pageCount": 1
+    "label": "contact@rrmacademy.org"
   },
   {
     "pageFamily": "providers",
     "ctaId": "providers.card.donate",
     "elementType": "button",
-    "label": "Give $50 for the next generation",
-    "pageCount": 1
+    "label": "Give $50 for the next generation"
   },
   {
     "pageFamily": "sitemap",
     "ctaId": "sitemap.card.donate",
     "elementType": "a",
-    "label": "Donate",
-    "pageCount": 1
+    "label": "Donate"
   },
   {
     "pageFamily": "sitemap",
     "ctaId": "sitemap.card.join-stuc-member",
     "elementType": "a",
-    "label": "Save the Uterus Club",
-    "pageCount": 1
+    "label": "Save the Uterus Club"
   },
   {
     "pageFamily": "stuc",
     "ctaId": "stuc.card.manage-billing",
     "elementType": "button",
-    "label": "Manage Billing",
-    "pageCount": 1
+    "label": "Manage Billing"
   },
   {
     "pageFamily": "stuc",
     "ctaId": "stuc.tiers.join-stuc-hero",
     "elementType": "button",
-    "label": "Become a Hero",
-    "pageCount": 1
+    "label": "Become a Hero"
   },
   {
     "pageFamily": "stuc",
     "ctaId": "stuc.tiers.join-stuc-member",
     "elementType": "button",
-    "label": "Become a Member",
-    "pageCount": 1
+    "label": "Become a Member"
   },
   {
     "pageFamily": "stuc",
     "ctaId": "stuc.tiers.join-stuc-superhero",
     "elementType": "button",
-    "label": "Become a Super Hero",
-    "pageCount": 1
+    "label": "Become a Super Hero"
   }
 ]

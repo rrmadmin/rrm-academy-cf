@@ -385,7 +385,22 @@ and in `merge.yml`:
     contain a literal somewhere" -- contains one of the RULE_2B_LITERALS
     (`/api/create-checkout`, `/api/billing/portal`, `mailto:`,
     `/api/newsletter/subscribe`, `/api/endo-quiz/*`, `/api/survey/*`,
-    `/api/courses/enroll`, `/api/courses/waitlist`). Recognized handler
+    `/api/courses/enroll`, `/api/courses/waitlist`). The implementation does
+    not brace-match the handler body (unreliable against a minified or
+    multi-statement handler with nested `{}`); it instead anchors at the
+    position right after the handler-chain (`.addEventListener(`,
+    `.onclick =`, `.onsubmit =`) and accepts a literal within an 800-
+    character window on either side of that anchor (`HANDLER_BODY_WINDOW`
+    in `scripts/lib/cta-map-rules.mjs`). 800 was picked from the two real
+    shapes this rule has to tell apart in this codebase: a genuinely-wired
+    id (`#fund-give-btn` on `/providers/`) sits 2,561 characters from its
+    own handler across an unrelated UI-setup block, while unrelated ids
+    merely referenced nearby (two disclosure-toggle buttons on
+    `account/index.astro`) sit only 464/737 characters from a billing
+    literal that has nothing to do with them -- raw proximity alone cannot
+    separate the two, so the window is generous enough to reach the real
+    case while the anchor-on-the-actual-handler-chain (not just anchor-on-
+    any-reference) is what actually does the discriminating work. Recognized handler
     forms, for `#id` selectors (`getElementById`/`querySelector('#id')`,
     direct-chained or assigned to a variable first) and for `.cls`/
     `[data-x]` selectors (`querySelector`/`querySelectorAll`, including
@@ -417,23 +432,37 @@ and in `merge.yml`:
 4. Emits `docs/cta-map.json`/`.md` (generated, committed, never
    hand-edited) as a FAMILY DIGEST: one row per distinct `(page family, cta
    id)` -- `page family` being the cta id's own `page` token, never an
-   individual rendered page path -- with `elementType`, `label` (from the
-   first occurrence), and `pageCount` (how many distinct rendered pages
-   carry it). This is deliberately NOT one row per rendered page: library,
-   commentary, and course-step pages are generated at deploy time from D1
-   content, so a per-page map reshuffles and grows on every routine content
-   publish (measured: 12 MB, ~4,650 rows, one per page) and would fail
-   `--check` on a deploy that touched zero templates. The digest is small
-   (measured: under 10 KB) and changes only when a TEMPLATE's CTAs change
-   -- exactly when a developer should recommit it. The FULL per-page map
-   (every occurrence, every page) is still produced every dist-mode run, as
-   a build artifact at `dist/cta-map.json` -- gitignored, regenerated every
-   run, never committed, and never part of the `--check` comparison; it
-   exists for local debugging of a specific page. `--check` diffs a fresh
-   DIGEST against the committed one and fails with a unified diff (and
-   keeps the freshly generated files on disk for inspection) on any
-   mismatch. This file is the inventory Brian asked for and is what the
-   backoffice CTA table labels its rows with.
+   individual rendered page path -- with `elementType` and `label` (from
+   the first occurrence). The digest carries NO counts of any kind. This is
+   deliberately NOT one row per rendered page, and it is deliberately not a
+   byte-for-byte snapshot either: library, commentary, and course-step
+   pages are generated at deploy time from D1 content, so a per-page map
+   reshuffles and grows on every routine content publish (measured: 12 MB,
+   ~4,650 rows, one per page), and a page-count column on a chrome id
+   (header/footer/nav-mobile, present on every rendered page) moves in
+   lockstep with the site's total page count for the same reason -- either
+   shape would fail `--check` on a deploy that touched zero templates. The
+   digest is small (measured: under 10 KB) and changes only when a
+   TEMPLATE's CTAs change -- exactly when a developer should recommit it.
+   `--check` is therefore a COVERAGE FLOOR over the `(page family, cta id)`
+   key set, not an equality comparison: every key present in the committed
+   digest must still be present in a fresh build, or the gate FAILS naming
+   the missing keys (a template dropped a CTA). A key present in the fresh
+   build but absent from the committed digest does not fail -- it WARNs and
+   exits 0, because content state can legitimately reveal a template CTA
+   that has never rendered before (e.g. a course's closed-cohort waitlist
+   modal, which only renders once a cohort actually closes); the developer
+   recommits it at leisure. `label`/`elementType` changes on an existing
+   key are never compared -- label text is copy and changes legitimately
+   without indicating a coverage regression. The FULL per-page map (every
+   occurrence, every page) is still produced every dist-mode run, as a
+   build artifact at `.cta-map/full.json` (repo root, gitignored,
+   regenerated every run, never committed, never part of the `--check`
+   comparison, and never written under `dist/` -- that directory deploys to
+   the live site verbatim, so an internal debugging artifact must live
+   outside it); it exists for local debugging of a specific page. This file
+   is the inventory Brian asked for and is what the backoffice CTA table
+   labels its rows with.
 
 Zero-CTA scan result fails loudly, per the estate's asset-gate convention.
 
