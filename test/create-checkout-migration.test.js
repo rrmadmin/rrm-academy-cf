@@ -241,11 +241,11 @@ describe('create-checkout: canary branch skips GA4 + self-expires the session', 
 
   it('payment_intent_data.metadata and subscription_data.metadata (nested, per-mode) also carry the canary tag downstream', () => {
     assert.ok(
-      /payment_intent_data = \{[\s\S]*?metadata: \{ type: 'donation', \.\.\.\(campaign && \{ campaign \}\), \.\.\.\(isCanary && \{ canary: '1' \}\) \}/.test(source),
+      /payment_intent_data = \{[\s\S]*?metadata: \{ type: 'donation', \.\.\.ftMetadata, \.\.\.\(campaign && \{ campaign \}\), \.\.\.\(isCanary && \{ canary: '1' \}\) \}/.test(source),
       'sessionParams.payment_intent_data.metadata must merge ...(isCanary && { canary: \'1\' }) alongside the existing donation/campaign keys'
     );
     assert.ok(
-      /subscription_data = \{[\s\S]*?metadata: \{ tier: effectiveTier, \.\.\.migrationMetadata, \.\.\.\(isCanary && \{ canary: '1' \}\) \}/.test(source),
+      /subscription_data = \{[\s\S]*?metadata: \{ tier: effectiveTier, \.\.\.migrationMetadata, \.\.\.ftMetadata, \.\.\.\(isCanary && \{ canary: '1' \}\) \}/.test(source),
       'sessionParams.subscription_data.metadata must merge ...(isCanary && { canary: \'1\' }) alongside the existing tier/migrationMetadata keys'
     );
   });
@@ -380,5 +380,38 @@ describe('create-checkout: the donation session collects a donor name', () => {
       'the campaign block must layer phone + custom_fields on top of the unconditional setting, not restate it -- ' +
       'a second assignment is where the two copies drift apart'
     );
+  });
+});
+
+describe('create-checkout first-touch attribution metadata (Phase 3.1)', () => {
+  it('imports parseFirstTouch and parseGclidCookie from _ga4-source.js', () => {
+    assert.match(source, /import\s*\{[^}]*parseFirstTouch[^}]*parseGclidCookie[^}]*\}\s*from\s*'\.\/\_ga4-source\.js'|import\s*\{[^}]*parseGclidCookie[^}]*parseFirstTouch[^}]*\}\s*from\s*'\.\/_ga4-source\.js'/);
+  });
+
+  it('reads the Cookie header directly, not the POST body, for first-touch data', () => {
+    assert.match(source, /const cookieHeader = request\.headers\.get\('Cookie'\)/);
+    assert.match(source, /parseFirstTouch\(cookieHeader\)/);
+    assert.match(source, /parseGclidCookie\(cookieHeader\)/);
+  });
+
+  it('caps every ft_* and gclid_last metadata value at 500 chars', () => {
+    assert.match(source, /ft_source\.slice\(0,\s*500\)/);
+    assert.match(source, /gclid_last:\s*gclidLast\.slice\(0,\s*500\)/);
+  });
+
+  it('donation payment_intent_data.metadata carries ftMetadata', () => {
+    const donationIntentBlock = source.slice(
+      source.indexOf('sessionParams.payment_intent_data = {'),
+      source.indexOf('sessionParams.payment_intent_data = {') + 400
+    );
+    assert.match(donationIntentBlock, /\.\.\.ftMetadata/);
+  });
+
+  it('subscription_data.metadata carries ftMetadata', () => {
+    const subDataBlock = source.slice(
+      source.indexOf('sessionParams.subscription_data = {'),
+      source.indexOf('sessionParams.subscription_data = {') + 300
+    );
+    assert.match(subDataBlock, /\.\.\.ftMetadata/);
   });
 });
