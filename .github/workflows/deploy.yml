@@ -18,7 +18,9 @@ on:
       - 'docs/cta-map.json'
       - 'scripts/check-cta-map.mjs'
       - 'scripts/lib/cta-*.mjs'
-      # This workflow is its own input: an edit to the deploy steps must rebuild
+      # This workflow is its own input: an edit to the deploy steps must rebuild.
+      # Workflow-file pushes from this machine route through the RRM Admin
+      # Automation App credential helper (git config credential.https://github.com/rrmadmin.helper).
       # (a merge.yml edit deliberately does not; that workflow never deploys).
       - '.github/workflows/deploy.yml'
       - 'package.json'
