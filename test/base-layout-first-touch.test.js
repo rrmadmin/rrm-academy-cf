@@ -99,6 +99,13 @@ describe('BaseLayout inline script -- rrm_ft first-touch cookie', () => {
     assert.match(raw, /s=newsletter/);
   });
 
+  it('a bare 13-19 digit run utm_term is written empty, not blocking the rest of the cookie', () => {
+    const { cookieStore } = runScript({ search: '?utm_source=newsletter&utm_term=4111111111111111' });
+    const raw = decodeURIComponent(cookieStore.find((c) => c.startsWith('rrm_ft=')).slice('rrm_ft='.length));
+    assert.ok(!raw.includes('t='), 'the t field must be omitted (screened empty), not carry the digit run');
+    assert.match(raw, /s=newsletter/);
+  });
+
   it('a click id over 512 chars aborts the whole cookie, not a truncated field', () => {
     // A plain-ASCII filler (e.g. 'A') never crosses 1KB here: the g field's
     // own 512-char cap plus the other short fields tops out well under the
@@ -137,5 +144,24 @@ describe('BaseLayout inline script -- rrm_ft first-touch cookie', () => {
     const { cookieStore } = runScript({ search: '?utm_source=google&utm_medium=display&gclid=abc123456789' });
     const raw = decodeURIComponent(cookieStore.find((c) => c.startsWith('rrm_ft=')).slice('rrm_ft='.length));
     assert.match(raw, /m=cpc/);
+  });
+
+  it('a second ad click overwrites the 30-day gclid cookie while rrm_ft (first touch) stays unchanged', () => {
+    // This script only writes rrm_ft; the 30-day gclid cookie write lives in
+    // a separate script block in BaseLayout.astro (unchanged by this plan).
+    // What this test pins is the OTHER half of the guarantee: running the
+    // rrm_ft writer again, on a session that already has an rrm_ft cookie
+    // from an earlier ad click, must not touch it even though a fresh
+    // gclid is present in the URL and in the (separately maintained)
+    // gclid cookie.
+    const { cookieStore } = runScript({
+      search: '?gclid=SECOND_CLICK_ID_67890',
+      existingCookies: [
+        'rrm_ft=' + encodeURIComponent('s=google&m=cpc&g=gFIRST_CLICK_ID_12345&d=1757030400'),
+        'gclid=FIRST_CLICK_ID_12345',
+      ],
+    });
+    const raw = decodeURIComponent(cookieStore.find((c) => c.startsWith('rrm_ft=')).slice('rrm_ft='.length));
+    assert.match(raw, /g=gFIRST_CLICK_ID_12345/, 'rrm_ft keeps the FIRST click id, not the second');
   });
 });

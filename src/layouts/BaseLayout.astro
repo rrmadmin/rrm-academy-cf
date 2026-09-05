@@ -288,7 +288,7 @@ if (!jsonLd) {
           else if (ftParams.get('gbraid')) { ftClickIdKind = 'b'; ftClickIdValue = ftParams.get('gbraid'); }
           else if (ftParams.get('wbraid')) { ftClickIdKind = 'w'; ftClickIdValue = ftParams.get('wbraid'); }
 
-          var ftSource, ftMedium, ftCategory;
+          var ftSource, ftMedium;
           if (ftClickIdKind) {
             ftSource = ftUtmSource || 'google';
             ftMedium = 'cpc';
