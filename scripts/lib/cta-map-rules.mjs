@@ -452,7 +452,12 @@ export function extractCtaOccurrences(html) {
 
 /** True when a data-cta id's page token is site-wide chrome (exempt from per-page dedup). */
 export function isChromeCta(ctaId) {
-  return ctaId.startsWith('header.') || ctaId.startsWith('footer.') || ctaId.startsWith('nav-mobile.');
+  return (
+    ctaId.startsWith('header.') ||
+    ctaId.startsWith('footer.') ||
+    ctaId.startsWith('nav-mobile.') ||
+    ctaId.startsWith('app-shell.')
+  );
 }
 
 // Deterministic ordering for docs/cta-map.json/.md. `localeCompare` and the

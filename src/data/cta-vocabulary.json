@@ -2,7 +2,7 @@
   "pages": [
     "home", "donate", "stuc", "endo-quiz", "endo-quiz-results",
     "endo-survey", "course", "course-step", "library-record", "guide",
-    "faqs", "header", "footer", "nav-mobile", "error",
+    "faqs", "header", "footer", "nav-mobile", "app-shell", "error",
     "account", "community", "developers", "providers",
     "about", "contact", "press", "sitemap", "linkinbio", "maintenance"
   ],

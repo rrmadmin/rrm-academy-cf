@@ -24,6 +24,12 @@
     "label": "Manage Billing"
   },
   {
+    "pageFamily": "app-shell",
+    "ctaId": "app-shell.sticky.donate",
+    "elementType": "a",
+    "label": "Donate"
+  },
+  {
     "pageFamily": "community",
     "ctaId": "community.card.join-stuc-member",
     "elementType": "a",

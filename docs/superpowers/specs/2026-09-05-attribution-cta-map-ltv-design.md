@@ -283,7 +283,9 @@ grant account cannot bid on value, so the point is reporting, not bidding.
   is a snapshot): `home`, `donate`, `stuc`, `endo-quiz`,
   `endo-quiz-results`, `endo-survey`, `course`, `course-step`,
   `library-record`, `guide`, `faqs`, `header`, `footer` for site-wide
-  chrome, `nav-mobile`, `error`, `account`, `community`, `developers`
+  chrome, `nav-mobile`, `app-shell` for the shell nav-drawer chrome
+  (rendered only when `PUBLIC_SHELL_ROUTES` is set), `error`, `account`,
+  `community`, `developers`
   (one pooled family for the agent-auth/ai-instructions/connect/developers/
   webhooks API-docs pages), `providers`, `about`, `contact`, `press`,
   `sitemap`, `linkinbio`, `maintenance`. Per-page distinction (which

@@ -39,6 +39,13 @@
 // is deployed to the live site verbatim). The dist-mode PASS line still
 // prints the total page and element counts.
 //
+// AppShellChrome (nav-drawer sidebar) only renders when PUBLIC_SHELL_ROUTES
+// is set; deploy.yml passes the repo variable (currently
+// "library,commentary,guides,faqs,account,ask,courses,community"), but a
+// bare local `npm run build` leaves it empty, so a local `--mode=dist
+// --check` run is only representative of CI when the same value is
+// exported first.
+//
 // Run via `npm run build` (source mode, pre-astro-build), as a step in
 // deploy.yml (dist mode --check, post-astro-build), and as a step in
 // merge.yml (source mode only -- merge.yml never builds).
