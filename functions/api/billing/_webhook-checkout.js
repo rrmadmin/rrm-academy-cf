@@ -379,6 +379,12 @@ export async function handleCheckoutCompleted(db, event, env, request, waitUntil
       ...(session.metadata?.ga_campaign && { utm_campaign: session.metadata.ga_campaign }),
       ...(session.metadata?.ga_entry_category && { entry_category: session.metadata.ga_entry_category }),
       ...(session.metadata?.ga_entry_platform && { entry_platform: session.metadata.ga_entry_platform }),
+      ...(session.metadata?.ft_source && { ft_source: session.metadata.ft_source }),
+      ...(session.metadata?.ft_medium && { ft_medium: session.metadata.ft_medium }),
+      ...(session.metadata?.ft_campaign && { ft_campaign: session.metadata.ft_campaign }),
+      ...(session.metadata?.ft_landing && { ft_landing: session.metadata.ft_landing }),
+      ...(session.metadata?.ft_at && { ft_at: session.metadata.ft_at }),
+      ...(session.metadata?.click_id && { click_id: session.metadata.click_id }),
     }, gaOverrides).catch(() => {}));
   }
 
@@ -934,6 +940,12 @@ Manually set migration_status='stripe_active' and stripe_subscription_id to the 
       ...(session.metadata?.ga_campaign && { utm_campaign: session.metadata.ga_campaign }),
       ...(session.metadata?.ga_entry_category && { entry_category: session.metadata.ga_entry_category }),
       ...(session.metadata?.ga_entry_platform && { entry_platform: session.metadata.ga_entry_platform }),
+      ...(session.metadata?.ft_source && { ft_source: session.metadata.ft_source }),
+      ...(session.metadata?.ft_medium && { ft_medium: session.metadata.ft_medium }),
+      ...(session.metadata?.ft_campaign && { ft_campaign: session.metadata.ft_campaign }),
+      ...(session.metadata?.ft_landing && { ft_landing: session.metadata.ft_landing }),
+      ...(session.metadata?.ft_at && { ft_at: session.metadata.ft_at }),
+      ...(session.metadata?.click_id && { click_id: session.metadata.click_id }),
     }, gaOverrides).catch(() => {}));
   } else if (session.mode === 'subscription' && stucTiers[tier]) {
     // amount_total is 0 for trial-clamped migration checkouts (subscription_data.trial_end
@@ -951,6 +963,12 @@ Manually set migration_status='stripe_active' and stripe_subscription_id to the 
       ...(session.metadata?.ga_campaign && { utm_campaign: session.metadata.ga_campaign }),
       ...(session.metadata?.ga_entry_category && { entry_category: session.metadata.ga_entry_category }),
       ...(session.metadata?.ga_entry_platform && { entry_platform: session.metadata.ga_entry_platform }),
+      ...(session.metadata?.ft_source && { ft_source: session.metadata.ft_source }),
+      ...(session.metadata?.ft_medium && { ft_medium: session.metadata.ft_medium }),
+      ...(session.metadata?.ft_campaign && { ft_campaign: session.metadata.ft_campaign }),
+      ...(session.metadata?.ft_landing && { ft_landing: session.metadata.ft_landing }),
+      ...(session.metadata?.ft_at && { ft_at: session.metadata.ft_at }),
+      ...(session.metadata?.click_id && { click_id: session.metadata.click_id }),
     }, gaOverrides).catch(() => {}));
   }
 

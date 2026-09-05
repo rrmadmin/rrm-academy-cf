@@ -100,3 +100,15 @@ describe('webhook-checkout metadata-first gate (Phase 3.2)', () => {
     );
   });
 });
+
+describe('webhook-checkout first-touch forwarding (Phase 3.1)', () => {
+  it('all three purchase sends forward ft_* and click_id from session.metadata', () => {
+    const occurrences = (source.match(/session\.metadata\?\.ft_source && \{ ft_source: session\.metadata\.ft_source \}/g) || []).length;
+    assert.equal(occurrences, 3, 'course, donation, and subscription branches must each forward ft_source');
+    assert.ok(/session\.metadata\?\.click_id && \{ click_id: session\.metadata\.click_id \}/.test(source));
+  });
+
+  it('never reads ft_content from metadata (no ledger column, never written to Stripe)', () => {
+    assert.ok(!source.includes('ft_content'), 'ft_content has no ledger column and is not part of Stripe metadata');
+  });
+});
