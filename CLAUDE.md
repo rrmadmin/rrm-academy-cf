@@ -465,7 +465,7 @@ Live discovery against the Cloudflare API, GitHub, and launchd on both Macs. Ent
 
 **Account:** Cloudflare `ecf2c5bc8b5ebd634bcb587b3890910a` (slug `rrm`), 24 active zones. Only three zones serve anything: `rrmacademy.org` (site + workers, 65 DNS records), `naomiwhittakermd.com` (Pages `naomi-site`), `femtechmvp.com` (Cloudflare Email Routing only). The other 21 are parked. Registrar detail is doc-sourced, not observed: the discovery token gets HTTP 403 (10000) on `/accounts/:id/registrar/domains`.
 
-**Pages projects on this account (6):**
+**Pages projects on this account (9). Correction 2026-09-05: the first discovery pass silently truncated this list to 10 per Cloudflare account (the Pages list endpoint ignores `per_page` and pages at 10) — this entity actually has 9, not 6; the rrm Cloudflare account holds 29 Pages projects in total across entities.**
 
 | Project | Hosts | Repo | Last deploy |
 |---|---|---|---|
@@ -475,6 +475,9 @@ Live discovery against the Cloudflare API, GitHub, and launchd on both Macs. Ent
 | `rrm-training-reports` | `reports.rrmacademy.org` | `rrmadmin/rrm-surgical-fellowship` (no repo link on the project) | 2026-08-27 |
 | `rrm-feed` | `rrm-feed.pages.dev` | `rrmadmin/rrm-feed` | 2026-08-15 |
 | `scout-feed` | `scout-feed.pages.dev` | `rrmadmin/rrm-feed` | 2026-08-12 (301 shim only) |
+| `femtech-reviews-mvp` | `femtechmvp.com`, `www.`, `femtech-reviews-mvp.pages.dev` | `rrmadmin/femtech-reviews-mvp` | 2026-06-16 |
+| `naproebook` | `naproebook.pages.dev` | `rrmadmin/naproebook` | 2026-07-05 |
+| `whittaker-fleet` | `whittaker-fleet.pages.dev` | `rrmadmin/whittaker-fleet` | 2026-05-31 (FleetView, estate-wide internal tooling) |
 
 **Workers: 26 on the account.** Routed ones matter to this repo, because a request to the apex hits them before Pages:
 
