@@ -476,6 +476,18 @@ describe('POST /api/courses/enroll -- paid courses', () => {
     assert.equal(form.get('metadata[ga_campaign]'), null, 'an empty campaign is omitted, not sent blank');
   });
 
+  it('an rrm_ft cookie stamps ft_* onto the checkout session metadata, same shape as create-checkout.js', async () => {
+    // Wire format matches BaseLayout.astro's writer -- see
+    // test/ga4-source.test.js's ftCookie() for the rationale.
+    const ftCookie = 'rrm_ft=' + ['s=google', 'm=cpc', 'c=q3_push', 'l=%2Fcourses%2F'].join('&');
+    await run(db, { courseId: 'test-course-paid' }, { cookieExtra: `; ${ftCookie}` });
+    const form = new URLSearchParams(net.calls.find((c) => c.service === 'stripe').body);
+    assert.equal(form.get('metadata[ft_campaign]'), 'q3_push');
+    assert.equal(form.get('metadata[ft_source]'), 'google');
+    assert.equal(form.get('metadata[ft_medium]'), 'cpc');
+    assert.equal(form.get('payment_intent_data[metadata][ft_campaign]'), 'q3_push');
+  });
+
   it('a malformed percent-encoded entry cookie is ignored rather than throwing', async () => {
     const { status } = await run(db, { courseId: 'test-course-paid' }, { cookieExtra: '; entry_url=%E0%A4%A' });
     assert.equal(status, 200, 'a bad cookie must not take the endpoint down');
