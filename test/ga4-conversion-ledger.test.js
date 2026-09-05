@@ -925,7 +925,7 @@ describe('conversion ledger -- first-touch columns (migration 039)', () => {
           'CF-Connecting-IP': '203.0.113.9',
           'User-Agent': 'Mozilla/5.0 (test-agent)',
           Cookie: 'entry_ref=; entry_url=' + encodeURIComponent('https://rrmacademy.org/') +
-            '; rrm_ft=' + encodeURIComponent('s=google&m=cpc&c=q3_push&l=%2Fendo-quiz%2F&g=gEAIaIQtest&d=1757030400'),
+            '; rrm_ft=s=google&m=cpc&c=q3_push&l=' + encodeURIComponent('/endo-quiz/') + '&g=gEAIaIQtest&d=1757030400',
         },
         url: 'https://rrmacademy.org/api/test',
       });
@@ -955,6 +955,23 @@ describe('conversion ledger -- first-touch columns (migration 039)', () => {
     } finally { fetchStub.restore(); db.close(); }
   });
 
+  it('a 66-char cs_live_ session-id fallback lands intact, not truncated to LEDGER_SHORT_CAP', async () => {
+    const fetchStub = stubExternalFetch();
+    const db = ledgerD1();
+    try {
+      const env = mockEnv({ DB: db, CONVERSION_LEDGER: '1' });
+      const longSessionId = 'cs_live_' + 'a'.repeat(58);
+      assert.equal(longSessionId.length, 66);
+      await sendGA4Event(env, makeRequest(), 'purchase', {
+        value: 0,
+        items: [{ item_name: 'Donation' }],
+        transaction_id: longSessionId,
+      });
+      const [row] = rows(db);
+      assert.equal(row.transaction_id, longSessionId);
+    } finally { fetchStub.restore(); db.close(); }
+  });
+
   it('a pre-039-style row with no rrm_ft cookie leaves ft_* and click_id NULL', async () => {
     const fetchStub = stubExternalFetch();
     const db = ledgerD1();
@@ -978,7 +995,7 @@ describe('conversion ledger -- first-touch columns (migration 039)', () => {
         headers: {
           'CF-Connecting-IP': '203.0.113.10',
           'User-Agent': 'Mozilla/5.0 (test-agent)',
-          Cookie: 'rrm_ft=' + encodeURIComponent('s=google&g=g' + encodeURIComponent('someone@example.com')),
+          Cookie: 'rrm_ft=s=google&g=g' + encodeURIComponent('someone@example.com'),
         },
         url: 'https://rrmacademy.org/api/test',
       });
