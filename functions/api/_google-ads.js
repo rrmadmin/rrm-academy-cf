@@ -79,6 +79,14 @@ import { checkRateLimit } from './auth/_shared.js';
 import { parseGclidCookie, GCLID_RE } from './_ga4-source.js';
 
 const GOOGLE_ADS_CUSTOMER_ID = '4262268858';
+
+// Sentinel value for a conversion action id that Task 9
+// (create-value-actions.py) has not yet created in the Ads account.
+// STUC_PURCHASE_CONVERSION_ACTION_ID and DONATION_CONVERSION_ACTION_ID are
+// both frozen to this constant below; the guard in
+// sendGoogleAdsValueConversion() compares against the same constant so the
+// three can never drift apart.
+export const PLACEHOLDER_ACTION_ID = 'PENDING_TASK_9';
 const INGEST_ENDPOINT = 'https://datamanager.googleapis.com/v1/events:ingest';
 const TOKEN_ENDPOINT = 'https://oauth2.googleapis.com/token';
 
@@ -380,7 +388,7 @@ export function sendGoogleAdsValueConversion(env, waitUntil, { clickId, conversi
     // action id (which would surface as a live upload_4xx failure and fire
     // the failure alert email for every donation/subscription purchase
     // until Brian runs create-value-actions.py by hand).
-    if (conversionActionId === 'PENDING_TASK_9') {
+    if (conversionActionId === PLACEHOLDER_ACTION_ID) {
       log(env, waitUntil, 'google_ads', 'conversion_pending_task_9', 'warn', conversionActionId, 0, 0, [clickId, orderId]);
       return;
     }
@@ -411,8 +419,8 @@ export function sendGoogleAdsValueConversion(env, waitUntil, { clickId, conversi
 // the first-touch-attribution plan); frozen here once known. Overridable
 // per-environment via GOOGLE_ADS_STUC_ACTION_ID / GOOGLE_ADS_DONATION_ACTION_ID
 // -- see resolveValueActionIds().
-export const STUC_PURCHASE_CONVERSION_ACTION_ID = 'PENDING_TASK_9';
-export const DONATION_CONVERSION_ACTION_ID = 'PENDING_TASK_9';
+export const STUC_PURCHASE_CONVERSION_ACTION_ID = PLACEHOLDER_ACTION_ID;
+export const DONATION_CONVERSION_ACTION_ID = PLACEHOLDER_ACTION_ID;
 
 /**
  * Resolves the two server-upload value conversion action ids, preferring an

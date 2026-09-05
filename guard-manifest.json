@@ -135,7 +135,7 @@
       "note": "Search UX + RRF fusion (Pagefind init, relevance boost, error resilience)"
     },
     "src/layouts/BaseLayout.astro": {
-      "hash": "5a3b32066fd1ee94ac0da9b6c5f37cd19a3170e38961bbe0885e3b5069939bd3",
+      "hash": "2411b9a737a3ff162faaf17a49f614fd7d7ed57e237f596f7981f01edcb46b56",
       "note": "FOUC theme + chrome prop SEO invariants"
     },
     "functions/api/community/_shared.js": {
@@ -226,11 +226,11 @@
       "note": "Client analytics endpoint: rate limit + allowlist + PII strip + GA4 MP relay + AE mirror"
     },
     "functions/api/_track-events.js": {
-      "hash": "8b1ee6220ae13c34cebf02961cebd067a1b69553c5e04cbae81d194f919389d2",
+      "hash": "a70e39256450779ac545634326f90375aaa5bc684f0ad73266d14a54d8bc44a1",
       "note": "Allowed events, required params, PII_REGEX, reserved params (security invariants for /api/track)"
     },
     "functions/api/_ga4.js": {
-      "hash": "1b9b41c08e270514b81862e79caeeb9ffbd9c788d68a91afeff62a73a7a8d607",
+      "hash": "717d8e122d4b9c76b3447a85ac88c462fc93aeca6e537b4ce11d145488c28a36",
       "note": "GA4 MP relay: server-derived attribution PII screen (second pass) + page_location query/hash/userinfo strip"
     },
     "functions/api/_ga4-source.js": {
@@ -240,6 +240,9 @@
     "functions/api/email/events.js": {
       "hash": "0d6e1d30c111717a72a85ea6071d2e72a2182eec0f7dd28cf1b3673080ab151c",
       "note": "SNS SES event ingestion (RSA signature + webhook_event dedup)"
+    },
+    "functions/api/_google-ads.js": {
+      "hash": "24ede22f20b079de984250ff4003d441f3648ec41483cb57bbe2c833f7e0a18a"
     }
   }
 }
