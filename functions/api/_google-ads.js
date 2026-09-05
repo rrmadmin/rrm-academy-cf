@@ -57,14 +57,19 @@
  * 'conversion_retry' AE row before waiting; the final conversion_ok/
  * conversion_error row and the alert email fire only after the retry (or
  * lack of one) resolves, so neither logging contract nor alert timing change.
+ *
+ * Order/transaction id field name verified live 2026-09-05 against the
+ * Data Manager v1 discovery document (datamanager.googleapis.com/$discovery/
+ * rest?version=v1, revision 20260828): the Event resource's field is
+ * `transactionId`, not `orderId` -- used below accordingly.
  */
 
 import { log } from './_log.js';
 import { sendEmail } from './_ses.js';
 import { checkRateLimit } from './auth/_shared.js';
-// GCLID_RE is staged for a value-upload entry point landing in a later task
-// (first-touch click_id validation before Google Ads conversion upload) --
-// unused here today, do not delete as dead code.
+// GCLID_RE validates the click id passed directly to
+// sendGoogleAdsValueConversion (the webhook's Stripe metadata gclid_last has
+// no cookie-parsing step to fall back on).
 import { parseGclidCookie, GCLID_RE } from './_ga4-source.js';
 
 const GOOGLE_ADS_CUSTOMER_ID = '4262268858';
@@ -139,8 +144,32 @@ async function getAccessToken(env) {
   return data.access_token;
 }
 
-async function uploadConversion(env, gclid, conversionActionId) {
+/**
+ * Uploads one conversion event to Data Manager.
+ *
+ * `clickIdKind` selects which adIdentifiers key carries `clickId`
+ * ('gclid' | 'gbraid' | 'wbraid'), defaulting to 'gclid' -- every existing
+ * call site passes a gclid from the 30-day cookie and relies on this
+ * default. `conversionValue`/`currency` default to the pre-refactor
+ * hardcoded 1.0/'USD' so the eight quiz/newsletter call sites are
+ * byte-identical to before this change. `orderId` is omitted from the
+ * event payload entirely when absent (undefined), not sent as null/empty
+ * string -- the eight existing call sites never pass one. Sent under the
+ * Data Manager field name `transactionId` (verified live 2026-09-05, see
+ * the file header).
+ */
+async function uploadConversion(env, { clickId, clickIdKind = 'gclid', conversionActionId, conversionValue = 1.0, currency = 'USD', orderId }) {
   const accessToken = await getAccessToken(env);
+
+  const adIdentifiers = { [clickIdKind]: clickId };
+  const event = {
+    adIdentifiers,
+    eventTimestamp: formatEventTimestamp(new Date()),
+    conversionValue,
+    currency,
+    eventSource: 'WEB',
+    ...(orderId !== undefined && orderId !== null && { transactionId: orderId }),
+  };
 
   let resp;
   try {
@@ -155,13 +184,7 @@ async function uploadConversion(env, gclid, conversionActionId) {
           operatingAccount: { accountType: 'GOOGLE_ADS', accountId: GOOGLE_ADS_CUSTOMER_ID },
           productDestinationId: conversionActionId,
         }],
-        events: [{
-          adIdentifiers: { gclid },
-          eventTimestamp: formatEventTimestamp(new Date()),
-          conversionValue: 1.0,
-          currency: 'USD',
-          eventSource: 'WEB',
-        }],
+        events: [event],
       }),
       signal: AbortSignal.timeout(5000),
     });
@@ -194,14 +217,14 @@ function isRetryableUploadError(err) {
   return typeof message === 'string' && RETRYABLE_MESSAGE_PREFIXES.some((prefix) => message.startsWith(prefix));
 }
 
-async function uploadConversionWithRetry(env, waitUntil, gclid, conversionActionId) {
+async function uploadConversionWithRetry(env, waitUntil, uploadArgs) {
   try {
-    return await uploadConversion(env, gclid, conversionActionId);
+    return await uploadConversion(env, uploadArgs);
   } catch (err) {
     if (!isRetryableUploadError(err)) throw err;
-    log(env, waitUntil, 'google_ads', 'conversion_retry', 'warn', err.message, 0, 0, [gclid, conversionActionId]);
+    log(env, waitUntil, 'google_ads', 'conversion_retry', 'warn', err.message, 0, 0, [uploadArgs.clickId, uploadArgs.conversionActionId]);
     await new Promise((resolve) => setTimeout(resolve, RETRY_DELAY_MS));
-    return uploadConversion(env, gclid, conversionActionId);
+    return uploadConversion(env, uploadArgs);
   }
 }
 
@@ -313,7 +336,8 @@ export function sendGoogleAdsConversion(env, waitUntil, cookieHeader, conversion
     const gclid = parseGclidCookie(cookieHeader);
     if (!gclid) return;
 
-    const task = uploadConversionWithRetry(env, waitUntil, gclid, conversionActionId).then(async (requestId) => {
+    const uploadArgs = { clickId: gclid, clickIdKind: 'gclid', conversionActionId };
+    const task = uploadConversionWithRetry(env, waitUntil, uploadArgs).then(async (requestId) => {
       log(env, waitUntil, 'google_ads', 'conversion_ok', 'ok', conversionActionId, 0, 200, [gclid, requestId]);
       await sendConversionSuccessEmail(env, waitUntil, conversionActionId, gclid, requestId);
     }).catch(async (err) => {
@@ -328,3 +352,46 @@ export function sendGoogleAdsConversion(env, waitUntil, cookieHeader, conversion
     log(env, waitUntil, 'google_ads', 'conversion_error', 'error', err.message, 0, 500);
   }
 }
+
+/**
+ * Fire-and-forget Google Ads VALUE conversion upload, for the two new
+ * server-upload actions (section 3.3). Unlike sendGoogleAdsConversion this
+ * takes the click id directly (the webhook's Stripe metadata gclid_last,
+ * not a cookie header -- the webhook request has no browser cookies) and
+ * carries a real dollar value and order id. No-op when clickId is absent
+ * (an organic/no-ad purchase is not a synthetic conversion) or the account
+ * is unconfigured, same posture as sendGoogleAdsConversion.
+ */
+export function sendGoogleAdsValueConversion(env, waitUntil, { clickId, conversionActionId, conversionValue, currency = 'USD', orderId }) {
+  try {
+    if (!env.GOOGLE_ADS_CLIENT_ID || !env.GOOGLE_ADS_CLIENT_SECRET || !env.GOOGLE_ADS_REFRESH_TOKEN) {
+      return;
+    }
+    if (!clickId || !GCLID_RE.test(clickId)) return;
+
+    // gclid_last only ever holds a gclid (the 30-day cookie is written from the
+    // gclid query param alone), so the kind is fixed here; the gbraid/wbraid
+    // branches of uploadConversion exist for the first-touch marker in rrm_ft.g
+    // and any future caller that carries one.
+    const uploadArgs = { clickId, clickIdKind: 'gclid', conversionActionId, conversionValue, currency, orderId };
+    const task = uploadConversionWithRetry(env, waitUntil, uploadArgs).then(async (requestId) => {
+      log(env, waitUntil, 'google_ads', 'conversion_ok', 'ok', conversionActionId, 0, 200, [clickId, requestId, orderId]);
+      await sendConversionSuccessEmail(env, waitUntil, conversionActionId, clickId, requestId);
+    }).catch(async (err) => {
+      log(env, waitUntil, 'google_ads', 'conversion_error', 'error', err.message, 0, 502, [clickId, conversionActionId]);
+      await sendConversionFailureEmail(env, waitUntil, conversionActionId, clickId, err.message);
+    });
+
+    if (typeof waitUntil === 'function') {
+      waitUntil(task);
+    }
+  } catch (err) {
+    log(env, waitUntil, 'google_ads', 'conversion_error', 'error', err.message, 0, 500);
+  }
+}
+
+// Two new UPLOAD_CLICKS conversion actions with VALUE, section 3.3. Ids
+// created by skills/ads-sitting/helpers/create-value-actions.py (Task 9 of
+// the first-touch-attribution plan); frozen here once known.
+export const STUC_PURCHASE_CONVERSION_ACTION_ID = 'PENDING_TASK_9';
+export const DONATION_CONVERSION_ACTION_ID = 'PENDING_TASK_9';
