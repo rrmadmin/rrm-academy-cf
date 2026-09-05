@@ -296,22 +296,62 @@ if (!jsonLd) {
             ftSource = ftUtmSource;
             ftMedium = ftUtmMedium || '(none)';
           } else {
-            // Referrer classification, same precedence order as
-            // _ga4-source.js classifySource(): AI agents, then search
-            // engines, then social, then bare referral hostname, else
-            // direct. Self-domain referrers count as direct.
+            // Referrer classification, same precedence order AND same
+            // canonical token values as _ga4-source.js classifySource():
+            // AI agents, then search engines, then social, then bare
+            // referral hostname, else direct. Self-domain referrers count
+            // as direct. The AI/search/social branches below emit the exact
+            // platform/source tokens the server's AI_AGENTS/SEARCH_ENGINES/
+            // SOCIAL_NETWORKS tables use (e.g. 'google', 'facebook',
+            // 'chatgpt'), not the raw hostname -- only the referral
+            // fallback keeps the bare hostname, matching the server.
             var ftRef = document.referrer || '';
             var ftHost = '';
             try { ftHost = ftRef ? new URL(ftRef).hostname : ''; } catch (e) { ftHost = ''; }
             var ftSelf = ['rrmacademy.org', 'www.rrmacademy.org', 'library.rrmacademy.org'];
+            var ftAiTable = [
+              [/chatgpt\.com|chat\.openai\.com/i, 'chatgpt'],
+              [/perplexity\.ai/i, 'perplexity'],
+              [/claude\.ai/i, 'claude'],
+              [/gemini\.google\.com|bard\.google\.com/i, 'gemini'],
+              [/copilot\.microsoft\.com|bing\.com\/chat/i, 'copilot'],
+              [/you\.com/i, 'you'],
+              [/grokipedia\.com|x\.ai/i, 'grok'],
+            ];
+            var ftSearchTable = [
+              [/^(www\.)?google\./i, 'google'],
+              [/bing\.com/i, 'bing'],
+              [/yahoo\./i, 'yahoo'],
+              [/duckduckgo\.com/i, 'duckduckgo'],
+              [/baidu\.com/i, 'baidu'],
+              [/yandex\./i, 'yandex'],
+              [/ecosia\.org/i, 'ecosia'],
+            ];
+            var ftSocialTable = [
+              [/instagram\.com|l\.instagram\.com/i, 'instagram'],
+              [/facebook\.com|l\.facebook\.com|fb\.com/i, 'facebook'],
+              [/linkedin\.com|lnkd\.in/i, 'linkedin'],
+              [/t\.co|twitter\.com|x\.com/i, 'twitter'],
+              [/youtube\.com|youtu\.be/i, 'youtube'],
+              [/pinterest\.com/i, 'pinterest'],
+              [/reddit\.com/i, 'reddit'],
+              [/tiktok\.com/i, 'tiktok'],
+            ];
+            var ftMatchTable = function (table, subject) {
+              for (var i = 0; i < table.length; i++) {
+                if (table[i][0].test(subject)) return table[i][1];
+              }
+              return null;
+            };
+            var ftAiMatch, ftSearchMatch, ftSocialMatch;
             if (!ftHost || ftSelf.indexOf(ftHost) !== -1) {
               ftSource = '(direct)'; ftMedium = '(none)';
-            } else if (/chatgpt\.com|chat\.openai\.com|perplexity\.ai|claude\.ai|gemini\.google\.com|bard\.google\.com|copilot\.microsoft\.com|bing\.com\/chat|you\.com|grokipedia\.com|x\.ai/i.test(ftRef)) {
-              ftSource = ftHost; ftMedium = 'ai';
-            } else if (/^(www\.)?google\.|bing\.com|yahoo\.|duckduckgo\.com|baidu\.com|yandex\.|ecosia\.org/i.test(ftHost)) {
-              ftSource = ftHost.replace(/^www\./, ''); ftMedium = 'organic';
-            } else if (/instagram\.com|facebook\.com|fb\.com|linkedin\.com|lnkd\.in|t\.co|twitter\.com|x\.com|youtube\.com|youtu\.be|pinterest\.com|reddit\.com|tiktok\.com/i.test(ftHost)) {
-              ftSource = ftHost; ftMedium = 'social';
+            } else if ((ftAiMatch = ftMatchTable(ftAiTable, ftRef))) {
+              ftSource = ftAiMatch; ftMedium = 'ai';
+            } else if ((ftSearchMatch = ftMatchTable(ftSearchTable, ftHost))) {
+              ftSource = ftSearchMatch; ftMedium = 'organic';
+            } else if ((ftSocialMatch = ftMatchTable(ftSocialTable, ftHost))) {
+              ftSource = ftSocialMatch; ftMedium = 'social';
             } else {
               ftSource = ftHost; ftMedium = 'referral';
             }
@@ -354,6 +394,15 @@ if (!jsonLd) {
 
           if (ftEncoded.length <= 1024) {
             document.cookie = 'rrm_ft=' + ftEncoded + ';max-age=7776000;path=/;SameSite=Lax;Secure';
+          } else {
+            // Over budget: write a sentinel value instead of skipping the
+            // cookie entirely. Without this, the cookie stays absent and
+            // the visitor's NEXT internal pageview would find no rrm_ft
+            // cookie, treat that later visit as the first touch, and record
+            // a false permanent (direct) attribution. parseFirstTouch()
+            // treats 'x' as unparseable and returns null, so downstream
+            // code sees "no first-touch data" rather than inventing one.
+            document.cookie = 'rrm_ft=x;max-age=7776000;path=/;SameSite=Lax;Secure';
           }
         }
       } catch (e) {}

@@ -106,19 +106,24 @@ describe('BaseLayout inline script -- rrm_ft first-touch cookie', () => {
     assert.match(raw, /s=newsletter/);
   });
 
-  it('a click id over 512 chars aborts the whole cookie, not a truncated field', () => {
+  it('a click id over 512 chars aborts the full record and writes the sentinel instead', () => {
     // A plain-ASCII filler (e.g. 'A') never crosses 1KB here: the g field's
     // own 512-char cap plus the other short fields tops out well under the
     // limit, so the abort would never fire and the test would be vacuous.
     // '"' needs 3x expansion under encodeURIComponent (%22), which is what
     // pushes even the capped 512-char field over the 1KB total once encoded
     // -- exercising the abort-on-overflow path, not a per-field truncation.
+    // Over budget writes a one-byte sentinel ('x') rather than skipping the
+    // cookie outright, so a later pageview does not mistake this visit's
+    // absence of rrm_ft for "no first touch yet" and invent one.
     const longGclid = '"'.repeat(600);
     const { cookieStore } = runScript({ search: `?gclid=${longGclid}` });
-    assert.equal(cookieStore.find((c) => c.startsWith('rrm_ft=')), undefined);
+    const raw = cookieStore.find((c) => c.startsWith('rrm_ft='));
+    assert.ok(raw, 'sentinel rrm_ft cookie was not written');
+    assert.equal(raw, 'rrm_ft=x');
   });
 
-  it('a cookie that would exceed 1KB total writes nothing', () => {
+  it('a record that would exceed 1KB total writes the sentinel instead of nothing', () => {
     // Same reasoning as above: plain 'x' fillers at the 100-char per-field
     // cap sum to ~940 encoded chars (under 1024), so they would not
     // actually exercise the abort path. '"' triples under encodeURIComponent
@@ -128,7 +133,9 @@ describe('BaseLayout inline script -- rrm_ft first-touch cookie', () => {
     const { cookieStore } = runScript({
       search: `?utm_source=${longUtm}&utm_medium=${longUtm}&utm_campaign=${longUtm}&utm_content=${longUtm}&utm_term=${longUtm}&gclid=${'g'.repeat(500)}`,
     });
-    assert.equal(cookieStore.find((c) => c.startsWith('rrm_ft=')), undefined);
+    const raw = cookieStore.find((c) => c.startsWith('rrm_ft='));
+    assert.ok(raw, 'sentinel rrm_ft cookie was not written');
+    assert.equal(raw, 'rrm_ft=x');
   });
 
   it('seeds g from a legacy gclid cookie on the first write when the URL carries no click id', () => {
@@ -144,6 +151,27 @@ describe('BaseLayout inline script -- rrm_ft first-touch cookie', () => {
     const { cookieStore } = runScript({ search: '?utm_source=google&utm_medium=display&gclid=abc123456789' });
     const raw = decodeURIComponent(cookieStore.find((c) => c.startsWith('rrm_ft=')).slice('rrm_ft='.length));
     assert.match(raw, /m=cpc/);
+  });
+
+  it('a google.com referrer classifies as canonical source google, not the hostname', () => {
+    const { cookieStore } = runScript({ referrer: 'https://www.google.com/' });
+    const raw = decodeURIComponent(cookieStore.find((c) => c.startsWith('rrm_ft=')).slice('rrm_ft='.length));
+    assert.match(raw, /s=google/);
+    assert.match(raw, /m=organic/);
+  });
+
+  it('an l.facebook.com referrer classifies as canonical source facebook, not the hostname', () => {
+    const { cookieStore } = runScript({ referrer: 'https://l.facebook.com/l.php?u=x' });
+    const raw = decodeURIComponent(cookieStore.find((c) => c.startsWith('rrm_ft=')).slice('rrm_ft='.length));
+    assert.match(raw, /s=facebook/);
+    assert.match(raw, /m=social/);
+  });
+
+  it('a chatgpt.com referrer classifies as canonical source chatgpt with medium ai', () => {
+    const { cookieStore } = runScript({ referrer: 'https://chatgpt.com/c/abc123' });
+    const raw = decodeURIComponent(cookieStore.find((c) => c.startsWith('rrm_ft=')).slice('rrm_ft='.length));
+    assert.match(raw, /s=chatgpt/);
+    assert.match(raw, /m=ai/);
   });
 
   it('a second ad click overwrites the 30-day gclid cookie while rrm_ft (first touch) stays unchanged', () => {

@@ -474,6 +474,10 @@ describe('parseFirstTouch', () => {
     assert.equal(parseFirstTouch(cookie), null);
   });
 
+  it('returns null for the sentinel value BaseLayout writes when the record was over budget', () => {
+    assert.equal(parseFirstTouch('rrm_ft=x'), null);
+  });
+
   it('caps a field at 100 chars', () => {
     const long = 'a'.repeat(150);
     const cookie = ftCookie({ s: long });
