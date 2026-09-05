@@ -302,7 +302,7 @@ describe('sendGoogleAdsValueConversion placeholder-action-id guard', () => {
     const waitUntil = mockWaitUntil();
     googleAds.sendGoogleAdsValueConversion(env, waitUntil, {
       clickId: 'abcdefghij1234567890',
-      conversionActionId: 'PENDING_TASK_9',
+      conversionActionId: googleAds.PLACEHOLDER_ACTION_ID,
       conversionValue: 25,
       orderId: 'pi_test_pending',
     });
