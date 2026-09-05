@@ -18,6 +18,29 @@
 
 import { track, trackOutbound, trackPageView, startEngagementTracking } from './track';
 
+// Maps every pre-existing freeform data-track-cta id to its data-cta
+// replacement, for the one release both attributes coexist. Every id this
+// plan renamed lives here so the legacy listener never sends a freeform id
+// once the new attribute exists on the same element (in which case the
+// data-cta branch above already wins and this map is never consulted for
+// that element) -- this map matters only for any surviving element that
+// still carries ONLY the legacy attribute. An id with NO entry here is
+// dropped by the listener above, not sent as-is.
+const LEGACY_CTA_RENAME_MAP: Record<string, string> = {
+  'account-mobile-nav': 'nav-mobile.sidebar.account',
+  'donate-mobile-nav': 'nav-mobile.sidebar.donate',
+  'account-header': 'header.sticky.account',
+  'donate-header': 'header.sticky.donate',
+  'donate-footer': 'footer.footer-col-4.donate',
+  'hero-start-learning': 'home.hero.learn',
+  'hero-endo-survey': 'home.hero.survey-start',
+  'hero-for-patients': 'home.inline.learn',
+  'hero-for-clinicians': 'home.inline.providers',
+  'hero-donate': 'home.inline.donate',
+  '500-home': 'error.error.home',
+  '500-retry': 'error.error.retry',
+};
+
 // Expose track() on the global window so `is:inline` scripts (Footer + Header
 // theme toggles, etc.) can fire analytics events without importing the helper
 // directly. Astro bundles regular `<script>` blocks but `<script is:inline>`
@@ -58,23 +81,42 @@ if (typeof window !== 'undefined' && typeof document !== 'undefined') {
 
     // ── 2. CTA clicks ───────────────────────────────────────────────────
     // Bubble-phase: by the time it reaches document the value is final.
+    //
+    // Reads [data-cta] (the closed-vocabulary "<page>.<zone>.<intent>" id,
+    // see docs/superpowers/specs/2026-09-05-attribution-cta-map-ltv-design.md
+    // §4) FIRST, and falls back to the legacy [data-track-cta] attribute for
+    // one release through LEGACY_CTA_RENAME_MAP -- an element carrying BOTH
+    // attributes fires exactly once, matching data-cta and never re-firing
+    // on the legacy path. A legacy id with NO rename-table entry sends
+    // nothing at all: it would fail _ga4.js's own id-shape screen anyway
+    // (see below) and land as 'other' in the ledger for no reason, so there
+    // is no value in beaconing it client-side either. LEGACY_CTA_RENAME_MAP
+    // is deleted, along with this fallback branch and every remaining
+    // data-track-cta attribute in the codebase, in the release after this
+    // one ships.
     document.addEventListener(
       'click',
       (e: MouseEvent) => {
         const target = e.target as Element | null;
         if (!target) return;
-        const cta = target.closest?.('[data-track-cta]') as HTMLElement | null;
+        const cta = target.closest?.('[data-cta], [data-track-cta]') as HTMLElement | null;
         if (!cta) return;
-        const id = cta.getAttribute('data-track-cta');
+
+        const newId = cta.getAttribute('data-cta');
+        const legacyId = cta.getAttribute('data-track-cta');
+        // newId wins when both are present -- this is what makes an element
+        // carrying both attributes during the transition fire exactly once.
+        // A legacy-only id with no map entry is dropped, not sent freeform.
+        const id = newId || (legacyId ? LEGACY_CTA_RENAME_MAP[legacyId] : null);
         if (!id) return;
-        const position = cta.getAttribute('data-track-position') || undefined;
-        const value = cta.getAttribute('data-track-value');
-        const numericValue = value != null && value !== '' ? Number(value) : NaN;
+
+        const [page, zone, intent] = id.includes('.') ? id.split('.') : [];
+
         track('cta_click', {
           id,
           page: location.pathname,
-          ...(position ? { position } : {}),
-          ...(Number.isFinite(numericValue) ? { value: numericValue } : {}),
+          ...(zone ? { cta_zone: zone } : {}),
+          ...(intent ? { cta_intent: intent } : {}),
         });
       },
       false,

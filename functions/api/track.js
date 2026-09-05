@@ -3,6 +3,10 @@
  * Client-side behavior event relay: validates, sanitizes, then fans out to
  * GA4 Measurement Protocol (via sendGA4Event) and CF Analytics Engine.
  *
+ * cta_click carries id/page (required) plus cta_zone/cta_intent (optional,
+ * see _track-events.js) -- all four flow through this file's generic
+ * key/value validation and sanitization with no cta_click-specific branch.
+ *
  * No auth required -- anonymous behavior tracking by design.
  * Rate limit: 60 events / minute / IP.
  */

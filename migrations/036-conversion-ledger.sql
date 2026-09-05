@@ -56,6 +56,15 @@
 --   purchase / begin_checkout : items[0].item_name -> 'donation' | 'course'
 --                               | 'stuc_<tier>' | 'other'
 --   generate_lead             : params.lead_source verbatim | 'other'
+--   cta_click                 : params.id verbatim (the "page.zone.intent"
+--                               CTA id), screened for PII shape AND for the
+--                               id's own regex shape, else 'other'. Added
+--                               2026-09-05 (CTA map workstream). No new
+--                               column: cta_click reuses the existing `type`
+--                               TEXT column. Never carries a user_id, and
+--                               never a value_cents (no call site sends
+--                               `value` on this beacon) -- see _ga4.js
+--                               LEDGER_USER_EVENTS.
 --   sign_up                   : params.method ('email' | 'google' | 'checkout')
 --                               | 'other'. 'checkout' is a Stripe-created
 --                               account, kept separable from organic signups.

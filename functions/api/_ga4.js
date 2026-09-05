@@ -6,7 +6,7 @@
  *   sendGA4Event(env, request, 'purchase', { value: 10.00, currency: 'USD' }).catch(() => {});
  *
  * Every event relayed here is sent to GA4. The first-party conversion ledger
- * below is narrower on purpose: it records only the five funnel events in
+ * below is narrower on purpose: it records only the six events in
  * LEDGER_EVENTS, and every other event returns from the ledger write untouched.
  */
 
@@ -34,18 +34,23 @@ const REGISTERED_USER_EVENTS = new Set(['sign_up', 'signup_from_ask']);
 // GA4_MEASUREMENT_ID/GA4_API_SECRET are absent and no send happens at all --
 // a credential lapse is precisely when an independent record earns its keep.
 //
-// SCOPE. The ledger answers funnel questions, so it records exactly the five
+// SCOPE. The ledger answers funnel questions, so it records exactly the six
 // events below and nothing else. sendGA4Event is the relay for every server-side
-// event on the site, engagement signals included (scroll_depth, user_engagement,
-// cta_click), and those were landing rows that no funnel question asks about
-// while inflating a table meant to stay conversion-shaped. GA4 still receives
-// every one of them; only the ledger write is narrowed.
+// event on the site, engagement signals included (scroll_depth, user_engagement),
+// and those were landing rows that no funnel question asks about while
+// inflating a table meant to stay conversion-shaped. cta_click joined the
+// six on 2026-09-05 (the CTA map workstream): it answers the section 5.1 CTA
+// table's own aggregate query (click rows joined to begin_checkout/purchase
+// on client_id), which none of the five funnel events alone can do at
+// per-button granularity. GA4 still receives every excluded event too; only
+// the ledger write is narrowed.
 const LEDGER_EVENTS = Object.freeze(new Set([
   'page_view',
   'sign_up',
   'generate_lead',
   'begin_checkout',
   'purchase',
+  'cta_click',
 ]));
 
 // TEXT caps applied on the way into the row, AFTER ledgerSafeText's PII screen.
@@ -55,7 +60,12 @@ const LEDGER_LONG_CAP = 128;
 
 // Events allowed to carry a user_id. page_view is excluded on volume: it is the
 // highest-frequency event on the site and a per-person page-by-page trail is
-// well past what the funnel questions need.
+// well past what the funnel questions need. cta_click is excluded for the same
+// reason (added 2026-09-05): it is the CTA map's highest-frequency event, and
+// a per-person click trail on every button is well past what the funnel
+// questions need. A cta_click row keys to client_id only, logged in or not --
+// the section 5.1 CTA table joins on client_id (present on both sides of a
+// cta_click row), never on user_id.
 const LEDGER_USER_EVENTS = new Set(['sign_up', 'generate_lead', 'begin_checkout', 'purchase']);
 
 // Both item matchers are case-insensitive: the item_name is composed by the
@@ -70,6 +80,13 @@ const COURSE_ITEM_RE = /^Course: /i;
 // 'other': 'email' (auth/signup.js), 'google' (auth/google-callback.js),
 // 'checkout' (billing/_webhook-checkout.js).
 const SIGN_UP_METHODS = new Set(['email', 'google', 'checkout']);
+
+// The CTA id shape (page.zone.intent), inlined here rather than imported --
+// this file is a Worker and must never import from scripts/, which is the
+// SSOT (scripts/lib/cta-vocabulary.mjs). Keep the two in sync by hand; a
+// mismatch fails closed (an id that should be valid returns 'other'), never
+// open.
+const CTA_ID_SHAPE_RE = /^[a-z0-9-]+\.[a-z0-9-]+\.[a-z0-9-]+$/;
 
 /**
  * Deterministic `type` column derivation, per the contract written into
@@ -99,6 +116,16 @@ export function deriveLedgerType(eventName, params = {}) {
     const source = params.lead_source;
     if (typeof source !== 'string' || !source || PII_VALUE_REGEX.test(source)) return 'other';
     return safeSlice(source, LEDGER_SHORT_CAP);
+  }
+  if (eventName === 'cta_click') {
+    // params.id is the full "page.zone.intent" CTA id (src/scripts/track-auto.ts,
+    // src/data/cta-vocabulary.json). The build-time lint gate already
+    // constrains every id shipped in markup, but /api/track has no auth, so
+    // this endpoint re-screens for PII shape AND for the id's own regex
+    // shape before trusting it into the ledger's `type` column.
+    const id = params.id;
+    if (typeof id !== 'string' || !id || PII_VALUE_REGEX.test(id) || !CTA_ID_SHAPE_RE.test(id)) return 'other';
+    return safeSlice(id, LEDGER_SHORT_CAP);
   }
   if (eventName === 'sign_up') {
     // 'checkout' is the Stripe-webhook auto-created account
