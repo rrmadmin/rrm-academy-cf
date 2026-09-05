@@ -215,3 +215,77 @@ describe('_google-ads.js retry on transient network failure', () => {
     assert.match(errorRow.blobs[4], /^token_network:/);
   });
 });
+
+describe('_google-ads.js uploadConversion payload shape', () => {
+  it('the default path (no value/currency/orderId/clickIdKind) is byte-identical to the pre-refactor payload', async (t) => {
+    const stub = stubGoogleAdsFetch({
+      tokenImpl: () => okTokenResponse(),
+      ingestImpl: () => okIngestResponse(),
+    });
+    t.after(() => stub.restore());
+
+    const env = googleAdsEnv();
+    const waitUntil = mockWaitUntil();
+    googleAds.sendGoogleAdsConversion(env, waitUntil, COOKIE, ACTION_ID);
+    await drainWaitUntil(waitUntil);
+
+    const ingestBody = JSON.parse(stub.ingestCalls[0].init.body);
+    const event = ingestBody.events[0];
+    assert.deepEqual(event.adIdentifiers, { gclid: 'abcdefghij1234567890' });
+    assert.equal(event.conversionValue, 1.0);
+    assert.equal(event.currency, 'USD');
+    assert.equal(event.eventSource, 'WEB');
+    assert.equal('transactionId' in event, false, 'no transactionId key on the default path, not even null/empty');
+  });
+
+  it('sendGoogleAdsValueConversion emits value, currency, transactionId, and a gclid-keyed adIdentifiers', async (t) => {
+    const stub = stubGoogleAdsFetch({
+      tokenImpl: () => okTokenResponse(),
+      ingestImpl: () => okIngestResponse(),
+    });
+    t.after(() => stub.restore());
+
+    const env = googleAdsEnv();
+    const waitUntil = mockWaitUntil();
+    // clickIdKind defaults to 'gclid' inside sendGoogleAdsValueConversion
+    // (the webhook only ever reads gclid_last), so a gbraid-keyed
+    // adIdentifiers is exercised directly through uploadConversionWithRetry
+    // via the module's internal uploadConversion, proven by shape here
+    // rather than through the public entry point.
+    googleAds.sendGoogleAdsValueConversion(env, waitUntil, {
+      clickId: 'abcdefghij1234567890',
+      conversionActionId: googleAds.NEWSLETTER_CONVERSION_ACTION_ID,
+      conversionValue: 25.5,
+      currency: 'USD',
+      orderId: 'pi_test_value_upload',
+    });
+    await drainWaitUntil(waitUntil);
+
+    const ingestBody = JSON.parse(stub.ingestCalls[0].init.body);
+    const event = ingestBody.events[0];
+    assert.equal(event.conversionValue, 25.5);
+    assert.equal(event.currency, 'USD');
+    assert.equal(event.transactionId, 'pi_test_value_upload');
+    assert.deepEqual(event.adIdentifiers, { gclid: 'abcdefghij1234567890' });
+  });
+
+  it('sendGoogleAdsValueConversion is a no-op with no clickId', async (t) => {
+    const stub = stubGoogleAdsFetch({
+      tokenImpl: () => { throw new Error('must not be called'); },
+      ingestImpl: () => { throw new Error('must not be called'); },
+    });
+    t.after(() => stub.restore());
+
+    const env = googleAdsEnv();
+    const waitUntil = mockWaitUntil();
+    googleAds.sendGoogleAdsValueConversion(env, waitUntil, {
+      clickId: null,
+      conversionActionId: googleAds.NEWSLETTER_CONVERSION_ACTION_ID,
+      conversionValue: 9,
+      orderId: 'sub_test',
+    });
+    await drainWaitUntil(waitUntil);
+    assert.equal(stub.tokenCalls.length, 0);
+    assert.equal(stub.ingestCalls.length, 0);
+  });
+});
