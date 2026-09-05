@@ -234,7 +234,7 @@
       "note": "GA4 MP relay: server-derived attribution PII screen (second pass) + page_location query/hash/userinfo strip"
     },
     "functions/api/_ga4-source.js": {
-      "hash": "bc5c8316caa9be716c19ffe62aa581c4237ec59c5eacb4ebe83da339f1102e84",
+      "hash": "e55ada7414105e3b6e29788b1c906b23965d69466be5cb1771954073f241a265",
       "note": "Traffic-source classification: utm value PII screen (first pass) + 100-char clamp + paid/email overrides"
     },
     "functions/api/email/events.js": {

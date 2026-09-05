@@ -117,6 +117,18 @@ const PAID_CLICK_IDS = [
   { param: 'msclkid', platform: 'bing' },
 ];
 
+// gclid values are opaque alphanumeric-ish tokens Google generates; this is
+// a sanity bound, not a real format spec. Moved here from _google-ads.js
+// (2026-09-05) so create-checkout.js can read the same 30-day cookie
+// without importing the Ads-upload module's SES/rate-limit dependencies.
+export const GCLID_RE = /^[A-Za-z0-9_-]{10,512}$/;
+
+export function parseGclidCookie(cookieHeader) {
+  const value = parseCookie(cookieHeader, 'gclid');
+  if (!value || !GCLID_RE.test(value)) return null;
+  return value;
+}
+
 // GA4's own default-channel-group definition of a paid medium.
 const PAID_MEDIUM_RE = /^(.*cp.*|ppc|retargeting|paid.*)$/i;
 
@@ -183,6 +195,82 @@ export function parseCookie(cookieHeader, name) {
   try { return decodeURIComponent(match[1]); } catch { return ''; }
 }
 
+/**
+ * Parses the rrm_ft first-touch cookie (BaseLayout.astro, section 3.1 of
+ * docs/superpowers/specs/2026-09-05-attribution-cta-map-ltv-design.md) into
+ * GA4 event params plus a ledger-bound click_id. Every free-text field is
+ * screened by PII_VALUE_REGEX at the same boundary extractUtm applies to
+ * utm_* -- the cookie is client-written and a URL param an attacker fully
+ * controls can land in it, so it gets no more trust server-side than a raw
+ * query string does. A screened-out field is simply absent from the
+ * returned object rather than present-and-empty, so a caller's `?? `
+ * fallback behaves the same way it does for a field the cookie never had.
+ *
+ * click_id carries the kind marker's PAYLOAD only ('g'/'b'/'w' prefix is
+ * stripped here): the ledger's click_id column stores the raw click id, not
+ * which kind it was. The kind marker exists only to let this parser split
+ * the field; nothing downstream needs to know gclid from gbraid from wbraid.
+ *
+ * Returns null when the cookie is absent or empty, so `buildSourceParams`
+ * can spread the result unconditionally with `...(parsed || {})`.
+ */
+const FIRST_TOUCH_STRING_MAX = 100;
+const FIRST_TOUCH_CLICK_ID_MAX = 512;
+
+export function parseFirstTouch(cookieHeader) {
+  const raw = parseCookie(cookieHeader, 'rrm_ft');
+  if (!raw) return null;
+
+  const fields = {};
+  for (const part of raw.split('&')) {
+    const eq = part.indexOf('=');
+    if (eq === -1) continue;
+    const key = part.slice(0, eq);
+    let value;
+    try {
+      value = decodeURIComponent(part.slice(eq + 1));
+    } catch {
+      continue;
+    }
+    if (value) fields[key] = value;
+  }
+
+  const screenedText = (value, max) => {
+    if (typeof value !== 'string' || !value) return undefined;
+    if (PII_VALUE_REGEX.test(value)) return undefined;
+    return value.slice(0, max);
+  };
+
+  const result = {};
+  const ft_source = screenedText(fields.s, FIRST_TOUCH_STRING_MAX);
+  if (ft_source) result.ft_source = ft_source;
+  const ft_medium = screenedText(fields.m, FIRST_TOUCH_STRING_MAX);
+  if (ft_medium) result.ft_medium = ft_medium;
+  const ft_campaign = screenedText(fields.c, FIRST_TOUCH_STRING_MAX);
+  if (ft_campaign) result.ft_campaign = ft_campaign;
+  const ft_content = screenedText(fields.k, FIRST_TOUCH_STRING_MAX);
+  if (ft_content) result.ft_content = ft_content;
+  const ft_landing = screenedText(fields.l, FIRST_TOUCH_STRING_MAX);
+  if (ft_landing) result.ft_landing = ft_landing;
+
+  if (typeof fields.g === 'string' && fields.g.length > 1) {
+    const clickIdValue = fields.g.slice(1);
+    const click_id = screenedText(clickIdValue, FIRST_TOUCH_CLICK_ID_MAX);
+    if (click_id) result.click_id = click_id;
+  }
+
+  const epochSeconds = Number(fields.d);
+  if (Number.isFinite(epochSeconds) && epochSeconds > 0) {
+    try {
+      result.ft_at = new Date(epochSeconds * 1000).toISOString();
+    } catch {
+      // leave ft_at unset on an out-of-range epoch
+    }
+  }
+
+  return Object.keys(result).length > 0 ? result : null;
+}
+
 export async function buildSourceParams(request, clientId) {
   // Prefer entry source cookies (set on first page load in BaseLayout).
   // These carry the original external referrer across internal navigations,
@@ -228,6 +316,7 @@ export async function buildSourceParams(request, clientId) {
   // list_source cookie: set by BaseLayout when ?list_source= param is present on first load.
   // Survives internal navigations so API calls inherit the original list source.
   const listSource = parseCookie(cookies, 'list_source');
+  const firstTouch = parseFirstTouch(cookies);
 
   return {
     session_id: sessionId,
@@ -240,5 +329,6 @@ export async function buildSourceParams(request, clientId) {
     ...(utmParams.utm_content && { utm_content: utmParams.utm_content }),
     ...(utmParams.utm_term && { utm_term: utmParams.utm_term }),
     ...(listSource && { list_source: listSource }),
+    ...(firstTouch || {}),
   };
 }

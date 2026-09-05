@@ -62,6 +62,7 @@
 import { log } from './_log.js';
 import { sendEmail } from './_ses.js';
 import { checkRateLimit } from './auth/_shared.js';
+import { parseGclidCookie, GCLID_RE } from './_ga4-source.js';
 
 const GOOGLE_ADS_CUSTOMER_ID = '4262268858';
 const INGEST_ENDPOINT = 'https://datamanager.googleapis.com/v1/events:ingest';
@@ -84,10 +85,6 @@ export const ENDO_QUIZ_PDF_CONVERSION_ACTION_ID = '7728951095'; // secondary
 export const ENDO_QUIZ_EMAIL_CONVERSION_ACTION_ID = '7728951098'; // secondary
 export const ENDO_QUIZ_RESULTS_CONVERSION_ACTION_ID = '7735340851'; // secondary
 
-// gclid values are opaque alphanumeric-ish tokens Google generates; this is a
-// sanity bound, not a real format spec.
-const GCLID_RE = /^[A-Za-z0-9_-]{10,512}$/;
-
 const ALERT_FROM = 'RRM Academy <alerts@mail.rrmacademy.org>';
 const ALERT_TO = 'administrator@rrmacademy.org';
 
@@ -104,20 +101,6 @@ const CONVERSION_ACTION_NAMES = {
 
 function conversionActionName(conversionActionId) {
   return CONVERSION_ACTION_NAMES[conversionActionId] || conversionActionId;
-}
-
-function parseGclidCookie(cookieHeader) {
-  if (!cookieHeader) return null;
-  const match = cookieHeader.match(/(?:^|;\s*)gclid=([^;]*)/);
-  if (!match) return null;
-  let value;
-  try {
-    value = decodeURIComponent(match[1]);
-  } catch {
-    return null;
-  }
-  if (!GCLID_RE.test(value)) return null;
-  return value;
 }
 
 // Data Manager wants RFC 3339; strip fractional seconds for the exact shape
