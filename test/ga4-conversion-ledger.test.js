@@ -911,3 +911,81 @@ describe('conversion ledger -- no raw IP or user agent is ever written', () => {
     } finally { fetchStub.restore(); db.close(); }
   });
 });
+
+// ---------------------------------------------------- first-touch columns ---
+
+describe('conversion ledger -- first-touch columns (migration 039)', () => {
+  it('a page_view with an rrm_ft cookie lands ft_* and click_id', async () => {
+    const fetchStub = stubExternalFetch();
+    const db = ledgerD1();
+    try {
+      const env = mockEnv({ DB: db, CONVERSION_LEDGER: '1' });
+      const req = mockRequest('GET', {
+        headers: {
+          'CF-Connecting-IP': '203.0.113.9',
+          'User-Agent': 'Mozilla/5.0 (test-agent)',
+          Cookie: 'entry_ref=; entry_url=' + encodeURIComponent('https://rrmacademy.org/') +
+            '; rrm_ft=' + encodeURIComponent('s=google&m=cpc&c=q3_push&l=%2Fendo-quiz%2F&g=gEAIaIQtest&d=1757030400'),
+        },
+        url: 'https://rrmacademy.org/api/test',
+      });
+      await sendGA4Event(env, req, 'page_view', { page_location: 'https://rrmacademy.org/endo-quiz/' });
+      const [row] = rows(db);
+      assert.equal(row.ft_source, 'google');
+      assert.equal(row.ft_medium, 'cpc');
+      assert.equal(row.ft_campaign, 'q3_push');
+      assert.equal(row.ft_landing, '/endo-quiz/');
+      assert.equal(row.click_id, 'EAIaIQtest');
+      assert.equal(row.ft_at, new Date(1757030400 * 1000).toISOString());
+    } finally { fetchStub.restore(); db.close(); }
+  });
+
+  it('a purchase replay carries transaction_id from params, exempt from the digit-run screen', async () => {
+    const fetchStub = stubExternalFetch();
+    const db = ledgerD1();
+    try {
+      const env = mockEnv({ DB: db, CONVERSION_LEDGER: '1' });
+      await sendGA4Event(env, makeRequest(), 'purchase', {
+        value: 25,
+        items: [{ item_name: 'Donation' }],
+        transaction_id: 'pi_3Ptest1234567890123',
+      });
+      const [row] = rows(db);
+      assert.equal(row.transaction_id, 'pi_3Ptest1234567890123');
+    } finally { fetchStub.restore(); db.close(); }
+  });
+
+  it('a pre-039-style row with no rrm_ft cookie leaves ft_* and click_id NULL', async () => {
+    const fetchStub = stubExternalFetch();
+    const db = ledgerD1();
+    try {
+      const env = mockEnv({ DB: db, CONVERSION_LEDGER: '1' });
+      await sendGA4Event(env, makeRequest(), 'generate_lead', { lead_source: 'newsletter' });
+      const [row] = rows(db);
+      assert.equal(row.ft_source, null);
+      assert.equal(row.ft_medium, null);
+      assert.equal(row.click_id, null);
+      assert.equal(row.transaction_id, null);
+    } finally { fetchStub.restore(); db.close(); }
+  });
+
+  it('an email-shaped click_id in the cookie never reaches the ledger', async () => {
+    const fetchStub = stubExternalFetch();
+    const db = ledgerD1();
+    try {
+      const env = mockEnv({ DB: db, CONVERSION_LEDGER: '1' });
+      const req = mockRequest('GET', {
+        headers: {
+          'CF-Connecting-IP': '203.0.113.10',
+          'User-Agent': 'Mozilla/5.0 (test-agent)',
+          Cookie: 'rrm_ft=' + encodeURIComponent('s=google&g=g' + encodeURIComponent('someone@example.com')),
+        },
+        url: 'https://rrmacademy.org/api/test',
+      });
+      await sendGA4Event(env, req, 'page_view', { page_location: 'https://rrmacademy.org/' });
+      const [row] = rows(db);
+      assert.equal(row.click_id, null);
+      assert.equal(row.ft_source, 'google');
+    } finally { fetchStub.restore(); db.close(); }
+  });
+});

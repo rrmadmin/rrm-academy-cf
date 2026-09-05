@@ -227,8 +227,9 @@ async function writeConversionLedger(env, request, eventName, params, sourcePara
   const dedupKey = eventId ? safeSlice(`${eventName}:${eventId}`, LEDGER_LONG_CAP) : null;
   await env.DB.prepare(`
     INSERT OR IGNORE INTO conversion_event
-      (event, type, value_cents, client_id, session_id, user_id, entry_source, entry_category, utm_campaign, item, dedup_key)
-    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+      (event, type, value_cents, client_id, session_id, user_id, entry_source, entry_category, utm_campaign, item, dedup_key,
+       ft_source, ft_medium, ft_campaign, ft_landing, ft_at, click_id, transaction_id)
+    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
   `).bind(
     eventName,
     ledgerText(deriveLedgerType(eventName, params), LEDGER_SHORT_CAP),
@@ -248,6 +249,23 @@ async function writeConversionLedger(env, request, eventName, params, sourcePara
     ledgerSafeText(pick('utm_campaign'), LEDGER_SHORT_CAP),
     ledgerSafeText(params.items?.[0]?.item_name, LEDGER_LONG_CAP),
     dedupKey,
+    // First-touch attribution (migrations/039-first-touch-attribution.sql).
+    // Same precedence as every other pick()-read column: a caller-supplied
+    // value (the webhook's metadata replay) wins over the request-derived
+    // sourceParams, so a purchase's ledger row agrees with its GA4 payload.
+    ledgerSafeText(pick('ft_source'), LEDGER_SHORT_CAP),
+    ledgerSafeText(pick('ft_medium'), LEDGER_SHORT_CAP),
+    ledgerSafeText(pick('ft_campaign'), LEDGER_SHORT_CAP),
+    ledgerSafeText(pick('ft_landing'), LEDGER_SHORT_CAP),
+    // ft_at is an ISO timestamp, not free text -- ledgerText only, no PII screen.
+    ledgerText(pick('ft_at'), LEDGER_SHORT_CAP),
+    // click_id IS free text (visitor-controlled via a URL param) and gets
+    // the full screen, unlike transaction_id below.
+    ledgerSafeText(pick('click_id'), LEDGER_LONG_CAP),
+    // transaction_id: opaque Stripe identifier (pi_/sub_/cs_...), exempt
+    // from the digit-run PII screen the way session_id/client_id/user_id/
+    // dedup_key already are -- length cap only.
+    ledgerText(params.transaction_id, LEDGER_SHORT_CAP),
   ).run();
 }
 
