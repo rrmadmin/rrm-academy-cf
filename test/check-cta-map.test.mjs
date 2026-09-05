@@ -11,8 +11,10 @@ import {
   checkLiteralCtaValidity,
   checkComponentDuplicates,
   findDistModeViolations,
+  findRequiredIdCoverage,
   extractCtaOccurrences,
   isChromeCta,
+  cmpCodepoint,
 } from '../scripts/lib/cta-map-rules.mjs';
 
 describe('source mode -- literal validity', () => {
@@ -241,5 +243,152 @@ describe('cta-required-ids.json coverage (element-level starting condition)', ()
     const html = `<a href="/donate/" data-cta="home.inline.donate">Give</a>`;
     const occ = extractCtaOccurrences(html);
     assert.equal(occ.some((o) => o.ctaId === 'donate.hero.donate'), false);
+  });
+});
+
+describe('findRequiredIdCoverage (m3: exercises the actual coverage check)', () => {
+  it('a listed id absent from every page fails', () => {
+    const pages = [`<a href="/donate/" data-cta="donate.hero.donate">Give</a>`];
+    const failures = findRequiredIdCoverage(pages, new Set(['donate-btn']));
+    assert.equal(failures.length, 1);
+    assert.match(failures[0], /"donate-btn"/);
+  });
+  it('a listed id present but without data-cta fails', () => {
+    const pages = [`<button id="donate-btn">Give</button>`];
+    const failures = findRequiredIdCoverage(pages, new Set(['donate-btn']));
+    assert.equal(failures.length, 1);
+  });
+  it('a listed id present and tagged with a valid data-cta passes', () => {
+    const pages = [`<button id="donate-btn" data-cta="donate.hero.donate">Give</button>`];
+    assert.equal(findRequiredIdCoverage(pages, new Set(['donate-btn'])).length, 0);
+  });
+  it('coverage spans multiple pages -- the id can be tagged on any one of them', () => {
+    const pages = [
+      `<a href="/donate/">Give</a>`,
+      `<button id="manage-billing-btn" data-cta="stuc.card.manage-billing">Manage Billing</button>`,
+    ];
+    assert.equal(findRequiredIdCoverage(pages, new Set(['manage-billing-btn'])).length, 0);
+  });
+});
+
+describe('cmpCodepoint (determinism)', () => {
+  it('is a strict three-way codepoint comparator', () => {
+    assert.equal(cmpCodepoint('a', 'b'), -1);
+    assert.equal(cmpCodepoint('b', 'a'), 1);
+    assert.equal(cmpCodepoint('a', 'a'), 0);
+  });
+  it('sorts a mixed-script path list the same way on repeated runs, by codepoint not locale collation', () => {
+    const paths = ['/library/z/', '/library/œstrogen/', '/library/a/'];
+    const sortOnce = () => [...paths].sort(cmpCodepoint);
+    const first = sortOnce();
+    const second = sortOnce();
+    assert.deepEqual(first, second);
+    // Codepoint order: 'a' (0x61) < 'z' (0x7a) < 'œ' (0x153, œ) --
+    // a locale-aware collation (localeCompare, or a bare .sort() under an
+    // ICU build that treats œ as a ligature for "oe") could easily place
+    // "œstrogen" before "z", which is exactly the nondeterminism this
+    // comparator exists to rule out.
+    assert.deepEqual(first, ['/library/a/', '/library/z/', '/library/œstrogen/']);
+  });
+});
+
+describe('dist mode -- rule 2b handler tracing, additional shapes (finding #2)', () => {
+  it('querySelector("#id") direct-chain wiring is recognized', () => {
+    const html = `
+      <button id="give-btn">Give</button>
+      <script>
+        document.querySelector('#give-btn').addEventListener('click', function () {
+          fetch('/api/create-checkout', { method: 'POST' });
+        });
+      </script>
+    `;
+    const v = findDistModeViolations('/donate/', html, new Set());
+    assert.equal(v.length, 1);
+    assert.match(v[0].label, /give-btn/);
+  });
+  it('querySelector("#id") assigned to a variable, wired far away, is recognized', () => {
+    const filler = 'x'.repeat(1000);
+    const html = `
+      <button id="give-btn-2">Give</button>
+      <script>
+        var giveBtn = document.querySelector('#give-btn-2');
+        ${filler}
+        giveBtn.addEventListener('click', function () {
+          fetch('/api/create-checkout', { method: 'POST' });
+        });
+      </script>
+    `;
+    assert.equal(findDistModeViolations('/donate/', html, new Set()).length, 1);
+  });
+  it('.onclick = assignment handler is recognized', () => {
+    const html = `
+      <button id="give-btn-3">Give</button>
+      <script>
+        document.getElementById('give-btn-3').onclick = function () {
+          fetch('/api/create-checkout', { method: 'POST' });
+        };
+      </script>
+    `;
+    assert.equal(findDistModeViolations('/donate/', html, new Set()).length, 1);
+  });
+  it('.onsubmit = assignment handler is recognized', () => {
+    const html = `
+      <form id="pledge-form">
+        <button type="submit">Give</button>
+      </form>
+      <script>
+        document.getElementById('pledge-form').onsubmit = function () {
+          fetch('/api/create-checkout', { method: 'POST' });
+          return false;
+        };
+      </script>
+    `;
+    const v = findDistModeViolations('/donate/', html, new Set());
+    assert.equal(v.length, 1);
+    assert.match(v[0].label, /pledge-form/);
+  });
+  it('a compound class selector (.enroll-btn.primary) is recognized', () => {
+    const html = `
+      <button class="enroll-btn primary" data-course-id="c1">Start</button>
+      <script>
+        document.querySelectorAll('.enroll-btn.primary').forEach(function (btn) {
+          btn.addEventListener('click', function () { fetch('/api/courses/enroll', { method: 'POST' }); });
+        });
+      </script>
+    `;
+    assert.equal(findDistModeViolations('/courses/x/', html, new Set()).length, 1);
+  });
+  it('exempt submit-in-tagged-form case still passes with the new tracing (regression)', () => {
+    const html = `
+      <form id="email-form" data-cta="endo-survey.card.survey-start">
+        <button type="submit" data-survey-btn>Get my private link</button>
+      </form>
+      <script>
+        var btn = document.querySelector('[data-survey-btn]');
+        document.getElementById('email-form').addEventListener('submit', function () {
+          btn.disabled = true;
+          fetch('/api/survey/request', { method: 'POST' });
+        });
+      </script>
+    `;
+    assert.equal(findDistModeViolations('/endo-survey/', html, new Set()).length, 0);
+  });
+  it('a submit button in a tagged form that has its OWN independent money-wired handler is NOT exempt', () => {
+    const html = `
+      <form id="email-form" data-cta="endo-survey.card.survey-start">
+        <button type="submit" id="also-donate-btn">Get my private link and donate</button>
+      </form>
+      <script>
+        document.getElementById('email-form').addEventListener('submit', function () {
+          fetch('/api/survey/request', { method: 'POST' });
+        });
+        document.getElementById('also-donate-btn').addEventListener('click', function () {
+          fetch('/api/create-checkout', { method: 'POST' });
+        });
+      </script>
+    `;
+    const v = findDistModeViolations('/endo-survey/', html, new Set());
+    assert.equal(v.length, 1);
+    assert.match(v[0].label, /also-donate-btn/);
   });
 });

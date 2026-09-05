@@ -3,11 +3,12 @@
     "home", "donate", "stuc", "endo-quiz", "endo-quiz-results",
     "endo-survey", "course", "course-step", "library-record", "guide",
     "faqs", "header", "footer", "nav-mobile", "error",
-    "account", "community", "developers", "providers", "misc"
+    "account", "community", "developers", "providers",
+    "about", "contact", "press", "sitemap", "linkinbio", "maintenance"
   ],
   "zones": [
     "hero", "tiers", "card", "inline", "sidebar", "sticky", "modal", "error",
-    "footer-col-1", "footer-col-2", "footer-col-3", "footer-col-4"
+    "footer-col-1", "footer-col-2", "footer-col-3", "footer-col-4", "repeat"
   ],
   "intents": [
     "donate", "join-stuc-member", "join-stuc-hero", "join-stuc-superhero",

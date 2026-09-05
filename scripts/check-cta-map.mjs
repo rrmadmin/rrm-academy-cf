@@ -15,13 +15,25 @@
 //                    Used in CI; the local dev command (no --check) writes
 //                    the files.
 //
+// docs/cta-map.json/.md are a FAMILY DIGEST -- one row per distinct
+// (pageFamily, ctaId), never one row per page. Library/blog/course pages
+// are generated at deploy time from D1 content, so a per-page map would
+// grow and reshuffle on every content publish (it did: 12 MB, one row per
+// of ~4,650 pages) and fail `--check` on every routine library/commentary
+// deploy that touched zero templates. The digest is small and changes only
+// when a TEMPLATE's CTAs change -- exactly when a developer should recommit
+// it. The full per-page map (every occurrence, every page) is still
+// produced, as a build artifact at `dist/cta-map.json` -- gitignored,
+// regenerated every dist-mode run, useful for local debugging, never
+// committed and never part of the `--check` comparison.
+//
 // Run via `npm run build` (source mode, pre-astro-build), as a step in
 // deploy.yml (dist mode --check, post-astro-build), and as a step in
 // merge.yml (source mode only -- merge.yml never builds).
 //
-// Spec: docs/superpowers/specs/2026-09-05-attribution-cta-map-ltv-design.md §4.3
+// Spec: docs/superpowers/specs/2026-09-05-attribution-cta-map-ltv-design.md §4.3/§4.4
 
-import { readFileSync, writeFileSync, readdirSync, statSync, existsSync, mkdtempSync, rmSync } from 'node:fs';
+import { readFileSync, writeFileSync, readdirSync, statSync, existsSync, mkdtempSync } from 'node:fs';
 import { join, relative } from 'node:path';
 import { tmpdir } from 'node:os';
 import { fileURLToPath } from 'node:url';
@@ -31,16 +43,19 @@ import {
   checkLiteralCtaValidity,
   checkComponentDuplicates,
   findDistModeViolations,
+  findRequiredIdCoverage,
   extractCtaOccurrences,
   isChromeCta,
   stripScriptBodies,
+  cmpCodepoint,
 } from './lib/cta-map-rules.mjs';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const REPO_ROOT = resolve(__dirname, '..');
 const REQUIRED_IDS_PATH = resolve(REPO_ROOT, 'src/data/cta-required-ids.json');
-const MAP_JSON_PATH = resolve(REPO_ROOT, 'docs/cta-map.json');
-const MAP_MD_PATH = resolve(REPO_ROOT, 'docs/cta-map.md');
+const DIGEST_JSON_PATH = resolve(REPO_ROOT, 'docs/cta-map.json');
+const DIGEST_MD_PATH = resolve(REPO_ROOT, 'docs/cta-map.md');
+const DIST_ARTIFACT_JSON_PATH = resolve(REPO_ROOT, 'dist/cta-map.json');
 
 function walk(dir, extFilter) {
   const out = [];
@@ -84,7 +99,7 @@ function runSourceMode() {
 
 // ------------------------------------------------------------------ dist ---
 
-// Best-effort dist path -> likely source file, for docs/cta-map.json's
+// Best-effort dist path -> likely source file, for the full artifact's
 // "sourceGuess" column. This is a heuristic, not a real source map -- the
 // build produces no such map today. Unmapped pages (every dynamic [slug]
 // route) fall back to 'unknown'; the field is named sourceGuess, not
@@ -117,7 +132,7 @@ function buildDistOutput() {
   const requiredIdSet = loadRequiredIdSet();
   const failures = [];
   const rows = [];
-  const seenRequiredIds = new Set();
+  const outerScanHtmlPages = [];
 
   for (const filePath of files) {
     const html = readFileSync(filePath, 'utf8');
@@ -128,6 +143,7 @@ function buildDistOutput() {
     // Same script-body strip as findDistModeViolations -- these scans must
     // never mistake a JS string literal that LOOKS like a tag for real markup.
     const outerScanHtml = stripScriptBodies(html);
+    outerScanHtmlPages.push(outerScanHtml);
     const occurrences = extractCtaOccurrences(outerScanHtml);
     const seenOnPage = new Map();
     for (const { tag, ctaId, label } of occurrences) {
@@ -142,29 +158,9 @@ function buildDistOutput() {
       }
       rows.push({ page: pagePath, ctaId, label: normalizeLabel(label), elementType: tag, sourceGuess: guessSourceFile(pagePath) });
     }
-
-    // Required-ids coverage: any listed id present as an id attribute AND
-    // carrying a valid data-cta on ITS OWN tag counts as covered.
-    const idTagRe = /<[a-z][\w-]*\b([^>]*)>/gi;
-    let idm;
-    while ((idm = idTagRe.exec(outerScanHtml)) !== null) {
-      const attrsRaw = idm[1];
-      const idMatch = attrsRaw.match(/\sid\s*=\s*["']([^"']+)["']/);
-      if (!idMatch || !requiredIdSet.has(idMatch[1])) continue;
-      const dataCtaMatch = attrsRaw.match(/\sdata-cta\s*=\s*["']([^"']+)["']/);
-      if (dataCtaMatch && validateCtaId(dataCtaMatch[1]).ok) seenRequiredIds.add(idMatch[1]);
-    }
   }
 
-  // cta-required-ids.json coverage: every listed id must exist live with a
-  // valid data-cta. A listed-but-absent (or untagged) id is a stale
-  // allowlist entry, reported with no special-cased suffix on any other
-  // violation message.
-  for (const requiredId of requiredIdSet) {
-    if (!seenRequiredIds.has(requiredId)) {
-      failures.push(`cta-required-ids.json: "${requiredId}" is listed but was not found in dist/ carrying a valid data-cta (stale allowlist entry, or the element lost its tag)`);
-    }
-  }
+  failures.push(...findRequiredIdCoverage(outerScanHtmlPages, requiredIdSet));
 
   // An empty scan is itself a failure (Interfaces contract), but it must
   // never SWALLOW real per-element rule-2/2b failures already collected
@@ -176,51 +172,142 @@ function buildDistOutput() {
     failures.push('zero data-cta elements found across the entire built site -- the scan itself is broken (or, on an untagged tree, see the violations above)');
   }
 
-  rows.sort((a, b) => a.page.localeCompare(b.page) || a.ctaId.localeCompare(b.ctaId));
+  rows.sort((a, b) => cmpCodepoint(a.page, b.page) || cmpCodepoint(a.ctaId, b.ctaId));
 
-  const byPage = new Map();
+  return { failures, rows, pageCount: files.length };
+}
+
+/**
+ * One row per distinct (pageFamily, ctaId) -- pageFamily is the ctaId's own
+ * page token, i.e. the route family, not the individual rendered page path.
+ * `label` and `elementType` come from the FIRST occurrence encountered in
+ * `rows` (rows are in file-walk order at this point, which is itself
+ * deterministic -- `readdirSync().sort()` per directory). `pageCount` is
+ * the number of distinct rendered pages carrying that id.
+ */
+function buildFamilyDigest(rows) {
+  const byKey = new Map();
   for (const r of rows) {
-    if (!byPage.has(r.page)) byPage.set(r.page, []);
-    byPage.get(r.page).push(r);
+    const pageFamily = r.ctaId.split('.')[0];
+    const key = `${pageFamily} ${r.ctaId}`;
+    let entry = byKey.get(key);
+    if (!entry) {
+      entry = { pageFamily, ctaId: r.ctaId, elementType: r.elementType, label: r.label, pageCount: 0, _pages: new Set() };
+      byKey.set(key, entry);
+    }
+    if (!entry._pages.has(r.page)) {
+      entry._pages.add(r.page);
+      entry.pageCount++;
+    }
   }
-  let md = '# CTA Map\n\nGenerated by `scripts/check-cta-map.mjs --mode=dist`. Never hand-edited.\n\n';
-  for (const page of [...byPage.keys()].sort()) {
-    md += `## ${page}\n\n| CTA id | Element | Label | Source (guessed) |\n|---|---|---|---|\n`;
-    for (const r of byPage.get(page)) md += `| \`${r.ctaId}\` | ${r.elementType} | ${r.label || '(no text)'} | \`${r.sourceGuess}\` |\n`;
+  const digestRows = [...byKey.values()].map(({ _pages, ...rest }) => rest);
+  digestRows.sort((a, b) => cmpCodepoint(a.pageFamily, b.pageFamily) || cmpCodepoint(a.ctaId, b.ctaId));
+  return digestRows;
+}
+
+function renderDigestMd(digestRows) {
+  let md = '# CTA Map (family digest)\n\n';
+  md += 'Generated by `scripts/check-cta-map.mjs --mode=dist`. Never hand-edited.\n\n';
+  md += 'One row per distinct (page family, CTA id) -- not one row per rendered page. ';
+  md += 'The full per-page map is a build artifact at `dist/cta-map.json` (gitignored, not committed).\n\n';
+  const byFamily = new Map();
+  for (const r of digestRows) {
+    if (!byFamily.has(r.pageFamily)) byFamily.set(r.pageFamily, []);
+    byFamily.get(r.pageFamily).push(r);
+  }
+  const families = [...byFamily.keys()].sort(cmpCodepoint);
+  for (const family of families) {
+    md += `## ${family}\n\n| CTA id | Element | Label | Pages |\n|---|---|---|---|\n`;
+    for (const r of byFamily.get(family)) {
+      md += `| \`${r.ctaId}\` | ${r.elementType} | ${r.label || '(no text)'} | ${r.pageCount} |\n`;
+    }
     md += '\n';
   }
+  return md;
+}
 
-  return { failures, json: JSON.stringify(rows, null, 2) + '\n', md, pageCount: files.length, rowCount: rows.length };
+// ------------------------------------------------------------ tiny diff ---
+
+// Minimal LCS-based unified-diff renderer, no external dependency. The
+// digest is small (a few hundred rows at most, by design -- see the header
+// comment), so an O(n*m) LCS is fine.
+function unifiedDiff(labelA, linesA, labelB, linesB) {
+  const n = linesA.length;
+  const m = linesB.length;
+  const dp = Array.from({ length: n + 1 }, () => new Array(m + 1).fill(0));
+  for (let i = n - 1; i >= 0; i--) {
+    for (let j = m - 1; j >= 0; j--) {
+      dp[i][j] = linesA[i] === linesB[j] ? dp[i + 1][j + 1] + 1 : Math.max(dp[i + 1][j], dp[i][j + 1]);
+    }
+  }
+  const out = [`--- ${labelA}`, `+++ ${labelB}`];
+  let i = 0;
+  let j = 0;
+  while (i < n && j < m) {
+    if (linesA[i] === linesB[j]) {
+      out.push(`  ${linesA[i]}`);
+      i++;
+      j++;
+    } else if (dp[i + 1][j] >= dp[i][j + 1]) {
+      out.push(`- ${linesA[i]}`);
+      i++;
+    } else {
+      out.push(`+ ${linesB[j]}`);
+      j++;
+    }
+  }
+  while (i < n) out.push(`- ${linesA[i++]}`);
+  while (j < m) out.push(`+ ${linesB[j++]}`);
+  return out.join('\n');
 }
 
 function runDistMode({ check }) {
-  const { failures, json, md, pageCount, rowCount } = buildDistOutput();
+  const { failures, rows, pageCount } = buildDistOutput();
   if (failures.length > 0) {
     console.error(`FAIL (dist mode): ${failures.length} violation(s):`);
     for (const f of failures) console.error(`  ${f}`);
     process.exit(1);
   }
 
+  // The full per-page artifact is always written on a clean run -- it is
+  // NOT part of the --check comparison (dist/ is gitignored, regenerated
+  // every run, and exists purely for local debugging of a specific page).
+  writeFileSync(DIST_ARTIFACT_JSON_PATH, JSON.stringify(rows, null, 2) + '\n');
+
+  const digestRows = buildFamilyDigest(rows);
+  const digestJson = JSON.stringify(digestRows, null, 2) + '\n';
+  const digestMd = renderDigestMd(digestRows);
+
   if (check) {
-    const existingJson = existsSync(MAP_JSON_PATH) ? readFileSync(MAP_JSON_PATH, 'utf8') : null;
-    const existingMd = existsSync(MAP_MD_PATH) ? readFileSync(MAP_MD_PATH, 'utf8') : null;
-    if (existingJson !== json || existingMd !== md) {
+    const existingJson = existsSync(DIGEST_JSON_PATH) ? readFileSync(DIGEST_JSON_PATH, 'utf8') : null;
+    const existingMd = existsSync(DIGEST_MD_PATH) ? readFileSync(DIGEST_MD_PATH, 'utf8') : null;
+    if (existingJson !== digestJson || existingMd !== digestMd) {
       const tmp = mkdtempSync(join(tmpdir(), 'cta-map-check-'));
-      writeFileSync(join(tmp, 'cta-map.json'), json);
-      writeFileSync(join(tmp, 'cta-map.md'), md);
-      console.error('FAIL: docs/cta-map.json/.md are stale against a fresh build.');
-      console.error(`  Fresh output written to ${tmp} for inspection.`);
+      const tmpJsonPath = join(tmp, 'cta-map.json');
+      const tmpMdPath = join(tmp, 'cta-map.md');
+      writeFileSync(tmpJsonPath, digestJson);
+      writeFileSync(tmpMdPath, digestMd);
+      console.error('FAIL: docs/cta-map.json/.md (family digest) are stale against a fresh build.');
+      console.error(`  Fresh output kept at ${tmp} for inspection (not deleted).`);
+      if (existingJson !== digestJson) {
+        console.error('');
+        console.error(unifiedDiff('docs/cta-map.json (committed)', (existingJson ?? '').split('\n'), tmpJsonPath, digestJson.split('\n')));
+      }
+      if (existingMd !== digestMd) {
+        console.error('');
+        console.error(unifiedDiff('docs/cta-map.md (committed)', (existingMd ?? '').split('\n'), tmpMdPath, digestMd.split('\n')));
+      }
+      console.error('');
       console.error('  Fix: run `npm run build && node scripts/check-cta-map.mjs --mode=dist` locally and commit the result.');
-      rmSync(tmp, { recursive: true, force: true });
       process.exit(1);
     }
-    console.log(`PASS (dist mode --check): ${pageCount} pages, ${rowCount} data-cta elements, docs/cta-map.json/.md match a fresh build`);
+    console.log(`PASS (dist mode --check): ${pageCount} pages, ${rows.length} data-cta elements, ${digestRows.length}-row family digest matches a fresh build`);
     return;
   }
 
-  writeFileSync(MAP_JSON_PATH, json);
-  writeFileSync(MAP_MD_PATH, md);
-  console.log(`PASS (dist mode): ${pageCount} pages, ${rowCount} data-cta elements, docs/cta-map.json + .md written`);
+  writeFileSync(DIGEST_JSON_PATH, digestJson);
+  writeFileSync(DIGEST_MD_PATH, digestMd);
+  console.log(`PASS (dist mode): ${pageCount} pages, ${rows.length} data-cta elements, ${digestRows.length}-row family digest written to docs/cta-map.json + .md (full per-page map at dist/cta-map.json)`);
 }
 
 function main() {

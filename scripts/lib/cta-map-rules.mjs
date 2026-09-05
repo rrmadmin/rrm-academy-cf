@@ -151,31 +151,25 @@ function hasNoRealTarget(tag, attrsRaw) {
 
 /**
  * Does ANY script element (checked one at a time, per the element-scoped
- * design) both reference this element (by id, by one of its data-*
- * attributes, or by one of its classes) AND contain a RULE_2B_LITERALS
- * literal? Returns true/false -- callers decide what that means for a
- * given tag type.
+ * design) have a click/submit HANDLER OF ITS OWN that contains a
+ * RULE_2B_LITERALS literal? "Its own handler" -- not merely "referenced
+ * somewhere in a script that also contains a literal" -- is the only
+ * signal that survives a real multi-purpose script: on account/index.astro
+ * (one 20KB `<script is:inline>` covering logout/profile/password/billing),
+ * the genuinely billing-wired reference
+ * (`getElementById('manage-billing-btn').addEventListener('click', ...)`,
+ * the fetch immediately inside that handler) and thirteen UNRELATED ids
+ * referenced elsewhere in the same tag are otherwise indistinguishable by
+ * raw proximity alone -- two disclosure-toggle buttons merely passed as
+ * arguments to an unrelated `renderHistoryList(...)` call sit CLOSER to the
+ * billing literal (464/737 chars) than `#fund-give-btn` on /providers/
+ * sits from its own genuinely-wired handler (2,561 chars, `var giveBtn =
+ * document.getElementById(...)` followed by unrelated UI setup code before
+ * `giveBtn.addEventListener('click', ...)` finally fetches
+ * `/api/create-checkout`). Raw character distance cannot separate these;
+ * tracing the SPECIFIC handler attached to THIS element's own reference can.
  */
-// Bidirectional character window around a reference within which a
-// RULE_2B_LITERALS match counts as "this element is wired to it". Chosen
-// from real measured distances, not guessed: on account/index.astro's one
-// 20KB multi-purpose <script> (login/logout/profile/password/billing all
-// wired in the same tag), the genuinely billing-wired reference
-// (`getElementById('manage-billing-btn').addEventListener('click', ...)`,
-// the fetch immediately inside the handler) sits 185 chars from the
-// `/api/billing/portal` literal; two disclosure-toggle buttons that are
-// merely passed as arguments to an unrelated `renderHistoryList(...)` call
-// physically near the billing code sit 464/737 chars away; the truly
-// unrelated buttons (logout, edit-profile, change-password, resend-verify)
-// sit 14,000-19,000+ chars away. 300 clears every known same-handler case
-// (donate-btn, the class-wired enroll forEach, the bare
-// querySelectorAll+fetch adjacent-statement shape) while excluding both
-// classes of false positive on the one real multi-purpose script this
-// codebase has. Without SOME window, "does the whole script contain both"
-// flags every id/data-attr/class in a large script the moment it contains
-// ANY money/lead literal anywhere -- proven on account/index.astro, where
-// it flagged all 13 of its buttons off one `/api/billing/portal` fetch.
-const WIRING_PROXIMITY_WINDOW = 300;
+const HANDLER_BODY_WINDOW = 800;
 
 function allMatchPositions(script, needle) {
   const positions = [];
@@ -187,7 +181,7 @@ function allMatchPositions(script, needle) {
   return positions;
 }
 
-function withinWindowOfAnyLiteral(script, literalPositions, refPositions, window = WIRING_PROXIMITY_WINDOW) {
+function withinWindowOfAnyLiteral(script, literalPositions, refPositions, window = HANDLER_BODY_WINDOW) {
   for (const refPos of refPositions) {
     for (const litPos of literalPositions) {
       if (Math.abs(refPos - litPos) <= window) return true;
@@ -196,54 +190,98 @@ function withinWindowOfAnyLiteral(script, literalPositions, refPositions, window
   return false;
 }
 
-// The proximity window above is enough for the class/data-attribute forms
-// (querySelector[All] chained straight into .forEach/.addEventListener in
-// every observed instance), but NOT enough for the id form: this codebase's
-// pattern is `var name = document.getElementById('id');` followed, often
-// hundreds or thousands of characters later, by `name.addEventListener(...)`
-// -- and a proximity window around the ORIGINAL getElementById call cannot
-// tell "the id's own click handler is far away but genuinely fetches the
-// money endpoint" (`#fund-give-btn` on /providers/, 2561 chars from its own
-// `.addEventListener` body's `/api/create-checkout` call) apart from "the id
-// is declared near an unrelated element's money-wired handler" (the
-// account-page disclosure toggles). The only distinguishing signal is
-// finding the id's OWN addEventListener call (by variable name, or by direct
-// `getElementById('id').addEventListener(...)` chaining) and checking ONLY
-// that handler's body -- not the declaration site, wherever it sits.
-const HANDLER_BODY_WINDOW = 800;
-
-function ownHandlerContainsLiteral(script, id, literalPositions) {
-  const varMatch = script.match(new RegExp(`(?:var|let|const)\\s+(\\w+)\\s*=\\s*document\\.getElementById\\(['"]${id}['"]\\)`));
-  const selves = [id]; // covers direct chaining: getElementById('id').addEventListener(...)
-  if (varMatch) selves.push(varMatch[1]);
-  const handlerStarts = [];
-  for (const self of selves) {
-    const selfPattern = self === id ? `getElementById\\(['"]${id}['"]\\)` : self;
-    const re = new RegExp(`${selfPattern}\\s*\\.\\s*addEventListener\\s*\\(`, 'g');
-    let m;
-    while ((m = re.exec(script)) !== null) handlerStarts.push(m.index + m[0].length);
-  }
-  return handlerStarts.some((start) => withinWindowOfAnyLiteral(script, literalPositions, [start], HANDLER_BODY_WINDOW));
+function escapeRegExp(s) {
+  return s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 }
 
-function isWiredToMoneyLiteral(scripts, id, dataAttrNames, classNames) {
+// Every place a "self" reference chains into an actual handler: an
+// EventTarget listener, or a direct on* assignment (both are real DOM
+// wiring; onclick/onsubmit are the two this codebase actually uses).
+const HANDLER_CHAIN_SUFFIXES = ['\\.\\s*addEventListener\\s*\\(', '\\.\\s*onclick\\s*=', '\\.\\s*onsubmit\\s*='];
+
+/**
+ * Finds every position right after a handler-chain (addEventListener(,
+ * onclick=, onsubmit=) attached to one of `selfPatterns` (regex SOURCE
+ * strings, e.g. `getElementById\\('id'\\)` or an escaped variable name).
+ */
+function handlerStartsForSelves(script, selfPatterns) {
+  const starts = [];
+  for (const self of selfPatterns) {
+    for (const suffix of HANDLER_CHAIN_SUFFIXES) {
+      const re = new RegExp(`(?:${self})\\s*${suffix}`, 'g');
+      let m;
+      while ((m = re.exec(script)) !== null) starts.push(m.index + m[0].length);
+    }
+  }
+  return starts;
+}
+
+/** getElementById('id') / querySelector('#id'), direct-chain OR assigned to a variable. */
+function idHandlerContainsLiteral(script, id, literalPositions) {
+  const idEsc = escapeRegExp(id);
+  const directPatterns = [`getElementById\\(['"]${idEsc}['"]\\)`, `document\\s*\\.\\s*querySelector\\(['"]#${idEsc}['"]\\)`];
+  const declRe = new RegExp(`(?:var|let|const)\\s+(\\w+)\\s*=\\s*document\\s*\\.\\s*(?:getElementById\\(['"]${idEsc}['"]\\)|querySelector\\(['"]#${idEsc}['"]\\))`);
+  const declMatch = script.match(declRe);
+  const selfPatterns = [...directPatterns];
+  if (declMatch) selfPatterns.push(escapeRegExp(declMatch[1]));
+  const starts = handlerStartsForSelves(script, selfPatterns);
+  return starts.some((start) => withinWindowOfAnyLiteral(script, literalPositions, [start]));
+}
+
+/**
+ * A `.cls`/`[data-x]` selector match via querySelector(All). Compound
+ * selectors (`.enroll-btn.primary`, `[data-newsletter-btn].active`) are
+ * matched by allowing any non-quote suffix after the leading token --
+ * the selector merely needs to START with it.
+ *
+ * `allowFallback` controls whether a BARE reference with no real handler
+ * chain (no forEach, no addEventListener/onclick/onsubmit, no variable
+ * later given one) still counts, anchored on the reference site itself.
+ * This is deliberately a separate, weaker signal from a genuine own
+ * handler -- see the tagged-form-submit exemption in findDistModeViolations,
+ * which needs to tell "merely referenced nearby" apart from "has its own
+ * real click/submit wiring" even though both count as "in scope for 2b"
+ * when NOT inside an already-tagged form.
+ */
+function selectorHandlerContainsLiteral(script, selectorPrefixSrc, literalPositions, { allowFallback = true } = {}) {
+  const queryCallSrc = `(?:[\\w$]+\\s*\\.\\s*)?querySelector(All)?\\(['"]${selectorPrefixSrc}[^'"]*['"]\\)`;
+  const declRe = new RegExp(`(?:var|let|const)\\s+(\\w+)\\s*=\\s*${queryCallSrc}`);
+  const declMatch = script.match(declRe);
+  const starts = [];
+  if (declMatch) starts.push(...handlerStartsForSelves(script, [escapeRegExp(declMatch[1])]));
+
+  const queryRe = new RegExp(queryCallSrc, 'g');
+  let m;
+  while ((m = queryRe.exec(script)) !== null) {
+    const isAll = !!m[1];
+    if (isAll) {
+      const afterQuery = script.slice(m.index + m[0].length);
+      const forEachMatch = afterQuery.match(/^\s*\.\s*forEach\s*\(\s*function\s*\([^)]*\)\s*\{/);
+      if (forEachMatch) {
+        starts.push(m.index + m[0].length + forEachMatch[0].length);
+        continue;
+      }
+    }
+    starts.push(...handlerStartsForSelves(script, [escapeRegExp(m[0])]));
+  }
+
+  if (starts.length === 0 && allowFallback) {
+    queryRe.lastIndex = 0;
+    while ((m = queryRe.exec(script)) !== null) starts.push(m.index + m[0].length);
+  }
+  return starts.some((start) => withinWindowOfAnyLiteral(script, literalPositions, [start]));
+}
+
+function isWiredToMoneyLiteral(scripts, id, dataAttrNames, classNames, { allowFallback = true } = {}) {
   for (const script of scripts) {
     const literalPositions = RULE_2B_LITERALS.flatMap((lit) => allMatchPositions(script, lit));
     if (literalPositions.length === 0) continue;
-    if (id && ownHandlerContainsLiteral(script, id, literalPositions)) return true;
+    if (id && idHandlerContainsLiteral(script, id, literalPositions)) return true;
     for (const name of dataAttrNames) {
-      const re = new RegExp(`querySelector(?:All)?\\(['"]\\[${name}(?:[^\\]]*)?\\]`, 'g');
-      const refPositions = [];
-      let m;
-      while ((m = re.exec(script)) !== null) refPositions.push(m.index);
-      if (withinWindowOfAnyLiteral(script, literalPositions, refPositions)) return true;
+      if (selectorHandlerContainsLiteral(script, `\\[${escapeRegExp(name)}`, literalPositions, { allowFallback })) return true;
     }
     for (const cls of classNames) {
-      const re = new RegExp(`querySelector(?:All)?\\(['"]\\.${cls}['"]`, 'g');
-      const refPositions = [];
-      let m;
-      while ((m = re.exec(script)) !== null) refPositions.push(m.index);
-      if (withinWindowOfAnyLiteral(script, literalPositions, refPositions)) return true;
+      if (selectorHandlerContainsLiteral(script, `\\.${escapeRegExp(cls)}`, literalPositions, { allowFallback })) return true;
     }
   }
   return false;
@@ -336,23 +374,66 @@ export function findDistModeViolations(pagePath, html, requiredIdSet) {
     }
 
     // --- Rule 2b (element-scoped; button always eligible, a/form only when target-less) ---
-    if (tag === 'button' && attr(attrsRaw, 'type') === 'submit' && isWithinRanges(m.index, formRanges)) continue;
     const eligibleFor2b = tag === 'button' || hasNoRealTarget(tag, attrsRaw);
     if (!eligibleFor2b) continue;
     const dataAttrNames = dataAttrNamesOf(attrsRaw);
     const classNames = classNamesOf(attrsRaw);
     if (!id && dataAttrNames.length === 0 && classNames.length === 0) continue;
 
-    if (isWiredToMoneyLiteral(scripts, id, dataAttrNames, classNames)) {
-      if (!dataCtaMatch) {
-        violations.push({ pagePath, tag, label, reason: `${label} is referenced from an inline script alongside a money/lead endpoint but has no data-cta attribute` });
-      } else {
-        const validity = validateCtaId(dataCtaMatch[1]);
-        if (!validity.ok) violations.push({ pagePath, tag, label, reason: validity.reason });
-      }
+    if (!isWiredToMoneyLiteral(scripts, id, dataAttrNames, classNames)) continue;
+
+    // A submit button inside an already-tagged form is exempt ONLY if its
+    // own handler (if any) carries no money/lead literal of its own -- the
+    // form's data-cta already covers the plain "submitting this form is
+    // the conversion" case (newsletter/quiz/survey/waitlist forms). A
+    // button that independently does its OWN money/lead thing (a genuine
+    // addEventListener/onclick/onsubmit chain, not just a bare reference
+    // used for unrelated UI state) is NOT covered by that and still needs
+    // checking. Re-run with allowFallback:false to distinguish "merely
+    // referenced nearby" (exempt) from "has its own real handler" (not).
+    const isSubmitInTaggedForm = tag === 'button' && attr(attrsRaw, 'type') === 'submit' && isWithinRanges(m.index, formRanges);
+    if (isSubmitInTaggedForm) {
+      const hasOwnRealHandler = isWiredToMoneyLiteral(scripts, id, dataAttrNames, classNames, { allowFallback: false });
+      if (!hasOwnRealHandler) continue;
+    }
+
+    if (!dataCtaMatch) {
+      violations.push({ pagePath, tag, label, reason: `${label} is referenced from an inline script alongside a money/lead endpoint but has no data-cta attribute` });
+    } else {
+      const validity = validateCtaId(dataCtaMatch[1]);
+      if (!validity.ok) violations.push({ pagePath, tag, label, reason: validity.reason });
     }
   }
   return violations;
+}
+
+/**
+ * cta-required-ids.json coverage: every id in `requiredIdSet` must exist,
+ * across ALL of `htmlPages` (already script-body-stripped by the caller),
+ * carrying a valid data-cta on its OWN tag. Returns one failure message per
+ * uncovered id (stale allowlist entry, or the element lost its tag).
+ */
+export function findRequiredIdCoverage(htmlPages, requiredIdSet) {
+  const seen = new Set();
+  const idTagRe = /<[a-z][\w-]*\b([^>]*)>/gi;
+  for (const html of htmlPages) {
+    idTagRe.lastIndex = 0;
+    let idm;
+    while ((idm = idTagRe.exec(html)) !== null) {
+      const attrsRaw = idm[1];
+      const idMatch = attrsRaw.match(/\sid\s*=\s*["']([^"']+)["']/);
+      if (!idMatch || !requiredIdSet.has(idMatch[1])) continue;
+      const dataCtaMatch = attrsRaw.match(/\sdata-cta\s*=\s*["']([^"']+)["']/);
+      if (dataCtaMatch && validateCtaId(dataCtaMatch[1]).ok) seen.add(idMatch[1]);
+    }
+  }
+  const failures = [];
+  for (const id of requiredIdSet) {
+    if (!seen.has(id)) {
+      failures.push(`cta-required-ids.json: "${id}" is listed but was not found in dist/ carrying a valid data-cta (stale allowlist entry, or the element lost its tag)`);
+    }
+  }
+  return failures;
 }
 
 /** Extracts every data-cta="..." occurrence from one rendered HTML string, in order. */
@@ -370,4 +451,15 @@ export function extractCtaOccurrences(html) {
 /** True when a data-cta id's page token is site-wide chrome (exempt from per-page dedup). */
 export function isChromeCta(ctaId) {
   return ctaId.startsWith('header.') || ctaId.startsWith('footer.') || ctaId.startsWith('nav-mobile.');
+}
+
+// Deterministic ordering for docs/cta-map.json/.md. `localeCompare` and the
+// no-comparator form of `.sort()` both resolve through the JS engine's
+// locale/collation tables, which can differ across Node versions, ICU
+// builds, and OS locale settings -- the exact failure mode a `--check`
+// reproducibility gate cannot tolerate (CI and a laptop must produce byte-
+// identical output). This is a plain UTF-16 code-unit comparator: the same
+// three-way result on every engine, every locale, forever.
+export function cmpCodepoint(a, b) {
+  return a < b ? -1 : a > b ? 1 : 0;
 }

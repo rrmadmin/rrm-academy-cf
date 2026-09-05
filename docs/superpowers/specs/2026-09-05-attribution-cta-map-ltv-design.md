@@ -278,17 +278,25 @@ grant account cannot bid on value, so the point is reporting, not bidding.
 `data-cta="<page>.<zone>.<intent>"`, lowercase, hyphenated tokens, regex
 `^[a-z0-9-]+\.[a-z0-9-]+\.[a-z0-9-]+$`.
 
-- `page`: a closed list of route FAMILIES, never a slug: `home`, `donate`,
-  `stuc`, `endo-quiz`, `endo-quiz-results`, `endo-survey`, `course`,
-  `course-step`, `library-record`, `guide`, `faqs`, `header`, `footer` for
-  site-wide chrome, `nav-mobile`, `error`. Per-page distinction (which
+- `page`: a closed list of route FAMILIES, never a slug -- current list
+  (read `src/data/cta-vocabulary.json` for the live source of truth, this
+  is a snapshot): `home`, `donate`, `stuc`, `endo-quiz`,
+  `endo-quiz-results`, `endo-survey`, `course`, `course-step`,
+  `library-record`, `guide`, `faqs`, `header`, `footer` for site-wide
+  chrome, `nav-mobile`, `error`, `account`, `community`, `developers`
+  (one pooled family for the agent-auth/ai-instructions/connect/developers/
+  webhooks API-docs pages), `providers`, `about`, `contact`, `press`,
+  `sitemap`, `linkinbio`, `maintenance`. Per-page distinction (which
   course, which library record) comes from the ledger row's own
   `page_location`/pathname, which it already stores -- `page` never carries
   a slug.
 - `zone`: a closed list, footer columns enumerated rather than
   parameterized: `hero`, `tiers`, `card`, `inline`, `sidebar`, `sticky`,
   `modal`, `error`, `footer-col-1`, `footer-col-2`, `footer-col-3`,
-  `footer-col-4`.
+  `footer-col-4`, `repeat` (for the 2nd+ occurrence of the same CTA type
+  repeated on one content-heavy page, when no other zone fits -- e.g. a
+  4th `mailto:` on `/press/`; the FIRST occurrence still keeps its real
+  zone).
 - `intent` (closed list, extended only in the vocabulary file):
   `donate`, `join-stuc-member`, `join-stuc-hero`, `join-stuc-superhero`,
   `manage-billing`, `newsletter`, `quiz-start`, `quiz-email`, `quiz-pdf`,
@@ -358,32 +366,74 @@ and in `merge.yml`:
    `data-checkout`, `data-enroll` attribute targets `/donate`, `/api/create-
    checkout`, `/api/billing/portal`, `/save-the-uterus-club`,
    `/api/newsletter/subscribe`, `/api/endo-quiz/*`, `/api/survey/*`,
-   `/courses/*/enroll`, `/courses/*/waitlist`, or `mailto:`, or whose `rel`
-   contains `sponsored`, MUST carry `data-cta` matching the regex with
-   tokens from the vocabulary. Otherwise the build fails naming file and
-   line. Navigation targets (account, login, signup, the provider
-   directory) are not policed; chrome links to them carry data-cta by
-   choice.
+   `/api/courses/enroll`, `/api/courses/waitlist`, or `mailto:`, or whose
+   `rel` contains `sponsored`, MUST carry `data-cta` matching the regex
+   with tokens from the vocabulary. Otherwise the build fails naming file
+   and line. Navigation targets (account, login, signup, the provider
+   directory) are NOT policed -- they are not money or lead capture, they
+   are chrome navigation; chrome links to them (Header, nav-mobile, the
+   homepage) still carry `data-cta`, but by choice, not because this rule
+   requires it.
 2b. Rule 2's href/action/data-* scan cannot see an id-plus-listener button
-    (`#donate-btn`, `#manage-billing-btn`) or a `mailto:` fallback a script
-    builds at runtime -- there is no href for step 2 to read. So: any
-    element whose `id` appears as a string literal inside an inline
-    `<script>` in the same file that ALSO contains the literal
-    `/api/create-checkout`, `/api/billing/portal`, or `mailto:` MUST carry
-    `data-cta`. A committed allowlist, `src/data/cta-required-ids.json`,
-    names the known money-button ids that must carry `data-cta`; the gate
-    checks it against `dist/`. `/` and `javascript:` targets are
-    deliberately out of scope for rules 2 and 2b (no money or PII crosses
-    either); `500.astro`'s two ids are migrated to `data-cta` by hand as
-    part of this change rather than caught by either rule.
+    (`#donate-btn`, `#manage-billing-btn`, `#fund-give-btn`) or a `mailto:`
+    fallback a script builds at runtime -- there is no href for step 2 to
+    read. Scope: any `<button>`, or any `<a>`/`<form>` with no real
+    href/action, carrying an `id`, `class`, or `data-*` attribute (other
+    than `data-cta`) that is referenced from an inline `<script>` in the
+    same file. "Referenced" means the id/selector's OWN click/submit
+    handler -- not merely "the script that references it also happens to
+    contain a literal somewhere" -- contains one of the RULE_2B_LITERALS
+    (`/api/create-checkout`, `/api/billing/portal`, `mailto:`,
+    `/api/newsletter/subscribe`, `/api/endo-quiz/*`, `/api/survey/*`,
+    `/api/courses/enroll`, `/api/courses/waitlist`). Recognized handler
+    forms, for `#id` selectors (`getElementById`/`querySelector('#id')`,
+    direct-chained or assigned to a variable first) and for `.cls`/
+    `[data-x]` selectors (`querySelector`/`querySelectorAll`, including
+    compound selectors like `.enroll-btn.primary` -- the selector need only
+    START with the class/attribute token): `.addEventListener(...)`,
+    `.onclick = ...`, `.onsubmit = ...`, and (class/data-attr selectors via
+    `querySelectorAll` only) `.forEach(function (el) { ... })` where the
+    forEach body is itself the handler. A committed allowlist,
+    `src/data/cta-required-ids.json`, names the known money-button ids that
+    must carry `data-cta` as an independent coverage check (any listed id
+    absent from `dist/`, or present but untagged, fails); the gate checks
+    it against `dist/`. `/` and `javascript:` targets are deliberately out
+    of scope for rules 2 and 2b (no money or PII crosses either);
+    `500.astro`'s two ids are migrated to `data-cta` by hand as part of
+    this change rather than caught by either rule.
+
+    A `type="submit"` button inside a `<form>` that already carries
+    `data-cta` is exempt from needing its own tag -- the form-level tag is
+    sufficient, per the click-bubbles-to-`closest('[data-cta]')` tracking
+    design -- ONLY if the button's own handler (if it has one at all)
+    contains no RULE_2B_LITERALS entry. A button that is merely referenced
+    for unrelated UI purposes (disabling during submit, feedback text) with
+    no click/submit handler of its own stays exempt; a button that
+    independently wires its own money/lead action is NOT exempt and needs
+    its own tag.
 3. Within one rendered page, duplicate `data-cta` values fail (the reason
    for the zone token). Site-wide chrome is exempt from the per-page
    duplicate rule but must be unique within the component.
-4. Emits `docs/cta-map.json` (generated, committed, never hand-edited):
-   one row per `(page path, cta id)` with label text, target, element type,
-   and the source file. `docs/cta-map.md` is rendered from it by the same
-   script as a table grouped by page. This file is the inventory Brian
-   asked for and is what the backoffice CTA table labels its rows with.
+4. Emits `docs/cta-map.json`/`.md` (generated, committed, never
+   hand-edited) as a FAMILY DIGEST: one row per distinct `(page family, cta
+   id)` -- `page family` being the cta id's own `page` token, never an
+   individual rendered page path -- with `elementType`, `label` (from the
+   first occurrence), and `pageCount` (how many distinct rendered pages
+   carry it). This is deliberately NOT one row per rendered page: library,
+   commentary, and course-step pages are generated at deploy time from D1
+   content, so a per-page map reshuffles and grows on every routine content
+   publish (measured: 12 MB, ~4,650 rows, one per page) and would fail
+   `--check` on a deploy that touched zero templates. The digest is small
+   (measured: under 10 KB) and changes only when a TEMPLATE's CTAs change
+   -- exactly when a developer should recommit it. The FULL per-page map
+   (every occurrence, every page) is still produced every dist-mode run, as
+   a build artifact at `dist/cta-map.json` -- gitignored, regenerated every
+   run, never committed, and never part of the `--check` comparison; it
+   exists for local debugging of a specific page. `--check` diffs a fresh
+   DIGEST against the committed one and fails with a unified diff (and
+   keeps the freshly generated files on disk for inspection) on any
+   mismatch. This file is the inventory Brian asked for and is what the
+   backoffice CTA table labels its rows with.
 
 Zero-CTA scan result fails loudly, per the estate's asset-gate convention.
 
