@@ -375,7 +375,10 @@ and in `merge.yml`:
    directory) are NOT policed -- they are not money or lead capture, they
    are chrome navigation; chrome links to them (Header, nav-mobile, the
    homepage) still carry `data-cta`, but by choice, not because this rule
-   requires it.
+   requires it. Elements inside an authored content body (a container
+   carrying `data-cta-content`: commentary and library bodies, guide and
+   FAQ bodies, course step bodies) are not policed; an in-prose link is
+   copy, not a CTA.
 2b. Rule 2's href/action/data-* scan cannot see an id-plus-listener button
     (`#donate-btn`, `#manage-billing-btn`, `#fund-give-btn`) or a `mailto:`
     fallback a script builds at runtime -- there is no href for step 2 to

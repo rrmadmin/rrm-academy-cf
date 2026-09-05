@@ -240,14 +240,14 @@ const itemListSchema = {
   faqs={FAQS}
   keyTakeawaysHtml={KEY_TAKEAWAYS_HTML}
 >
-  <Fragment set:html={PROSE.intro} />
+  <div data-cta-content><Fragment set:html={PROSE.intro} /></div>
 
-  <section id="two-operations">
+  <section id="two-operations" data-cta-content>
     <h2>Why two operations with the same name can have opposite results</h2>
     <Fragment set:html={PROSE.twoOperations} />
   </section>
 
-  <section id="three-tiers">
+  <section id="three-tiers" data-cta-content>
     <h2>The three tiers of reproductive surgery</h2>
     <Fragment set:html={PROSE.threeTiersLead} />
     <div class="tier-cards">
@@ -273,7 +273,7 @@ const itemListSchema = {
   {CONDITION_ORDER.map((c) => {
     const cond = conditionsById[c.id];
     return (
-      <section id={c.anchor}>
+      <section id={c.anchor} data-cta-content>
         <h2>{c.h2}</h2>
         <Fragment set:html={PROSE[c.prose]} />
         <div class="tier-rows" aria-label={`${cond.name}: approach by tier`}>
@@ -289,12 +289,12 @@ const itemListSchema = {
     );
   })}
 
-  <section id="what-sets-apart">
+  <section id="what-sets-apart" data-cta-content>
     <h2>What sets restorative surgery apart</h2>
     <Fragment set:html={PROSE.whatSetsApart} />
   </section>
 
-  <section id="find-a-surgeon">
+  <section id="find-a-surgeon" data-cta-content>
     <h2>How to find a restorative surgeon and what to ask</h2>
     <Fragment set:html={PROSE.findSurgeon} />
   </section>

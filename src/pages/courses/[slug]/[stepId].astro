@@ -185,7 +185,7 @@ const hasPrimaryReading =
         {step.type === 'article' && (
           <div class="article-content" role="tabpanel" data-rendition-panel="reading" data-rendition-primary>
             <p class="article-readtime" data-rendition-readtime hidden></p>
-            <div class="article-body" data-rendition-html>
+            <div class="article-body" data-cta-content data-rendition-html>
               {step.content ? (
                 <Fragment set:html={step.content} />
               ) : (

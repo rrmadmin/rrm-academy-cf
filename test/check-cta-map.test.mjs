@@ -109,6 +109,21 @@ describe('dist mode -- rule 2 (rendered href/action/rel target)', () => {
   });
 });
 
+describe('dist mode -- content-body exemption (data-cta-content, spec 4.3)', () => {
+  it('an untagged donate link inside a data-cta-content body is not flagged', () => {
+    const html = `<div class="prose" data-cta-content><p>Support us via <a href="/save-the-uterus-club/">Save the Uterus Club</a>.</p></div>`;
+    assert.equal(findDistModeViolations('/commentary/x/', html, new Set()).length, 0);
+  });
+  it('the same untagged link outside a data-cta-content body is still flagged', () => {
+    const html = `<p>Support us via <a href="/save-the-uterus-club/">Save the Uterus Club</a>.</p>`;
+    assert.equal(findDistModeViolations('/commentary/x/', html, new Set()).length, 1);
+  });
+  it('a nested-div body still exempts a link after an inner closing div', () => {
+    const html = `<div class="prose" data-cta-content><div class="inner"><p>Text</p></div><p>Then a <a href="/donate/">donate</a> link.</p></div>`;
+    assert.equal(findDistModeViolations('/commentary/x/', html, new Set()).length, 0);
+  });
+});
+
 describe('dist mode -- rule 2b (element-scoped, id/data-attr/class forms)', () => {
   it('flags an untagged #donate-btn wired by id in the same script', () => {
     const html = `
