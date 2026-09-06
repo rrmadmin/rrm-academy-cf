@@ -155,7 +155,17 @@
 /pagefind/*
   Cache-Control: no-store
 
-# API endpoints — no caching, lock CORS to production origin
+# API endpoints — lock CORS to production origin.
+#
+# THE Cache-Control HERE ONLY REACHES RESPONSES PAGES SERVES ITSELF, never a
+# Function response: a HEAD on /api/community/status (no module exports HEAD,
+# so Pages answers its own 404) carries it, a GET on the same path reaches the
+# Function and does not. It was declared for the Functions and never applied to
+# one of them (red-team finding RRMA-RT-3). The real /api/* cache contract is
+# withApiCacheHeaders() in functions/_middleware.js, which is where a Function
+# response actually passes through; this block is kept for the paths Pages
+# answers on its own. Same caveat as the security headers, which moved to the
+# middleware for the same reason.
 /api/*
   Cache-Control: no-store
   Access-Control-Allow-Origin: https://rrmacademy.org
