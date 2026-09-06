@@ -80,6 +80,50 @@ function withSecurityHeaders(response) {
 }
 
 /**
+ * THE /api/* CACHE CONTRACT, APPLIED WHERE IT CAN ACTUALLY APPLY.
+ *
+ * `public/_headers` has declared `/api/* Cache-Control: no-store` for as long
+ * as there have been API routes, and it has never once reached one. `_headers`
+ * applies to responses PAGES ITSELF serves, not to Function responses: a HEAD
+ * on /api/community/status (no module exports HEAD, so Pages answers its own
+ * 404) came back with `cache-control: no-store`, while a GET on the same path
+ * came back 200 with the header absent entirely. Every authenticated endpoint
+ * on the site -- /api/billing/status, /api/community/members, /api/auth/session
+ * -- was therefore answering with no cache directive at all, which leaves a
+ * shared cache free to hold one member's data and hand it to the next person
+ * (red-team finding RRMA-RT-3). It belongs here for the same reason the six
+ * security headers below moved here: this is the one place a Function response
+ * passes through.
+ *
+ * A ROUTE THAT ALREADY DECLARED A POLICY KEEPS IT, exactly as the CSP arm in
+ * withSecurityHeaders does. Several /api routes are deliberately cacheable and
+ * clobbering them would be a real regression, not a hardening: /api/assets/*
+ * serves R2 images `public, max-age=31536000, immutable`, /api/articles is the
+ * public build feed at an hour, /api/survey/count at a minute. no-store is the
+ * DEFAULT for an API response, not an override of a decision someone made.
+ *
+ * `Vary: Cookie` rides along on the same arm and only on that arm. A response
+ * that opted into public caching has said it does not depend on the session,
+ * and adding Vary there would quietly destroy the cacheability it asked for.
+ */
+function withApiCacheHeaders(response, pathname) {
+  if (pathname !== '/api' && !pathname.startsWith('/api/')) return response;
+  if (response.headers.has('Cache-Control')) return response;
+
+  const headers = new Headers(response.headers);
+  headers.set('Cache-Control', 'no-store');
+  const vary = headers.get('Vary');
+  const alreadyVaries = (vary || '').split(',').some((token) => token.trim().toLowerCase() === 'cookie');
+  if (!alreadyVaries) headers.set('Vary', vary ? `${vary}, Cookie` : 'Cookie');
+
+  return new Response(response.body, {
+    status: response.status,
+    statusText: response.statusText,
+    headers,
+  });
+}
+
+/**
  * Fires an Arrivl pageview hit (AI bot analytics).
  * Called with ctx.waitUntil() so it never blocks the response.
  */
@@ -280,7 +324,8 @@ function shouldCanonicalize(pathname) {
  * as before.
  */
 export async function onRequest(context) {
-  const isPreviewHost = new URL(context.request.url).hostname.endsWith('.pages.dev');
+  const entryUrl = new URL(context.request.url);
+  const isPreviewHost = entryUrl.hostname.endsWith('.pages.dev');
   let response;
   try {
     response = await handleRequest(context);
@@ -291,6 +336,10 @@ export async function onRequest(context) {
     // instead of the platform's raw error page.
     response = withSecurityHeaders(await render500Page(context, context.request));
   }
+  // Applied at the outermost wrap, on the entry URL, so it covers every branch
+  // handleRequest can take -- including the ones that return before
+  // context.next() ever runs and the 500 net above.
+  response = withApiCacheHeaders(response, entryUrl.pathname);
   if (!isPreviewHost) return response;
   const headers = new Headers(response.headers);
   headers.set('X-Robots-Tag', 'noindex');

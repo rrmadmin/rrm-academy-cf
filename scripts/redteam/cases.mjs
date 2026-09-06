@@ -1353,6 +1353,16 @@ add({
   live: { expect: { status: 200, headerAbsentValue: { 'access-control-allow-origin': '*' } } },
 });
 
+/**
+ * RRMA-RT-3, closed 2026-09-05. `public/_headers` declared `/api/*
+ * Cache-Control: no-store` and never once applied it to a Function response --
+ * `_headers` governs what Pages serves itself, so a HEAD on this path (no
+ * module exports HEAD) carried the header while a GET reached the Function and
+ * answered 200 with no cache directive at all. Every authenticated endpoint was
+ * in that hole. The contract now lives in withApiCacheHeaders() in
+ * functions/_middleware.js, which is why this case is no longer a hermetic
+ * skip: the header is now set somewhere this process actually runs.
+ */
 add({
   id: 'headers-api-is-no-store',
   family: 'headers',
@@ -1361,12 +1371,14 @@ add({
   host: 'apex',
   method: 'GET',
   path: '/api/community/status',
-  hermetic: { skip: 'no-store for /api/* comes from public/_headers, a platform layer that is not in this process' },
-  known: 'RRMA-RT-3',
-  knownNote:
-    'FINDING, found by the live run and confirmed by hand. `public/_headers` declares `/api/* Cache-Control: no-store`, but a GET that REACHES A PAGES FUNCTION answers 200 with no Cache-Control header at all. `_headers` applies to responses Pages serves itself and not to Function responses: `curl -I` (HEAD, which no API module exports, so Pages answers its own 404) returns `cache-control: no-store`, while `curl -X GET` on the same path returns 200 with the header absent. The declared control has therefore never applied to the endpoints it was written for, including the authenticated ones (/api/billing/status, /api/community/members, /api/auth/session). The fix belongs in withSecurityHeaders() in functions/_middleware.js, which is already where this repo moved the other security headers for exactly this reason -- its own comment records that the _headers catch-all corrupted Function responses.',
-  live: { expect: { status: 200, headerMatches: { 'cache-control': /no-store/ } } },
+  expect: { status: 200, headerMatches: { 'cache-control': /no-store/, vary: /Cookie/i } },
+  live: { expect: { status: 200, headerMatches: { 'cache-control': /no-store/, vary: /Cookie/i } } },
 });
+
+/* The per-route sweep of this contract, and its counterweight (a route that
+   declared its own caching keeps it), are in test/api-cache-headers.test.js
+   rather than here: they are 57 assertions, and this table is deliberately
+   held to a targeted 100-150 cases. */
 
 add({
   id: 'headers-preview-host-is-noindex',

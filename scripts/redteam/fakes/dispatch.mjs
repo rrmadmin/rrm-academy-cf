@@ -93,6 +93,12 @@ const ROUTE_TABLE = [
   ['/api/events/register', '../../../functions/api/events/register.js'],
   ['/api/partners/apply', '../../../functions/api/partners/apply.js'],
   ['/api/pdf/request', '../../../functions/api/pdf/request.js'],
+  /* Not attacked by any case: this is the DELIBERATELY CACHEABLE half of the
+     /api/* cache contract, and test/api-cache-headers.test.js needs to reach it
+     to prove the middleware leaves a route's own Cache-Control alone. A path
+     this table cannot reach is an error rather than a 404, so it has to be
+     named here to be testable at all. */
+  ['/api/survey/count', '../../../functions/api/survey/count.js'],
 ];
 
 /** -> { specifier, params } or null. */
