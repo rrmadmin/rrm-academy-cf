@@ -79,12 +79,41 @@ function urlFor(kase, options) {
   return `${origin}${kase.path}${kase.query ?? ''}`;
 }
 
+/**
+ * `CF-Connecting-IP` IS A HERMETIC-ONLY HEADER, and learning that was the
+ * first thing the live mode paid for.
+ *
+ * Hermetically it is not optional: several endpoints (survey/validate,
+ * auth/login, auth/forgot-password) answer 503 without it, and a harness
+ * that omitted it would read those 503s as findings when they are really the
+ * request forgetting to come from somewhere.
+ *
+ * LIVE it must never be sent. Cloudflare sets that header itself at the
+ * edge, so a client-supplied one is a spoof: production answers 403 with a
+ * block page to EVERY request carrying it. The first live run scored 66
+ * FAILs that were all one bug in this function -- the harness measuring the
+ * WAF refusing the harness, and reporting it as the site refusing an
+ * attacker. It is stripped from the per-case headers too, because several
+ * cases set their own IP to isolate a rate-limit bucket, which is a hermetic
+ * concern that has no live meaning.
+ */
+const HERMETIC_ONLY_HEADERS = ['cf-connecting-ip'];
+
+/** Identifies the harness in production logs. Never spoofs a browser. */
+const LIVE_USER_AGENT = 'rrm-academy-cf-redteam/1 (+https://github.com/rrmadmin/rrm-academy-cf)';
+
 function headersFor(kase, options) {
   const { headers, skipReason } = identityHeaders(kase.as, { mode: options.mode });
   if (skipReason) return { headers: null, skipReason };
-  /* An IP is not optional here: several endpoints refuse 503 without
-     CF-Connecting-IP, which would look like a finding and is really the
-     harness forgetting to be a request from somewhere. */
+
+  if (options.mode === 'live') {
+    const live = { 'User-Agent': LIVE_USER_AGENT, ...headers, ...(kase.headers ?? {}) };
+    for (const name of Object.keys(live)) {
+      if (HERMETIC_ONLY_HEADERS.includes(name.toLowerCase())) delete live[name];
+    }
+    return { headers: live, skipReason: null };
+  }
+
   return { headers: { 'CF-Connecting-IP': '203.0.113.1', ...headers, ...(kase.headers ?? {}) }, skipReason: null };
 }
 

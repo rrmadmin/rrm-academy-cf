@@ -43,8 +43,15 @@ test('every attack case answers what the table says it must', () => {
   );
 });
 
+/**
+ * A case that is hermetically SKIPPED is exempt: RRMA-RT-3 is a
+ * platform-layer finding (an `_headers` rule that never reaches a Function
+ * response), which only the live run can observe, so its hermetic outcome is
+ * SKIP by construction and asserting KNOWN here would fail on a truth about
+ * the harness rather than about the site.
+ */
 test('a case marked known is still failing, so the marker is not stale', () => {
-  for (const result of results.filter((one) => one.known)) {
+  for (const result of results.filter((one) => one.known && one.outcome !== 'SKIP')) {
     assert.equal(
       result.outcome,
       'KNOWN',
