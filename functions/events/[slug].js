@@ -496,6 +496,11 @@ function buildICS({ uid, title, startMs, endMs, description, location, url }) {
     `LOCATION:${icsEscape(location)}`,
     `URL:${icsEscape(url)}`,
     'STATUS:CONFIRMED',
+    'BEGIN:VALARM',
+    'ACTION:DISPLAY',
+    `DESCRIPTION:${icsEscape(title)}`,
+    'TRIGGER:-PT1H',
+    'END:VALARM',
     'END:VEVENT',
     'END:VCALENDAR',
   ].join('\r\n') + '\r\n';
