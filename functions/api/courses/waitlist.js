@@ -90,14 +90,19 @@ export async function onRequestPost(context) {
     log(env, waitUntil, 'courses', 'waitlist_contact_missing', 'warn', `${courseId}|${email}`, 0, 0);
   }
 
-  // 9. Optional session check — single inline JOIN query; no renewal write for this read-only check
+  // 9. Optional session check — single inline JOIN query; no renewal write for this read-only check.
+  // session.id stores SHA-256(cookie), so the cookie is hashed before the lookup,
+  // exactly as validateSession does. Binding the raw cookie here (as this query
+  // did until 2026-09-05) could only ever match a legacy plaintext row, so every
+  // session the current login flow issues missed and the account link below --
+  // and the blocked-account 403 with it -- was dead code.
   let userId = null;
   const sessionId = getSessionIdFromCookie(request);
   if (sessionId) {
     try {
       const sessionRow = await env.DB.prepare(
         'SELECT s.user_id, u.email AS user_email, u.blocked FROM session s JOIN user u ON u.id = s.user_id WHERE s.id = ? AND s.expires_at > unixepoch()'
-      ).bind(sessionId).first();
+      ).bind(await hashToken(sessionId)).first();
       if (sessionRow) {
         if (sessionRow.blocked === 1) {
           return json({ ok: false, error: 'forbidden' }, 403);

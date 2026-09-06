@@ -70,8 +70,9 @@ export const WRONG_PASSWORD = 'Redteam-Wr0ng-Horse-Nope';
  *   session       a real session row, minted hashed exactly as createSession does
  *   raw-hash      the cookie set to the STORED (hashed) session id, which is
  *                 what an attacker holding a leaked `session` row would have.
- *                 validateSession's plaintext dual-read fallback is what this
- *                 case exists to measure; see RRMA-RT-1.
+ *                 validateSession's plaintext dual-read fallback made it work;
+ *                 the fallback is gone (RRMA-RT-1) and this identity is now the
+ *                 regression alarm on its return.
  *   forged        a well-formed session id that was never issued
  *   expired       a real row whose expires_at is in the past
  *   header-only   the auth-hint cookie (`rrm_auth=1`) and nothing else, which
