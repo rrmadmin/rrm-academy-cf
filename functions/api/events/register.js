@@ -131,7 +131,10 @@ export async function onRequestPost(context) {
     log(env, waitUntil, 'events', 'register_contact_missing', 'warn', slug, 0, 0);
   }
 
-  // 9. Optional session check: one inline JOIN, no renewal write for this read-only check
+  // 9. Optional session check: one inline JOIN, no renewal write for this read-only check.
+  // Hashed before the lookup for the reason courses/waitlist.js records: session.id
+  // stores SHA-256(cookie), so a raw bind could only ever match a legacy plaintext
+  // row and missed every session the current login flow issues.
   let userId = null;
   let firstName = null;
   const sessionId = getSessionIdFromCookie(request);
@@ -139,7 +142,7 @@ export async function onRequestPost(context) {
     try {
       const sessionRow = await env.DB.prepare(
         'SELECT s.user_id, u.email AS user_email, u.first_name, u.blocked FROM session s JOIN user u ON u.id = s.user_id WHERE s.id = ? AND s.expires_at > unixepoch()'
-      ).bind(sessionId).first();
+      ).bind(await hashToken(sessionId)).first();
       if (sessionRow) {
         if (sessionRow.blocked === 1) {
           return json({ ok: false, error: 'forbidden' }, 403);

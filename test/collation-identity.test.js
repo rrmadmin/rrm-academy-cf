@@ -229,9 +229,11 @@ describe('auth/signup.js:136 -- the duplicate-account check (query clause on a B
 
     const parsed = await postSignup(db, 'ada@example.com');
 
-    // Anti-enumeration: the collision answers 201 like a real signup would.
+    // Anti-enumeration: the collision answers 201 like a real signup would, and
+    // since RRMA-RT-2 it answers with the SAME BODY -- `resendPath` included.
+    // Emitting it on one arm only was the enumeration oracle.
     assert.equal(parsed.status, 201, `collision path errored instead of answering silently: ${JSON.stringify(parsed.body)}`);
-    assert.deepEqual(parsed.body, { ok: true, emailVerificationRequired: true });
+    assert.deepEqual(parsed.body, { ok: true, emailVerificationRequired: true, resendPath: '/api/auth/resend-verification' });
 
     const all = rows(db, 'SELECT id, email, first_name FROM user');
     assert.equal(all.length, 1, `a duplicate account was created: ${JSON.stringify(all)}`);

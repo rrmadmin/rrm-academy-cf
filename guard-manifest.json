@@ -3,7 +3,7 @@
   "description": "Critical file integrity manifest. Run `npm run guard:update` after intentional changes.",
   "files": {
     "functions/api/auth/_shared.js": {
-      "hash": "37b153e20c36ae4aeaed18b4fb5b99ebbd1e09ddd3b873277ad99fad1ab34052",
+      "hash": "0ad90fcec4b1970c30d4cbad4365c4c2dbb5a031814ab5d216f7c02e4ce365e2",
       "note": "CORS, sessions, crypto, rate limiting"
     },
     "functions/api/auth/login.js": {
@@ -11,7 +11,7 @@
       "note": "Authentication"
     },
     "functions/api/auth/signup.js": {
-      "hash": "0aa41d43f3c339d58240af6171a5775631ee5cd1d56e0116925dc93d863bb9a9",
+      "hash": "9266058af4e3164eafff3696bdcb5d952a2a4450a83baa9c3ea1e303280e217b",
       "note": "Account creation"
     },
     "functions/api/auth/forgot-password.js": {
@@ -71,7 +71,7 @@
       "note": "HMAC-SHA256 magic-link token for Wix-to-Stripe donor migration"
     },
     "functions/_middleware.js": {
-      "hash": "00a72933f80228cc1faa94cf0be4994d050f44d69224145c47cea43ccc6402e2",
+      "hash": "0a4535544ac184b49ba86a57dfdaec48a1d96f7b435c0b107a3b2fee227d2bd9",
       "note": "Auth gating"
     },
     "wrangler.toml": {
