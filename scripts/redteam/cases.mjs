@@ -1166,6 +1166,16 @@ add({
   live: { skip: 'a live pair would send a real reset mail to a real address' },
 });
 
+/**
+ * SIGNUP WAS AN ENUMERATION ORACLE BY RESPONSE SHAPE (RRMA-RT-2, closed
+ * 2026-09-05). Both arms answered 201 {ok:true, emailVerificationRequired:true}
+ * -- the intended non-enumerable design -- but the NEW-account arm alone added
+ * `resendPath`, so one key told an attacker whether an address already had an
+ * account, with no timing measurement needed. Both arms now emit the same
+ * frozen body, and the Set-Cookie shape matches too. The scenario compares key
+ * sets and statuses as well as bytes, so a future arm that answers with a
+ * different SHAPE fails here even if the bytes happen to line up.
+ */
 add({
   id: 'leak-signup-known-vs-unknown-shape',
   family: 'leak',
@@ -1179,9 +1189,6 @@ add({
     known: { email: VICTIM_EMAIL, password: 'Redteam-Corr3ct-Horse', firstName: 'Redteam', lastName: 'Sample', turnstileToken: 'redteam-token' },
     unknown: { email: 'redteam-fresh@redteam.example', password: 'Redteam-Corr3ct-Horse', firstName: 'Redteam', lastName: 'Sample', turnstileToken: 'redteam-token' },
   },
-  known: 'RRMA-RT-2',
-  knownNote:
-    'FINDING. Signup is a user-enumeration oracle by RESPONSE SHAPE. Both answers are 201 and both say {ok:true, emailVerificationRequired:true}, which is clearly the intended non-enumerable design -- but the NEW-account arm (signup.js:277) adds `resendPath: "/api/auth/resend-verification"` and the EXISTING-account arms (signup.js:174, 179) do not. The presence of that one key tells an attacker whether an address already has an account, at 201 either way, with no timing measurement needed. The fix is to emit the same key set on both arms.',
   live: { skip: 'a live pair would create a real account' },
 });
 
