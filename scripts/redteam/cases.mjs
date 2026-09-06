@@ -168,13 +168,16 @@ for (const path of ['/api/community/posts']) {
 /**
  * THE STORED SESSION ID, PRESENTED AS THE COOKIE.
  *
- * `validateSession` hashes the cookie and looks it up, then falls back to
- * matching the cookie VERBATIM against `session.id` -- a dual-read left over
- * from the plaintext-to-hashed migration. Anyone holding a row from the
- * `session` table therefore holds a working cookie, because the stored value
- * IS the accepted value on the fallback path. The hashing buys nothing
- * against a database read while that fallback is live. This case measures it
- * rather than asserting a preference.
+ * `validateSession` hashes the cookie and looks up the hash, and that is the
+ * only read it does. It used to fall back to matching the cookie VERBATIM
+ * against `session.id` -- a dual-read left over from the plaintext-to-hashed
+ * migration -- which made the stored value its own working cookie, so anyone
+ * who could read one row of the `session` table held a live session and the
+ * hashing at rest bought nothing against a database read (RRMA-RT-1, closed
+ * 2026-09-05; the live table held 72 rows, all hashed, so the fallback had
+ * nothing left to serve and nobody was logged out). This case is the
+ * regression alarm on that: it presents the STORED id as the cookie and the
+ * only acceptable answer is a refusal.
  */
 add({
   id: 'auth-stored-session-id-as-cookie',
@@ -185,9 +188,6 @@ add({
   method: 'GET',
   path: '/api/billing/status',
   expect: { status: 401 },
-  known: 'RRMA-RT-1',
-  knownNote:
-    'FINDING. The stored session id authenticates: validateSession hashes the cookie, misses, then re-queries `WHERE s.id = ?` with the cookie VERBATIM (the plaintext dual-read left over from the hashed-session migration). Anyone who can read one row of the `session` table therefore holds a working cookie, so hashing at rest currently buys nothing against a database read. The fix is to retire the fallback (every plaintext row minted before the migration has long since passed the 30-day SESSION_DURATION_MS, so there is nothing left for it to serve); until then this case stays KNOWN so a regression after the fix is still caught.',
   live: { skip: 'requires a stored session id, which only a database read would give' },
 });
 

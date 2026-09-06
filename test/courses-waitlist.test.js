@@ -58,12 +58,14 @@ async function seededDb(extra, opts = {}) {
 }
 
 /**
- * Inserts a session row keyed by the RAW cookie value, i.e. the pre-hash shape
- * that auth/_shared.js validateSession still dual-reads for legacy rows.
+ * Inserts a session row keyed by the RAW cookie value: the pre-hash shape left
+ * over from the plaintext-to-hashed migration, which nothing mints any more.
  *
- * This endpoint does its own session lookup with `WHERE s.id = ?` bound to the
- * raw cookie, so ONLY a row of this shape can ever match here (see the
- * DEFECT-marked tests below).
+ * Kept so the tests below can prove a row of that shape is INERT. Until
+ * 2026-09-05 it was the only shape this endpoint could resolve -- its lookup
+ * bound the raw cookie against `session.id`, so every session the current login
+ * flow issues missed -- and validateSession's raw-id fallback (RRMA-RT-1) made
+ * such a row a working cookie site-wide. Both are gone.
  */
 function insertPlaintextSession(sqlite, { rawId, userId, expiresAt = FUTURE }) {
   sqlite.prepare('INSERT INTO session (id, user_id, expires_at) VALUES (?, ?, ?)').run(rawId, userId, expiresAt);
@@ -355,30 +357,28 @@ describe('POST /api/courses/waitlist -- what gets stored', () => {
     assert.equal(row.user_id, USER, 'COALESCE must preserve the linked account');
   });
 
-  it('DEFECT: a current (hashed) session never links the signup to the account', async () => {
-    // auth/_shared.js stores session ids as their SHA-256 hash and
-    // validateSession hashes the cookie before looking it up. This endpoint
-    // does its own lookup and binds the RAW cookie value:
-    //     WHERE s.id = ? ... .bind(sessionId)
-    // so it can only ever match a legacy plaintext row. For every session
-    // issued by the current login flow the lookup misses, userId stays null,
-    // and both the account link and the blocked-account 403 below are dead.
+  it('a current (hashed) session links the signup to the account', async () => {
+    // The lookup hashes the cookie before binding it, exactly as
+    // validateSession does, so a session the current login flow issued
+    // resolves. It bound the RAW cookie until 2026-09-05, which could only
+    // ever match a legacy plaintext row -- so for every real session the
+    // lookup missed, userId stayed null, and the account link plus the
+    // blocked-account 403 below were both dead.
     await submit(env, { ...VALID, email: 'learner@example.com' }, { session: RAW.user });
     const [row] = waitlistRows(db);
     assert.equal(row.email, 'learner@example.com');
-    assert.equal(row.user_id, null, 'a hashed session cannot be resolved by this endpoint');
+    assert.equal(row.user_id, USER, 'a hashed session must resolve here');
   });
 
-  it('a legacy plaintext session does link the signup to the account', async () => {
+  it('a legacy plaintext session links nothing -- the raw shape is inert', async () => {
     insertPlaintextSession(db._sqlite, { rawId: 'legacy-plaintext-session', userId: USER });
     await submit(env, { ...VALID, email: 'learner@example.com' }, { session: 'legacy-plaintext-session' });
     const [row] = waitlistRows(db);
-    assert.equal(row.user_id, USER);
+    assert.equal(row.user_id, null, 'a row stored raw is not a credential anywhere any more');
   });
 
   it('IDOR: a session is never bound to a foreign email address', async () => {
-    insertPlaintextSession(db._sqlite, { rawId: 'legacy-plaintext-session', userId: USER });
-    await submit(env, { ...VALID, email: 'victim@example.com' }, { session: 'legacy-plaintext-session' });
+    await submit(env, { ...VALID, email: 'victim@example.com' }, { session: RAW.user });
     const [row] = waitlistRows(db);
     assert.equal(row.email, 'victim@example.com');
     assert.equal(row.user_id, null, 'the session must not be bound to a foreign email');
@@ -386,22 +386,20 @@ describe('POST /api/courses/waitlist -- what gets stored', () => {
 
   it('the session email match is case-insensitive on the account side', async () => {
     db._sqlite.prepare('UPDATE user SET email = ? WHERE id = ?').run('Learner@Example.com', USER);
-    insertPlaintextSession(db._sqlite, { rawId: 'legacy-plaintext-session', userId: USER });
-    await submit(env, { ...VALID, email: 'learner@example.com' }, { session: 'legacy-plaintext-session' });
+    await submit(env, { ...VALID, email: 'learner@example.com' }, { session: RAW.user });
     const [row] = waitlistRows(db);
     assert.equal(row.user_id, USER);
   });
 
   it('an expired session row is not resolved', async () => {
-    insertPlaintextSession(db._sqlite, { rawId: 'legacy-expired', userId: USER, expiresAt: 1 });
-    await submit(env, { ...VALID, email: 'learner@example.com' }, { session: 'legacy-expired' });
+    await insertSession(db._sqlite, { rawId: 'expired-session', userId: USER, expiresAt: 1 });
+    await submit(env, { ...VALID, email: 'learner@example.com' }, { session: 'expired-session' });
     assert.equal(waitlistRows(db)[0].user_id, null);
   });
 
   it('403 for a blocked account, and nothing is stored', async () => {
     db._sqlite.prepare('UPDATE user SET blocked = 1 WHERE id = ?').run(USER);
-    insertPlaintextSession(db._sqlite, { rawId: 'legacy-plaintext-session', userId: USER });
-    const { status, body } = await submit(env, { ...VALID, email: 'learner@example.com' }, { session: 'legacy-plaintext-session' });
+    const { status, body } = await submit(env, { ...VALID, email: 'learner@example.com' }, { session: RAW.user });
     assert.equal(status, 403);
     assert.equal(body.error, 'forbidden');
     assert.equal(waitlistRows(db).length, 0);

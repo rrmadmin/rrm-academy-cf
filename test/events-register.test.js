@@ -33,7 +33,7 @@ import {
   mockRequest, mockEnv, mockKV, mockWaitUntil, parseResponse, stubExternalFetch,
   drainWaitUntil, randomIp,
 } from './_helpers.js';
-import { sqliteD1, insertUser } from './_d1-sqlite.mjs';
+import { sqliteD1, insertUser, insertSession } from './_d1-sqlite.mjs';
 
 const register = await import('../functions/api/events/register.js');
 
@@ -42,6 +42,7 @@ const MIGRATION_032 = readFileSync(new URL('../migrations/032-free-events.sql', 
 
 const AUTHOR = 'u_evt_author';
 const MEMBER = 'u_evt_member';
+const MEMBER_COOKIE = 'events-session-member';
 const MEET_URL = 'https://meet.google.com/gat-eded-xyz';
 const DIAL = 'Phone: +1 555-020-1111';
 const PIN = 'PIN: 445566';
@@ -425,15 +426,18 @@ describe('POST /api/events/register -- the sent message is the ONLY place the li
   });
 
   it('greets a signed-in registrant by first name', async () => {
-    const withSession = await seededDb((s) => {
-      s.prepare('INSERT INTO session (id, user_id, expires_at) VALUES (?, ?, ?)')
-        .run('legacy-plaintext-session', MEMBER, Math.floor(Date.now() / 1000) + 86400);
+    // The cookie is hashed before the session lookup, as validateSession does.
+    // The lookup bound the RAW cookie until 2026-09-05, so it could only match a
+    // legacy plaintext row and every real session missed here.
+    const withSession = await seededDb();
+    await insertSession(withSession._sqlite, {
+      rawId: MEMBER_COOKIE, userId: MEMBER, expiresAt: Math.floor(Date.now() / 1000) + 86400,
     });
     const sessionNet = stubExternalFetch();
     await submit(
       makeEnv(withSession),
       { ...VALID, email: 'member@example.com' },
-      { session: 'legacy-plaintext-session' },
+      { session: MEMBER_COOKIE },
     );
 
     const [mail] = sentMail(sessionNet);
@@ -443,13 +447,34 @@ describe('POST /api/events/register -- the sent message is the ONLY place the li
     withSession.close();
   });
 
-  it('IDOR: a session is never bound to a foreign address', async () => {
-    const withSession = await seededDb((s) => {
+  it('a legacy plaintext session row links nothing -- the raw shape is inert', async () => {
+    const legacy = await seededDb((s) => {
       s.prepare('INSERT INTO session (id, user_id, expires_at) VALUES (?, ?, ?)')
         .run('legacy-plaintext-session', MEMBER, Math.floor(Date.now() / 1000) + 86400);
     });
+    const legacyNet = stubExternalFetch();
+    await submit(
+      makeEnv(legacy),
+      { ...VALID, email: 'member@example.com' },
+      { session: 'legacy-plaintext-session' },
+    );
+
+    assert.equal(
+      registrations(legacy)[0].user_id,
+      null,
+      'a row stored raw is not a credential anywhere any more (RRMA-RT-1)'
+    );
+    legacyNet.restore();
+    legacy.close();
+  });
+
+  it('IDOR: a session is never bound to a foreign address', async () => {
+    const withSession = await seededDb();
+    await insertSession(withSession._sqlite, {
+      rawId: MEMBER_COOKIE, userId: MEMBER, expiresAt: Math.floor(Date.now() / 1000) + 86400,
+    });
     const idorNet = stubExternalFetch();
-    await submit(makeEnv(withSession), { ...VALID, email: 'victim@example.com' }, { session: 'legacy-plaintext-session' });
+    await submit(makeEnv(withSession), { ...VALID, email: 'victim@example.com' }, { session: MEMBER_COOKIE });
 
     const [row] = registrations(withSession);
     assert.equal(row.email, 'victim@example.com');

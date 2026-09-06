@@ -173,25 +173,26 @@ export async function createSession(db, userId) {
   return { id, userId, expiresAt };
 }
 
+// THE COOKIE IS HASHED AND ONLY THE HASH IS LOOKED UP.
+//
+// There is deliberately NO fallback that matches the cookie verbatim against
+// session.id. That dual-read shipped with the plaintext-to-hashed migration and
+// made every stored row its own working cookie: anyone who could read one row of
+// the session table held a live session, so hashing at rest bought nothing
+// against a database read (red-team finding RRMA-RT-1). Retired 2026-09-05 after
+// a read-only count of live rrm-auth.session returned 72 rows, all 64-hex
+// (hashed) and zero of the 50-hex plaintext shape generateSessionId() produces,
+// so no migration was needed and nobody was logged out. Re-adding a raw-id read
+// here re-opens the finding; test/session-authorization-guards.test.js pins it.
 export async function validateSession(db, sessionId) {
   if (!sessionId) return null;
   const hashedSessionId = await hashToken(sessionId);
-  let row = await db.prepare(`
+  const row = await db.prepare(`
     SELECT s.id, s.user_id, s.expires_at, u.blocked, u.role
     FROM session s
     JOIN user u ON u.id = s.user_id
     WHERE s.id = ?
   `).bind(hashedSessionId).first();
-  // Dual-read migration fallback: pre-existing plaintext session rows still validate
-  // until they expire naturally or the user logs out and back in.
-  if (!row) {
-    row = await db.prepare(`
-      SELECT s.id, s.user_id, s.expires_at, u.blocked, u.role
-      FROM session s
-      JOIN user u ON u.id = s.user_id
-      WHERE s.id = ?
-    `).bind(sessionId).first();
-  }
   if (!row) return null;
 
   // Blocked users are treated as session-invalid. Expired sessions are cleaned up by cron sweep (admin/cleanup), not inline.
@@ -222,13 +223,12 @@ export async function validateSession(db, sessionId) {
   return { id: row.id, cookieId: sessionId, userId: row.user_id, expiresAt: row.expires_at, renewed, role: row.role };
 }
 
+// Deletes by hash only, for the same reason validateSession reads by hash only:
+// the plaintext twin of this statement was the write half of the same dual-read
+// and has nothing left to delete.
 export async function invalidateSession(db, sessionId) {
   const hashedSessionId = await hashToken(sessionId);
-  const result = await db.prepare('DELETE FROM session WHERE id = ?').bind(hashedSessionId).run();
-  // Dual-read migration fallback: delete plaintext row if no hashed row was found.
-  if (result.meta?.changes === 0) {
-    await db.prepare('DELETE FROM session WHERE id = ?').bind(sessionId).run();
-  }
+  await db.prepare('DELETE FROM session WHERE id = ?').bind(hashedSessionId).run();
 }
 
 export async function invalidateAllUserSessions(db, userId) {
