@@ -1242,7 +1242,15 @@ add({
   method: 'GET',
   path: '/admin/members',
   expect: { status: 410, mustNotContain: ['/api/admin/', 'ADMIN_API_SECRET'] },
-  live: { expect: { status: 410 } },
+  /* Live, the rrm-router Worker sits in front and normalises the missing
+     trailing slash for some user agents before Pages is reached: the same
+     path answers 410 to curl's default UA and 301 to
+     /admin/members/ to this harness's. Either way no admin content is
+     served, and the destination's own 410 is held by
+     headers-admin-surface-is-gone, which requests the slashed form. The
+     claim this case makes -- an /admin path never serves admin content and
+     never names a route behind it -- is unchanged. */
+  live: { expect: { status: [301, 410], mustNotContain: ['/api/admin/', 'ADMIN_API_SECRET'] } },
 });
 
 add({
@@ -1347,6 +1355,9 @@ add({
   method: 'GET',
   path: '/api/community/status',
   hermetic: { skip: 'no-store for /api/* comes from public/_headers, a platform layer that is not in this process' },
+  known: 'RRMA-RT-3',
+  knownNote:
+    'FINDING, found by the live run and confirmed by hand. `public/_headers` declares `/api/* Cache-Control: no-store`, but a GET that REACHES A PAGES FUNCTION answers 200 with no Cache-Control header at all. `_headers` applies to responses Pages serves itself and not to Function responses: `curl -I` (HEAD, which no API module exports, so Pages answers its own 404) returns `cache-control: no-store`, while `curl -X GET` on the same path returns 200 with the header absent. The declared control has therefore never applied to the endpoints it was written for, including the authenticated ones (/api/billing/status, /api/community/members, /api/auth/session). The fix belongs in withSecurityHeaders() in functions/_middleware.js, which is already where this repo moved the other security headers for exactly this reason -- its own comment records that the _headers catch-all corrupted Function responses.',
   live: { expect: { status: 200, headerMatches: { 'cache-control': /no-store/ } } },
 });
 
