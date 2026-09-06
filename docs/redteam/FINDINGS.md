@@ -103,12 +103,12 @@ The proxy module was not changed, and the route stays exempt in
 `coverage.mjs`: this is a unit test beside the module, not a request-shaped
 attack, so the exemption and the zero in the case column both still stand.
 
-UPDATE 2026-09-06 (PR TBD): `Clear-Site-Data` is now stripped too, on
+UPDATE 2026-09-06 (PR #152): `Clear-Site-Data` is now stripped too, on
 Brian's call -- a first-party upstream emitting it would log the apex user
 out, and an origin-scoped directive like that must never be proxied from
 another origin. `test/mcp-proxy.test.js` pins it under odd casing and on both
 a 200 and a 500, and mutation-proves it (removing the entry from
-`STRIP_RESPONSE_HEADERS` turns 3 tests red).
+`STRIP_RESPONSE_HEADERS` turns 4 tests red).
 
 NOTED RESIDUAL, deliberately left unasserted. Other origin-scoped response
 headers from upstream (`Strict-Transport-Security`, `Content-Security-Policy`)
