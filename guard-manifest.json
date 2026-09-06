@@ -11,7 +11,7 @@
       "note": "Authentication"
     },
     "functions/api/auth/signup.js": {
-      "hash": "0aa41d43f3c339d58240af6171a5775631ee5cd1d56e0116925dc93d863bb9a9",
+      "hash": "9266058af4e3164eafff3696bdcb5d952a2a4450a83baa9c3ea1e303280e217b",
       "note": "Account creation"
     },
     "functions/api/auth/forgot-password.js": {

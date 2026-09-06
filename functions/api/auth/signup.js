@@ -7,7 +7,7 @@ import {
   hashPassword, sessionCookie, authHintCookie, verifyTurnstile, checkRateLimit,
   isValidPassword, waitlistBackfillStatement, sessionInsertStatement,
   deriveSignupSource, EMAIL_VERIFY_TTL_S, SESSION_DURATION_MS,
-  getSessionIdFromCookie, hashToken, COMMON_PASSWORD_ERROR,
+  getSessionIdFromCookie, hashToken, validateSession, COMMON_PASSWORD_ERROR,
 } from './_shared.js';
 import { validateEmail } from './_email-validate.js';
 import { greetingLine } from '../_greeting.js';
@@ -18,6 +18,65 @@ import { sendGA4Event } from '../_ga4.js';
 import { log } from '../_log.js';
 import { validateBody } from '../_validate.js';
 import { fireFpLink } from '../_fp-link.js';
+
+/**
+ * THE ONE SIGNUP SUCCESS BODY, and there is deliberately only one object.
+ *
+ * A fresh address and an address that already has an account must answer
+ * identically: same status, same keys, same values. They did not. Both arms
+ * were 201 {ok, emailVerificationRequired}, but the new-account arm alone
+ * added `resendPath`, so the presence of one key told an attacker whether an
+ * address was already registered -- at 201 either way, with no timing
+ * measurement needed (red-team finding RRMA-RT-2). Holding the body in a
+ * frozen constant is what stops the two arms drifting apart again; adding a
+ * key here adds it to every arm at once.
+ *
+ * THE DISTINCTION LIVES IN THE MAIL, which is where it belongs: a fresh
+ * address gets the verification link, an existing one gets the "did you try to
+ * sign up?" note with a login and a reset link. Only the mailbox owner sees
+ * either.
+ */
+const SIGNUP_ACCEPTED_BODY = Object.freeze({
+  ok: true,
+  emailVerificationRequired: true,
+  resendPath: '/api/auth/resend-verification',
+});
+
+/**
+ * The 201 for an address that already has an account, cookies and all.
+ *
+ * The cookie shape has to match the new-account arm's too, or the Set-Cookie
+ * header becomes the oracle the body no longer is. A decoy session id is what
+ * makes that possible: it is never inserted, so it authenticates nowhere.
+ *
+ * WHY THIS VALIDATES RATHER THAN JUST LOOKING FOR A COOKIE. /arise fix #4
+ * (766e35f5, 2026-05-25) added a guard here because minting a decoy over a
+ * REAL session logged a signed-in user out of their own account on an
+ * accidental form re-submit. That promise is kept, and kept more precisely:
+ * only a session that actually validates is worth protecting, and skipping
+ * Set-Cookie for anyone merely holding a cookie-shaped string handed an
+ * attacker the same tell the body used to give them. A D1 fault reads as "no
+ * live session" so a database wobble cannot turn this arm into a 500 while
+ * the new-account arm still answers 201.
+ */
+async function acceptedForExistingAccount(db, request) {
+  let live;
+  try {
+    live = await validateSession(db, getSessionIdFromCookie(request));
+  } catch { // arise-ignore silent-catch -- a D1 fault must read as "no live session"; a 500 only this arm returns is the oracle again
+    live = null;
+  }
+  if (live) {
+    return json(SIGNUP_ACCEPTED_BODY, 201, {
+      'Set-Cookie': [sessionCookie(live.cookieId, live.expiresAt), authHintCookie(live.expiresAt)],
+    });
+  }
+  const decoySessionId = generateSessionId();
+  const decoyExpires = Math.floor((Date.now() + SESSION_DURATION_MS) / 1000);
+  return json(SIGNUP_ACCEPTED_BODY, 201, {
+    'Set-Cookie': [sessionCookie(decoySessionId, decoyExpires), authHintCookie(decoyExpires)],
+  });
+}
 
 function escapeHtml(s) {
   return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#39;');
@@ -170,16 +229,7 @@ export async function onRequestPost({ request, env, waitUntil }) {
           );
         }
       }
-      if (getSessionIdFromCookie(request)) {
-        return json({ ok: true, emailVerificationRequired: true }, 201);
-      }
-      const fakeSessionId = generateSessionId();
-      const fakeExpires = Math.floor((Date.now() + SESSION_DURATION_MS) / 1000);
-      return json(
-        { ok: true, emailVerificationRequired: true },
-        201,
-        { 'Set-Cookie': [sessionCookie(fakeSessionId, fakeExpires), authHintCookie(fakeExpires)] }
-      );
+      return acceptedForExistingAccount(db, request);
     }
 
     // ELV mailbox verification — only runs for genuinely new emails (existing users
@@ -216,19 +266,11 @@ export async function onRequestPost({ request, env, waitUntil }) {
       ]);
     } catch (batchErr) {
       if (batchErr.message && (batchErr.message.includes('UNIQUE constraint failed: user.email') || batchErr.message.includes('idx_user_email_nocase'))) {
-        // Anti-enumeration: same cookie shape as a real signup (fake session ID won't validate).
+        // The same address, won by a concurrent request between the SELECT above
+        // and this INSERT. Answered exactly as the pre-check arm answers it.
         // Scoped to user.email UNIQUE — session.id or email_verification.id collisions are not
         // enumeration risks and should surface as 500 (caller can retry a fresh ID).
-        if (getSessionIdFromCookie(request)) {
-          return json({ ok: true, emailVerificationRequired: true }, 201);
-        }
-        const fakeSessionId = generateSessionId();
-        const fakeExpires = Math.floor((Date.now() + SESSION_DURATION_MS) / 1000);
-        return json(
-          { ok: true, emailVerificationRequired: true },
-          201,
-          { 'Set-Cookie': [sessionCookie(fakeSessionId, fakeExpires), authHintCookie(fakeExpires)] }
-        );
+        return acceptedForExistingAccount(db, request);
       }
       throw batchErr;
     }
@@ -274,7 +316,7 @@ export async function onRequestPost({ request, env, waitUntil }) {
     waitUntil(fireFpLink({ request, env, userId }));
 
     return json(
-      { ok: true, emailVerificationRequired: true, resendPath: '/api/auth/resend-verification' },
+      SIGNUP_ACCEPTED_BODY,
       201,
       { 'Set-Cookie': [sessionCookie(sessionId, sessionExpiresAt), authHintCookie(sessionExpiresAt)] }
     );
