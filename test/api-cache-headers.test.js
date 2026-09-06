@@ -77,15 +77,23 @@ async function send(route) {
 describe('every /api route answers with a cache directive, and it is no-store unless the route said otherwise', () => {
   const seen = new Map();
 
+  /* `/api/*` ONLY, which is the contract this file is named for and the exact
+     guard withApiCacheHeaders() opens with. targets.mjs ROUTES grew past the
+     API in 2026-09 to name three server-rendered PAGES as well (/events/<slug>,
+     /ask/s/<token>, the STUC migrate page); those answer HTML through the page
+     cache and asserting no-store on them would be pinning the opposite of what
+     the middleware deliberately does. */
+  const apiRoutes = ROUTES.filter((route) => route.path === '/api' || route.path.startsWith('/api/'));
+
   before(async () => {
-    for (const route of ROUTES) {
+    for (const route of apiRoutes) {
       seen.set(`${route.method} ${route.path}`, await send(route));
     }
   });
 
   it('sweeps every route the target table names, so this is not one endpoint standing in for 56', () => {
-    assert.ok(ROUTES.length >= 50, `${ROUTES.length} routes swept; the target table is meant to be the whole API surface`);
-    assert.equal(seen.size, new Set(ROUTES.map((r) => `${r.method} ${r.path}`)).size);
+    assert.ok(apiRoutes.length >= 50, `${apiRoutes.length} routes swept; the target table is meant to be the whole API surface`);
+    assert.equal(seen.size, new Set(apiRoutes.map((r) => `${r.method} ${r.path}`)).size);
   });
 
   it('never leaves a response with no Cache-Control at all -- the RRMA-RT-3 shape', () => {

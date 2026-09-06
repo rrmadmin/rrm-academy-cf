@@ -24,11 +24,12 @@
 
 import {
   ROUTES, SESSION_ROUTES, PRIVILEGED_ROUTES, PUBLIC_WRITE_ROUTES,
+  MACHINE_ROUTES, PUBLIC_QUERY_ROUTES,
   VICTIM_POST_ID, VICTIM_COMMENT_ID, VICTIM_KEY_ID, ATTACKER_KEY_ID,
-  NOBODYS_POST_ID, NOBODYS_KEY_ID, NOBODYS_TOKEN,
+  NOBODYS_POST_ID, NOBODYS_KEY_ID, NOBODYS_TOKEN, NOBODYS_SHARE_ID, NOBODYS_SHARE_TOKEN,
 } from './targets.mjs';
 import { bodyFor } from './fakes/bodies.mjs';
-import { VICTIM_EMAIL, ABSENT_EMAIL, SUPERADMIN_EMAIL } from './fakes/env.mjs';
+import { VICTIM_EMAIL, VICTIM_NAME, ATTACKER_EMAIL, ABSENT_EMAIL, SUPERADMIN_EMAIL } from './fakes/env.mjs';
 
 export const FAMILIES = Object.freeze({
   auth: 'session forgery, expiry, role escalation and IDOR across every gated route',
@@ -1570,6 +1571,510 @@ add({
   body: JSON.stringify({ mode: 'payment', amount: -1 }),
   expect: { status: 400, spends: { stripe: 0 } },
   live: { skip: 'spend assertions are only observable in process' },
+});
+
+// ===========================================================================
+// The routes the coverage self-check found
+//
+// `scripts/redteam/coverage.mjs` reads every door Pages serves off the file
+// tree. On the day it was written it said 77 of 121 routes had never been
+// sent a request by this harness: the whole machine lane (build tokens,
+// admin bearers, secrets in query strings), the paid course platform's
+// entitlement doors, the community join/leave writes, and every public
+// endpoint that takes a query and spends an upstream call.
+//
+// The generated sweeps below attack them the way the first pass attacked the
+// routes it knew about, and the hand-written cases after them attack the
+// three shapes that only exist in this half of the tree: a fetcher that
+// takes a URL, a batch reader that takes a list, and a token that stands in
+// for a login.
+// ===========================================================================
+
+/**
+ * EVERY MACHINE LANE, WITH NO CREDENTIAL AT ALL.
+ *
+ * These are the routes a cookie cannot reach: a build token, an admin
+ * bearer, or a secret in the query string is the only key. That also means
+ * no session sweep ever touched them, so until this sweep existed the
+ * least-attacked writes on the site were the ones that send the newsletter,
+ * record a deploy, and process bounce notifications.
+ *
+ * The body is the one that WOULD work if the caller held the key, for the
+ * same reason the anonymous sweep sends a valid body: a 400 for a parsing
+ * reason is not a refusal.
+ */
+for (const route of MACHINE_ROUTES) {
+  add({
+    id: `auth-nokey-${slugOf(route)}`,
+    family: 'auth',
+    description: `${route.method} ${route.path} with no machine credential is refused`,
+    as: 'none',
+    host: 'apex',
+    method: route.method,
+    path: route.path,
+    headers: jsonHeaders,
+    body: bodyFor(route.path, route.method),
+    expect: {
+      status: [401, 403],
+      mustNotContain: [VICTIM_EMAIL, ...STACK_MARKERS],
+    },
+    live: { expect: { status: [401, 403] } },
+  });
+}
+
+/**
+ * The same routes with a credential that is well-formed and wrong. Separate
+ * from the sweep above because "no key" and "the wrong key" are refused by
+ * different lines of code, and a comparison written with `==` on a
+ * user-supplied string passes the first and fails the second.
+ */
+for (const route of MACHINE_ROUTES) {
+  add({
+    id: `auth-wrongkey-${slugOf(route)}`,
+    family: 'auth',
+    description: `${route.method} ${route.path} with the wrong bearer token is refused`,
+    as: 'bearer-wrong',
+    host: 'apex',
+    method: route.method,
+    path: route.path,
+    headers: jsonHeaders,
+    body: bodyFor(route.path, route.method),
+    expect: { status: [401, 403], mustNotContain: [VICTIM_EMAIL, ...STACK_MARKERS] },
+    live: { expect: { status: [401, 403] } },
+  });
+}
+
+/**
+ * A SUPERADMIN COOKIE IS NOT A BUILD TOKEN.
+ *
+ * The build-time content readers answer with the whole corpus, and the most
+ * plausible way for that gate to soften is somebody wiring the admin session
+ * into it "so the console can use it too". The highest-privilege cookie on
+ * the site is the one to prove it with: if the superadmin is refused, no
+ * cookie opens the door.
+ */
+for (const route of MACHINE_ROUTES.filter((r) => r.auth === 'build-token')) {
+  add({
+    id: `auth-cookie-is-not-a-build-token-${slugOf(route)}`,
+    family: 'auth',
+    description: `a superadmin cookie does not open ${route.path}, which takes a build token`,
+    as: 'superadmin',
+    host: 'apex',
+    method: route.method,
+    path: route.path,
+    expect: { status: [401, 403] },
+    live: { skip: 'needs a real superadmin session' },
+  });
+}
+
+/**
+ * THE ENTITLEMENT DOOR ON A PAID COURSE. The member is real, verified and
+ * paying for MEMBERSHIP; what they have not done is buy this course. A
+ * membership check standing in for an enrollment check is the bug this
+ * asserts against, and it is invisible to every case that sends no cookie.
+ */
+add({
+  id: 'auth-asset-without-enrollment',
+  family: 'auth',
+  description: 'a member with no enrollment cannot pull a paid course workbook out of the bucket',
+  as: 'member',
+  host: 'apex',
+  method: 'GET',
+  path: '/api/assets/courses/test-course-basic/workbook.pdf',
+  expect: { status: 403, spends: { r2Get: 0 } },
+  live: { skip: 'needs a real member session, and the live bucket holds real course files' },
+});
+
+/** The same door, with a cookie that was never issued. */
+add({
+  id: 'auth-asset-forged-cookie',
+  family: 'auth',
+  description: 'a forged cookie is not an enrollment either',
+  as: 'forged',
+  host: 'apex',
+  method: 'GET',
+  path: '/api/assets/courses/test-course-basic/workbook.pdf',
+  expect: { status: 401, spends: { r2Get: 0 } },
+  live: { expect: { status: [401, 404] } },
+});
+
+/**
+ * PATH TRAVERSAL OUT OF THE ASSET PREFIX. `..` is rejected by name in the
+ * module; the case exists so that a rewrite which normalises the path some
+ * other way has to keep rejecting it, and so that the ENCODED form is
+ * covered too -- the dispatcher decodes each segment exactly as Pages does,
+ * so `%2e%2e` arrives at the handler as `..`.
+ */
+add({
+  id: 'auth-asset-traversal',
+  family: 'auth',
+  description: 'an encoded traversal out of the asset prefix reaches no object',
+  as: 'none',
+  host: 'apex',
+  method: 'GET',
+  /* `%2e%2e` is NOT how to write this. The URL parser resolves percent-encoded
+     dot segments before any handler sees them, in this harness and at
+     Cloudflare's edge alike, so that spelling arrives at the dispatcher as
+     `/api/secrets.pdf` and tests the parser rather than the module. An
+     encoded SLASH survives normalisation, reaches the catch-all as one
+     segment, and decodes to `../secrets.pdf` inside the handler, which is
+     where the `includes('..')` check either fires or does not. */
+  path: '/api/assets/courses/..%2fsecrets.pdf',
+  expect: { status: [400, 401, 403, 404], spends: { r2Get: 0 } },
+  live: { expect: { status: [400, 401, 403, 404] } },
+});
+
+// ---------------------------------------------------------------------------
+// leak -- what the second half of the tree says to a stranger
+// ---------------------------------------------------------------------------
+
+/** A refusal must never quote the key it was checking against. */
+for (const route of MACHINE_ROUTES.filter((r) => r.auth === 'build-token').slice(0, 2)) {
+  add({
+    id: `leak-build-token-not-echoed-${slugOf(route)}`,
+    family: 'leak',
+    description: `the refusal at ${route.path} does not echo the build token`,
+    as: 'none',
+    host: 'apex',
+    method: route.method,
+    path: route.path,
+    expect: { status: [401, 403], mustNotContain: ['redteam-library-build-token', 'LIBRARY_BUILD_TOKEN'] },
+    live: { expect: { status: [401, 403] } },
+  });
+}
+
+/** A shared conversation nobody owns is a 404, not a hint that it existed. */
+add({
+  id: 'leak-shared-ask-absent',
+  family: 'leak',
+  description: 'a shared-answer id that belongs to nobody says nothing about anybody',
+  as: 'none',
+  host: 'apex',
+  method: 'GET',
+  path: `/api/ask/shared/${NOBODYS_SHARE_ID}`,
+  expect: { status: [404, 400], mustNotContain: [VICTIM_EMAIL, VICTIM_NAME, ...STACK_MARKERS] },
+  live: { expect: { status: [404, 400] } },
+});
+
+add({
+  id: 'leak-shared-ask-page-absent',
+  family: 'leak',
+  description: 'the shared-answer PAGE at a token nobody holds leaks no member data',
+  as: 'none',
+  host: 'apex',
+  method: 'GET',
+  path: `/ask/s/${NOBODYS_SHARE_TOKEN}`,
+  expect: { mustNotContain: [VICTIM_EMAIL, VICTIM_NAME, ...STACK_MARKERS] },
+  live: { expect: { mustNotContain: ['@rrmacademy.org'] } },
+});
+
+/**
+ * THE PUBLIC AGGREGATES. Every one of these reads a table that has people in
+ * it -- donors, area members, project volunteers, event registrants -- and
+ * answers an anonymous caller. The assertion is not that they refuse; they
+ * are public by design. It is that what they publish is the aggregate and
+ * never the person.
+ */
+for (const path of [
+  '/api/fund-supporters', '/api/fund-progress', '/api/community/areas',
+  '/api/community/projects', '/api/community/impact', '/api/billing/supporter-badge',
+  '/events/redteam-event',
+]) {
+  add({
+    id: `leak-public-aggregate-${path.replace(/^\//, '').replace(/[^a-z0-9]+/gi, '-')}`,
+    family: 'leak',
+    description: `${path} publishes an aggregate to a stranger, never an address`,
+    as: 'none',
+    host: 'apex',
+    method: 'GET',
+    path,
+    expect: { mustNotContain: [VICTIM_EMAIL, ATTACKER_EMAIL, SUPERADMIN_EMAIL, ...STACK_MARKERS] },
+    live: { expect: { mustNotContain: ['@rrmacademy.org'] } },
+  });
+}
+
+// ---------------------------------------------------------------------------
+// pii -- the token-bearing doors
+// ---------------------------------------------------------------------------
+
+/**
+ * A FORGED UNSUBSCRIBE TOKEN MUST NOT UNSUBSCRIBE ANYBODY.
+ *
+ * The link in every newsletter footer carries a signed token. If the
+ * signature is not checked, the address in the query string is enough to
+ * unsubscribe a stranger -- a write to somebody else's record from a URL a
+ * bored reader can type. The assertion is the WRITE COUNT, because the page
+ * this route renders says "you are unsubscribed" either way.
+ */
+for (const method of ['GET', 'POST']) {
+  add({
+    id: `pii-unsubscribe-forged-token-${method.toLowerCase()}`,
+    family: 'pii',
+    description: `a forged unsubscribe token (${method}) changes nobody's subscription`,
+    as: 'none',
+    host: 'apex',
+    method,
+    path: '/api/newsletter/unsubscribe',
+    query: `?email=${encodeURIComponent(VICTIM_EMAIL)}&token=${NOBODYS_TOKEN}`,
+    headers: jsonHeaders,
+    body: method === 'POST' ? JSON.stringify({}) : undefined,
+    expect: { spends: { dbWrites: 0, ses: 0 } },
+    live: { skip: 'the assertion is a write count, which only the process can see' },
+  });
+}
+
+/** The open and click pixels take the same token, and are the same question. */
+for (const path of ['/api/newsletter/open', '/api/newsletter/click']) {
+  add({
+    id: `pii-tracking-pixel-forged-token-${path.replace(/^\/api\/newsletter\//, '')}`,
+    family: 'pii',
+    description: `a forged token at ${path} attributes nothing to anybody`,
+    as: 'none',
+    host: 'apex',
+    method: 'GET',
+    path,
+    query: `?email=${encodeURIComponent(VICTIM_EMAIL)}&token=${NOBODYS_TOKEN}&url=https://redteam.example/`,
+    expect: { spends: { dbWrites: 0 }, mustNotContain: [VICTIM_NAME] },
+    live: { skip: 'the assertion is a write count, which only the process can see' },
+  });
+}
+
+/**
+ * A GUIDE PDF IS BOUGHT WITH AN EMAIL ADDRESS. The redemption token is what
+ * stands between the mailing-list wall and the file, so a token nobody holds
+ * must reach no object in the bucket.
+ */
+add({
+  id: 'pii-pdf-redeem-absent-token',
+  family: 'pii',
+  description: 'a redemption token nobody holds pulls no PDF out of the bucket',
+  as: 'none',
+  host: 'apex',
+  method: 'GET',
+  path: '/api/pdf/redeem',
+  query: `?token=${NOBODYS_TOKEN}`,
+  expect: { spends: { r2Get: 0 }, mustNotContain: [VICTIM_EMAIL, ...STACK_MARKERS] },
+  live: { skip: 'the assertion is an object-store read count, which only the process can see' },
+});
+
+/**
+ * An email-verification token nobody holds must verify nobody. The status is
+ * deliberately unasserted (this route redirects to a page on some paths and
+ * answers JSON on others); the assertion is that no row changed.
+ */
+add({
+  id: 'pii-verify-email-absent-token',
+  family: 'pii',
+  description: 'a verification token nobody holds verifies nobody',
+  as: 'none',
+  host: 'apex',
+  method: 'GET',
+  path: '/api/auth/verify-email',
+  query: `?token=${NOBODYS_TOKEN}`,
+  expect: { spends: { dbWrites: 0 }, mustNotContain: [VICTIM_EMAIL, ...STACK_MARKERS] },
+  live: { skip: 'the assertion is a write count, which only the process can see' },
+});
+
+/**
+ * THE OAUTH CALLBACK WITH NO STATE. A callback that will trade any `code`
+ * for a session, without checking the state parameter it issued, is a login
+ * an attacker can start in someone else's browser.
+ */
+add({
+  id: 'pii-google-callback-no-state',
+  family: 'pii',
+  description: 'the Google callback with a code and no state issues no session',
+  as: 'none',
+  host: 'apex',
+  method: 'GET',
+  path: '/api/auth/google-callback',
+  query: '?code=redteam-forged-authorization-code',
+  expect: { headerAbsentSubstring: { 'set-cookie': 'session=' }, spends: { dbWrites: 0 } },
+  live: { expect: { headerAbsentSubstring: { 'set-cookie': 'session=' } } },
+});
+
+// ---------------------------------------------------------------------------
+// cost -- what the query-taking half of the tree is allowed to spend
+// ---------------------------------------------------------------------------
+
+/**
+ * EVERY PUBLIC READ THAT TAKES A QUERY, ASKED FOR SOMETHING ABSURD.
+ *
+ * These are the endpoints an unauthenticated caller can hit in a loop: the
+ * ask endpoint, semantic search, the article batch readers, the fund
+ * counters. The assertion is a CEILING, not a zero, because some of them are
+ * supposed to do work: one inference, one upstream call, one Stripe read per
+ * request is the contract. What must never happen is a single request
+ * fanning out into many, which is how one curl becomes a bill.
+ */
+const ABSURD_QUERY = `?q=${'a'.repeat(4000)}&limit=100000&ids=${new Array(200).fill('rrm-redteam-absent').join(',')}`;
+for (const route of PUBLIC_QUERY_ROUTES) {
+  add({
+    id: `cost-absurd-query-${slugOf(route)}`,
+    family: 'cost',
+    description: `an absurd query at ${route.path} fans out into no more than one upstream call`,
+    as: 'none',
+    host: 'apex',
+    method: route.method,
+    path: route.path,
+    query: ABSURD_QUERY,
+    headers: { 'CF-Connecting-IP': '203.0.113.80' },
+    expect: { spends: { ai: 1, stripe: 2, ses: 0, r2Put: 0, dbWrites: 1 } },
+    live: { skip: 'spend assertions are only observable in process' },
+  });
+}
+
+/**
+ * THE ANALYTICS ROW AN ANONYMOUS CALLER CAN WRITE IS BOUNDED. The sweep
+ * above allows one row per request; this pins what may be IN it. A four
+ * thousand character query stored whole would make the public search box a
+ * free write-anything-you-like door into the analytics database.
+ */
+add({
+  id: 'cost-search-log-row-is-bounded',
+  family: 'cost',
+  description: 'a four thousand character search query is stored truncated, or not at all',
+  as: 'none',
+  host: 'apex',
+  method: 'GET',
+  path: '/api/search/semantic',
+  query: `?q=${'a'.repeat(4000)}`,
+  headers: { 'CF-Connecting-IP': '203.0.113.83' },
+  scenario: 'search-log-truncation',
+  live: { skip: 'the assertion reads the analytics row this request wrote' },
+});
+
+/**
+ * THE BATCH READER, ASKED FOR TWO HUNDRED ARTICLES AT ONCE.
+ *
+ * `/api/articles/bulk?ids=` is the one public route whose cost is a FUNCTION
+ * OF THE REQUEST rather than a constant. The ceiling here is deliberately
+ * generous (an unbounded implementation would make hundreds of calls, not
+ * five); what it pins is that a ceiling exists at all.
+ */
+for (const path of ['/api/articles/bulk', '/api/bulk']) {
+  add({
+    id: `cost-bulk-fanout-${path.replace(/^\/api\//, '').replace(/[^a-z0-9]+/gi, '-')}`,
+    family: 'cost',
+    description: `${path} with two hundred ids does not make two hundred upstream calls`,
+    as: 'none',
+    host: 'apex',
+    method: 'GET',
+    path,
+    query: `?ids=${new Array(200).fill('rrm-redteam-absent').join(',')}`,
+    headers: { 'CF-Connecting-IP': '203.0.113.81' },
+    expect: { spends: { other: 25, ai: 0, ses: 0 } },
+    live: { skip: 'spend assertions are only observable in process' },
+  });
+}
+
+/**
+ * THE ASK ENDPOINT IS THE MOST EXPENSIVE DOOR ON THE SITE and it is open to
+ * the public by design (three questions a day for a stranger). A body it
+ * cannot use must cost no inference at all: validate first, then spend.
+ */
+add({
+  id: 'cost-ask-garbage-spends-no-inference',
+  family: 'cost',
+  description: 'a malformed question buys no inference',
+  as: 'none',
+  host: 'apex',
+  method: 'POST',
+  path: '/api/ask',
+  headers: { ...jsonHeaders, 'CF-Connecting-IP': '203.0.113.82' },
+  body: JSON.stringify({ redteam: 'not a question' }),
+  expect: { spends: { ai: 0, ses: 0, dbWrites: 0 } },
+  live: { skip: 'spend assertions are only observable in process' },
+});
+
+/** An unauthenticated machine lane must not send mail on the way to its 401. */
+for (const route of MACHINE_ROUTES.filter((r) => r.writes)) {
+  add({
+    id: `cost-nokey-machine-${slugOf(route)}`,
+    family: 'cost',
+    description: `an unauthenticated ${route.path} sends no mail and writes no row`,
+    as: 'none',
+    host: 'apex',
+    method: route.method,
+    path: route.path,
+    headers: jsonHeaders,
+    body: bodyFor(route.path, route.method),
+    expect: { spends: { ses: 0, dbWrites: 0, other: 0 } },
+    live: { skip: 'spend assertions are only observable in process' },
+  });
+}
+
+/**
+ * THE REST OF THE PUBLIC WRITES, MALFORMED.
+ *
+ * `COSTLY_PUBLIC` above is the eight doors that spend real money, and it was
+ * a deliberate shortlist. The trouble with a shortlist is the routes that
+ * are not on it and are not anywhere else either: logout, resend
+ * verification, the course waitlist, affiliate clicks, search logging, the
+ * first-party track beacon and the partner application had no case at all
+ * until the coverage self-check named them. The bar here is lower than the
+ * shortlist's -- garbage in, nothing written and nothing mailed -- but it is
+ * a bar, and it is generated, so the next public write inherits it.
+ */
+for (const route of PUBLIC_WRITE_ROUTES.filter((r) => !COSTLY_PUBLIC.has(r.path))) {
+  add({
+    id: `cost-garbage-other-${slugOf(route)}`,
+    family: 'cost',
+    description: `a malformed ${route.method} ${route.path} writes nothing and mails nobody`,
+    as: 'none',
+    host: 'apex',
+    method: route.method,
+    path: route.path,
+    headers: { ...jsonHeaders, 'CF-Connecting-IP': '203.0.113.84' },
+    body: JSON.stringify({ redteam: 'not a valid payload for anything' }),
+    expect: { spends: { ses: 0, stripe: 0, ai: 0, r2Put: 0, dbWrites: 0 } },
+    live: { skip: 'spend assertions are only observable in process' },
+  });
+}
+
+/**
+ * A ROUTE THAT SETS ITS OWN no-store STILL VARIES ON THE COOKIE (RRMA-RT-5).
+ *
+ * `withApiCacheHeaders` used to hand a response straight back the moment it
+ * carried any Cache-Control of its own, which is right for the deliberately
+ * cacheable routes and was wrong for the two that set `no-store` themselves:
+ * they reached production with no Vary at all. The header lives in the
+ * headers family rather than the cost family, but the case belongs wherever
+ * a reader will look for it, which is next to the finding.
+ */
+for (const path of ['/api/newsletter/open', '/api/auth/verify-email']) {
+  add({
+    id: `headers-self-declared-no-store-varies-${path.replace(/^\/api\//, '').replace(/[^a-z0-9]+/gi, '-')}`,
+    family: 'headers',
+    description: `${path} declares its own no-store and still varies on the cookie`,
+    as: 'none',
+    host: 'apex',
+    method: 'GET',
+    path,
+    query: `?token=${NOBODYS_TOKEN}`,
+    expect: { headerMatches: { 'cache-control': /no-store/, vary: /cookie/i } },
+    live: { expect: { headerMatches: { 'cache-control': /no-store/, vary: /cookie/i } } },
+  });
+}
+
+/**
+ * SERVER-SIDE REQUEST FORGERY AT THE UNFURLER. It is member-gated, so the
+ * first assertion is that a stranger cannot make the site fetch anything at
+ * all. `installUpstream` throws on an unrouted host, so a request that DID
+ * reach the metadata address would fail this case loudly rather than
+ * quietly succeeding.
+ */
+add({
+  id: 'cost-unfurl-anon-fetches-nothing',
+  family: 'cost',
+  description: 'an unauthenticated unfurl makes the site fetch nothing',
+  as: 'none',
+  host: 'apex',
+  method: 'GET',
+  path: '/api/community/unfurl',
+  query: '?url=http://169.254.169.254/latest/meta-data/',
+  expect: { status: 401, spends: { other: 0 } },
+  live: { expect: { status: 401 } },
 });
 
 export const CASES = Object.freeze(cases);

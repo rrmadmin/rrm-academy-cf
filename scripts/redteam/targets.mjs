@@ -38,6 +38,8 @@ export const NOBODYS_POST_ID = 'post_redteam_absent_0000000000';
 export const NOBODYS_COMMENT_ID = 'cmt_redteam_absent_0000000000';
 export const NOBODYS_KEY_ID = 'mcpk_redteam_absent_000000000';
 export const NOBODYS_TOKEN = 'a'.repeat(64);
+export const NOBODYS_SHARE_ID = 'ask_redteam_absent_000000000';
+export const NOBODYS_SHARE_TOKEN = 'b'.repeat(32);
 
 /** The two seeded members, so a case can name "the other user's row". */
 export const VICTIM_POST_ID = 'post_seed_victim';
@@ -49,6 +51,7 @@ export const ATTACKER_KEY_ID = 'mcpk_seed_attacker';
 /** The seeded course and its first step, for the course-platform cases. */
 export const SEEDED_COURSE_ID = 'redteam-course';
 export const SEEDED_STEP_ID = 'redteam-step-1';
+export const SEEDED_SECTION_ID = 'redteam-section';
 
 /** The seeded FAQ, for the admin-CRUD cases. */
 export const SEEDED_FAQ_ID = 'faq_redteam_seed';
@@ -192,6 +195,121 @@ export const ROUTES = Object.freeze([
   { path: '/api/events/register', method: 'POST', auth: 'none', writes: true },
   { path: '/api/partners/apply', method: 'POST', auth: 'none', writes: true },
   { path: '/api/pdf/request', method: 'POST', auth: 'none', writes: true },
+
+  /* -------------------------------------------------------------------
+     THE ROUTES THE COVERAGE SELF-CHECK FOUND. `scripts/redteam/coverage.mjs`
+     reads every door Pages serves off the file tree; on the day it was
+     written it said 77 of 121 had never been sent a request. Everything
+     below is one of those doors, classified by READING the module rather
+     than by guessing from its neighbours.
+     ------------------------------------------------------------------- */
+
+  /* Build-time reads behind `Bearer LIBRARY_BUILD_TOKEN`. They answer with
+     the whole content corpus, so the gate is the only thing between a
+     scraper and the database. */
+  { path: '/api/faqs', method: 'GET', auth: 'build-token', writes: false },
+  { path: '/api/courses', method: 'GET', auth: 'build-token', writes: false },
+  { path: '/api/glossary/terms', method: 'GET', auth: 'build-token', writes: false },
+  { path: '/api/blog/posts', method: 'GET', auth: 'build-token', writes: false },
+  { path: '/api/partners', method: 'GET', auth: 'build-token', writes: false },
+
+  /* Machine lanes behind a shared secret, each of which sends mail, writes
+     rows, or calls GitHub when it opens. `machine` rather than `bearer`
+     because three of them read the secret from the QUERY STRING, which is a
+     different door even though it is the same kind of key. */
+  { path: '/api/newsletter/send', method: 'POST', auth: 'bearer', writes: true },
+  { path: '/api/newsletter/send-first-email', method: 'POST', auth: 'bearer', writes: true },
+  { path: '/api/newsletter/rss-check', method: 'POST', auth: 'bearer', writes: true },
+  { path: '/api/events/remind', method: 'GET', auth: 'bearer', writes: true },
+  { path: '/api/email/events', method: 'POST', auth: 'machine', writes: true },
+  { path: '/api/newsletter/bounce', method: 'POST', auth: 'machine', writes: true },
+  { path: '/api/library/deploy-record', method: 'POST', auth: 'machine', writes: true },
+
+  /* Admin surfaces the first pass never named. The course sub-collections
+     are separate modules with separate gates, which is exactly the shape
+     where one file drifts from its six siblings. */
+  { path: '/api/admin/seo', method: 'GET', auth: 'admin', writes: false },
+  { path: '/api/admin/seo', method: 'PUT', auth: 'admin', writes: true },
+  { path: `/api/admin/courses/${SEEDED_COURSE_ID}`, method: 'PUT', auth: 'admin', writes: true },
+  { path: `/api/admin/courses/${SEEDED_COURSE_ID}`, method: 'DELETE', auth: 'admin', writes: true },
+  { path: `/api/admin/courses/${SEEDED_COURSE_ID}/attachments`, method: 'POST', auth: 'admin', writes: true },
+  { path: `/api/admin/courses/${SEEDED_COURSE_ID}/sections`, method: 'POST', auth: 'admin', writes: true },
+  { path: `/api/admin/courses/${SEEDED_COURSE_ID}/sections/${SEEDED_SECTION_ID}`, method: 'PUT', auth: 'admin', writes: true },
+  { path: `/api/admin/courses/${SEEDED_COURSE_ID}/steps`, method: 'POST', auth: 'admin', writes: true },
+  { path: `/api/admin/courses/${SEEDED_COURSE_ID}/steps/${SEEDED_STEP_ID}`, method: 'PUT', auth: 'admin', writes: true },
+  { path: `/api/admin/courses/${SEEDED_COURSE_ID}/steps/${SEEDED_STEP_ID}/renditions`, method: 'PUT', auth: 'admin', writes: true },
+  { path: `/api/admin/faqs/${SEEDED_FAQ_ID}/resources`, method: 'POST', auth: 'admin', writes: true },
+  { path: `/api/admin/faqs/${SEEDED_FAQ_ID}/library-refs`, method: 'POST', auth: 'admin', writes: true },
+
+  /* The paid course platform: quizzes, comments, and the two entitlement
+     doors (rendition and audio) that decide whether a video the buyer paid
+     for is handed to somebody who did not. */
+  { path: '/api/courses/quiz', method: 'GET', auth: 'session', writes: false },
+  { path: '/api/courses/quiz', method: 'POST', auth: 'session', writes: true },
+  { path: '/api/courses/comments', method: 'POST', auth: 'session', writes: true },
+  { path: '/api/courses/rendition', method: 'GET', auth: 'session', writes: false },
+  { path: '/api/courses/audio', method: 'GET', auth: 'session', writes: false },
+  { path: '/api/stream/token', method: 'GET', auth: 'session', writes: false },
+  /* `courses/` plus a NON-IMAGE extension is the only shape the module
+     gates: images and every other prefix are public by design. A case aimed
+     at a `.mp4` under a bare course slug would 404 on the bucket and record
+     that as a refusal, which is the decorative version of this test. */
+  { path: `/api/assets/courses/${SEEDED_COURSE_ID}/workbook.pdf`, method: 'GET', auth: 'session', writes: false },
+
+  /* Member-gated community writes the first pass missed: five join/leave
+     doors and the notification mark-read. */
+  { path: '/api/community/areas/join', method: 'POST', auth: 'member', writes: true },
+  { path: '/api/community/areas/leave', method: 'POST', auth: 'member', writes: true },
+  { path: '/api/community/areas/volunteer', method: 'POST', auth: 'member', writes: true },
+  { path: '/api/community/projects/join', method: 'POST', auth: 'member', writes: true },
+  { path: '/api/community/projects/leave', method: 'POST', auth: 'member', writes: true },
+  { path: '/api/community/notifications', method: 'PATCH', auth: 'member', writes: true },
+  /* A member-gated FETCHER: it takes a URL from the caller and retrieves it
+     server-side, which is the classic server-side request forgery shape. */
+  { path: '/api/community/unfurl', method: 'GET', auth: 'member', writes: false },
+
+  /* Public reads that take a query and cost an upstream call. */
+  { path: '/api/ask', method: 'POST', auth: 'none', writes: true },
+  { path: '/api/search/semantic', method: 'GET', auth: 'none', writes: false },
+  { path: '/api/search/log', method: 'POST', auth: 'none', writes: true },
+  { path: '/api/articles', method: 'GET', auth: 'none', writes: false },
+  { path: '/api/articles/bulk', method: 'GET', auth: 'none', writes: false },
+  { path: '/api/bulk', method: 'GET', auth: 'none', writes: false },
+  { path: '/api/community/areas', method: 'GET', auth: 'none', writes: false },
+  { path: '/api/community/projects', method: 'GET', auth: 'none', writes: false },
+  { path: '/api/community/impact', method: 'GET', auth: 'none', writes: false },
+  { path: '/api/fund-progress', method: 'GET', auth: 'none', writes: false },
+  { path: '/api/fund-supporters', method: 'GET', auth: 'none', writes: false },
+  { path: '/api/billing/supporter-badge', method: 'GET', auth: 'none', writes: false },
+  { path: `/api/ask/shared/${NOBODYS_SHARE_ID}`, method: 'GET', auth: 'none', writes: false },
+
+  /* Public writes that carry a person or spend an ad-conversion upload. */
+  { path: '/api/track', method: 'POST', auth: 'none', writes: true },
+  { path: '/api/courses/waitlist', method: 'POST', auth: 'none', writes: true },
+  { path: '/api/courses/affiliate-click', method: 'POST', auth: 'none', writes: true },
+  { path: '/api/quiz/start', method: 'POST', auth: 'none', writes: false },
+  { path: '/api/quiz/results', method: 'POST', auth: 'none', writes: false },
+  { path: '/api/quiz/event', method: 'POST', auth: 'none', writes: false },
+  { path: '/api/endo-quiz/results', method: 'POST', auth: 'none', writes: false },
+  { path: '/api/endo-quiz/download', method: 'POST', auth: 'none', writes: false },
+  { path: '/api/survey/event', method: 'POST', auth: 'none', writes: false },
+
+  /* Token-bearing public doors: each hands over something (a PDF, a
+     mailing-list change, a signed-in session) to whoever holds the token. */
+  { path: '/api/pdf/redeem', method: 'GET', auth: 'none', writes: false },
+  { path: '/api/newsletter/unsubscribe', method: 'GET', auth: 'none', writes: true },
+  { path: '/api/newsletter/unsubscribe', method: 'POST', auth: 'none', writes: true },
+  { path: '/api/newsletter/click', method: 'GET', auth: 'none', writes: true },
+  { path: '/api/newsletter/open', method: 'GET', auth: 'none', writes: true },
+  { path: '/api/auth/google', method: 'GET', auth: 'none', writes: false },
+  { path: '/api/auth/google-callback', method: 'GET', auth: 'none', writes: true },
+  { path: '/api/auth/verify-email', method: 'GET', auth: 'none', writes: true },
+
+  /* Server-rendered pages, not JSON, but still doors: two read a session and
+     one serves a shared conversation to whoever holds its token. */
+  { path: '/events/redteam-event', method: 'GET', auth: 'none', writes: false },
+  { path: `/ask/s/${NOBODYS_SHARE_TOKEN}`, method: 'GET', auth: 'none', writes: false },
+  { path: '/save-the-uterus-club/migrate', method: 'GET', auth: 'none', writes: false },
 ]);
 
 /** Session-gated member routes, for the families that enumerate them. */
@@ -207,6 +325,23 @@ export const PRIVILEGED_ROUTES = Object.freeze(
 /** The routes a public request can reach that write, spend, or send mail. */
 export const PUBLIC_WRITE_ROUTES = Object.freeze(
   ROUTES.filter((r) => r.auth === 'none' && r.writes)
+);
+
+/**
+ * The routes whose only credential is a SHARED MACHINE SECRET -- a build
+ * token, an admin bearer, or a secret in the query string. They are grouped
+ * together because the attack on all of them is the same one: arrive without
+ * it, or with the wrong one, and see whether the door opens anyway. None of
+ * them can be reached with a cookie, so the session sweeps never touch them
+ * and they would otherwise be the least-attacked writes on the site.
+ */
+export const MACHINE_ROUTES = Object.freeze(
+  ROUTES.filter((r) => r.auth === 'bearer' || r.auth === 'build-token' || r.auth === 'machine')
+);
+
+/** Public reads that take a query string, for the input and cost families. */
+export const PUBLIC_QUERY_ROUTES = Object.freeze(
+  ROUTES.filter((r) => r.auth === 'none' && !r.writes)
 );
 
 export const RRM_ACADEMY_TARGET = Object.freeze({
