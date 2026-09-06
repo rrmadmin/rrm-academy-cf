@@ -13,6 +13,7 @@ import { readFileSync, writeFileSync, mkdirSync, existsSync, renameSync } from '
 import { dirname, join } from 'path';
 import { fileURLToPath } from 'url';
 import { fetchWithRetry } from './fetch-retry.mjs';
+import { EXCLUDED_TYPES } from './excluded-types.mjs';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const OUTPUT_PATH = join(__dirname, '..', 'data', 'articles.json');
@@ -216,7 +217,6 @@ async function fetchAll() {
   console.log(`Worker returned ${raw.length} published articles`);
 
   // Exclude non-article types as a safety net (worker already filters, but cache may be stale)
-  const EXCLUDED_TYPES = new Set(['faq', 'post', 'course', 'guide']);
   const filtered = raw.filter(r => !EXCLUDED_TYPES.has(r.type));
   if (filtered.length < raw.length) {
     console.log(`Filtered ${raw.length - filtered.length} non-article records (type exclusion)`);

@@ -5,6 +5,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { mapWorkerRecord } from '../src/lib/fetch-data.mjs';
+import { EXCLUDED_TYPES } from '../src/lib/excluded-types.mjs';
 
 test('mapWorkerRecord: returns null when slug missing', () => {
   assert.equal(mapWorkerRecord({ title: 'No slug' }), null);
@@ -182,4 +183,17 @@ test('mapWorkerRecord: returns full shape with all expected keys', () => {
     'dateAddedToLibrary', 'authorRecords', 'respondsTo', 'word_count', 'insights', 'infographic',
   ];
   assert.deepEqual(Object.keys(out).sort(), expected.sort());
+});
+
+test('EXCLUDED_TYPES: mirrors the rrm-library-worker SSOT exactly (11 types)', () => {
+  const expected = [
+    'faq', 'post', 'course', 'course-transcript', 'guide',
+    'voice-analysis', 'voice-profile', 'guardrail', 'framework', 'transcript',
+    'clinical-protocol',
+  ];
+  assert.deepEqual([...EXCLUDED_TYPES].sort(), expected.sort());
+});
+
+test('EXCLUDED_TYPES: includes clinical-protocol (never-public type)', () => {
+  assert.ok(EXCLUDED_TYPES.has('clinical-protocol'));
 });
