@@ -1,0 +1,2003 @@
+{
+ "collectedAt": "2026-09-06T22:52:34.105Z",
+ "packages": [
+  {
+   "name": "@astrojs/compiler",
+   "version": "4.0.0"
+  },
+  {
+   "name": "@astrojs/internal-helpers",
+   "version": "0.10.0"
+  },
+  {
+   "name": "@astrojs/markdown-remark",
+   "version": "7.2.0"
+  },
+  {
+   "name": "@astrojs/prism",
+   "version": "4.0.2"
+  },
+  {
+   "name": "@astrojs/sitemap",
+   "version": "3.7.3"
+  },
+  {
+   "name": "@astrojs/telemetry",
+   "version": "3.3.2"
+  },
+  {
+   "name": "@babel/helper-string-parser",
+   "version": "7.29.7"
+  },
+  {
+   "name": "@babel/helper-validator-identifier",
+   "version": "7.29.7"
+  },
+  {
+   "name": "@babel/parser",
+   "version": "7.29.7"
+  },
+  {
+   "name": "@babel/runtime",
+   "version": "7.29.2"
+  },
+  {
+   "name": "@babel/types",
+   "version": "7.29.7"
+  },
+  {
+   "name": "@capsizecss/unpack",
+   "version": "4.0.0"
+  },
+  {
+   "name": "@clack/core",
+   "version": "1.4.3"
+  },
+  {
+   "name": "@clack/prompts",
+   "version": "1.7.0"
+  },
+  {
+   "name": "@emnapi/runtime",
+   "version": "1.11.3"
+  },
+  {
+   "name": "@esbuild/aix-ppc64",
+   "version": "0.27.7"
+  },
+  {
+   "name": "@esbuild/android-arm",
+   "version": "0.27.7"
+  },
+  {
+   "name": "@esbuild/android-arm64",
+   "version": "0.27.7"
+  },
+  {
+   "name": "@esbuild/android-x64",
+   "version": "0.27.7"
+  },
+  {
+   "name": "@esbuild/darwin-arm64",
+   "version": "0.27.7"
+  },
+  {
+   "name": "@esbuild/darwin-x64",
+   "version": "0.27.7"
+  },
+  {
+   "name": "@esbuild/freebsd-arm64",
+   "version": "0.27.7"
+  },
+  {
+   "name": "@esbuild/freebsd-x64",
+   "version": "0.27.7"
+  },
+  {
+   "name": "@esbuild/linux-arm",
+   "version": "0.27.7"
+  },
+  {
+   "name": "@esbuild/linux-arm64",
+   "version": "0.27.7"
+  },
+  {
+   "name": "@esbuild/linux-ia32",
+   "version": "0.27.7"
+  },
+  {
+   "name": "@esbuild/linux-loong64",
+   "version": "0.27.7"
+  },
+  {
+   "name": "@esbuild/linux-mips64el",
+   "version": "0.27.7"
+  },
+  {
+   "name": "@esbuild/linux-ppc64",
+   "version": "0.27.7"
+  },
+  {
+   "name": "@esbuild/linux-riscv64",
+   "version": "0.27.7"
+  },
+  {
+   "name": "@esbuild/linux-s390x",
+   "version": "0.27.7"
+  },
+  {
+   "name": "@esbuild/linux-x64",
+   "version": "0.27.7"
+  },
+  {
+   "name": "@esbuild/netbsd-arm64",
+   "version": "0.27.7"
+  },
+  {
+   "name": "@esbuild/netbsd-x64",
+   "version": "0.27.7"
+  },
+  {
+   "name": "@esbuild/openbsd-arm64",
+   "version": "0.27.7"
+  },
+  {
+   "name": "@esbuild/openbsd-x64",
+   "version": "0.27.7"
+  },
+  {
+   "name": "@esbuild/openharmony-arm64",
+   "version": "0.27.7"
+  },
+  {
+   "name": "@esbuild/sunos-x64",
+   "version": "0.27.7"
+  },
+  {
+   "name": "@esbuild/win32-arm64",
+   "version": "0.27.7"
+  },
+  {
+   "name": "@esbuild/win32-ia32",
+   "version": "0.27.7"
+  },
+  {
+   "name": "@esbuild/win32-x64",
+   "version": "0.27.7"
+  },
+  {
+   "name": "@fontsource/cormorant-garamond",
+   "version": "5.2.11"
+  },
+  {
+   "name": "@fontsource/inter",
+   "version": "5.2.8"
+  },
+  {
+   "name": "@img/colour",
+   "version": "1.1.0"
+  },
+  {
+   "name": "@img/sharp-darwin-arm64",
+   "version": "0.34.5"
+  },
+  {
+   "name": "@img/sharp-darwin-x64",
+   "version": "0.34.5"
+  },
+  {
+   "name": "@img/sharp-libvips-darwin-arm64",
+   "version": "1.2.4"
+  },
+  {
+   "name": "@img/sharp-libvips-darwin-x64",
+   "version": "1.2.4"
+  },
+  {
+   "name": "@img/sharp-libvips-linux-arm",
+   "version": "1.2.4"
+  },
+  {
+   "name": "@img/sharp-libvips-linux-arm64",
+   "version": "1.2.4"
+  },
+  {
+   "name": "@img/sharp-libvips-linux-ppc64",
+   "version": "1.2.4"
+  },
+  {
+   "name": "@img/sharp-libvips-linux-riscv64",
+   "version": "1.2.4"
+  },
+  {
+   "name": "@img/sharp-libvips-linux-s390x",
+   "version": "1.2.4"
+  },
+  {
+   "name": "@img/sharp-libvips-linux-x64",
+   "version": "1.2.4"
+  },
+  {
+   "name": "@img/sharp-libvips-linuxmusl-arm64",
+   "version": "1.2.4"
+  },
+  {
+   "name": "@img/sharp-libvips-linuxmusl-x64",
+   "version": "1.2.4"
+  },
+  {
+   "name": "@img/sharp-linux-arm",
+   "version": "0.34.5"
+  },
+  {
+   "name": "@img/sharp-linux-arm64",
+   "version": "0.34.5"
+  },
+  {
+   "name": "@img/sharp-linux-ppc64",
+   "version": "0.34.5"
+  },
+  {
+   "name": "@img/sharp-linux-riscv64",
+   "version": "0.34.5"
+  },
+  {
+   "name": "@img/sharp-linux-s390x",
+   "version": "0.34.5"
+  },
+  {
+   "name": "@img/sharp-linux-x64",
+   "version": "0.34.5"
+  },
+  {
+   "name": "@img/sharp-linuxmusl-arm64",
+   "version": "0.34.5"
+  },
+  {
+   "name": "@img/sharp-linuxmusl-x64",
+   "version": "0.34.5"
+  },
+  {
+   "name": "@img/sharp-wasm32",
+   "version": "0.34.5"
+  },
+  {
+   "name": "@img/sharp-win32-arm64",
+   "version": "0.34.5"
+  },
+  {
+   "name": "@img/sharp-win32-ia32",
+   "version": "0.34.5"
+  },
+  {
+   "name": "@img/sharp-win32-x64",
+   "version": "0.34.5"
+  },
+  {
+   "name": "@jridgewell/sourcemap-codec",
+   "version": "1.5.5"
+  },
+  {
+   "name": "@lucide/astro",
+   "version": "1.23.0"
+  },
+  {
+   "name": "@oslojs/encoding",
+   "version": "1.1.0"
+  },
+  {
+   "name": "@resvg/resvg-wasm",
+   "version": "2.4.0"
+  },
+  {
+   "name": "@rollup/pluginutils",
+   "version": "5.3.0"
+  },
+  {
+   "name": "@rollup/rollup-android-arm-eabi",
+   "version": "4.60.2"
+  },
+  {
+   "name": "@rollup/rollup-android-arm64",
+   "version": "4.60.2"
+  },
+  {
+   "name": "@rollup/rollup-darwin-arm64",
+   "version": "4.60.2"
+  },
+  {
+   "name": "@rollup/rollup-darwin-x64",
+   "version": "4.60.2"
+  },
+  {
+   "name": "@rollup/rollup-freebsd-arm64",
+   "version": "4.60.2"
+  },
+  {
+   "name": "@rollup/rollup-freebsd-x64",
+   "version": "4.60.2"
+  },
+  {
+   "name": "@rollup/rollup-linux-arm-gnueabihf",
+   "version": "4.60.2"
+  },
+  {
+   "name": "@rollup/rollup-linux-arm-musleabihf",
+   "version": "4.60.2"
+  },
+  {
+   "name": "@rollup/rollup-linux-arm64-gnu",
+   "version": "4.60.2"
+  },
+  {
+   "name": "@rollup/rollup-linux-arm64-musl",
+   "version": "4.60.2"
+  },
+  {
+   "name": "@rollup/rollup-linux-loong64-gnu",
+   "version": "4.60.2"
+  },
+  {
+   "name": "@rollup/rollup-linux-loong64-musl",
+   "version": "4.60.2"
+  },
+  {
+   "name": "@rollup/rollup-linux-ppc64-gnu",
+   "version": "4.60.2"
+  },
+  {
+   "name": "@rollup/rollup-linux-ppc64-musl",
+   "version": "4.60.2"
+  },
+  {
+   "name": "@rollup/rollup-linux-riscv64-gnu",
+   "version": "4.60.2"
+  },
+  {
+   "name": "@rollup/rollup-linux-riscv64-musl",
+   "version": "4.60.2"
+  },
+  {
+   "name": "@rollup/rollup-linux-s390x-gnu",
+   "version": "4.60.2"
+  },
+  {
+   "name": "@rollup/rollup-linux-x64-gnu",
+   "version": "4.60.2"
+  },
+  {
+   "name": "@rollup/rollup-linux-x64-musl",
+   "version": "4.60.2"
+  },
+  {
+   "name": "@rollup/rollup-openbsd-x64",
+   "version": "4.60.2"
+  },
+  {
+   "name": "@rollup/rollup-openharmony-arm64",
+   "version": "4.60.2"
+  },
+  {
+   "name": "@rollup/rollup-win32-arm64-msvc",
+   "version": "4.60.2"
+  },
+  {
+   "name": "@rollup/rollup-win32-ia32-msvc",
+   "version": "4.60.2"
+  },
+  {
+   "name": "@rollup/rollup-win32-x64-gnu",
+   "version": "4.60.2"
+  },
+  {
+   "name": "@rollup/rollup-win32-x64-msvc",
+   "version": "4.60.2"
+  },
+  {
+   "name": "@shikijs/core",
+   "version": "4.3.1"
+  },
+  {
+   "name": "@shikijs/engine-javascript",
+   "version": "4.3.1"
+  },
+  {
+   "name": "@shikijs/engine-oniguruma",
+   "version": "4.3.1"
+  },
+  {
+   "name": "@shikijs/langs",
+   "version": "4.3.1"
+  },
+  {
+   "name": "@shikijs/primitive",
+   "version": "4.3.1"
+  },
+  {
+   "name": "@shikijs/themes",
+   "version": "4.3.1"
+  },
+  {
+   "name": "@shikijs/types",
+   "version": "4.3.1"
+  },
+  {
+   "name": "@shikijs/vscode-textmate",
+   "version": "10.0.2"
+  },
+  {
+   "name": "@shuding/opentype.js",
+   "version": "1.4.0-beta.0"
+  },
+  {
+   "name": "@types/debug",
+   "version": "4.1.13"
+  },
+  {
+   "name": "@types/estree",
+   "version": "1.0.8"
+  },
+  {
+   "name": "@types/hast",
+   "version": "3.0.4"
+  },
+  {
+   "name": "@types/mdast",
+   "version": "4.0.4"
+  },
+  {
+   "name": "@types/ms",
+   "version": "2.1.0"
+  },
+  {
+   "name": "@types/nlcst",
+   "version": "2.0.3"
+  },
+  {
+   "name": "@types/node",
+   "version": "24.12.2"
+  },
+  {
+   "name": "@types/pako",
+   "version": "2.0.4"
+  },
+  {
+   "name": "@types/raf",
+   "version": "3.4.3"
+  },
+  {
+   "name": "@types/sax",
+   "version": "1.2.7"
+  },
+  {
+   "name": "@types/trusted-types",
+   "version": "2.0.7"
+  },
+  {
+   "name": "@types/unist",
+   "version": "3.0.3"
+  },
+  {
+   "name": "@ungap/structured-clone",
+   "version": "1.3.0"
+  },
+  {
+   "name": "anymatch",
+   "version": "3.1.3"
+  },
+  {
+   "name": "arg",
+   "version": "5.0.2"
+  },
+  {
+   "name": "argparse",
+   "version": "2.0.1"
+  },
+  {
+   "name": "aria-query",
+   "version": "5.3.2"
+  },
+  {
+   "name": "array-iterate",
+   "version": "2.0.1"
+  },
+  {
+   "name": "astro",
+   "version": "6.4.8"
+  },
+  {
+   "name": "aws4fetch",
+   "version": "1.0.20"
+  },
+  {
+   "name": "axobject-query",
+   "version": "4.1.0"
+  },
+  {
+   "name": "bail",
+   "version": "2.0.2"
+  },
+  {
+   "name": "base64-arraybuffer",
+   "version": "1.0.2"
+  },
+  {
+   "name": "base64-js",
+   "version": "0.0.8"
+  },
+  {
+   "name": "boolbase",
+   "version": "1.0.0"
+  },
+  {
+   "name": "camelize",
+   "version": "1.0.1"
+  },
+  {
+   "name": "canvg",
+   "version": "3.0.11"
+  },
+  {
+   "name": "ccount",
+   "version": "2.0.1"
+  },
+  {
+   "name": "character-entities",
+   "version": "2.0.2"
+  },
+  {
+   "name": "character-entities-html4",
+   "version": "2.1.0"
+  },
+  {
+   "name": "character-entities-legacy",
+   "version": "3.0.0"
+  },
+  {
+   "name": "chokidar",
+   "version": "5.0.0"
+  },
+  {
+   "name": "ci-info",
+   "version": "4.4.0"
+  },
+  {
+   "name": "clsx",
+   "version": "2.1.1"
+  },
+  {
+   "name": "color-name",
+   "version": "1.1.4"
+  },
+  {
+   "name": "comma-separated-tokens",
+   "version": "2.0.3"
+  },
+  {
+   "name": "commander",
+   "version": "11.1.0"
+  },
+  {
+   "name": "common-ancestor-path",
+   "version": "2.0.0"
+  },
+  {
+   "name": "cookie",
+   "version": "1.1.1"
+  },
+  {
+   "name": "cookie-es",
+   "version": "1.2.3"
+  },
+  {
+   "name": "core-js",
+   "version": "3.49.0"
+  },
+  {
+   "name": "crossws",
+   "version": "0.3.5"
+  },
+  {
+   "name": "css-background-parser",
+   "version": "0.1.0"
+  },
+  {
+   "name": "css-box-shadow",
+   "version": "1.0.0-3"
+  },
+  {
+   "name": "css-color-keywords",
+   "version": "1.0.0"
+  },
+  {
+   "name": "css-gradient-parser",
+   "version": "0.0.16"
+  },
+  {
+   "name": "css-line-break",
+   "version": "2.1.0"
+  },
+  {
+   "name": "css-select",
+   "version": "6.0.0"
+  },
+  {
+   "name": "css-to-react-native",
+   "version": "3.2.0"
+  },
+  {
+   "name": "css-tree",
+   "version": "2.2.1"
+  },
+  {
+   "name": "css-tree",
+   "version": "3.2.1"
+  },
+  {
+   "name": "css-what",
+   "version": "7.0.0"
+  },
+  {
+   "name": "csso",
+   "version": "5.0.5"
+  },
+  {
+   "name": "debug",
+   "version": "4.4.3"
+  },
+  {
+   "name": "decode-named-character-reference",
+   "version": "1.3.0"
+  },
+  {
+   "name": "defu",
+   "version": "6.1.7"
+  },
+  {
+   "name": "dequal",
+   "version": "2.0.3"
+  },
+  {
+   "name": "destr",
+   "version": "2.0.5"
+  },
+  {
+   "name": "detect-libc",
+   "version": "2.1.2"
+  },
+  {
+   "name": "devalue",
+   "version": "5.8.1"
+  },
+  {
+   "name": "devlop",
+   "version": "1.1.0"
+  },
+  {
+   "name": "diff",
+   "version": "8.0.4"
+  },
+  {
+   "name": "dom-serializer",
+   "version": "2.0.0"
+  },
+  {
+   "name": "domelementtype",
+   "version": "2.3.0"
+  },
+  {
+   "name": "domhandler",
+   "version": "5.0.3"
+  },
+  {
+   "name": "dompurify",
+   "version": "3.4.11"
+  },
+  {
+   "name": "domutils",
+   "version": "3.2.2"
+  },
+  {
+   "name": "dset",
+   "version": "3.1.4"
+  },
+  {
+   "name": "emoji-regex-xs",
+   "version": "2.0.1"
+  },
+  {
+   "name": "entities",
+   "version": "4.5.0"
+  },
+  {
+   "name": "entities",
+   "version": "6.0.1"
+  },
+  {
+   "name": "es-module-lexer",
+   "version": "2.3.0"
+  },
+  {
+   "name": "esbuild",
+   "version": "0.27.7"
+  },
+  {
+   "name": "escape-html",
+   "version": "1.0.3"
+  },
+  {
+   "name": "escape-string-regexp",
+   "version": "5.0.0"
+  },
+  {
+   "name": "estree-walker",
+   "version": "2.0.2"
+  },
+  {
+   "name": "eventemitter3",
+   "version": "5.0.4"
+  },
+  {
+   "name": "extend",
+   "version": "3.0.2"
+  },
+  {
+   "name": "fast-png",
+   "version": "6.4.0"
+  },
+  {
+   "name": "fast-string-truncated-width",
+   "version": "3.0.3"
+  },
+  {
+   "name": "fast-string-width",
+   "version": "3.0.2"
+  },
+  {
+   "name": "fast-wrap-ansi",
+   "version": "0.2.0"
+  },
+  {
+   "name": "fdir",
+   "version": "6.5.0"
+  },
+  {
+   "name": "fflate",
+   "version": "0.7.4"
+  },
+  {
+   "name": "fflate",
+   "version": "0.8.2"
+  },
+  {
+   "name": "flattie",
+   "version": "1.1.1"
+  },
+  {
+   "name": "fontace",
+   "version": "0.4.1"
+  },
+  {
+   "name": "fontkitten",
+   "version": "1.0.3"
+  },
+  {
+   "name": "fsevents",
+   "version": "2.3.2"
+  },
+  {
+   "name": "fsevents",
+   "version": "2.3.3"
+  },
+  {
+   "name": "get-tsconfig",
+   "version": "5.0.0-beta.4"
+  },
+  {
+   "name": "github-slugger",
+   "version": "2.0.0"
+  },
+  {
+   "name": "h3",
+   "version": "1.15.11"
+  },
+  {
+   "name": "hast-util-from-html",
+   "version": "2.0.3"
+  },
+  {
+   "name": "hast-util-from-parse5",
+   "version": "8.0.3"
+  },
+  {
+   "name": "hast-util-is-element",
+   "version": "3.0.0"
+  },
+  {
+   "name": "hast-util-parse-selector",
+   "version": "4.0.0"
+  },
+  {
+   "name": "hast-util-raw",
+   "version": "9.1.0"
+  },
+  {
+   "name": "hast-util-to-html",
+   "version": "9.0.5"
+  },
+  {
+   "name": "hast-util-to-parse5",
+   "version": "8.0.1"
+  },
+  {
+   "name": "hast-util-to-text",
+   "version": "4.0.2"
+  },
+  {
+   "name": "hast-util-whitespace",
+   "version": "3.0.0"
+  },
+  {
+   "name": "hastscript",
+   "version": "9.0.1"
+  },
+  {
+   "name": "hex-rgb",
+   "version": "4.3.0"
+  },
+  {
+   "name": "html-escaper",
+   "version": "3.0.3"
+  },
+  {
+   "name": "html-void-elements",
+   "version": "3.0.0"
+  },
+  {
+   "name": "html2canvas",
+   "version": "1.4.1"
+  },
+  {
+   "name": "http-cache-semantics",
+   "version": "4.2.0"
+  },
+  {
+   "name": "iobuffer",
+   "version": "5.4.0"
+  },
+  {
+   "name": "iron-webcrypto",
+   "version": "1.2.1"
+  },
+  {
+   "name": "is-docker",
+   "version": "3.0.0"
+  },
+  {
+   "name": "is-docker",
+   "version": "4.0.0"
+  },
+  {
+   "name": "is-inside-container",
+   "version": "1.0.0"
+  },
+  {
+   "name": "is-plain-obj",
+   "version": "4.1.0"
+  },
+  {
+   "name": "is-wsl",
+   "version": "3.1.1"
+  },
+  {
+   "name": "js-yaml",
+   "version": "4.3.2"
+  },
+  {
+   "name": "jsonc-parser",
+   "version": "3.3.1"
+  },
+  {
+   "name": "jspdf",
+   "version": "4.2.1"
+  },
+  {
+   "name": "just-camel-case",
+   "version": "6.2.0"
+  },
+  {
+   "name": "linebreak",
+   "version": "1.1.0"
+  },
+  {
+   "name": "longest-streak",
+   "version": "3.1.0"
+  },
+  {
+   "name": "lru-cache",
+   "version": "11.3.5"
+  },
+  {
+   "name": "magic-string",
+   "version": "0.30.21"
+  },
+  {
+   "name": "magicast",
+   "version": "0.5.2"
+  },
+  {
+   "name": "markdown-table",
+   "version": "3.0.4"
+  },
+  {
+   "name": "marked",
+   "version": "15.0.12"
+  },
+  {
+   "name": "mdast-util-definitions",
+   "version": "6.0.0"
+  },
+  {
+   "name": "mdast-util-find-and-replace",
+   "version": "3.0.2"
+  },
+  {
+   "name": "mdast-util-from-markdown",
+   "version": "2.0.3"
+  },
+  {
+   "name": "mdast-util-gfm",
+   "version": "3.1.0"
+  },
+  {
+   "name": "mdast-util-gfm-autolink-literal",
+   "version": "2.0.1"
+  },
+  {
+   "name": "mdast-util-gfm-footnote",
+   "version": "2.1.0"
+  },
+  {
+   "name": "mdast-util-gfm-strikethrough",
+   "version": "2.0.0"
+  },
+  {
+   "name": "mdast-util-gfm-table",
+   "version": "2.0.0"
+  },
+  {
+   "name": "mdast-util-gfm-task-list-item",
+   "version": "2.0.0"
+  },
+  {
+   "name": "mdast-util-phrasing",
+   "version": "4.1.0"
+  },
+  {
+   "name": "mdast-util-to-hast",
+   "version": "13.2.1"
+  },
+  {
+   "name": "mdast-util-to-markdown",
+   "version": "2.1.2"
+  },
+  {
+   "name": "mdast-util-to-string",
+   "version": "4.0.0"
+  },
+  {
+   "name": "mdn-data",
+   "version": "2.0.28"
+  },
+  {
+   "name": "mdn-data",
+   "version": "2.27.1"
+  },
+  {
+   "name": "micromark",
+   "version": "4.0.2"
+  },
+  {
+   "name": "micromark-core-commonmark",
+   "version": "2.0.3"
+  },
+  {
+   "name": "micromark-extension-gfm",
+   "version": "3.0.0"
+  },
+  {
+   "name": "micromark-extension-gfm-autolink-literal",
+   "version": "2.1.0"
+  },
+  {
+   "name": "micromark-extension-gfm-footnote",
+   "version": "2.1.0"
+  },
+  {
+   "name": "micromark-extension-gfm-strikethrough",
+   "version": "2.1.0"
+  },
+  {
+   "name": "micromark-extension-gfm-table",
+   "version": "2.1.1"
+  },
+  {
+   "name": "micromark-extension-gfm-tagfilter",
+   "version": "2.0.0"
+  },
+  {
+   "name": "micromark-extension-gfm-task-list-item",
+   "version": "2.1.0"
+  },
+  {
+   "name": "micromark-factory-destination",
+   "version": "2.0.1"
+  },
+  {
+   "name": "micromark-factory-label",
+   "version": "2.0.1"
+  },
+  {
+   "name": "micromark-factory-space",
+   "version": "2.0.1"
+  },
+  {
+   "name": "micromark-factory-title",
+   "version": "2.0.1"
+  },
+  {
+   "name": "micromark-factory-whitespace",
+   "version": "2.0.1"
+  },
+  {
+   "name": "micromark-util-character",
+   "version": "2.1.1"
+  },
+  {
+   "name": "micromark-util-chunked",
+   "version": "2.0.1"
+  },
+  {
+   "name": "micromark-util-classify-character",
+   "version": "2.0.1"
+  },
+  {
+   "name": "micromark-util-combine-extensions",
+   "version": "2.0.1"
+  },
+  {
+   "name": "micromark-util-decode-numeric-character-reference",
+   "version": "2.0.2"
+  },
+  {
+   "name": "micromark-util-decode-string",
+   "version": "2.0.1"
+  },
+  {
+   "name": "micromark-util-encode",
+   "version": "2.0.1"
+  },
+  {
+   "name": "micromark-util-html-tag-name",
+   "version": "2.0.1"
+  },
+  {
+   "name": "micromark-util-normalize-identifier",
+   "version": "2.0.1"
+  },
+  {
+   "name": "micromark-util-resolve-all",
+   "version": "2.0.1"
+  },
+  {
+   "name": "micromark-util-sanitize-uri",
+   "version": "2.0.1"
+  },
+  {
+   "name": "micromark-util-subtokenize",
+   "version": "2.1.0"
+  },
+  {
+   "name": "micromark-util-symbol",
+   "version": "2.0.1"
+  },
+  {
+   "name": "micromark-util-types",
+   "version": "2.0.2"
+  },
+  {
+   "name": "mrmime",
+   "version": "2.0.1"
+  },
+  {
+   "name": "ms",
+   "version": "2.1.3"
+  },
+  {
+   "name": "nanoid",
+   "version": "3.3.18"
+  },
+  {
+   "name": "neotraverse",
+   "version": "0.6.18"
+  },
+  {
+   "name": "nlcst-to-string",
+   "version": "4.0.0"
+  },
+  {
+   "name": "node-fetch-native",
+   "version": "1.6.7"
+  },
+  {
+   "name": "node-mock-http",
+   "version": "1.0.4"
+  },
+  {
+   "name": "normalize-path",
+   "version": "3.0.0"
+  },
+  {
+   "name": "nth-check",
+   "version": "2.1.1"
+  },
+  {
+   "name": "obug",
+   "version": "2.1.3"
+  },
+  {
+   "name": "ofetch",
+   "version": "1.5.1"
+  },
+  {
+   "name": "ohash",
+   "version": "2.0.11"
+  },
+  {
+   "name": "oniguruma-parser",
+   "version": "0.12.2"
+  },
+  {
+   "name": "oniguruma-to-es",
+   "version": "4.3.6"
+  },
+  {
+   "name": "p-limit",
+   "version": "7.3.0"
+  },
+  {
+   "name": "p-queue",
+   "version": "9.3.1"
+  },
+  {
+   "name": "p-timeout",
+   "version": "7.0.1"
+  },
+  {
+   "name": "package-manager-detector",
+   "version": "1.6.0"
+  },
+  {
+   "name": "pako",
+   "version": "0.2.9"
+  },
+  {
+   "name": "pako",
+   "version": "2.1.0"
+  },
+  {
+   "name": "parse-css-color",
+   "version": "0.2.1"
+  },
+  {
+   "name": "parse-latin",
+   "version": "7.0.0"
+  },
+  {
+   "name": "parse5",
+   "version": "7.3.0"
+  },
+  {
+   "name": "performance-now",
+   "version": "2.1.0"
+  },
+  {
+   "name": "piccolore",
+   "version": "0.1.3"
+  },
+  {
+   "name": "picocolors",
+   "version": "1.1.1"
+  },
+  {
+   "name": "picomatch",
+   "version": "2.3.2"
+  },
+  {
+   "name": "picomatch",
+   "version": "4.0.4"
+  },
+  {
+   "name": "postcss",
+   "version": "8.5.28"
+  },
+  {
+   "name": "postcss-value-parser",
+   "version": "4.2.0"
+  },
+  {
+   "name": "prismjs",
+   "version": "1.30.0"
+  },
+  {
+   "name": "property-information",
+   "version": "7.1.0"
+  },
+  {
+   "name": "radix3",
+   "version": "1.1.2"
+  },
+  {
+   "name": "raf",
+   "version": "3.4.1"
+  },
+  {
+   "name": "readdirp",
+   "version": "5.0.0"
+  },
+  {
+   "name": "regenerator-runtime",
+   "version": "0.13.11"
+  },
+  {
+   "name": "regex",
+   "version": "6.1.0"
+  },
+  {
+   "name": "regex-recursion",
+   "version": "6.0.2"
+  },
+  {
+   "name": "regex-utilities",
+   "version": "2.3.0"
+  },
+  {
+   "name": "rehype",
+   "version": "13.0.2"
+  },
+  {
+   "name": "rehype-parse",
+   "version": "9.0.1"
+  },
+  {
+   "name": "rehype-raw",
+   "version": "7.0.0"
+  },
+  {
+   "name": "rehype-stringify",
+   "version": "10.0.1"
+  },
+  {
+   "name": "remark-gfm",
+   "version": "4.0.1"
+  },
+  {
+   "name": "remark-parse",
+   "version": "11.0.0"
+  },
+  {
+   "name": "remark-rehype",
+   "version": "11.1.2"
+  },
+  {
+   "name": "remark-smartypants",
+   "version": "3.0.2"
+  },
+  {
+   "name": "remark-stringify",
+   "version": "11.0.0"
+  },
+  {
+   "name": "resolve-pkg-maps",
+   "version": "1.0.0"
+  },
+  {
+   "name": "retext",
+   "version": "9.0.0"
+  },
+  {
+   "name": "retext-latin",
+   "version": "4.0.0"
+  },
+  {
+   "name": "retext-smartypants",
+   "version": "6.2.0"
+  },
+  {
+   "name": "retext-stringify",
+   "version": "4.0.0"
+  },
+  {
+   "name": "rgbcolor",
+   "version": "1.0.1"
+  },
+  {
+   "name": "rollup",
+   "version": "4.60.2"
+  },
+  {
+   "name": "satori",
+   "version": "0.15.2"
+  },
+  {
+   "name": "sax",
+   "version": "1.6.1"
+  },
+  {
+   "name": "semver",
+   "version": "7.7.4"
+  },
+  {
+   "name": "sharp",
+   "version": "0.34.5"
+  },
+  {
+   "name": "shiki",
+   "version": "4.3.1"
+  },
+  {
+   "name": "sisteransi",
+   "version": "1.0.5"
+  },
+  {
+   "name": "sitemap",
+   "version": "9.0.1"
+  },
+  {
+   "name": "smol-toml",
+   "version": "1.7.0"
+  },
+  {
+   "name": "source-map-js",
+   "version": "1.2.1"
+  },
+  {
+   "name": "space-separated-tokens",
+   "version": "2.0.2"
+  },
+  {
+   "name": "stackblur-canvas",
+   "version": "2.7.0"
+  },
+  {
+   "name": "stream-replace-string",
+   "version": "2.0.0"
+  },
+  {
+   "name": "string.prototype.codepointat",
+   "version": "0.2.1"
+  },
+  {
+   "name": "stringify-entities",
+   "version": "4.0.4"
+  },
+  {
+   "name": "stripe",
+   "version": "20.4.1"
+  },
+  {
+   "name": "svg-pathdata",
+   "version": "6.0.3"
+  },
+  {
+   "name": "svgo",
+   "version": "4.1.0"
+  },
+  {
+   "name": "text-segmentation",
+   "version": "1.0.3"
+  },
+  {
+   "name": "tiny-inflate",
+   "version": "1.0.3"
+  },
+  {
+   "name": "tinyclip",
+   "version": "0.1.15"
+  },
+  {
+   "name": "tinyexec",
+   "version": "1.1.1"
+  },
+  {
+   "name": "tinyglobby",
+   "version": "0.2.16"
+  },
+  {
+   "name": "trim-lines",
+   "version": "3.0.1"
+  },
+  {
+   "name": "trough",
+   "version": "2.2.0"
+  },
+  {
+   "name": "tslib",
+   "version": "2.8.1"
+  },
+  {
+   "name": "ufo",
+   "version": "1.6.3"
+  },
+  {
+   "name": "ultrahtml",
+   "version": "1.6.0"
+  },
+  {
+   "name": "uncrypto",
+   "version": "0.1.3"
+  },
+  {
+   "name": "undici-types",
+   "version": "7.16.0"
+  },
+  {
+   "name": "unicode-trie",
+   "version": "2.0.0"
+  },
+  {
+   "name": "unified",
+   "version": "11.0.5"
+  },
+  {
+   "name": "unifont",
+   "version": "0.7.4"
+  },
+  {
+   "name": "unist-util-find-after",
+   "version": "5.0.0"
+  },
+  {
+   "name": "unist-util-is",
+   "version": "6.0.1"
+  },
+  {
+   "name": "unist-util-modify-children",
+   "version": "4.0.0"
+  },
+  {
+   "name": "unist-util-position",
+   "version": "5.0.0"
+  },
+  {
+   "name": "unist-util-remove-position",
+   "version": "5.0.0"
+  },
+  {
+   "name": "unist-util-stringify-position",
+   "version": "4.0.0"
+  },
+  {
+   "name": "unist-util-visit",
+   "version": "5.1.0"
+  },
+  {
+   "name": "unist-util-visit-children",
+   "version": "3.0.0"
+  },
+  {
+   "name": "unist-util-visit-parents",
+   "version": "6.0.2"
+  },
+  {
+   "name": "unstorage",
+   "version": "1.17.5"
+  },
+  {
+   "name": "utrie",
+   "version": "1.0.2"
+  },
+  {
+   "name": "vfile",
+   "version": "6.0.3"
+  },
+  {
+   "name": "vfile-location",
+   "version": "5.0.3"
+  },
+  {
+   "name": "vfile-message",
+   "version": "4.0.3"
+  },
+  {
+   "name": "vite",
+   "version": "7.3.6"
+  },
+  {
+   "name": "vitefu",
+   "version": "1.1.3"
+  },
+  {
+   "name": "web-namespaces",
+   "version": "2.0.1"
+  },
+  {
+   "name": "which-pm-runs",
+   "version": "1.1.0"
+  },
+  {
+   "name": "workers-og",
+   "version": "0.0.27"
+  },
+  {
+   "name": "xxhash-wasm",
+   "version": "1.1.0"
+  },
+  {
+   "name": "yaml",
+   "version": "2.8.3"
+  },
+  {
+   "name": "yargs-parser",
+   "version": "22.0.0"
+  },
+  {
+   "name": "yocto-queue",
+   "version": "1.2.2"
+  },
+  {
+   "name": "yoga-wasm-web",
+   "version": "0.3.3"
+  },
+  {
+   "name": "zod",
+   "version": "4.3.6"
+  },
+  {
+   "name": "zwitch",
+   "version": "2.0.4"
+  }
+ ],
+ "hits": [
+  {
+   "name": "astro",
+   "version": "6.4.8",
+   "id": "GHSA-4g3v-8h47-v7g6"
+  },
+  {
+   "name": "astro",
+   "version": "6.4.8",
+   "id": "GHSA-7pw4-f3q4-r2p2"
+  },
+  {
+   "name": "astro",
+   "version": "6.4.8",
+   "id": "GHSA-f48w-9m4c-m7f5"
+  },
+  {
+   "name": "dompurify",
+   "version": "3.4.11",
+   "id": "GHSA-55q2-fjhq-7xh7"
+  },
+  {
+   "name": "dompurify",
+   "version": "3.4.11",
+   "id": "GHSA-c2j3-45gr-mqc4"
+  },
+  {
+   "name": "esbuild",
+   "version": "0.27.7",
+   "id": "GHSA-g7r4-m6w7-qqqr"
+  },
+  {
+   "name": "fflate",
+   "version": "0.7.4",
+   "id": "GHSA-px8p-9vwx-vf98"
+  },
+  {
+   "name": "fflate",
+   "version": "0.8.2",
+   "id": "GHSA-px8p-9vwx-vf98"
+  },
+  {
+   "name": "sharp",
+   "version": "0.34.5",
+   "id": "GHSA-f88m-g3jw-g9cj"
+  }
+ ],
+ "vulns": {
+  "GHSA-55q2-fjhq-7xh7": {
+   "id": "GHSA-55q2-fjhq-7xh7",
+   "aliases": [
+    "CVE-2026-75838"
+   ],
+   "summary": "DOMPurify: IN_PLACE hook removal leaves a detached subtree executable, causing XSS",
+   "severity": [
+    {
+     "type": "CVSS_V4",
+     "score": "CVSS:4.0/AV:N/AC:L/AT:N/PR:L/UI:P/VC:N/VI:N/VA:N/SC:L/SI:L/SA:N"
+    }
+   ],
+   "database_specific": {
+    "severity": "MODERATE"
+   },
+   "affected": [
+    {
+     "package": {
+      "name": "dompurify",
+      "ecosystem": "npm",
+      "purl": "pkg:npm/dompurify"
+     },
+     "ranges": [
+      {
+       "type": "SEMVER",
+       "events": [
+        {
+         "introduced": "0"
+        },
+        {
+         "fixed": "3.4.13"
+        }
+       ]
+      }
+     ]
+    }
+   ]
+  },
+  "GHSA-4g3v-8h47-v7g6": {
+   "id": "GHSA-4g3v-8h47-v7g6",
+   "aliases": [
+    "CVE-2026-73422"
+   ],
+   "summary": "Astro: Reflected XSS via unescaped View Transition animation properties",
+   "severity": [
+    {
+     "type": "CVSS_V4",
+     "score": "CVSS:4.0/AV:N/AC:L/AT:N/PR:N/UI:P/VC:N/VI:N/VA:N/SC:L/SI:L/SA:N"
+    }
+   ],
+   "database_specific": {
+    "severity": "MODERATE"
+   },
+   "affected": [
+    {
+     "package": {
+      "name": "astro",
+      "ecosystem": "npm",
+      "purl": "pkg:npm/astro"
+     },
+     "ranges": [
+      {
+       "type": "SEMVER",
+       "events": [
+        {
+         "introduced": "2.9.0"
+        },
+        {
+         "fixed": "7.1.0"
+        }
+       ]
+      }
+     ]
+    }
+   ]
+  },
+  "GHSA-f48w-9m4c-m7f5": {
+   "id": "GHSA-f48w-9m4c-m7f5",
+   "aliases": [
+    "CVE-2026-59729"
+   ],
+   "summary": "Astro: XSS via unescaped spread attribute names in renderHTMLElement (incomplete fix for CVE-2026-54298)",
+   "severity": [
+    {
+     "type": "CVSS_V4",
+     "score": "CVSS:4.0/AV:N/AC:L/AT:N/PR:N/UI:A/VC:N/VI:N/VA:N/SC:L/SI:L/SA:N"
+    }
+   ],
+   "database_specific": {
+    "severity": "MODERATE"
+   },
+   "affected": [
+    {
+     "package": {
+      "name": "astro",
+      "ecosystem": "npm",
+      "purl": "pkg:npm/astro"
+     },
+     "ranges": [
+      {
+       "type": "SEMVER",
+       "events": [
+        {
+         "introduced": "0"
+        },
+        {
+         "fixed": "7.0.6"
+        }
+       ]
+      }
+     ]
+    }
+   ]
+  },
+  "GHSA-g7r4-m6w7-qqqr": {
+   "id": "GHSA-g7r4-m6w7-qqqr",
+   "aliases": [],
+   "summary": "esbuild allows arbitrary file read when running the development server on Windows",
+   "severity": [
+    {
+     "type": "CVSS_V3",
+     "score": "CVSS:3.1/AV:L/AC:H/PR:L/UI:N/S:U/C:N/I:L/A:N"
+    }
+   ],
+   "database_specific": {
+    "severity": "LOW"
+   },
+   "affected": [
+    {
+     "package": {
+      "name": "esbuild",
+      "ecosystem": "npm",
+      "purl": "pkg:npm/esbuild"
+     },
+     "ranges": [
+      {
+       "type": "SEMVER",
+       "events": [
+        {
+         "introduced": "0.27.3"
+        },
+        {
+         "fixed": "0.28.1"
+        }
+       ]
+      }
+     ]
+    }
+   ]
+  },
+  "GHSA-c2j3-45gr-mqc4": {
+   "id": "GHSA-c2j3-45gr-mqc4",
+   "aliases": [
+    "CVE-2026-66010"
+   ],
+   "summary": "DOMPurify: `CUSTOM_ELEMENT_HANDLING` bypasses `afterSanitizeElements` for allowed custom elements.",
+   "severity": [
+    {
+     "type": "CVSS_V4",
+     "score": "CVSS:4.0/AV:N/AC:H/AT:N/PR:N/UI:A/VC:N/VI:N/VA:N/SC:L/SI:L/SA:N"
+    }
+   ],
+   "database_specific": {
+    "severity": "LOW"
+   },
+   "affected": [
+    {
+     "package": {
+      "name": "dompurify",
+      "ecosystem": "npm",
+      "purl": "pkg:npm/dompurify"
+     },
+     "ranges": [
+      {
+       "type": "SEMVER",
+       "events": [
+        {
+         "introduced": "0"
+        },
+        {
+         "fixed": "3.4.12"
+        }
+       ]
+      }
+     ]
+    }
+   ]
+  },
+  "GHSA-7pw4-f3q4-r2p2": {
+   "id": "GHSA-7pw4-f3q4-r2p2",
+   "aliases": [
+    "CVE-2026-59727"
+   ],
+   "summary": "Astro: Cross-site scripting via unescaped transition:* directive values on hydrated islands",
+   "severity": [
+    {
+     "type": "CVSS_V4",
+     "score": "CVSS:4.0/AV:N/AC:L/AT:P/PR:N/UI:A/VC:N/VI:N/VA:N/SC:L/SI:L/SA:N"
+    }
+   ],
+   "database_specific": {
+    "severity": "LOW"
+   },
+   "affected": [
+    {
+     "package": {
+      "name": "astro",
+      "ecosystem": "npm",
+      "purl": "pkg:npm/astro"
+     },
+     "ranges": [
+      {
+       "type": "SEMVER",
+       "events": [
+        {
+         "introduced": "3.10.0"
+        },
+        {
+         "fixed": "7.0.4"
+        }
+       ]
+      }
+     ]
+    }
+   ]
+  },
+  "GHSA-px8p-9vwx-vf98": {
+   "id": "GHSA-px8p-9vwx-vf98",
+   "aliases": [
+    "CVE-2026-45820"
+   ],
+   "summary": "fflate unzipSync can enter an infinite loop when parsing malformed ZIP64 archives",
+   "severity": [
+    {
+     "type": "CVSS_V3",
+     "score": "CVSS:3.1/AV:N/AC:L/PR:N/UI:N/S:U/C:N/I:N/A:H"
+    },
+    {
+     "type": "CVSS_V4",
+     "score": "CVSS:4.0/AV:N/AC:L/AT:N/PR:N/UI:N/VC:N/VI:N/VA:H/SC:N/SI:N/SA:N/E:U/S:N/AU:Y/R:U/V:D/RE:M/U:Amber"
+    }
+   ],
+   "database_specific": {
+    "severity": "MODERATE"
+   },
+   "affected": [
+    {
+     "package": {
+      "name": "fflate",
+      "ecosystem": "npm",
+      "purl": "pkg:npm/fflate"
+     },
+     "ranges": [
+      {
+       "type": "SEMVER",
+       "events": [
+        {
+         "introduced": "0.4.5"
+        },
+        {
+         "fixed": "0.4.9"
+        }
+       ]
+      }
+     ]
+    },
+    {
+     "package": {
+      "name": "fflate",
+      "ecosystem": "npm",
+      "purl": "pkg:npm/fflate"
+     },
+     "ranges": [
+      {
+       "type": "SEMVER",
+       "events": [
+        {
+         "introduced": "0.5.0"
+        },
+        {
+         "fixed": "0.5.4"
+        }
+       ]
+      }
+     ]
+    },
+    {
+     "package": {
+      "name": "fflate",
+      "ecosystem": "npm",
+      "purl": "pkg:npm/fflate"
+     },
+     "ranges": [
+      {
+       "type": "SEMVER",
+       "events": [
+        {
+         "introduced": "0.6.0"
+        },
+        {
+         "fixed": "0.6.11"
+        }
+       ]
+      }
+     ]
+    },
+    {
+     "package": {
+      "name": "fflate",
+      "ecosystem": "npm",
+      "purl": "pkg:npm/fflate"
+     },
+     "ranges": [
+      {
+       "type": "SEMVER",
+       "events": [
+        {
+         "introduced": "0.7.0"
+        },
+        {
+         "fixed": "0.7.5"
+        }
+       ]
+      }
+     ]
+    },
+    {
+     "package": {
+      "name": "fflate",
+      "ecosystem": "npm",
+      "purl": "pkg:npm/fflate"
+     },
+     "ranges": [
+      {
+       "type": "SEMVER",
+       "events": [
+        {
+         "introduced": "0.8.0"
+        },
+        {
+         "fixed": "0.8.3"
+        }
+       ]
+      }
+     ]
+    }
+   ]
+  },
+  "GHSA-f88m-g3jw-g9cj": {
+   "id": "GHSA-f88m-g3jw-g9cj",
+   "aliases": [],
+   "summary": "sharp inherited vulnerabilities in libvips: CVE-2026-33327, CVE-2026-33328, CVE-2026-35590, CVE-2026-35591",
+   "severity": [
+    {
+     "type": "CVSS_V4",
+     "score": "CVSS:4.0/AV:L/AC:L/AT:N/PR:L/UI:N/VC:L/VI:H/VA:H/SC:N/SI:N/SA:N"
+    }
+   ],
+   "database_specific": {
+    "severity": "HIGH"
+   },
+   "affected": [
+    {
+     "package": {
+      "name": "sharp",
+      "ecosystem": "npm",
+      "purl": "pkg:npm/sharp"
+     },
+     "ranges": [
+      {
+       "type": "SEMVER",
+       "events": [
+        {
+         "introduced": "0"
+        },
+        {
+         "fixed": "0.35.0"
+        }
+       ]
+      }
+     ]
+    }
+   ]
+  }
+ },
+ "epss": {
+  "CVE-2026-75838": 0.003,
+  "CVE-2026-73422": 0.00311,
+  "CVE-2026-66010": 0.00215,
+  "CVE-2026-59729": 0.00323,
+  "CVE-2026-59727": 0.0031,
+  "CVE-2026-45820": 0.00278
+ },
+ "kev": []
+}

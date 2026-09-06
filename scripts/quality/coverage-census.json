@@ -18,17 +18,17 @@
   "date": "2026-09-06",
   "instrument": "node scripts/quality/coverage.mjs (c8 --all over the full surface; full npm-test suite)",
   "full_surface": {
-   "files": 424,
-   "lines": 87171,
-   "covered": 39839,
-   "pct": 45.7
+   "files": 426,
+   "lines": 88475,
+   "covered": 42105,
+   "pct": 47.59
   },
   "by_category": {
    "PRODUCT-CODE": {
     "files": 326,
-    "lines": 62126,
-    "covered": 31341,
-    "pct": 50.45
+    "lines": 62144,
+    "covered": 32471,
+    "pct": 52.25
    },
    "CONTENT-TEMPLATE": {
     "files": 9,
@@ -37,10 +37,10 @@
     "pct": 11.88
    },
    "E2E-DRIVER": {
-    "files": 44,
-    "lines": 11968,
-    "covered": 3215,
-    "pct": 26.86
+    "files": 46,
+    "lines": 13254,
+    "covered": 4351,
+    "pct": 32.83
    },
    "GENERATED": {
     "files": 1,
@@ -57,18 +57,18 @@
   },
   "product_code": {
    "files": 326,
-   "lines": 62126,
-   "covered": 31341,
-   "pct": 50.45
+   "lines": 62144,
+   "covered": 32471,
+   "pct": 52.25
   },
-  "files_at_zero_in_full_report": 225,
-  "files_executed_in_full_report": 199,
+  "files_at_zero_in_full_report": 205,
+  "files_executed_in_full_report": 221,
   "highest_stakes_slice": {
    "slice": "national survey system (functions/api/survey/ + functions/api/endo-quiz/)",
    "files": [
     "functions/api/endo-quiz/download.js 48/48 (100%)",
     "functions/api/endo-quiz/request.js 225/225 (100%)",
-    "functions/api/endo-quiz/results.js 0/44 (0%)",
+    "functions/api/endo-quiz/results.js 34/44 (77.27%)",
     "functions/api/endo-quiz/start.js 55/55 (100%)",
     "functions/api/survey/count.js 71/71 (100%)",
     "functions/api/survey/event.js 96/96 (100%)",
@@ -76,7 +76,7 @@
     "functions/api/survey/submit.js 204/204 (100%)",
     "functions/api/survey/validate.js 44/44 (100%)"
    ],
-   "state": "928/972 lines (95.47%). Executed suites: test/survey-request.test.js, test/survey-submit.test.js, test/survey-endpoints.test.js, test/endo-quiz-request.test.js, test/endo-quiz-download.test.js. The two load-bearing invariants are asserted by running the handlers against SEPARATE databases: identity (email + rec_id) lands only in SURVEY_DB while symptoms land only in SURVEY_SYMPTOMS_DB with no address in the SQL or any bound value; and a failed symptom write deletes the D1 token claim and restores the original KV token record so the participant can resubmit. The endo-quiz (Google Ads) half runs on real SQLite engines built from the committed rrm-survey-symptoms migration, and asserts the same split plus the asymmetry either side of it: a failed symptom write is a 500 with no identity row, a failed identity write still counts the submission and alerts an administrator by rec_id."
+   "state": "962/972 lines (98.97%). Executed suites: test/survey-request.test.js, test/survey-submit.test.js, test/survey-endpoints.test.js, test/endo-quiz-request.test.js, test/endo-quiz-download.test.js. The two load-bearing invariants are asserted by running the handlers against SEPARATE databases: identity (email + rec_id) lands only in SURVEY_DB while symptoms land only in SURVEY_SYMPTOMS_DB with no address in the SQL or any bound value; and a failed symptom write deletes the D1 token claim and restores the original KV token record so the participant can resubmit. The endo-quiz (Google Ads) half runs on real SQLite engines built from the committed rrm-survey-symptoms migration, and asserts the same split plus the asymmetry either side of it: a failed symptom write is a 500 with no identity row, a failed identity write still counts the submission and alerts an administrator by rec_id."
   }
  },
  "_line_exclusions": [],
@@ -109,24 +109,8 @@
    "fn": "onRequestPost",
    "line": 189,
    "cc": 74,
-   "coverage": 0,
-   "crap": 5550
-  },
-  {
-   "file": "functions/api/auth/google-callback.js",
-   "fn": "onRequestGet",
-   "line": 182,
-   "cc": 66,
-   "coverage": 0,
-   "crap": 4422
-  },
-  {
-   "file": "functions/api/search/semantic.js",
-   "fn": "onRequestGet",
-   "line": 15,
-   "cc": 54,
-   "coverage": 0,
-   "crap": 2970
+   "coverage": 0.06,
+   "crap": 4621
   },
   {
    "file": "scripts/build-og-index.mjs",
@@ -145,6 +129,14 @@
    "crap": 2756
   },
   {
+   "file": "functions/api/auth/google-callback.js",
+   "fn": "onRequestGet",
+   "line": 182,
+   "cc": 66,
+   "coverage": 0.21,
+   "crap": 2228.8
+  },
+  {
    "file": "scripts/guard.mjs",
    "fn": "checkInvariants",
    "line": 104,
@@ -153,12 +145,12 @@
    "crap": 2070
   },
   {
-   "file": "functions/api/email/events.js",
-   "fn": "onRequestPost",
-   "line": 435,
-   "cc": 38,
-   "coverage": 0,
-   "crap": 1482
+   "file": "functions/api/search/semantic.js",
+   "fn": "onRequestGet",
+   "line": 15,
+   "cc": 54,
+   "coverage": 0.13,
+   "crap": 2001.5
   },
   {
    "file": "scripts/generate-page-dates.mjs",
@@ -177,14 +169,6 @@
    "crap": 1444
   },
   {
-   "file": "functions/api/partners/apply.js",
-   "fn": "_handlePost",
-   "line": 31,
-   "cc": 57,
-   "coverage": 0.26,
-   "crap": 1354
-  },
-  {
    "file": "scripts/extract-article-facts.mjs",
    "fn": "<anonymous>",
    "line": 379,
@@ -193,12 +177,12 @@
    "crap": 1056
   },
   {
-   "file": "functions/api/fund-progress.js",
-   "fn": "onRequestGet",
-   "line": 31,
-   "cc": 31,
-   "coverage": 0,
-   "crap": 992
+   "file": "functions/api/email/events.js",
+   "fn": "onRequestPost",
+   "line": 435,
+   "cc": 38,
+   "coverage": 0.13,
+   "crap": 1005.4
   },
   {
    "file": "scripts/gates/validate-fact-pipeline.mjs",
@@ -207,6 +191,14 @@
    "cc": 31,
    "coverage": 0,
    "crap": 992
+  },
+  {
+   "file": "functions/api/partners/apply.js",
+   "fn": "_handlePost",
+   "line": 31,
+   "cc": 57,
+   "coverage": 0.35,
+   "crap": 956.4
   },
   {
    "file": "src/integrations/agent-md-surfaces.mjs",
@@ -231,14 +223,6 @@
    "cc": 29,
    "coverage": 0.03,
    "crap": 793.6
-  },
-  {
-   "file": "functions/api/admin/seo.js",
-   "fn": "onRequestGet",
-   "line": 14,
-   "cc": 27,
-   "coverage": 0,
-   "crap": 756
   },
   {
    "file": "scripts/gates/validate-courses-schema.mjs",
@@ -269,8 +253,8 @@
    "fn": "onRequestPost",
    "line": 90,
    "cc": 26,
-   "coverage": 0,
-   "crap": 702
+   "coverage": 0.01,
+   "crap": 684.5
   },
   {
    "file": "src/lib/fetch-glossary-data.mjs",
@@ -279,14 +263,6 @@
    "cc": 25,
    "coverage": 0,
    "crap": 650
-  },
-  {
-   "file": "functions/api/fund-supporters.js",
-   "fn": "onRequestGet",
-   "line": 17,
-   "cc": 24,
-   "coverage": 0,
-   "crap": 600
   },
   {
    "file": "scripts/build-canonical-facts.mjs",
@@ -327,13 +303,37 @@
    "cc": 22,
    "coverage": 0,
    "crap": 506
+  },
+  {
+   "file": "scripts/compute-word-counts.mjs",
+   "fn": "main",
+   "line": 209,
+   "cc": 22,
+   "coverage": 0,
+   "crap": 506
+  },
+  {
+   "file": "scripts/gates/validate-courses-schema.mjs",
+   "fn": "gateCS2",
+   "line": 287,
+   "cc": 22,
+   "coverage": 0,
+   "crap": 506
+  },
+  {
+   "file": "scripts/gates/validate-glossary-publish-ready.mjs",
+   "fn": "main",
+   "line": 149,
+   "cc": 22,
+   "coverage": 0,
+   "crap": 506
   }
  ],
  "crap_top_files": [
   {
    "file": "functions/api/email/events.js",
    "worst": 9312,
-   "total": 11466,
+   "total": 10989,
    "fns": 10
   },
   {
@@ -344,15 +344,9 @@
   },
   {
    "file": "functions/api/newsletter/bounce.js",
-   "worst": 5550,
-   "total": 5872,
+   "worst": 4621,
+   "total": 4943,
    "fns": 6
-  },
-  {
-   "file": "functions/api/auth/google-callback.js",
-   "worst": 4422,
-   "total": 4938,
-   "fns": 8
   },
   {
    "file": "src/lib/enrich-glossary.mjs",
@@ -373,22 +367,28 @@
    "fns": 6
   },
   {
-   "file": "functions/api/search/semantic.js",
-   "worst": 2970,
-   "total": 3000,
-   "fns": 2
-  },
-  {
    "file": "scripts/guard.mjs",
    "worst": 2070,
    "total": 2936,
    "fns": 11
   },
   {
+   "file": "functions/api/auth/google-callback.js",
+   "worst": 2229,
+   "total": 2745,
+   "fns": 8
+  },
+  {
    "file": "scripts/extract-article-facts.mjs",
    "worst": 1056,
    "total": 2122,
    "fns": 17
+  },
+  {
+   "file": "functions/api/search/semantic.js",
+   "worst": 2002,
+   "total": 2032,
+   "fns": 2
   },
   {
    "file": "src/scripts/saved.ts",
@@ -427,12 +427,6 @@
    "fns": 9
   },
   {
-   "file": "functions/api/partners/apply.js",
-   "worst": 1354,
-   "total": 1354,
-   "fns": 1
-  },
-  {
    "file": "scripts/build-canonical-facts.mjs",
    "worst": 600,
    "total": 1306,
@@ -449,6 +443,12 @@
    "worst": 930,
    "total": 1178,
    "fns": 9
+  },
+  {
+   "file": "scripts/gates/validate-glossary-pipeline.mjs",
+   "worst": 600,
+   "total": 1130,
+   "fns": 8
   }
  ],
  "files": [
@@ -466,9 +466,9 @@
    "category": "PRODUCT-CODE",
    "reason": "CF Pages Function (routed endpoint, middleware, or _-prefixed shared helper). Deployed on every push; defects ship directly to users.",
    "present": true,
-   "lines": 593,
-   "covered": 388,
-   "pct": 65.43
+   "lines": 606,
+   "covered": 413,
+   "pct": 68.15
   },
   {
    "file": "functions/api/_ask_prompt.js",
@@ -611,8 +611,8 @@
    "reason": "CF Pages Function (routed endpoint, middleware, or _-prefixed shared helper). Deployed on every push; defects ship directly to users.",
    "present": true,
    "lines": 159,
-   "covered": 131,
-   "pct": 82.38
+   "covered": 149,
+   "pct": 93.71
   },
   {
    "file": "functions/api/_ses.js",
@@ -807,10 +807,10 @@
    "file": "functions/api/admin/seo.js",
    "category": "PRODUCT-CODE",
    "reason": "CF Pages Function (routed endpoint, middleware, or _-prefixed shared helper). Deployed on every push; defects ship directly to users.",
-   "present": false,
+   "present": true,
    "lines": 249,
-   "covered": 0,
-   "pct": 0
+   "covered": 56,
+   "pct": 22.48
   },
   {
    "file": "functions/api/articles.js",
@@ -836,8 +836,8 @@
    "reason": "CF Pages Function (routed endpoint, middleware, or _-prefixed shared helper). Deployed on every push; defects ship directly to users.",
    "present": true,
    "lines": 499,
-   "covered": 312,
-   "pct": 62.52
+   "covered": 332,
+   "pct": 66.53
   },
   {
    "file": "functions/api/ask/sandbox.js",
@@ -861,19 +861,19 @@
    "file": "functions/api/ask/shared/[id].js",
    "category": "PRODUCT-CODE",
    "reason": "CF Pages Function (routed endpoint, middleware, or _-prefixed shared helper). Deployed on every push; defects ship directly to users.",
-   "present": false,
+   "present": true,
    "lines": 51,
-   "covered": 0,
-   "pct": 0
+   "covered": 25,
+   "pct": 49.01
   },
   {
    "file": "functions/api/assets/[[path]].js",
    "category": "PRODUCT-CODE",
    "reason": "CF Pages Function (routed endpoint, middleware, or _-prefixed shared helper). Deployed on every push; defects ship directly to users.",
-   "present": false,
+   "present": true,
    "lines": 75,
-   "covered": 0,
-   "pct": 0
+   "covered": 65,
+   "pct": 86.66
   },
   {
    "file": "functions/api/auth/_disposable-domains.js",
@@ -899,8 +899,8 @@
    "reason": "CF Pages Function (routed endpoint, middleware, or _-prefixed shared helper). Deployed on every push; defects ship directly to users.",
    "present": true,
    "lines": 676,
-   "covered": 579,
-   "pct": 85.65
+   "covered": 587,
+   "pct": 86.83
   },
   {
    "file": "functions/api/auth/change-password.js",
@@ -924,19 +924,19 @@
    "file": "functions/api/auth/google-callback.js",
    "category": "PRODUCT-CODE",
    "reason": "CF Pages Function (routed endpoint, middleware, or _-prefixed shared helper). Deployed on every push; defects ship directly to users.",
-   "present": false,
+   "present": true,
    "lines": 432,
-   "covered": 0,
-   "pct": 0
+   "covered": 95,
+   "pct": 21.99
   },
   {
    "file": "functions/api/auth/google.js",
    "category": "PRODUCT-CODE",
    "reason": "CF Pages Function (routed endpoint, middleware, or _-prefixed shared helper). Deployed on every push; defects ship directly to users.",
-   "present": false,
+   "present": true,
    "lines": 53,
-   "covered": 0,
-   "pct": 0
+   "covered": 51,
+   "pct": 96.22
   },
   {
    "file": "functions/api/auth/login.js",
@@ -1005,10 +1005,10 @@
    "file": "functions/api/auth/verify-email.js",
    "category": "PRODUCT-CODE",
    "reason": "CF Pages Function (routed endpoint, middleware, or _-prefixed shared helper). Deployed on every push; defects ship directly to users.",
-   "present": false,
+   "present": true,
    "lines": 204,
-   "covered": 0,
-   "pct": 0
+   "covered": 77,
+   "pct": 37.74
   },
   {
    "file": "functions/api/billing/_campaign-count.js",
@@ -1169,8 +1169,8 @@
    "reason": "CF Pages Function (routed endpoint, middleware, or _-prefixed shared helper). Deployed on every push; defects ship directly to users.",
    "present": false,
    "lines": 10,
-   "covered": 0,
-   "pct": 0
+   "covered": 10,
+   "pct": 100
   },
   {
    "file": "functions/api/community/_areas-shared.js",
@@ -1545,10 +1545,10 @@
    "file": "functions/api/email/events.js",
    "category": "PRODUCT-CODE",
    "reason": "CF Pages Function (routed endpoint, middleware, or _-prefixed shared helper). Deployed on every push; defects ship directly to users.",
-   "present": false,
+   "present": true,
    "lines": 546,
-   "covered": 0,
-   "pct": 0
+   "covered": 77,
+   "pct": 14.1
   },
   {
    "file": "functions/api/endo-quiz/download.js",
@@ -1572,10 +1572,10 @@
    "file": "functions/api/endo-quiz/results.js",
    "category": "PRODUCT-CODE",
    "reason": "CF Pages Function (routed endpoint, middleware, or _-prefixed shared helper). Deployed on every push; defects ship directly to users.",
-   "present": false,
+   "present": true,
    "lines": 44,
-   "covered": 0,
-   "pct": 0
+   "covered": 34,
+   "pct": 77.27
   },
   {
    "file": "functions/api/endo-quiz/start.js",
@@ -1626,19 +1626,19 @@
    "file": "functions/api/fund-progress.js",
    "category": "PRODUCT-CODE",
    "reason": "CF Pages Function (routed endpoint, middleware, or _-prefixed shared helper). Deployed on every push; defects ship directly to users.",
-   "present": false,
+   "present": true,
    "lines": 131,
-   "covered": 0,
-   "pct": 0
+   "covered": 87,
+   "pct": 66.41
   },
   {
    "file": "functions/api/fund-supporters.js",
    "category": "PRODUCT-CODE",
    "reason": "CF Pages Function (routed endpoint, middleware, or _-prefixed shared helper). Deployed on every push; defects ship directly to users.",
-   "present": false,
+   "present": true,
    "lines": 81,
-   "covered": 0,
-   "pct": 0
+   "covered": 65,
+   "pct": 80.24
   },
   {
    "file": "functions/api/glossary/terms.js",
@@ -1707,37 +1707,37 @@
    "file": "functions/api/newsletter/bounce.js",
    "category": "PRODUCT-CODE",
    "reason": "CF Pages Function (routed endpoint, middleware, or _-prefixed shared helper). Deployed on every push; defects ship directly to users.",
-   "present": false,
+   "present": true,
    "lines": 421,
-   "covered": 0,
-   "pct": 0
+   "covered": 73,
+   "pct": 17.33
   },
   {
    "file": "functions/api/newsletter/click.js",
    "category": "PRODUCT-CODE",
    "reason": "CF Pages Function (routed endpoint, middleware, or _-prefixed shared helper). Deployed on every push; defects ship directly to users.",
-   "present": false,
+   "present": true,
    "lines": 69,
-   "covered": 0,
-   "pct": 0
+   "covered": 24,
+   "pct": 34.78
   },
   {
    "file": "functions/api/newsletter/open.js",
    "category": "PRODUCT-CODE",
    "reason": "CF Pages Function (routed endpoint, middleware, or _-prefixed shared helper). Deployed on every push; defects ship directly to users.",
-   "present": false,
+   "present": true,
    "lines": 70,
-   "covered": 0,
-   "pct": 0
+   "covered": 38,
+   "pct": 54.28
   },
   {
    "file": "functions/api/newsletter/rss-check.js",
    "category": "PRODUCT-CODE",
    "reason": "CF Pages Function (routed endpoint, middleware, or _-prefixed shared helper). Deployed on every push; defects ship directly to users.",
-   "present": false,
+   "present": true,
    "lines": 77,
-   "covered": 0,
-   "pct": 0
+   "covered": 43,
+   "pct": 55.84
   },
   {
    "file": "functions/api/newsletter/send-first-email.js",
@@ -1770,10 +1770,10 @@
    "file": "functions/api/newsletter/unsubscribe.js",
    "category": "PRODUCT-CODE",
    "reason": "CF Pages Function (routed endpoint, middleware, or _-prefixed shared helper). Deployed on every push; defects ship directly to users.",
-   "present": false,
+   "present": true,
    "lines": 81,
-   "covered": 0,
-   "pct": 0
+   "covered": 33,
+   "pct": 40.74
   },
   {
    "file": "functions/api/partners/_emails.js",
@@ -1790,17 +1790,17 @@
    "reason": "CF Pages Function (routed endpoint, middleware, or _-prefixed shared helper). Deployed on every push; defects ship directly to users.",
    "present": true,
    "lines": 231,
-   "covered": 76,
-   "pct": 32.9
+   "covered": 93,
+   "pct": 40.25
   },
   {
    "file": "functions/api/partners/index.js",
    "category": "PRODUCT-CODE",
    "reason": "CF Pages Function (routed endpoint, middleware, or _-prefixed shared helper). Deployed on every push; defects ship directly to users.",
-   "present": false,
+   "present": true,
    "lines": 46,
-   "covered": 0,
-   "pct": 0
+   "covered": 25,
+   "pct": 54.34
   },
   {
    "file": "functions/api/pdf/redeem.js",
@@ -1842,10 +1842,10 @@
    "file": "functions/api/quiz/results.js",
    "category": "PRODUCT-CODE",
    "reason": "CF Pages Function (routed endpoint, middleware, or _-prefixed shared helper). Deployed on every push; defects ship directly to users.",
-   "present": false,
+   "present": true,
    "lines": 44,
-   "covered": 0,
-   "pct": 0
+   "covered": 34,
+   "pct": 77.27
   },
   {
    "file": "functions/api/quiz/start.js",
@@ -1869,28 +1869,28 @@
    "file": "functions/api/search/log.js",
    "category": "PRODUCT-CODE",
    "reason": "CF Pages Function (routed endpoint, middleware, or _-prefixed shared helper). Deployed on every push; defects ship directly to users.",
-   "present": false,
+   "present": true,
    "lines": 88,
-   "covered": 0,
-   "pct": 0
+   "covered": 40,
+   "pct": 45.45
   },
   {
    "file": "functions/api/search/semantic.js",
    "category": "PRODUCT-CODE",
    "reason": "CF Pages Function (routed endpoint, middleware, or _-prefixed shared helper). Deployed on every push; defects ship directly to users.",
-   "present": false,
+   "present": true,
    "lines": 292,
-   "covered": 0,
-   "pct": 0
+   "covered": 42,
+   "pct": 14.38
   },
   {
    "file": "functions/api/stream/token.js",
    "category": "PRODUCT-CODE",
    "reason": "CF Pages Function (routed endpoint, middleware, or _-prefixed shared helper). Deployed on every push; defects ship directly to users.",
-   "present": false,
+   "present": true,
    "lines": 131,
-   "covered": 0,
-   "pct": 0
+   "covered": 43,
+   "pct": 32.82
   },
   {
    "file": "functions/api/stripe-webhook.js",
@@ -1969,8 +1969,8 @@
    "category": "PRODUCT-CODE",
    "reason": "CF Pages Function (routed endpoint, middleware, or _-prefixed shared helper). Deployed on every push; defects ship directly to users.",
    "present": true,
-   "lines": 1135,
-   "covered": 1133,
+   "lines": 1140,
+   "covered": 1138,
    "pct": 99.82
   },
   {
@@ -3391,9 +3391,27 @@
    "category": "E2E-DRIVER",
    "reason": "The targeted red-team harness (auth, money, PII writes, leaks, headers, cost). Test infrastructure that lives under scripts/ so the same case table can also be driven at the live deployment (--mode live). Line coverage is the wrong instrument for the same reason it is wrong for test/**: covering the harness proves the harness ran, not that the site refused anything. Its correctness instruments are the run itself (a FAIL is a finding, never a loosened expectation) and test/redteam.test.js, which executes all 150 cases on every PR and additionally pins the case table structurally -- unique ids, a declared family, an adjudication note behind every `known` marker, and a dispatch entry for every route targets.mjs attacks.",
    "present": true,
-   "lines": 1582,
-   "covered": 1582,
+   "lines": 2087,
+   "covered": 2087,
    "pct": 100
+  },
+  {
+   "file": "scripts/redteam/coverage.mjs",
+   "category": "E2E-DRIVER",
+   "reason": "The targeted red-team harness (auth, money, PII writes, leaks, headers, cost). Test infrastructure that lives under scripts/ so the same case table can also be driven at the live deployment (--mode live). Line coverage is the wrong instrument for the same reason it is wrong for test/**: covering the harness proves the harness ran, not that the site refused anything. Its correctness instruments are the run itself (a FAIL is a finding, never a loosened expectation) and test/redteam.test.js, which executes all 150 cases on every PR and additionally pins the case table structurally -- unique ids, a declared family, an adjudication note behind every `known` marker, and a dispatch entry for every route targets.mjs attacks.",
+   "present": true,
+   "lines": 118,
+   "covered": 118,
+   "pct": 100
+  },
+  {
+   "file": "scripts/redteam/deps.mjs",
+   "category": "E2E-DRIVER",
+   "reason": "The targeted red-team harness (auth, money, PII writes, leaks, headers, cost). Test infrastructure that lives under scripts/ so the same case table can also be driven at the live deployment (--mode live). Line coverage is the wrong instrument for the same reason it is wrong for test/**: covering the harness proves the harness ran, not that the site refused anything. Its correctness instruments are the run itself (a FAIL is a finding, never a loosened expectation) and test/redteam.test.js, which executes all 150 cases on every PR and additionally pins the case table structurally -- unique ids, a declared family, an adjudication note behind every `known` marker, and a dispatch entry for every route targets.mjs attacks.",
+   "present": true,
+   "lines": 414,
+   "covered": 260,
+   "pct": 62.8
   },
   {
    "file": "scripts/redteam/fakes/bodies.mjs",
@@ -3409,18 +3427,18 @@
    "category": "E2E-DRIVER",
    "reason": "The targeted red-team harness (auth, money, PII writes, leaks, headers, cost). Test infrastructure that lives under scripts/ so the same case table can also be driven at the live deployment (--mode live). Line coverage is the wrong instrument for the same reason it is wrong for test/**: covering the harness proves the harness ran, not that the site refused anything. Its correctness instruments are the run itself (a FAIL is a finding, never a loosened expectation) and test/redteam.test.js, which executes all 150 cases on every PR and additionally pins the case table structurally -- unique ids, a declared family, an adjudication note behind every `known` marker, and a dispatch entry for every route targets.mjs attacks.",
    "present": true,
-   "lines": 198,
-   "covered": 183,
-   "pct": 92.42
+   "lines": 281,
+   "covered": 266,
+   "pct": 94.66
   },
   {
    "file": "scripts/redteam/fakes/env.mjs",
    "category": "E2E-DRIVER",
    "reason": "The targeted red-team harness (auth, money, PII writes, leaks, headers, cost). Test infrastructure that lives under scripts/ so the same case table can also be driven at the live deployment (--mode live). Line coverage is the wrong instrument for the same reason it is wrong for test/**: covering the harness proves the harness ran, not that the site refused anything. Its correctness instruments are the run itself (a FAIL is a finding, never a loosened expectation) and test/redteam.test.js, which executes all 150 cases on every PR and additionally pins the case table structurally -- unique ids, a declared family, an adjudication note behind every `known` marker, and a dispatch entry for every route targets.mjs attacks.",
    "present": true,
-   "lines": 330,
-   "covered": 326,
-   "pct": 98.78
+   "lines": 345,
+   "covered": 341,
+   "pct": 98.84
   },
   {
    "file": "scripts/redteam/fakes/identities.mjs",
@@ -3437,26 +3455,26 @@
    "reason": "The targeted red-team harness (auth, money, PII writes, leaks, headers, cost). Test infrastructure that lives under scripts/ so the same case table can also be driven at the live deployment (--mode live). Line coverage is the wrong instrument for the same reason it is wrong for test/**: covering the harness proves the harness ran, not that the site refused anything. Its correctness instruments are the run itself (a FAIL is a finding, never a loosened expectation) and test/redteam.test.js, which executes all 150 cases on every PR and additionally pins the case table structurally -- unique ids, a declared family, an adjudication note behind every `known` marker, and a dispatch entry for every route targets.mjs attacks.",
    "present": true,
    "lines": 95,
-   "covered": 81,
-   "pct": 85.26
+   "covered": 85,
+   "pct": 89.47
   },
   {
    "file": "scripts/redteam/run.mjs",
    "category": "E2E-DRIVER",
    "reason": "The targeted red-team harness (auth, money, PII writes, leaks, headers, cost). Test infrastructure that lives under scripts/ so the same case table can also be driven at the live deployment (--mode live). Line coverage is the wrong instrument for the same reason it is wrong for test/**: covering the harness proves the harness ran, not that the site refused anything. Its correctness instruments are the run itself (a FAIL is a finding, never a loosened expectation) and test/redteam.test.js, which executes all 150 cases on every PR and additionally pins the case table structurally -- unique ids, a declared family, an adjudication note behind every `known` marker, and a dispatch entry for every route targets.mjs attacks.",
    "present": true,
-   "lines": 844,
-   "covered": 687,
-   "pct": 81.39
+   "lines": 860,
+   "covered": 703,
+   "pct": 81.74
   },
   {
    "file": "scripts/redteam/targets.mjs",
    "category": "E2E-DRIVER",
    "reason": "The targeted red-team harness (auth, money, PII writes, leaks, headers, cost). Test infrastructure that lives under scripts/ so the same case table can also be driven at the live deployment (--mode live). Line coverage is the wrong instrument for the same reason it is wrong for test/**: covering the harness proves the harness ran, not that the site refused anything. Its correctness instruments are the run itself (a FAIL is a finding, never a loosened expectation) and test/redteam.test.js, which executes all 150 cases on every PR and additionally pins the case table structurally -- unique ids, a declared family, an adjudication note behind every `known` marker, and a dispatch entry for every route targets.mjs attacks.",
    "present": false,
-   "lines": 219,
-   "covered": 217,
-   "pct": 99.08
+   "lines": 354,
+   "covered": 352,
+   "pct": 99.43
   },
   {
    "file": "scripts/regen-agent-skills-digests.mjs",
