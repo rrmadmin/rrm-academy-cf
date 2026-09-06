@@ -1,6 +1,6 @@
 {
  "_note": "Every first-party executable file (census-rules.mjs SURFACE_ROOTS) is accounted for here, and scripts/quality/coverage.mjs FAILS its run if the enumerated surface drifts from this file or a new file matches no classification rule. A file is either PRODUCT-CODE (inside the gated coverage denominator) or excluded below with a category and written reason — never silently. Regenerate with: node scripts/quality/coverage.mjs && node scripts/quality/census.mjs",
- "_generated": "2026-09-05",
+ "_generated": "2026-09-06",
  "_categories": {
   "PRODUCT-CODE": "Deployed or deploy-chain code whose defects ship to users: CF Pages Functions (every route + _helper under functions/), build-time data fetchers and shared logic (src/lib), client bundles (src/scripts), Astro build integrations, and the CI gate/guard/build scripts that decide whether a deploy is allowed. This is the gated denominator. Uncovered PRODUCT-CODE is debt, listed so it is visible and countable, never argued away.",
   "CONTENT-TEMPLATE": "Files where line coverage is the wrong instrument because they are content, data constants, or scaffolding: reference-only endpoint templates (header forbids importing), typed data constants consumed by Astro templates, and Astro endpoint modules (*.md.ts / rss.xml.ts) that only execute inside the Astro build container. Their correctness instruments are the build itself, verify-build-output, the data deploy-guard floors, and the e2e suite.",
@@ -15,20 +15,20 @@
   "ratchet_rule": "The floor may only move UP. Arm at the measured floor rounded down; never arm a number that is red on arrival. Raise it after a coverage drive lands, by editing this value to the new measured floor rounded down."
  },
  "_measured": {
-  "date": "2026-09-05",
+  "date": "2026-09-06",
   "instrument": "node scripts/quality/coverage.mjs (c8 --all over the full surface; full npm-test suite)",
   "full_surface": {
-   "files": 415,
-   "lines": 83614,
-   "covered": 35293,
-   "pct": 42.21
+   "files": 416,
+   "lines": 83659,
+   "covered": 35258,
+   "pct": 42.14
   },
   "by_category": {
    "PRODUCT-CODE": {
-    "files": 325,
-    "lines": 61981,
-    "covered": 30010,
-    "pct": 48.42
+    "files": 326,
+    "lines": 62026,
+    "covered": 29975,
+    "pct": 48.33
    },
    "CONTENT-TEMPLATE": {
     "files": 9,
@@ -56,13 +56,13 @@
    }
   },
   "product_code": {
-   "files": 325,
-   "lines": 61981,
-   "covered": 30010,
-   "pct": 48.42
+   "files": 326,
+   "lines": 62026,
+   "covered": 29975,
+   "pct": 48.33
   },
-  "files_at_zero_in_full_report": 238,
-  "files_executed_in_full_report": 177,
+  "files_at_zero_in_full_report": 240,
+  "files_executed_in_full_report": 176,
   "highest_stakes_slice": {
    "slice": "national survey system (functions/api/survey/ + functions/api/endo-quiz/)",
    "files": [
@@ -2112,10 +2112,10 @@
    "file": "scripts/audit-glossary-links.mjs",
    "category": "PRODUCT-CODE",
    "reason": "Local deterministic analysis of glossary.json link classes; unit-tested (glossary-link-classifier.test.js), 80% covered today.",
-   "present": true,
+   "present": false,
    "lines": 101,
-   "covered": 81,
-   "pct": 80.19
+   "covered": 0,
+   "pct": 0
   },
   {
    "file": "scripts/audit-textbook-fact-coverage.mjs",
@@ -2932,8 +2932,8 @@
    "category": "PRODUCT-CODE",
    "reason": "Shared library code imported by pipeline scripts and gates.",
    "present": true,
-   "lines": 496,
-   "covered": 496,
+   "lines": 534,
+   "covered": 534,
    "pct": 100
   },
   {
@@ -3747,6 +3747,15 @@
    "pct": 0
   },
   {
+   "file": "src/lib/excluded-types.mjs",
+   "category": "PRODUCT-CODE",
+   "reason": "Build-time data fetcher / shared logic. Feeds every deploy (fetch-all -> src/data -> astro build); silent failure here is a data-loss deploy.",
+   "present": false,
+   "lines": 7,
+   "covered": 7,
+   "pct": 100
+  },
+  {
    "file": "src/lib/fabm-quiz-engine.mjs",
    "category": "PRODUCT-CODE",
    "reason": "Build-time data fetcher / shared logic. Feeds every deploy (fetch-all -> src/data -> astro build); silent failure here is a data-loss deploy.",
@@ -3797,8 +3806,8 @@
    "reason": "Build-time data fetcher / shared logic. Feeds every deploy (fetch-all -> src/data -> astro build); silent failure here is a data-loss deploy.",
    "present": true,
    "lines": 241,
-   "covered": 112,
-   "pct": 46.47
+   "covered": 113,
+   "pct": 46.88
   },
   {
    "file": "src/lib/fetch-faq-data.mjs",
