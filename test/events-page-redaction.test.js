@@ -968,6 +968,12 @@ describe('the .ics export', () => {
       assert.ok(lines.includes('STATUS:CONFIRMED'));
       assert.ok(lines.some((l) => /^DTSTAMP:\d{8}T\d{6}Z$/.test(l)));
       assert.ok(ics.includes('Save the Uterus Club live call with Dr Ada.'));
+
+      const valarm = ics.slice(ics.indexOf('BEGIN:VALARM'), ics.indexOf('END:VALARM') + 'END:VALARM'.length);
+      assert.ok(valarm, 'a VALARM block reminding attendees an hour before start is required');
+      assert.ok(valarm.includes('ACTION:DISPLAY'));
+      assert.ok(valarm.includes('TRIGGER:-PT1H'));
+      assert.ok(ics.indexOf('BEGIN:VALARM') < ics.indexOf('END:VEVENT'), 'VALARM must sit inside VEVENT');
     } finally { db.close(); }
   });
 
@@ -983,6 +989,8 @@ describe('the .ics export', () => {
       assert.ok(ics.includes('SUMMARY:Endo\\, Part 2\\; a "deep" dive \\\\ notes'),
         `SUMMARY was not iCal-escaped: ${/SUMMARY:.*/.exec(ics)?.[0]}`);
       assert.ok(ics.includes('Dr Ada\\, MD\\; PhD'), 'DESCRIPTION was not iCal-escaped');
+      const valarmMatches = ics.match(/DESCRIPTION:Endo\\, Part 2\\; a "deep" dive \\\\ notes/g) || [];
+      assert.equal(valarmMatches.length, 1, 'the VALARM DESCRIPTION should carry the same iCal-escaped title');
     } finally { db.close(); }
   });
 
