@@ -302,6 +302,12 @@ const SCENARIOS = {
    * The same request for an address that exists and one that does not. The
    * assertion is EQUALITY of the two answers, which is the only shape of
    * enumeration a harness can hold without timing measurements.
+   *
+   * KEY SETS ARE COMPARED AS WELL AS BYTES, and separately, because the bytes
+   * are the strictest check but the WORST report: RRMA-RT-2 was one extra key
+   * on one arm, and "body differs" truncated at 90 characters said so only if
+   * you squinted at the tail. Naming the surplus key is the difference between
+   * a reader seeing the finding and a reader seeing two long JSON strings.
    */
   async 'enumeration'(kase, context) {
     const results = {};
@@ -313,6 +319,17 @@ const SCENARIOS = {
     const reasons = [];
     if (results.known.status !== results.unknown.status) {
       reasons.push(`status differs: known=${results.known.status} unknown=${results.unknown.status}`);
+    }
+    const keysOf = (response) => (response.json && typeof response.json === 'object' && !Array.isArray(response.json)
+      ? Object.keys(response.json).sort()
+      : null);
+    const knownKeys = keysOf(results.known);
+    const unknownKeys = keysOf(results.unknown);
+    if (knownKeys && unknownKeys && knownKeys.join(',') !== unknownKeys.join(',')) {
+      const only = (a, b) => a.filter((key) => !b.includes(key));
+      reasons.push(
+        `body KEY SET differs: only-on-known [${only(knownKeys, unknownKeys).join(', ')}], only-on-unknown [${only(unknownKeys, knownKeys).join(', ')}]`
+      );
     }
     if (results.known.text !== results.unknown.text) {
       reasons.push(`body differs: known=${results.known.text.slice(0, 90)} unknown=${results.unknown.text.slice(0, 90)}`);
