@@ -78,6 +78,28 @@ jobs:
       - name: Install dependencies
         run: npm ci --ignore-scripts
 
+      # The dependency family of the red-team harness
+      # (scripts/redteam/deps.mjs): the production half of package-lock.json
+      # against OSV.dev, ranked by CISA KEV and EPSS. It BLOCKS on a KEV
+      # entry, on EPSS over 0.1, or on a HIGH/CRITICAL advisory whose fix is
+      # already published; everything else prints as WARN and is never
+      # hidden. Three public sources, no keys, no build, no install beyond
+      # the one above.
+      #
+      # BEFORE the unit suite deliberately: it is the cheapest step in the
+      # job and it answers a question the suite cannot ("is a dependency we
+      # ship carrying a known-exploited hole"), so there is no reason to pay
+      # for 4,000 tests before hearing it. An unreachable source FAILS the
+      # step rather than passing it, since a gate that passes on an outage is
+      # not a gate.
+      #
+      # A finding is accepted, never muted: scripts/redteam/deps-accepted.json
+      # takes an id, a written reason and an expiry, and reports as KNOWN
+      # until that date passes. test/deps.test.js proves the policy fires in
+      # every direction it claims to, offline, over a captured fixture.
+      - name: Dependency advisories (OSV + EPSS + KEV)
+        run: node scripts/redteam/deps.mjs --no-report
+
       - name: Unit tests
         run: npm test
 
