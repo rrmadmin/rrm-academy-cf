@@ -19,7 +19,7 @@ The dated run reports beside this file (`<date>-hermetic.md`,
 | RRMA-RT-1 | FIXED 2026-09-05 | the stored (hashed) session id worked as a cookie, so one row of the `session` table was a live login | 1 |
 | RRMA-RT-2 | FIXED 2026-09-05 | signup answered a fresh address and an already-registered one with different KEY SETS, which is an account-enumeration oracle | 1 |
 | RRMA-RT-3 | FIXED 2026-09-05 | `public/_headers` declared `/api/* Cache-Control: no-store` and never applied it to a single Function response | 1 |
-| RRMA-RT-4 | OPEN | `/mcp` proxies the apex to a Worker, forwarding `Authorization` and stripping `Set-Cookie`, and has no test of its own anywhere in this repo | 0 |
+| RRMA-RT-4 | FIXED 2026-09-06 | `/mcp` proxies the apex to a Worker, forwarding `Authorization` and stripping `Set-Cookie`, and has no test of its own anywhere in this repo | 0 |
 | RRMA-RT-5 | FIXED 2026-09-06 | a route that set its own `no-store` escaped the `Vary: Cookie` half of the cache contract | 2 |
 | RRMA-RT-DEPS | OPEN, accepted to 2026-10-06 | the production lockfile carried eight fixable HIGH advisories that no gate checked; seven are bumped, the eighth is astro's own pinned `sharp` | 0 |
 | RRMA-RT-COVERAGE | FIXED 2026-09-06 | the harness attacked 44 of the 121 routes Pages serves, and nothing said so | 0 |
@@ -71,7 +71,7 @@ not do while the header came from a file the process never reads. The
 per-route sweep and its counterweight (a route that declares its own caching
 keeps it) are the 57 assertions in `test/api-cache-headers.test.js`.
 
-## RRMA-RT-4 -- open
+## RRMA-RT-4 -- fixed
 
 `functions/mcp/index.js` is a transparent proxy from the apex to the MCP
 Worker at `mcp.rrmacademy.org`. It forwards `Authorization`,
@@ -79,17 +79,36 @@ Worker at `mcp.rrmacademy.org`. It forwards `Authorization`,
 `Set-Cookie2` on the way back specifically to stop cookie smuggling onto the
 apex domain.
 
-Both of those are security decisions, and neither has a test anywhere in this
-repo: `grep -rl 'functions/mcp' test/` finds nothing. The red-team harness
-exempts the route in `scripts/redteam/coverage.mjs` because the GATE lives in
-the Worker, which is a different deployment and not this repo's code -- but
-the header policy is this repo's code, and a rewrite that dropped
-`set-cookie` from `STRIP_RESPONSE_HEADERS` would ship green.
+Both of those are security decisions, and neither had a test anywhere in this
+repo: `grep -rl 'functions/mcp' test/` found nothing. The red-team harness
+exempts the route in `scripts/redteam/coverage.mjs` because the GATE it would
+attack lives in the Worker, which is a different deployment and not this
+repo's code -- but the header policy is this repo's code, and a rewrite that
+dropped `set-cookie` from `STRIP_RESPONSE_HEADERS` would have shipped green.
 
-The fix is a small unit test over `proxy()` asserting both directions of the
-header lists. It is not a request-shaped attack, so it belongs beside the
-module rather than in `cases.mjs`, which is why the exemption stands and this
-row does not carry a case.
+Closed 2026-09-06 by `test/mcp-proxy.test.js` (PR #151), 22 unit tests over
+the real exported handlers with a capturing `MCP_BACKEND` service-binding
+stub, so every assertion reads the actual `Request` the module built. It pins
+the credential forward byte for byte, the apex `Cookie` NOT reaching upstream,
+each name on `STRIP_RESPONSE_HEADERS` individually (under odd casing, and on
+an upstream 500 as well as a 200), the destination origin under seven steering
+attempts and on the no-binding fallback path, method and body passthrough, and
+the bounded 502 that echoes nothing from the upstream exception.
+
+Mutation-proven both directions: removing `'set-cookie'` from the strip list
+turns 5 tests red, removing `'authorization'` from the forward list turns 3
+red.
+
+The proxy module was not changed, and the route stays exempt in
+`coverage.mjs`: this is a unit test beside the module, not a request-shaped
+attack, so the exemption and the zero in the case column both still stand.
+
+NOTED RESIDUAL, deliberately left unasserted. The strip list is cookie- and
+hop-by-hop-focused, so other origin-scoped response headers from upstream
+(`Clear-Site-Data`, `Strict-Transport-Security`, `Content-Security-Policy`)
+still reach the apex response. The upstream is first-party and the worst of
+those is a logout rather than a privilege, so pinning them in either direction
+would freeze a decision nobody has made.
 
 ## RRMA-RT-5 -- fixed
 
