@@ -108,10 +108,23 @@ function withSecurityHeaders(response) {
  */
 function withApiCacheHeaders(response, pathname) {
   if (pathname !== '/api' && !pathname.startsWith('/api/')) return response;
-  if (response.headers.has('Cache-Control')) return response;
+
+  /* A route that declared its own Cache-Control keeps it: no-store is the
+     DEFAULT here, never an override of a decision somebody made (/api/assets/*
+     serves immutable R2 objects, /api/survey/count caches for a minute).
+     THE ONE THING THAT STILL APPLIES to such a route is Vary, and only when
+     what it declared is no-store: the pairing is the contract, not the header.
+     `/api/newsletter/open` and `/api/auth/verify-email` set their own no-store
+     and reached production without a Vary at all, which the sweep in
+     test/api-cache-headers.test.js could not see until the red-team target
+     table grew to name them (RRMA-RT-5). A response that is not stored anywhere
+     is not the danger; a shared cache keyed BEFORE the cookie, holding one
+     visitor's answer, is, and Vary is the only thing that says so. */
+  const declared = response.headers.get('Cache-Control');
+  if (declared && !/no-store/i.test(declared)) return response;
 
   const headers = new Headers(response.headers);
-  headers.set('Cache-Control', 'no-store');
+  if (!declared) headers.set('Cache-Control', 'no-store');
   const vary = headers.get('Vary');
   const alreadyVaries = (vary || '').split(',').some((token) => token.trim().toLowerCase() === 'cookie');
   if (!alreadyVaries) headers.set('Vary', vary ? `${vary}, Cookie` : 'Cookie');
