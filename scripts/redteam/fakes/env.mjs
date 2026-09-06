@@ -86,8 +86,19 @@ export const ADMIN_SECRET = ['R3dt3am', 'Admin', 'API', 'S3cret', '0000'].join('
 export const AWS_SECRET = ['R3dt3amAws', 'S3cretAccess', 'K3y000000000000000'].join('');
 export const TURNSTILE_SECRET = ['0x', 'R3dt3am', 'Turnstile', 'S3cret'].join('');
 const AWS_ACCESS_KEY_ID = ['AK', 'IA', 'R3DT3AMEXAMPLE00'].join('');
+/* The four machine lanes that read a shared secret from a header or a query
+   string. They are SET here on purpose: unset, every one of those endpoints
+   answers 503 and sends nothing, so a harness that left them unset would be
+   asserting against a disabled feature and would go green the day somebody
+   configured it. Assembled from fragments for the same reason as the five
+   above -- see the note there before tidying them into literals. */
+export const EVENTS_REMIND_KEY = ['R3dt3am', 'Ev3nts', 'R3mind', 'K3y'].join('-');
+export const SES_EVENTS_SECRET = ['R3dt3am', 'S3sEv3nts', 'S3cret'].join('-');
+export const NEWSLETTER_BOUNCE_SECRET = ['R3dt3am', 'Bounc3', 'S3cret'].join('-');
+export const DEPLOY_SECRET = ['R3dt3am', 'D3ploy', 'S3cret'].join('-');
 export const SECRET_FRAGMENTS = Object.freeze([
   STRIPE_KEY, WEBHOOK_SECRET, ADMIN_SECRET, AWS_SECRET, TURNSTILE_SECRET,
+  EVENTS_REMIND_KEY, SES_EVENTS_SECRET, NEWSLETTER_BOUNCE_SECRET, DEPLOY_SECRET,
 ]);
 
 /** The six accounts, keyed by the name `targets.mjs` identities use. */
@@ -295,6 +306,10 @@ export async function redteamEnv(extra = {}) {
     GOOGLE_ADS_CLIENT_SECRET: 'redteam-ads-secret',
     GOOGLE_ADS_REFRESH_TOKEN: 'redteam-ads-refresh',
     LIBRARY_BUILD_TOKEN: 'redteam-library-build-token',
+    EVENTS_REMIND_KEY,
+    SES_EVENTS_SECRET,
+    NEWSLETTER_BOUNCE_SECRET,
+    DEPLOY_SECRET,
     SITE_URL: 'https://rrmacademy.org',
     ...extra,
   };

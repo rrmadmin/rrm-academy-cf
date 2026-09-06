@@ -604,6 +604,22 @@ const SCENARIOS = {
     return { reasons, detail: `status ${sent.response.status}, ${mail.length} SES calls` };
   },
 
+  /**
+   * The row the public search box writes, read back out of the analytics
+   * engine. A scenario rather than an expectation because the assertion is
+   * about STORED STATE, not about the response: the endpoint answers 400 to
+   * an over-long query either way, and logs it on the way out.
+   */
+  async 'search-log-truncation'(kase, context) {
+    await sendHermetic(kase, context, { url: `https://rrmacademy.org${kase.path}${kase.query}` });
+    const rows = context.env.ANALYTICS_DB._sqlite.prepare('SELECT query FROM search_log').all();
+    const longest = rows.reduce((most, row) => Math.max(most, (row.query ?? '').length), 0);
+    const reasons = [];
+    if (longest > 500) reasons.push(`the analytics store now holds a ${longest} character query, expected at most 500`);
+    if (rows.length > 1) reasons.push(`one request wrote ${rows.length} analytics rows, expected at most 1`);
+    return { reasons, detail: `${rows.length} rows, longest ${longest} characters` };
+  },
+
   /** A database that throws answers a generic 500, never the engine's words. */
   async 'db-throws'(kase, context) {
     const real = context.env.DB;
