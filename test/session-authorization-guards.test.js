@@ -52,7 +52,7 @@ import assert from 'node:assert/strict';
 import { mockRequest, mockEnv, mockWaitUntil, parseResponse } from './_helpers.js';
 import { sqliteD1, insertUser, insertSession } from './_d1-sqlite.mjs';
 import { faultyDb } from './_glossary-fixtures.mjs';
-import { validateSession, getSessionIdFromCookie } from '../functions/api/auth/_shared.js';
+import { validateSession, invalidateSession, hashToken, getSessionIdFromCookie } from '../functions/api/auth/_shared.js';
 
 const adminMiddleware = await import('../functions/api/admin/_middleware.js');
 const faqsIndex = await import('../functions/api/admin/faqs/index.js');
@@ -145,6 +145,90 @@ describe('validateSession -- the session expiry gate, at the exact boundary', ()
     assert.ok(
       !db._calls.some((c) => /^\s*(DELETE|UPDATE)/i.test(c.sql)),
       'no DELETE or UPDATE may be issued while refusing an expired session'
+    );
+  });
+});
+
+// ============================================ the stored id is not a cookie
+
+/**
+ * RRMA-RT-1, closed 2026-09-05.
+ *
+ * `session.id` holds SHA-256(cookie). validateSession used to hash the cookie,
+ * miss, and then re-query `WHERE s.id = ?` with the cookie VERBATIM -- a
+ * dual-read left from the plaintext-to-hashed migration. That made every stored
+ * row its own working cookie: one read of the session table was a live session,
+ * and hashing at rest defended nothing against exactly the attacker it was
+ * added for. The live table held 72 rows, all 64-hex hashes and none of the
+ * 50-hex plaintext shape generateSessionId() emits, so the fallback had nothing
+ * left to serve and removing it logged nobody out.
+ *
+ * The pair below is what makes the removal provable rather than asserted: the
+ * hashed cookie still authenticates (so the fallback was not load-bearing) and
+ * the STORED id does not (so a database read is no longer a credential).
+ */
+describe('validateSession -- a stored session id is not a working cookie', () => {
+  const FUTURE = Math.floor(Date.now() / 1000) + 86400;
+  let db;
+
+  beforeEach(() => {
+    db = sqliteD1({
+      seed: (s) => {
+        insertUser(s, { id: 'u_super', email: 'super@example.com', role: 'superadmin' });
+      },
+    });
+  });
+
+  afterEach(() => db.close());
+
+  it('accepts the raw cookie whose SHA-256 is the stored id', async () => {
+    await insertSession(db._sqlite, { rawId: 'sess-live', userId: 'u_super', expiresAt: FUTURE });
+    const session = await validateSession(db, 'sess-live');
+    assert.ok(session, 'the hashed read is the only read left, so it must still authenticate');
+    assert.equal(session.userId, 'u_super');
+    assert.equal(session.id, await hashToken('sess-live'), 'the row is keyed by the hash, not the cookie');
+  });
+
+  it('refuses the STORED id presented as the cookie', async () => {
+    const stored = await insertSession(db._sqlite, { rawId: 'sess-live', userId: 'u_super', expiresAt: FUTURE });
+    assert.equal(
+      await validateSession(db, stored),
+      null,
+      'a row of the session table must never be a working cookie'
+    );
+  });
+
+  it('refuses a legacy plaintext row, the shape the retired fallback served', async () => {
+    db._sqlite.prepare('INSERT INTO session (id, user_id, expires_at) VALUES (?, ?, ?)')
+      .run('legacy-plaintext-session', 'u_super', FUTURE);
+    assert.equal(
+      await validateSession(db, 'legacy-plaintext-session'),
+      null,
+      'the plaintext dual-read is gone; a row stored raw no longer authenticates'
+    );
+  });
+
+  it('misses in exactly one read -- a second session lookup would BE the fallback', async () => {
+    await validateSession(db, 'no-such-cookie');
+    const reads = db._calls.filter((c) => c.sql.includes('FROM session s'));
+    assert.equal(reads.length, 1, `${reads.length} session reads on a miss; a second one is the retired raw-id query`);
+  });
+
+  it('logout deletes the hashed row, in one statement', async () => {
+    const stored = await insertSession(db._sqlite, { rawId: 'sess-live', userId: 'u_super', expiresAt: FUTURE });
+    await invalidateSession(db, 'sess-live');
+    assert.equal(db._sqlite.prepare('SELECT COUNT(*) AS n FROM session WHERE id = ?').get(stored).n, 0);
+    const deletes = db._calls.filter((c) => /DELETE FROM session/i.test(c.sql));
+    assert.equal(deletes.length, 1, 'the plaintext delete twin is gone too');
+  });
+
+  it('logout with the STORED id as the cookie deletes nothing', async () => {
+    const stored = await insertSession(db._sqlite, { rawId: 'sess-live', userId: 'u_super', expiresAt: FUTURE });
+    await invalidateSession(db, stored);
+    assert.equal(
+      db._sqlite.prepare('SELECT COUNT(*) AS n FROM session WHERE id = ?').get(stored).n,
+      1,
+      'a leaked row is not a handle on the session it names, in either direction'
     );
   });
 });

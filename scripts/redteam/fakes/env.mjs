@@ -116,8 +116,9 @@ export const EXPIRED_COOKIE = `sess_redteam_expired_${'e'.repeat(24)}`;
 /**
  * The stored (SHA-256) session id for the member, published so a case can
  * present it AS the cookie. That is exactly what an attacker with read
- * access to the `session` table holds, and `validateSession`'s plaintext
- * dual-read fallback is what decides whether it works.
+ * access to the `session` table holds. It authenticated while
+ * `validateSession` carried its plaintext dual-read fallback; since that was
+ * retired (RRMA-RT-1) the only acceptable answer to it is a refusal.
  */
 export let MEMBER_STORED_SESSION_ID = null;
 
