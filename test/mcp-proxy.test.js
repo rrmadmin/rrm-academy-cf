@@ -40,12 +40,13 @@
  * 502, testing the harness instead of the proxy. A string body travels the same
  * `init.body = request.body` line, so the passthrough assertion is unaffected.
  *
- * NOTED RESIDUAL, deliberately not asserted either way: the strip list is
- * cookie- and hop-by-hop-focused, so other origin-scoped response headers from
- * upstream (`Clear-Site-Data`, `Strict-Transport-Security`, `Content-Security-
- * Policy`) still reach the apex response. The upstream is first-party and the
- * worst of those is a logout, not a privilege, so pinning them in either
- * direction would freeze a decision nobody has made.
+ * NOTED RESIDUAL, deliberately not asserted either way: `Clear-Site-Data` is
+ * now stripped alongside `Set-Cookie` (2026-09-06, RRMA-RT-4 follow-up: a
+ * first-party upstream emitting it would log the apex user out), but other
+ * origin-scoped response headers from upstream (`Strict-Transport-Security`,
+ * `Content-Security-Policy`) still reach the apex response. The worst of
+ * those is a header-policy downgrade, not a privilege, so pinning them in
+ * either direction would freeze a decision nobody has made.
  */
 import { describe, it } from 'node:test';
 import assert from 'node:assert/strict';
@@ -211,6 +212,7 @@ describe('functions/mcp -- upstream response headers stripped', () => {
         'keep-alive': 'timeout=5',
         'set-cookie': 'x=1',
         'set-cookie2': 'y=2',
+        'clear-site-data': '"cookies"',
         'content-type': 'text/event-stream',
         'mcp-session-id': 'sess-abc',
         'cache-control': 'no-store',
@@ -221,7 +223,7 @@ describe('functions/mcp -- upstream response headers stripped', () => {
     // Every name on STRIP_RESPONSE_HEADERS, pinned individually so removing any
     // one of them from the module turns exactly one assertion red.
     // (`transfer-encoding` is asserted below; undici will not let a stub set it.)
-    for (const name of ['connection', 'keep-alive', 'set-cookie', 'set-cookie2']) {
+    for (const name of ['connection', 'keep-alive', 'set-cookie', 'set-cookie2', 'clear-site-data']) {
       assert.equal(res.headers.get(name), null, `${name} must be stripped`);
     }
     assert.ok(!/transfer-encoding/i.test(JSON.stringify([...res.headers])), 'transfer-encoding must be stripped');
@@ -231,6 +233,41 @@ describe('functions/mcp -- upstream response headers stripped', () => {
     assert.equal(res.headers.get('content-type'), 'text/event-stream');
     assert.equal(res.headers.get('mcp-session-id'), 'sess-abc');
     assert.equal(res.headers.get('cache-control'), 'no-store');
+  });
+
+  it('never lets Clear-Site-Data reach the apex response, in any spelling', async () => {
+    const up = backend({
+      headers: {
+        'clear-site-data': '"cookies", "storage"',
+        'content-type': 'application/json',
+      },
+    });
+    const res = await call(mcp.onRequestPost, apexRequest('POST', { body: '{}' }), { MCP_BACKEND: up.binding });
+
+    assert.equal(res.headers.get('clear-site-data'), null);
+    assert.equal(res.headers.get('Clear-Site-Data'), null);
+    assert.equal(res.headers.get('CLEAR-SITE-DATA'), null);
+    // The proxy must still be a proxy: the legitimate header survives.
+    assert.equal(res.headers.get('content-type'), 'application/json');
+  });
+
+  it('strips a Clear-Site-Data the upstream sent with unusual casing', async () => {
+    const up = backend({ headers: { 'CLEAR-SITE-DATA': '"cookies"' } });
+    const res = await call(mcp.onRequestGet, apexRequest('GET'), { MCP_BACKEND: up.binding });
+    assert.equal(res.headers.get('clear-site-data'), null);
+  });
+
+  it('strips Clear-Site-Data on an upstream ERROR response too', async () => {
+    const up = backend({
+      status: 500,
+      statusText: 'Internal Server Error',
+      headers: { 'clear-site-data': '"cookies", "storage"' },
+      body: 'boom',
+    });
+    const res = await call(mcp.onRequestPost, apexRequest('POST', { body: '{}' }), { MCP_BACKEND: up.binding });
+    assert.equal(res.status, 500);
+    assert.equal(res.headers.get('clear-site-data'), null);
+    assert.equal(await res.text(), 'boom');
   });
 
   it('strips Set-Cookie on an upstream ERROR response too', async () => {
