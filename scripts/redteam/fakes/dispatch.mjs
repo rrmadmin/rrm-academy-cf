@@ -99,6 +99,77 @@ const ROUTE_TABLE = [
      this table cannot reach is an error rather than a 404, so it has to be
      named here to be testable at all. */
   ['/api/survey/count', '../../../functions/api/survey/count.js'],
+  /* THE SECOND HALF OF THE TREE, added when the coverage self-check
+     (scripts/redteam/coverage.mjs) was written and said out loud that 77 of
+     the 121 routes Pages serves had never been knocked on. Everything below
+     is a door the site really answers on; the ones still absent are named in
+     that module's OUT_OF_SCOPE with a reason. */
+  ['/api/faqs', '../../../functions/api/faqs.js'],
+  ['/api/courses', '../../../functions/api/courses.js'],
+  ['/api/glossary/terms', '../../../functions/api/glossary/terms.js'],
+  ['/api/blog/posts', '../../../functions/api/blog/posts.js'],
+  ['/api/partners', '../../../functions/api/partners/index.js'],
+  ['/api/articles', '../../../functions/api/articles.js'],
+  ['/api/articles/bulk', '../../../functions/api/articles/bulk.js'],
+  ['/api/bulk', '../../../functions/api/bulk.js'],
+  ['/api/newsletter/send', '../../../functions/api/newsletter/send.js'],
+  ['/api/newsletter/send-first-email', '../../../functions/api/newsletter/send-first-email.js'],
+  ['/api/newsletter/rss-check', '../../../functions/api/newsletter/rss-check.js'],
+  ['/api/newsletter/bounce', '../../../functions/api/newsletter/bounce.js'],
+  ['/api/newsletter/unsubscribe', '../../../functions/api/newsletter/unsubscribe.js'],
+  ['/api/newsletter/click', '../../../functions/api/newsletter/click.js'],
+  ['/api/newsletter/open', '../../../functions/api/newsletter/open.js'],
+  ['/api/events/remind', '../../../functions/api/events/remind.js'],
+  ['/api/email/events', '../../../functions/api/email/events.js'],
+  ['/api/library/deploy-record', '../../../functions/api/library/deploy-record.js'],
+  ['/api/admin/seo', '../../../functions/api/admin/seo.js'],
+  ['/api/admin/courses/:id', '../../../functions/api/admin/courses/[id].js'],
+  ['/api/admin/courses/:id/attachments', '../../../functions/api/admin/courses/[id]/attachments.js'],
+  ['/api/admin/courses/:id/sections', '../../../functions/api/admin/courses/[id]/sections.js'],
+  ['/api/admin/courses/:id/sections/:sectionId', '../../../functions/api/admin/courses/[id]/sections/[sectionId].js'],
+  ['/api/admin/courses/:id/steps', '../../../functions/api/admin/courses/[id]/steps.js'],
+  ['/api/admin/courses/:id/steps/:stepId', '../../../functions/api/admin/courses/[id]/steps/[stepId].js'],
+  ['/api/admin/courses/:id/steps/:stepId/renditions', '../../../functions/api/admin/courses/[id]/steps/[stepId]/renditions.js'],
+  ['/api/admin/faqs/:id/resources', '../../../functions/api/admin/faqs/[id]/resources.js'],
+  ['/api/admin/faqs/:id/library-refs', '../../../functions/api/admin/faqs/[id]/library-refs.js'],
+  ['/api/courses/quiz', '../../../functions/api/courses/quiz.js'],
+  ['/api/courses/comments', '../../../functions/api/courses/comments.js'],
+  ['/api/courses/rendition', '../../../functions/api/courses/rendition.js'],
+  ['/api/courses/audio', '../../../functions/api/courses/audio.js'],
+  ['/api/courses/waitlist', '../../../functions/api/courses/waitlist.js'],
+  ['/api/courses/affiliate-click', '../../../functions/api/courses/affiliate-click.js'],
+  ['/api/stream/token', '../../../functions/api/stream/token.js'],
+  ['/api/assets/*', '../../../functions/api/assets/[[path]].js'],
+  ['/api/community/areas', '../../../functions/api/community/areas.js'],
+  ['/api/community/areas/join', '../../../functions/api/community/areas/join.js'],
+  ['/api/community/areas/leave', '../../../functions/api/community/areas/leave.js'],
+  ['/api/community/areas/volunteer', '../../../functions/api/community/areas/volunteer.js'],
+  ['/api/community/projects', '../../../functions/api/community/projects.js'],
+  ['/api/community/projects/join', '../../../functions/api/community/projects/join.js'],
+  ['/api/community/projects/leave', '../../../functions/api/community/projects/leave.js'],
+  ['/api/community/impact', '../../../functions/api/community/impact.js'],
+  ['/api/community/unfurl', '../../../functions/api/community/unfurl.js'],
+  ['/api/ask', '../../../functions/api/ask.js'],
+  ['/api/ask/sandbox', '../../../functions/api/ask/sandbox.js'],
+  ['/api/ask/shared/:id', '../../../functions/api/ask/shared/[id].js'],
+  ['/api/search/semantic', '../../../functions/api/search/semantic.js'],
+  ['/api/search/log', '../../../functions/api/search/log.js'],
+  ['/api/track', '../../../functions/api/track.js'],
+  ['/api/quiz/start', '../../../functions/api/quiz/start.js'],
+  ['/api/quiz/results', '../../../functions/api/quiz/results.js'],
+  ['/api/quiz/event', '../../../functions/api/quiz/event.js'],
+  ['/api/endo-quiz/results', '../../../functions/api/endo-quiz/results.js'],
+  ['/api/endo-quiz/download', '../../../functions/api/endo-quiz/download.js'],
+  ['/api/survey/event', '../../../functions/api/survey/event.js'],
+  ['/api/pdf/redeem', '../../../functions/api/pdf/redeem.js'],
+  ['/api/fund-progress', '../../../functions/api/fund-progress.js'],
+  ['/api/fund-supporters', '../../../functions/api/fund-supporters.js'],
+  ['/api/billing/supporter-badge', '../../../functions/api/billing/supporter-badge.js'],
+  ['/api/auth/google', '../../../functions/api/auth/google.js'],
+  ['/api/auth/google-callback', '../../../functions/api/auth/google-callback.js'],
+  ['/events/:slug', '../../../functions/events/[slug].js'],
+  ['/ask/s/:token', '../../../functions/ask/s/[token].js'],
+  ['/save-the-uterus-club/migrate', '../../../functions/save-the-uterus-club/migrate.js'],
 ];
 
 /** -> { specifier, params } or null. */
@@ -106,6 +177,18 @@ export function matchRoute(pathname) {
   for (const [pattern, specifier] of ROUTE_TABLE) {
     const patternParts = pattern.split('/');
     const pathParts = pathname.split('/');
+    /* `*` is Pages' `[[path]]` catch-all: it swallows the rest of the path and
+       hands it to the module as a `path` param array, which is exactly what
+       `functions/api/assets/[[path]].js` reads. Matching it on segment count
+       would make every asset case unreachable. */
+    if (patternParts[patternParts.length - 1] === '*') {
+      const prefix = patternParts.slice(0, -1);
+      if (pathParts.length <= prefix.length) continue;
+      if (prefix.every((part, index) => part === pathParts[index])) {
+        return { specifier, params: { path: pathParts.slice(prefix.length) } };
+      }
+      continue;
+    }
     if (patternParts.length !== pathParts.length) continue;
     const params = {};
     let matched = true;
