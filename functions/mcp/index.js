@@ -31,12 +31,15 @@ const FORWARD_REQUEST_HEADERS = [
 // Hop-by-hop and response headers we strip from upstream:
 // - connection / keep-alive / transfer-encoding: hop-by-hop, not safe to forward
 // - set-cookie / set-cookie2: prevent cookie smuggling onto the apex domain
+// - clear-site-data: origin-scoped directive; a sibling deployment must never
+//   be able to log the apex out via a proxied response
 const STRIP_RESPONSE_HEADERS = [
   'connection',
   'keep-alive',
   'transfer-encoding',
   'set-cookie',
   'set-cookie2',
+  'clear-site-data',
 ];
 
 function jsonRpcError(status, code, message) {

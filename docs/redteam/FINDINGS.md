@@ -103,12 +103,18 @@ The proxy module was not changed, and the route stays exempt in
 `coverage.mjs`: this is a unit test beside the module, not a request-shaped
 attack, so the exemption and the zero in the case column both still stand.
 
-NOTED RESIDUAL, deliberately left unasserted. The strip list is cookie- and
-hop-by-hop-focused, so other origin-scoped response headers from upstream
-(`Clear-Site-Data`, `Strict-Transport-Security`, `Content-Security-Policy`)
-still reach the apex response. The upstream is first-party and the worst of
-those is a logout rather than a privilege, so pinning them in either direction
-would freeze a decision nobody has made.
+UPDATE 2026-09-06 (PR #152): `Clear-Site-Data` is now stripped too, on
+Brian's call -- a first-party upstream emitting it would log the apex user
+out, and an origin-scoped directive like that must never be proxied from
+another origin. `test/mcp-proxy.test.js` pins it under odd casing and on both
+a 200 and a 500, and mutation-proves it (removing the entry from
+`STRIP_RESPONSE_HEADERS` turns 4 tests red).
+
+NOTED RESIDUAL, deliberately left unasserted. Other origin-scoped response
+headers from upstream (`Strict-Transport-Security`, `Content-Security-Policy`)
+still reach the apex response. The worst of those is a header-policy
+downgrade rather than a privilege, so pinning them in either direction would
+freeze a decision nobody has made.
 
 ## RRMA-RT-5 -- fixed
 
