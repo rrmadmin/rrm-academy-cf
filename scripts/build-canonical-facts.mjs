@@ -32,6 +32,7 @@ import {
   emptyDocument,
   normalizeTradition,
 } from './lib/canonical-facts-schema.mjs';
+import { FACTS_QUERY, ARTICLES_QUERY } from './lib/canonical-facts-queries.mjs';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const PROJECT_ROOT = resolve(__dirname, '..');
@@ -106,15 +107,11 @@ function d1Query(sql) {
 
 // ---------- Pull all facts + article metadata once ----------
 console.log('Loading facts from D1...');
-const allFacts = d1Query(
-  'SELECT id, claim, category, domain, tradition, claim_type, body, source_id, verified, verification_notes, created_at, updated_at FROM facts WHERE verified >= 1'
-);
-console.log(`  ${allFacts.length} verified facts loaded.`);
+const allFacts = d1Query(FACTS_QUERY);
+console.log(`  ${allFacts.length} verified facts with a servable source loaded.`);
 
 console.log('Loading article metadata for source resolution...');
-const allArticles = d1Query(
-  "SELECT id, slug, title, authors, year, journal, pmid, doi, source_url, short_citation, type FROM articles WHERE is_published = 1 OR status = 'classified' OR status = 'published'"
-);
+const allArticles = d1Query(ARTICLES_QUERY);
 console.log(`  ${allArticles.length} articles indexed.`);
 
 // Build dual lookup: by id AND by slug.
@@ -274,6 +271,12 @@ function buildEntity(entitySlug) {
   // Guard against silent data loss: if a regen drops record_count by >5% vs the
   // prior on-disk value, abort unless --force. Prevents a tradition-tag bug or
   // accidental D1 wipe from quietly shrinking a published SSOT.
+  //
+  // The FIRST regen after the source gate landed (2026-09-07) trips this on purpose and
+  // needs --force once: measured against live D1 the gate withholds 2,966 of 14,417
+  // verified facts, and the drop is uneven by tradition (napro -49.5%, neofertility -45.8%,
+  // fabm -28.1%, creighton/femm/billings 0%). That is the withheld-source population being
+  // removed from the SSOTs, not loss. A LATER regen that trips it is the thing this guards.
   const priorCount = existing?._meta?.record_count;
   if (typeof priorCount === 'number' && priorCount > 0 && doc.facts.length < priorCount * 0.95) {
     const dropPct = ((1 - doc.facts.length / priorCount) * 100).toFixed(1);
