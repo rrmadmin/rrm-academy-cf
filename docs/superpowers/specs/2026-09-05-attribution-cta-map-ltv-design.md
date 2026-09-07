@@ -1,7 +1,15 @@
 # Attribution, CTA map, and STUC LTV -- design
 
 Status: REV 2 after /arise deep spec review (2 CRITICAL, 9 HIGH, 6 MEDIUM
-found, all applied), 2026-09-05. Pending Brian's review. Child of the GA4 Improvement
+found, all applied), 2026-09-05. Pending Brian's review.
+A0 readout 2026-09-06 (48h after send): NEGATIVE. Zero `spike_` rows on
+`sessionCampaignName`, `sessionSource` or `firstUserCampaignName`; session
+scope is `(not set)` on every page_view. Decision table row 3 applies: 3.2
+does not ship, the D1 ledger and BigQuery `collected_traffic_source` are
+the attribution surfaces. Same day: checkout/enroll POSTs now forward the
+browser cid/sid (f94b7ac0) so server ledger rows join to relay rows; Ads
+value actions 7751335356 (STUC) and 7751335359 (Donation) created 2026-09-07
+and set as Pages secrets. Child of the GA4 Improvement
 Program (`2026-08-27-ga4-improvement-program.md`): this spec executes that
 program's A0 experiment, supersedes its A1 with a first-touch model Brian
 chose in session, and adds two workstreams the program did not have (the CTA
