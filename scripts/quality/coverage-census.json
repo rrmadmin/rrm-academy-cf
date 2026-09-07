@@ -1,5 +1,5 @@
 {
- "_note": "Every first-party executable file (census-rules.mjs SURFACE_ROOTS) is accounted for here, and scripts/quality/coverage.mjs FAILS its run if the enumerated surface drifts from this file or a new file matches no classification rule. A file is either PRODUCT-CODE (inside the gated coverage denominator) or excluded below with a category and written reason — never silently. Regenerate with: node scripts/quality/coverage.mjs && node scripts/quality/census.mjs",
+ "_note": "Every first-party executable file (census-rules.mjs SURFACE_ROOTS) is accounted for here, and scripts/quality/coverage.mjs FAILS its run if the enumerated surface drifts from this file or a new file matches no classification rule. A file is either PRODUCT-CODE (inside the gated coverage denominator) or excluded below with a category and written reason \u2014 never silently. Regenerate with: node scripts/quality/coverage.mjs && node scripts/quality/census.mjs",
  "_generated": "2026-09-06",
  "_categories": {
   "PRODUCT-CODE": "Deployed or deploy-chain code whose defects ship to users: CF Pages Functions (every route + _helper under functions/), build-time data fetchers and shared logic (src/lib), client bundles (src/scripts), Astro build integrations, and the CI gate/guard/build scripts that decide whether a deploy is allowed. This is the gated denominator. Uncovered PRODUCT-CODE is debt, listed so it is visible and countable, never argued away.",
@@ -85,7 +85,7 @@
   "PRODUCT-CODE CLOSED in tranche 4: scripts/build-library-feed.mjs (was 0%, 75 lines)": "Was the last zero in the library render surface, and was recorded here as not coverable as written: both paths were resolved at module scope from import.meta.url, so importing it read the real 32MB gitignored src/data/articles.json and rewrote public/library-feed.jsonl, and on a clean CI checkout it took the existsSync early-exit and covered nothing. Closed 2026-07-31 by the smallest production change that removes the obstacle -- buildLibraryFeed({articlesPath, outPath, logger}) defaulting to the same two constants, main() for the CLI -- verified by rebuilding the real 4053-record feed and diffing it byte for byte against what main produced (identical, sha256 0edf193c193bafa9297abff7567ccf52fd22265ce1c639d0fbe0e795fd0fb4ae). Now 154/154 lines, 100% branches, with the CLI entry exercised as a real subprocess.",
   "PRODUCT-CODE scripts (gates, guards, fact pipeline, build chain)": "35-50h; start with guard.mjs + verify-citations.mjs + the fact-pipeline promote/extract pair (top CRAP offenders), pure-logic extraction first",
   "PRODUCT-CODE src/lib + src/scripts + src/integrations": "18-25h; fetchers have a dry-run mode that makes them testable without live endpoints",
-  "CONTENT-TEMPLATE / E2E-DRIVER / ONE-OFF / GENERATED": "0h by design — wrong instrument; correctness held by builds, deploy-guard floors, and live runs"
+  "CONTENT-TEMPLATE / E2E-DRIVER / ONE-OFF / GENERATED": "0h by design \u2014 wrong instrument; correctness held by builds, deploy-guard floors, and live runs"
  },
  "crap_top_functions": [
   {
@@ -2492,6 +2492,15 @@
    "reason": "Live GA4 Admin API configuration driver.",
    "present": false,
    "lines": 417,
+   "covered": 0,
+   "pct": 0
+  },
+  {
+   "file": "scripts/ga4-first-touch-dims.mjs",
+   "category": "E2E-DRIVER",
+   "reason": "Live GA4 Admin API configuration driver.",
+   "present": false,
+   "lines": 124,
    "covered": 0,
    "pct": 0
   },
