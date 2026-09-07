@@ -18,10 +18,10 @@
   "date": "2026-09-07",
   "instrument": "node scripts/quality/coverage.mjs (c8 --all over the full surface; full npm-test suite)",
   "full_surface": {
-   "files": 430,
-   "lines": 88908,
+   "files": 428,
+   "lines": 88413,
    "covered": 42474,
-   "pct": 47.77
+   "pct": 48.04
   },
   "by_category": {
    "PRODUCT-CODE": {
@@ -37,10 +37,10 @@
     "pct": 11.88
    },
    "E2E-DRIVER": {
-    "files": 47,
-    "lines": 13378,
+    "files": 46,
+    "lines": 13185,
     "covered": 4351,
-    "pct": 32.52
+    "pct": 33
    },
    "GENERATED": {
     "files": 1,
@@ -49,8 +49,8 @@
     "pct": 100
    },
    "ONE-OFF": {
-    "files": 44,
-    "lines": 7193,
+    "files": 43,
+    "lines": 6891,
     "covered": 0,
     "pct": 0
    }
@@ -2136,15 +2136,6 @@
    "pct": 0
   },
   {
-   "file": "scripts/backfill-donor-gifts.mjs",
-   "category": "ONE-OFF",
-   "reason": "One-time donor_gift backfill against live Wix/Stripe/PayPal data; header says one-time. Record of a finished operation.",
-   "present": false,
-   "lines": 302,
-   "covered": 0,
-   "pct": 0
-  },
-  {
    "file": "scripts/baseline/diff.mjs",
    "category": "PRODUCT-CODE",
    "reason": "Baseline capture/diff gate (npm run baseline:diff:hard) used to hold rendered-output regressions.",
@@ -2429,15 +2420,6 @@
    "reason": "Deploy-blocking guard/check: runs in CI or pre-commit and gates what ships.",
    "present": false,
    "lines": 69,
-   "covered": 0,
-   "pct": 0
-  },
-  {
-   "file": "scripts/enrich-progress.mjs",
-   "category": "E2E-DRIVER",
-   "reason": "Operator tool whose body is live D1/R2/ELV I/O (audits, snapshots, content cleanup, CRM verification) against production data.",
-   "present": false,
-   "lines": 193,
    "covered": 0,
    "pct": 0
   },
