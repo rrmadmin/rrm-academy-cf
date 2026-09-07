@@ -49,6 +49,23 @@ function ensureSession(): GaSession {
 }
 
 /**
+ * Returns the current GA4 client/session identity for a caller that needs to
+ * forward it in a JSON body of its own (checkout/enroll POSTs), so the
+ * server can join that request's begin_checkout row to the cta_click that
+ * preceded it on the same client_id/session_id. Deliberately does NOT call
+ * touchGaSession() -- that is track()'s job on an actual beacon send, not a
+ * side effect of merely reading the identity.
+ *
+ * Returns null when DNT is honored, matching every other identity-emitting
+ * path in this file.
+ */
+export function gaIdentity(): { cid: string; sid: number; sn: number } | null {
+  if (DNT_HONORED) return null;
+  const s = ensureSession();
+  return { cid: s.cid, sid: s.sid, sn: s.sn };
+}
+
+/**
  * Send an analytics event. Fire-and-forget — never throws, never blocks UX.
  * Attaches the GA4 client_id / session_id / session_number so the server relay
  * forwards them as Measurement Protocol overrides.

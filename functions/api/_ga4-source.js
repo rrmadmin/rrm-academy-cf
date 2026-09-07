@@ -167,6 +167,40 @@ export function classifyPaid(urlString, utmParams = extractUtm(urlString)) {
   };
 }
 
+// Client identity overrides (cid/sid/sn), sent at the top level of a client
+// beacon body -- see functions/api/track.js and the checkout/enroll call
+// sites that now forward the same fields so a begin_checkout row joins to
+// its preceding cta_click on the SAME client_id/session_id (2026-09-06;
+// previously create-checkout.js/enroll.js re-derived an IP+UA hash instead
+// of trusting the browser's GA4 identity, so the two rows never matched).
+// Single source of truth for the validation shape -- track.js used to carry
+// its own copy of these regexes/ranges inline; extracted here so the two
+// callers cannot drift.
+const CID_UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+const CID_FALLBACK_RE = /^[A-Za-z0-9._-]{1,64}$/;
+const SID_MIN = 1;
+const SID_MAX = 9_999_999_999; // epoch seconds; year 2286+
+
+/**
+ * Validates the client-supplied identity fields on a beacon/checkout body.
+ * Returns `{ client_id, session_id, session_number? }` when cid+sid are both
+ * valid, else `null` -- callers fall back to their own server-derived
+ * identity rather than rejecting the request. session_number is optional
+ * even when cid/sid are valid.
+ */
+export function parseClientIdentity(body) {
+  const cid = body?.cid;
+  const sid = body?.sid;
+  const sn = body?.sn;
+  const cidValid = typeof cid === 'string' && (CID_UUID_RE.test(cid) || CID_FALLBACK_RE.test(cid));
+  const sidValid = typeof sid === 'number' && Number.isInteger(sid) && sid >= SID_MIN && sid <= SID_MAX;
+  if (!cidValid || !sidValid) return null;
+  const result = { client_id: cid, session_id: sid };
+  const snValid = typeof sn === 'number' && Number.isInteger(sn) && sn >= 1 && sn <= 999_999;
+  if (snValid) result.session_number = sn;
+  return result;
+}
+
 export async function deriveSessionId(clientId, dateStr) {
   const raw = new TextEncoder().encode(`${clientId}:${dateStr}`);
   const hashBuffer = await crypto.subtle.digest('SHA-256', raw);

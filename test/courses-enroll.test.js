@@ -572,6 +572,61 @@ describe('POST /api/courses/enroll -- paid courses', () => {
   });
 });
 
+// EXECUTED: client-identity join (2026-09-06), mirroring create-checkout.js.
+// A valid cid/sid on the POST body must win over the IP+UA hash in both
+// Stripe metadata AND the GA4 begin_checkout overrides -- an invalid pair
+// falls back to the hash exactly as before, and never rejects the enrollment.
+describe('POST /api/courses/enroll -- client identity join (cid/sid)', () => {
+  let db;
+  let net;
+
+  const VALID_CID = '216b3b7f-1234-4abc-9def-0123456789ab';
+  const VALID_SID = 1757000000;
+
+  beforeEach(async () => {
+    db = await seededDb();
+    net = stubExternalFetch({
+      stripe: stripeRoutes({ '/v1/checkout/sessions': { id: 'cs_test_cid', url: CHECKOUT_URL } }),
+    });
+  });
+  afterEach(() => { net.restore(); db.close(); });
+
+  it('a valid cid/sid wins over the IP+UA hash in Stripe metadata and the GA4 begin_checkout payload', async () => {
+    const { status } = await run(db, { courseId: 'test-course-paid', cid: VALID_CID, sid: VALID_SID, sn: 4 });
+    assert.equal(status, 200);
+
+    const stripeCall = net.calls.find((c) => c.service === 'stripe');
+    const form = new URLSearchParams(stripeCall.body);
+    assert.equal(form.get('metadata[ga_client_id]'), VALID_CID);
+    assert.equal(form.get('metadata[ga_session_id]'), String(VALID_SID));
+
+    const ga4Call = net.ga4[0];
+    assert.ok(ga4Call, 'a GA4 MP send must be dispatched');
+    assert.equal(ga4Call.body.client_id, VALID_CID);
+    assert.equal(ga4Call.body.events[0].params.session_id, VALID_SID);
+  });
+
+  it('an invalid cid falls back to the IP+UA hash (never rejects the enrollment)', async () => {
+    const { status } = await run(db, { courseId: 'test-course-paid', cid: 'has spaces! not valid', sid: VALID_SID });
+    assert.equal(status, 200);
+
+    const stripeCall = net.calls.find((c) => c.service === 'stripe');
+    const form = new URLSearchParams(stripeCall.body);
+    const gaClientId = form.get('metadata[ga_client_id]');
+    assert.notEqual(gaClientId, 'has spaces! not valid');
+    assert.match(gaClientId, /^[0-9a-f]{16}$/, 'must fall back to the 16-char hex hash from getClientId()');
+  });
+
+  it('a non-integer sid falls back to the IP+UA hash and derived session id (never rejects the enrollment)', async () => {
+    const { status } = await run(db, { courseId: 'test-course-paid', cid: VALID_CID, sid: 'not-a-number' });
+    assert.equal(status, 200);
+
+    const stripeCall = net.calls.find((c) => c.service === 'stripe');
+    const form = new URLSearchParams(stripeCall.body);
+    assert.notEqual(form.get('metadata[ga_client_id]'), VALID_CID, 'sid invalid => the whole identity override is dropped, cid must not win alone');
+  });
+});
+
 describe('POST /api/courses/enroll -- Idempotency-Key replay', () => {
   let db;
   let net;
