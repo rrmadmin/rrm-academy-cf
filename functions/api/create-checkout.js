@@ -17,7 +17,7 @@ import {
 } from './auth/_shared.js';
 import { log } from './_log.js';
 import { sendGA4Event } from './_ga4.js';
-import { classifySource, extractUtm, getClientId, deriveSessionId, parseFirstTouch, parseGclidCookie } from './_ga4-source.js';
+import { classifySource, extractUtm, getClientId, deriveSessionId, parseFirstTouch, parseGclidCookie, parseClientIdentity } from './_ga4-source.js';
 import { isBotRequest } from './_bot.js';
 import { getStripeClient } from './billing/_shared.js';
 import { isJoinDenied, isStucContextRequest, maskEmailForLog } from './billing/_join-denylist.js';
@@ -140,10 +140,17 @@ async function handleCheckout(request, env, waitUntil) {
   const gaMedium = (utmParams.utm_medium || medium || '').slice(0, 500);
   const gaCampaign = (utmParams.utm_campaign || '').slice(0, 500);
 
-  // Store client_id + session_id so webhook can replay the real user identity
-  const clientId = await getClientId(request);
+  // Store client_id + session_id so webhook can replay the real user identity.
+  // Prefer the browser's own GA4 identity (cid/sid/sn, same fields /api/track
+  // validates) when the checkout POST body carries it -- this is what lets a
+  // begin_checkout row join to the cta_click that preceded it on the same
+  // client_id/session_id. Falls back to the IP+UA hash when absent/invalid;
+  // never rejects the checkout over bad identity fields.
+  const clientIdentity = parseClientIdentity(body);
   const dateStr = new Date().toLocaleDateString('en-CA', { timeZone: 'America/New_York' });
-  const sessionId = await deriveSessionId(clientId, dateStr);
+  const clientId = clientIdentity ? clientIdentity.client_id : await getClientId(request);
+  const sessionId = clientIdentity ? clientIdentity.session_id : await deriveSessionId(clientId, dateStr);
+  const ga4IdentityOverrides = clientIdentity || {};
 
   // First-touch attribution and the CURRENT click, read straight from the
   // request's own Cookie header -- unlike ga_source/ga_medium/ga_campaign
@@ -266,7 +273,7 @@ async function handleCheckout(request, env, waitUntil) {
       waitUntil(sendGA4Event(env, request, 'begin_checkout', {
         page_location: entry_url || request.headers.get('Referer') || SITE_URL,
         currency: 'USD', value: cents / 100, items: [{ item_name: 'Donation' }],
-      }).catch(() => {}));
+      }, ga4IdentityOverrides).catch(() => {}));
     }
     const response = json({ ok: true, url: checkoutSession.url });
     if (isCanary) {
@@ -473,7 +480,7 @@ async function handleCheckout(request, env, waitUntil) {
       waitUntil(sendGA4Event(env, request, 'begin_checkout', {
         page_location: entry_url || request.headers.get('Referer') || SITE_URL,
         currency: 'USD', value: checkoutValue, items: [{ item_name: `STUC ${effectiveTier}` }],
-      }).catch(() => {}));
+      }, ga4IdentityOverrides).catch(() => {}));
     }
     const response = json({ ok: true, url: checkoutSession.url });
     if (isCanary) {

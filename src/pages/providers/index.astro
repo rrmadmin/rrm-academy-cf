@@ -255,17 +255,18 @@ const jsonLd = {
         var label = giveBtn.textContent;
         giveBtn.textContent = 'Redirecting...';
 
+        var ga = (window.__rrmGaIdentity__ && window.__rrmGaIdentity__()) || {};
         fetch('/api/create-checkout', {
           method: 'POST',
           credentials: 'same-origin',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
+          body: JSON.stringify(Object.assign({
             mode: 'payment',
             amount: selectedCents,
             campaign: 'provider-directory',
             entry_referrer: entryReferrer,
             entry_url: entryUrl,
-          }),
+          }, ga)),
         })
           .then(function (r) { return r.json(); })
           .then(function (data) {
