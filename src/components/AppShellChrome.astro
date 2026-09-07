@@ -93,7 +93,6 @@ const inCommentary = currentPath === '/commentary' || currentPath === '/commenta
 const inSaved = currentPath === '/saved' || currentPath === '/saved/';
 const inFaqs = currentPath === '/faqs' || currentPath === '/faqs/' || currentPath.startsWith('/faqs/');
 const inAccount = currentPath === '/account' || currentPath === '/account/' || currentPath.startsWith('/account/');
-const inAsk = currentPath === '/ask' || currentPath === '/ask/' || currentPath.startsWith('/ask/');
 // /courses/<slug>/ catalog + sales pages get the wrap; /courses/<slug>/<step>/
 // (lesson player) does not. aria-current still highlights for both since the
 // user is in the courses section regardless.
@@ -118,21 +117,15 @@ const GUIDES_PATHS = new Set([
     .filter((p) => p.in_shell_guides_nav)
     .flatMap((p) => [`/${p.slug}`, `/${p.slug}/`]),
 ]);
-// Methods + Comparisons are surfaced as their own categorized sidebar links,
-// derived from ssot/guides.json (so new guides appear automatically). Each gets
-// its own aria-current and is excluded from the Guides index-link highlight
-// below. Conditions + Reference guides stay reachable via the Guides index link.
-// A methods guide can opt out of this sidebar list (and the mobile-drawer Methods
-// group) with `in_methods_nav: false` in guides.json -- the page stays live and
-// in the /guides/ catalogue, it just isn't surfaced here.
-const methodNav = guideRegistry.guides
-  .filter((g) => g.category === 'methods' && g.in_methods_nav !== false)
-  .sort((a, b) => (a._order || 0) - (b._order || 0));
-const compareNav = guideRegistry.guides
-  .filter((g) => g.category === 'compare')
-  .sort((a, b) => (a._order || 0) - (b._order || 0));
+// The sidebar carries one hub link each for methods and conditions (into the
+// /guides/ category tabs) instead of listing every guide. Membership still
+// derives from ssot/guides.json so aria-current follows the registry.
+const methodSlugs = guideRegistry.guides.filter((g) => g.category === 'methods').map((g) => g.slug);
+const conditionSlugs = guideRegistry.guides.filter((g) => g.category === 'conditions').map((g) => g.slug);
 const isCurrentGuide = (slug) => currentPath === `/${slug}` || currentPath === `/${slug}/` || currentPath.startsWith(`/${slug}/`);
-const inNavGuide = [...methodNav, ...compareNav].some((g) => isCurrentGuide(g.slug));
+const inMethodGuide = methodSlugs.some((slug) => slug !== 'naprotechnology' && isCurrentGuide(slug));
+const inConditionGuide = conditionSlugs.some((slug) => isCurrentGuide(slug));
+const inNavGuide = isCurrentGuide('naprotechnology') || inMethodGuide || inConditionGuide;
 const inGuides = GUIDES_PATHS.has(currentPath) && !inNavGuide;
 const GUIDE_ITEM_ICON = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>';
 const inGlossary = currentPath === '/glossary' || currentPath === '/glossary/' || currentPath.startsWith('/glossary/');
@@ -140,23 +133,15 @@ const inGlossary = currentPath === '/glossary' || currentPath === '/glossary/' |
 // server-rendered HTML whether a group is open or closed (SEO-neutral: the
 // internal link graph is identical), while the sidebar stays scannable.
 // The group containing the current page always renders open (and data-active
-// guards it against a stored collapsed preference client-side). Guides is the
-// longest group so it defaults closed elsewhere; the short groups default
-// open. User toggles persist in localStorage('rrm-shell-nav-groups').
+// guards it against a stored collapsed preference client-side). User toggles
+// persist in localStorage('rrm-shell-nav-groups').
 const navGroupActive = {
   guides: inNavGuide || inGuides,
-  library: (inLibrary && !inSaved) || inCommentary || inGlossary,
-  learn: inCourses || inFaqs,
-  tools: inAsk || inProviders,
-  community: inCommunity,
+  tools: inProviders,
+  learn: inCourses || inCommunity,
 };
-const navGroupOpen = {
-  guides: navGroupActive.guides,
-  library: true,
-  learn: true,
-  tools: true,
-  community: true,
-};
+// Three short groups: all default open (12 links fit above the fold).
+const navGroupOpen = { guides: true, tools: true, learn: true };
 const NAV_CHEVRON = '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"/></svg>';
 
 // Pages can render arbitrary HTML in the right rail by setting `hasRail`
@@ -237,34 +222,9 @@ const NAV_ICONS: Record<string, string> = {
       <input type="search" name="q" class="app-shell-nav__search-input" placeholder="Search RRM Academy" aria-label="Search RRM Academy" autocomplete="off" />
     </form>
 
-    <details class="app-shell-nav__section" data-nav-group="guides" data-active={navGroupActive.guides ? 'true' : undefined} open={navGroupOpen.guides}>
-      <summary class="app-shell-nav__heading">
-        <span>Guides</span>
-        <span class="app-shell-nav__chevron" aria-hidden="true" set:html={NAV_CHEVRON} />
-      </summary>
-      {methodNav.map((g) => (
-        <a href={`/${g.slug}/`} class="app-shell-nav__link" aria-current={isCurrentGuide(g.slug) ? 'page' : undefined}>
-          <span class="app-shell-nav__icon" aria-hidden="true" set:html={NAV_ICONS[`/${g.slug}/`] || GUIDE_ITEM_ICON} />
-          <span class="app-shell-nav__label">{g.breadcrumbName}</span>
-        </a>
-      ))}
-      {compareNav.map((g) => (
-        <a href={`/${g.slug}/`} class="app-shell-nav__link" aria-current={isCurrentGuide(g.slug) ? 'page' : undefined}>
-          <span class="app-shell-nav__icon" aria-hidden="true" set:html={NAV_ICONS[`/${g.slug}/`] || GUIDE_ITEM_ICON} />
-          <span class="app-shell-nav__label">{g.breadcrumbName}</span>
-        </a>
-      ))}
-      <a href="/guides/" class="app-shell-nav__link" aria-current={inGuides ? 'page' : undefined}>
-        <span class="app-shell-nav__icon" aria-hidden="true" set:html={NAV_ICONS['/guides/']} />
-        <span class="app-shell-nav__label">All Guides</span>
-      </a>
-    </details>
-
-    <details class="app-shell-nav__section" data-nav-group="library" data-active={navGroupActive.library ? 'true' : undefined} open={navGroupOpen.library}>
-      <summary class="app-shell-nav__heading">
-        <span>Library</span>
-        <span class="app-shell-nav__chevron" aria-hidden="true" set:html={NAV_CHEVRON} />
-      </summary>
+    <!-- Content surfaces sit flat at the top, no group heading: these four are
+         the reason the shell exists (42% of search clicks, GSC 90d to 2026-09-03). -->
+    <div class="app-shell-nav__section app-shell-nav__section--flat">
       <a href="/library/" class="app-shell-nav__link" aria-current={inLibrary && !inSaved ? 'page' : undefined}>
         <span class="app-shell-nav__icon" aria-hidden="true" set:html={NAV_ICONS['/library/']} />
         <span class="app-shell-nav__label">Research Library</span>
@@ -277,6 +237,51 @@ const NAV_ICONS: Record<string, string> = {
         <span class="app-shell-nav__icon" aria-hidden="true" set:html={NAV_ICONS['/glossary/']} />
         <span class="app-shell-nav__label">Glossary</span>
       </a>
+      <a href="/faqs/" class="app-shell-nav__link" aria-current={inFaqs ? 'page' : undefined}>
+        <span class="app-shell-nav__icon" aria-hidden="true" set:html={NAV_ICONS['/faqs/']} />
+        <span class="app-shell-nav__label">FAQs</span>
+      </a>
+    </div>
+
+    <!-- Guides: NaPro keeps its own link (13% of clicks on its own); every other
+         method and condition guide is reached through the /guides/ category tabs,
+         which read the URL hash. Pruned 2026-09-07 from a 9-link list. -->
+    <details class="app-shell-nav__section" data-nav-group="guides" data-active={navGroupActive.guides ? 'true' : undefined} open={navGroupOpen.guides}>
+      <summary class="app-shell-nav__heading">
+        <span>Guides</span>
+        <span class="app-shell-nav__chevron" aria-hidden="true" set:html={NAV_CHEVRON} />
+      </summary>
+      <a href="/naprotechnology/" class="app-shell-nav__link" aria-current={isCurrentGuide('naprotechnology') ? 'page' : undefined}>
+        <span class="app-shell-nav__icon" aria-hidden="true" set:html={NAV_ICONS['/naprotechnology/'] || GUIDE_ITEM_ICON} />
+        <span class="app-shell-nav__label">NaProTechnology</span>
+      </a>
+      <a href="/guides/#methods" class="app-shell-nav__link" aria-current={inMethodGuide ? 'page' : undefined}>
+        <span class="app-shell-nav__icon" aria-hidden="true" set:html={NAV_ICONS['/femm/'] || GUIDE_ITEM_ICON} />
+        <span class="app-shell-nav__label">Fertility Awareness</span>
+      </a>
+      <a href="/guides/#conditions" class="app-shell-nav__link" aria-current={inConditionGuide ? 'page' : undefined}>
+        <span class="app-shell-nav__icon" aria-hidden="true" set:html={NAV_ICONS['/endo-survey/'] || GUIDE_ITEM_ICON} />
+        <span class="app-shell-nav__label">Conditions</span>
+      </a>
+      <a href="/guides/" class="app-shell-nav__link" aria-current={inGuides ? 'page' : undefined}>
+        <span class="app-shell-nav__icon" aria-hidden="true" set:html={NAV_ICONS['/guides/']} />
+        <span class="app-shell-nav__label">All Guides</span>
+      </a>
+    </details>
+
+    <details class="app-shell-nav__section" data-nav-group="tools" data-active={navGroupActive.tools ? 'true' : undefined} open={navGroupOpen.tools}>
+      <summary class="app-shell-nav__heading">
+        <span>Tools</span>
+        <span class="app-shell-nav__chevron" aria-hidden="true" set:html={NAV_CHEVRON} />
+      </summary>
+      <a href="/endo-survey/" class="app-shell-nav__link">
+        <span class="app-shell-nav__icon" aria-hidden="true" set:html={NAV_ICONS['/endo-survey/']} />
+        <span class="app-shell-nav__label">Endo Self-Survey</span>
+      </a>
+      <a href="/providers/" class="app-shell-nav__link" aria-current={inProviders ? 'page' : undefined}>
+        <span class="app-shell-nav__icon" aria-hidden="true" set:html={NAV_ICONS['/providers/']} />
+        <span class="app-shell-nav__label">Find a Provider</span>
+      </a>
     </details>
 
     <details class="app-shell-nav__section" data-nav-group="learn" data-active={navGroupActive.learn ? 'true' : undefined} open={navGroupOpen.learn}>
@@ -288,44 +293,6 @@ const NAV_ICONS: Record<string, string> = {
         <span class="app-shell-nav__icon" aria-hidden="true" set:html={NAV_ICONS['/courses/']} />
         <span class="app-shell-nav__label">Courses</span>
       </a>
-      <a href="/faqs/" class="app-shell-nav__link" aria-current={inFaqs ? 'page' : undefined}>
-        <span class="app-shell-nav__icon" aria-hidden="true" set:html={NAV_ICONS['/faqs/']} />
-        <span class="app-shell-nav__label">FAQs</span>
-      </a>
-    </details>
-
-    <details class="app-shell-nav__section" data-nav-group="tools" data-active={navGroupActive.tools ? 'true' : undefined} open={navGroupOpen.tools}>
-      <summary class="app-shell-nav__heading">
-        <span>Tools</span>
-        <span class="app-shell-nav__chevron" aria-hidden="true" set:html={NAV_CHEVRON} />
-      </summary>
-      <a href="/ask/" class="app-shell-nav__link" aria-current={inAsk ? 'page' : undefined}>
-        <span class="app-shell-nav__icon" aria-hidden="true" set:html={NAV_ICONS['/ask/']} />
-        <span class="app-shell-nav__label">Ask RRM AI</span>
-      </a>
-      <a href="/fertility-awareness-method-quiz/" class="app-shell-nav__link">
-        <span class="app-shell-nav__icon" aria-hidden="true" set:html={NAV_ICONS['/fertility-awareness-method-quiz/']} />
-        <span class="app-shell-nav__label">Which FABM Quiz</span>
-      </a>
-      <a href="/endo-survey/" class="app-shell-nav__link">
-        <span class="app-shell-nav__icon" aria-hidden="true" set:html={NAV_ICONS['/endo-survey/']} />
-        <span class="app-shell-nav__label">Endo Self-Survey</span>
-      </a>
-      <a href="/ivf-success-calculator/" class="app-shell-nav__link">
-        <span class="app-shell-nav__icon" aria-hidden="true" set:html={NAV_ICONS['/ivf-success-calculator/']} />
-        <span class="app-shell-nav__label">IVF Success Calculator</span>
-      </a>
-      <a href="/providers/" class="app-shell-nav__link" aria-current={inProviders ? 'page' : undefined}>
-        <span class="app-shell-nav__icon" aria-hidden="true" set:html={NAV_ICONS['/providers/']} />
-        <span class="app-shell-nav__label">RRM Providers</span>
-      </a>
-    </details>
-
-    <details class="app-shell-nav__section" data-nav-group="community" data-active={navGroupActive.community ? 'true' : undefined} open={navGroupOpen.community}>
-      <summary class="app-shell-nav__heading">
-        <span>Community</span>
-        <span class="app-shell-nav__chevron" aria-hidden="true" set:html={NAV_CHEVRON} />
-      </summary>
       <a href="/community/" class="app-shell-nav__link" aria-current={inCommunity ? 'page' : undefined}>
         <span class="app-shell-nav__icon" aria-hidden="true" set:html={NAV_ICONS['/community/']} />
         <span class="app-shell-nav__label">Save the Uterus Club</span>
