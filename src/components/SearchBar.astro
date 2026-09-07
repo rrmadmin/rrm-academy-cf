@@ -621,6 +621,17 @@ import { track } from '../scripts/track.ts';
 
       var pf = await ensurePagefind();
       var search = await pf.search(query);
+      // A pasted citation ("Stanford et al. 2017, PMID 28379830", a DOI) carries tokens the
+      // page may not hold, and Pagefind requires all of them. When that yields nothing, fall
+      // back to the identifier alone, then to the citation with punctuation and "et al" dropped.
+      if (search.results.length === 0) {
+        var idm = query.match(/\b10\.\d{4,9}\/[^\s,;]+|\b\d{7,8}\b/);
+        if (idm) search = await pf.search(idm[0]);
+        if (search.results.length === 0) {
+          var loose = query.replace(/\bet\s+al\.?/gi, ' ').replace(/\bpmid\b|\bdoi\b/gi, ' ').replace(/[^\w\s]/g, ' ').replace(/\s+/g, ' ').trim();
+          if (loose && loose !== query) search = await pf.search(loose);
+        }
+      }
       if (query !== currentQuery) { stopLoadingSpinner(); return; }
       // Pre-load top Pagefind results for metadata access
       var toPreload = search.results.slice(0, PRELOAD_CAP);
