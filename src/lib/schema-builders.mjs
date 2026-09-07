@@ -317,6 +317,7 @@ export function synopsisTextForSchema(insights) {
   if (!insights || typeof insights !== 'object') return { title: '', tldr: '' };
   const flat = (v) => (typeof v === 'string' ? v : '')
     .replace(/\[([^\]\n]+)\]\((\/[^)\s]+)\)/g, '$1')
+    .replace(/\*\*([^*\n]+)\*\*/g, '$1')
     .replace(/\s+/g, ' ')
     .trim();
   return { title: flat(insights.title), tldr: flat(insights.tldr) };

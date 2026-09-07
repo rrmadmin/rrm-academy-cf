@@ -4,6 +4,7 @@ export const SAMPLES = [
   { template: 'single', eyebrow: 'Male factor', value: '88%', label: 'pictograph with male figures', icon: 'man', source: { label: 'Cohort', pmid: '30109231' } },
   { template: 'single', eyebrow: 'Humanized hero', value: '88%', headline: '9 in 10', subhead: 'women...', label: 'conceived within a year using the Creighton Model', source: { label: 'Stanford 2025', pmid: '40729325' } },
   { template: 'delta', eyebrow: 'Headline finding', value: '38%', direction: 'up', polarity: 'favorable', label: 'higher live-birth rate vs continued IVF', source: { label: 'Boyle 2018', pmid: '30109231' } },
+  { template: 'figures', eyebrow: 'Pregnant within a year', caption: 'Unexplained infertility, 41 vs 56 couples', icon: 'couple', rows: [{ name: 'Charting, 12 months', value: 51.22, hero: true }, { name: 'IVF-type, one cycle', value: 17.8 }], source: { label: 'Synopsis', pmid: '30109231' } },
   { template: 'bars', eyebrow: 'Live birth, matched cohort', unit: '%', caption: 'Restorative vs IVF', bars: [{ name: 'Restorative', value: 62, hero: true }, { name: 'IVF', value: 34 }], source: { label: 'Synopsis', pmid: '30109231' } },
   { template: 'ratio', eyebrow: 'Population burden', numerator: 1, denominator: 8, label: 'couples affected by infertility', icon: 'couple', source: { label: 'CDC', url: 'https://cdc.gov/art' } },
   { template: 'ratio', eyebrow: 'Male factor', numerator: 1, denominator: 3, label: 'couples conceived naturally without IVF', icon: 'man', source: { label: 'Grande 2025', pmid: '39930939' } },

@@ -28,6 +28,7 @@ const UNITS = /\b\d+(?:[.,]\d+)?\s?(?:pmol\/l|ng\/ml|ng\/dl|miu\/ml|iu\/l|iu\/ml
 const DRUGS = ['clomiphene', 'clomid', 'letrozole', 'femara', 'metformin', 'dexamethasone', 'naltrexone', 'hcg trigger', 'gonadotropin', 'menopur', 'follistim', 'gonal', 'cabergoline', 'bromocriptine', 'levothyroxine', 'dhea', 'coq10', 'melatonin', 'aspirin', 'heparin', 'enoxaparin', 'prednisone', 'antibiotic'];
 const FUNNEL = [/\bdr\.?\s+whittaker\b/i, /\bwhittaker\b/i, /\bour (clinic|practice|office)\b/i, /\b(book|schedule) (a|an|your) (visit|consult|appointment)\b/i, /\bcontact us\b/i, /\bwork with (a|an|our) (napro|restorative)/i];
 const SURNAME_AGENT = /\b(?:Dr\.?|Doctor)\s+[A-Z][a-z]+(?:'s)?\s+(?:treated|treats|found|reports|reported|recommends|recommended|used|uses|prescribed|prescribes|achieved|showed|shows|protocol|approach|method)\b/;
+const RRM_LABELS = [['fertility specialist', 'IVF doctor (REI)'], ['fertility subspecialist', 'IVF doctor (REI)'], ['reproductive endocrinologist', 'IVF doctor (reproductive endocrinologist) on first mention']];
 const AI_TELLS = ['delve', 'it is important to note', "it's important to note", 'in conclusion', 'landscape', 'tapestry', 'game-changer', 'game changer', 'paradigm shift', 'underscores', 'testament to', 'navigate the', 'crucial to understand'];
 const DENOMINATOR = /\b(out of|of \d|in \d|among|who (?:started|used|tried|charted|had|were|got|conceived|reached))\b/i;
 
@@ -53,6 +54,8 @@ function scanText(where, text, out, { isTitle = false, isTldr = false } = {}) {
   for (const f of FUNNEL) if (f.test(t)) out.push({ level: 'FAIL', rule: 'patient-funnel', where, detail: t.match(f)[0] });
   if (SURNAME_AGENT.test(t)) out.push({ level: 'FAIL', rule: 'surname-as-agent', where, detail: t.match(SURNAME_AGENT)[0] });
   for (const a of AI_TELLS) if (lower.includes(a)) out.push({ level: 'WARN', rule: 'ai-tell', where, detail: a });
+  // memory feedback-rei-is-ivf-doctor: REIs are "IVF doctors" in RRMA copy; the source term may appear only as a gloss.
+  for (const [needle, want] of RRM_LABELS) if (lower.includes(needle) && !lower.includes('ivf doctor')) out.push({ level: 'WARN', rule: 'rrm-label', where, detail: `${needle} -> ${want}` });
   for (const [needle, plain] of JARGON) {
     const hit = needle instanceof RegExp ? needle.test(t) : lower.includes(needle);
     if (hit) out.push({ level: isTldr || isTitle ? 'FAIL' : 'WARN', rule: 'jargon', where, detail: `${needle instanceof RegExp ? needle.source : needle}${plain ? ` -> ${plain}` : ''}` });

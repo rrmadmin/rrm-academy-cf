@@ -36,3 +36,30 @@ describe('ratio template', () => {
     assert.equal(figs, 8, 'one figure per denominator');
   });
 });
+
+describe('figures template', () => {
+  const spec = { template: 'figures', eyebrow: 'Pregnant within 5 years', caption: '867 women', icon: 'woman',
+    rows: [{ name: 'Family doctor first', value: 51.2, hero: true }, { name: 'Specialist first', value: 50.7 }], source: src };
+  it('draws 10 figures per row, a partial clip for the fraction, and both values', () => {
+    const svg = renderInfographic(spec, { mode: 'standalone', aspect: '1:1' });
+    assert.ok((svg.match(/<use href="#fg"/g) || []).length >= 20);
+    assert.ok(svg.includes('clipPath id="fc0_5"'));
+    assert.ok(svg.includes('51.2%') && svg.includes('50.7%'));
+    assert.ok(svg.includes('Family doctor first'));
+  });
+  it('renders in every aspect', () => {
+    for (const aspect of ['1:1', '9:16', '1.91:1']) assert.ok(renderInfographic(spec, { mode: 'inline', aspect }).startsWith('<svg'));
+  });
+});
+
+describe('figures highlight markup', () => {
+  const spec = { template: 'figures', eyebrow: 'Pregnant', caption: 'a **b** c', icon: 'woman',
+    rows: [{ name: '**Family doctor first**', value: 51.2, hero: true }, { name: 'Other', value: 50.7 }], source: src };
+  it('draws a band behind the marked span and strips the markers from text and alt', () => {
+    const svg = renderInfographic(spec, { mode: 'standalone', aspect: '1:1' });
+    assert.ok(!svg.includes('**'));
+    assert.ok(svg.includes('<tspan>Family doctor first</tspan>'));
+    assert.ok((svg.match(/rx="3" fill="#e8ddef"/g) || []).length === 2);
+    assert.ok(svg.includes('aria-label="Family doctor first 51.2%'));
+  });
+});
