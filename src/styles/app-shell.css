@@ -157,6 +157,12 @@
   flex-direction: column;
   gap: var(--space-1);
 }
+/* Heading-less top block (content surfaces); a hairline separates it from the groups. */
+.app-shell-nav__section--flat {
+  padding-bottom: var(--space-2);
+  margin-bottom: var(--space-1);
+  border-bottom: 1px solid var(--border-light);
+}
 /* Top header: account row (flex) + Save icon button, mirroring the legacy mobile drawer layout.
    A hairline separates it from the first nav group. */
 .app-shell-nav__header {
