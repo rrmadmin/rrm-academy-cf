@@ -308,6 +308,20 @@ export function authorNodeFromRecordLib(rec) {
  * same dedup/cap/affiliation/license/OA behavior. Returns the @context-bearing
  * top-level node ready to JSON.stringify.
  */
+/**
+ * Plain-text title + tldr from an approved synopsis, or empty strings.
+ * Used by the JSON-LD builder and by the library page for <title>, meta and
+ * og description, so the three surfaces cannot drift from each other.
+ */
+export function synopsisTextForSchema(insights) {
+  if (!insights || typeof insights !== 'object') return { title: '', tldr: '' };
+  const flat = (v) => (typeof v === 'string' ? v : '')
+    .replace(/\[([^\]\n]+)\]\((\/[^)\s]+)\)/g, '$1')
+    .replace(/\s+/g, ' ')
+    .trim();
+  return { title: flat(insights.title), tldr: flat(insights.tldr) };
+}
+
 export function buildMedicalScholarlyArticle(article) {
   const profile = libraryProfileForType(article.type);
   const node = {
@@ -343,6 +357,14 @@ export function buildMedicalScholarlyArticle(article) {
 
   if (article.datePublished) node.datePublished = article.datePublished;
   if (article.abstract) node.abstract = article.abstract;
+
+  // Approved synopsis (articles.insights, gated by synopsis_approved at the
+  // worker): the AEO short title becomes alternativeHeadline and the plain-
+  // English tldr becomes description. The paper abstract stays in `abstract`.
+  // Markdown link syntax in the tldr is flattened to its label.
+  const synopsis = synopsisTextForSchema(article.insights);
+  if (synopsis.title) node.alternativeHeadline = synopsis.title;
+  if (synopsis.tldr) node.description = synopsis.tldr;
 
   // Container. For chapters the `journal` column holds the containing BOOK
   // title, so it resolves to a Book and volume/issue (journal-only) are dropped.
