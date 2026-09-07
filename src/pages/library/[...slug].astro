@@ -14,6 +14,7 @@ import { fetchAllArticles, getRelatedArticles, getArticlesByAuthor, type Article
 import { parseStructuredAbstract } from '../../lib/abstract-parser';
 import { parseMarkdown, looksLikeMarkdown } from '../../lib/markdown-sanitize';
 import { buildMedicalScholarlyArticle, buildBreadcrumbList, libraryProfileForType } from '../../lib/identity';
+import { synopsisTextForSchema } from '../../lib/schema-builders.mjs';
 import {
   AUTHOR_CAP_LIB as AUTHOR_CAP,
   cleanAffiliationNameLib as cleanAffiliationName,
@@ -140,13 +141,21 @@ if (article.pages) journalParts.push(article.pages);
 if (article.year) journalParts.push(String(article.year));
 const journalLine = journalParts.join(', ');
 
-// Meta description mirrors the JSON-LD abstract verbatim (article.abstract).
-// Never truncate here -- a truncated meta description here would diverge
-// from the curated abstract emitted in the JSON-LD below, and mid-word "..."
-// cuts have leaked into search results in the past (see commentary template).
-const metaDescription = article.abstract
-  ? article.abstract
-  : `${article.title} - RRM Research Library`;
+// Meta description. With an approved synopsis it is the plain-English tldr
+// (which the JSON-LD below also emits as `description`), so the SERP snippet,
+// og:description and schema all quote the same answer-shaped text. Without one
+// it mirrors the JSON-LD abstract verbatim (article.abstract). Never truncate
+// here -- a truncated meta description would diverge from the JSON-LD, and
+// mid-word "..." cuts have leaked into search results in the past.
+const synopsisText = synopsisTextForSchema(article.insights);
+const metaDescription = synopsisText.tldr
+  ? synopsisText.tldr
+  : article.abstract
+    ? article.abstract
+    : `${article.title} - RRM Research Library`;
+// <title> and og:title lead with the AEO synopsis title when one is approved;
+// the paper title stays in the h1, citation_title meta and JSON-LD headline.
+const pageTitle = synopsisText.title || article.title;
 
 // Build DOI URL
 const doiUrl = article.doi ? `https://doi.org/${article.doi}` : '';
@@ -279,13 +288,13 @@ const citationMeta = {
 ---
 <BaseLayout
   bodyClass="page-library page-library-article page-synopsis"
-  title={article.title}
+  title={pageTitle}
   description={metaDescription}
   canonicalUrl={canonicalUrl}
   ogType="article"
   jsonLd={jsonLd}
   citationMeta={citationMeta}
-  speakable={['.article-title', '.article-meta-row', '.abstract']}
+  speakable={article.insights ? ['.insights-tldr', '.article-title', '.abstract'] : ['.article-title', '.article-meta-row', '.abstract']}
   chrome={SHELL_ENABLED ? 'shell' : 'default'}
   noindex={typeof article.word_count === 'number' ? article.word_count < 30 : (!article.abstract || article.abstract.trim().length < 30)}
   ogImage={article.infographic ? `/infographic/${article.id}/card.png?v=${OG_VERSION}` : undefined}

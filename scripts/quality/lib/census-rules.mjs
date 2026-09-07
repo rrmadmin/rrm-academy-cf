@@ -96,6 +96,7 @@ const OVERRIDES = new Map([
   ['scripts/glossary/bulk-load-sources.mjs', ['E2E-DRIVER', 'Bulk-load of authoritative source definitions into live rrm-auth D1 from the External Sourcing Sheet; body is live D1 I/O.']],
   ['scripts/audit-glossary-links.mjs', ['PRODUCT-CODE', 'Local deterministic analysis of glossary.json link classes; unit-tested (glossary-link-classifier.test.js), 80% covered today.']],
   ['scripts/compute-word-counts.mjs', ['PRODUCT-CODE', 'Recurring thin-page backfill tool; pure word-count core is fixture-tested (compute-word-counts-fixture.test.js). The D1 I/O wrapper is the uncovered remainder.']],
+  ['scripts/lint-synopsis.mjs', ['PRODUCT-CODE', 'Pre-publish lint CLI for library synopses (thin wrapper over src/lib/synopsis-lint.mjs, which is unit-tested in test/synopsis-lint.test.js). Exit 0 is required before any /insights-result POST.']],
   ['scripts/build-fixture.mjs', ['PRODUCT-CODE', 'Deterministic fixture builder used by the baseline capture chain (npm run build:fixture).']],
   ['functions/save-the-uterus-club/migrate.js', ['PRODUCT-CODE', 'Live routed endpoint (Wix migration-link redemption). Deployed product code despite the migration-flavored name.']],
 ]);

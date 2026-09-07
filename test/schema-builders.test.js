@@ -18,6 +18,7 @@ import {
   buildBreadcrumbList,
   buildScholarlyArticleStub,
   buildMedicalScholarlyArticle,
+  synopsisTextForSchema,
   buildMedicalCondition,
   orcidUrlLib,
   nameKeyLib,
@@ -548,5 +549,22 @@ describe('buildMedicalCondition', () => {
     assert.equal(node.signOrSymptom.length, 3);
     assert.equal(node.possibleTreatment[0]['@type'], 'MedicalTherapy');
     assert.ok(!('@context' in node)); // graph-ready (no @context)
+  });
+});
+
+describe('synopsis -> JSON-LD alternativeHeadline + description', () => {
+  it('emits nothing without insights', () => {
+    const out = buildMedicalScholarlyArticle({ title: 't', slug: 's', abstract: 'A' });
+    assert.equal(out.alternativeHeadline, undefined);
+    assert.equal(out.description, undefined);
+    assert.equal(out.abstract, 'A');
+    assert.deepEqual(synopsisTextForSchema(null), { title: '', tldr: '' });
+  });
+  it('emits the synopsis title and flattened tldr, keeps the abstract', () => {
+    const insights = { title: 'Short AEO title', tldr: 'One in [three](/library/x/) got  pregnant.\nMore.' };
+    const out = buildMedicalScholarlyArticle({ title: 't', slug: 's', abstract: 'A', insights });
+    assert.equal(out.alternativeHeadline, 'Short AEO title');
+    assert.equal(out.description, 'One in three got pregnant. More.');
+    assert.equal(out.abstract, 'A');
   });
 });
