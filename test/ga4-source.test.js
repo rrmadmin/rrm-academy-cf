@@ -1,7 +1,7 @@
 // test/ga4-source.test.js
 import { describe, it } from 'node:test';
 import assert from 'node:assert/strict';
-import { classifySource, extractUtm, classifyPaid, deriveSessionId, buildSourceParams, parseFirstTouch } from '../functions/api/_ga4-source.js';
+import { classifySource, extractUtm, classifyPaid, deriveSessionId, buildSourceParams, parseFirstTouch, parseClientIdentity } from '../functions/api/_ga4-source.js';
 
 describe('classifySource', () => {
   it('returns direct for empty referrer', () => {
@@ -266,6 +266,67 @@ describe('deriveSessionId', () => {
     const a = await deriveSessionId('client1', '2026-03-09');
     const b = await deriveSessionId('client2', '2026-03-09');
     assert.notEqual(a, b);
+  });
+});
+
+describe('parseClientIdentity', () => {
+  it('accepts a valid UUID cid + integer sid', () => {
+    const result = parseClientIdentity({ cid: '216b3b7f-1234-4abc-9def-0123456789ab', sid: 1757000000 });
+    assert.deepStrictEqual(result, { client_id: '216b3b7f-1234-4abc-9def-0123456789ab', session_id: 1757000000 });
+  });
+
+  it('accepts a valid fallback (non-UUID) cid', () => {
+    const result = parseClientIdentity({ cid: 'abc.123_XYZ-9', sid: 5 });
+    assert.deepStrictEqual(result, { client_id: 'abc.123_XYZ-9', session_id: 5 });
+  });
+
+  it('includes session_number when valid', () => {
+    const result = parseClientIdentity({ cid: 'client-a', sid: 100, sn: 3 });
+    assert.deepStrictEqual(result, { client_id: 'client-a', session_id: 100, session_number: 3 });
+  });
+
+  it('omits session_number when absent', () => {
+    const result = parseClientIdentity({ cid: 'client-a', sid: 100 });
+    assert.equal('session_number' in result, false);
+  });
+
+  it('omits session_number when invalid (non-integer, out of range)', () => {
+    const result = parseClientIdentity({ cid: 'client-a', sid: 100, sn: 1.5 });
+    assert.equal('session_number' in result, false);
+  });
+
+  it('returns null for an invalid cid (bad characters)', () => {
+    assert.equal(parseClientIdentity({ cid: 'has spaces!', sid: 100 }), null);
+  });
+
+  it('returns null for a cid over the 64-char fallback limit', () => {
+    assert.equal(parseClientIdentity({ cid: 'x'.repeat(65), sid: 100 }), null);
+  });
+
+  it('returns null for a non-string cid', () => {
+    assert.equal(parseClientIdentity({ cid: 12345, sid: 100 }), null);
+  });
+
+  it('returns null for sid out of range (0)', () => {
+    assert.equal(parseClientIdentity({ cid: 'client-a', sid: 0 }), null);
+  });
+
+  it('returns null for sid out of range (over max)', () => {
+    assert.equal(parseClientIdentity({ cid: 'client-a', sid: 10_000_000_000 }), null);
+  });
+
+  it('returns null for a non-integer sid', () => {
+    assert.equal(parseClientIdentity({ cid: 'client-a', sid: 100.5 }), null);
+  });
+
+  it('returns null for a non-number sid', () => {
+    assert.equal(parseClientIdentity({ cid: 'client-a', sid: '100' }), null);
+  });
+
+  it('returns null when body is missing entirely', () => {
+    assert.equal(parseClientIdentity(undefined), null);
+    assert.equal(parseClientIdentity(null), null);
+    assert.equal(parseClientIdentity({}), null);
   });
 });
 

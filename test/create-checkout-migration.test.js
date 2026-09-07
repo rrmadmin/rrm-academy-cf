@@ -514,3 +514,140 @@ describe('create-checkout first-touch attribution metadata -- EXECUTED', () => {
     }
   });
 });
+
+// EXECUTED: client-identity join (2026-09-06). A valid cid/sid on the POST
+// body must win over the IP+UA hash for BOTH Stripe metadata (ga_client_id/
+// ga_session_id) AND the sendGA4Event begin_checkout overrides -- that's what
+// lets a begin_checkout row join to the cta_click that preceded it on the
+// same client_id/session_id. An invalid cid/sid must fall back to the hash
+// exactly as before.
+describe('create-checkout client identity join (cid/sid) -- EXECUTED', () => {
+  let net;
+
+  function stubStripe(overrides = {}) {
+    return stubExternalFetch({
+      stripe: stripeRoutes({
+        '/v1/checkout/sessions': { id: 'cs_test_cid_exec', url: 'https://checkout.stripe.com/c/pay/cs_test_cid_exec' },
+        ...overrides,
+      }),
+    });
+  }
+
+  const VALID_CID = '216b3b7f-1234-4abc-9def-0123456789ab';
+  const VALID_SID = 1757000000;
+
+  it('donation: a valid cid/sid wins over the IP+UA hash in Stripe metadata and the GA4 begin_checkout payload', async () => {
+    net = stubStripe();
+    try {
+      const request = mockRequest('POST', {
+        url: 'https://rrmacademy.org/api/create-checkout',
+        headers: { 'CF-Connecting-IP': '203.0.113.10' },
+        body: { mode: 'payment', amount: 2500, cid: VALID_CID, sid: VALID_SID, sn: 2 },
+      });
+      const waitUntil = mockWaitUntil();
+      const env = mockEnv();
+      const res = await onRequestPost({ request, env, waitUntil });
+      await drainWaitUntil(waitUntil);
+      const { status, body } = await parseResponse(res);
+      assert.equal(status, 200, JSON.stringify(body));
+
+      const stripeCall = net.calls.find((c) => c.service === 'stripe');
+      assert.ok(stripeCall, 'a Stripe checkout session must be created');
+      const form = new URLSearchParams(stripeCall.body);
+      assert.equal(form.get('metadata[ga_client_id]'), VALID_CID);
+      assert.equal(form.get('metadata[ga_session_id]'), String(VALID_SID));
+
+      const ga4Call = net.ga4[0];
+      assert.ok(ga4Call, 'a GA4 MP send must be dispatched');
+      assert.equal(ga4Call.body.client_id, VALID_CID);
+      assert.equal(ga4Call.body.events[0].params.session_id, VALID_SID);
+      assert.equal(ga4Call.body.events[0].params.session_number, 2);
+    } finally {
+      net.restore();
+    }
+  });
+
+  it('subscription: a valid cid/sid wins over the IP+UA hash in Stripe metadata and the GA4 begin_checkout payload', async () => {
+    net = stubStripe();
+    try {
+      const request = mockRequest('POST', {
+        url: 'https://rrmacademy.org/api/create-checkout',
+        headers: { 'CF-Connecting-IP': '203.0.113.11' },
+        body: { mode: 'subscription', tier: 'member', cid: VALID_CID, sid: VALID_SID },
+      });
+      const waitUntil = mockWaitUntil();
+      const env = mockEnv({ STRIPE_PRICE_MEMBER: 'price_test_member' });
+      const res = await onRequestPost({ request, env, waitUntil });
+      await drainWaitUntil(waitUntil);
+      const { status, body } = await parseResponse(res);
+      assert.equal(status, 200, JSON.stringify(body));
+
+      const stripeCall = net.calls.find((c) => c.service === 'stripe');
+      assert.ok(stripeCall, 'a Stripe checkout session must be created');
+      const form = new URLSearchParams(stripeCall.body);
+      assert.equal(form.get('metadata[ga_client_id]'), VALID_CID);
+      assert.equal(form.get('metadata[ga_session_id]'), String(VALID_SID));
+
+      const ga4Call = net.ga4[0];
+      assert.ok(ga4Call, 'a GA4 MP send must be dispatched');
+      assert.equal(ga4Call.body.client_id, VALID_CID);
+      assert.equal(ga4Call.body.events[0].params.session_id, VALID_SID);
+    } finally {
+      net.restore();
+    }
+  });
+
+  it('an invalid cid falls back to the IP+UA hash (never rejects the checkout)', async () => {
+    net = stubStripe();
+    try {
+      const request = mockRequest('POST', {
+        url: 'https://rrmacademy.org/api/create-checkout',
+        headers: { 'CF-Connecting-IP': '203.0.113.12' },
+        body: { mode: 'payment', amount: 2500, cid: 'has spaces! not valid', sid: VALID_SID },
+      });
+      const waitUntil = mockWaitUntil();
+      const env = mockEnv();
+      const res = await onRequestPost({ request, env, waitUntil });
+      await drainWaitUntil(waitUntil);
+      const { status, body } = await parseResponse(res);
+      assert.equal(status, 200, JSON.stringify(body));
+
+      const stripeCall = net.calls.find((c) => c.service === 'stripe');
+      assert.ok(stripeCall, 'a Stripe checkout session must be created');
+      const form = new URLSearchParams(stripeCall.body);
+      const gaClientId = form.get('metadata[ga_client_id]');
+      assert.notEqual(gaClientId, 'has spaces! not valid');
+      assert.match(gaClientId, /^[0-9a-f]{16}$/, 'must fall back to the 16-char hex hash from getClientId()');
+
+      const ga4Call = net.ga4[0];
+      assert.ok(ga4Call, 'a GA4 MP send must be dispatched');
+      assert.equal(ga4Call.body.client_id, gaClientId);
+    } finally {
+      net.restore();
+    }
+  });
+
+  it('an out-of-range sid falls back to the IP+UA hash and derived session id (never rejects the checkout)', async () => {
+    net = stubStripe();
+    try {
+      const request = mockRequest('POST', {
+        url: 'https://rrmacademy.org/api/create-checkout',
+        headers: { 'CF-Connecting-IP': '203.0.113.13' },
+        body: { mode: 'payment', amount: 2500, cid: VALID_CID, sid: 0 },
+      });
+      const waitUntil = mockWaitUntil();
+      const env = mockEnv();
+      const res = await onRequestPost({ request, env, waitUntil });
+      await drainWaitUntil(waitUntil);
+      const { status, body } = await parseResponse(res);
+      assert.equal(status, 200, JSON.stringify(body));
+
+      const stripeCall = net.calls.find((c) => c.service === 'stripe');
+      assert.ok(stripeCall, 'a Stripe checkout session must be created');
+      const form = new URLSearchParams(stripeCall.body);
+      assert.notEqual(form.get('metadata[ga_client_id]'), VALID_CID, 'sid invalid => the whole identity override is dropped, cid must not win alone');
+    } finally {
+      net.restore();
+    }
+  });
+});

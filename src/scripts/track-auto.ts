@@ -16,7 +16,7 @@
  * Bundle budget: ≤ 3.5 KiB minified+gzipped (gate AG11).
  */
 
-import { track, trackOutbound, trackPageView, startEngagementTracking } from './track';
+import { track, trackOutbound, trackPageView, startEngagementTracking, gaIdentity } from './track';
 
 // Maps every pre-existing freeform data-track-cta id to its data-cta
 // replacement, for the one release both attributes coexist. Every id this
@@ -50,6 +50,11 @@ const LEGACY_CTA_RENAME_MAP: Record<string, string> = {
 if (typeof window !== 'undefined') {
   // @ts-expect-error -- intentional global bridge for is:inline callers
   window.__rrmTrack__ = track;
+  // Same bridge, for is:inline checkout/enroll scripts that need to forward
+  // the browser's GA4 identity (cid/sid/sn) in their own POST body so the
+  // server can join begin_checkout to the cta_click that preceded it.
+  // @ts-expect-error -- intentional global bridge for is:inline callers
+  window.__rrmGaIdentity__ = gaIdentity;
 }
 
 if (typeof window !== 'undefined' && typeof document !== 'undefined') {

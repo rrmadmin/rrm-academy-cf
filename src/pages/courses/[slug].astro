@@ -1067,11 +1067,12 @@ const relatedCourses = course.relatedCourses
         setEnrollBtnsDisabled(true);
         btn.textContent = 'Processing...';
 
+        var ga = (window.__rrmGaIdentity__ && window.__rrmGaIdentity__()) || {};
         fetch('/api/courses/enroll', {
           method: 'POST',
           credentials: 'same-origin',
           headers: { 'Content-Type': 'application/json', 'Idempotency-Key': enrollIdemKey },
-          body: JSON.stringify({ courseId: cid }),
+          body: JSON.stringify(Object.assign({ courseId: cid }, ga)),
         })
           .then(function (r) { return r.json(); })
           .then(function (data) {

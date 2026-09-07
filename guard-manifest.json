@@ -43,7 +43,7 @@
       "note": "Webhook + signature verification"
     },
     "functions/api/create-checkout.js": {
-      "hash": "3f21c00c269e35c47a698913d30dc9fe4656ac2aba831293b5628875ef7a7efc",
+      "hash": "cda4172b570b7cf66d90e395e6233236a79f74bf14522c27ba033b9ec2a8169e",
       "note": "Stripe checkout"
     },
     "functions/api/billing/status.js": {
@@ -222,7 +222,7 @@
       "hash": "c8053c9818a055f56bdfe145bbab83ca1aa7566d2c512d96edcd6e6ca0f17eaa"
     },
     "functions/api/track.js": {
-      "hash": "4cda1d55a8c24e4908571b5132cb551abc5989645a60c37e6d13e58539c0db28",
+      "hash": "d5847483d1e06055048a7f81943a1e232328817102d58c043f08e26d01e7ab2a",
       "note": "Client analytics endpoint: rate limit + allowlist + PII strip + GA4 MP relay + AE mirror"
     },
     "functions/api/_track-events.js": {
@@ -234,7 +234,7 @@
       "note": "GA4 MP relay: server-derived attribution PII screen (second pass) + page_location query/hash/userinfo strip"
     },
     "functions/api/_ga4-source.js": {
-      "hash": "a3a31026501797c367bfa6975cbb040f78f2dab5a5b1a7e904819497302c2a8f",
+      "hash": "cdacf21ca0bb63ef35e6e19b5e424b81d73781472f0bbd1805fef2546fab02fa",
       "note": "Traffic-source classification: utm value PII screen (first pass) + 100-char clamp + paid/email overrides"
     },
     "functions/api/email/events.js": {
