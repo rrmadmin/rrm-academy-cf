@@ -251,6 +251,13 @@ const jsonLd = {
         if (next) { e.preventDefault(); activate(next.dataset.tab, true); }
       });
     });
+    // Deep link from the sidebar hub links (/guides/#methods, /guides/#conditions).
+    function activateFromHash() {
+      const key = window.location.hash.replace(/^#/, '');
+      if (key && tabs.some((t) => t.dataset.tab === key)) activate(key);
+    }
+    activateFromHash();
+    window.addEventListener('hashchange', activateFromHash);
   })();
 
   const notice = document.getElementById('guides-pdf-error');
