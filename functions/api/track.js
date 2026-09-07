@@ -12,6 +12,7 @@
  */
 import { checkRateLimit, CORS_HEADERS, optionsResponse } from './auth/_shared.js';
 import { sendGA4Event } from './_ga4.js';
+import { parseClientIdentity } from './_ga4-source.js';
 import { ALLOWED_CLIENT_EVENTS, REQUIRED_PARAMS, PII_REGEX, PII_VALUE_REGEX, RESERVED_PARAMS, LONG_PARAM_LIMITS, URL_SHAPED_LONG_PARAMS, isDigitRunOnlyMatch } from './_track-events.js';
 import { log } from './_log.js';
 import { isBotRequest } from './_bot.js';
@@ -225,22 +226,13 @@ export async function onRequestPost(context) {
       }
     }
 
-    // Validate optional client session identity fields (cid/sid/sn).
+    // Validate optional client session identity fields (cid/sid/sn) via the
+    // shared helper (functions/api/_ga4-source.js) so this endpoint and the
+    // checkout/enroll call sites cannot drift on the validation rules.
     // These arrive at the top level of the body, NOT inside params, so they bypass
     // PII/RESERVED param stripping. Invalid values are silently ignored (fall back to
     // server-derived identity) -- analytics must never reject a beacon over bad overrides.
-    const CID_UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
-    const CID_FALLBACK_RE = /^[A-Za-z0-9._-]{1,64}$/;
-    const SID_MIN = 1;
-    const SID_MAX = 9_999_999_999; // epoch seconds; year 2286+
-    let ga4Overrides = {};
-    const cidValid = typeof cid === 'string' && (CID_UUID_RE.test(cid) || CID_FALLBACK_RE.test(cid));
-    const sidValid = typeof sid === 'number' && Number.isInteger(sid) && sid >= SID_MIN && sid <= SID_MAX;
-    const snValid = typeof sn === 'number' && Number.isInteger(sn) && sn >= 1 && sn <= 999_999;
-    if (cidValid && sidValid) {
-      ga4Overrides = { client_id: cid, session_id: sid };
-      if (snValid) ga4Overrides.session_number = sn;
-    }
+    const ga4Overrides = parseClientIdentity({ cid, sid, sn }) || {};
 
     // Side effects on accept:
     // 1. GA4 Measurement Protocol -- fire-and-forget via waitUntil

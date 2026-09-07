@@ -24,7 +24,7 @@ import { withIdempotency } from '../_idempotency.js';
 import { log } from '../_log.js';
 import { getCourse, getIncludedCourseIds } from './_shared.js';
 import { sendGA4Event } from '../_ga4.js';
-import { classifySource, extractUtm, getClientId, deriveSessionId, parseFirstTouch, parseGclidCookie } from '../_ga4-source.js';
+import { classifySource, extractUtm, getClientId, deriveSessionId, parseFirstTouch, parseGclidCookie, parseClientIdentity } from '../_ga4-source.js';
 import { notifyAdminEnrollment } from './_notify-admin.js';
 import { requireMember } from '../community/_shared.js';
 
@@ -171,9 +171,16 @@ async function handleEnroll(request, env, waitUntil) {
   const gaSource = utmParams.utm_source || source;
   const gaMedium = utmParams.utm_medium || medium;
   const gaCampaign = utmParams.utm_campaign || '';
-  const clientId = await getClientId(request);
+  // Prefer the browser's own GA4 identity (cid/sid/sn, same fields
+  // /api/track validates) when the enroll POST body carries it -- lets a
+  // begin_checkout row join to the cta_click that preceded it on the same
+  // client_id/session_id. Falls back to the IP+UA hash when absent/invalid;
+  // never rejects enrollment over bad identity fields.
+  const clientIdentity = parseClientIdentity(body);
   const dateStr = new Date().toLocaleDateString('en-CA', { timeZone: 'America/New_York' });
-  const gaSessionId = await deriveSessionId(clientId, dateStr);
+  const clientId = clientIdentity ? clientIdentity.client_id : await getClientId(request);
+  const gaSessionId = clientIdentity ? clientIdentity.session_id : await deriveSessionId(clientId, dateStr);
+  const ga4IdentityOverrides = clientIdentity || {};
 
   // First-touch attribution, same shape as create-checkout.js: this is the
   // OTHER Stripe session creator, and the webhook's course branch spreads
@@ -239,7 +246,7 @@ async function handleEnroll(request, env, waitUntil) {
       currency: 'USD',
       ...(course.priceCents && { value: course.priceCents / 100 }),
       items: [{ item_name: `Course: ${courseId}` }],
-    }).catch(() => {}));
+    }, ga4IdentityOverrides).catch(() => {}));
   }
   return json({ ok: true, enrolled: false, checkoutUrl: checkoutSession.url });
 }
