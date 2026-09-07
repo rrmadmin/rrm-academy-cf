@@ -57,3 +57,12 @@ Runners-up if Brian prefers: `recafrii5bljtlmgl` (2018 primary-care fertile-wind
 - Single-record rebuilds can be reverted same day by the deploy.yml cache (memory `gh-actions-cache-exact-hit-no-save`); verify on the hash URL, and prefer a full deploy if the record does not appear.
 - Read D1 with `CLOUDFLARE_API_TOKEN=$(op read 'op://Automation/CF - D1 Read Only - account/credential')`, captured, never printed. Column names: `is_published`, `rrm_relevance`, `full_text_r2_key`.
 - rrm-academy-cf clone on the iMac is clean on main except two untracked dirs (`public/courses/`, `public/faqs/`); ship via a worktree off `origin/main` if another session is active.
+
+## Corrections from the MacBook pickup (2026-09-06, later the same day)
+
+- The proof record's D1 id is `recwFou1ja5Awm7Ho`. `reck8jozujuq5hshh` is only the slug suffix. `full_text_r2_key` is NULL for it (Gianna fetched the OA paper from JABFM directly).
+- `insights` is NULL for that record, so there is no held draft to reuse. Gianna wrote clean.
+- The paper reports no per-group IVF percentage. The IVF finding is an adjusted odds ratio (0.48, 95% CI 0.28 to 0.82, generalist-first vs subspecialist-first), so it fits `delta`, not `bars`.
+- 51.2% vs 50.7% is "achieved pregnancy within the first 5 years of attempting", not cumulative live birth. The bars spec uses that label.
+- Held artifacts (scratch, not committed): `insights.json`, `figures.md` with Gianna's 20-row Gate 19 audit, `spec-bars.json`, `spec-delta.json`, rendered square + og PNG/WebP/SVG for both. Validate, verify-source (PMID) and house-style all green. Stat-fidelity gate green after one unbound token in `rrm_context` was resolved.
+- Still awaiting Brian: which chart (bars recommended), caption confirmation, and go-live.
