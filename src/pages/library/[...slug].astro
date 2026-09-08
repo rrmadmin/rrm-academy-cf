@@ -35,10 +35,13 @@ function renderInsight(value) {
     .replace(/>/g, '&gt;')
     .replace(/"/g, '&quot;')
     .replace(/'/g, '&#39;');
-  return escaped.replace(
-    /\[([^\]\n]+)\]\((\/[^)\s]+)\)/g,
-    (_match, label, href) => `<a class="insights-link" href="${href}">${label}</a>`
-  );
+  return escaped
+    .replace(
+      /\[([^\]\n]+)\]\((\/[^)\s]+)\)/g,
+      (_match, label, href) => `<a class="insights-link" href="${href}">${label}</a>`
+    )
+    // **phrase** -> emphasis (Gianna marks one or two key phrases per tldr)
+    .replace(/\*\*([^*\n]+)\*\*/g, '<strong>$1</strong>');
 }
 
 export async function getStaticPaths() {
@@ -1114,10 +1117,20 @@ const citationMeta = {
   /* TL;DR reads as a lead paragraph under the headline. */
   .insights-tldr {
     font-size: 1rem;
-    font-weight: 500;
+    font-weight: 400;
     line-height: 1.55;
     color: var(--text-primary);
     margin-bottom: var(--space-6);
+  }
+  /* Gianna marks one or two takeaway phrases per tldr with **bold**; rendered as strong. */
+  .insights-tldr :global(strong) {
+    font-weight: 600;
+    color: var(--text-primary);
+    background: linear-gradient(transparent 55%, var(--purple-100) 55%);
+    padding: 0 0.1em;
+    border-radius: 2px;
+    box-decoration-break: clone;
+    -webkit-box-decoration-break: clone;
   }
   /* Section labels are small uppercase eyebrows (Inter), subordinate to the serif title. */
   .insights-subheading {

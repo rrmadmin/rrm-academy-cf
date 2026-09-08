@@ -410,6 +410,105 @@ function renderRatio(spec, { mode, box }) {
   return { body, alt };
 }
 
+// Figures: a head-to-head comparison drawn as people pictographs, one row per group, 10
+// figures each filled to the group's percentage (51.22% -> 5 full figures + a 0.12 clip).
+// The pictograph form of `bars` (memory infographic-pictograph-voice: the reader counts
+// themselves into the row). Hero row in purple-700, comparators in purple-300, unfilled
+// figures purple-100. Row names carry the population and time base of THAT row.
+// Marker-style highlight inside one line of SVG text. `**phrase**` in operator text draws a
+// pale band behind that span (mirrors the page's .insights-tldr strong treatment). Width is
+// estimated from the font size (Inter averages ~0.55em per glyph at weight 600), which is
+// close enough for a band that deliberately overshoots by a few px each side.
+export function stripHighlight(text) { return String(text || '').replace(/\*\*([^*\n]+)\*\*/g, '$1'); }
+function hlText(text, mode, x, y, fs, weight, fill, extra = '') {
+  const raw = String(text || '');
+  const parts = raw.split(/(\*\*[^*\n]+\*\*)/g).filter(Boolean);
+  const perChar = fs * (weight >= 600 ? 0.5 : 0.47);
+  let cx = x, bands = '', spans = '';
+  for (const part of parts) {
+    const m = /^\*\*([^*\n]+)\*\*$/.exec(part);
+    const t = m ? m[1] : part;
+    const wEst = Math.round(t.length * perChar);
+    if (m) {
+      bands += `<rect x="${cx - 4}" y="${y - Math.round(fs * 0.34)}" width="${wEst + 8}" height="${Math.round(fs * 0.44)}" rx="3" fill="${color('purple-100', mode)}"/>`;
+    }
+    spans += `<tspan>${escapeXml(t)}</tspan>`;
+    cx += wEst;
+  }
+  return bands + `<text x="${x}" y="${y}" font-size="${fs}" font-weight="${weight}" fill="${fill}"${extra}>${spans}</text>`;
+}
+
+function renderFigures(spec, { mode, box }) {
+  const w = box.w, h = box.h, pad = Math.round(w * 0.07);
+  const provY = h - Math.round(pad * 0.5);
+  const plotW = w - pad * 2;
+  const icon = spec.icon || 'woman';
+  const rows = spec.rows;
+  const n = rows.length;
+  const alt = rows.map((r) => `${stripHighlight(r.name)} ${r.value}%`).join('; ') + `. Source: ${sourceLine(spec)}`;
+  const N = 10;
+  const short = h / w < 0.7;
+  // Ten figures per group. Tall and square boxes lay them out as two rows of five so
+  // each figure is large enough to read as a person; the short 1.91:1 card keeps one
+  // row of ten. Either way the row still reads "X out of 10".
+  const perRow = short ? 10 : 5;
+  const figRows = N / perRow;
+  const nameFs = short ? 28 : 32;
+  const headH = nameFs + (short ? 10 : 16);
+  const plotTop = pad + (short ? 112 : 120);
+  const plotBottom = provY - (short ? 24 : 40);
+  const avail = plotBottom - plotTop;
+  const minGap = short ? 16 : 28;
+  const figGap = Math.round(plotW * (short ? 0.02 : 0.035));
+  const figRowGap = short ? 0 : Math.round(plotW * 0.015);
+  const byW = Math.round((plotW - figGap * (perRow - 1)) / perRow);
+  const byH = Math.floor((avail - n * headH - minGap * (n - 1) - n * figRowGap * (figRows - 1)) / (n * figRows));
+  const figW = Math.max(24, Math.min(byW, byH, 168));
+  const figH = figW;
+  const sc = figW / 48;
+  const rowH = headH + figH * figRows + figRowGap * (figRows - 1);
+  const rowGap = Math.max(minGap, Math.min(72, Math.round((avail - rowH * n) / Math.max(1, n - 1))));
+  const groupH = rowH * n + rowGap * (n - 1);
+  const startY = plotTop + Math.max(0, Math.round((avail - groupH) / 2));
+  const zoom = icon === 'couple' ? 1.25 : 1.2;
+  const off = color('purple-100', mode);
+  const txt = color('text-primary', mode);
+  let defs = glyphDef('fg', icon);
+  let body = '';
+  rows.forEach((r, ri) => {
+    // Hero row in house purple; comparator rows in the rose polarity token so the two
+    // groups read as different populations, not one group at two intensities.
+    const on = r.hero ? color('purple-700', mode) : color('ig-unfavorable', mode);
+    const y = startY + ri * (rowH + rowGap);
+    const figTop0 = y + headH;
+    const filled = (Math.max(0, Math.min(100, r.value)) / 100) * N;
+    const vFs = Math.min(Math.round(nameFs * 1.55), 56);
+    body += hlText(r.name, mode, pad, y + nameFs, nameFs, 600, txt)
+      + `<text x="${pad + plotW}" y="${y + nameFs}" text-anchor="end" class="num" font-size="${vFs}" font-weight="600" fill="${r.hero ? color('purple-700', mode) : txt}">${escapeXml(String(r.value) + '%')}</text>`;
+    for (let i = 0; i < N; i++) {
+      const x = pad + (i % perRow) * (figW + figGap);
+      const figTop = figTop0 + Math.floor(i / perRow) * (figH + figRowGap);
+      const fr = Math.max(0, Math.min(1, filled - i));
+      // The glyphs sit inside a 48-box with margin; zoom them about the slot centre so the
+      // person fills the slot (woman/man span 40 of 48 tall, the couple pair 38 of 48 wide).
+      const fig = (fill) => `<use href="#fg" transform="translate(${x + figW / 2} ${figTop + figH / 2}) scale(${sc * zoom}) translate(-24 -24)" fill="${fill}"/>`;
+      body += fig(off);
+      if (fr >= 0.999) body += fig(on);
+      else if (fr > 0) {
+        const cid = `fc${ri}_${i}`;
+        const fh = Math.round(figH * fr);
+        defs += `<clipPath id="${cid}"><rect x="${x}" y="${figTop + figH - fh}" width="${figW}" height="${fh + 2}"/></clipPath>`;
+        body += `<g clip-path="url(#${cid})">${fig(on)}</g>`;
+      }
+    }
+  });
+  body = eyebrow(spec, mode, pad, pad + 36)
+    + hlText(spec.caption, mode, pad, pad + 84, 34, 400, color('text-secondary', mode))
+    + `<defs>${defs}</defs>` + body
+    + provenance(spec, mode, pad, provY, plotW);
+  return { body, alt };
+}
+
 // Correction: the assumed/typical prior value struck out and greyed, the real value as the
 // hero. Use when the point is "they tell you X; the truth after a proper look is Y".
 function renderCorrection(spec, { mode, box }) {
@@ -458,6 +557,7 @@ registerRenderer('delta', renderDelta);
 registerRenderer('bars', renderBars);
 registerRenderer('ratio', renderRatio);
 registerRenderer('correction', renderCorrection);
+registerRenderer('figures', renderFigures);
 
 export function renderInfographic(spec, opts = {}) {
   const mode = opts.mode || 'inline';

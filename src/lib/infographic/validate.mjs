@@ -23,6 +23,7 @@ function collectStrings(spec) {
   }
   if (spec.source) for (const k of ['label']) if (typeof spec.source[k] === 'string') out.push(spec.source[k]);
   if (Array.isArray(spec.bars)) for (const b of spec.bars) if (b && typeof b.name === 'string') out.push(b.name);
+  if (Array.isArray(spec.rows)) for (const b of spec.rows) if (b && typeof b.name === 'string') out.push(b.name);
   return out;
 }
 
@@ -58,7 +59,7 @@ export function validateSpec(spec) {
     if (ABSOLUTIST_TOKENS.some((t) => low.includes(t))) push('share_caption contains a banned absolutist token');
   }
 
-  // icon (optional) applies to single + ratio pictographs
+  // icon (optional) applies to single + ratio + figures pictographs
   if (spec.icon !== undefined && !ICONS.includes(spec.icon)) push(`icon must be one of ${ICONS.join('/')}`);
 
   // per-template invariants
@@ -86,6 +87,19 @@ export function validateSpec(spec) {
         if (!b || !nonEmpty(b.name)) push('bar.name required');
         if (typeof b.value !== 'number' || !Number.isFinite(b.value) || b.value < 0) push('bar.value must be finite and >= 0');
         if (spec.unit === '%' && typeof b.value === 'number' && b.value > 100) push('bar.value must be <= 100 when unit is %');
+      }
+    }
+  } else if (spec.template === 'figures') {
+    // People-pictograph comparison: each row is a share of people (0-100%), 10 figures.
+    if (!nonEmpty(spec.caption)) push('figures.caption required');
+    const rows = spec.rows;
+    if (!Array.isArray(rows) || rows.length < 2 || rows.length > 3) push('figures needs 2 or 3 rows');
+    else {
+      const heroes = rows.filter((r) => r && r.hero === true).length;
+      if (heroes !== 1) push('figures needs exactly one hero');
+      for (const r of rows) {
+        if (!r || !nonEmpty(r.name)) push('row.name required');
+        if (typeof r.value !== 'number' || !Number.isFinite(r.value) || r.value < 0 || r.value > 100) push('row.value must be a percent in [0, 100]');
       }
     }
   } else if (spec.template === 'ratio') {

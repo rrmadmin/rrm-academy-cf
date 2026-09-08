@@ -78,3 +78,14 @@ describe('share_caption governance', () => {
   it('rejects an absolutist token', () => assert.equal(validateSpec(withCaption('This is non-negotiable for patients.')).valid, false));
   it('rejects an em dash in the caption', () => assert.equal(validateSpec(withCaption('a — b')).valid, false));
 });
+
+describe('figures template', () => {
+  const ok = { template: 'figures', eyebrow: 'Pregnant within 5 years', caption: '867 women', icon: 'woman',
+    rows: [{ name: 'Family doctor first', value: 51.2, hero: true }, { name: 'Specialist first', value: 50.7 }], source: { label: 's', pmid: '1' } };
+  it('accepts a well-formed figures spec', () => { assert.equal(validateSpec(ok).valid, true, JSON.stringify(validateSpec(ok).errors)); });
+  it('rejects a value over 100, a missing caption, and two heroes', () => {
+    assert.equal(validateSpec({ ...ok, rows: [{ name: 'a', value: 120, hero: true }, { name: 'b', value: 1 }] }).valid, false);
+    assert.equal(validateSpec({ ...ok, caption: '' }).valid, false);
+    assert.equal(validateSpec({ ...ok, rows: [{ name: 'a', value: 1, hero: true }, { name: 'b', value: 2, hero: true }] }).valid, false);
+  });
+});

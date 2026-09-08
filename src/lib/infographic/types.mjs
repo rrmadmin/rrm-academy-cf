@@ -17,7 +17,7 @@
 
 /**
  * @typedef {Object} InfographicSpec
- * @property {'single'|'delta'|'bars'|'ratio'} template
+ * @property {'single'|'delta'|'bars'|'ratio'|'correction'|'figures'} template
  * @property {string} eyebrow
  * @property {InfographicSource} source
  * @property {string} [value]
@@ -28,6 +28,7 @@
  * @property {string} [caption]
  * @property {string} [share_caption]
  * @property {BarEntry[]} [bars]
+ * @property {BarEntry[]} [rows]  figures template: 2-3 groups, value = percent of people (0-100), one hero
  * @property {number} [numerator]
  * @property {number} [denominator]
  * @property {'woman'|'man'|'couple'} [icon]
@@ -36,7 +37,7 @@
  * @property {string} [subhead]
  */
 
-export const TEMPLATES = ['single', 'delta', 'bars', 'ratio', 'correction'];
+export const TEMPLATES = ['single', 'delta', 'bars', 'ratio', 'correction', 'figures'];
 // People-pictograph figure for single + ratio. Matches the population the stat describes.
 export const ICONS = ['woman', 'man', 'couple'];
 export const DIRECTIONS = ['up', 'down'];
