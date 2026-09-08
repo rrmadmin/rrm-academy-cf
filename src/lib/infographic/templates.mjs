@@ -62,7 +62,10 @@ export function svgShell({ mode, aspect, alt, body }) {
 // Composed source provenance string.
 export function sourceLine(spec) {
   const s = spec.source || {};
-  const id = s.pmid ? `PMID ${s.pmid}` : s.doi ? `DOI ${s.doi}` : (s.url || '');
+  // An internal library URL adds nothing the footer's rrmacademy.org does not already say,
+  // and a full path overflows the source line; the label carries the citation on its own.
+  const internal = typeof s.url === 'string' && /^https?:\/\/(www\.)?rrmacademy\.org\//i.test(s.url);
+  const id = s.pmid ? `PMID ${s.pmid}` : s.doi ? `DOI ${s.doi}` : (internal ? '' : (s.url || ''));
   return [s.label, id].filter(Boolean).join(', ');
 }
 
@@ -534,18 +537,53 @@ function renderCorrection(spec, { mode, box }) {
 
   const wasY = blockTop + Math.round(wasFs * 0.72);    // struck-value baseline (cap at blockTop)
   const numY = wasY + Math.round(wasFs * 0.3) + 24 + Math.round(numFs * 0.72);  // hero baseline
-  const strikeY = wasY - Math.round(wasFs * 0.32);
-  const wasW = Math.round(String(spec.was).length * wasFs * 0.56);
-  const strokeW = Math.max(6, Math.round(wasFs * 0.08));
-  const descY = numY + Math.round(numFs * 0.28) + 24;
+  // Text values (a statement rather than a numeral, e.g. "Whether she can conceive") are
+  // sized to fit: the struck line shrinks to one line, the hero wraps to at most two lines.
+  // Cormorant at 600 runs about 0.46em per glyph.
+  const PER = 0.47;
+  const fitOne = (text, fs) => Math.min(fs, Math.floor(plotW / Math.max(1, String(text).length * PER)));
+  const splitTwo = (text) => {
+    const words = String(text).split(/\s+/); if (words.length < 2) return [String(text)];
+    let best = null;
+    for (let i = 1; i < words.length; i++) {
+      const a = words.slice(0, i).join(' '), b = words.slice(i).join(' ');
+      const m = Math.max(a.length, b.length);
+      if (!best || m < best.m) best = { m, lines: [a, b] };
+    }
+    return best.lines;
+  };
+  // Label and source are pinned to the bottom of the box; the was/hero block takes the
+  // rest, sized to fill it (a text hero may wrap to two lines).
+  const lblProbe = wrapLabel(spec.label, mode, pad, 0, plotW, labelFs, color('text-primary', mode));
+  const descY = srcY - 52 - (lblProbe.lines - 1) * lblProbe.lineH;
   const lbl = wrapLabel(spec.label, mode, pad, descY, plotW, labelFs, color('text-primary', mode));
-  const srcYFinal = Math.min(descY + (lbl.lines - 1) * lbl.lineH + 52, srcY);
+  const blockBottom = descY - labelFs - 36;
+  const room = blockBottom - blockTop;
+  let heroLines = [String(spec.value)];
+  let heroFs = fitOne(spec.value, numFs);
+  if (heroFs < numFs * 0.6) {
+    heroLines = splitTwo(spec.value);
+    heroFs = Math.floor(plotW / (Math.max(...heroLines.map((l) => l.length)) * PER));
+  }
+  // Height budget: was (0.6 of hero) + gap + hero lines.
+  const byRoom = Math.floor((room - 24) / (0.6 * 1.02 + heroLines.length * 1.02));
+  heroFs = Math.max(44, Math.min(heroFs, byRoom, Math.round(Math.min(plotW * 0.34, h * 0.30)) * (heroLines.length > 1 ? 1 : 1)));
+  const wasFit = Math.max(26, fitOne(spec.was, Math.round(heroFs * 0.6)));
+  const heroLineH = Math.round(heroFs * 1.02);
+  const blockH = Math.round(wasFit * 1.02) + 24 + heroLines.length * heroLineH;
+  const top = blockTop + Math.max(0, Math.floor((room - blockH) / 2));
+  const wasY2 = top + Math.round(wasFit * 0.72);
+  const numY2 = wasY2 + Math.round(wasFit * 0.3) + 24 + Math.round(heroFs * 0.72);
+  const strikeY = wasY2 - Math.round(wasFit * 0.32);
+  const wasW = Math.round(String(spec.was).length * wasFit * 0.44);
+  const strokeW = Math.max(6, Math.round(wasFit * 0.08));
+  const heroSvg = heroLines.map((l, i) => `<text x="${pad}" y="${numY2 + i * heroLineH}" class="num" font-size="${heroFs}" font-weight="600" fill="${color('purple-700', mode)}">${escapeXml(l)}</text>`).join('');
   const body = eyebrow(spec, mode, pad, eyebrowY)
-    + `<text x="${pad}" y="${wasY}" class="num" font-size="${wasFs}" font-weight="600" fill="${grey}">${escapeXml(spec.was)}</text>`
+    + `<text x="${pad}" y="${wasY2}" class="num" font-size="${wasFit}" font-weight="600" fill="${grey}">${escapeXml(spec.was)}</text>`
     + `<line x1="${pad - 4}" y1="${strikeY}" x2="${pad + wasW}" y2="${strikeY}" stroke="${grey}" stroke-width="${strokeW}"/>`
-    + `<text x="${pad}" y="${numY}" class="num" font-size="${numFs}" font-weight="600" fill="${color('purple-700', mode)}">${escapeXml(spec.value)}</text>`
+    + heroSvg
     + lbl.svg
-    + provenance(spec, mode, pad, srcYFinal, plotW);
+    + provenance(spec, mode, pad, srcY, plotW);
   return { body, alt };
 }
 
