@@ -159,6 +159,18 @@ const metaDescription = synopsisText.tldr
 // <title> and og:title lead with the AEO synopsis title when one is approved;
 // the paper title stays in the h1, citation_title meta and JSON-LD headline.
 const pageTitle = synopsisText.title || article.title;
+// Citation shorthand for site search. The infographic footer and every share caption read
+// "<Surname> et al. <year>, PMID <n>"; a visitor who has only the image types exactly that,
+// and Pagefind requires every token, so the literal string must exist on the page.
+const firstAuthorSurname = (() => {
+  const first = String(article.authors || '').split(',')[0].trim();
+  if (!first) return '';
+  const words = first.split(/\s+/).filter((w) => !/^[A-Z]{1,3}\.?$/.test(w));
+  return words.join(' ');
+})();
+const citationShorthand = firstAuthorSurname && article.year
+  ? `${firstAuthorSurname} et al. ${article.year}, ${firstAuthorSurname} ${article.year}`
+  : '';
 
 // Build DOI URL
 const doiUrl = article.doi ? `https://doi.org/${article.doi}` : '';
@@ -458,10 +470,11 @@ const citationMeta = {
         </div>
       )}
 
-      {(article.pmid || article.doi) && (
+      {(article.pmid || article.doi || citationShorthand) && (
         <div data-pagefind-weight="10" style="position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0,0,0,0)">
           {article.pmid && `PMID ${article.pmid} ${article.pmid}`}
           {article.doi && `DOI ${article.doi} ${article.doi}`}
+          {citationShorthand && ` ${citationShorthand}`}
         </div>
       )}
 
@@ -655,10 +668,11 @@ const citationMeta = {
         </div>
       )}
 
-      {(article.pmid || article.doi) && (
+      {(article.pmid || article.doi || citationShorthand) && (
         <div data-pagefind-weight="10" style="position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0,0,0,0)">
           {article.pmid && `PMID ${article.pmid} ${article.pmid}`}
           {article.doi && `DOI ${article.doi} ${article.doi}`}
+          {citationShorthand && ` ${citationShorthand}`}
         </div>
       )}
 
