@@ -347,7 +347,7 @@ const DISCLAIMER_HTML = `This content is for educational and reference purposes 
                     <dt>Diagnostic standard</dt>
                     <dd>{c.diagnosis_standard}</dd>
                     <dt>Treatment</dt>
-                    <dd>{c.treatment}</dd>
+                    <dd set:html={c.treatment_html || c.treatment} />
                     <dt>Fertility link</dt>
                     <dd set:html={c.fertility_link_html} />
                   </dl>
