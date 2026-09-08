@@ -17,4 +17,4 @@
 // don't wrap+clamp under the mascot. Bump re-unfurls the corrected card.
 // v8 (2026-07-02): STUC card mascot enlarged (tight-cropped image, 430px) with
 // a shorter one-line tagline. Bump re-unfurls the bigger-Cuterus card.
-export const OG_VERSION = 'v8';
+export const OG_VERSION = 'v9';

@@ -426,14 +426,14 @@ export function stripHighlight(text) { return String(text || '').replace(/\*\*([
 function hlText(text, mode, x, y, fs, weight, fill, extra = '') {
   const raw = String(text || '');
   const parts = raw.split(/(\*\*[^*\n]+\*\*)/g).filter(Boolean);
-  const perChar = fs * (weight >= 600 ? 0.5 : 0.47);
+  const perChar = fs * (weight >= 600 ? 0.47 : 0.45);
   let cx = x, bands = '', spans = '';
   for (const part of parts) {
     const m = /^\*\*([^*\n]+)\*\*$/.exec(part);
     const t = m ? m[1] : part;
     const wEst = Math.round(t.length * perChar);
     if (m) {
-      bands += `<rect x="${cx - 4}" y="${y - Math.round(fs * 0.34)}" width="${wEst + 8}" height="${Math.round(fs * 0.44)}" rx="3" fill="${color('purple-100', mode)}"/>`;
+      bands += `<rect x="${cx - 4}" y="${y - Math.round(fs * 0.5)}" width="${wEst + 8}" height="${Math.round(fs * 0.52)}" rx="3" fill="${color('purple-100', mode)}"/>`;
     }
     spans += `<tspan>${escapeXml(t)}</tspan>`;
     cx += wEst;
