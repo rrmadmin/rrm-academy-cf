@@ -88,6 +88,10 @@ export function lintSynopsis(insights) {
     out.push({ level: 'FAIL', rule: 'title-number-needs-denominator', where: 'tldr', detail: 'title carries a number; tldr must name the population or denominator (out of / of N / among / who ...)' });
   }
 
+  // memory feedback-same-denominator-comparisons: compared shares in the tldr share one denominator.
+  const dens = [...tldr.matchAll(/\b\d+(?:\.\d+)?\s+(?:out\s+)?of\s+(\d+)\b/gi)].map((m) => m[1]);
+  if (new Set(dens).size > 1) out.push({ level: 'WARN', rule: 'mixed-denominators', where: 'tldr', detail: `shares stated out of ${[...new Set(dens)].join(' and ')}; compared arms should share one denominator (out of 10 or out of 100)` });
+
   const kf = insights.key_findings;
   if (!Array.isArray(kf)) out.push({ level: 'FAIL', rule: 'key-findings-shape', where: 'key_findings', detail: 'must be an array' });
   else {

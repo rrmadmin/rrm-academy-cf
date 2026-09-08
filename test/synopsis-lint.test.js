@@ -59,4 +59,10 @@ describe('lintSynopsis', () => {
     const r = lintSynopsis({ ...good, tldr: dense });
     assert.ok(rules(r).includes('reading-grade'));
   });
+  it('warns when compared shares in the tldr use different denominators', () => {
+    const r = lintSynopsis({ ...good, tldr: 'Without support, 10 out of 22 pregnancies were lost. With care, 7 out of 40 were lost.' });
+    assert.ok(rules(r).includes('mixed-denominators'));
+    const ok = lintSynopsis({ ...good, tldr: 'Without support, about 5 out of 10 pregnancies were lost. With care, fewer than 2 out of 10 were lost.' });
+    assert.ok(!rules(ok).includes('mixed-denominators'));
+  });
 });
