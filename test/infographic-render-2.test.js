@@ -63,3 +63,12 @@ describe('figures highlight markup', () => {
     assert.ok(svg.includes('aria-label="Family doctor first 51.2%'));
   });
 });
+
+describe('correction before/after captions', () => {
+  const spec = { template: 'correction', eyebrow: 'Unexplained', was: '23%', value: 'Less than 1%', wasLabel: 'Before RRM', valueLabel: 'After RRM', label: 'of 370 couples had no diagnosis.', source: src };
+  it('draws both captions uppercased above their values', () => {
+    const svg = renderInfographic(spec, { mode: 'standalone', aspect: '1:1' });
+    assert.ok(svg.includes('>BEFORE RRM<') && svg.includes('>AFTER RRM<'));
+    assert.ok(svg.includes('Less than 1%'));
+  });
+});

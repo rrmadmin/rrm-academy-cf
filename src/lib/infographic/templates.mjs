@@ -566,19 +566,33 @@ function renderCorrection(spec, { mode, box }) {
     heroFs = Math.floor(plotW / (Math.max(...heroLines.map((l) => l.length)) * PER));
   }
   // Height budget: was (0.6 of hero) + gap + hero lines.
-  const byRoom = Math.floor((room - 24) / (0.6 * 1.02 + heroLines.length * 1.02));
-  heroFs = Math.max(44, Math.min(heroFs, byRoom, Math.round(Math.min(plotW * 0.34, h * 0.30)) * (heroLines.length > 1 ? 1 : 1)));
-  const wasFit = Math.max(26, fitOne(spec.was, Math.round(heroFs * 0.6)));
+  // Optional small captions above each value ("Before RRM" / "After RRM") turn the strike-out
+  // into a before/after reading instead of a myth/truth one.
+  const short = h / w < 0.7;
+  const capText = short ? 24 : 30;
+  const wasCap = spec.wasLabel ? capText + 14 : 0;
+  const valCap = spec.valueLabel ? capText + 14 : 0;
+  const byRoom = Math.floor((room - 24 - wasCap - valCap) / ((/^[\d.,%]+$/.test(String(spec.was)) ? 0.85 : 0.6) * 1.02 + heroLines.length * 1.02));
+  // A short numeral hero ("1%", "8%") may run larger than a text hero; the room budget still binds.
+  const capFs = String(spec.value).length <= 4 ? Math.round(Math.min(plotW * 0.5, h * 0.42)) : Math.round(Math.min(plotW * 0.34, h * 0.30));
+  heroFs = Math.max(44, Math.min(heroFs, byRoom, capFs));
+  // A numeric struck value keeps near-parity with the hero so the change reads as one pair.
+  const wasRatio = /^[\d.,%]+$/.test(String(spec.was)) ? 0.85 : 0.6;
+  const wasFit = Math.max(26, fitOne(spec.was, Math.round(heroFs * wasRatio)));
   const heroLineH = Math.round(heroFs * 1.02);
-  const blockH = Math.round(wasFit * 1.02) + 24 + heroLines.length * heroLineH;
+  const blockH = wasCap + Math.round(wasFit * 1.02) + 24 + valCap + heroLines.length * heroLineH;
   const top = blockTop + Math.max(0, Math.floor((room - blockH) / 2));
-  const wasY2 = top + Math.round(wasFit * 0.72);
-  const numY2 = wasY2 + Math.round(wasFit * 0.3) + 24 + Math.round(heroFs * 0.72);
-  const strikeY = wasY2 - Math.round(wasFit * 0.32);
+  const wasY2 = top + wasCap + Math.round(wasFit * 0.72);
+  const numY2 = wasY2 + Math.round(wasFit * 0.3) + 24 + valCap + Math.round(heroFs * 0.72);
+  // Cormorant numerals are old-style (short), so the strike sits lower than for text.
+  const strikeY = wasY2 - Math.round(wasFit * (/^[\d.,%]+$/.test(String(spec.was)) ? 0.22 : 0.32));
   const wasW = Math.round(String(spec.was).length * wasFit * 0.44);
   const strokeW = Math.max(6, Math.round(wasFit * 0.08));
   const heroSvg = heroLines.map((l, i) => `<text x="${pad}" y="${numY2 + i * heroLineH}" class="num" font-size="${heroFs}" font-weight="600" fill="${color('purple-700', mode)}">${escapeXml(l)}</text>`).join('');
+  const capEl = (text, baseline) => text ? `<text x="${pad}" y="${baseline}" font-size="${capText}" font-weight="600" letter-spacing="2" fill="${color('text-secondary', mode)}">${escapeXml(String(text).toUpperCase())}</text>` : '';
   const body = eyebrow(spec, mode, pad, eyebrowY)
+    + capEl(spec.wasLabel, wasY2 - Math.round(wasFit * 0.72) - 14)
+    + capEl(spec.valueLabel, numY2 - Math.round(heroFs * 0.72) - 14)
     + `<text x="${pad}" y="${wasY2}" class="num" font-size="${wasFit}" font-weight="600" fill="${grey}">${escapeXml(spec.was)}</text>`
     + `<line x1="${pad - 4}" y1="${strikeY}" x2="${pad + wasW}" y2="${strikeY}" stroke="${grey}" stroke-width="${strokeW}"/>`
     + heroSvg

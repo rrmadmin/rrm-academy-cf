@@ -70,6 +70,7 @@ export function validateSpec(spec) {
     if (!nonEmpty(spec.was)) push('correction.was required (the prior/assumed value to strike out)');
     if (!nonEmpty(spec.value)) push('correction.value required (the corrected value)');
     if (!nonEmpty(spec.label)) push('correction.label required');
+    for (const k of ['wasLabel', 'valueLabel']) if (spec[k] !== undefined && (typeof spec[k] !== 'string' || spec[k].length > 24)) push(`${k} must be a string of at most 24 chars`);
   } else if (spec.template === 'delta') {
     if (!nonEmpty(spec.value)) push('delta.value required');
     if (!nonEmpty(spec.label)) push('delta.label required');

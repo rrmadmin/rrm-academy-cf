@@ -33,6 +33,8 @@
  * @property {number} [denominator]
  * @property {'woman'|'man'|'couple'} [icon]
  * @property {string} [was]
+ * @property {string} [wasLabel]   correction: small caption above the struck value ("Before RRM")
+ * @property {string} [valueLabel] correction: small caption above the hero ("After RRM")
  * @property {string} [headline]
  * @property {string} [subhead]
  */
