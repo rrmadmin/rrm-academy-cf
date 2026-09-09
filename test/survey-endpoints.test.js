@@ -278,7 +278,10 @@ describe('survey/event', () => {
       assert.equal(res.status, 204);
       assert.equal(res.headers.get('Access-Control-Allow-Origin'), 'https://rrmacademy.org');
       assert.equal(ctx.writes.length, 1);
-      assert.deepEqual(ctx.writes[0].blobs, ['survey', 'survey_event', action, 'mobile', '']);
+      // blob1 is the worker name since 2026-09-09, so the 'survey' family is
+      // the event, the action is the action (and so still the index), and the
+      // device bucket left the status column for the detail.
+      assert.deepEqual(ctx.writes[0].blobs, ['rrm-academy', 'survey', action, 'ok', 'device=mobile']);
       assert.deepEqual(ctx.writes[0].doubles, [0, 0, 390]);
       assert.deepEqual(ctx.writes[0].indexes, [action]);
     }
@@ -288,13 +291,19 @@ describe('survey/event', () => {
     for (const [width, expected] of [[768, 'mobile'], [769, 'tablet'], [1024, 'tablet'], [1025, 'desktop']]) {
       const ctx = eventContext({ body: { action: 'calculate', viewport_width: width } });
       await eventRoute.onRequestPost(ctx);
-      assert.equal(ctx.writes[0].blobs[3], expected, `viewport ${width} should bucket as ${expected}`);
+      assert.equal(ctx.writes[0].blobs[4], `device=${expected}`, `viewport ${width} should bucket as ${expected}`);
     }
   });
 
-  it('answers 500 internal_error when the Analytics Engine write throws', async () => {
-    // Only the event write fails; the catch block's own log() write succeeds,
-    // which is the path that reaches the documented error contract.
+  it('still answers 204 when the Analytics Engine write throws', async () => {
+    // This used to assert a 500. The write was unguarded, so a bad data point
+    // took the whole request down with it, and the endpoint answered
+    // internal_error to a browser whose beacon was fine.
+    //
+    // The report package swallows a throwing binding by construction: an AE
+    // write must never be why a request fails. The beacon is telemetry about
+    // telemetry, and dropping one row is strictly better than failing the
+    // caller over it.
     let calls = 0;
     const ctx = eventContext({
       env: {
@@ -304,32 +313,23 @@ describe('survey/event', () => {
       },
     });
     const res = await eventRoute.onRequestPost(ctx);
-    const parsed = await parseResponse(res);
-    assert.equal(parsed.status, 500);
-    assert.deepEqual(parsed.body, { error: 'internal_error' });
-    assert.ok(!JSON.stringify(parsed.body).includes('over quota'), 'internal detail must not reach the client');
+    assert.equal(res.status, 204);
     assert.equal(res.headers.get('Access-Control-Allow-Origin'), 'https://rrmacademy.org');
   });
 
-  it('KNOWN DEFECT: a persistently failing Analytics Engine binding escapes the error handler', async () => {
-    // functions/api/_log.js calls env.EVENTS.writeDataPoint() unguarded, and
-    // survey/event.js's catch block calls log() before building its 500. So
-    // when the binding itself is broken (rather than one bad data point) the
-    // SECOND write throws out of the catch and the handler rejects instead of
-    // returning { error: 'internal_error' } with CORS headers -- in production
-    // the browser sees an opaque platform 500 with no Access-Control headers,
-    // i.e. a CORS error rather than a clean failure.
-    //
-    // Pinned, not asserted away: the fix belongs in _log.js (wrap the
-    // writeDataPoint call), which is a change to a module every endpoint
-    // imports and is out of scope for a coverage tranche. When it is fixed,
-    // this test flips to the contract assertion above.
+  it('a persistently failing Analytics Engine binding no longer escapes the handler', async () => {
+    // The KNOWN DEFECT this test used to pin: _log.js called writeDataPoint
+    // unguarded, so a broken binding threw a SECOND time out of the catch
+    // block and the handler rejected. In production the browser saw an opaque
+    // platform 500 with no Access-Control headers, a CORS error rather than a
+    // clean failure. The note said the fix belonged in _log.js and that this
+    // test would flip when it landed. It landed on 2026-09-09: _log.js is an
+    // adapter over the report package, whose whole failure posture is that an
+    // AE write returns false and never throws.
     const ctx = eventContext({ env: { EVENTS: { writeDataPoint() { throw new Error('AE binding unavailable'); } } } });
-    await assert.rejects(
-      () => eventRoute.onRequestPost(ctx),
-      /AE binding unavailable/,
-      'if this now resolves, _log.js was hardened -- assert the 500 contract instead'
-    );
+    const res = await eventRoute.onRequestPost(ctx);
+    assert.equal(res.status, 204);
+    assert.equal(res.headers.get('Access-Control-Allow-Origin'), 'https://rrmacademy.org');
   });
 });
 
@@ -354,23 +354,25 @@ describe('survey/event -- production defaults (no env override in play)', () => 
   it('logs "internal" when the thrown value carries no message', async () => {
     // A non-Error throw (a bare string, a rejected worker binding) has no
     // .message, so the `|| 'internal'` arm is what actually reaches telemetry.
+    //
+    // The throw used to come from the Analytics Engine binding. It cannot any
+    // more, because the report package swallows that, so it comes from the
+    // request instead: a header read is the first thing the handler does.
     const logged = [];
-    let calls = 0;
-    const env = mockEnv({
-      EVENTS: {
-        writeDataPoint(dp) {
-          if (calls++ === 0) throw 'binding blew up'; // eslint-disable-line no-throw-literal
-          logged.push(dp);
-        },
+    const env = mockEnv({ EVENTS: { writeDataPoint(dp) { logged.push(dp); } } });
+    const hostileRequest = mockRequest('POST', {
+      body: { action: 'calculate', viewport_width: 1200 },
+      headers: { 'cf-connecting-ip': randomIp(), 'User-Agent': 'Mozilla/5.0' },
+    });
+    Object.defineProperty(hostileRequest, 'headers', {
+      get() {
+        return { get() { throw 'binding blew up'; } }; // eslint-disable-line no-throw-literal
       },
     });
     const parsed = await parseResponse(await eventRoute.onRequestPost({
       env,
       waitUntil: mockWaitUntil(),
-      request: mockRequest('POST', {
-        body: { action: 'calculate', viewport_width: 1200 },
-        headers: { 'cf-connecting-ip': randomIp(), 'User-Agent': 'Mozilla/5.0' },
-      }),
+      request: hostileRequest,
     }));
     assert.equal(parsed.status, 500);
     assert.equal(logged.length, 1);

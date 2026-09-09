@@ -4,6 +4,7 @@
  * Fail-open: if the binding is missing or the insert throws, swallows the error silently.
  * Logging failure must never break the caller's response path.
  */
+import { r } from '../_report.js';
 
 export async function hashIp(ip) {
   if (!ip) return null;
@@ -68,11 +69,7 @@ export async function logSearchQuery(env, {
     // logKvFailure (auth/_shared.js): blob1 'rrm-academy', event, action,
     // status, detail.
     try {
-      env.EVENTS?.writeDataPoint({
-        blobs: ['rrm-academy', 'search', 'search_log_dropped', 'error', String(err?.message || err).slice(0, 200)],
-        doubles: [0, 1, 0],
-        indexes: ['search_log_dropped'],
-      });
+      r.event(env, 'search', 'search_log_dropped', 'error', String(err?.message || err));
     } catch {
       // AE write failure must never break the response path either.
     }
@@ -131,11 +128,7 @@ export async function logAskAnswer(env, {
     // Same fail-open + surface-to-Analytics-Engine posture as
     // logSearchQuery()'s catch above.
     try {
-      env.EVENTS?.writeDataPoint({
-        blobs: ['rrm-academy', 'ask', 'ask_answer_dropped', 'error', String(err?.message || err).slice(0, 200)],
-        doubles: [0, 1, 0],
-        indexes: ['ask_answer_dropped'],
-      });
+      r.event(env, 'ask', 'ask_answer_dropped', 'error', String(err?.message || err));
     } catch {
       // AE write failure must never break the response path either.
     }

@@ -98,8 +98,12 @@ describe('POST /api/track -- happy path', () => {
       assert.equal(ctx.ae.calls.length, 1, 'Analytics Engine writeDataPoint must be called once');
       const dp = ctx.ae.calls[0];
       assert.ok(Array.isArray(dp.blobs), 'writeDataPoint must have blobs array');
-      assert.equal(dp.blobs[0], 'track', 'first blob must be "track" dataset marker');
-      assert.equal(dp.blobs[1], 'scroll_depth', 'second blob must be the event name');
+      // blob1 is the worker name since 2026-09-09; the 'track' family moved
+      // one place right into the event column, which is where the observatory
+      // reads a subsystem name. The index is untouched.
+      assert.equal(dp.blobs[0], 'rrm-academy', 'first blob must be the worker name');
+      assert.equal(dp.blobs[1], 'track', 'second blob must be the "track" family');
+      assert.equal(dp.blobs[2], 'scroll_depth', 'third blob must be the event name');
       assert.ok(Array.isArray(dp.indexes), 'writeDataPoint must have indexes array');
       assert.equal(dp.indexes[0], 'scroll_depth', 'index must be the event name');
       // Drain the queued sendGA4Event promise before restoring fetch, so its
@@ -409,8 +413,9 @@ describe('POST /api/track -- PII and reserved param stripping', () => {
       assert.equal(res.status, 204);
       assert.equal(ctx.ae.calls.length, 1);
       const dp = ctx.ae.calls[0];
-      assert.equal(dp.blobs[2], 'organic', 'valid enum entry_category hint must reach the AE write despite being a reserved param');
-      assert.equal(dp.blobs[3], 'mobile', 'valid enum device_type hint must reach the AE write despite being a reserved param');
+      // Both hints used to be their own blobs, one of them in the status
+      // column. They share the detail now, in the same order.
+      assert.equal(dp.blobs[4], 'organic mobile', 'both enum hints must reach the AE write despite being reserved params');
     } finally { restore(); }
   });
 
@@ -426,8 +431,7 @@ describe('POST /api/track -- PII and reserved param stripping', () => {
       const res = await onRequestPost(ctx);
       assert.equal(res.status, 204);
       const dp = ctx.ae.calls[0];
-      assert.equal(dp.blobs[2], '', 'entry_category hint outside the fixed enum (PII-looking value) must become empty string');
-      assert.equal(dp.blobs[3], '', 'device_type hint outside the fixed enum (arbitrary client string) must become empty string');
+      assert.equal(dp.blobs[4], '', 'a hint outside the fixed enum (PII-looking value, arbitrary client string) must reach no blob at all');
     } finally { restore(); }
   });
 
@@ -443,8 +447,7 @@ describe('POST /api/track -- PII and reserved param stripping', () => {
       const res = await onRequestPost(ctx);
       assert.equal(res.status, 204);
       const dp = ctx.ae.calls[0];
-      assert.equal(dp.blobs[2], '', 'entry_category hint must be empty string when absent');
-      assert.equal(dp.blobs[3], '', 'device_type hint must be empty string when absent');
+      assert.equal(dp.blobs[4], '', 'the hint detail must be empty when both hints are absent');
     } finally { restore(); }
   });
 });
@@ -658,7 +661,8 @@ describe('POST /api/track -- bot short-circuit', () => {
       assert.equal(res.status, 204, 'bot short-circuit must still return the normal 204 success shape');
       assert.equal(ctx.waitUntil.promises.length, 0, 'no GA4 call for a datacenter-ASN request');
       assert.equal(ctx.ae.calls.length, 1, 'a cheap bot_skipped AE counter event is written, not the normal event');
-      assert.equal(ctx.ae.calls[0].blobs[1], 'bot_skipped');
+      assert.equal(ctx.ae.calls[0].blobs[1], 'track');
+      assert.equal(ctx.ae.calls[0].blobs[2], 'bot_skipped');
     } finally { restore(); }
   });
 });
@@ -834,7 +838,7 @@ describe('POST /api/track -- beacon attribution forwarding', () => {
       const res = await onRequestPost(ctx);
       assert.equal(res.status, 204);
       assert.equal(ctx.ae.calls.length, 1);
-      assert.equal(ctx.ae.calls[0].blobs[2], 'paid', 'paid must be a valid AE entry_category hint');
+      assert.equal(ctx.ae.calls[0].blobs[4], 'paid', 'paid must be a valid AE entry_category hint');
       await Promise.all(ctx.waitUntil.promises);
     } finally { restore(); }
   });

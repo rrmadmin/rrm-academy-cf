@@ -16,6 +16,7 @@ import { parseClientIdentity } from './_ga4-source.js';
 import { ALLOWED_CLIENT_EVENTS, REQUIRED_PARAMS, PII_REGEX, PII_VALUE_REGEX, RESERVED_PARAMS, LONG_PARAM_LIMITS, URL_SHAPED_LONG_PARAMS, isDigitRunOnlyMatch } from './_track-events.js';
 import { log } from './_log.js';
 import { isBotRequest } from './_bot.js';
+import { r } from '../_report.js';
 
 const EVENT_NAME_RE = /^[a-z][a-z0-9_]{0,39}$/;
 const PARAM_KEY_RE  = /^[a-z][a-z0-9_]{0,39}$/;
@@ -80,11 +81,8 @@ export async function onRequestPost(context) {
     // cloud-provider ASN -- catches browser-UA crawls hosted on cloud IP
     // ranges that UA filtering alone misses).
     if (isBotRequest(request)) {
-      env.EVENTS?.writeDataPoint({
-        blobs: ['track', 'bot_skipped', '', '', ''],
-        doubles: [0],
-        indexes: ['bot_skipped'],
-      });
+      // Was blob1='track', a subsystem in the worker-name column.
+      r.event(env, 'track', 'bot_skipped', 'ok', '', { count: 0 });
       return new Response(null, { status: 204, headers: CORS_HEADERS });
     }
 
@@ -250,11 +248,11 @@ export async function onRequestPost(context) {
 
     // Optional-chained AE write: silently no-ops if binding missing.
     // Pattern matches _log.js / create-checkout.js / ask.js.
-    env.EVENTS?.writeDataPoint({
-      blobs: ['track', event, entryCategoryHint, deviceTypeHint, ''],
-      doubles: [canonicalNumeric ?? 0],
-      indexes: [event],
-    });
+    // Was blob1='track' with the device-type hint in the status column. Both
+    // hints keep their meaning in the detail, and the event stays the index.
+    r.event(env, 'track', event, 'ok',
+      [entryCategoryHint, deviceTypeHint].filter(Boolean).join(' '),
+      { doubles: [canonicalNumeric ?? 0, 1, 0] });
 
     return new Response(null, { status: 204, headers: CORS_HEADERS });
 

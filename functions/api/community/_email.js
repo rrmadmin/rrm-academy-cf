@@ -8,6 +8,7 @@ import { SITE_URL } from '../auth/_shared.js';
 import { STUC_MEMBER_WHERE } from './_shared.js';
 import { log } from '../_log.js';
 import { greetingLine } from '../_greeting.js';
+import { r } from '../../_report.js';
 
 const EVENT_SHARE_LINK_RECIPIENTS = ['naomimwhittaker@gmail.com'];
 
@@ -314,7 +315,11 @@ export async function notifyNewPost(env, db, post, authorName, now = Date.now())
   });
   const successCount = results.filter(r => r.status === 'fulfilled').length;
   const totalCount = results.length;
-  if (env.EVENTS) env.EVENTS.writeDataPoint({ blobs: ['rrm-academy', 'community', 'stuc_blast_result', String(post.id)], doubles: [totalCount, successCount, totalCount - successCount], indexes: ['stuc_blast_result'] });
+  // blob4 used to be the post id, sitting in the status column. The counts
+  // are untouched in the doubles, which is where the blast result is read.
+  r.event(env, 'community', 'stuc_blast_result',
+    successCount === totalCount ? 'ok' : 'warn', `post=${post.id}`,
+    { doubles: [totalCount, successCount, totalCount - successCount] });
 
   results.forEach((r, i) => {
     if (r.status === 'rejected') {

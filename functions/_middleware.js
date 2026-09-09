@@ -12,6 +12,7 @@
  * not here (avoids loading the 500KB redirect map on every request).
  */
 import { getSessionIdFromCookie, validateSession, sessionCookie, authHintCookie, clearAuthHintCookie } from './api/auth/_shared.js';
+import { r } from './_report.js';
 
 const ARRIVL_ENDPOINT = 'https://arrivl.ai/api/v1/intake/pageview';
 
@@ -260,17 +261,14 @@ async function sendAiBotEvent(request, env) {
   ) return;
 
   try {
-    env.EVENTS?.writeDataPoint({
-      blobs: [
-        'ai-bot',
-        botName,
-        url.pathname.slice(0, 256),
-        request.cf?.country || 'XX',
-        (request.headers.get('Referer') || '').slice(0, 1024),
-      ],
-      doubles: [1],
-      indexes: [botName],
-    });
+    // Was blob1='ai-bot' with the country code sitting in blob4, which is the
+    // status column: a row the observatory could neither attribute to a worker
+    // nor read a health signal from. The bot name stays the index, which is the
+    // dimension the crawl breakdown slices on.
+    const referer = (request.headers.get('Referer') || '').slice(0, 120);
+    r.event(env, 'ai_bot', botName, 'ok',
+      `${request.cf?.country || 'XX'} ${url.pathname.slice(0, 256)}${referer ? ` ref=${referer}` : ''}`,
+      { count: 1 });
   } catch {
     // Silent -- never let analytics failures affect the user
   }
@@ -336,19 +334,33 @@ function shouldCanonicalize(pathname) {
  * the tail. The router keeps stripping that header for apex traffic, exactly
  * as before.
  */
+// r.wrap() adapted to the Pages Functions signature. It is WRAPPED, not
+// replaced: the branded 500 below is the same net the preview branch used to
+// carry, and it still answers every throw out of handleRequest. What the
+// wrapper adds is the two rows the observatory needs and neither the platform
+// nor this file was writing: `[rrm-academy, handler, start, ok, fetch]` once
+// per isolate, which is the only thing that distinguishes a healthy worker
+// from a dead one when nothing else has anything to say, and one
+// `[rrm-academy, handler, onRequest, error, <message>]` for an uncaught throw,
+// which used to reach nobody at all.
+//
+// The inner function swallows its own throw so the branded page survives, so
+// the wrapper's own catch never fires and the error row is written here.
+const wrappedHandleRequest = r.wrap({
+  fetch: async (context) => {
+    try {
+      return await handleRequest(context);
+    } catch (err) {
+      r.error(context.env, 'handler', 'onRequest', err);
+      return withSecurityHeaders(await render500Page(context, context.request));
+    }
+  },
+});
+
 export async function onRequest(context) {
   const entryUrl = new URL(context.request.url);
   const isPreviewHost = entryUrl.hostname.endsWith('.pages.dev');
-  let response;
-  try {
-    response = await handleRequest(context);
-  } catch {
-    // The deleted preview branch carried this exact net for context.next();
-    // it now covers every throw out of the whole handler, on every host, so
-    // an unexpected failure renders the branded 500 with security headers
-    // instead of the platform's raw error page.
-    response = withSecurityHeaders(await render500Page(context, context.request));
-  }
+  let response = await wrappedHandleRequest.fetch(context, context.env, context);
   // Applied at the outermost wrap, on the entry URL, so it covers every branch
   // handleRequest can take -- including the ones that return before
   // context.next() ever runs and the 500 net above.

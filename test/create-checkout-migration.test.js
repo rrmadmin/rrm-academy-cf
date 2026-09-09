@@ -131,9 +131,11 @@ describe('create-checkout migration handoff (Phase 3.1)', () => {
   });
 
   it('logs trial-end-out-of-range AE event with EVENTS binding', () => {
+    // Every AE write in this repo goes through the vendored report package
+    // since 2026-09-09; the reporter call is what a raw writeDataPoint pinned.
     assert.ok(
-      /env\.EVENTS\?\.writeDataPoint|env\.EVENTS\.writeDataPoint/.test(source),
-      'AE binding is env.EVENTS (not WORKER_EVENTS)'
+      /\br\.event\(env,/.test(source),
+      'AE rows must be written through the report package reporter (functions/_report.js)'
     );
     assert.ok(
       /'trial-end-out-of-range'/.test(source),
@@ -325,7 +327,7 @@ describe('create-checkout: canary requests never touch the Wix migration handoff
   it('the cold-checkout Analytics Engine write is also gated on !isCanary', () => {
     assert.ok(
       /else if\s*\(\s*stucV2\s*&&\s*!isCanary\s*\)\s*\{/.test(source),
-      'the stucV2 cold-checkout writeDataPoint branch must additionally check !isCanary so canary probes never inject synthetic \'anon\' rows into the migration-funnel dataset'
+      'the stucV2 cold-checkout reporter branch must additionally check !isCanary so canary probes never inject synthetic \'anon\' rows into the migration-funnel dataset'
     );
   });
 });

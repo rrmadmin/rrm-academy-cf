@@ -27,6 +27,7 @@ import { sendTracked } from '../newsletter/_mail.js';
 import { greetingLine } from '../_greeting.js';
 import { isJoinDenied, maskEmailForLog } from './_join-denylist.js';
 import { sendGoogleAdsValueConversion, resolveValueActionIds } from '../_google-ads.js';
+import { r } from '../../_report.js';
 
 // Monthly tier price fallback, used only when session.amount_total is 0 or missing
 // (Stripe has not billed the first invoice yet). Mirrors stucTierCentsFallback in the
@@ -168,11 +169,8 @@ export async function handleCheckoutCompleted(db, event, env, request, waitUntil
     const stucContextDonation = session.mode === 'payment' && session.metadata?.stuc_context === '1';
     if (isJoinDenied(checkoutEmail) && (session.mode === 'subscription' || stucContextDonation)) {
       await reverseJoinDenylistCheckout(session, env, waitUntil);
-      env.EVENTS?.writeDataPoint({
-        blobs: ['billing', 'join-denylist', 'webhook-cancelled',
-          session.subscription || session.payment_intent || session.id, ''],
-        indexes: ['join-denylist-cancelled'],
-      });
+      r.event(env, 'billing', 'join-denylist-cancelled', 'warn',
+        `webhook-cancelled ${session.subscription || session.payment_intent || session.id}`);
       log(env, waitUntil, 'billing', 'join_denylist_webhook_cancel', 'warn',
         `session=${session.id} email=${maskEmailForLog(checkoutEmail)}`);
       return null;
@@ -585,23 +583,17 @@ export async function handleCheckoutCompleted(db, event, env, request, waitUntil
 
         if (!wixRow) {
           // Token referenced a row that doesn't exist -- log and fall through to email-match.
-          env.EVENTS?.writeDataPoint({
-            blobs: ['billing', 'stuc-migration', 'metadata-row-missing', wixSubIdMeta, ''],
-            indexes: ['metadata-row-missing'],
-          });
+          r.event(env, 'billing', 'metadata-row-missing', 'warn',
+            `stuc-migration ${wixSubIdMeta}`);
         } else if (wixRow.stripe_subscription_id) {
           // Already migrated. Benign if Stripe is replaying the same event (same sub ID).
           // If a different session.subscription is arriving, the donor has two active Stripe subs.
           if (wixRow.stripe_subscription_id === session.subscription) {
-            env.EVENTS?.writeDataPoint({
-              blobs: ['billing', 'stuc-migration', 'metadata-duplicate-webhook', wixSubIdMeta, session.subscription || ''],
-              indexes: ['metadata-duplicate-webhook'],
-            });
+            r.event(env, 'billing', 'metadata-duplicate-webhook', 'ok',
+              `stuc-migration ${wixSubIdMeta} ${session.subscription || ''}`);
           } else {
-            env.EVENTS?.writeDataPoint({
-              blobs: ['billing', 'stuc-migration', 'metadata-duplicate-stripe-sub', wixSubIdMeta, session.subscription || ''],
-              indexes: ['metadata-duplicate-stripe-sub'],
-            });
+            r.event(env, 'billing', 'metadata-duplicate-stripe-sub', 'warn',
+              `stuc-migration ${wixSubIdMeta} ${session.subscription || ''}`);
             const email = (session.customer_details?.email || session.customer_email || '').toLowerCase().trim().replace(/[\r\n]/g, '');
             if (env.AWS_ACCESS_KEY_ID) {
               waitUntil(sendEmailSafe(env, waitUntil, {
@@ -649,10 +641,8 @@ export async function handleCheckoutCompleted(db, event, env, request, waitUntil
             // the 15-minute sweep to reclaim.
             log(env, waitUntil, 'billing', 'metadata_stripe_retrieve_fail', 'error',
               `${wixSubIdMeta}: ${stripeReadErr.message}`);
-            env.EVENTS?.writeDataPoint({
-              blobs: ['billing', 'stuc-migration', 'stripe-retrieve-error', wixSubIdMeta, session.subscription || ''],
-              indexes: ['stripe-retrieve-error'],
-            });
+            r.event(env, 'billing', 'stripe-retrieve-error', 'error',
+              `stuc-migration ${wixSubIdMeta} ${session.subscription || ''}`);
             stripeReadFailed = true;
           }
 
@@ -671,10 +661,8 @@ export async function handleCheckoutCompleted(db, event, env, request, waitUntil
               "WHERE wix_subscription_id = ? AND stripe_subscription_id IS NULL"
             ).bind(wixSubIdMeta).run();
 
-            env.EVENTS?.writeDataPoint({
-              blobs: ['billing', 'stuc-migration', 'stripe-sub-not-ready', wixSubIdMeta, stripeSubStatus || 'unknown'],
-              indexes: ['stripe-sub-not-ready'],
-            });
+            r.event(env, 'billing', 'stripe-sub-not-ready', 'warn',
+              `stuc-migration ${wixSubIdMeta} ${stripeSubStatus || 'unknown'}`);
             log(env, waitUntil, 'billing', 'metadata_handoff_deferred', 'info',
               `${wixSubIdMeta}: Stripe sub status=${stripeSubStatus} (not active/trialing); skipping UPDATE`);
 
@@ -695,10 +683,8 @@ export async function handleCheckoutCompleted(db, event, env, request, waitUntil
 
             if ((upd.meta?.changes ?? 0) === 0) {
               // Lost the race (another retry beat us). Log and treat as handled.
-              env.EVENTS?.writeDataPoint({
-                blobs: ['billing', 'stuc-migration', 'metadata-no-update', wixSubIdMeta, session.subscription || ''],
-                indexes: ['metadata-no-update'],
-              });
+              r.event(env, 'billing', 'metadata-no-update', 'warn',
+                `stuc-migration ${wixSubIdMeta} ${session.subscription || ''}`);
               migrationHandled = true;
             } else {
               // Send admin "cancel Wix sub" email, then mark admin_notified_at.
@@ -740,10 +726,8 @@ Wix Dashboard -> Subscriptions -> Cancel immediately (NOT end-of-cycle).`,
                   "UPDATE wix_subscription SET admin_notified_at=strftime('%s','now') WHERE wix_subscription_id=?"
                 ).bind(wixSubIdMeta).run();
 
-                env.EVENTS?.writeDataPoint({
-                  blobs: ['billing', 'stuc-migration', 'metadata-handoff-ok', wixSubIdMeta, session.subscription || ''],
-                  indexes: ['metadata-handoff-ok'],
-                });
+                r.event(env, 'billing', 'metadata-handoff-ok', 'ok',
+                  `stuc-migration ${wixSubIdMeta} ${session.subscription || ''}`);
               } catch (notifyErr) { // arise-ignore webhook-handler-swallow -- migration UPDATE already succeeded; SES admin-notify failure is recoverable via cron Sweep 2 (admin_notified_at IS NULL retry). Re-running webhook would hit idempotent-no-changes branch and miss the alert.
                 // SES failed -- log, leave admin_notified_at NULL so cron Sweep 2 retries.
                 log(env, waitUntil, 'billing', 'metadata_admin_notify_fail', 'error',
@@ -765,10 +749,8 @@ Wix Dashboard -> Subscriptions -> Cancel immediately (NOT end-of-cycle).`,
         // Metadata path threw -- log and fall through to email-match (defense in depth).
         log(env, waitUntil, 'billing', 'metadata_handoff_fail', 'error',
           `${wixSubIdMeta}: ${metaErr.message}`);
-        env.EVENTS?.writeDataPoint({
-          blobs: ['billing', 'stuc-migration', 'metadata-handoff-error', wixSubIdMeta, ''],
-          indexes: ['metadata-handoff-error'],
-        });
+        r.event(env, 'billing', 'metadata-handoff-error', 'error',
+          `stuc-migration ${wixSubIdMeta}`);
       }
     }
 
@@ -1019,10 +1001,8 @@ export async function handleCheckoutExpired(db, event, env, waitUntil) {
       "  AND migration_handoff_started_at IS NOT NULL AND migration_handoff_started_at <= ?"
     ).bind(wixSubId, sessionCreatedSec).run();
     log(env, waitUntil, 'billing', 'migration_lock_released_on_expiry', 'ok', wixSubId);
-    env.EVENTS?.writeDataPoint({
-      blobs: ['billing', 'stuc-migration', 'lock-released-session-expired', wixSubId, session.id || ''],
-      indexes: ['lock-released-session-expired'],
-    });
+    r.event(env, 'billing', 'lock-released-session-expired', 'ok',
+      `stuc-migration ${wixSubId} ${session.id || ''}`);
   } catch (err) {
     log(env, waitUntil, 'billing', 'migration_lock_release_fail', 'error', `${wixSubId}: ${err.message}`);
     // Return 500 so dispatcher rolls back webhook_event dedup; Stripe retries.

@@ -65,9 +65,16 @@ describe('webhook-checkout metadata-first gate (Phase 3.2)', () => {
   });
 
   it('logs metadata path AE events with EVENTS binding', () => {
+    // Every AE write in this repo goes through the vendored report package
+    // since 2026-09-09, so what a raw writeDataPoint used to pin, the reporter
+    // call pins now: this file must still be the thing that emits the row.
     assert.ok(
-      /env\.EVENTS\?\.writeDataPoint|env\.EVENTS\.writeDataPoint/.test(source),
-      'AE binding must be env.EVENTS (not WORKER_EVENTS)'
+      /\br\.event\(env,/.test(source),
+      'AE rows must be written through the report package reporter (functions/_report.js)'
+    );
+    assert.ok(
+      !/writeDataPoint/.test(source),
+      'no raw writeDataPoint: blob1 must be the worker name, which only the reporter guarantees'
     );
     assert.ok(
       /'metadata-handoff-ok'/.test(source),

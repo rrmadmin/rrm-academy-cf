@@ -19,6 +19,7 @@
 import { ImageResponse } from 'workers-og';
 import ogIndex from '../../src/data/og-index.json';
 import { CUTERUS_OG } from './_cuterus-image.js';
+import { r, normalizeStatus } from '../_report.js';
 
 // Brand tokens (matches scripts/og-template.js exactly)
 const BG          = '#f7f5f3';
@@ -606,11 +607,15 @@ function buildProviderTree(entry) {
 function logRender(env, slug, statusLabel, durationMs) {
   try {
     if (!env.EVENTS) return;
-    env.EVENTS.writeDataPoint({
-      blobs: ['rrm-academy', 'og_render', slug || '', statusLabel, ''],
-      doubles: [durationMs, 1, 200],
-      indexes: ['og_render'],
-    });
+    // The label is a RENDER BRANCH ('event_hit', 'fallback', 'error'), not a
+    // health status, and blob4 is the status column. So the label leads the
+    // detail and blob4 keeps to the vocabulary. The slug follows it; it used
+    // to sit in blob3, which is the action column and now carries 'og_render'
+    // so the index is the same low-cardinality constant it always was. A slug
+    // in an index would have been one AE index value per card.
+    const { status } = normalizeStatus(statusLabel);
+    r.event(env, 'og_render', 'og_render', status, `${statusLabel} ${slug || ''}`.trim(),
+      { doubles: [durationMs, 1, 200] });
   } catch {
     // Never let logging crash image delivery
   }

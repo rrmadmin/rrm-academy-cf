@@ -25,6 +25,7 @@ import {
   lookupPendingWixMigration, validateOffAmount, validateFrequency,
   acquireMigrationHandoffLock, clampTrialEnd, findBlockingActiveSubscription,
 } from './billing/_migration-handoff.js';
+import { r } from '../_report.js';
 
 // Releases the 15-min migration handoff write-lock. Must be called on every
 // return path between acquireMigrationHandoffLock() and a successful
@@ -38,10 +39,8 @@ async function releaseMigrationLock(db, wixLookup, env) {
     "UPDATE wix_subscription SET migration_handoff_started_at = NULL " +
     "WHERE wix_subscription_id = ? AND stripe_subscription_id IS NULL"
   ).bind(wixLookup.wix_subscription_id).run().catch(_releaseErr => {
-    env.EVENTS?.writeDataPoint({
-      blobs: ['billing', 'stuc-migration', 'lock-release-failed', wixLookup.wix_subscription_id, ''],
-      indexes: ['lock-release-failed'],
-    });
+    r.event(env, 'billing', 'lock-release-failed', 'error',
+      `stuc-migration ${wixLookup.wix_subscription_id}`);
   });
 }
 
@@ -177,10 +176,8 @@ async function handleCheckout(request, env, waitUntil) {
   if (mode === 'payment') {
     const stucContext = isStucContextRequest(request, entry_url, entry_referrer, campaign);
     if (isJoinDenied(userEmail) && stucContext) {
-      env.EVENTS?.writeDataPoint({
-        blobs: ['billing', 'join-denylist', 'checkout-refused', userId || 'anon', ''],
-        indexes: ['join-denylist-refused'],
-      });
+      r.event(env, 'billing', 'join-denylist-refused', 'warn',
+        `checkout-refused ${userId || 'anon'}`);
       log(env, waitUntil, 'billing', 'join_denylist_refused', 'warn',
         userId ? `user=${userId}` : `email=${maskEmailForLog(userEmail)}`);
       return json({ ok: false, error: 'Payment service temporarily unavailable. Please try again.' }, 503);
@@ -287,10 +284,8 @@ async function handleCheckout(request, env, waitUntil) {
   // --- Recurring membership ---
   if (mode === 'subscription') {
     if (isJoinDenied(userEmail)) {
-      env.EVENTS?.writeDataPoint({
-        blobs: ['billing', 'join-denylist', 'checkout-refused', userId || 'anon', ''],
-        indexes: ['join-denylist-refused'],
-      });
+      r.event(env, 'billing', 'join-denylist-refused', 'warn',
+        `checkout-refused ${userId || 'anon'}`);
       log(env, waitUntil, 'billing', 'join_denylist_refused', 'warn',
         userId ? `user=${userId}` : `email=${maskEmailForLog(userEmail)}`);
       return json({ ok: false, error: 'Payment service temporarily unavailable. Please try again.' }, 503);
@@ -318,10 +313,8 @@ async function handleCheckout(request, env, waitUntil) {
       const sessionEmail = (userEmail || '').toLowerCase().trim();
       const rowEmail = (wixLookup.email || '').toLowerCase().trim();
       if (!sessionEmail || sessionEmail !== rowEmail) {
-        env.EVENTS?.writeDataPoint({
-          blobs: ['billing', 'stuc-migration', 'wix-sub-id-binding-mismatch', userId || 'anon', wixSubIdInput],
-          indexes: ['wix-sub-id-binding-mismatch'],
-        });
+        r.event(env, 'billing', 'wix-sub-id-binding-mismatch', 'warn',
+          `stuc-migration ${userId || 'anon'} ${wixSubIdInput}`);
         log(env, waitUntil, 'billing', 'wix_sub_id_binding_mismatch', 'warn',
           `${userEmail || 'anon'} attempted wxs_${wixSubIdInput.replace(/^wxs_/, '').slice(0, 8)}...`, 0, 403);
         return json({ ok: false, error: 'This wix_sub_id does not match your account.' }, 403);
@@ -340,10 +333,8 @@ async function handleCheckout(request, env, waitUntil) {
       const offAmountBody = validateOffAmount(wixLookup);
       if (offAmountBody) {
         console.error(`BLOCKED: off-amount Wix migration wxs=${wixLookup.wix_subscription_id} amount_cents=${wixLookup.amount_cents}`);
-        env.EVENTS?.writeDataPoint({
-          blobs: ['billing', 'stuc-migration', 'off-amount-refused', wixLookup.wix_subscription_id, String(wixLookup.amount_cents)],
-          indexes: ['off-amount-refused'],
-        });
+        r.event(env, 'billing', 'off-amount-refused', 'error',
+          `stuc-migration ${wixLookup.wix_subscription_id} ${wixLookup.amount_cents}`);
         log(env, waitUntil, 'billing', 'off_amount_refused', 'error',
           `wxs=${wixLookup.wix_subscription_id} amount_cents=${wixLookup.amount_cents}`, 0, 409);
         return json(offAmountBody, 409);
@@ -352,10 +343,8 @@ async function handleCheckout(request, env, waitUntil) {
       const frequencyBody = validateFrequency(wixLookup);
       if (frequencyBody) {
         console.error(`BLOCKED: non-monthly Wix migration wxs=${wixLookup.wix_subscription_id} frequency=${wixLookup.frequency}`);
-        env.EVENTS?.writeDataPoint({
-          blobs: ['billing', 'stuc-migration', 'unsupported-frequency-refused', wixLookup.wix_subscription_id, String(wixLookup.frequency)],
-          indexes: ['unsupported-frequency-refused'],
-        });
+        r.event(env, 'billing', 'unsupported-frequency-refused', 'error',
+          `stuc-migration ${wixLookup.wix_subscription_id} ${wixLookup.frequency}`);
         log(env, waitUntil, 'billing', 'unsupported_frequency_refused', 'error',
           `wxs=${wixLookup.wix_subscription_id} frequency=${wixLookup.frequency}`, 0, 409);
         return json(frequencyBody, 409);
@@ -374,10 +363,8 @@ async function handleCheckout(request, env, waitUntil) {
         migration_handoff: 'true',
       };
     } else if (stucV2 && !isCanary) {
-      env.EVENTS?.writeDataPoint({
-        blobs: ['billing', 'stuc-migration', 'cold-checkout', userId || 'anon', wixSubId || ''],
-        indexes: ['cold-checkout'],
-      });
+      r.event(env, 'billing', 'cold-checkout', 'ok',
+        `stuc-migration ${userId || 'anon'} ${wixSubId || ''}`);
     }
 
     // --- Tier resolution: fall back to wixLookup.tier when no tier sent ---

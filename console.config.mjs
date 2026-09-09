@@ -25,5 +25,5 @@ export default {
   console: 'rrm-academy-cf',
   canonicalHost: 'rrmacademy.org',
   kitScope: 'packages',
-  packages: ['mail', 'redteam'],
+  packages: ['mail', 'redteam', 'report'],
 };
