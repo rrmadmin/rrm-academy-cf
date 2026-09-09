@@ -286,7 +286,11 @@ describe('sendTransactionalEmail -- routing decisions', () => {
       const sendRow = db._calls.find((c) => c.sql.includes('INSERT INTO email_log'));
       assert.ok(sendRow, 'sendEmail must still log its own send row');
       assert.equal(sendRow.bound[0], 'send');
-      assert.equal(sendRow.bound[8], 'ses', 'lane column defaults to ses');
+      // The lane column now holds the RESOLVED lane. `ses` was the string the
+      // hand-rolled sender wrote before functions/api/_ses.js became an
+      // adapter over vendor/mail; `ses_rrm` is the lane the package's rules
+      // actually chose, which is what that column was added to record.
+      assert.equal(sendRow.bound[8], 'ses_rrm', 'the SES lane, by its name in the lane rules');
     } finally { stub.restore(); }
   });
 
@@ -332,7 +336,7 @@ describe('sendTransactionalEmail -- routing decisions', () => {
       assert.equal(result.messageId, 'ses-msg-default');
 
       const sendRow = db._calls.find((c) => c.sql.includes('INSERT INTO email_log'));
-      assert.equal(sendRow.bound[8], 'ses');
+      assert.equal(sendRow.bound[8], 'ses_rrm');
     } finally { stub.restore(); }
   });
 
@@ -395,7 +399,7 @@ describe('sendTransactionalEmail -- routing decisions', () => {
 
       const sesRow = logRows.find((r) => r.bound[0] === 'send');
       assert.ok(sesRow, 'the SES fallback send must log its own send row');
-      assert.equal(sesRow.bound[8], 'ses');
+      assert.equal(sesRow.bound[8], 'ses_rrm');
       assert.equal(sesRow.bound[6], 'ses-fallback-msg');
     } finally { stub.restore(); }
   });
@@ -502,6 +506,12 @@ describe('sendTransactionalEmail -- routing decisions', () => {
     } finally { stub.restore(); }
   });
 
+  // The SES half of this router is now vendor/mail's rail, and it reads SES's
+  // own refusal codes: a 400 saying MessageRejected is a message that can
+  // never be delivered, so it arrives as MailPermanent rather than as a
+  // generic send failure. What this test is about is unchanged -- the final
+  // lane attempt failing still THROWS to the caller -- and the caller learns
+  // more than it used to: record a failure, do not queue a retry.
   it('sendTransactionalEmail throws when the final lane attempt throws (SES down, no Workspace configured)', async () => {
     const db = mockDB();
     const env = mockEnv({ DB: db });
@@ -517,7 +527,7 @@ describe('sendTransactionalEmail -- routing decisions', () => {
           text: 'Hello',
           log: { db, category: 'transactional', source: 'test/mail-lanes' },
         }),
-        /SES request failed/
+        /MessageRejected/
       );
     } finally { stub.restore(); }
   });

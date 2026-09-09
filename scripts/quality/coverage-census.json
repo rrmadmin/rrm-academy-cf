@@ -18,17 +18,17 @@
   "date": "2026-09-09",
   "instrument": "node scripts/quality/coverage.mjs (c8 --all over the full surface; full npm-test suite)",
   "full_surface": {
-   "files": 429,
-   "lines": 88724,
-   "covered": 42783,
-   "pct": 48.22
+   "files": 430,
+   "lines": 89076,
+   "covered": 42961,
+   "pct": 48.23
   },
   "by_category": {
    "PRODUCT-CODE": {
-    "files": 330,
-    "lines": 62764,
-    "covered": 33149,
-    "pct": 52.82
+    "files": 331,
+    "lines": 63116,
+    "covered": 33327,
+    "pct": 52.8
    },
    "CONTENT-TEMPLATE": {
     "files": 9,
@@ -56,13 +56,13 @@
    }
   },
   "product_code": {
-   "files": 330,
-   "lines": 62764,
-   "covered": 33149,
-   "pct": 52.82
+   "files": 331,
+   "lines": 63116,
+   "covered": 33327,
+   "pct": 52.8
   },
   "files_at_zero_in_full_report": 205,
-  "files_executed_in_full_report": 224,
+  "files_executed_in_full_report": 225,
   "highest_stakes_slice": {
    "slice": "national survey system (functions/api/survey/ + functions/api/endo-quiz/)",
    "files": [
@@ -538,9 +538,9 @@
    "category": "PRODUCT-CODE",
    "reason": "CF Pages Function (routed endpoint, middleware, or _-prefixed shared helper). Deployed on every push; defects ship directly to users.",
    "present": true,
-   "lines": 439,
-   "covered": 427,
-   "pct": 97.26
+   "lines": 445,
+   "covered": 433,
+   "pct": 97.3
   },
   {
    "file": "functions/api/_greeting.js",
@@ -619,9 +619,9 @@
    "category": "PRODUCT-CODE",
    "reason": "CF Pages Function (routed endpoint, middleware, or _-prefixed shared helper). Deployed on every push; defects ship directly to users.",
    "present": true,
-   "lines": 205,
-   "covered": 201,
-   "pct": 98.04
+   "lines": 253,
+   "covered": 253,
+   "pct": 100
   },
   {
    "file": "functions/api/_track-events.js",
@@ -1304,8 +1304,8 @@
    "reason": "CF Pages Function (routed endpoint, middleware, or _-prefixed shared helper). Deployed on every push; defects ship directly to users.",
    "present": true,
    "lines": 766,
-   "covered": 766,
-   "pct": 100
+   "covered": 764,
+   "pct": 99.73
   },
   {
    "file": "functions/api/community/projects.js",
@@ -2296,6 +2296,15 @@
    "lines": 80,
    "covered": 0,
    "pct": 0
+  },
+  {
+   "file": "scripts/check-kit.mjs",
+   "category": "PRODUCT-CODE",
+   "reason": "Deploy-blocking guard/check: runs in CI or pre-commit and gates what ships.",
+   "present": true,
+   "lines": 298,
+   "covered": 122,
+   "pct": 40.93
   },
   {
    "file": "scripts/check-no-moved-paths.mjs",

@@ -1,5 +1,78 @@
+/**
+ * THE SES ADAPTER. The SigV4 block, the MIME builder and the lane rules used
+ * to live in this file; they now live in `vendor/mail/`, the estate's one
+ * outbound sender, and what is left here is the thin layer that adapts it to
+ * this repo: this repo's env, this repo's `email_log` table, this repo's
+ * Analytics Engine binding, and this repo's calling convention.
+ *
+ * Every export this file has ever had is still here with its old signature,
+ * because thirty-odd call sites import them and this change is meant to be
+ * invisible to all of them. What moved is where the bytes come from.
+ *
+ * WHAT THE PACKAGE ADDS. It refuses. `resolveLane()` decides which rail may
+ * carry a message from the entity that owns it and the purpose it serves, and
+ * RRM community, member and newsletter mail belongs to the Workspace lane, a
+ * personal send from a human mailbox, never SES. That was convention here for
+ * a long time and convention is not enforcement. Two named sends are exempt,
+ * by Brian's ruling of 2026-09-09, and only two: the newsletter blast and the
+ * STUC overdue outreach. This adapter names the first of those, because the
+ * newsletter endpoints in this repo are the thing the exemption exists for.
+ *
+ * PURPOSE, FROM THE CATEGORY THE CALLER ALREADY PASSES:
+ *
+ *   log.category            purpose          exemption
+ *   ----------------------- ---------------- ------------------
+ *   'newsletter'            'newsletter'     'newsletter-blast'
+ *   'transactional'         'transactional'  none
+ *   anything else, or none  'transactional'  none
+ *
+ * plus an explicit `purpose` on the options, which is how `_google-ads.js`
+ * declares its alert mail `system` without inventing a log category for it.
+ * The fallback is `transactional` rather than a refusal on purpose: every
+ * caller in this repo sends transactional mail unless it says otherwise, and
+ * a send failing because someone wrote a new category string would be this
+ * change breaking mail it had no quarrel with.
+ *
+ * TWO THINGS ABOUT RETRIES, NEITHER OF THEM NEW POLICY. The package says it
+ * never retries an SES call, and that is true of the package: what retries is
+ * `aws4fetch`, whose AwsClient backs off and re-sends a 5xx up to ten times by
+ * default. That was already the behaviour of the hand-rolled sender this file
+ * replaces -- the same client, the same default -- so it is left alone rather
+ * than silently changed in a refactor. It is worth knowing about: it is
+ * exactly the "a transient 500 becomes two copies of the same receipt" shape
+ * the package's own no-retry rule is written against, and if it should be
+ * `retries: 0` that is a deliberate decision, made once, with the callers in
+ * front of you.
+ *
+ * The one thing that IS new is a bound: the package hands SES a 15-second
+ * AbortSignal, which this file never did, so the retry sequence can now end
+ * in `ses-timeout` instead of running as long as ten backoffs take.
+ *
+ * SANITIZEHEADER IS STILL THE THROWING ONE. The package strips control
+ * characters on the way out; this export throws on them, and it stays that
+ * way because `_mail-lanes.js` uses it as VALIDATION when it composes its own
+ * Workspace MIME. Both behaviours are wanted: the throw is a caller asserting
+ * its input, the strip is the sender refusing to emit a split header. A
+ * message that reaches the package unsanitised still cannot inject one.
+ */
 import { AwsClient } from 'aws4fetch';
+import { send, MailPermanent } from '../../vendor/mail/index.js';
 
+/** Every message this repo sends belongs to the Academy. */
+const ENTITY = 'rrma';
+
+/**
+ * The newsletter's own senders, which are also the addresses the
+ * `newsletter-blast` exemption is bound to in the package. A newsletter-
+ * category send from anything else is refused there, by name, rather than
+ * quietly going out over an exemption written for a different mailbox.
+ */
+const NEWSLETTER_PURPOSE = { purpose: 'newsletter', exemption: 'newsletter-blast' };
+
+/**
+ * Header validation for callers that compose their own MIME. THROWS, unlike
+ * the package's stripping sanitiser. See the file header.
+ */
 export function sanitizeHeader(v) {
   const s = String(v ?? '');
   // eslint-disable-next-line no-control-regex -- intentional: block CRLF + NUL header injection
@@ -32,174 +105,149 @@ export async function logEmailFailure(db, { email, category, source, subject, de
   await insertEmailLog(db, { event: 'failed', email, category, source, subject, detail });
 }
 
-export async function sendEmail(env, { from, to, subject, html, text, replyTo, configurationSet, log }) {
-  if (!env.AWS_ACCESS_KEY_ID || !env.AWS_SECRET_ACCESS_KEY) {
-    throw new Error('AWS SES credentials not configured');
-  }
-  const region = env.AWS_SES_REGION || 'us-east-1';
-  const aws = new AwsClient({
-    accessKeyId: env.AWS_ACCESS_KEY_ID,
-    secretAccessKey: env.AWS_SECRET_ACCESS_KEY,
-    region,
-    service: 'ses',
-  });
-
-  const payload = {
-    FromEmailAddress: from,
-    Destination: { ToAddresses: Array.isArray(to) ? to : [to] },
-    Content: {
-      Simple: {
-        Subject: { Data: subject, Charset: 'UTF-8' },
-        Body: {},
-      },
-    },
-  };
-
-  if (html) payload.Content.Simple.Body.Html = { Data: html, Charset: 'UTF-8' };
-  if (text) payload.Content.Simple.Body.Text = { Data: text, Charset: 'UTF-8' };
-  if (replyTo) payload.ReplyToAddresses = [replyTo];
-  const effectiveConfigSet = configurationSet || env.SES_CONFIGURATION_SET;
-  if (effectiveConfigSet) payload.ConfigurationSetName = effectiveConfigSet;
-
-  let res;
-  try {
-    res = await aws.fetch(
-      `https://email.${region}.amazonaws.com/v2/email/outbound-emails`,
-      {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload),
-      }
-    );
-  } catch (err) {
-    throw new Error(`SES request failed (network): ${err.message}`, { cause: err });
-  }
-
-  if (!res.ok) {
-    const body = await res.text();
-    console.error('SES error:', res.status, body);
-    throw new Error(`SES request failed (${res.status}): ${(body || '').slice(0, 200)}`);
-  }
-
-  const data = await res.json();
-  const messageId = data?.MessageId || null;
-
-  if (log?.db) {
-    const recipient = Array.isArray(to) ? to[0] : to;
-    await insertEmailLog(log.db, {
-      event: 'send',
-      email: recipient,
-      category: log.category || 'transactional',
-      source: log.source || '',
-      subject,
-      detail: messageId,
-      send_id: messageId,
-      ses_message_id: messageId,
-      lane: log.lane || 'ses',
-    });
-  }
-
-  return { messageId };
+/**
+ * The purpose (and any exemption) a message asks for. An explicit `purpose`
+ * wins; otherwise the log category decides, and anything unrecognised is
+ * transactional. See the table in the file header.
+ */
+function purposeOf({ purpose, category }) {
+  if (purpose) return { purpose };
+  if (category === 'newsletter') return { ...NEWSLETTER_PURPOSE };
+  return { purpose: 'transactional' };
 }
 
 /**
- * Send a raw MIME email via SESv2. Supports custom headers (List-Unsubscribe, etc.).
- * Used for newsletter sends. Transactional emails should use sendEmail() (Simple format).
+ * The deps the package needs, built out of this repo's bindings.
+ *
+ * `logEmail` forwards only the SUCCESS row. The package offers a row for
+ * every outcome, but this repo's callers already write their own failure rows
+ * through `logEmailFailure` in their catch blocks, and forwarding both would
+ * double every failure in `email_log`. The row keeps the CALLER's category
+ * rather than the package's purpose, so the column's values do not shift
+ * under the historical rows; `lane` now carries the resolved lane
+ * (`ses_rrm`), which is what that column was added to hold. The `exemption`
+ * the package hands over has no column of its own and is appended to
+ * `source`, where the send that used it is already named.
  */
-export async function sendRawEmail(env, { from, to, subject, html, text, replyTo, headers, configurationSet, log }) {
+function depsFor(env, { db, category, source, subject }) {
+  return {
+    signer: new AwsClient({
+      accessKeyId: env.AWS_ACCESS_KEY_ID,
+      secretAccessKey: env.AWS_SECRET_ACCESS_KEY,
+      region: regionOf(env),
+      service: 'ses',
+    }),
+    ae: env.EVENTS,
+    logEmail: db
+      ? async (row) => {
+        if (row.event !== 'send') return;
+        await insertEmailLog(db, {
+          event: 'send',
+          email: row.email,
+          category,
+          source: row.exemption ? `${source} (${row.exemption})` : source,
+          subject,
+          detail: row.detail,
+          send_id: row.send_id,
+          ses_message_id: row.ses_message_id,
+          lane: row.lane,
+        });
+      }
+      : undefined,
+  };
+}
+
+/**
+ * Translates the package's answer into this repo's convention. Callers here
+ * expect `{ messageId }` on success and a THROW on failure, which is what
+ * every one of their try/catch blocks is written against; the package answers
+ * `{ ok: false, ... }` instead, so a refusal or a transport failure has to
+ * become an Error here rather than silently reading as a send.
+ *
+ * `MailPermanent` is left to propagate. It is already an Error, and a caller
+ * that catches everything treats it the way it treated the old permanent-
+ * failure throw.
+ */
+function unwrap(result, what) {
+  if (result.ok) return { messageId: result.id };
+  const detail = result.detail ? `: ${String(result.detail).slice(0, 200)}` : '';
+  throw new Error(`${what} failed (${result.reason}, status ${result.status})${detail}`);
+}
+
+function regionOf(env) {
+  return env.AWS_SES_REGION || 'us-east-1';
+}
+
+function requireCredentials(env) {
   if (!env.AWS_ACCESS_KEY_ID || !env.AWS_SECRET_ACCESS_KEY) {
     throw new Error('AWS SES credentials not configured');
   }
-  const region = env.AWS_SES_REGION || 'us-east-1';
-  const aws = new AwsClient({
-    accessKeyId: env.AWS_ACCESS_KEY_ID,
-    secretAccessKey: env.AWS_SECRET_ACCESS_KEY,
-    region,
-    service: 'ses',
-  });
-
-  const boundary = `----=_Part_${crypto.randomUUID().replace(/-/g, '')}`;
-  const toAddr = Array.isArray(to) ? to.map(a => sanitizeHeader(a)).join(', ') : sanitizeHeader(to);
-
-  const messageId = `<${crypto.randomUUID()}@mail.rrmacademy.org>`;
-
-  let rawHeaders = [
-    `From: ${sanitizeHeader(from)}`,
-    `To: ${toAddr}`,
-    `Subject: ${sanitizeHeader(subject)}`,
-    `Message-ID: ${messageId}`,
-    'MIME-Version: 1.0',
-    'Precedence: bulk',
-    `Content-Type: multipart/alternative; boundary="${boundary}"`,
-  ];
-  if (replyTo) rawHeaders.push(`Reply-To: ${sanitizeHeader(replyTo)}`);
-  if (headers) {
-    for (const [name, value] of Object.entries(headers)) {
-      rawHeaders.push(`${sanitizeHeader(name)}: ${sanitizeHeader(value)}`);
-    }
-  }
-
-  let body = rawHeaders.join('\r\n') + '\r\n\r\n';
-
-  if (text) {
-    body += `--${boundary}\r\nContent-Type: text/plain; charset=UTF-8\r\n\r\n${text}\r\n`;
-  }
-  if (html) {
-    body += `--${boundary}\r\nContent-Type: text/html; charset=UTF-8\r\n\r\n${html}\r\n`;
-  }
-  body += `--${boundary}--\r\n`;
-
-  // Base64 encode for SES Raw format (safe for non-ASCII via TextEncoder)
-  const bytes = new TextEncoder().encode(body);
-  let binary = '';
-  for (let i = 0; i < bytes.length; i++) binary += String.fromCharCode(bytes[i]);
-  const rawData = btoa(binary);
-
-  const payload = {
-    Content: { Raw: { Data: rawData } },
-  };
-  const effectiveRawConfigSet = configurationSet || env.SES_CONFIGURATION_SET;
-  if (effectiveRawConfigSet) {
-    payload.ConfigurationSetName = effectiveRawConfigSet;
-  }
-
-  let res;
-  try {
-    res = await aws.fetch(
-      `https://email.${region}.amazonaws.com/v2/email/outbound-emails`,
-      {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload),
-      }
-    );
-  } catch (err) {
-    throw new Error(`SES raw request failed (network): ${err.message}`, { cause: err });
-  }
-
-  if (!res.ok) {
-    const errBody = await res.text();
-    console.error('SES raw error:', res.status, errBody);
-    throw new Error(`SES raw request failed (${res.status}): ${(errBody || '').slice(0, 200)}`);
-  }
-
-  const data = await res.json();
-  const sesMessageId = data?.MessageId || null;
-
-  if (log?.db) {
-    const recipient = Array.isArray(to) ? to[0] : to;
-    await insertEmailLog(log.db, {
-      event: 'send',
-      email: recipient,
-      category: log.category || 'newsletter',
-      source: log.source || '',
-      subject,
-      detail: sesMessageId,
-      send_id: sesMessageId,
-      ses_message_id: sesMessageId,
-      lane: log.lane || 'ses',
-    });
-  }
-
-  return { messageId: sesMessageId };
 }
+
+/**
+ * Send a transactional-shaped message. SESv2 Simple format: no custom
+ * headers, which is what separates it from `sendRawEmail` below.
+ */
+export async function sendEmail(env, { from, to, subject, html, text, replyTo, configurationSet, log, purpose }) {
+  requireCredentials(env);
+  const category = log?.category || 'transactional';
+  const source = log?.source || '';
+  const result = await send(
+    env,
+    {
+      entity: ENTITY,
+      ...purposeOf({ purpose, category }),
+      from,
+      to,
+      subject,
+      html,
+      text,
+      replyTo,
+      configurationSet,
+      source,
+    },
+    depsFor(env, { db: log?.db, category, source, subject }),
+  );
+  return unwrap(result, 'SES request');
+}
+
+/**
+ * Send a raw MIME email via SESv2. Custom headers (`List-Unsubscribe` above
+ * all) are what Raw exists for, and handing the package `headers` is what
+ * switches its SES rail from Simple to Raw.
+ *
+ * Headers are REQUIRED, which the old copy of this function did not demand
+ * because it composed MIME unconditionally. A headerless call would now
+ * silently go out Simple, losing the `Precedence: bulk` and the Message-ID
+ * that a bulk send wants, so it refuses instead of quietly sending something
+ * else. The one caller, the newsletter blast, always passes
+ * `List-Unsubscribe`.
+ */
+export async function sendRawEmail(env, { from, to, subject, html, text, replyTo, headers, configurationSet, log }) {
+  requireCredentials(env);
+  if (!headers || !Object.keys(headers).length) {
+    throw new Error('sendRawEmail requires headers; a message with none should use sendEmail');
+  }
+  const category = log?.category || 'newsletter';
+  const source = log?.source || '';
+  const result = await send(
+    env,
+    {
+      entity: ENTITY,
+      ...purposeOf({ category }),
+      from,
+      to,
+      subject,
+      html,
+      text,
+      replyTo,
+      headers,
+      configurationSet,
+      source,
+    },
+    depsFor(env, { db: log?.db, category, source, subject }),
+  );
+  return unwrap(result, 'SES raw request');
+}
+
+export { MailPermanent };
