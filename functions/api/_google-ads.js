@@ -293,7 +293,10 @@ async function sendConversionSuccessEmail(env, waitUntil, conversionActionId, gc
       <p>Google usually reflects this in the Ads account within a few hours.</p>
     `;
 
-    await sendEmail(env, { from: ALERT_FROM, to: ALERT_TO, subject, text, html });
+    // purpose 'system': an operator alert about the ads pipeline, not mail to
+    // a member. It names the purpose because it passes no log category for
+    // the adapter to read one from.
+    await sendEmail(env, { from: ALERT_FROM, to: ALERT_TO, subject, text, html, purpose: 'system' });
   } catch (err) {
     log(env, waitUntil, 'google_ads', 'conversion_alert_send_failed', 'error', err.message, 0, 0);
   }
@@ -331,7 +334,10 @@ async function sendConversionFailureEmail(env, waitUntil, conversionActionId, gc
       <p>This gclid can be replayed via the Data Manager API within the roughly 30-day click window. It is not lost yet, but it will be if nobody replays it before then.</p>
     `;
 
-    await sendEmail(env, { from: ALERT_FROM, to: ALERT_TO, subject, text, html });
+    // purpose 'system': an operator alert about the ads pipeline, not mail to
+    // a member. It names the purpose because it passes no log category for
+    // the adapter to read one from.
+    await sendEmail(env, { from: ALERT_FROM, to: ALERT_TO, subject, text, html, purpose: 'system' });
   } catch (err) {
     log(env, waitUntil, 'google_ads', 'conversion_alert_send_failed', 'error', err.message, 0, 0);
   }

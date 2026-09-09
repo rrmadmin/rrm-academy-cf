@@ -1,0 +1,20 @@
+{
+  "kitVersion": "0.7.0",
+  "kitScope": "packages",
+  "syncedAt": "2026-09-09T14:05:19.723Z",
+  "files": {},
+  "packages": {
+    "mail": {
+      "version": "1.4.0",
+      "files": {
+        "README.md": "5ae424d1960b6704a45716cfe02460bf99085c68ed461e6ec35a118be6a3388c",
+        "cf-email.js": "d2972961998c2bc460dae11db50a23695cd3d354d10a596fc56f4029ce57d9a9",
+        "graph.js": "e5e6e110695e7decffc6b062e0a75d3d2ce8c9657f02a575a17e3049aeb5ab9c",
+        "index.js": "8966cb4a8663df4054e5b563d71509f3ec9f049f5bd16ffa9b0b9b4e5ab441a6",
+        "lanes.js": "30bcf836f1f078348541e13b407164e0d7e39805a791e4b00d91903fbd83572b",
+        "ses.js": "111c27818ee954ed1d3382736e2c50c4d3dc49f127f83317ce0f3fefbc0f0446"
+      }
+    }
+  },
+  "generated": {}
+}
