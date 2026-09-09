@@ -100,11 +100,11 @@
     "gates:unfinished-copy": "node scripts/gates/validate-no-unfinished-copy.mjs"
   },
   "dependencies": {
-    "@astrojs/sitemap": "^3.7.3",
+    "@astrojs/sitemap": "^3.7.4",
     "@fontsource/cormorant-garamond": "^5.2.11",
     "@fontsource/inter": "^5.2.8",
-    "@lucide/astro": "^1.23.0",
-    "astro": "^6.4.8",
+    "@lucide/astro": "^1.42.0",
+    "astro": "^7.3.2",
     "aws4fetch": "^1.0.20",
     "jspdf": "^4.2.0",
     "marked": "^15.0.12",
@@ -128,7 +128,7 @@
     "node-html-parser": "^8.0.4",
     "pagefind": "^1.3.0",
     "satori": "^0.26.0",
-    "sharp": "^0.35.3"
+    "sharp": "^0.35.4"
   },
   "engines": {
     "node": ">=22.12"
