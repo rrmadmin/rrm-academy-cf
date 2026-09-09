@@ -58,8 +58,16 @@ export function recordingEvents() {
   return {
     points,
     binding: { writeDataPoint: (p) => points.push(p) },
-    /** The status label the handler logged for the most recent render. */
-    lastStatus: () => points.at(-1)?.blobs?.[3] ?? null,
+    /**
+     * The render-branch label the handler logged for the most recent render.
+     * It moved out of blob4 on 2026-09-09: blob4 is the observatory's status
+     * column and 'event_hit' is not a status, so the label now leads the
+     * detail blob and the slug follows it.
+     */
+    lastStatus: () => {
+      const detail = points.at(-1)?.blobs?.[4];
+      return typeof detail === 'string' ? (detail.split(' ')[0] || null) : null;
+    },
   };
 }
 

@@ -7,6 +7,7 @@
 import { CORS_HEADERS, optionsResponse, checkRateLimit } from '../auth/_shared.js';
 import { log } from '../_log.js';
 import { isBotRequest } from '../_bot.js';
+import { r } from '../../_report.js';
 
 const ALLOWED_ACTIONS = ['calculate', 'download_pdf', 'copy_for_ai', 'follow_instagram'];
 
@@ -78,10 +79,9 @@ export async function onRequestPost(context) {
 
     const device_type = viewport_width <= 768 ? 'mobile' : viewport_width <= 1024 ? 'tablet' : 'desktop';
 
-    env.EVENTS.writeDataPoint({
-      blobs: ['survey', 'survey_event', action, device_type, ''],
+    // Was blob1='survey' with the device type in the status column.
+    r.event(env, 'survey', action, 'ok', `device=${device_type}`, {
       doubles: [0, 0, viewport_width],
-      indexes: [action],
     });
 
     return new Response(null, { status: 204, headers: CORS_HEADERS });

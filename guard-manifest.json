@@ -3,7 +3,7 @@
   "description": "Critical file integrity manifest. Run `npm run guard:update` after intentional changes.",
   "files": {
     "functions/api/auth/_shared.js": {
-      "hash": "0ad90fcec4b1970c30d4cbad4365c4c2dbb5a031814ab5d216f7c02e4ce365e2",
+      "hash": "dea691262e85f19d03d6f7433074e89d6bf046d522fe20818bb0f75fca53f39b",
       "note": "CORS, sessions, crypto, rate limiting"
     },
     "functions/api/auth/login.js": {
@@ -35,7 +35,7 @@
       "note": "Google OAuth callback"
     },
     "functions/api/auth/_email-validate.js": {
-      "hash": "dd4b34affcaf2dcfbb33cab6078bf867e91670b9aa820cd956b99367859f7ba9",
+      "hash": "34ea90c4d603bf43f88279f8277d780bc8181ecdf3f8f6731efacfd033acdfc0",
       "note": "Email validation + disposable/typo detection"
     },
     "functions/api/stripe-webhook.js": {
@@ -43,7 +43,7 @@
       "note": "Webhook + signature verification"
     },
     "functions/api/create-checkout.js": {
-      "hash": "cda4172b570b7cf66d90e395e6233236a79f74bf14522c27ba033b9ec2a8169e",
+      "hash": "5f99669cc3f9cb99193c4506ffc85153cbc22de8f83c1de393d4081717256dcf",
       "note": "Stripe checkout"
     },
     "functions/api/billing/status.js": {
@@ -55,7 +55,7 @@
       "note": "Stripe portal"
     },
     "functions/api/billing/_webhook-checkout.js": {
-      "hash": "b19bd194a29b834b4a393cba686a1ed065a9ccdf0cd7ba1043b128bb4318f6c2",
+      "hash": "6a49d620f0b96928a8af2b1041c8b0b711781a34028bb37e4037073de3f3aa57",
       "note": "Stripe checkout completion handler"
     },
     "functions/api/billing/_webhook-subscription.js": {
@@ -71,7 +71,7 @@
       "note": "HMAC-SHA256 magic-link token for Wix-to-Stripe donor migration"
     },
     "functions/_middleware.js": {
-      "hash": "1183cc210e85164f1539a0baa12016377b7b7b14f8867a50478ee597dcddccc9",
+      "hash": "1790cd43053b0db3e5079ed2ca0438a7a6c45d9d0e307b91edb94076e677f1e6",
       "note": "Auth gating"
     },
     "wrangler.toml": {
@@ -79,7 +79,7 @@
       "note": "D1, KV, R2 bindings"
     },
     "functions/api/_ses.js": {
-      "hash": "c8568d2cc5c31806b0ba2b3bd447f2acd315925e1eb779f6ab2dcc7da91832ea",
+      "hash": "8829630eaff0c4b89d172878b08ba9685a2e6241496d3dc087e5e50ee7dd1f40",
       "note": "SES email sending infrastructure"
     },
     "functions/api/_elv.js": {
@@ -127,7 +127,7 @@
       "note": "SYSTEM_PROMPT for /api/ask -- single source of truth"
     },
     "functions/api/ask.js": {
-      "hash": "6692006edc7648a8d580cb10096ecd61c72ffe3f3aef2a5fb449e11a60045047",
+      "hash": "2aa7eeea9cc6ce5e8b629336a7d209636ae72e749a6ecd6919893e7b37fd9cb4",
       "note": "NLWeb AI Search proxy (auth + rate-limited, billed upstream)"
     },
     "src/components/SearchBar.astro": {
@@ -179,7 +179,7 @@
       "note": "Stripe refund handler (enrollment revocation)"
     },
     "functions/api/billing/_migration-handoff.js": {
-      "hash": "1539ffac36354e9709d765f41a29aaf1558f101695f8cb02fc2e1ab638c78a7a",
+      "hash": "d1d29932839395cab4b4948cef37b4c6c776473d83f22948ee1f32fa1f31c631",
       "note": "Wix-to-Stripe migration handoff lock primitives"
     },
     "functions/api/billing/_donor-gift.js": {
@@ -222,7 +222,7 @@
       "hash": "c8053c9818a055f56bdfe145bbab83ca1aa7566d2c512d96edcd6e6ca0f17eaa"
     },
     "functions/api/track.js": {
-      "hash": "d5847483d1e06055048a7f81943a1e232328817102d58c043f08e26d01e7ab2a",
+      "hash": "bdbd9b732585ebdd228e1c76be4c4d033d5bb3f7127f93111559dd1af20d90b8",
       "note": "Client analytics endpoint: rate limit + allowlist + PII strip + GA4 MP relay + AE mirror"
     },
     "functions/api/_track-events.js": {
@@ -230,7 +230,7 @@
       "note": "Allowed events, required params, PII_REGEX, reserved params (security invariants for /api/track)"
     },
     "functions/api/_ga4.js": {
-      "hash": "fba323bdf8d5c55b7d20b08828e76818c9ce38c7b3b69131b3145c6cf14682d5",
+      "hash": "5ae268b266a109a842a2148038519ed8d1605724a84f3160606df57f9f7d14be",
       "note": "GA4 MP relay: server-derived attribution PII screen (second pass) + page_location query/hash/userinfo strip"
     },
     "functions/api/_ga4-source.js": {

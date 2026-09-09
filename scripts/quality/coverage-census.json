@@ -18,17 +18,17 @@
   "date": "2026-09-09",
   "instrument": "node scripts/quality/coverage.mjs (c8 --all over the full surface; full npm-test suite)",
   "full_surface": {
-   "files": 430,
-   "lines": 89076,
-   "covered": 42961,
-   "pct": 48.23
+   "files": 431,
+   "lines": 88762,
+   "covered": 42822,
+   "pct": 48.24
   },
   "by_category": {
    "PRODUCT-CODE": {
-    "files": 331,
-    "lines": 63116,
-    "covered": 33327,
-    "pct": 52.8
+    "files": 332,
+    "lines": 63211,
+    "covered": 33454,
+    "pct": 52.92
    },
    "CONTENT-TEMPLATE": {
     "files": 9,
@@ -38,9 +38,9 @@
    },
    "E2E-DRIVER": {
     "files": 46,
-    "lines": 13185,
-    "covered": 4351,
-    "pct": 33
+    "lines": 12776,
+    "covered": 4085,
+    "pct": 31.97
    },
    "GENERATED": {
     "files": 1,
@@ -56,12 +56,12 @@
    }
   },
   "product_code": {
-   "files": 331,
-   "lines": 63116,
-   "covered": 33327,
-   "pct": 52.8
+   "files": 332,
+   "lines": 63211,
+   "covered": 33454,
+   "pct": 52.92
   },
-  "files_at_zero_in_full_report": 205,
+  "files_at_zero_in_full_report": 206,
   "files_executed_in_full_report": 225,
   "highest_stakes_slice": {
    "slice": "national survey system (functions/api/survey/ + functions/api/endo-quiz/)",
@@ -241,14 +241,6 @@
    "crap": 756
   },
   {
-   "file": "functions/api/create-checkout.js",
-   "fn": "handleCheckout",
-   "line": 61,
-   "cc": 128,
-   "coverage": 0.66,
-   "crap": 747.5
-  },
-  {
    "file": "functions/api/auth/verify-email.js",
    "fn": "onRequestPost",
    "line": 90,
@@ -279,6 +271,14 @@
    "cc": 24,
    "coverage": 0,
    "crap": 600
+  },
+  {
+   "file": "functions/api/create-checkout.js",
+   "fn": "handleCheckout",
+   "line": 60,
+   "cc": 122,
+   "coverage": 0.68,
+   "crap": 595.2
   },
   {
    "file": "scripts/gates/validate-payment-pipeline.mjs",
@@ -466,9 +466,18 @@
    "category": "PRODUCT-CODE",
    "reason": "CF Pages Function (routed endpoint, middleware, or _-prefixed shared helper). Deployed on every push; defects ship directly to users.",
    "present": true,
-   "lines": 606,
-   "covered": 413,
-   "pct": 68.15
+   "lines": 618,
+   "covered": 424,
+   "pct": 68.6
+  },
+  {
+   "file": "functions/_report.js",
+   "category": "PRODUCT-CODE",
+   "reason": "CF Pages Function (routed endpoint, middleware, or _-prefixed shared helper). Deployed on every push; defects ship directly to users.",
+   "present": true,
+   "lines": 73,
+   "covered": 73,
+   "pct": 100
   },
   {
    "file": "functions/api/_ask_prompt.js",
@@ -529,9 +538,9 @@
    "category": "PRODUCT-CODE",
    "reason": "CF Pages Function (routed endpoint, middleware, or _-prefixed shared helper). Deployed on every push; defects ship directly to users.",
    "present": true,
-   "lines": 500,
-   "covered": 482,
-   "pct": 96.4
+   "lines": 498,
+   "covered": 483,
+   "pct": 96.98
   },
   {
    "file": "functions/api/_google-ads.js",
@@ -565,17 +574,17 @@
    "category": "PRODUCT-CODE",
    "reason": "CF Pages Function (routed endpoint, middleware, or _-prefixed shared helper). Deployed on every push; defects ship directly to users.",
    "present": true,
-   "lines": 176,
-   "covered": 160,
-   "pct": 90.9
+   "lines": 174,
+   "covered": 163,
+   "pct": 93.67
   },
   {
    "file": "functions/api/_log.js",
    "category": "PRODUCT-CODE",
    "reason": "CF Pages Function (routed endpoint, middleware, or _-prefixed shared helper). Deployed on every push; defects ship directly to users.",
    "present": true,
-   "lines": 31,
-   "covered": 31,
+   "lines": 62,
+   "covered": 62,
    "pct": 100
   },
   {
@@ -610,17 +619,17 @@
    "category": "PRODUCT-CODE",
    "reason": "CF Pages Function (routed endpoint, middleware, or _-prefixed shared helper). Deployed on every push; defects ship directly to users.",
    "present": true,
-   "lines": 159,
-   "covered": 149,
-   "pct": 93.71
+   "lines": 152,
+   "covered": 142,
+   "pct": 93.42
   },
   {
    "file": "functions/api/_ses.js",
    "category": "PRODUCT-CODE",
    "reason": "CF Pages Function (routed endpoint, middleware, or _-prefixed shared helper). Deployed on every push; defects ship directly to users.",
    "present": true,
-   "lines": 253,
-   "covered": 253,
+   "lines": 267,
+   "covered": 267,
    "pct": 100
   },
   {
@@ -835,9 +844,9 @@
    "category": "PRODUCT-CODE",
    "reason": "CF Pages Function (routed endpoint, middleware, or _-prefixed shared helper). Deployed on every push; defects ship directly to users.",
    "present": true,
-   "lines": 499,
-   "covered": 332,
-   "pct": 66.53
+   "lines": 501,
+   "covered": 334,
+   "pct": 66.66
   },
   {
    "file": "functions/api/ask/sandbox.js",
@@ -889,18 +898,18 @@
    "category": "PRODUCT-CODE",
    "reason": "CF Pages Function (routed endpoint, middleware, or _-prefixed shared helper). Deployed on every push; defects ship directly to users.",
    "present": true,
-   "lines": 334,
-   "covered": 288,
-   "pct": 86.22
+   "lines": 336,
+   "covered": 289,
+   "pct": 86.01
   },
   {
    "file": "functions/api/auth/_shared.js",
    "category": "PRODUCT-CODE",
    "reason": "CF Pages Function (routed endpoint, middleware, or _-prefixed shared helper). Deployed on every push; defects ship directly to users.",
    "present": true,
-   "lines": 676,
-   "covered": 587,
-   "pct": 86.83
+   "lines": 674,
+   "covered": 585,
+   "pct": 86.79
   },
   {
    "file": "functions/api/auth/change-password.js",
@@ -917,8 +926,8 @@
    "reason": "CF Pages Function (routed endpoint, middleware, or _-prefixed shared helper). Deployed on every push; defects ship directly to users.",
    "present": true,
    "lines": 137,
-   "covered": 116,
-   "pct": 84.67
+   "covered": 118,
+   "pct": 86.13
   },
   {
    "file": "functions/api/auth/google-callback.js",
@@ -980,8 +989,8 @@
    "reason": "CF Pages Function (routed endpoint, middleware, or _-prefixed shared helper). Deployed on every push; defects ship directly to users.",
    "present": true,
    "lines": 169,
-   "covered": 145,
-   "pct": 85.79
+   "covered": 147,
+   "pct": 86.98
   },
   {
    "file": "functions/api/auth/session.js",
@@ -1042,9 +1051,9 @@
    "category": "PRODUCT-CODE",
    "reason": "CF Pages Function (routed endpoint, middleware, or _-prefixed shared helper). Deployed on every push; defects ship directly to users.",
    "present": true,
-   "lines": 239,
-   "covered": 94,
-   "pct": 39.33
+   "lines": 235,
+   "covered": 95,
+   "pct": 40.42
   },
   {
    "file": "functions/api/billing/_migration-token.js",
@@ -1078,9 +1087,9 @@
    "category": "PRODUCT-CODE",
    "reason": "CF Pages Function (routed endpoint, middleware, or _-prefixed shared helper). Deployed on every push; defects ship directly to users.",
    "present": true,
-   "lines": 1316,
-   "covered": 1270,
-   "pct": 96.5
+   "lines": 1296,
+   "covered": 1252,
+   "pct": 96.6
   },
   {
    "file": "functions/api/billing/_webhook-invoice.js",
@@ -1186,8 +1195,8 @@
    "category": "PRODUCT-CODE",
    "reason": "CF Pages Function (routed endpoint, middleware, or _-prefixed shared helper). Deployed on every push; defects ship directly to users.",
    "present": true,
-   "lines": 517,
-   "covered": 517,
+   "lines": 522,
+   "covered": 522,
    "pct": 100
   },
   {
@@ -1394,8 +1403,8 @@
    "reason": "CF Pages Function (routed endpoint, middleware, or _-prefixed shared helper). Deployed on every push; defects ship directly to users.",
    "present": true,
    "lines": 148,
-   "covered": 126,
-   "pct": 85.13
+   "covered": 130,
+   "pct": 87.83
   },
   {
    "file": "functions/api/courses.js",
@@ -1537,9 +1546,9 @@
    "category": "PRODUCT-CODE",
    "reason": "CF Pages Function (routed endpoint, middleware, or _-prefixed shared helper). Deployed on every push; defects ship directly to users.",
    "present": true,
-   "lines": 495,
-   "covered": 335,
-   "pct": 67.67
+   "lines": 482,
+   "covered": 336,
+   "pct": 69.7
   },
   {
    "file": "functions/api/email/events.js",
@@ -1951,16 +1960,16 @@
    "category": "PRODUCT-CODE",
    "reason": "CF Pages Function (routed endpoint, middleware, or _-prefixed shared helper). Deployed on every push; defects ship directly to users.",
    "present": true,
-   "lines": 269,
-   "covered": 235,
-   "pct": 87.36
+   "lines": 267,
+   "covered": 233,
+   "pct": 87.26
   },
   {
    "file": "functions/ask/s/[token].js",
    "category": "PRODUCT-CODE",
    "reason": "CF Pages Function (routed endpoint, middleware, or _-prefixed shared helper). Deployed on every push; defects ship directly to users.",
    "present": false,
-   "lines": 325,
+   "lines": 323,
    "covered": 0,
    "pct": 0
   },
@@ -2005,9 +2014,9 @@
    "category": "PRODUCT-CODE",
    "reason": "CF Pages Function (routed endpoint, middleware, or _-prefixed shared helper). Deployed on every push; defects ship directly to users.",
    "present": true,
-   "lines": 822,
-   "covered": 554,
-   "pct": 67.39
+   "lines": 827,
+   "covered": 559,
+   "pct": 67.59
   },
   {
    "file": "functions/og/_cuterus-image.js",
@@ -2023,7 +2032,7 @@
    "category": "PRODUCT-CODE",
    "reason": "Live routed endpoint (Wix migration-link redemption). Deployed product code despite the migration-flavored name.",
    "present": false,
-   "lines": 457,
+   "lines": 462,
    "covered": 0,
    "pct": 0
   },
@@ -3435,10 +3444,10 @@
    "file": "scripts/redteam/deps.mjs",
    "category": "E2E-DRIVER",
    "reason": "The targeted red-team harness (auth, money, PII writes, leaks, headers, cost). Test infrastructure that lives under scripts/ so the same case table can also be driven at the live deployment (--mode live). Line coverage is the wrong instrument for the same reason it is wrong for test/**: covering the harness proves the harness ran, not that the site refused anything. Its correctness instruments are the run itself (a FAIL is a finding, never a loosened expectation) and test/redteam.test.js, which executes all 150 cases on every PR and additionally pins the case table structurally -- unique ids, a declared family, an adjudication note behind every `known` marker, and a dispatch entry for every route targets.mjs attacks.",
-   "present": true,
-   "lines": 414,
-   "covered": 260,
-   "pct": 62.8
+   "present": false,
+   "lines": 34,
+   "covered": 26,
+   "pct": 76.47
   },
   {
    "file": "scripts/redteam/fakes/bodies.mjs",
@@ -3482,17 +3491,17 @@
    "reason": "The targeted red-team harness (auth, money, PII writes, leaks, headers, cost). Test infrastructure that lives under scripts/ so the same case table can also be driven at the live deployment (--mode live). Line coverage is the wrong instrument for the same reason it is wrong for test/**: covering the harness proves the harness ran, not that the site refused anything. Its correctness instruments are the run itself (a FAIL is a finding, never a loosened expectation) and test/redteam.test.js, which executes all 150 cases on every PR and additionally pins the case table structurally -- unique ids, a declared family, an adjudication note behind every `known` marker, and a dispatch entry for every route targets.mjs attacks.",
    "present": true,
    "lines": 95,
-   "covered": 85,
-   "pct": 89.47
+   "covered": 77,
+   "pct": 81.05
   },
   {
    "file": "scripts/redteam/run.mjs",
    "category": "E2E-DRIVER",
    "reason": "The targeted red-team harness (auth, money, PII writes, leaks, headers, cost). Test infrastructure that lives under scripts/ so the same case table can also be driven at the live deployment (--mode live). Line coverage is the wrong instrument for the same reason it is wrong for test/**: covering the harness proves the harness ran, not that the site refused anything. Its correctness instruments are the run itself (a FAIL is a finding, never a loosened expectation) and test/redteam.test.js, which executes all 150 cases on every PR and additionally pins the case table structurally -- unique ids, a declared family, an adjudication note behind every `known` marker, and a dispatch entry for every route targets.mjs attacks.",
    "present": true,
-   "lines": 860,
-   "covered": 703,
-   "pct": 81.74
+   "lines": 831,
+   "covered": 679,
+   "pct": 81.7
   },
   {
    "file": "scripts/redteam/targets.mjs",

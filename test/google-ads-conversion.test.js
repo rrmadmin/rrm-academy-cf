@@ -163,7 +163,10 @@ describe('_google-ads.js retry on transient network failure', () => {
     assert.ok(actions.includes('conversion_error'));
 
     const errorRow = events.find(p => p.blobs[2] === 'conversion_error');
-    assert.match(errorRow.blobs[4], /^token_401$/);
+    // The trailing ids are the log()'s `extras`, which used to become blob6
+    // and blob7. The report package writes a five blob row, so they are folded
+    // onto the end of the detail; nothing has ever read blob6 here.
+    assert.match(errorRow.blobs[4], /^token_401\b/);
   });
 
   it('does not retry an HTTP-status failure (upload_5xx)', async () => {

@@ -2,6 +2,7 @@
  * Shared auth utilities for CF Pages Functions.
  * Prefixed with _ so CF Pages doesn't treat it as a route handler.
  */
+import { r } from '../../_report.js';
 
 // Stripe API version — keep in sync across all Stripe client instantiations.
 // Update here when upgrading; all files import from this single source.
@@ -274,7 +275,8 @@ export async function verifyTurnstile(secret, token, ip, env) {
   if (!secret) {
     if (env?.EVENTS) {
       try {
-        env.EVENTS.writeDataPoint({ blobs: ['auth', 'turnstile_misconfigured'], indexes: [] });
+        // Was blob1='auth' with no status blob at all.
+        r.event(env, 'auth', 'turnstile_misconfigured', 'error', '');
       } catch (_) { /* AE write best-effort */ }
     }
     return { ok: false, reason: 'misconfigured' };
@@ -290,11 +292,7 @@ export async function verifyTurnstile(secret, token, ip, env) {
     return { ok: !!result.success, reason: result.success ? null : 'rejected' };
   } catch (err) {
     if (env?.EVENTS) {
-      env.EVENTS.writeDataPoint({
-        blobs: ['rrm-academy', 'turnstile', 'verify_network_error', 'error', (err?.message || 'unknown').slice(0, 200)],
-        doubles: [0, 1, 0],
-        indexes: ['verify_network_error'],
-      });
+      r.event(env, 'turnstile', 'verify_network_error', 'error', err?.message || 'unknown');
     }
     return { ok: false, reason: 'network' };
   }
@@ -373,17 +371,17 @@ function logKvFailure(env, key, e) {
   if (!env?.EVENTS) return;
   const detail = String(e?.message || e).slice(0, 200);
   const throttled = KV_THROTTLED_RE.test(detail);
-  env.EVENTS.writeDataPoint({
-    blobs: [
-      'rrm-academy',
-      'rate_limit',
-      throttled ? 'kv_write_limited' : 'kv_error',
-      throttled ? 'limited' : 'error',
-      detail,
-    ],
-    doubles: [0, 1, 0],
-    indexes: [key.split(':', 1)[0]],
-  });
+  // 'limited' was a sixth status word outside the vocabulary the observatory
+  // reads; a throttled KV write is a warn, and it still says so in the action.
+  //
+  // PRIV-02 unchanged: the index is the action, so the RAW KEY still never
+  // reaches an index, and it never did carry the key itself. The limiter name
+  // that used to BE the index (the part of the key before the first colon, so
+  // never the email or IP after it) leads the detail instead, because losing
+  // which limiter failed would have made the row unactionable.
+  const limiter = String(key).split(':', 1)[0];
+  r.event(env, 'rate_limit', throttled ? 'kv_write_limited' : 'kv_error',
+    throttled ? 'warn' : 'error', `limiter=${limiter} ${detail}`);
 }
 
 export async function checkRateLimit(env, key, max = 5, windowS = 900) {

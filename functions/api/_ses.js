@@ -57,6 +57,7 @@
  */
 import { AwsClient } from 'aws4fetch';
 import { send, MailPermanent } from '../../vendor/mail/index.js';
+import { r } from '../_report.js';
 
 /** Every message this repo sends belongs to the Academy. */
 const ENTITY = 'rrma';
@@ -146,7 +147,11 @@ function depsFor(env, { db, category, source, subject }) {
       region: regionOf(env),
       service: 'ses',
     }),
-    ae: env.EVENTS,
+    // aeFor re-attributes the mail package's own row, which puts 'mail' in
+    // blob1, to this worker: [rrm-academy, mail, <lane>, <status>, <purpose>
+    // <detail>]. Passing env.EVENTS raw is what used to render mail activity
+    // in the fleet view as a worker called "mail" that nobody deployed.
+    ae: r.aeFor(env, 'mail'),
     logEmail: db
       ? async (row) => {
         if (row.event !== 'send') return;

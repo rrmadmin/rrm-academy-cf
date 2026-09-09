@@ -15,6 +15,7 @@
 
 import { DISPOSABLE_DOMAINS } from './_disposable-domains.js';
 import { log } from '../_log.js';
+import { r } from '../../_report.js';
 
 // ── Known-good domains for fuzzy matching ──────────────────────────────
 // Combined from email-spell-checker + our own observations
@@ -324,7 +325,8 @@ async function checkMxRecord(domain, env) {
     return aData.Answer && aData.Answer.length > 0;
   } catch (err) {
     try {
-      if (env?.EVENTS) env.EVENTS.writeDataPoint({ blobs: ['email_validate', 'mx_fail_open', domain], indexes: [] });
+      // Was blob1='email_validate', a subsystem in the worker-name column.
+      r.event(env, 'email_validate', 'mx_fail_open', 'warn', domain);
     } catch (_) { /* AE write best-effort */ }
     try {
       log(env, null, 'email_validate', 'mx_fail_open', 'warn', domain);

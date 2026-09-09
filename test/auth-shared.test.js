@@ -170,7 +170,7 @@ describe('checkRateLimit', () => {
     assert.equal(await checkRateLimit({}, `track:${randomIp()}`, 60, 60), false);
   });
 
-  it('logs a KV write 429 as status "limited", not "error"', async () => {
+  it('logs a KV write 429 as a warn, not an error', async () => {
     const EVENTS = makeEventsStub();
     const env = {
       COMMUNITY_KV: makeRateLimitKv({ putError: new Error('KV PUT failed: 429 Too Many Requests') }),
@@ -179,7 +179,11 @@ describe('checkRateLimit', () => {
     assert.equal(await checkRateLimit(env, `track:${randomIp()}`, 60, 60), false, 'still fails closed');
     assert.equal(EVENTS.points.length, 1);
     assert.equal(EVENTS.points[0].blobs[2], 'kv_write_limited');
-    assert.equal(EVENTS.points[0].blobs[3], 'limited');
+    // 'limited' used to sit in blob4. blob4 is the observatory's status column
+    // and a sixth private word there made this repo's rows unreadable to
+    // workers-latency-error; the throttle case is a warn and says which case
+    // it is in the action, which is where it was always distinguishable.
+    assert.equal(EVENTS.points[0].blobs[3], 'warn');
   });
 
   it('logs a genuine KV failure as status "error"', async () => {
@@ -193,15 +197,23 @@ describe('checkRateLimit', () => {
     assert.equal(EVENTS.points[0].blobs[3], 'error');
   });
 
-  it('indexes only the limiter-name prefix on a KV failure, never the raw key (PRIV-02)', async () => {
+  it('names the limiter but never the raw key on a KV failure (PRIV-02)', async () => {
     const EVENTS = makeEventsStub();
     const env = {
       COMMUNITY_KV: makeRateLimitKv({ putError: new Error('KV PUT failed: 500 internal error') }),
       EVENTS,
     };
     assert.equal(await checkRateLimit(env, 'waitlist-email:ada@example.com', 3, 900), false);
-    assert.equal(EVENTS.points[0].indexes[0], 'waitlist-email');
-    assert.ok(!EVENTS.points[0].indexes[0].includes('@'), 'index must never carry an email address');
+    // The limiter name moved from the index to the front of the detail when
+    // this row went through the report package, which fixes the index to the
+    // action. The PRIV-02 invariant is unchanged and is what is asserted here:
+    // nothing in the row may carry the identifier that follows the colon.
+    const row = EVENTS.points[0];
+    assert.equal(row.indexes[0], 'kv_error');
+    assert.ok(row.blobs[4].startsWith('limiter=waitlist-email '), row.blobs[4]);
+    for (const value of [...row.blobs, ...row.indexes]) {
+      assert.ok(!String(value).includes('@'), `no blob or index may carry an email address: ${value}`);
+    }
   });
 
   it('coalesces a same-key burst into a single KV write', async () => {

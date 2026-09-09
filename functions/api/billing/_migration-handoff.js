@@ -18,6 +18,7 @@
  */
 import { json } from '../auth/_shared.js';
 import { log } from '../_log.js';
+import { r } from '../../_report.js';
 
 /**
  * Look up a pending Wix subscription for this user.
@@ -67,10 +68,7 @@ export async function lookupPendingWixMigration(db, { wixSubId, userEmail, env }
     }
     return await wixQuery.first();
   } catch {
-    env.EVENTS?.writeDataPoint({
-      blobs: ['billing', 'stuc-migration', 'lookup-error', '', ''],
-      indexes: ['stuc-migration-lookup-error'],
-    });
+    r.event(env, 'billing', 'stuc-migration-lookup-error', 'error', 'stuc-migration');
     return null;
   }
 }
@@ -186,10 +184,8 @@ export function clampTrialEnd(wixLookup, env) {
   }
 
   if (trialEndCandidate !== null) {
-    env.EVENTS?.writeDataPoint({
-      blobs: ['billing', 'stuc-migration', 'trial-end-out-of-range', wixLookup.wix_subscription_id, String(trialEndCandidate)],
-      indexes: ['trial-end-out-of-range'],
-    });
+    r.event(env, 'billing', 'trial-end-out-of-range', 'warn',
+      `stuc-migration ${wixLookup.wix_subscription_id} ${trialEndCandidate}`);
     return { trialEndUnix: null, outOfRange: true };
   }
 

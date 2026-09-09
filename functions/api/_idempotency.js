@@ -27,6 +27,7 @@
  *     });
  *   }
  */
+import { r, normalizeStatus } from '../_report.js';
 
 const KEY_RE = /^[\x21-\x7e]{16,128}$/;
 const TTL_SECONDS = 24 * 60 * 60;
@@ -64,12 +65,9 @@ function isCacheable(response) {
 
 function tryLog(env, level, code, message) {
   try {
-    if (env && env.EVENTS && typeof env.EVENTS.writeDataPoint === 'function') {
-      env.EVENTS.writeDataPoint({
-        blobs: ['idempotency', code, message || '', level],
-        indexes: ['idempotency'],
-      });
-    }
+    // Was blob1='idempotency', a subsystem in the worker-name column. The
+    // subsystem is the event now and the level is the status it always was.
+    r.event(env, 'idempotency', code, normalizeStatus(level).status, message || '');
   } catch {
     // Logging must never fail the request.
   }

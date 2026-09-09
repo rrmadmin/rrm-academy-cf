@@ -5,6 +5,7 @@
 
 import { validateMigrationToken } from '../api/billing/_migration-token.js';
 import { getSessionIdFromCookie, validateSession, SITE_URL } from '../api/auth/_shared.js';
+import { r } from '../_report.js';
 
 function escapeHtml(s) {
   return String(s)
@@ -21,10 +22,14 @@ function maskEmail(email) {
 
 function logEvent(env, action, indexes) {
   try {
-    env.EVENTS?.writeDataPoint({
-      blobs: ['billing', 'stuc-migration', action, indexes.reason || '', JSON.stringify(indexes)],
-      indexes: [action]
-    });
+    // Was blob1='billing' with the reason string in the status column. The
+    // status is derived from the action word, which is the only place this
+    // helper has ever carried an outcome.
+    const status = /error|fail|refused|missing/i.test(String(action))
+      ? (/refused|missing/i.test(String(action)) ? 'warn' : 'error')
+      : 'ok';
+    r.event(env, 'billing', action, status,
+      `stuc-migration ${indexes.reason || ''} ${JSON.stringify(indexes)}`);
   } catch {
     // AE telemetry is best-effort; never break user flow on logging failure
   }

@@ -361,7 +361,11 @@ describe('_email.js notifyNewPost -- per-recipient failure accounting', () => {
     const point = env._events.find(e => e.blobs?.includes('stuc_blast_result'));
     assert.ok(point);
     assert.deepEqual(point.doubles, [4, 3, 1]);
-    assert.equal(point.blobs[3], 'p1', 'the post id must be on the datapoint');
+    // The post id used to sit in blob4, the status column. blob4 is a status
+    // now (the blast is a warn because one of the four sends failed) and the
+    // id is in the detail, which is the only place a row identifier belongs.
+    assert.equal(point.blobs[3], 'warn');
+    assert.equal(point.blobs[4], 'post=p1', 'the post id must be on the datapoint');
   });
 
   it('completes without an EVENTS binding', async () => {

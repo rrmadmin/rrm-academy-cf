@@ -14,6 +14,7 @@ import { buildSourceParams, getClientId, parseCookie } from './_ga4-source.js';
 import { PII_VALUE_REGEX } from './_track-events.js';
 import { log } from './_log.js';
 import { getSessionIdFromCookie, validateSession } from './auth/_shared.js';
+import { r } from '../_report.js';
 
 const GA4_ENDPOINT = 'https://www.google-analytics.com/mp/collect';
 
@@ -485,11 +486,8 @@ export async function sendGA4Event(env, request, eventName, params = {}, overrid
     if (ga4Error) throw ga4Error;
     if (!resp.ok) {
       try {
-        env.EVENTS?.writeDataPoint({
-          blobs: ['rrm-academy', 'ga4', 'ga4_mp_error', 'error', String(resp.status)],
-          doubles: [0, 1, resp.status],
-          indexes: ['ga4_mp_error'],
-        });
+        r.event(env, 'ga4', 'ga4_mp_error', 'error', String(resp.status),
+          { doubles: [0, 1, resp.status] });
       } catch {
         // best-effort: AE write must not escalate analytics-error logging into a user-visible failure
       }

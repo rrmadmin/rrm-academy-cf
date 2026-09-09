@@ -15,6 +15,7 @@ import { logSearchQuery, logAskAnswer, promptHash, hashIp, extractRequestMeta } 
 import { SYSTEM_PROMPT } from './_ask_prompt.js';
 import { requireMember } from './community/_shared.js';
 import { withIdempotency } from './_idempotency.js';
+import { r, statusFromHttp } from '../_report.js';
 
 
 async function hashShort(text) {
@@ -335,11 +336,12 @@ async function handleAuthedAsk(context, session) {
   if (env.EVENTS) {
     const hashedQuery = await hashShort(message);
     const hashedUserId = await hashShort(user.id);
-    env.EVENTS.writeDataPoint({
-      blobs: ['rrm-academy', 'ask', 'query', String(httpStatus), hashedQuery, hashedUserId, context.data?.searchV2 === 'all' ? 'v2' : 'v1'],
-      doubles: [durationMs, 1, httpStatus],
-      indexes: ['ask'],
-    });
+    // blob4 used to be the HTTP status code, which is not one of the five
+    // words the observatory reads as a health signal. The code itself is
+    // unchanged in double3, where every query that wanted it already looked.
+    r.event(env, 'ask', 'query', statusFromHttp(httpStatus),
+      `${hashedQuery} ${hashedUserId} ${context.data?.searchV2 === 'all' ? 'v2' : 'v1'}`,
+      { doubles: [durationMs, 1, httpStatus] });
   }
 
   const { user_agent_short, referer_path } = extractRequestMeta(request);

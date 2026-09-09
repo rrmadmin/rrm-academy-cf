@@ -4,6 +4,7 @@
  * Server-rendered HTML. No auth. No JS required.
  * Validates token, queries D1, renders branded page with the Q&A.
  */
+import { r } from '../../_report.js';
 
 const TOKEN_RE = /^[0-9a-f]{32}$/;
 const SITE_URL = 'https://rrmacademy.org';
@@ -302,11 +303,8 @@ export async function onRequest(context) {
     ).bind(token).first();
   } catch (err) {
     if (env.EVENTS) {
-      env.EVENTS.writeDataPoint({
-        blobs: ['rrm-academy', 'ask', 'shared_page_error', 'error', String(err?.message || '').slice(0, 200)],
-        doubles: [0, 1, 500],
-        indexes: ['shared_page_error'],
-      });
+      r.event(env, 'ask', 'shared_page_error', 'error', String(err?.message || ''),
+        { doubles: [0, 1, 500] });
     }
     return errorPage(503, 'The service is temporarily unavailable. Please try again later.');
   }
