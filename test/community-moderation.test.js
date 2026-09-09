@@ -1038,14 +1038,14 @@ describe('POST /api/community/flags -- moderator notification', () => {
 
   it('emails every mod, admin and superadmin exactly once, and nobody else', async () => {
     await flagAndDrain({ targetType: 'post', targetId: 'p_long', reason: 'spam' });
-    const recipients = net.ses.map((c) => c.body.Destination.ToAddresses[0]).sort();
+    const recipients = net.mail.map((c) => c.to[0]).sort();
     assert.deepEqual(recipients, ['admin2@example.com', 'admin@example.com', 'mod@example.com', 'super@example.com']);
   });
 
   it('skips blocked staff -- a banned moderator stops receiving the queue', async () => {
     db._sqlite.prepare('UPDATE user SET blocked = 1 WHERE id = ?').run('u_mod');
     await flagAndDrain({ targetType: 'post', targetId: 'p_long', reason: 'spam' });
-    const recipients = net.ses.map((c) => c.body.Destination.ToAddresses[0]);
+    const recipients = net.mail.map((c) => c.to[0]);
     assert.ok(!recipients.includes('mod@example.com'));
     assert.equal(recipients.length, 3);
   });
@@ -1053,16 +1053,18 @@ describe('POST /api/community/flags -- moderator notification', () => {
   it('sends nothing at all when the community has no staff', async () => {
     const staffless = await seededDb({ users: ['member', 'member2'], seed: seedContent });
     await flagAndDrain({ targetType: 'post', targetId: 'p_long', reason: 'spam' }, { database: staffless });
-    assert.equal(net.ses.length, 0);
+    assert.equal(net.mail.length, 0);
   });
 
   it('names the reporter by display name, states the reason, and truncates the preview to 200 chars', async () => {
     await flagAndDrain({ targetType: 'post', targetId: 'p_long', reason: 'harassment' });
-    const send = net.ses[0];
-    assert.equal(send.body.Content.Simple.Subject.Data, '[STUC] Content flagged: harassment');
-    assert.equal(send.body.FromEmailAddress, 'RRM Academy Alerts <alerts@mail.rrmacademy.org>');
-    const html = send.body.Content.Simple.Body.Html.Data;
-    const text = send.body.Content.Simple.Body.Text.Data;
+    const send = net.mail[0];
+    assert.equal(send.subject, '[STUC] Content flagged: harassment');
+    // Lane cf_rrm sends a BARE from address: the display-name form is what
+    // the caller passes, and the Cloudflare rail's proven payload strips it.
+    assert.equal(send.from, 'alerts@mail.rrmacademy.org');
+    const html = send.html;
+    const text = send.text;
     assert.match(html, /<strong>Mia M\.<\/strong> flagged a post as <strong>harassment<\/strong>/);
     assert.match(text, /^Mia M\. flagged a post as harassment\./);
     assert.ok(html.includes('A'.repeat(200)));
@@ -1072,13 +1074,13 @@ describe('POST /api/community/flags -- moderator notification', () => {
 
   it('falls back to the legacy title + body pair when a post has no merged content', async () => {
     await flagAndDrain({ targetType: 'post', targetId: 'p_legacy', reason: 'spam' });
-    const text = net.ses[0].body.Content.Simple.Body.Text.Data;
+    const text = net.mail[0].text;
     assert.match(text, /Content: Legacy title\n\nLegacy body/);
   });
 
   it('links a flagged comment to its parent post, not to the comment id', async () => {
     await flagAndDrain({ targetType: 'comment', targetId: 'c_1', reason: 'other' });
-    const html = net.ses[0].body.Content.Simple.Body.Html.Data;
+    const html = net.mail[0].html;
     assert.match(html, /flagged a comment as <strong>other<\/strong>/);
     assert.match(html, /href="https:\/\/rrmacademy\.org\/community\/post\/p_long\/"/);
     assert.ok(html.includes('A comment worth reporting'));
@@ -1086,9 +1088,9 @@ describe('POST /api/community/flags -- moderator notification', () => {
 
   it('omits the note paragraph when no note was supplied', async () => {
     await flagAndDrain({ targetType: 'post', targetId: 'p_long', reason: 'spam' });
-    const send = net.ses[0];
-    assert.ok(!send.body.Content.Simple.Body.Html.Data.includes('<p>Note:'));
-    assert.ok(!send.body.Content.Simple.Body.Text.Data.includes('Note:'));
+    const send = net.mail[0];
+    assert.ok(!send.html.includes('<p>Note:'));
+    assert.ok(!send.text.includes('Note:'));
   });
 
   it('ESCAPES the reporter-supplied note -- a flag note cannot inject HTML into the moderator inbox', async () => {
@@ -1096,11 +1098,11 @@ describe('POST /api/community/flags -- moderator notification', () => {
       targetType: 'post', targetId: 'p_long', reason: 'spam',
       note: `<script>alert("x")</script> & 'quote'`,
     });
-    const html = net.ses[0].body.Content.Simple.Body.Html.Data;
+    const html = net.mail[0].html;
     assert.ok(!html.includes('<script>'), 'raw script tag reached the moderator email');
     assert.match(html, /<p>Note: &lt;script&gt;alert\(&quot;x&quot;\)&lt;\/script&gt; &amp; &#39;quote&#39;<\/p>/);
     // The plain-text part is not escaped, by design; pinned so a change is noticed.
-    assert.ok(net.ses[0].body.Content.Simple.Body.Text.Data.includes('<script>alert("x")</script>'));
+    assert.ok(net.mail[0].text.includes('<script>alert("x")</script>'));
   });
 
   // A moderator deleting the reported item in the window between the flag INSERT
@@ -1112,9 +1114,9 @@ describe('POST /api/community/flags -- moderator notification', () => {
       interleave: deleteWhen(/SELECT title, body, content FROM community_post/, "DELETE FROM community_post WHERE id = 'p_long'"),
     });
     await flagAndDrain({ targetType: 'post', targetId: 'p_long', reason: 'spam' }, { database: racing });
-    const html = net.ses[0].body.Content.Simple.Body.Html.Data;
+    const html = net.mail[0].html;
     assert.match(html, /<em>\(unable to load preview\)<\/em>/);
-    assert.match(net.ses[0].body.Content.Simple.Body.Text.Data, /Content: \(unable to load\)/);
+    assert.match(net.mail[0].text, /Content: \(unable to load\)/);
   });
 
   it('says so when the flagged comment vanished before the notification rendered', async () => {
@@ -1123,7 +1125,7 @@ describe('POST /api/community/flags -- moderator notification', () => {
       interleave: deleteWhen(/SELECT content, post_id FROM community_comment/, "DELETE FROM community_comment WHERE id = 'c_1'"),
     });
     await flagAndDrain({ targetType: 'comment', targetId: 'c_1', reason: 'spam' }, { database: racing });
-    const html = net.ses[0].body.Content.Simple.Body.Html.Data;
+    const html = net.mail[0].html;
     assert.match(html, /<em>\(unable to load preview\)<\/em>/);
     // With no comment row there is no parent post id, so the link falls back to the comment id.
     assert.match(html, /community\/post\/c_1\//);
@@ -1160,7 +1162,7 @@ describe('POST /api/community/flags -- moderator notification', () => {
       'a notification failure lost the flag');
     assert.ok(actionsOf(env).includes('flag_error'));
     assert.ok(detailsOf(env).some((d) => d === 'notification: D1 connection lost'));
-    assert.equal(net.ses.length, 0);
+    assert.equal(net.mail.length, 0);
   });
 });
 

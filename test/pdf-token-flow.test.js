@@ -388,13 +388,13 @@ describe('POST /api/pdf/request -- minting, reuse, and CRM side effects', () => 
       assert.match(row.token, /^[0-9a-f-]{36}$/, 'token is a UUID, not a guessable counter');
 
       // The email carries a link that redeems THAT token.
-      assert.equal(stub.ses.length, 1, 'exactly one SES send');
-      const sent = stub.ses[0].body;
-      assert.equal(sent.Destination.ToAddresses[0], 'reader@example.com');
-      assert.equal(sent.Content.Simple.Subject.Data, `Your ${GUIDE_PDFS[LIVE_SLUG].title} - Download Link Inside`);
+      assert.equal(stub.mail.length, 1, 'exactly one SES send');
+      const sent = stub.mail[0];
+      assert.equal(sent.to[0], 'reader@example.com');
+      assert.equal(sent.subject, `Your ${GUIDE_PDFS[LIVE_SLUG].title} - Download Link Inside`);
       const expectedUrl = `${SITE}/api/pdf/redeem?token=${row.token}`;
-      assert.ok(sent.Content.Simple.Body.Html.Data.includes(expectedUrl), 'HTML body links the minted token');
-      assert.ok(sent.Content.Simple.Body.Text.Data.includes(expectedUrl), 'text body links the minted token');
+      assert.ok(sent.html.includes(expectedUrl), 'HTML body links the minted token');
+      assert.ok(sent.text.includes(expectedUrl), 'text body links the minted token');
     } finally {
       stub.restore();
       harness.close();
@@ -426,9 +426,9 @@ describe('POST /api/pdf/request -- minting, reuse, and CRM side effects', () => 
       assert.equal(rows[0].token, first.token, 'the same token value is re-sent');
 
       // Two emails, both pointing at the same link.
-      assert.equal(stub.ses.length, 2);
-      for (const s of stub.ses) {
-        assert.ok(s.body.Content.Simple.Body.Text.Data.includes(first.token));
+      assert.equal(stub.mail.length, 2);
+      for (const s of stub.mail) {
+        assert.ok(s.text.includes(first.token));
       }
     } finally {
       stub.restore();
@@ -639,10 +639,13 @@ describe('POST /api/pdf/request -- minting, reuse, and CRM side effects', () => 
         logs[0].subject,
         `Your ${GUIDE_PDFS[LIVE_SLUG].title} - Download Link Inside`,
       );
-      // The correlation key SES events join back on. This is the column the
-      // stale harness was missing, so assert it lands rather than assuming it.
-      assert.equal(logs[0].ses_message_id, 'mock-ses-message-id');
-      assert.equal(logs[0].send_id, 'mock-ses-message-id');
+      // The correlation key. `send_id` is the rail's own message id whichever
+      // rail carried it; `ses_message_id` is the column SES delivery events
+      // join back on, so it is null on lane cf_rrm rather than holding a
+      // Cloudflare id no SES event will ever match. This is the column the
+      // stale harness was missing, so assert it rather than assuming it.
+      assert.equal(logs[0].send_id, 'mock-cf-message-id');
+      assert.equal(logs[0].ses_message_id, null);
     } finally {
       stub.restore();
       harness.close();
@@ -706,7 +709,7 @@ describe('POST /api/pdf/request -- minting, reuse, and CRM side effects', () => 
       assert.equal(parsed.status, 503);
       assert.equal(parsed.body.error, 'service_unavailable');
       assert.doesNotMatch(JSON.stringify(parsed.body), /disk I\/O/);
-      assert.equal(stub.ses.length, 0, 'no email goes out when the token was never stored');
+      assert.equal(stub.mail.length, 0, 'no email goes out when the token was never stored');
     } finally {
       stub.restore();
       harness.close();
@@ -1035,7 +1038,7 @@ describe('mint -> email -> redeem, end to end', () => {
 
       // Pull the URL out of the delivered email rather than out of the database,
       // so the test follows the same path a reader does.
-      const text = stub.ses[0].body.Content.Simple.Body.Text.Data;
+      const text = stub.mail[0].text;
       const link = /https:\/\/\S*\/api\/pdf\/redeem\?token=[0-9a-f-]{36}/.exec(text);
       assert.ok(link, `no redeem link in the email body: ${text}`);
 

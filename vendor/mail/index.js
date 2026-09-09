@@ -29,9 +29,10 @@
 import { EXEMPTIONS, LANES, LaneRefused, MailPermanent, resolveLane, bareAddress, sanitizeHeader } from './lanes.js';
 import { sendViaSes } from './ses.js';
 import { sendViaGraph, forgetGraphTokenForTests } from './graph.js';
-import { sendViaCfEmail } from './cf-email.js';
+import { sendViaCfEmail, MAX_ATTACHMENT_BASE64 } from './cf-email.js';
 
 export {
+  MAX_ATTACHMENT_BASE64,
   EXEMPTIONS,
   LANES,
   LaneRefused,
@@ -83,6 +84,28 @@ async function writeLog(deps, row) {
   } catch {
     // Logging is best-effort; it must never be why a caller sees a failure.
   }
+}
+
+/**
+ * THE ONE WAY BACK TO SES, and the conditions on it.
+ *
+ * A Cloudflare send that answered a 5xx, or did not answer at all, is
+ * Cloudflare's trouble rather than the message's, and the message is a
+ * receipt or a password reset somebody is waiting on. Those, and only those,
+ * may go out on the old rail instead.
+ *
+ * Everything else stays failed on purpose. A 4xx is a request the far side
+ * will refuse identically tomorrow, so retrying it on SES sends a message SES
+ * may well accept and Cloudflare deliberately would not. A `MailPermanent` is
+ * a throw and never reaches here at all. And the fallback is off unless the
+ * consumer passes `deps.fallback === 'ses'`, because the point of the cutover
+ * is that a consumer which has not been given the SES credentials cannot
+ * quietly keep using them.
+ */
+const TRANSIENT_CF_REASONS = new Set(['cf-email-network-error', 'cf-email-timeout']);
+
+function cloudflareFellOver(result) {
+  return (result.status ?? 0) >= 500 || TRANSIENT_CF_REASONS.has(result.reason);
 }
 
 function firstRecipient(to) {
@@ -155,6 +178,22 @@ export async function send(env, msg = {}, deps = {}) {
   const clean = sanitiseMessage(msg);
   const transport = LANES[lane].transport;
 
+  const notePermanent = async (err, laneNow) => {
+    writeAe(deps, { lane: laneNow, purpose, ok: false, detail: `permanent:${err.message}`, durationMs: Date.now() - started, exemption });
+    await writeLog(deps, {
+      event: 'failed',
+      email: firstRecipient(clean.to),
+      category: purpose || null,
+      source: msg.source || '',
+      subject: clean.subject || null,
+      detail: `permanent: ${err.message}`,
+      send_id: null,
+      ses_message_id: null,
+      lane: laneNow,
+      exemption,
+    });
+  };
+
   let result;
   try {
     if (transport === 'ses') result = await sendViaSes(env, clean, deps);
@@ -162,30 +201,44 @@ export async function send(env, msg = {}, deps = {}) {
     else if (transport === 'cf_email') result = await sendViaCfEmail(env, clean, deps);
     else result = { ok: false, status: 0, reason: 'no-transport', detail: `lane ${lane} has no transport` };
   } catch (err) {
-    if (err instanceof MailPermanent) {
-      writeAe(deps, { lane, purpose, ok: false, detail: `permanent:${err.message}`, durationMs: Date.now() - started, exemption });
-      await writeLog(deps, {
-        event: 'failed',
-        email: firstRecipient(clean.to),
-        category: purpose || null,
-        source: msg.source || '',
-        subject: clean.subject || null,
-        detail: `permanent: ${err.message}`,
-        send_id: null,
-        ses_message_id: null,
-        lane,
-        exemption,
-      });
-    }
+    if (err instanceof MailPermanent) await notePermanent(err, lane);
     throw err;
   }
 
+  /**
+   * The failed Cloudflare attempt gets its own AE row before the lane
+   * changes, so the telemetry shows both legs: what did not send, and then
+   * what did. Without it the only trace of a Cloudflare outage would be a
+   * quietly higher SES count.
+   */
+  let fellBackFrom = null;
+  if (!result.ok && lane === 'cf_rrm' && deps.fallback === 'ses' && cloudflareFellOver(result)) {
+    writeAe(deps, {
+      lane,
+      purpose,
+      ok: false,
+      detail: `${result.reason}:${result.detail ?? ''}`,
+      durationMs: Date.now() - started,
+      exemption,
+    });
+    fellBackFrom = lane;
+    lane = 'ses_rrm';
+    try {
+      result = await sendViaSes(env, clean, deps);
+    } catch (err) {
+      if (err instanceof MailPermanent) await notePermanent(err, lane);
+      throw err;
+    }
+  }
+
+  const sentOnSes = LANES[lane].transport === 'ses';
   const durationMs = Date.now() - started;
+  const fallbackNote = fellBackFrom ? `fell-back-from=${fellBackFrom} ` : '';
   writeAe(deps, {
     lane,
     purpose,
     ok: result.ok,
-    detail: result.ok ? (result.id ?? '') : `${result.reason}:${result.detail ?? ''}`,
+    detail: `${fallbackNote}${result.ok ? (result.id ?? '') : `${result.reason}:${result.detail ?? ''}`}`,
     durationMs,
     exemption,
   });
@@ -197,12 +250,15 @@ export async function send(env, msg = {}, deps = {}) {
     subject: clean.subject || null,
     detail: result.ok ? result.id : `${result.reason}: ${result.detail ?? ''}`,
     send_id: result.ok ? result.id : null,
-    ses_message_id: result.ok && transport === 'ses' ? result.id : null,
+    ses_message_id: result.ok && sentOnSes ? result.id : null,
     lane,
     exemption,
+    fell_back_from: fellBackFrom,
   });
 
-  return result.ok
+  const answer = result.ok
     ? { ok: true, lane, id: result.id ?? null }
     : { ok: false, lane, reason: result.reason, status: result.status ?? 0, detail: result.detail };
+  if (fellBackFrom) answer.fellBackFrom = fellBackFrom;
+  return answer;
 }

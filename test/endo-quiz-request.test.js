@@ -566,13 +566,14 @@ describe('POST /api/endo-quiz/request', () => {
   describe('the results email', () => {
     it('sends the score breakdown to the taker and logs the send', async () => {
       await post(VALID);
-      const [send] = stub.ses;
+      const [send] = stub.mail;
       assert.ok(send, 'no SES send was attempted');
-      assert.equal(send.body.Destination.ToAddresses[0], 'taker@example.com');
-      assert.equal(send.body.Content.Simple.Subject.Data, 'Your endometriosis symptom quiz results');
-      assert.equal(send.body.FromEmailAddress, 'RRM Academy <info@mail.rrmacademy.org>');
+      assert.equal(send.to[0], 'taker@example.com');
+      assert.equal(send.subject, 'Your endometriosis symptom quiz results');
+      // Bare address: lane cf_rrm's proven payload drops the display name.
+      assert.equal(send.from, 'info@mail.rrmacademy.org');
 
-      const text = send.body.Content.Simple.Body.Text.Data;
+      const text = send.text;
       assert.match(text, /Your score: 54 out of 81/);
       assert.match(text, /Tier 1 \(very high suspicion\): 30 \/ 45/);
       assert.match(text, /Tier 2 \(high suspicion\): 20 \/ 30/);
@@ -594,7 +595,7 @@ describe('POST /api/endo-quiz/request', () => {
     ]) {
       it(`writes the ${band}-band paragraph`, async () => {
         await post({ ...VALID, band });
-        const text = stub.ses[0].body.Content.Simple.Body.Text.Data;
+        const text = stub.mail[0].text;
         assert.match(text, phrase);
       });
     }
@@ -604,7 +605,7 @@ describe('POST /api/endo-quiz/request', () => {
         stub.restore();
         stub = stubExternalFetch();
         await post({ ...VALID, band, email: `${band}@example.com` });
-        assert.match(stub.ses[0].body.Content.Simple.Body.Text.Data, /not a diagnosis/);
+        assert.match(stub.mail[0].text, /not a diagnosis/);
       }
     });
 
@@ -672,7 +673,7 @@ describe('POST /api/endo-quiz/request', () => {
       assert.deepEqual(body, { error: 'server_error' });
       assert.equal(identityRows().length, 0, 'an address was kept for a record that was never stored');
       assert.ok(actions().includes('symptom_write_dropped'), 'the dropped write was not logged');
-      assert.equal(stub.ses.length, 0, 'a results email was sent for a submission that was not stored');
+      assert.equal(stub.mail.length, 0, 'a results email was sent for a submission that was not stored');
     });
 
     it('leaks no SQL detail to the client when the symptom insert fails', async () => {
@@ -691,10 +692,10 @@ describe('POST /api/endo-quiz/request', () => {
       assert.ok(row, 'the symptom record was rolled back when only the identity write failed');
       assert.ok(actions().includes('d1_identity_write_error'), 'the identity failure was not logged');
 
-      const alert = stub.ses.find(c => c.body.Destination.ToAddresses[0] === 'administrator@rrmacademy.org');
+      const alert = stub.mail.find(c => c.to[0] === 'administrator@rrmacademy.org');
       assert.ok(alert, 'no alert was sent for an orphaned symptom record');
-      assert.equal(alert.body.Content.Simple.Subject.Data, 'ALERT: endo-quiz identity link failed');
-      assert.match(alert.body.Content.Simple.Body.Text.Data, new RegExp(`rec_id: ${row.rec_id}`));
+      assert.equal(alert.subject, 'ALERT: endo-quiz identity link failed');
+      assert.match(alert.text, new RegExp(`rec_id: ${row.rec_id}`));
     });
 
     it('keeps the address out of the Analytics Engine record of the identity failure', async () => {

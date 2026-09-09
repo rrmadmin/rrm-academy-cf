@@ -279,7 +279,7 @@ describe('_notify-admin.js -- enrolment alert', () => {
       studentEmail: 'learner@example.com', studentName: 'Learner', courseTitle: 'T', courseId: 'c1', isFree: true,
     });
 
-    assert.equal(fetchStub.ses.length, 0, 'no SES call without credentials');
+    assert.equal(fetchStub.mail.length, 0, 'no SES call without credentials');
     assert.ok(events.some((e) => e.blobs.includes('admin_notify_skipped')), 'the skip is logged');
   });
 
@@ -295,11 +295,11 @@ describe('_notify-admin.js -- enrolment alert', () => {
       isFree: true,
     });
 
-    assert.equal(fetchStub.ses.length, 1);
-    const payload = fetchStub.ses[0].body;
-    assert.deepEqual(payload.Destination.ToAddresses, ['administrator@rrmacademy.org']);
-    assert.equal(payload.Subject ?? payload.Content.Simple.Subject.Data, 'New enrollment: Learner One - Test Course: Free');
-    const text = payload.Content.Simple.Body.Text.Data;
+    assert.equal(fetchStub.mail.length, 1);
+    const payload = fetchStub.mail[0];
+    assert.deepEqual(payload.to, ['administrator@rrmacademy.org']);
+    assert.equal(payload.Subject ?? payload.subject, 'New enrollment: Learner One - Test Course: Free');
+    const text = payload.text;
     assert.match(text, /Student name: {2}Learner One/);
     assert.match(text, /Student email: learner@example\.com/);
     assert.match(text, /Course ID: {5}test-course-free/);
@@ -318,9 +318,9 @@ describe('_notify-admin.js -- enrolment alert', () => {
       isFree: false,
     });
 
-    const payload = fetchStub.ses[0].body;
-    assert.equal(payload.Content.Simple.Subject.Data, 'New enrollment: anon@example.com - Test Course: Paid');
-    const text = payload.Content.Simple.Body.Text.Data;
+    const payload = fetchStub.mail[0];
+    assert.equal(payload.subject, 'New enrollment: anon@example.com - Test Course: Paid');
+    const text = payload.text;
     assert.match(text, /Student name: {2}\(not set\)/);
     assert.match(text, /Type: {10}Paid/);
   });

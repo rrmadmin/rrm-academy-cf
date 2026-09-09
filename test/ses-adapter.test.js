@@ -6,9 +6,17 @@
  * claims, the lane the log row records, and the fact that every export kept
  * its old signature so thirty-odd call sites did not have to change.
  *
- * The SES call is intercepted at globalThis.fetch, the same place
- * test/mail-lanes.js intercepts it, because aws4fetch signs and then calls the
- * global.
+ * Both rails are intercepted at globalThis.fetch, the same place
+ * test/mail-lanes.js intercepts them, because aws4fetch signs and then calls
+ * the global and the Cloudflare rail calls it directly.
+ *
+ * SINCE 2026-09-09 THE DEFAULT RAIL IS CLOUDFLARE. Every sender in this repo
+ * is on @mail.rrmacademy.org, the onboarded Email Sending subdomain, so the
+ * lane rule resolves cf_rrm for them without a line changing at any call
+ * site. SES is reachable two ways and only two: the apex from addresses (the
+ * newsletter exemption's hello@rrmacademy.org above all) and the adapter's
+ * `fallback: 'ses'`, which takes the SES leg when Cloudflare answers a 5xx or
+ * nothing at all. A 4xx never falls back.
  */
 import test from 'node:test';
 import assert from 'node:assert/strict';
@@ -39,6 +47,50 @@ function stubSes({ status = 200, body = '{"MessageId":"ses-adapter-1"}' } = {}) 
     const raw = init?.body ?? (isRequest ? await input.text() : null);
     calls.push({ url, payload: raw ? JSON.parse(raw) : null });
     return new Response(body, { status });
+  };
+  return { calls, restore: () => { globalThis.fetch = original; } };
+}
+
+/**
+ * Captures every Cloudflare Email Sending call and answers a queued send.
+ *
+ * A real queued send answers `success: true` with all three result arrays
+ * empty and `message_id` the only evidence it left, so that is what this
+ * returns; asserting on `delivered` would be asserting on something the live
+ * endpoint does not send.
+ */
+function stubCf({ status = 200, body = { success: true, errors: [], result: { message_id: 'cf-adapter-1' } } } = {}) {
+  const original = globalThis.fetch;
+  const calls = [];
+  globalThis.fetch = async (input, init) => {
+    const isRequest = input && typeof input === 'object' && typeof input.text === 'function';
+    const url = isRequest || (input && typeof input === 'object' && input.url) ? input.url : String(input);
+    const raw = init?.body ?? (isRequest ? await input.text() : null);
+    calls.push({ url, payload: raw ? JSON.parse(raw) : null });
+    return new Response(typeof body === 'string' ? body : JSON.stringify(body), {
+      status,
+      headers: { 'content-type': 'application/json' },
+    });
+  };
+  return { calls, restore: () => { globalThis.fetch = original; } };
+}
+
+/**
+ * Cloudflare first, SES second: what the adapter's `fallback: 'ses'` is for.
+ * The first call is answered by `cf`, every later one by `ses`, which is the
+ * shape of a Cloudflare outage during the watched week.
+ */
+function stubCfThenSes({ cfStatus = 503, sesBody = '{"MessageId":"ses-fallback-1"}' } = {}) {
+  const original = globalThis.fetch;
+  const calls = [];
+  globalThis.fetch = async (input, init) => {
+    const isRequest = input && typeof input === 'object' && typeof input.text === 'function';
+    const url = isRequest || (input && typeof input === 'object' && input.url) ? input.url : String(input);
+    const raw = init?.body ?? (isRequest ? await input.text() : null);
+    const rail = url.includes('/email/sending/send') ? 'cf' : 'ses';
+    calls.push({ rail, url, payload: raw ? JSON.parse(raw) : null });
+    if (rail === 'cf') return new Response('{"success":false,"errors":[{"message":"upstream"}]}', { status: cfStatus });
+    return new Response(sesBody, { status: 200 });
   };
   return { calls, restore: () => { globalThis.fetch = original; } };
 }
@@ -80,10 +132,10 @@ test('insertEmailLog and logEmailFailure still write the nine-column row', async
 // Transactional: the ordinary path, unchanged in every visible way.
 // ---------------------------------------------------------------------------
 
-test('a transactional send reaches SES Simple and logs lane ses_rrm', async () => {
+test('a transactional send reaches the Cloudflare rail and logs lane cf_rrm', async () => {
   const db = mockDB();
   const env = mockEnv({ DB: db });
-  const stub = stubSes();
+  const stub = stubCf();
   try {
     const r = await sendEmail(env, {
       from: 'RRM Academy <accounts@mail.rrmacademy.org>',
@@ -92,25 +144,67 @@ test('a transactional send reaches SES Simple and logs lane ses_rrm', async () =
       html: '<p>hi</p>',
       log: { db, category: 'transactional', source: 'auth/signup' },
     });
-    assert.equal(r.messageId, 'ses-adapter-1');
+    assert.equal(r.messageId, 'cf-adapter-1');
     assert.equal(stub.calls.length, 1);
-    assert.ok(stub.calls[0].payload.Content.Simple, 'no custom headers means Simple, not Raw');
-    assert.equal(stub.calls[0].payload.FromEmailAddress, 'RRM Academy <accounts@mail.rrmacademy.org>');
+    assert.match(stub.calls[0].url, /\/email\/sending\/send$/);
+    // The proven payload sends a BARE address, and html alone still gets a
+    // derived text alternative, because a message with no text part is the
+    // message most likely to be filed as bulk.
+    assert.equal(stub.calls[0].payload.from, 'accounts@mail.rrmacademy.org');
+    assert.equal(stub.calls[0].payload.to, 'user@example.com');
+    assert.ok(stub.calls[0].payload.text, 'html alone still ships a text alternative');
 
     const [row] = emailLogRows(db);
     assert.equal(row.bound[0], 'send');
     assert.equal(row.bound[2], 'transactional', "the caller's own category, not the package's purpose");
     assert.equal(row.bound[3], 'auth/signup');
-    assert.equal(row.bound[8], 'ses_rrm');
+    assert.equal(row.bound[8], 'cf_rrm');
+    assert.equal(row.bound[7], null, 'ses_message_id stays null on a Cloudflare send');
   } finally { stub.restore(); }
 });
 
-test('an SES failure is a THROW, which is what every call site catches', async () => {
+test('an apex from address still rides SES, which is the one-sender-at-a-time lever', async () => {
+  const db = mockDB();
+  const env = mockEnv({ DB: db });
+  const stub = stubSes();
+  try {
+    const r = await sendEmail(env, {
+      from: 'RRM Academy <receipts@rrmacademy.org>',
+      to: 'user@example.com',
+      subject: 'Your receipt',
+      html: '<p>hi</p>',
+      log: { db, category: 'transactional', source: 'billing/receipt' },
+    });
+    assert.equal(r.messageId, 'ses-adapter-1');
+    assert.ok(stub.calls[0].payload.Content.Simple, 'no custom headers means Simple, not Raw');
+    assert.equal(emailLogRows(db)[0].bound[8], 'ses_rrm');
+  } finally { stub.restore(); }
+});
+
+test('a Cloudflare 5xx falls back to SES and records which rail it came from', async () => {
+  const db = mockDB();
+  const env = mockEnv({ DB: db });
+  const stub = stubCfThenSes();
+  try {
+    const r = await sendEmail(env, {
+      from: 'RRM Academy <accounts@mail.rrmacademy.org>',
+      to: 'user@example.com',
+      subject: 'Confirm your email',
+      text: 'hi',
+      log: { db, category: 'transactional', source: 'auth/signup' },
+    });
+    assert.equal(r.messageId, 'ses-fallback-1');
+    assert.deepEqual(stub.calls.map((c) => c.rail), ['cf', 'ses'], 'Cloudflare first, then the SES leg');
+    assert.equal(emailLogRows(db)[0].bound[8], 'ses_rrm', 'the row records the rail that actually sent');
+  } finally { stub.restore(); }
+});
+
+test('a send failure is a THROW, which is what every call site catches', async () => {
   const env = mockEnv();
-  // 400, not 500, deliberately: aws4fetch retries 5xx with backoff (see the
-  // adapter header), so a 500 here would spend ten seconds proving nothing
-  // this assertion is about.
-  const stub = stubSes({ status: 400, body: 'InvalidParameterValue: bad request' });
+  // 400, not 500: a 4xx is a request the far side will refuse identically
+  // tomorrow, so it must NOT reach SES over the fallback. Sending it there
+  // would deliver a message the newer rail deliberately would not.
+  const stub = stubCfThenSes({ cfStatus: 400 });
   try {
     await assert.rejects(
       () => sendEmail(env, {
@@ -119,8 +213,9 @@ test('an SES failure is a THROW, which is what every call site catches', async (
         subject: 's',
         text: 't',
       }),
-      /SES request failed \(ses-error, status 400\)/,
+      /SES request failed \(cf-email-error, status 400\)/,
     );
+    assert.deepEqual(stub.calls.map((c) => c.rail), ['cf'], 'a 4xx never falls back');
   } finally { stub.restore(); }
 });
 
@@ -139,7 +234,7 @@ test('missing SES credentials still throw before anything is attempted', async (
 
 test('a send with no log db writes no row and still sends', async () => {
   const env = mockEnv();
-  const stub = stubSes();
+  const stub = stubCf();
   try {
     const r = await sendEmail(env, {
       from: 'RRM Academy <alerts@mail.rrmacademy.org>',
@@ -148,7 +243,7 @@ test('a send with no log db writes no row and still sends', async () => {
       text: 't',
       purpose: 'system',
     });
-    assert.equal(r.messageId, 'ses-adapter-1');
+    assert.equal(r.messageId, 'cf-adapter-1');
     assert.equal(stub.calls.length, 1);
   } finally { stub.restore(); }
 });
@@ -157,9 +252,14 @@ test('a send with no log db writes no row and still sends', async () => {
 // The purpose mapping, which is the whole of the adapter's judgement.
 // ---------------------------------------------------------------------------
 
-test("the _google-ads alert is purpose 'system', and 'system' is an SES purpose", () => {
+test("the _google-ads alert is purpose 'system', which rides cf_rrm from the mail subdomain", () => {
   assert.equal(
     resolveLane({ entity: 'rrma', purpose: 'system', from: 'RRM Academy <alerts@mail.rrmacademy.org>' }),
+    'cf_rrm',
+  );
+  // The same purpose from the apex is the SES half of the same rule.
+  assert.equal(
+    resolveLane({ entity: 'rrma', purpose: 'system', from: 'RRM Academy <alerts@rrmacademy.org>' }),
     'ses_rrm',
   );
 });
@@ -167,7 +267,7 @@ test("the _google-ads alert is purpose 'system', and 'system' is an SES purpose"
 test('an unrecognised log category falls back to transactional rather than refusing', async () => {
   const db = mockDB();
   const env = mockEnv({ DB: db });
-  const stub = stubSes();
+  const stub = stubCf();
   try {
     // 'receipt' is a real package purpose, but this adapter does not map it:
     // an unknown category must not turn a working send into a refusal.
@@ -178,7 +278,7 @@ test('an unrecognised log category falls back to transactional rather than refus
       text: 't',
       log: { db, category: 'receipt', source: 'billing/webhook' },
     });
-    assert.equal(r.messageId, 'ses-adapter-1');
+    assert.equal(r.messageId, 'cf-adapter-1');
     assert.equal(emailLogRows(db)[0].bound[2], 'receipt', 'the row still records what the caller called it');
   } finally { stub.restore(); }
 });
