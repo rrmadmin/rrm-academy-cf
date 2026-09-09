@@ -45,6 +45,16 @@ import {
 import { installUpstream } from './fakes/upstream.mjs';
 import { dispatch } from './fakes/dispatch.mjs';
 import { hashToken } from '../../functions/api/auth/_shared.js';
+/**
+ * THE REPORTING PRIMITIVES, FROM THE KIT. These were byte-identical across
+ * the estate's red-team harnesses (grid in all five, tally in four,
+ * loadIdentityFile and identityCoverage in the three that had them,
+ * subsetMatches in three, scrub in one), so they are one implementation now,
+ * vendored at vendor/redteam/ and sha-locked. Nothing in that module sends a
+ * request or decides an outcome: dispatch, the fakes, the case table and the
+ * evaluation stay in this repo, where they belong.
+ */
+import { grid, subsetMatches, tally } from '../../vendor/redteam/report.mjs';
 
 const ROOT = join(import.meta.dirname, '..', '..');
 
@@ -170,14 +180,6 @@ async function sendLive(kase, options) {
 // Evaluating an expectation.
 // --------------------------------------------------------------------------
 
-function subsetMatches(actual, expected) {
-  for (const [key, value] of Object.entries(expected)) {
-    if (JSON.stringify(actual?.[key]) !== JSON.stringify(value)) {
-      return `body.${key} is ${JSON.stringify(actual?.[key])}, expected ${JSON.stringify(value)}`;
-    }
-  }
-  return null;
-}
 
 /**
  * -> an array of failure reasons, empty when the case passed.
@@ -753,38 +755,7 @@ export async function run(options) {
 // Output.
 // --------------------------------------------------------------------------
 
-export function tally(results) {
-  const counts = { PASS: 0, FAIL: 0, SKIP: 0, KNOWN: 0 };
-  for (const result of results) counts[result.outcome] += 1;
-  return counts;
-}
 
-export function grid(results, { verbose = false } = {}) {
-  const lines = [];
-  const byFamily = new Map();
-  for (const result of results) {
-    if (!byFamily.has(result.family)) byFamily.set(result.family, []);
-    byFamily.get(result.family).push(result);
-  }
-
-  for (const [family, rows] of byFamily) {
-    const counts = tally(rows);
-    lines.push('');
-    lines.push(`${family.toUpperCase()}  ${FAMILIES[family] ?? ''}`);
-    lines.push(`  ${rows.length} cases: ${counts.PASS} PASS, ${counts.FAIL} FAIL, ${counts.KNOWN} KNOWN, ${counts.SKIP} SKIP`);
-    for (const row of rows) {
-      if (!verbose && row.outcome === 'PASS') continue;
-      lines.push(`  ${row.outcome.padEnd(5)} ${row.id}`);
-      if (row.scenario) lines.push(`        measured: ${row.detail}`);
-      for (const reason of row.reasons ?? []) lines.push(`        ${reason}`);
-    }
-  }
-
-  const total = tally(results);
-  lines.push('');
-  lines.push(`TOTAL ${results.length} cases: ${total.PASS} PASS, ${total.FAIL} FAIL, ${total.KNOWN} KNOWN, ${total.SKIP} SKIP`);
-  return lines.join('\n');
-}
 
 function markdown(results, options) {
   const total = tally(results);
@@ -849,7 +820,7 @@ function writeReport(results, options) {
 if (import.meta.filename === process.argv[1]) {
   const options = parseArgs(process.argv.slice(2));
   const results = await run(options);
-  console.log(grid(results, { verbose: options.verbose }));
+  console.log(grid(results, { families: FAMILIES, verbose: options.verbose }));
   if (options.report) {
     const { mdPath } = writeReport(results, options);
     console.log(`\nreport: ${mdPath}`);
@@ -857,4 +828,4 @@ if (import.meta.filename === process.argv[1]) {
   process.exit(tally(results).FAIL > 0 ? 1 : 0);
 }
 
-export { IDENTITIES, HOSTS, countByFamily };
+export { IDENTITIES, HOSTS, countByFamily, grid, subsetMatches, tally };

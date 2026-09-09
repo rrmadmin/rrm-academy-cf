@@ -1,9 +1,17 @@
 {
   "kitVersion": "0.7.0",
   "kitScope": "packages",
-  "syncedAt": "2026-09-09T14:05:19.723Z",
+  "syncedAt": "2026-09-09T14:37:54.492Z",
   "files": {},
   "packages": {
+    "redteam": {
+      "version": "1.0.1",
+      "files": {
+        "README.md": "f7ecd5470e376a16dfe27b2ad291c45877662ef06be474158223d3ce34885941",
+        "deps.mjs": "1ee0b06739825adbad5157c69d75ecd4e8262ef48fdca0a8f4e8d431bf9752aa",
+        "report.mjs": "17ae33135256da9763e0eaff8be00339c97209085e02ae3ff26ba579d0a84642"
+      }
+    },
     "mail": {
       "version": "1.4.0",
       "files": {
