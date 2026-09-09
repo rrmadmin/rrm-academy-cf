@@ -512,10 +512,12 @@ describe('stripe-webhook -- subscription and invoice routing', () => {
     const parsed = await parseResponse(await onRequestPost(ctx));
     await Promise.allSettled(ctx.waitUntil.promises.slice());
     assert.equal(parsed.status, 200);
-    const sent = net.calls.slice(before).filter(c => c.service === 'ses');
-    const notice = sent.find(c => (c.body?.Content?.Simple?.Subject?.Data || '').includes('Payment failed'));
-    assert.ok(notice, `expected a dunning email, sent: ${sent.map(c => c.body?.Content?.Simple?.Subject?.Data)}`);
-    assert.deepEqual(notice.body.Destination.ToAddresses, ['member@example.com']);
+    // accounts@mail.rrmacademy.org rides lane cf_rrm, so read the message
+    // through the rail-agnostic view rather than the SES payload shape.
+    const sent = net.mail.filter(m => net.calls.indexOf(m.call) >= before);
+    const notice = sent.find(m => (m.subject || '').includes('Payment failed'));
+    assert.ok(notice, `expected a dunning email, sent: ${sent.map(m => m.subject)}`);
+    assert.deepEqual(notice.to, ['member@example.com']);
   });
 
   it('rolls back and 500s when the invoice email lookup fails', async () => {

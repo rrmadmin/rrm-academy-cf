@@ -15,7 +15,7 @@
 import { describe, it, before, after } from 'node:test';
 import assert from 'node:assert/strict';
 import './_json-module-hook.mjs';
-import { mockRequest, mockEnv, mockDB, mockWaitUntil, parseResponse, stubExternalFetch, stripeRoutes, drainWaitUntil } from './_helpers.js';
+import { mockRequest, mockEnv, mockDB, mockWaitUntil, parseResponse, stubExternalFetch, stripeRoutes, drainWaitUntil, normaliseMail } from './_helpers.js';
 import { sqliteD1, insertUser } from './_d1-sqlite.mjs';
 
 const checkout = await import('../functions/api/billing/_webhook-checkout.js');
@@ -58,7 +58,12 @@ async function run(ctx, stub = net) {
   const before = stub.calls.length;
   const result = await handleCheckoutCompleted(ctx.db, ctx.event, ctx.env, ctx.request, ctx.waitUntil);
   await drainWaitUntil(ctx.waitUntil);
-  ctx.sent = stub.calls.slice(before).filter(c => c.service === 'ses');
+  // Both RRM rails, normalised: accounts@mail.rrmacademy.org rides lane
+  // cf_rrm since 2026-09-09 and the SES leg remains reachable as the
+  // fallback, and no assertion here cares which one carried the message.
+  ctx.sent = stub.calls.slice(before)
+    .filter(c => c.service === 'ses' || c.service === 'cf_email')
+    .map(normaliseMail);
   ctx.ga4 = stub.calls.slice(before).filter(c => c.service === 'ga4');
   ctx.stripeCalls = stub.calls.slice(before).filter(c => c.service === 'stripe');
   return result;
@@ -74,7 +79,7 @@ function withStripe(routes, extra = {}) {
 }
 
 const stmts = (ctx, needle) => ctx.db._calls.filter(c => c.sql.includes(needle));
-const mailTo = (ctx, subjectPart) => ctx.sent.find(c => (c.body?.Content?.Simple?.Subject?.Data || '').includes(subjectPart));
+const mailTo = (ctx, subjectPart) => ctx.sent.find(c => (c.subject || '').includes(subjectPart));
 
 // ------------------------------------------------------- pure builders ----
 
@@ -215,9 +220,9 @@ describe('_webhook-checkout -- account linkage', () => {
     await run(ctx);
     assert.equal(stmts(ctx, 'UPDATE user SET stripe_customer_id').length, 0, 'the existing link must be left alone');
     const alert = mailTo(ctx, 'Stripe customer mismatch');
-    assert.ok(alert, `expected a mismatch alert, sent: ${ctx.sent.map(c => c.body?.Content?.Simple?.Subject?.Data)}`);
-    assert.deepEqual(alert.body.Destination.ToAddresses, ['administrator@rrmacademy.org']);
-    assert.match(alert.body.Content.Simple.Body.Text.Data, /Linked customer: {3}cus_OTHER/);
+    assert.ok(alert, `expected a mismatch alert, sent: ${ctx.sent.map(c => c.subject)}`);
+    assert.deepEqual(alert.to, ['administrator@rrmacademy.org']);
+    assert.match(alert.text, /Linked customer: {3}cus_OTHER/);
   });
 
   it('creates an account for a first-time anonymous buyer and mails a 7-day set-password link', async () => {
@@ -242,7 +247,7 @@ describe('_webhook-checkout -- account linkage', () => {
 
     const welcome = mailTo(ctx, 'Your RRM Academy account is ready');
     assert.ok(welcome);
-    assert.match(welcome.body.Content.Simple.Body.Text.Data, /https:\/\/rrmacademy\.org\/reset-password\/\?token=[0-9a-f]{64}/);
+    assert.match(welcome.text, /https:\/\/rrmacademy\.org\/reset-password\/\?token=[0-9a-f]{64}/);
   });
 
   it('derives a name from the address local part when Stripe supplies none', async () => {
@@ -284,8 +289,8 @@ describe('_webhook-checkout -- account linkage', () => {
     });
     await run(ctx);
     const alert = mailTo(ctx, 'Orphaned Stripe customer');
-    assert.ok(alert, `expected an orphan alert, sent: ${ctx.sent.map(c => c.body?.Content?.Simple?.Subject?.Data)}`);
-    assert.match(alert.body.Content.Simple.Body.Text.Data, /Orphaned customer: cus_test_1/);
+    assert.ok(alert, `expected an orphan alert, sent: ${ctx.sent.map(c => c.subject)}`);
+    assert.match(alert.text, /Orphaned customer: cus_test_1/);
   });
 
   it('skips account work entirely when Stripe sends no address', async () => {
@@ -417,7 +422,7 @@ describe('_webhook-checkout -- course purchase', () => {
     await run(ctx);
     const mail = mailTo(ctx, 'Your course is ready');
     assert.ok(mail, 'the confirmation must still send');
-    assert.match(mail.body.Content.Simple.Body.Text.Data, /^Hi Katura,/);
+    assert.match(mail.text, /^Hi Katura,/);
   });
 
   // Precedence, not just fallback. donor_gift showed the checkout name is the
@@ -432,7 +437,7 @@ describe('_webhook-checkout -- course purchase', () => {
       },
     });
     await run(ctx);
-    const text = mailTo(ctx, 'Your course is ready').body.Content.Simple.Body.Text.Data;
+    const text = mailTo(ctx, 'Your course is ready').text;
     assert.match(text, /^Hi Hannah,/);
     assert.ok(!/William/.test(text), 'the cardholder name must not be used to greet the account holder');
   });
@@ -447,7 +452,7 @@ describe('_webhook-checkout -- course purchase', () => {
       },
     });
     await run(ctx);
-    const text = mailTo(ctx, 'Your course is ready').body.Content.Simple.Body.Text.Data;
+    const text = mailTo(ctx, 'Your course is ready').text;
     assert.match(text, /^Hi there,/);
     assert.ok(!/Hi ,|Hi undefined|Hi null/.test(text), 'no half-rendered greeting');
   });
@@ -584,10 +589,10 @@ describe('_webhook-checkout -- membership subscription', () => {
     assert.equal(await run(ctx), null);
     const welcome = mailTo(ctx, 'Welcome to the Save the Uterus Club');
     assert.ok(welcome);
-    assert.match(welcome.body.Content.Simple.Body.Text.Data, /you're now a Uterus Hero member/i);
+    assert.match(welcome.text, /you're now a Uterus Hero member/i);
     const adminNotice = mailTo(ctx, 'New STUC member');
-    assert.ok(adminNotice, `sent: ${ctx.sent.map(c => c.body?.Content?.Simple?.Subject?.Data)}`);
-    assert.match(adminNotice.body.Content.Simple.Subject.Data, /Uterus Hero \(\$19\.00\/mo\)/);
+    assert.ok(adminNotice, `sent: ${ctx.sent.map(c => c.subject)}`);
+    assert.match(adminNotice.subject, /Uterus Hero \(\$19\.00\/mo\)/);
   });
 
   it('reports subscription revenue to GA4 against the subscription id', async () => {
@@ -705,8 +710,8 @@ describe('_webhook-checkout -- membership subscription', () => {
     });
     await run(ctx);
     const alert = mailTo(ctx, 'duplicate Stripe sub');
-    assert.ok(alert, `sent: ${ctx.sent.map(c => c.body?.Content?.Simple?.Subject?.Data)}`);
-    assert.match(alert.body.Content.Simple.Body.Text.Data, /Existing Stripe sub: {4}sub_OTHER/);
+    assert.ok(alert, `sent: ${ctx.sent.map(c => c.subject)}`);
+    assert.match(alert.text, /Existing Stripe sub: {4}sub_OTHER/);
   });
 
   it('stays silent when Stripe simply redelivers the same already-migrated event', async () => {
@@ -733,7 +738,7 @@ describe('_webhook-checkout -- membership subscription', () => {
     assert.deepEqual(flip.bound, ['sub_test_1', 'cs_test_session', 'wxs_legacy1']);
     const notice = mailTo(ctx, 'cancel Wix sub');
     assert.ok(notice);
-    assert.match(notice.body.Content.Simple.Body.Text.Data, /VERIFY FIRST in Stripe Dashboard/);
+    assert.match(notice.text, /VERIFY FIRST in Stripe Dashboard/);
   });
 
   it('alerts on a duplicate when the email-match UPDATE matches no row', async () => {
@@ -752,7 +757,7 @@ describe('_webhook-checkout -- membership subscription', () => {
       dbMap: { 'SELECT wix_subscription_id, status FROM wix_subscription': { throws: 'D1_ERROR: locked' } },
     });
     assert.equal(await run(ctx), null, 'a handoff failure must not fail the webhook');
-    assert.ok(mailTo(ctx, 'migration handoff FAILED'), `sent: ${ctx.sent.map(c => c.body?.Content?.Simple?.Subject?.Data)}`);
+    assert.ok(mailTo(ctx, 'migration handoff FAILED'), `sent: ${ctx.sent.map(c => c.subject)}`);
   });
 });
 
@@ -772,7 +777,7 @@ describe('_webhook-checkout -- one-time donation', () => {
 
     const notice = mailTo(ctx, 'New donation');
     assert.ok(notice);
-    assert.match(notice.body.Content.Simple.Subject.Data, /\$250\.00 - Ada Lovelace/);
+    assert.match(notice.subject, /\$250\.00 - Ada Lovelace/);
 
     const purchase = ctx.ga4.find(c => c.body.events[0].name === 'purchase');
     assert.equal(purchase.body.events[0].params.value, 250);
@@ -1124,8 +1129,8 @@ describe('_webhook-checkout -- Wix migration handoff with a confirmed subscripti
       const ctx = ctxFor(migrationSession(), { dbMap: wixRow() });
       assert.equal(await run(ctx, stub), null);
       const mail = mailTo(ctx, 'Your donation switch is complete');
-      assert.ok(mail, `sent: ${ctx.sent.map(c => c.body?.Content?.Simple?.Subject?.Data)}`);
-      const text = mail.body.Content.Simple.Body.Text.Data;
+      assert.ok(mail, `sent: ${ctx.sent.map(c => c.subject)}`);
+      const text = mail.text;
       assert.match(text, /at \$19\/month -- the same date and same amount you were already on/);
       assert.match(text, /You won't be double-charged/);
     } finally { stub.restore(); }
@@ -1136,7 +1141,7 @@ describe('_webhook-checkout -- Wix migration handoff with a confirmed subscripti
     try {
       const ctx = ctxFor(migrationSession(), { dbMap: wixRow({ next_expected_at: '2020-01-15' }) });
       await run(ctx, stub);
-      const text = mailTo(ctx, 'Your donation switch is complete').body.Content.Simple.Body.Text.Data;
+      const text = mailTo(ctx, 'Your donation switch is complete').text;
       assert.match(text, /going forward you'll be charged on the same day each month/);
     } finally { stub.restore(); }
   });
@@ -1154,7 +1159,7 @@ describe('_webhook-checkout -- Wix migration handoff with a confirmed subscripti
 
       const notice = mailTo(ctx, 'cancel Wix sub');
       assert.ok(notice);
-      assert.match(notice.body.Content.Simple.Body.Text.Data, /VERIFY in Stripe Dashboard/);
+      assert.match(notice.text, /VERIFY in Stripe Dashboard/);
 
       assert.ok(stmts(ctx, 'SET admin_notified_at').length > 0, 'a confirmed send marks the notify done');
     } finally { stub.restore(); }
@@ -1225,14 +1230,14 @@ describe('_webhook-checkout -- migration email with incomplete Wix data', () => 
 
       const donorMail = mailTo(ctx, 'Your donation switch is complete');
       assert.ok(donorMail);
-      const text = donorMail.body.Content.Simple.Body.Text.Data;
+      const text = donorMail.text;
       assert.match(text, /Your donation will continue going forward\./);
       assert.ok(!/\$undefined|\$null|\$NaN/.test(text), `placeholder leaked into donor copy: ${text}`);
       assert.ok(!/processed on/.test(text), 'no date may be quoted when none is known');
 
       const adminMail = mailTo(ctx, 'cancel Wix sub');
       assert.ok(adminMail);
-      const adminText = adminMail.body.Content.Simple.Body.Text.Data;
+      const adminText = adminMail.text;
       assert.match(adminText, /Next charge: {4}their next scheduled donation date/);
       assert.match(adminText, /Amount: {9}\(unknown\)/);
     } finally { stub.restore(); }
@@ -1346,6 +1351,6 @@ describe('_webhook-checkout -- concurrent account creation, executed', () => {
     assert.equal(row.stripe_customer_id, 'cus_OTHER', 'COALESCE must never overwrite an existing link');
     const alert = mailTo(ctx, 'Orphaned Stripe customer');
     assert.ok(alert, 'an unlinkable customer must be surfaced, not swallowed');
-    assert.match(alert.body.Content.Simple.Body.Text.Data, /Orphaned customer: cus_test_1/);
+    assert.match(alert.text, /Orphaned customer: cus_test_1/);
   });
 });

@@ -397,11 +397,11 @@ describe('survey/submit -- identity link failure is recoverable, not fatal', () 
       assert.ok(symptomInsert(ctx.env), 'the symptom row stays');
       assert.equal(claimDelete(ctx.env), undefined, 'the claim is NOT rolled back on an identity failure');
 
-      const alert = stub.ses[0];
+      const alert = stub.mail[0];
       assert.ok(alert, 'an alert email must be sent so the orphan can be re-linked by hand');
-      assert.deepEqual(alert.body.Destination.ToAddresses, ['administrator@rrmacademy.org']);
-      assert.equal(alert.body.Content.Simple.Subject.Data, 'ALERT: Survey identity link failed');
-      const text = alert.body.Content.Simple.Body.Text.Data;
+      assert.deepEqual(alert.to, ['administrator@rrmacademy.org']);
+      assert.equal(alert.subject, 'ALERT: Survey identity link failed');
+      const text = alert.text;
       assert.ok(text.includes(symptomInsert(ctx.env).bound[0]), 'the alert must name the orphaned rec_id');
       assert.ok(!text.includes(EMAIL), 'the alert must not carry the address into the mail transport');
     } finally { stub.restore(); }

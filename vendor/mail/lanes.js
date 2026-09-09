@@ -91,6 +91,47 @@ export const LANES = {
     senders: "the clinic's own sending domain",
     sendable: true,
   },
+  /**
+   * RRM transactional and system mail on Cloudflare Email Sending, the rail
+   * that replaces SES for the Academy and the Foundation. Same transport as
+   * `cf_email` and a different lane on purpose: the sender rule, the fallback
+   * and the telemetry all read the lane name, and a clinic's mail and the
+   * Academy's receipts are not the same traffic.
+   */
+  cf_rrm: {
+    transport: 'cf_email',
+    env: ['EMAIL_SEND_ACCOUNT_ID', 'EMAIL_SEND_TOKEN'],
+    senders: '@mail.rrmacademy.org for rrma, @mail.rrm.foundation for rrmf',
+    sendable: true,
+  },
+};
+
+/**
+ * THE ONBOARDED SENDING SUBDOMAIN PER ENTITY, which is what decides the rail.
+ *
+ * Email Sending is onboarded at the ACCOUNT level against one domain at a
+ * time and DKIM-signs as that domain, so the sending subdomain is the fact
+ * that says which rail a from address belongs on. `mail.rrmacademy.org` is
+ * onboarded on the RRM account (Task 10 Step 1); `mail.rrm.foundation` is the
+ * Foundation's, and it follows the same path, so until it is onboarded a
+ * Foundation send on it fails loud at the far side with `550 5.7.1 Email
+ * sending is not enabled for domain` rather than going out unsigned.
+ *
+ * The APEX addresses (`@rrmacademy.org`, `@rrm.foundation`) stay on SES.
+ * They are SES-verified identities rather than onboarded sending domains, and
+ * keeping them addressable is what lets the newsletter exemption keep its
+ * `hello@rrmacademy.org` sender and what gives a consumer a way to name the
+ * old rail deliberately while the cutover is watched.
+ */
+export const CF_SENDER_DOMAINS = {
+  rrma: ['mail.rrmacademy.org'],
+  rrmf: ['mail.rrm.foundation'],
+};
+
+/** The SES sending domains that remain addressable per entity. */
+export const SES_SENDER_DOMAINS = {
+  rrma: ['rrmacademy.org'],
+  rrmf: ['rrm.foundation'],
 };
 
 /** RRM purposes that belong to a person's mailbox, not to SES. */
@@ -172,6 +213,29 @@ function domainOf(address) {
 function onDomain(address, ...domains) {
   const d = domainOf(address);
   return domains.some((allowed) => d === allowed);
+}
+
+/**
+ * Which rail an RRM entity's transactional mail rides, read off the from
+ * address alone. Cloudflare Email Sending is the DEFAULT for the onboarded
+ * sending subdomain; the apex stays on SES.
+ *
+ * The default flipped on 2026-09-09, and it flipped here rather than in a
+ * consumer's config so that every RRM sender in the estate moves with one
+ * sync. `ses_rrm` is still reachable two ways and only two: an apex from
+ * address, and the runtime fallback in `send()` when the Cloudflare rail
+ * answers a 5xx or nothing at all.
+ */
+function rrmRail(entity, address, purpose) {
+  if (onDomain(address, ...CF_SENDER_DOMAINS[entity])) return 'cf_rrm';
+  if (onDomain(address, ...SES_SENDER_DOMAINS[entity])) return 'ses_rrm';
+  throw new LaneRefused(
+    'sender-not-on-rail',
+    `${address} may not send ${entity} ${purpose} mail, which leaves from `
+    + `${CF_SENDER_DOMAINS[entity].map((d) => `@${d}`).join(' or ')} on lane cf_rrm `
+    + `or ${SES_SENDER_DOMAINS[entity].map((d) => `@${d}`).join(' or ')} on lane ses_rrm`,
+    { lane: 'cf_rrm' },
+  );
 }
 
 function refuseSender(lane, from) {
@@ -261,8 +325,7 @@ export function resolveLane({ entity, purpose, from, clinicRail, exemption } = {
         `purpose "${purpose}" is not one of ${[...WORKSPACE_PURPOSES, ...SES_PURPOSES].join(', ')}`,
       );
     }
-    if (!onDomain(address, 'mail.rrmacademy.org', 'rrmacademy.org')) throw refuseSender('ses_rrm', address);
-    return 'ses_rrm';
+    return rrmRail('rrma', address, pur);
   }
 
   /**
@@ -284,8 +347,7 @@ export function resolveLane({ entity, purpose, from, clinicRail, exemption } = {
         `purpose "${purpose}" is not one of ${SES_PURPOSES.join(', ')}`,
       );
     }
-    if (!onDomain(address, 'rrm.foundation', 'mail.rrm.foundation')) throw refuseSender('ses_rrm', address);
-    return 'ses_rrm';
+    return rrmRail('rrmf', address, pur);
   }
 
   if (ent === 'fsp') {

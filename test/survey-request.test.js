@@ -76,7 +76,7 @@ describe('survey/request -- configuration guards', () => {
       const parsed = await run(ctx);
       assert.equal(parsed.status, 500);
       assert.deepEqual(parsed.body, { ok: false, error: 'Server misconfigured' });
-      assert.equal(stub.ses.length, 0, 'must not attempt a send with no token store');
+      assert.equal(stub.mail.length, 0, 'must not attempt a send with no token store');
     } finally { stub.restore(); }
   });
 
@@ -140,7 +140,7 @@ describe('survey/request -- payload validation', () => {
       const parsed = await run(ctx);
       assert.equal(parsed.status, 400);
       assert.match(parsed.body.error, /Disposable email addresses are not allowed/);
-      assert.equal(stub.ses.length, 0);
+      assert.equal(stub.mail.length, 0);
       assert.equal(ctx.env.SURVEY_TOKENS.puts.length, 0);
     } finally { stub.restore(); }
   });
@@ -210,7 +210,7 @@ describe('survey/request -- abuse controls', () => {
       const parsed = await run(ctx);
       assert.equal(parsed.status, 429);
       assert.match(parsed.body.error, /Check your inbox/);
-      assert.equal(stub.ses.length, 0, 'cooldown must suppress the second send');
+      assert.equal(stub.mail.length, 0, 'cooldown must suppress the second send');
       assert.equal(mintedToken(ctx.env), null, 'cooldown must not mint a second token');
     } finally { stub.restore(); }
   });
@@ -237,7 +237,7 @@ describe('survey/request -- abuse controls', () => {
       const parsed = await run(ctx);
       assert.equal(parsed.status, 400);
       assert.match(parsed.body.error, /cannot be used/);
-      assert.equal(stub.ses.length, 0);
+      assert.equal(stub.mail.length, 0);
       assert.equal(mintedToken(ctx.env), null);
     } finally { stub.restore(); }
   });
@@ -272,12 +272,14 @@ describe('survey/request -- magic-link mint and delivery', () => {
       assert.equal(reversePut.opts.expirationTtl, RATE_LIMIT_SECONDS);
 
       // Exactly one email, to the requester, containing exactly that token.
-      assert.equal(stub.ses.length, 1);
-      const send = stub.ses[0].body;
-      assert.deepEqual(send.Destination.ToAddresses, [email]);
-      assert.equal(send.FromEmailAddress, 'RRM Academy <survey@mail.rrmacademy.org>');
-      assert.equal(send.Content.Simple.Subject.Data, 'Your Endometriosis Symptom Self-Survey');
-      const html = send.Content.Simple.Body.Html.Data;
+      assert.equal(stub.mail.length, 1);
+      const send = stub.mail[0];
+      assert.deepEqual(send.to, [email]);
+      // Bare, not 'RRM Academy <survey@...>': lane cf_rrm's proven payload
+      // sends the address alone even though the caller passes display form.
+      assert.equal(send.from, 'survey@mail.rrmacademy.org');
+      assert.equal(send.subject, 'Your Endometriosis Symptom Self-Survey');
+      const html = send.html;
       assert.ok(
         html.includes(`https://rrmacademy.org/endo-survey/take/?token=${token}`),
         'the mailed link must carry the token that was just stored'
@@ -327,7 +329,7 @@ describe('survey/request -- marketing attribution carried onto the token', () =>
       const record = ctx.env.SURVEY_TOKENS.read(`token:${token}`);
       assert.equal(record.userorigin, 'instagram');
       assert.equal(record.utmSource, 'ig_bio');
-      const html = stub.ses[0].body.Content.Simple.Body.Html.Data;
+      const html = stub.mail[0].html;
       assert.ok(html.includes('&userorigin=instagram'));
       assert.ok(html.includes('&utm_source=ig_bio'));
     } finally { stub.restore(); }
@@ -351,7 +353,7 @@ describe('survey/request -- marketing attribution carried onto the token', () =>
       await run(ctx);
       const record = ctx.env.SURVEY_TOKENS.read(`token:${mintedToken(ctx.env)}`);
       assert.equal(record.userorigin, '');
-      assert.ok(!stub.ses[0].body.Content.Simple.Body.Html.Data.includes('userorigin='));
+      assert.ok(!stub.mail[0].html.includes('userorigin='));
     } finally { stub.restore(); }
   });
 });
@@ -370,7 +372,7 @@ describe('survey/request -- GA4 identity handoff', () => {
       assert.equal(payload.events[0].params.session_id, 1738000000);
       assert.equal(payload.events[0].params.session_number, 4);
 
-      const html = stub.ses[0].body.Content.Simple.Body.Html.Data;
+      const html = stub.mail[0].html;
       assert.ok(html.includes(`&cid=${cid}`), 'the take page needs the cid to continue the session');
     } finally { stub.restore(); }
   });
@@ -382,7 +384,7 @@ describe('survey/request -- GA4 identity handoff', () => {
       const parsed = await run(ctx);
       assert.equal(parsed.status, 200, 'bad analytics identity must never fail the survey request');
       assert.notEqual(stub.ga4[0].body.client_id, 'has spaces and $');
-      assert.ok(!stub.ses[0].body.Content.Simple.Body.Html.Data.includes('&cid='));
+      assert.ok(!stub.mail[0].html.includes('&cid='));
     } finally { stub.restore(); }
   });
 
@@ -477,7 +479,7 @@ describe('survey/request -- unexpected failure', () => {
         !JSON.stringify(parsed.body).includes('KV write failed'),
         'internal error text must not reach the client'
       );
-      assert.equal(stub.ses.length, 0);
+      assert.equal(stub.mail.length, 0);
     } finally { stub.restore(); }
   });
 });
@@ -528,7 +530,7 @@ describe('survey/request -- production defaults (no env override in play)', () =
     try {
       const parsed = await run(ctx);
       assert.equal(parsed.status, 200);
-      assert.equal(stub.ses.length, 1, 'a missing email_log must not block delivery');
+      assert.equal(stub.mail.length, 1, 'a missing email_log must not block delivery');
       assert.ok(mintedToken(ctx.env));
     } finally { stub.restore(); }
   });

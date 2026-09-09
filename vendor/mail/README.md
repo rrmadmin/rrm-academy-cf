@@ -19,11 +19,22 @@ pick the wrong rail by handing in the wrong client.
 | entity | purpose | lane | the from address must be |
 |---|---|---|---|
 | `rrma` | `community`, `member`, `newsletter` | `workspace` | not sent here at all, see below, except under a named exemption |
-| `rrma` | `transactional`, `system`, `receipt` | `ses_rrm` | `@mail.rrmacademy.org` or `@rrmacademy.org` |
-| `rrmf` | `transactional`, `system`, `receipt` | `ses_rrm` | `@rrm.foundation` or `@mail.rrm.foundation` |
+| `rrma` | `transactional`, `system`, `receipt` | `cf_rrm` | `@mail.rrmacademy.org` |
+| `rrma` | `transactional`, `system`, `receipt` | `ses_rrm` | `@rrmacademy.org` |
+| `rrmf` | `transactional`, `system`, `receipt` | `cf_rrm` | `@mail.rrm.foundation` |
+| `rrmf` | `transactional`, `system`, `receipt` | `ses_rrm` | `@rrm.foundation` |
 | `fsp` | any | `graph_fsp` | `@fivestarpractices.com` (`brian@` or an alias) |
 | `neo` | any | `graph_neo` | `@neofertility.ie` |
 | `clinic` | any | `cf_email`, or `graph_fsp` with `clinicRail: 'graph'` | the clinic's own sending domain, and `@fivestarpractices.com` on the graph rail |
+
+RRM transactional mail defaults to Cloudflare Email Sending as of 2026-09-09.
+The lane follows the SENDING SUBDOMAIN, because Email Sending is onboarded
+against one domain and DKIM-signs as that domain: `@mail.rrmacademy.org` and
+`@mail.rrm.foundation` are the onboarded form and ride `cf_rrm`, while the apex
+addresses stay SES-verified identities on `ses_rrm`. `mail.rrmacademy.org` is
+onboarded today; `mail.rrm.foundation` follows the same path, and until it does
+a Foundation send on it fails loud at the far side with `550 5.7.1 Email
+sending is not enabled for domain` rather than going out unsigned.
 
 Every `from` is accepted in display-name form (`Name <addr@host>`) as well as
 bare; the domain check reads the address inside the wrapper.
@@ -88,6 +99,69 @@ column value, so "which sends used one" is answerable from the telemetry
 rather than from the source. A refused send records `null`, never the name it
 was refused for.
 
+## Moving a consumer from SES to CF
+
+A consumer moves rails by changing its `deps` and its Pages secrets. Nothing in
+its call sites changes: it already names an entity and a purpose, and the lane
+rule does the rest.
+
+1. Add two secrets to the Pages project (Settings, Variables and Secrets):
+   `EMAIL_SEND_ACCOUNT_ID`, the account holding the sending domain's Email
+   Sending onboarding, and `EMAIL_SEND_TOKEN`, a domain-scoped Cloudflare API
+   token with Email Sending: Edit on it. Sending tokens are DOMAIN scoped and
+   onboarding is dashboard-only at the ACCOUNT level, so a consumer on a
+   different account needs its own onboarding, not a copied token.
+2. Send from the onboarded subdomain. `accounts@mail.rrmacademy.org` rides
+   `cf_rrm`; `accounts@rrmacademy.org` still rides SES, which is the lever for
+   moving one sender at a time rather than all of them at once.
+3. Pass `fallback: 'ses'` in `deps` for the watched period, and keep the
+   `AWS_*` secrets while it is set:
+
+   ```js
+   const r = await send(env, msg, { fetch, signer, ae, logEmail, fallback: 'ses' });
+   // Cloudflare 503 -> { ok: true, lane: 'ses_rrm', id, fellBackFrom: 'cf_rrm' }
+   ```
+
+   The flag is the ONLY way back to SES at runtime, and it only applies to a
+   Cloudflare 5xx or no answer at all. A 4xx never falls back: Cloudflare will
+   refuse it identically tomorrow, and sending it over SES would deliver a
+   message the newer rail deliberately would not. A `MailPermanent` never falls
+   back either, because it is a throw. The fallback is `cf_rrm` only; a clinic
+   send has no SES lane to fall back to.
+4. Watch `email_log.lane` and the AE rows. A fallback writes TWO AE rows, the
+   failed `cf_rrm` leg and then the `ses_rrm` leg whose detail is prefixed
+   `fell-back-from=cf_rrm`, and one `email_log` row carrying
+   `fell_back_from: 'cf_rrm'`.
+5. When the week is clean, drop `fallback` from `deps` and remove the `AWS_*`
+   secrets. Anything still on an apex from address is still on SES and has to
+   move its sender first.
+
+## What the Cloudflare rail sends
+
+`html` and `text` go out together: a caller that hands over both gets both
+parts, and a caller with `html` alone gets a derived text alternative, because
+a message with no text part is the message most likely to be filed as bulk.
+`replyTo` becomes `reply_to`. `headers` is passed as an object, which is where
+`List-Unsubscribe`, `List-Unsubscribe-Post`, `Precedence` and a caller's own
+`Message-ID` ride; the package mints no Message-ID, because a consumer that
+wants to correlate a send with its own record has to choose the id itself.
+Every header name and value goes through the same sanitiser as the rest.
+
+`attachments` are `[{ filename, contentType, bytes }]`, base64 encoded here, and
+bounded client-side per file AND in total at 4,500,000 base64 characters, under
+the service's 5 MiB message cap so the refusal is ours and legible rather than
+an opaque 413. Over the bound is an ANSWER, `{ ok: false, reason:
+'attachment-too-large' }`, never a transport error and never a throw: a caller
+that could not tell it from a 500 would fall back to SES with the same
+oversized attachment. The size is projected from `byteLength` BEFORE any
+encoding, so the one input the bound exists to refuse is not materialised twice
+over first.
+
+Proven live: `to`, `from`, `subject`, `text`, `attachments`. From the published
+schema and not yet carrying real RRM mail: `html`, `reply_to`, `headers`. They
+are additive keys, so a field the far side ignored would cost a missing
+alternative part rather than a refused send.
+
 ## Everything is injected
 
 ```js
@@ -119,7 +193,7 @@ rails that use it:
 `AWS_SECRET_ACCESS_KEY`, `AWS_SES_REGION`, `SES_CONFIGURATION_SET` for SES;
 `GRAPH_TENANT_ID`, `GRAPH_CLIENT_ID`, `GRAPH_CLIENT_SECRET`,
 `GRAPH_SENDER_UPN` for Graph; `EMAIL_SEND_ACCOUNT_ID`, `EMAIL_SEND_TOKEN` for
-Cloudflare. There is no default from address anywhere in this package: an
+both Cloudflare lanes, `cf_email` and `cf_rrm` alike. There is no default from address anywhere in this package: an
 adapter that wants one reads it out of its own env and passes it in.
 
 ## What every lane does the same way
@@ -141,8 +215,11 @@ adapter that wants one reads it out of its own env and passes it in.
   becomes two copies of the same receipt.
 - **A permanent refusal throws `MailPermanent`**, and only that. SES codes
   `MessageRejected`, `MailFromDomainNotVerified`, the suspension and paused
-  codes; Graph's non-existent mailbox errors; any non-empty
-  `permanent_bounces` on the Cloudflare rail. It means record a failure and
+  codes; Graph's non-existent mailbox errors; on the Cloudflare rail any
+  non-empty `permanent_bounces`, a 403 (the domain is not onboarded on this
+  account, or the token has no permission on it) or a 422, and the
+  not-enabled-for-domain refusal wherever it appears, including inside a 2xx
+  body. It means record a failure and
   stop, never queue a retry. Every other failure is an `ok: false` answer.
 - **Success is the transport's own success and nothing looser.** Graph is 202
   and only 202 (fsp-intake-sheets' rule, the stricter of the two merged). The
@@ -155,11 +232,11 @@ adapter that wants one reads it out of its own env and passes it in.
 
 - A message carrying custom `headers` goes out on SES as **Raw MIME**, because
   Raw is what carries `List-Unsubscribe`. Without headers it is Simple.
-- `to` may be a string or an array. The Cloudflare rail takes the first
-  recipient only and sends a bare address, both measured constraints of that
+- `to` may be a string or an array. The Cloudflare rails take the first
+  recipient only and send a bare address, both measured constraints of that
   API, not shortcuts.
-- `attachments` pass through untouched to Graph as `fileAttachment` entries;
-  the other two rails ignore them.
+- `attachments` pass through untouched to Graph as `fileAttachment` entries,
+  are encoded and bounded on the Cloudflare rails, and are ignored by SES.
 - `graphPayload`, on the Graph rail only, is POSTed verbatim in place of
   anything the package would compose. Graph's message shape carries more than a
   portable message does (a from display name, a named replyTo, inline

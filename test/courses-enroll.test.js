@@ -200,7 +200,7 @@ describe('POST /api/courses/enroll -- the members gate', () => {
   it('a members enrolment does not email the administrator, but does raise a member_course lead', async () => {
     const { waitUntil } = await run(db, { courseId: 'test-course-members-free' }, { session: RAW.member });
     await drainWaitUntil(waitUntil);
-    assert.equal(net.ses.length, 0, 'members enrolments are deliberately not alerted');
+    assert.equal(net.mail.length, 0, 'members enrolments are deliberately not alerted');
     assert.equal(net.ga4.length, 1);
     assert.equal(net.ga4[0].body.events[0].params.lead_source, 'member_course');
   });
@@ -241,23 +241,23 @@ describe('POST /api/courses/enroll -- free courses', () => {
 
   it('the repeat enrolment sends no second alert and no second lead event', async () => {
     await run(db, { courseId: 'test-course-free' });
-    const sesAfterFirst = net.ses.length;
+    const sesAfterFirst = net.mail.length;
     const ga4AfterFirst = net.ga4.length;
     assert.equal(sesAfterFirst, 1);
     assert.equal(ga4AfterFirst, 1);
 
     await run(db, { courseId: 'test-course-free' });
-    assert.equal(net.ses.length, sesAfterFirst, 'the idempotent path must not re-alert');
+    assert.equal(net.mail.length, sesAfterFirst, 'the idempotent path must not re-alert');
     assert.equal(net.ga4.length, ga4AfterFirst, 'the idempotent path must not re-count the lead');
   });
 
   it('the administrator alert carries the learner identity and the free type', async () => {
     await run(db, { courseId: 'test-course-free' });
-    assert.equal(net.ses.length, 1);
-    const payload = net.ses[0].body;
-    assert.deepEqual(payload.Destination.ToAddresses, ['administrator@rrmacademy.org']);
-    assert.equal(payload.Content.Simple.Subject.Data, 'New enrollment: Ada Learner - Test Course: Free');
-    assert.match(payload.Content.Simple.Body.Text.Data, /Type: {10}Free/);
+    assert.equal(net.mail.length, 1);
+    const payload = net.mail[0];
+    assert.deepEqual(payload.to, ['administrator@rrmacademy.org']);
+    assert.equal(payload.subject, 'New enrollment: Ada Learner - Test Course: Free');
+    assert.match(payload.text, /Type: {10}Free/);
   });
 
   it('a free-course lead is reported to GA4 as free_course', async () => {
@@ -289,7 +289,7 @@ describe('POST /api/courses/enroll -- free courses', () => {
     const stored = rows(db);
     assert.equal(stored.length, 1);
     assert.equal(stored[0].revoked_at, '2026-06-01T00:00:00.000Z', 'the revocation must survive the enrol attempt');
-    assert.equal(net.ses.length, 0, 'a refused enrolment raises no alert');
+    assert.equal(net.mail.length, 0, 'a refused enrolment raises no alert');
   });
 
   it('an included-course revocation is not cleared by re-enrolling in the parent bundle', async () => {
@@ -324,10 +324,10 @@ describe('POST /api/courses/enroll -- free courses', () => {
     const { status } = await run(gone, { courseId: 'test-course-free' });
 
     assert.equal(status, 200);
-    assert.equal(net.ses.length, 1, 'the alert must still be sent');
-    const payload = net.ses[0].body;
-    assert.equal(payload.Content.Simple.Subject.Data, 'New enrollment: unknown - Test Course: Free');
-    const text = payload.Content.Simple.Body.Text.Data;
+    assert.equal(net.mail.length, 1, 'the alert must still be sent');
+    const payload = net.mail[0];
+    assert.equal(payload.subject, 'New enrollment: unknown - Test Course: Free');
+    const text = payload.text;
     assert.match(text, /Student name: {2}\(not set\)/, 'a blank name falls through to the alert placeholder');
     assert.match(text, /Student email: unknown/);
     gone.close();

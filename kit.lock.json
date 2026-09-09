@@ -1,26 +1,26 @@
 {
-  "kitVersion": "0.7.0",
+  "kitVersion": "0.8.1",
   "kitScope": "packages",
-  "syncedAt": "2026-09-09T14:37:54.492Z",
+  "syncedAt": "2026-09-09T16:27:07.445Z",
   "files": {},
   "packages": {
+    "mail": {
+      "version": "1.5.0",
+      "files": {
+        "README.md": "354919fc277617d32f728a601de7d212dab2d8d969354969b6f464835d05e946",
+        "cf-email.js": "1b8076af3efcbef118fbf691b884a83ef774122a61b3391184a1e9ba6dff5eb0",
+        "index.js": "a41ca1259667456fbc15a5c2bbef8dd24842f816b4c649750006054efb2a4971",
+        "lanes.js": "2bd3ba9d8b1842f2a7fd13db91d9594092835a5841b7b19b999e71192ced2393",
+        "graph.js": "e5e6e110695e7decffc6b062e0a75d3d2ce8c9657f02a575a17e3049aeb5ab9c",
+        "ses.js": "111c27818ee954ed1d3382736e2c50c4d3dc49f127f83317ce0f3fefbc0f0446"
+      }
+    },
     "redteam": {
       "version": "1.0.1",
       "files": {
         "README.md": "f7ecd5470e376a16dfe27b2ad291c45877662ef06be474158223d3ce34885941",
         "deps.mjs": "1ee0b06739825adbad5157c69d75ecd4e8262ef48fdca0a8f4e8d431bf9752aa",
         "report.mjs": "17ae33135256da9763e0eaff8be00339c97209085e02ae3ff26ba579d0a84642"
-      }
-    },
-    "mail": {
-      "version": "1.4.0",
-      "files": {
-        "README.md": "5ae424d1960b6704a45716cfe02460bf99085c68ed461e6ec35a118be6a3388c",
-        "cf-email.js": "d2972961998c2bc460dae11db50a23695cd3d354d10a596fc56f4029ce57d9a9",
-        "graph.js": "e5e6e110695e7decffc6b062e0a75d3d2ce8c9657f02a575a17e3049aeb5ab9c",
-        "index.js": "8966cb4a8663df4054e5b563d71509f3ec9f049f5bd16ffa9b0b9b4e5ab441a6",
-        "lanes.js": "30bcf836f1f078348541e13b407164e0d7e39805a791e4b00d91903fbd83572b",
-        "ses.js": "111c27818ee954ed1d3382736e2c50c4d3dc49f127f83317ce0f3fefbc0f0446"
       }
     }
   },

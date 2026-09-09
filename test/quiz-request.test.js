@@ -86,15 +86,15 @@ describe('POST /api/quiz/request', () => {
     assert.equal(rows[0].rules_version, 'v2-1');
     assert.deepEqual(JSON.parse(rows[0].answers), { goal: 'avoid', cycles: 'regular' });
 
-    const [send] = stub.ses;
+    const [send] = stub.mail;
     assert.ok(send, 'no SES send was attempted');
-    assert.match(send.body.Content.Simple.Subject.Data, /Creighton Model FertilityCare System/);
-    assert.equal(send.body.Destination.ToAddresses[0], 'learner@example.com');
+    assert.match(send.subject, /Creighton Model FertilityCare System/);
+    assert.equal(send.to[0], 'learner@example.com');
   });
 
   it('the email names the primary method, its referral body, and the alternate', async () => {
     await post(VALID);
-    const text = stub.ses[0].body.Content.Simple.Body.Text.Data;
+    const text = stub.mail[0].text;
     assert.match(text, /Creighton Model FertilityCare System/);
     assert.match(text, /FertilityCare Centers of America/);
     assert.match(text, /https:\/\/www\.fertilitycare\.org\//);
@@ -104,7 +104,7 @@ describe('POST /api/quiz/request', () => {
 
   it('omits the alternate paragraph and the share link when neither was supplied', async () => {
     await post({ ...VALID, alternate: undefined, answersCode: undefined });
-    const text = stub.ses[0].body.Content.Simple.Body.Text.Data;
+    const text = stub.mail[0].text;
     assert.ok(!/Also worth a look/.test(text));
     assert.ok(!/results\/\?a=/.test(text));
     assert.equal(results()[0].alternate_method, null);
@@ -113,7 +113,7 @@ describe('POST /api/quiz/request', () => {
   it('drops an alternate that equals the primary rather than recommending it twice', async () => {
     await post({ ...VALID, alternate: 'creighton' });
     assert.equal(results()[0].alternate_method, null);
-    assert.ok(!/Also worth a look/.test(stub.ses[0].body.Content.Simple.Body.Text.Data));
+    assert.ok(!/Also worth a look/.test(stub.mail[0].text));
   });
 
   it('accepts every method key the quiz can produce', async () => {
@@ -122,7 +122,7 @@ describe('POST /api/quiz/request', () => {
       assert.equal(status, 200, `${primary} was rejected`);
     }
     assert.equal(results().length, 7);
-    assert.equal(stub.ses.length, 7, 'a method key with no METHOD_EMAIL entry would silently skip the email');
+    assert.equal(stub.mail.length, 7, 'a method key with no METHOD_EMAIL entry would silently skip the email');
   });
 
   // --- consent --------------------------------------------------------------
@@ -134,7 +134,7 @@ describe('POST /api/quiz/request', () => {
       assert.equal(body.error, 'consent_required');
     }
     assert.deepEqual(results(), [], 'an un-consented submission was stored');
-    assert.equal(stub.ses.length, 0);
+    assert.equal(stub.mail.length, 0);
   });
 
   it('accepts the integer 1 as consent as well as boolean true', async () => {
@@ -279,7 +279,7 @@ describe('POST /api/quiz/request', () => {
     const { status } = await parseResponse(await post({ ...VALID, rulesVersion: 'NOT-A-VERSION', answersCode: '12345' }));
     assert.equal(status, 200, 'a bad metadata field must not lose the user their result');
     assert.equal(results()[0].rules_version, null);
-    assert.ok(!/results\/\?a=/.test(stub.ses[0].body.Content.Simple.Body.Text.Data), 'a rejected answersCode still reached the email');
+    assert.ok(!/results\/\?a=/.test(stub.mail[0].text), 'a rejected answersCode still reached the email');
   });
 
   // --- side effects ---------------------------------------------------------
@@ -320,7 +320,7 @@ describe('POST /api/quiz/request', () => {
     assert.equal(body.error, 'server_error');
     assert.ok(!JSON.stringify(body).includes('no such table'));
     assert.ok(events.some(e => e.blobs.includes('db_insert_error')));
-    assert.equal(stub.ses.length, 0, 'the email went out for a result that was never stored');
+    assert.equal(stub.mail.length, 0, 'the email went out for a result that was never stored');
   });
 
   it('keeps the stored result and logs a failure row when SES rejects the send', async () => {

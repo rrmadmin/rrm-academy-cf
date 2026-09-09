@@ -17,6 +17,7 @@ import { mockRequest, mockEnv, mockWaitUntil, parseResponse, randomIp } from './
 
 function stubFetchSuccess() {
   const original = globalThis.fetch;
+  const sends = [];
   globalThis.fetch = async (url, opts) => {
     // aws4fetch passes a Request object; extract the URL string from it
     const u = (url && typeof url === 'object' && url.url) ? url.url : String(url);
@@ -27,9 +28,20 @@ function stubFetchSuccess() {
     if (u.includes('amazonaws.com')) {
       return { ok: true, status: 200, json: async () => ({ MessageId: 'mock-message-id' }), text: async () => '{}' };
     }
+    // Cloudflare Email Sending: contact@mail.rrmacademy.org rides lane cf_rrm
+    // since 2026-09-09, so this is the route the happy path actually takes.
+    if (u.includes('/email/sending/send')) {
+      sends.push(JSON.parse(opts.body));
+      return {
+        ok: true,
+        status: 200,
+        json: async () => ({ success: true, errors: [], result: { message_id: 'mock-cf-message-id' } }),
+        text: async () => '{"success":true}',
+      };
+    }
     return original ? original(url, opts) : new Response('', { status: 200 });
   };
-  return () => { globalThis.fetch = original; };
+  return Object.assign(() => { globalThis.fetch = original; }, { sends });
 }
 
 function makeBody(overrides = {}) {
@@ -162,35 +174,15 @@ describe('contact-submit -- guard order', () => {
 
 describe('contact-submit -- subject prefix', () => {
   it('email subject includes [Contact][CATEGORY] prefix', async () => {
+    // contact@mail.rrmacademy.org rides lane cf_rrm, so the payload the stub
+    // records is the Cloudflare rail's flat shape, not SES Content.Simple.
     const restore = stubFetchSuccess();
     try {
-      let capturedSubject = null;
-      const afterStub = globalThis.fetch;
-      globalThis.fetch = async (url, opts) => {
-        // aws4fetch passes a Request object; get URL from it
-        const u = (url && typeof url === 'object' && url.url) ? url.url : String(url);
-        if (u.includes('amazonaws.com')) {
-          // The SES v2 API sends JSON body; capture subject from admin notification only
-          if (capturedSubject === null && url && typeof url === 'object' && url.json) {
-            try {
-              const payload = await url.clone().json();
-              const toAddresses = payload?.Destination?.ToAddresses || [];
-              if (toAddresses.some(a => a.includes('administrator'))) {
-                capturedSubject = payload?.Content?.Simple?.Subject?.Data || null;
-              }
-            } catch { /* ignore */ }
-          }
-          return { ok: true, status: 200, json: async () => ({ MessageId: 'mock-message-id' }), text: async () => '{}' };
-        }
-        return afterStub(url, opts);
-      };
-      try {
-        const ctx = makeContext({ category: 'bug', message: 'Found a typo on /about/' });
-        await onRequestPost(ctx);
-        assert.match(capturedSubject || '', /^\[Contact\]\[BUG\]/);
-      } finally {
-        globalThis.fetch = afterStub;
-      }
+      const ctx = makeContext({ category: 'bug', message: 'Found a typo on /about/' });
+      await onRequestPost(ctx);
+      const adminSend = restore.sends.find(m => String(m.to).includes('administrator'));
+      assert.ok(adminSend, 'the administrator notification must be sent');
+      assert.match(adminSend.subject || '', /^\[Contact\]\[BUG\]/);
     } finally { restore(); }
   });
 });

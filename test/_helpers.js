@@ -186,6 +186,14 @@ export function mockEnv(overrides = {}) {
     AWS_ACCESS_KEY_ID: 'test-aws-key',
     AWS_SECRET_ACCESS_KEY: 'test-aws-secret',
     AWS_SES_REGION: 'us-east-1',
+    // Cloudflare Email Sending, the rail RRM transactional mail rides since
+    // 2026-09-09. Every sender in this repo is on @mail.rrmacademy.org, the
+    // onboarded sending subdomain, so vendor/mail resolves lane cf_rrm for
+    // them and these two bindings are what the rail needs. The account id
+    // must be alphanumeric: the package refuses anything else rather than
+    // building a URL out of it.
+    EMAIL_SEND_ACCOUNT_ID: 'testaccountid0000000000000000000',
+    EMAIL_SEND_TOKEN: 'test-email-send-token',
     STRIPE_SECRET_KEY: 'sk_test_placeholder',
     GA4_MEASUREMENT_ID: 'G-TEST',
     GA4_API_SECRET: 'test-ga4-secret',
@@ -311,17 +319,59 @@ export function mockKVJson(initial = {}) {
  *
  * Routed hosts: Cloudflare DoH (email MX validation), EmailListVerify, AWS SES
  * (aws4fetch hands the stub a signed Request, so the body is read off the
- * Request itself), GA4 Measurement Protocol, and Turnstile siteverify.
+ * Request itself), Cloudflare Email Sending, GA4 Measurement Protocol, and
+ * Turnstile siteverify.
  *
  * Returns a handle with:
  *   calls    -- [{ url, body }] in call order, body parsed as JSON when possible
  *   ses      -- SES sends only, body already parsed (FromEmailAddress/Destination/Content)
+ *   cfEmail  -- Cloudflare Email Sending sends only (to/from/subject/text/html)
+ *   mail     -- both rails, in call order
  *   ga4      -- GA4 MP sends only, body already parsed
  *   restore()-- puts the real fetch back
  *
  * `overrides` lets a single test change one service's response without
  * rebuilding the router, e.g. { ses: () => { throw new Error('SES down'); } }.
  */
+/**
+ * One outbound message, whichever rail carried it. `raw` is the decoded MIME
+ * document for an SES Raw send and null otherwise; `html` and `text` are the
+ * parts, empty strings when the message had none, so an assertion can match
+ * against them without a null check.
+ */
+export function normaliseMail(call) {
+  const body = call.body || {};
+  if (call.service === 'cf_email') {
+    return {
+      rail: 'cf_rrm',
+      call,
+      from: body.from ?? '',
+      to: body.to === undefined ? [] : [body.to],
+      subject: body.subject ?? '',
+      html: body.html ?? '',
+      text: body.text ?? '',
+      headers: body.headers ?? {},
+      replyTo: body.reply_to ?? null,
+      raw: null,
+    };
+  }
+  const simple = body?.Content?.Simple;
+  const rawData = body?.Content?.Raw?.Data;
+  const raw = rawData ? Buffer.from(rawData, 'base64').toString('utf8') : null;
+  return {
+    rail: 'ses_rrm',
+    call,
+    from: body.FromEmailAddress ?? '',
+    to: body?.Destination?.ToAddresses ?? [],
+    subject: simple?.Subject?.Data ?? '',
+    html: simple?.Body?.Html?.Data ?? '',
+    text: simple?.Body?.Text?.Data ?? '',
+    headers: {},
+    replyTo: body.ReplyToAddresses?.[0] ?? null,
+    raw,
+  };
+}
+
 export function stubExternalFetch(overrides = {}) {
   const original = globalThis.fetch;
   const calls = [];
@@ -353,6 +403,30 @@ export function stubExternalFetch(overrides = {}) {
       if (overrides.ses) return overrides.ses(call);
       return { ok: true, status: 200, json: async () => ({ MessageId: 'mock-ses-message-id' }), text: async () => '{}' };
     }
+    if (url.includes('/email/sending/send')) {
+      // Cloudflare Email Sending, lane cf_rrm. Success is `success: true`
+      // plus no permanent bounce, and `message_id` is the only evidence a
+      // queued send leaves; the three arrays are empty on a real queued send,
+      // so the default answers exactly that rather than something friendlier.
+      call.service = 'cf_email';
+      if (overrides.cfEmail) return overrides.cfEmail(call);
+      /**
+       * A test that injected `ses` meant "the mail rail is down", written
+       * when there was one rail. It still means that: the override answers
+       * for Cloudflare too, so a delivery-failure test keeps failing the send
+       * rather than quietly succeeding on the new rail. When the injected
+       * answer is a 5xx or a throw, the adapter's `fallback: 'ses'` then
+       * takes the SES leg and this same override fails that too, which is the
+       * production shape a cutover failure actually has.
+       */
+      if (overrides.ses) return overrides.ses(call);
+      return {
+        ok: true,
+        status: 200,
+        json: async () => ({ success: true, errors: [], result: { message_id: 'mock-cf-message-id', delivered: [], queued: [], permanent_bounces: [] } }),
+        text: async () => '{"success":true}',
+      };
+    }
     if (url.includes('google-analytics.com')) {
       call.service = 'ga4';
       if (overrides.ga4) return overrides.ga4(call);
@@ -380,6 +454,20 @@ export function stubExternalFetch(overrides = {}) {
   return {
     calls,
     get ses() { return calls.filter(c => c.service === 'ses'); },
+    /** Cloudflare Email Sending calls, body already parsed (to/from/subject/text/html). */
+    get cfEmail() { return calls.filter(c => c.service === 'cf_email'); },
+    /**
+     * Every outbound message on either RRM rail, in call order, NORMALISED:
+     * `{ rail, from, to, subject, html, text, headers, raw }`.
+     *
+     * The two rails carry the same message in different shapes (SES nests it
+     * under `Content.Simple` or base64s a whole MIME document under
+     * `Content.Raw`; Cloudflare sends flat `to`/`from`/`subject`/`html`), and
+     * a test asserting "the link is in the body" has no business caring which.
+     * Reading the rail-specific payload is still possible through `ses` and
+     * `cfEmail`; this is for everything that only wants the message.
+     */
+    get mail() { return calls.filter(c => c.service === 'ses' || c.service === 'cf_email').map(normaliseMail); },
     get ga4() { return calls.filter(c => c.service === 'ga4'); },
     restore() { globalThis.fetch = original; },
   };

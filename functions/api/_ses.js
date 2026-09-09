@@ -125,12 +125,21 @@ function purposeOf({ purpose, category }) {
  * double every failure in `email_log`. The row keeps the CALLER's category
  * rather than the package's purpose, so the column's values do not shift
  * under the historical rows; `lane` now carries the resolved lane
- * (`ses_rrm`), which is what that column was added to hold. The `exemption`
- * the package hands over has no column of its own and is appended to
- * `source`, where the send that used it is already named.
+ * (`cf_rrm` or `ses_rrm`), which is what that column was added to hold. The
+ * `exemption` the package hands over has no column of its own and is appended
+ * to `source`, where the send that used it is already named.
+ *
+ * `fallback: 'ses'` is the watched-cutover flag, added 2026-09-09 with the
+ * Cloudflare rail. Every sender in this repo already sends from
+ * `@mail.rrmacademy.org`, the onboarded Email Sending subdomain, so the lane
+ * rule now resolves them to `cf_rrm` on its own; the flag is the ONLY way
+ * back to SES at runtime, and only when Cloudflare answers a 5xx or nothing
+ * at all. A 4xx never falls back. It comes out, with the `AWS_*` secrets,
+ * once a week of `email_log.lane` is clean.
  */
 function depsFor(env, { db, category, source, subject }) {
   return {
+    fallback: 'ses',
     signer: new AwsClient({
       accessKeyId: env.AWS_ACCESS_KEY_ID,
       secretAccessKey: env.AWS_SECRET_ACCESS_KEY,
