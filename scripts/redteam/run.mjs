@@ -46,13 +46,13 @@ import { installUpstream } from './fakes/upstream.mjs';
 import { dispatch } from './fakes/dispatch.mjs';
 import { hashToken } from '../../functions/api/auth/_shared.js';
 /**
- * THE REPORTING PRIMITIVES, FROM THE KIT. These were byte-identical across
- * the estate's red-team harnesses (grid in all five, tally in four,
- * loadIdentityFile and identityCoverage in the three that had them,
- * subsetMatches in three, scrub in one), so they are one implementation now,
- * vendored at vendor/redteam/ and sha-locked. Nothing in that module sends a
- * request or decides an outcome: dispatch, the fakes, the case table and the
- * evaluation stay in this repo, where they belong.
+ * THE REPORTING PRIMITIVES, FROM THE KIT. The estate's five red-team harnesses
+ * each carried a private copy of these; the ones that were genuinely one
+ * implementation are shared now, vendored at vendor/redteam/ and sha-locked.
+ * Which those are, and which stayed per-repo, is a measurement rather than a
+ * taste, and the per-function table is in vendor/redteam/README.md. Nothing in
+ * that module sends a request or decides an outcome: dispatch, the fakes, the
+ * case table and the evaluation stay in this repo, where they belong.
  */
 import { grid, subsetMatches, tally } from '../../vendor/redteam/report.mjs';
 
