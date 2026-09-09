@@ -1,0 +1,73 @@
+-- 040-project-board-owner.sql
+-- Optional owner (assignee) on operational board items (rrm-backoffice
+-- /projects, component projects-board) -- additive migration on rrm-auth (D1).
+--
+-- WHY
+-- 037-project-board.sql gave every item a workstream, a stage and a pair of
+-- dates, which answers "what is this and when", and never answers "whose is
+-- it". Standup reads the board one workstream at a time and the question that
+-- follows every row is who is carrying it; without a column the answer lives
+-- in the note prose, where nothing can group, filter or count it. This adds
+-- the one column that makes the answer a value.
+--
+-- rrm-backoffice vendors a read-only copy of this file under
+-- schema/040-project-board-owner.sql, the same precedent 033-admin-audit.sql
+-- and 037-project-board.sql set: rrm-auth has ONE migration history and it is
+-- rrm-academy-cf's.
+--
+-- THE TABLE IS STILL A GENERATED VIEW, and every consequence 037's header
+-- draws still holds -- no hand edits, no PATCH, no DELETE, identity is
+-- `item_key`, the config modules under `board/workstreams/*.mjs` are the
+-- document of record and `tools/board-sync/sync.mjs` replaces one
+-- workstream's rows at a time. `owner` is written by that sync like every
+-- other column, so the way to change an item's owner is to change the config
+-- file and sync again.
+--
+-- NULL MEANS UNASSIGNED, and it is a real answer rather than a missing one.
+-- Nullable and with no default, so every row 037 already wrote reads as
+-- unassigned the moment this lands and no backfill is needed. '' is never
+-- stored: functions/_lib/projects.js trims every text field and folds an
+-- emptied one to NULL, so "unassigned" is one value and groups as one -- the
+-- same fold `lane`, `stage`, `note` and `url` already take.
+--
+-- NO CHECK CONSTRAINT AND NO FOREIGN KEY, and the second of those is the
+-- deliberate one. A value is a ROSTER ID -- lowercase kebab, `brian`,
+-- `naomi`, `danielle-isbell` -- matched against
+-- `^[a-z][a-z0-9-]{0,39}$` by functions/_lib/projects.js. The roster itself
+-- lives in the CLI's config beside the board it annotates, NOT in this
+-- database and not in `users`: an owner here is whoever is carrying a piece of
+-- operational work, which is not the same population as the console's Access
+-- identities and would go wrong the first time an item belongs to somebody who
+-- has never logged in. So the server validates the SHAPE and stores the value;
+-- membership is the config file's business. Same posture 037 takes on
+-- `kind`/`stage`/`confidence`: the writer owns the vocabulary, the schema
+-- holds text, and a roster change costs a constant in one file rather than a
+-- table rebuild against a live database.
+--
+-- 40 CHARACTERS, unenforced here and enforced by the writer, because SQLite
+-- would not enforce a VARCHAR(40) either. The bound is the pattern's, and the
+-- pattern is one string in functions/_lib/projects.js.
+--
+-- ADDITIVE ONLY. One new nullable column; no existing table, column or index
+-- changes, and no row is rewritten.
+--
+-- RE-RUNNING THROWS, unlike 037. SQLite's ALTER TABLE has no IF NOT EXISTS
+-- for ADD COLUMN, so a second application fails with `duplicate column name:
+-- owner`. That is a safe failure and not a partial one -- the statement is
+-- the whole migration, so either the column is there or nothing happened.
+-- Read that error as "already applied", never as a reason to edit the table.
+--
+-- REVERT is `ALTER TABLE project_board_items DROP COLUMN owner;` (SQLite
+-- 3.35+, which D1 is well past). It loses only what the next sync would write
+-- again, because the owners are in the config modules -- the same argument
+-- 037's revert note makes for the whole table.
+--
+-- Apply (by hand; no runner):
+--   npx wrangler d1 execute rrm-auth --local  --file=migrations/040-project-board-owner.sql
+--   npx wrangler d1 execute rrm-auth --remote --file=migrations/040-project-board-owner.sql
+
+-- The roster id of whoever carries this item, or NULL for unassigned.
+-- Lowercase letters, digits and hyphens, first character a letter, at most 40
+-- characters (functions/_lib/projects.js's OWNER_PATTERN). Not a foreign key:
+-- see the header.
+ALTER TABLE project_board_items ADD COLUMN owner TEXT;
