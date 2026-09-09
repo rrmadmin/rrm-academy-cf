@@ -50,6 +50,15 @@ export default defineConfig({
   output: 'static',
   site: 'https://rrmacademy.org',
   trailingSlash: 'always',
+  // Astro 7 changed the compressHTML default from `true` (HTML whitespace rules,
+  // a single space preserved between inline elements) to `'jsx'` (React-style
+  // rules, that space stripped). On a site whose body is clinical prose across
+  // ~4,800 pages, taking the new default would silently delete inter-word spaces
+  // wherever two inline elements sit next to each other, in exactly the places a
+  // build error never appears. Pinned to the v6 behaviour on the Astro 7 bump
+  // (2026-09-09) so the upgrade changes no rendered text. Moving to 'jsx' is its
+  // own change and needs its own render diff.
+  compressHTML: true,
   build: {
     format: 'directory',
     // Inline ALL stylesheets into the HTML. Tried 'auto' on 2026-05-15 to

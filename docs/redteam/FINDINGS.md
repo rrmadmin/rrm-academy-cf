@@ -21,7 +21,7 @@ The dated run reports beside this file (`<date>-hermetic.md`,
 | RRMA-RT-3 | FIXED 2026-09-05 | `public/_headers` declared `/api/* Cache-Control: no-store` and never applied it to a single Function response | 1 |
 | RRMA-RT-4 | FIXED 2026-09-06 | `/mcp` proxies the apex to a Worker, forwarding `Authorization` and stripping `Set-Cookie`, and has no test of its own anywhere in this repo | 0 |
 | RRMA-RT-5 | FIXED 2026-09-06 | a route that set its own `no-store` escaped the `Vary: Cookie` half of the cache contract | 2 |
-| RRMA-RT-DEPS | OPEN, accepted to 2026-10-06 | the production lockfile carried eight fixable HIGH advisories that no gate checked; seven are bumped, the eighth is astro's own pinned `sharp` | 0 |
+| RRMA-RT-DEPS | FIXED 2026-09-09 | the production lockfile carried eight fixable HIGH advisories that no gate checked; seven were bumped, and the eighth, astro's own pinned `sharp`, cleared with the Astro 7 major | 0 |
 | RRMA-RT-COVERAGE | FIXED 2026-09-06 | the harness attacked 44 of the 121 routes Pages serves, and nothing said so | 0 |
 
 ---
@@ -141,7 +141,7 @@ header and gains the `Vary`. Cases
 `headers-self-declared-no-store-varies-auth-verify-email` pin both, live as
 well as hermetically.
 
-## RRMA-RT-DEPS -- open, accepted to 2026-10-06
+## RRMA-RT-DEPS -- fixed 2026-09-09
 
 Until 2026-09-06 nothing in this repo looked at the production half of
 `package-lock.json`. The first run of `scripts/redteam/deps.mjs` against
@@ -167,6 +167,21 @@ Accepted in `scripts/redteam/deps-accepted.json` until **2026-10-06**, with
 that reason. On 2026-10-07 the gate BLOCKS again, which is the point of an
 expiry: `test/deps.test.js` judges the same captured fixture at a date past
 every acceptance and asserts it goes back to BLOCK.
+
+**Closed 2026-09-09 by the Astro 6.4.8 to 7.3.2 bump.** `astro@7.3.2` declares
+`optionalDependencies: { sharp: "^0.35.4" }`, so the nested copy under
+`node_modules/astro` is gone and the direct 0.35.4 is the only `sharp` in the
+tree. The live gate now reports `0 BLOCK, 0 KNOWN, 4 WARN`, down from
+`2 BLOCK, 1 KNOWN, 9 WARN`: the same bump also cleared the CRITICAL
+`GHSA-26w7-cxv4-gfx2` against astro itself, which is what had the Tests
+workflow red on `main` from 2026-09-08.
+
+The acceptance entry is deliberately LEFT IN PLACE until its own 2026-10-06
+expiry rather than deleted, with its reason amended to say so. Deleting it
+would fail `test/deps.test.js`, which reads the live file to prove that an
+acceptance turns the captured 2026-09-06 fixture green and then blocks again
+once expired. Leaving it costs nothing, because an acceptance can only ever
+downgrade an advisory that is actually present, and none is.
 
 ## RRMA-RT-COVERAGE -- fixed
 
