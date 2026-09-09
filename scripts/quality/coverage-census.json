@@ -1,6 +1,6 @@
 {
  "_note": "Every first-party executable file (census-rules.mjs SURFACE_ROOTS) is accounted for here, and scripts/quality/coverage.mjs FAILS its run if the enumerated surface drifts from this file or a new file matches no classification rule. A file is either PRODUCT-CODE (inside the gated coverage denominator) or excluded below with a category and written reason — never silently. Regenerate with: node scripts/quality/coverage.mjs && node scripts/quality/census.mjs",
- "_generated": "2026-09-07",
+ "_generated": "2026-09-09",
  "_categories": {
   "PRODUCT-CODE": "Deployed or deploy-chain code whose defects ship to users: CF Pages Functions (every route + _helper under functions/), build-time data fetchers and shared logic (src/lib), client bundles (src/scripts), Astro build integrations, and the CI gate/guard/build scripts that decide whether a deploy is allowed. This is the gated denominator. Uncovered PRODUCT-CODE is debt, listed so it is visible and countable, never argued away.",
   "CONTENT-TEMPLATE": "Files where line coverage is the wrong instrument because they are content, data constants, or scaffolding: reference-only endpoint templates (header forbids importing), typed data constants consumed by Astro templates, and Astro endpoint modules (*.md.ts / rss.xml.ts) that only execute inside the Astro build container. Their correctness instruments are the build itself, verify-build-output, the data deploy-guard floors, and the e2e suite.",
@@ -15,20 +15,20 @@
   "ratchet_rule": "The floor may only move UP. Arm at the measured floor rounded down; never arm a number that is red on arrival. Raise it after a coverage drive lands, by editing this value to the new measured floor rounded down."
  },
  "_measured": {
-  "date": "2026-09-07",
+  "date": "2026-09-09",
   "instrument": "node scripts/quality/coverage.mjs (c8 --all over the full surface; full npm-test suite)",
   "full_surface": {
-   "files": 428,
-   "lines": 88413,
-   "covered": 42474,
-   "pct": 48.04
+   "files": 429,
+   "lines": 88724,
+   "covered": 42783,
+   "pct": 48.22
   },
   "by_category": {
    "PRODUCT-CODE": {
-    "files": 329,
-    "lines": 62453,
-    "covered": 32840,
-    "pct": 52.58
+    "files": 330,
+    "lines": 62764,
+    "covered": 33149,
+    "pct": 52.82
    },
    "CONTENT-TEMPLATE": {
     "files": 9,
@@ -56,13 +56,13 @@
    }
   },
   "product_code": {
-   "files": 329,
-   "lines": 62453,
-   "covered": 32840,
-   "pct": 52.58
+   "files": 330,
+   "lines": 62764,
+   "covered": 33149,
+   "pct": 52.82
   },
-  "files_at_zero_in_full_report": 207,
-  "files_executed_in_full_report": 223,
+  "files_at_zero_in_full_report": 205,
+  "files_executed_in_full_report": 224,
   "highest_stakes_slice": {
    "slice": "national survey system (functions/api/survey/ + functions/api/endo-quiz/)",
    "files": [
@@ -2977,8 +2977,17 @@
    "category": "PRODUCT-CODE",
    "reason": "Shared library code imported by pipeline scripts and gates.",
    "present": true,
-   "lines": 24,
-   "covered": 24,
+   "lines": 48,
+   "covered": 46,
+   "pct": 95.83
+  },
+  {
+   "file": "scripts/lib/woff-to-sfnt.mjs",
+   "category": "PRODUCT-CODE",
+   "reason": "Shared library code imported by pipeline scripts and gates.",
+   "present": true,
+   "lines": 108,
+   "covered": 108,
    "pct": 100
   },
   {
@@ -3985,8 +3994,8 @@
    "category": "PRODUCT-CODE",
    "reason": "Build-time data fetcher / shared logic. Feeds every deploy (fetch-all -> src/data -> astro build); silent failure here is a data-loss deploy.",
    "present": false,
-   "lines": 11,
-   "covered": 11,
+   "lines": 12,
+   "covered": 12,
    "pct": 100
   },
   {
@@ -3994,8 +4003,8 @@
    "category": "PRODUCT-CODE",
    "reason": "Build-time data fetcher / shared logic. Feeds every deploy (fetch-all -> src/data -> astro build); silent failure here is a data-loss deploy.",
    "present": true,
-   "lines": 488,
-   "covered": 488,
+   "lines": 640,
+   "covered": 640,
    "pct": 100
   },
   {
@@ -4003,8 +4012,8 @@
    "category": "PRODUCT-CODE",
    "reason": "Build-time data fetcher / shared logic. Feeds every deploy (fetch-all -> src/data -> astro build); silent failure here is a data-loss deploy.",
    "present": false,
-   "lines": 49,
-   "covered": 49,
+   "lines": 52,
+   "covered": 52,
    "pct": 100
   },
   {
@@ -4012,8 +4021,8 @@
    "category": "PRODUCT-CODE",
    "reason": "Build-time data fetcher / shared logic. Feeds every deploy (fetch-all -> src/data -> astro build); silent failure here is a data-loss deploy.",
    "present": true,
-   "lines": 99,
-   "covered": 99,
+   "lines": 114,
+   "covered": 114,
    "pct": 100
   },
   {
@@ -4129,9 +4138,9 @@
    "category": "PRODUCT-CODE",
    "reason": "Build-time data fetcher / shared logic. Feeds every deploy (fetch-all -> src/data -> astro build); silent failure here is a data-loss deploy.",
    "present": true,
-   "lines": 477,
-   "covered": 444,
-   "pct": 93.08
+   "lines": 478,
+   "covered": 445,
+   "pct": 93.09
   },
   {
    "file": "src/lib/shell-routes.ts",
@@ -4165,9 +4174,9 @@
    "category": "PRODUCT-CODE",
    "reason": "Build-time data fetcher / shared logic. Feeds every deploy (fetch-all -> src/data -> astro build); silent failure here is a data-loss deploy.",
    "present": true,
-   "lines": 124,
-   "covered": 122,
-   "pct": 98.38
+   "lines": 131,
+   "covered": 129,
+   "pct": 98.47
   },
   {
    "file": "src/lib/turnstile.ts",
