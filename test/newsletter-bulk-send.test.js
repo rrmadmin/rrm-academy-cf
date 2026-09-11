@@ -318,6 +318,21 @@ describe('the cap and the cohort', () => {
     assert.equal(last.email, 'b@example.com');
   });
 
+  it('a campaign is NOT excluded by another campaign whose key it is a prefix of (#1)', async () => {
+    const db = bulkMailD1();
+    await seedSubscriber(db, { id: 'sub-1', email: 'overlap@example.com' });
+    await seedDomainState(db, { first_send_at: YEAR_AGO, day: TODAY, sent_today: 0 });
+    // 'fall-2026' already mailed this address. A LIKE 'newsletter/bulk/fall%'
+    // guard would match this row and wrongly drop overlap@example.com from
+    // the 'fall' campaign's audience forever.
+    await db.prepare(
+      "INSERT INTO email_log (event, email, category, source) VALUES ('send', 'overlap@example.com', 'newsletter', 'newsletter/bulk/fall-2026')"
+    ).run();
+    const { body } = await call(db, { ...BODY, campaign: 'fall' });
+    assert.equal(body.dryRun, true);
+    assert.deepEqual(body.head, ['overlap@example.com'], "'fall' still sees the recipient 'fall-2026' already reached");
+  });
+
   it('excludes unsubscribed, bounced and complained subscribers', async () => {
     const db = bulkMailD1();
     for (const [i, status] of [['1', 'unsubscribed'], ['2', 'bounced'], ['3', 'complained']]) {
@@ -916,6 +931,29 @@ describe('the circuit breaker', () => {
       body.action, 'read the reason, then re-run with --resume',
       'the breaker 423 carries the same action hint the open-pause 423 does (I7)',
     );
+  });
+
+  it("a campaign's breaker count is not polluted by another campaign whose key it is a prefix of (#1)", async () => {
+    const db = bulkMailD1();
+    await seedSubscriber(db, { id: 'sub-x', email: 'next@example.com' });
+    await seedDomainState(db, { first_send_at: YEAR_AGO, day: TODAY });
+    for (let i = 0; i < 60; i++) {
+      await db.prepare(
+        "INSERT INTO email_log (event, email, category, source, ses_message_id) VALUES ('send', ?, 'newsletter', 'newsletter/bulk/fall-2026', ?)"
+      ).bind(`h${i}@example.com`, `fall-2026-msg-${i}`).run();
+    }
+    for (let i = 0; i < 3; i++) {
+      await db.prepare(
+        "INSERT INTO email_event (id, ses_message_id, event_type, email, ts) VALUES (?, ?, 'complaint', ?, ?)"
+      ).bind(`fall-2026-ev-${i}`, `fall-2026-msg-${i}`, `h${i}@example.com`, new Date().toISOString()).run();
+    }
+    // 3/60 = 5%, far past COMPLAINT_RATE_LIMIT -- if a LIKE 'newsletter/bulk/fall%'
+    // guard folded 'fall-2026' traffic into 'fall''s count, this would trip.
+    const { status, body } = await call(db, { ...BODY, campaign: 'fall', send: true });
+    assert.equal(status, 200, "'fall' has sent nothing itself and must not be tripped by 'fall-2026'");
+    assert.equal(body.sent, 1);
+    const paused = await db.prepare("SELECT reason FROM send_paused WHERE campaign = 'fall'").first();
+    assert.equal(paused, null);
   });
 
   it('does not pause on a tiny sample, which is the deliberate fail-open', async () => {

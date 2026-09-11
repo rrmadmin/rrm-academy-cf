@@ -237,7 +237,7 @@ describe('signed SNS events', () => {
     const joined = await db.prepare(
       `SELECT ev.event_type FROM email_event ev
          JOIN email_log el ON el.ses_message_id = ev.ses_message_id
-        WHERE el.source LIKE 'newsletter/bulk/sept-letter%'`
+        WHERE el.source = 'newsletter/bulk/sept-letter'`
     ).first();
     assert.equal(joined.event_type, 'delivery', 'this join is what the circuit breaker reads');
   });

@@ -134,6 +134,24 @@ describe('main', () => {
     assert.equal(d.posted.length, 0);
   });
 
+  it('an unreadable admin secret exits 2 with a terse message, not a raw stack (#2)', async () => {
+    const d = deps({ files: FILES, answer: {} });
+    d.secret = () => { throw new Error('1Password CLI: not signed in'); };
+    const code = await main([...ARGS, '--send'], d);
+    assert.equal(code, 2);
+    assert.equal(d.posted.length, 0, 'nothing is sent when the secret cannot be read');
+  });
+
+  it("the unreadable-secret message does not leak the underlying 1Password error (#2)", async () => {
+    const errors = [];
+    const d = deps({ files: FILES, answer: {} });
+    d.secret = () => { throw new Error('1Password CLI: not signed in'); };
+    d.error = (msg) => errors.push(msg);
+    await main([...ARGS, '--send'], d);
+    assert.ok(errors.some((m) => /could not read the admin secret/.test(m)));
+    assert.ok(!errors.some((m) => /not signed in/.test(m)), 'the raw 1Password error text is never printed');
+  });
+
   it('never holds an SES credential', async () => {
     const src = (await import('node:fs')).readFileSync(new URL('../scripts/bulk-send.mjs', import.meta.url), 'utf8');
     assert.ok(!/AWS_SECRET_ACCESS_KEY|AWS_ACCESS_KEY_ID|aws4fetch/.test(src),

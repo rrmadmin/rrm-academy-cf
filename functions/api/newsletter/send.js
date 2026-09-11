@@ -172,9 +172,14 @@ const BULK_LEASE_SECONDS = 180;
  *
  * Three exclusions ride along: consent state (spec section 5.5), the ELV and
  * wix suppression tags the legacy path already applies, and everyone this
- * campaign key has already been sent to. The last is a LIKE on the source
- * prefix rather than a join on sendId, so a campaign that spans several runs,
- * several sendIds and several days still never mails the same person twice.
+ * campaign key has already been sent to. The last is an EXACT match on
+ * email_log.source (the bulk path writes exactly 'newsletter/bulk/<campaign>',
+ * no suffix, see the INSERT below), not a LIKE on a prefix -- a LIKE would
+ * match campaign 'fall' against rows written for 'fall-2026' too, silently
+ * and permanently excluding that campaign's own recipients from 'fall' and
+ * merging their breaker counts into it. A join on sendId would not do it
+ * either: a campaign that spans several runs, several sendIds and several
+ * days still needs a single guard, and the exact source match gives it one.
  */
 /**
  * The two membership-exclusion subqueries, factored out so the audience query
@@ -219,7 +224,7 @@ const BULK_AUDIENCE_SQL = `
        SELECT 1 FROM email_log el
         WHERE el.email = s.email COLLATE NOCASE
           AND el.event = 'send'
-          AND el.source LIKE ?
+          AND el.source = ?
      )
    ORDER BY ${COHORT_ORDER_SQL}
 `;
@@ -233,7 +238,7 @@ const BULK_AUDIENCE_SQL = `
  * recipients are left for tomorrow -- a 12-person audience with a
  * remaining-allowance of 5 would fetch 6 rows and, read naively, report a
  * deferral of 1 instead of 7. This wraps BULK_AUDIENCE_SQL (same WHERE, same
- * single sourcePrefix bind, ORDER BY is harmless inside a COUNT subquery) with
+ * single exact-source bind, ORDER BY is harmless inside a COUNT subquery) with
  * no LIMIT, so `deferred` is computed from the real audience count minus what
  * this call actually processed, not from how many rows happened to be fetched.
  */
@@ -254,26 +259,31 @@ const BULK_AUDIENCE_COUNT_SQL = `SELECT COUNT(*) AS c FROM (${BULK_AUDIENCE_SQL}
  * email_log on ses_message_id, NOT by email_event.source: the mail package
  * sends no SES message tags, so events.js has nothing to put in that column and
  * it is NULL for every row this path produces.
+ *
+ * `source` is matched EXACTLY, not with a LIKE prefix: a LIKE against
+ * 'newsletter/bulk/<campaign>%' would fold campaign 'fall-2026' into
+ * campaign 'fall''s breaker numbers, tripping (or clearing) 'fall' on
+ * traffic that never belonged to it.
  */
-async function bulkTrailingCounts(db, sourcePrefix, nowIso) {
+async function bulkTrailingCounts(db, source, nowIso) {
   const since = new Date(Date.parse(nowIso) - 24 * 3600 * 1000).toISOString();
   // The bound below is compared against email_log.created_at (datetime('now'));
   // `since` is compared against email_event.ts (SES ISO 8601). One bound for
   // both would widen the complaint window. See the comment above the function.
   const sentRow = await db.prepare(
     // arise-ignore datetime-format-mismatch -- the mismatch is the design, see above
-    "SELECT COUNT(*) AS c FROM email_log WHERE event = 'send' AND source LIKE ? AND created_at >= datetime('now','-24 hours')"
-  ).bind(sourcePrefix).first();
+    "SELECT COUNT(*) AS c FROM email_log WHERE event = 'send' AND source = ? AND created_at >= datetime('now','-24 hours')"
+  ).bind(source).first();
   const events = (await db.prepare(
     `SELECT ev.event_type AS event_type, ev.bounce_type AS bounce_type, COUNT(*) AS c
        FROM email_event ev
        JOIN email_log el ON el.ses_message_id = ev.ses_message_id
-      WHERE el.source LIKE ?
+      WHERE el.source = ?
         AND el.event = 'send'
         AND ev.event_type IN ('complaint','bounce')
         AND ev.ts >= ?
       GROUP BY ev.event_type, ev.bounce_type`
-  ).bind(sourcePrefix, since).all()).results;
+  ).bind(source, since).all()).results;
   let complained = 0;
   let bounced = 0;
   for (const row of events) {
@@ -758,8 +768,11 @@ async function runBulkSend({ env, db, body, waitUntil }) {
     }, { status: 400 });
   }
   const dryRun = doSend !== true;
+  // Exact match, not a LIKE prefix -- this is the literal string the bulk
+  // path writes to email_log.source (see the INSERT near the SES call
+  // below), so an exact match is the correct guard against 'fall' matching
+  // 'fall-2026'. No suffix is ever appended.
   const source = `newsletter/bulk/${campaign}`;
-  const sourcePrefix = `${source}%`;
 
   // 2. The sender, or nothing.
   if (!env.BULK_FROM) {
@@ -851,7 +864,7 @@ async function runBulkSend({ env, db, body, waitUntil }) {
   //    send_paused, resumed the moment it is inserted, so the operator-facing
   //    table carries a record of who overrode what and why, not merely a log
   //    line.
-  const counts = await bulkTrailingCounts(db, sourcePrefix, nowIso);
+  const counts = await bulkTrailingCounts(db, source, nowIso);
   const verdict = breakerVerdict(counts);
   const resumingBreakerPause = !!(
     paused && (paused.reason === PAUSE_COMPLAINT_RATE || paused.reason === PAUSE_BOUNCE_RATE)
@@ -1022,8 +1035,8 @@ async function runBulkSend({ env, db, body, waitUntil }) {
     // count does not account for a `segments` filter, which is applied in JS
     // below on the fetched page only -- a segment-filtered run's `deferred`
     // is therefore an upper bound on the truly-deferred count, not exact.
-    let cohort = (await db.prepare(`${BULK_AUDIENCE_SQL} LIMIT ?`).bind(sourcePrefix, fetchLimit).all()).results;
-    const audienceCount = (await db.prepare(BULK_AUDIENCE_COUNT_SQL).bind(sourcePrefix).first()).c;
+    let cohort = (await db.prepare(`${BULK_AUDIENCE_SQL} LIMIT ?`).bind(source, fetchLimit).all()).results;
+    const audienceCount = (await db.prepare(BULK_AUDIENCE_COUNT_SQL).bind(source).first()).c;
     if (segments && segments.length > 0) {
       cohort = cohort.filter((sub) => {
         const subSegments = parseSegments(sub.segments);

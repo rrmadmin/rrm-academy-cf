@@ -103,7 +103,7 @@
       "note": "sendTracked: best-effort mail dispatch + email_log failure row + Telegram alert"
     },
     "functions/api/newsletter/send.js": {
-      "hash": "5836602d052544c649975ad67eb41e8fc9ad0b34cb8ad6ba44ef59c8236658e8",
+      "hash": "039caf488dcfe16dd521ce891b5e35e69a384eb32b88d002448ead2202100e9f",
       "note": "Mass email send (admin-only)"
     },
     "functions/api/newsletter/send-first-email.js": {

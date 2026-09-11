@@ -201,7 +201,13 @@ export async function main(argv, deps) {
   }
 
   const segmented = !!(args.segments && args.segments.length);
-  const bearer = secret();
+  let bearer;
+  try {
+    bearer = secret();
+  } catch {
+    error('could not read the admin secret (1Password CLI signed in? item present?)');
+    return 2;
+  }
 
   // `withResume` is the loop's, not the flag's. --resume clears the pause and
   // overrides the breaker for the invocation that carries it, so resending it
