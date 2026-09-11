@@ -46,6 +46,13 @@
  * refused `bulk_run_in_progress` (exit 8) with a retryAfterSeconds. Wait it
  * out; do not start a second terminal to "go faster".
  *
+ * THE LEASE NEEDS ALL THREE OF migrations/041-043 APPLIED to rrm-auth, in
+ * order, before this driver's first --send. Migration 043 (the UNIQUE INDEX
+ * that is the actual mutex) can fail its own CREATE if live newsletter_send
+ * already holds two or more abandoned 'sending' rows for one campaign --
+ * that migration's own header names the one-line UPDATE that clears them
+ * before re-running the CREATE.
+ *
  * IT NEVER LOOPS ON A DRY RUN. A dry run reports one page and stops: it does
  * not send, so there is nothing for repeated calls to advance past, and
  * calling again would just describe the same first page.

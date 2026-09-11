@@ -502,6 +502,14 @@ describe('logging and the day counter', () => {
       state.sent_today < 10,
       `sent_today (${state.sent_today}) must have RESET when the day rolled over, not kept incrementing the old day's count past 10`,
     );
+    // #4: the response's remainingToday/sentToday must come from a FRESH
+    // clock read, not `nowIso` (fixed at the top of the invocation, before
+    // midnight rolled over). The stale clock would compute utcDay(nowIso) as
+    // the OLD day, which no longer equals the row's now-rolled-over `day`
+    // column, so remainingAllowance would read sentToday as 0 instead of the
+    // real post-rollover count -- a mutation-provable difference.
+    assert.equal(body.sentToday, state.sent_today, 'the response reflects the same fresh-day counter the row was just written with (#4)');
+    assert.equal(body.remainingToday, 1500 - state.sent_today, 'remainingToday is computed off the same fresh read');
   });
 });
 
@@ -661,6 +669,51 @@ describe('the breaker-override audit write (#3)', () => {
     assert.equal(ses.calls.length, before, 'nothing was mailed when the override could not be recorded');
     const c = await db.prepare('SELECT COUNT(*) AS c FROM newsletter_event').first();
     assert.equal(c.c, 0);
+  });
+});
+
+describe('the done flag after a skip (#5)', () => {
+  it('deferred===0 alone is enough for done:true, even when a recipient in the page was skipped', async () => {
+    const db = bulkMailD1();
+    await seedSubscriber(db, { id: 'sub-1', email: 'a@example.com' });
+    await seedSubscriber(db, { id: 'sub-2', email: 'b@example.com' });
+    await seedDomainState(db, { first_send_at: YEAR_AGO, day: TODAY });
+
+    // sub-2's per-recipient recheck reports them no longer active -- a real
+    // skip, exactly like a concurrent unsubscribe -- and BULK_AUDIENCE_COUNT_SQL
+    // is stubbed to report the true audience at the moment sub-2 left it (1,
+    // matching what this run actually sent), the way a fresh COUNT would read
+    // once their status='active' predicate no longer matches. This isolates
+    // the `done` boolean itself: the old `sentCount >= page.length` clause can
+    // never be true after ANY skip (a skip always leaves sentCount short of
+    // page.length), so it wedged a genuinely-exhausted audience at
+    // status='partial' forever even though nothing was really left to send.
+    const realPrepare = db.prepare.bind(db);
+    db.prepare = (sql) => {
+      if (sql.startsWith('SELECT COUNT(*) AS c FROM (')) {
+        return { bind: () => ({ async first() { return { c: 1 }; } }) };
+      }
+      if (sql.includes('FROM newsletter_subscriber s WHERE s.id = ?')) {
+        return {
+          bind: (id) => ({
+            async first() {
+              if (id === 'sub-2') return { status: 'unsubscribed', is_wix_active: 0, is_stuc_member: 0 };
+              return realPrepare(sql).bind(id).first();
+            },
+          }),
+        };
+      }
+      return realPrepare(sql);
+    };
+    const { status, body } = await call(db, { ...BODY, send: true });
+    db.prepare = realPrepare;
+
+    assert.equal(status, 200);
+    assert.equal(body.sent, 1, 'sub-1 sent, sub-2 skipped');
+    assert.equal(body.deferred, 0, 'the true remaining audience is 0');
+    assert.equal(body.done, true, 'a skip must not block done when deferred is already 0');
+    const row = await db.prepare('SELECT status FROM newsletter_send WHERE id = ?').bind(body.sendId).first();
+    assert.equal(row.status, 'sent', 'the run reaches a real terminal status, not stuck at partial forever');
   });
 });
 

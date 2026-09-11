@@ -1164,7 +1164,15 @@ async function runBulkSend({ env, db, body, waitUntil }) {
     // excluded) rather than page.length, so a skip/failure correctly leaves
     // that recipient counted as still-eligible for the next run.
     const deferred = Math.max(0, audienceCount - sentCount);
-    const done = deferred === 0 && sentCount >= page.length;
+    // `deferred` already accounts for everything left -- a skip or a failure
+    // stays uncounted in sentCount and so stays in deferred. Gating `done` on
+    // `sentCount >= page.length` on top of that was never true once any
+    // recipient was skipped (a full, unfiltered page always finishes with
+    // sentCount < page.length by exactly the skip count), which wedged a
+    // fully-drained audience at status='partial' forever -- the lease keeps
+    // releasing (so nothing is stuck), but the caller's driver loop never sees
+    // done:true and never stops calling.
+    const done = deferred === 0;
     // 'partial' rather than 'sending' when there is more to do: the status is
     // what releases the lease, and leaving it 'sending' would have this page
     // refuse the caller's very next one.
@@ -1172,9 +1180,14 @@ async function runBulkSend({ env, db, body, waitUntil }) {
       `UPDATE newsletter_send SET sent_count = sent_count + ?, status = ?, sent_at = CASE WHEN ? = 1 THEN datetime('now') ELSE sent_at END WHERE id = ?`
     ).bind(sentCount, done ? 'sent' : 'partial', done ? 1 : 0, sendId).run();
 
+    // A FRESH clock read, not `nowIso` (fixed at the top of the invocation for
+    // the lease, the breaker window and the allowance gate) -- the same
+    // midnight-crossing reason as the per-send day-counter write above: by the
+    // time a full page has paced through BULK_PACING_MS per recipient, the day
+    // this report is FOR may not be the day the request started.
     const after = remainingAllowance(
       await db.prepare('SELECT first_send_at, day, sent_today FROM mail_domain_state WHERE domain = ?').bind(BULK_DOMAIN).first(),
-      nowIso,
+      new Date().toISOString(),
     );
     log(env, waitUntil, 'newsletter', 'bulk_send_page', 'ok', `${campaign}: ${sentCount} sent, ${deferred} deferred`, 0, 200);
 
