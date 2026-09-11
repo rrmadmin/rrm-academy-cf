@@ -79,7 +79,7 @@
       "note": "D1, KV, R2 bindings"
     },
     "functions/api/_ses.js": {
-      "hash": "8829630eaff0c4b89d172878b08ba9685a2e6241496d3dc087e5e50ee7dd1f40",
+      "hash": "86fff676fad91b9615e332e9eb218c977960ad91526943b278ec2f9f3b316b4f",
       "note": "SES email sending infrastructure"
     },
     "functions/api/_elv.js": {
