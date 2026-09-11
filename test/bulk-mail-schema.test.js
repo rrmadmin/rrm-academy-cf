@@ -11,7 +11,12 @@
  */
 import { describe, it } from 'node:test';
 import assert from 'node:assert/strict';
+import { readFileSync } from 'node:fs';
+import { fileURLToPath } from 'node:url';
+import { dirname, join } from 'node:path';
 import { bulkMailD1 } from './_bulk-mail-sqlite.mjs';
+
+const ROOT = join(dirname(fileURLToPath(import.meta.url)), '..');
 
 describe('migration 041 shape', () => {
   it('mail_domain_state carries one row per sending domain with a per-UTC-day counter', async () => {
@@ -60,5 +65,27 @@ describe('migration 041 shape', () => {
       'SELECT id FROM send_paused WHERE campaign = ? AND resumed_at IS NULL'
     ).bind('sept-letter').all();
     assert.equal(stillOpen.results.length, 0);
+  });
+});
+
+describe('migration 043 header: the documented lease-recovery UPDATE is scoped, not blanket', () => {
+  it('carries a campaign-scoped, age-checked recovery statement -- never a blanket WHERE that could flip a live campaign', () => {
+    const header = readFileSync(join(ROOT, 'migrations', '043-bulk-lease-unique.sql'), 'utf8');
+    assert.match(
+      header, /UPDATE newsletter_send SET status = 'partial'/,
+      'the documented recovery UPDATE must still be present',
+    );
+    assert.match(
+      header, /campaign = /,
+      'the recovery UPDATE must be scoped to the one campaign the CREATE named, never every campaign',
+    );
+    assert.match(
+      header, /-180 seconds/,
+      'the recovery UPDATE must only touch leases old enough to be abandoned',
+    );
+    assert.doesNotMatch(
+      header, /UPDATE newsletter_send SET status = 'partial'\s+WHERE status = 'sending' AND campaign IS NOT NULL;/,
+      'the old blanket form (every campaign, no age check) must not come back',
+    );
   });
 });

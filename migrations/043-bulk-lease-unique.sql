@@ -35,8 +35,14 @@
 -- IF THIS CREATE FAILS with a bare UNIQUE constraint error, it means live
 -- newsletter_send already holds TWO OR MORE rows with status='sending' for
 -- the same campaign -- most likely an abandoned lease from before this
--- rail's stale-lease flip existed. Run this first, then re-run the CREATE:
---   UPDATE newsletter_send SET status = 'partial' WHERE status = 'sending' AND campaign IS NOT NULL;
+-- rail's stale-lease flip existed. Scope the recovery UPDATE to the ONE
+-- campaign the CREATE named and to leases old enough to be abandoned; never
+-- run it unscoped, because a blanket WHERE campaign IS NOT NULL flips every
+-- campaign's row, including one that is genuinely mid-send right now for a
+-- DIFFERENT campaign. Run this first, then re-run the CREATE:
+--   UPDATE newsletter_send SET status = 'partial'
+--    WHERE status = 'sending' AND campaign = '<the campaign the CREATE named>'
+--      AND updated_at < datetime('now', '-180 seconds');
 --
 -- ROLLBACK: DROP INDEX idx_nl_send_one_live_per_campaign;
 --

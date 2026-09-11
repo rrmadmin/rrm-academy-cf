@@ -50,8 +50,11 @@
  * order, before this driver's first --send. Migration 043 (the UNIQUE INDEX
  * that is the actual mutex) can fail its own CREATE if live newsletter_send
  * already holds two or more abandoned 'sending' rows for one campaign --
- * that migration's own header names the one-line UPDATE that clears them
- * before re-running the CREATE.
+ * that migration's own header names the recovery UPDATE that clears them
+ * before re-running the CREATE. That UPDATE MUST be scoped to the one
+ * campaign the CREATE named and to leases old enough to be abandoned; never
+ * run it unscoped, because a blanket WHERE would flip a different campaign's
+ * row that is genuinely mid-send right now.
  *
  * IT NEVER LOOPS ON A DRY RUN. A dry run reports one page and stops: it does
  * not send, so there is nothing for repeated calls to advance past, and

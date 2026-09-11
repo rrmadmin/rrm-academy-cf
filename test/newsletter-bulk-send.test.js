@@ -1186,3 +1186,177 @@ describe('a deploy that outruns its own migrations (I8)', () => {
     assert.match(threw.message, /network timeout/);
   });
 });
+
+describe('pauseRun writes its own record and cannot silently vanish (arise pass 3 #1)', () => {
+  it('a failed email_log write where pauseRun\'s own send_paused INSERT ALSO fails is a named 500, not a swallowed rejection', async () => {
+    const db = bulkMailD1();
+    await seedSubscriber(db, { id: 'sub-1', email: 'a@example.com' });
+    await seedDomainState(db, { first_send_at: YEAR_AGO, day: TODAY });
+    const realPrepare = db.prepare.bind(db);
+    db.prepare = (sql) => {
+      if (sql.includes('INSERT INTO email_log')) {
+        return { bind: () => ({ async run() { throw new Error('D1_ERROR: email_log network'); } }) };
+      }
+      if (sql.includes('INSERT INTO send_paused')) {
+        return { bind: () => ({ async run() { throw new Error('D1_ERROR: send_paused network'); } }) };
+      }
+      return realPrepare(sql);
+    };
+    const before = ses.calls.length;
+    let status, body, threw = null;
+    try {
+      ({ status, body } = await call(db, { ...BODY, send: true }));
+    } catch (err) {
+      threw = err;
+    } finally {
+      db.prepare = realPrepare;
+    }
+    // MUTATION-PROOF #1: with the pre-fix bare `return pauseRun(db, {...})`,
+    // pauseRun's own INSERT rejects, that rejection is a Return completion
+    // the enclosing try/catch never sees, and the rejection propagates all
+    // the way out of onRequestPost as an unhandled throw -- `threw` would be
+    // set and `status`/`body` would never exist. Restoring the bare
+    // `return pauseRun(` (drop the `await`, drop pauseRun's own try/catch)
+    // makes this assertion fail: `threw` becomes non-null.
+    assert.equal(threw, null, 'pauseRun failing to record its own pause must still answer a JSON response, not throw');
+    assert.equal(status, 500);
+    assert.equal(body.error, 'bulk_pause_write_failed');
+    assert.equal(
+      body.detail, 'the pause could not be recorded; DO NOT re-run until send_paused is checked by hand',
+      'the response tells the operator not to blindly retry',
+    );
+    assert.doesNotMatch(JSON.stringify(body), /D1_ERROR/, 'the raw driver error never reaches the response body');
+    assert.doesNotMatch(JSON.stringify(body), /email_log network|send_paused network/, 'no secret internals leak to the client');
+    const row = await db.prepare('SELECT status FROM newsletter_send WHERE id = ?').bind(body.sendId).first();
+    assert.equal(row.status, 'failed', 'the row is already stamped failed by the email_log-failure branch, not left at sending');
+    assert.equal(
+      ses.calls.length - before, 1,
+      'the message that was already accepted by SES is not reclassified as unsent',
+    );
+    const paused = await db.prepare("SELECT COUNT(*) AS c FROM send_paused").first();
+    assert.equal(paused.c, 0, 'the pause write genuinely failed -- nothing landed in send_paused either');
+  });
+
+  it('the breaker-tripped pauseRun call site also survives its own send_paused INSERT failing', async () => {
+    const db = bulkMailD1();
+    await seedSubscriber(db, { id: 'sub-1', email: 'a@example.com' });
+    await seedDomainState(db, { first_send_at: YEAR_AGO, day: TODAY });
+    for (let i = 0; i < 1000; i++) {
+      await db.prepare(
+        "INSERT INTO email_log (event, email, category, source, ses_message_id) VALUES ('send', ?, 'newsletter', 'newsletter/bulk/sept-letter', ?)"
+      ).bind(`t${i}@example.com`, `tmsg-${i}`).run();
+    }
+    for (let i = 0; i < 3; i++) {
+      await db.prepare(
+        "INSERT INTO email_event (id, ses_message_id, event_type, email, ts) VALUES (?, ?, 'complaint', ?, ?)"
+      ).bind(`tev-${i}`, `tmsg-${i}`, `t${i}@example.com`, new Date().toISOString()).run();
+    }
+    const realPrepare = db.prepare.bind(db);
+    db.prepare = (sql) => {
+      if (sql.includes('INSERT INTO send_paused')) {
+        return { bind: () => ({ async run() { throw new Error('D1_ERROR: send_paused network'); } }) };
+      }
+      return realPrepare(sql);
+    };
+    let status, body, threw = null;
+    try {
+      ({ status, body } = await call(db, { ...BODY, send: true }));
+    } catch (err) {
+      threw = err;
+    } finally {
+      db.prepare = realPrepare;
+    }
+    assert.equal(threw, null, 'the breaker-gate pauseRun call must not throw an unhandled rejection either');
+    assert.equal(status, 500);
+    assert.equal(body.error, 'bulk_pause_write_failed');
+  });
+});
+
+describe('SES-call pacing on every attempted path, not only success (arise pass 3 #3)', () => {
+  it('paces once per loop iteration across 3 consecutive SES rejections, not zero times', async () => {
+    const db = bulkMailD1();
+    for (let i = 0; i < 3; i++) await seedSubscriber(db, { id: `f-${i}`, email: `f${i}@example.com` });
+    await seedDomainState(db, { first_send_at: YEAR_AGO, day: TODAY });
+
+    const failing = stubSes({
+      answer: () => new Response(JSON.stringify({ message: 'throttled' }), { status: 400 }),
+    });
+    const realSetTimeout = globalThis.setTimeout;
+    const paceDelays = [];
+    globalThis.setTimeout = (fn, ms) => { paceDelays.push(ms); return realSetTimeout(fn, 0); };
+
+    let body;
+    try {
+      ({ body } = await call(db, { ...BODY, send: true }));
+    } finally {
+      globalThis.setTimeout = realSetTimeout;
+      failing.restore();
+    }
+
+    assert.equal(body.sent, 0, 'every recipient failed at SES');
+    const bulkPaces = paceDelays.filter((ms) => ms === 1500);
+    // 3 recipients, each one an SES attempt that failed: pacing runs between
+    // recipient 0-1 and 1-2 (the loop's own index check skips only the very
+    // last iteration), so exactly 2 pacing waits are expected. Before the
+    // fix, a rejected SES call `continue`d with no pacing at all -- 0 waits.
+    assert.equal(bulkPaces.length, 2, 'pacing must run between consecutive SES attempts even when they fail');
+  });
+});
+
+describe('bulk_run_failed detail names whether a lease was ever taken (arise pass 3 #4)', () => {
+  it('a dry-run throw before the lease is taken says the report failed, not that a lease is released', async () => {
+    const db = bulkMailD1();
+    await seedSubscriber(db, { id: 'sub-1', email: 'a@example.com' });
+    await seedDomainState(db, { first_send_at: YEAR_AGO, day: TODAY });
+    const realPrepare = db.prepare.bind(db);
+    db.prepare = (sql) => {
+      if (sql.includes('SELECT COUNT(*) AS c FROM (')) {
+        return { bind: () => ({ async first() { throw new Error('D1_ERROR: injected count failure'); } }) };
+      }
+      return realPrepare(sql);
+    };
+    let status, body;
+    try {
+      ({ status, body } = await call(db, BODY));
+    } finally {
+      db.prepare = realPrepare;
+    }
+    assert.equal(status, 500);
+    assert.equal(body.error, 'bulk_run_failed');
+    assert.equal(body.sendId, null, 'a dry run never takes the lease, so there is no sendId to report');
+    assert.equal(body.sent, 0);
+    assert.equal(
+      body.detail, 'the report could not be produced; re-run',
+      'a dry run has no lease to release, so the message must not claim one was',
+    );
+  });
+
+  it('a real-send throw AFTER the lease is taken keeps the original released-lease wording', async () => {
+    const db = bulkMailD1();
+    await seedSubscriber(db, { id: 'sub-1', email: 'a@example.com' });
+    await seedDomainState(db, { first_send_at: YEAR_AGO, day: TODAY });
+    const restore = (() => {
+      const realPrepare = db.prepare.bind(db);
+      db.prepare = (sql) => {
+        if (sql.includes('s.last_clicked_at, s.last_opened_at, s.last_sent_at, s.subscribed_at')) {
+          return { bind: () => ({ async all() { throw new Error('D1_ERROR: injected cohort failure'); } }) };
+        }
+        return realPrepare(sql);
+      };
+      return () => { db.prepare = realPrepare; };
+    })();
+    let status, body;
+    try {
+      ({ status, body } = await call(db, { ...BODY, send: true }));
+    } finally {
+      restore();
+    }
+    assert.equal(status, 500);
+    assert.equal(body.error, 'bulk_run_failed');
+    assert.ok(body.sendId, 'a real send takes the lease before the cohort fetch, so a sendId exists');
+    assert.equal(
+      body.detail, 'the run stopped before its page finished; the lease is released, re-run to continue',
+      'a real send that took the lease keeps the original released-lease wording',
+    );
+  });
+});

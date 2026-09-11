@@ -299,11 +299,36 @@ async function bulkTrailingCounts(db, sourcePrefix, nowIso) {
  * detail is a driver error string, which belongs in send_paused where an
  * operator reads it and NOT in a response body. `responseDetail` defaults to
  * `detail`, so a caller that does not care says nothing.
+ *
+ * The INSERT has its OWN try/catch, and every call site awaits this function
+ * (`return await pauseRun(...)`, never bare `return pauseRun(...)`). A bare
+ * `return` of a rejected promise is a Return completion, not a Throw -- the
+ * enclosing try/catch never sees it, and a call site inside the big guarded
+ * block (the one wrapping the whole cohort loop) would bypass that catch
+ * entirely, leaving an unhandled rejection with no JSON shape and no released
+ * lease. A schema-drift error maps to the same named 503 every other
+ * pre-043-aware read in this file answers; anything else is a named,
+ * structured 500 that tells the operator not to re-run blind, with the real
+ * driver error and the recipient this pause was FOR (already folded into
+ * `detail` by the caller) logged server-side, never in the response body.
  */
-async function pauseRun(db, { campaign, reason, detail, responseDetail, status, sendId, sent, action }) {
-  await db.prepare(
-    'INSERT INTO send_paused (id, campaign, reason, detail) VALUES (?, ?, ?, ?)'
-  ).bind(crypto.randomUUID(), campaign, reason, detail ? String(detail).slice(0, 500) : null).run();
+async function pauseRun(db, env, waitUntil, { campaign, reason, detail, responseDetail, status, sendId, sent, action }) {
+  try {
+    await db.prepare(
+      'INSERT INTO send_paused (id, campaign, reason, detail) VALUES (?, ?, ?, ?)'
+    ).bind(crypto.randomUUID(), campaign, reason, detail ? String(detail).slice(0, 500) : null).run();
+  } catch (err) {
+    if (isSchemaNotMigratedError(err)) return Response.json(SCHEMA_NOT_MIGRATED_RESPONSE, { status: 503 });
+    log(
+      env, waitUntil, 'newsletter', 'bulk_pause_write_failed', 'error',
+      `${String(err?.message || 'unknown')}; pause was for ${reason}: ${detail ? String(detail).slice(0, 200) : 'no detail'}`.slice(0, 300),
+      0, 500,
+    );
+    return Response.json({
+      ok: false, error: 'bulk_pause_write_failed', campaign, sendId: sendId || null, sent: sent || 0,
+      detail: 'the pause could not be recorded; DO NOT re-run until send_paused is checked by hand',
+    }, { status: 500 });
+  }
   const body = responseDetail === undefined ? detail : responseDetail;
   return Response.json({
     ok: false, error: 'bulk_paused', reason, detail: body ? String(body).slice(0, 300) : null,
@@ -827,7 +852,7 @@ async function runBulkSend({ env, db, body, waitUntil }) {
   const breakerOverridden = verdict.tripped && resumingBreakerPause;
   if (verdict.tripped && !dryRun && !breakerOverridden) {
     log(env, waitUntil, 'newsletter', 'bulk_breaker_tripped', 'error', `${verdict.reason}: ${verdict.detail}`.slice(0, 200), 0, 423);
-    return pauseRun(db, {
+    return await pauseRun(db, env, waitUntil, {
       campaign, reason: verdict.reason, detail: verdict.detail, status: 423, sent: 0,
       action: 'read the reason, then re-run with --resume',
     });
@@ -1021,7 +1046,19 @@ async function runBulkSend({ env, db, body, waitUntil }) {
     // written in step 8, before the cohort was fetched, so the existing
     // surfaces that read that table see a bulk campaign the same way they see
     // any other send.
-    for (const sub of page) {
+    // Paces once per loop iteration for every path that made an SES attempt
+    // -- the success path AND the SES-failure `continue` below -- because the
+    // spec's "1 to 2 s between SES calls" is a promise about consecutive
+    // calls TO SES, not about consecutive iterations of this loop. A run of
+    // rejections used to `continue` with no delay at all, firing every
+    // remaining recipient's SES call back-to-back. Prep-failure and
+    // status/membership skips never call SES, so they still skip pacing.
+    const paceIfNotLast = async (index) => {
+      if (index < page.length - 1) await new Promise((r) => setTimeout(r, BULK_PACING_MS));
+    };
+
+    for (let pageIndex = 0; pageIndex < page.length; pageIndex++) {
+      const sub = page[pageIndex];
       // Re-check status AND membership immediately before SES so a concurrent
       // unsubscribe or a membership that started AFTER the cohort was built is
       // honoured. The legacy path only re-checks status; the bulk path also has
@@ -1101,6 +1138,7 @@ async function runBulkSend({ env, db, body, waitUntil }) {
         await logEmailFailure(db, {
           email: sub.email, category: 'newsletter', source, subject, detail: err?.message,
         });
+        await paceIfNotLast(pageIndex);
         continue;
       }
 
@@ -1123,7 +1161,7 @@ async function runBulkSend({ env, db, body, waitUntil }) {
         await db.prepare("UPDATE newsletter_send SET sent_count = sent_count + ?, status = 'failed' WHERE id = ?")
           .bind(sentCount, sendId).run();
         const detail = `${String(err?.message || 'unknown')}; DELIVERED BUT UNLOGGED: ${sub.email}`;
-        return pauseRun(db, {
+        return await pauseRun(db, env, waitUntil, {
           campaign, reason: PAUSE_LOG_WRITE_FAILED, detail,
           responseDetail: 'email_log write failed; read send_paused.detail',
           status: 500, sendId, sent: sentCount,
@@ -1155,7 +1193,7 @@ async function runBulkSend({ env, db, body, waitUntil }) {
       }
 
       sentCount++;
-      if (sentCount < page.length) await new Promise((r) => setTimeout(r, BULK_PACING_MS));
+      await paceIfNotLast(pageIndex);
     }
 
     // deferred is recomputed here against the true audience count, not the
@@ -1211,9 +1249,15 @@ async function runBulkSend({ env, db, body, waitUntil }) {
         log(env, waitUntil, 'newsletter', 'bulk_lease_release_failed', 'error', String(releaseErr?.message || 'unknown').slice(0, 200), 0, 500);
       }
     }
+    // A dry run never takes the lease (step 8 above), so `sendId` is
+    // undefined on a dry-run throw -- "the lease is released" is false in
+    // that case, and it tells the operator to wait out a lease that was
+    // never held.
     return Response.json({
       ok: false, error: 'bulk_run_failed', sendId: sendId || null, sent: sentCount,
-      detail: 'the run stopped before its page finished; the lease is released, re-run to continue',
+      detail: sendId
+        ? 'the run stopped before its page finished; the lease is released, re-run to continue'
+        : 'the report could not be produced; re-run',
     }, { status: 500 });
   }
 }
