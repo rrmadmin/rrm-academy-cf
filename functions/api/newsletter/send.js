@@ -113,6 +113,25 @@ const BULK_CONFIGURATION_SET = 'rrm-bulk';
 const BULK_REPLY_TO = 'administrator@rrmacademy.org';
 /** Spec section 5.1: "Pacing is 1 to 2 s between SES calls." */
 const BULK_PACING_MS = 1500;
+/**
+ * THE PER-INVOCATION PAGE, which is not the same thing as the day's cap.
+ *
+ * One call sends at most this many recipients, and at 1.5 s of pacing per SES
+ * call that is about 75 s of wall clock, comfortably inside a Pages Function's
+ * budget. The day's allowance is still the ceiling and the page never exceeds
+ * it, but a 1500-message day cannot be one request: without this cap a full day
+ * would need over half an hour in a single invocation and would be killed
+ * partway, leaving recipients marked sent for mail that never left.
+ *
+ * THE CALLER LOOPS. A run that has more to do answers `done: false` with
+ * `deferred > 0`, and the CLI calls again; every invocation re-reads the open
+ * pause, the allowance and the trailing-24h breaker before it touches a
+ * recipient, so a pause or a spent day stops the loop at the next call rather
+ * than at the end of the page. There is no cursor: already-sent recipients are
+ * excluded by the LIKE on the campaign source prefix, so each call advances on
+ * its own.
+ */
+const BULK_PAGE_SIZE = 50;
 
 /**
  * The bulk audience. Two correlated NOT EXISTS clauses implement spec section
@@ -229,13 +248,21 @@ async function bulkTrailingCounts(db, sourcePrefix, nowIso) {
  * Write the pause and answer it. A pause is a STOP, not a retry: nothing in the
  * request path clears it, and the next run refuses until a human has read the
  * reason and passed --resume.
+ *
+ * `detail` is what D1 records and `responseDetail` is what the HTTP body says,
+ * and they are separate because they have different readers. The breaker's
+ * detail is policy-authored prose and is the same on both sides; a D1 failure's
+ * detail is a driver error string, which belongs in send_paused where an
+ * operator reads it and NOT in a response body. `responseDetail` defaults to
+ * `detail`, so a caller that does not care says nothing.
  */
-async function pauseRun(db, { campaign, reason, detail, status, sendId, sent }) {
+async function pauseRun(db, { campaign, reason, detail, responseDetail, status, sendId, sent }) {
   await db.prepare(
     'INSERT INTO send_paused (id, campaign, reason, detail) VALUES (?, ?, ?, ?)'
   ).bind(crypto.randomUUID(), campaign, reason, detail ? String(detail).slice(0, 500) : null).run();
+  const body = responseDetail === undefined ? detail : responseDetail;
   return Response.json({
-    ok: false, error: 'bulk_paused', reason, detail: detail ? String(detail).slice(0, 300) : null,
+    ok: false, error: 'bulk_paused', reason, detail: body ? String(body).slice(0, 300) : null,
     campaign, sendId: sendId || null, sent: sent || 0,
   }, { status });
 }
@@ -722,7 +749,12 @@ async function runBulkSend({ env, db, body, waitUntil }) {
   // count does not account for a `segments` filter, which is applied in JS
   // below on the fetched page only -- a segment-filtered run's `deferred`
   // is therefore an upper bound on the truly-deferred count, not exact.
-  const fetchLimit = Math.max(1, allowance.remaining) + 1;
+  //
+  // The page is BULK_PAGE_SIZE or the day's remaining allowance, whichever is
+  // smaller: the allowance is the ceiling, the page size is what one invocation
+  // can actually pace through. The caller loops while `deferred > 0`.
+  const pageLimit = Math.min(BULK_PAGE_SIZE, allowance.remaining);
+  const fetchLimit = Math.max(1, pageLimit) + 1;
   let cohort = (await db.prepare(`${BULK_AUDIENCE_SQL} LIMIT ?`).bind(sourcePrefix, fetchLimit).all()).results;
   const audienceCount = (await db.prepare(BULK_AUDIENCE_COUNT_SQL).bind(sourcePrefix).first()).c;
   if (segments && segments.length > 0) {
@@ -731,7 +763,7 @@ async function runBulkSend({ env, db, body, waitUntil }) {
       return segments.some((seg) => subSegments.includes(seg));
     });
   }
-  const { send: page } = truncateToAllowance(cohort, allowance.remaining);
+  const { send: page } = truncateToAllowance(cohort, pageLimit);
   const segmentLabel = segments && segments.length > 0 ? segments.join('-') : null;
 
   if (dryRun) {
@@ -784,7 +816,13 @@ async function runBulkSend({ env, db, body, waitUntil }) {
       db.prepare("UPDATE newsletter_subscriber SET last_sent_at = datetime('now') WHERE id = ?").bind(sub.id),
     ]);
 
-    let messageId;
+    // Explicitly null so the log-batch catch below, which re-reads it for the
+    // standalone email_log retry, never meets an unassigned binding. eslint is
+    // right that the initialiser is dead on every reachable path (the SES catch
+    // `continue`s rather than falling through); it is kept anyway because a
+    // reader meeting `let messageId;` has to prove that for themselves.
+    // eslint-disable-next-line no-useless-assignment
+    let messageId = null;
     try {
       // No `log` block: this path writes its own email_log row below, in the
       // SAME batch as the day counter, because insertEmailLog() swallows D1
@@ -826,11 +864,39 @@ async function runBulkSend({ env, db, body, waitUntil }) {
     } catch (err) {
       sentCount++;
       log(env, waitUntil, 'newsletter', 'bulk_log_write_failed', 'error', String(err?.message || 'unknown').slice(0, 200), 0, 500);
-      // arise-ignore query-in-loop -- not per-iteration: this catch runs at most once, and the next statement returns out of the loop
+
+      // The batch is gone, so the day counter is lost for this message and the
+      // run stops. The email_log row is worth one more try ON ITS OWN, without
+      // the counter: it is the already-sent guard, and a delivered message
+      // missing from it is a person this campaign will mail a second time on
+      // resume. Losing a count of one is a smaller harm than a duplicate send,
+      // which is why this retry carries no increment.
+      let logged = true;
+      try {
+        // arise-ignore query-in-loop -- not per-iteration: this catch runs at most once, and the block returns out of the loop
+        await db.prepare(
+          "INSERT INTO email_log (event, email, category, source, subject, send_id, ses_message_id, lane) VALUES ('send', ?, 'newsletter', ?, ?, ?, ?, ?)"
+        ).bind(sub.email.toLowerCase(), source, subject, sendId, messageId, lane).run();
+      } catch (logErr) {
+        logged = false;
+        log(env, waitUntil, 'newsletter', 'bulk_log_retry_failed', 'error', String(logErr?.message || 'unknown').slice(0, 200), 0, 500);
+      }
+
+      // arise-ignore query-in-loop -- not per-iteration: this catch runs at most once, and the block returns out of the loop
       await db.prepare("UPDATE newsletter_send SET sent_count = sent_count + ?, status = 'failed' WHERE id = ?")
         .bind(sentCount, sendId).run();
+
+      // Name the recipient in send_paused.detail ONLY when the retry also
+      // failed. That row is D1-side and admin-read, and it is the only record
+      // of who is delivered but unlogged, which is who will receive this
+      // campaign twice if the run is resumed without checking.
+      const detail = logged
+        ? String(err?.message || 'unknown')
+        : `${String(err?.message || 'unknown')}; email_log retry also failed, DELIVERED BUT UNLOGGED: ${sub.email}`;
       return pauseRun(db, {
-        campaign, reason: PAUSE_LOG_WRITE_FAILED, detail: err?.message, status: 500, sendId, sent: sentCount,
+        campaign, reason: PAUSE_LOG_WRITE_FAILED, detail,
+        responseDetail: 'log batch failed; read send_paused.detail',
+        status: 500, sendId, sent: sentCount,
       });
     }
 

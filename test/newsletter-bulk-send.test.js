@@ -204,6 +204,44 @@ describe('the cap and the cohort', () => {
     assert.equal(body.done, false, 'a deferral is not a finished campaign');
   });
 
+  it('sends at most BULK_PAGE_SIZE per invocation and leaves the rest to the caller loop', async () => {
+    // 52 eligible recipients under a 1500 cap. The day's allowance is not the
+    // binding constraint here, the per-invocation page is: one call cannot pace
+    // 1500 messages inside a Function's budget, so it sends 50 and answers
+    // done:false with the other 2 deferred for the next call.
+    const db = bulkMailD1();
+    for (let i = 0; i < 52; i++) {
+      await seedSubscriber(db, { id: `sub-${String(i).padStart(3, '0')}`, email: `p${i}@example.com` });
+    }
+    await seedDomainState(db, { first_send_at: YEAR_AGO, day: TODAY, sent_today: 0 });
+    // Collapse the inter-send pacing for this one test. 49 real 1.5 s waits is
+    // 74 s of wall clock on every `npm test`, and the pacing is not what this
+    // test is about; the other cases in this file leave it alone, so the real
+    // BULK_PACING_MS still runs.
+    const realSetTimeout = globalThis.setTimeout;
+    globalThis.setTimeout = (fn) => realSetTimeout(fn, 0);
+    let body;
+    try {
+      ({ body } = await call(db, { ...BODY, send: true }));
+    } finally {
+      globalThis.setTimeout = realSetTimeout;
+    }
+    assert.equal(body.sent, 50);
+    assert.equal(body.deferred, 2);
+    assert.equal(body.done, false, 'the caller loops while deferred > 0');
+    assert.equal(body.remainingToday, 1450, 'the day still has room; the PAGE was the limit');
+  });
+
+  it('the day allowance still wins when it is smaller than the page', async () => {
+    const db = bulkMailD1();
+    for (let i = 0; i < 20; i++) await seedSubscriber(db, { id: `sub-${i}`, email: `q${i}@example.com` });
+    await seedDomainState(db, { first_send_at: YEAR_AGO, day: TODAY, sent_today: 1497 });
+    const { body } = await call(db, { ...BODY, send: true });
+    assert.equal(body.sent, 3);
+    assert.equal(body.remainingToday, 0);
+    assert.equal(body.deferred, 17);
+  });
+
   it('refuses outright when the day is already spent', async () => {
     const db = bulkMailD1();
     await seedSubscriber(db, { id: 'sub-1', email: 'a@example.com' });
@@ -313,15 +351,77 @@ describe('logging and the day counter', () => {
       if (isLogBatch && ++n === 1) throw new Error('D1_ERROR: network');
       return realBatch(stmts);
     };
+    const before = ses.calls.length;
     const { status, body } = await call(db, { ...BODY, send: true });
     db.batch = realBatch;
     assert.equal(status, 500);
     assert.equal(body.error, 'bulk_paused');
     assert.equal(body.reason, 'log-write-failed');
-    const paused = await db.prepare("SELECT reason, resumed_at FROM send_paused WHERE campaign = 'sept-letter'").first();
+    assert.equal(
+      body.detail, 'log batch failed; read send_paused.detail',
+      'the driver error string stays in D1; the response says where to read it',
+    );
+    const paused = await db.prepare("SELECT reason, detail, resumed_at FROM send_paused WHERE campaign = 'sept-letter'").first();
     assert.equal(paused.reason, 'log-write-failed');
     assert.equal(paused.resumed_at, null);
-    assert.equal(ses.calls.length >= 1, true, 'the message that was already accepted is NOT reclassified as unsent');
+    assert.match(paused.detail, /D1_ERROR: network/, 'the raw driver message IS recorded, D1 side');
+    // The batch is gone but the email_log row is retried on its own, because
+    // that row is the already-sent guard: without it this recipient is mailed
+    // a second time on resume.
+    const logged = await db.prepare(
+      "SELECT email, ses_message_id FROM email_log WHERE source = 'newsletter/bulk/sept-letter'"
+    ).all();
+    assert.deepEqual(logged.results.map(r => r.email), ['a@example.com']);
+    assert.match(logged.results[0].ses_message_id, /^ses-/);
+    // The day counter rode in the failed batch and is deliberately NOT retried:
+    // losing a count of one beats a duplicate send.
+    const state = await db.prepare("SELECT sent_today FROM mail_domain_state WHERE domain = 'rrmacademy.com'").first();
+    assert.equal(state.sent_today, 0);
+    assert.equal(
+      ses.calls.length - before, 1,
+      'the message that was already accepted is NOT reclassified as unsent',
+    );
+  });
+
+  it('names the delivered-but-unlogged recipient in send_paused.detail when the retry ALSO fails', async () => {
+    const db = bulkMailD1();
+    await seedSubscriber(db, { id: 'sub-1', email: 'a@example.com' });
+    await seedSubscriber(db, { id: 'sub-2', email: 'b@example.com' });
+    await seedDomainState(db, { first_send_at: YEAR_AGO, day: TODAY });
+    const realBatch = db.batch.bind(db);
+    const realPrepare = db.prepare.bind(db);
+    db.batch = async (stmts) => {
+      if (stmts.some(s => String(s._sql || '').includes('mail_domain_state'))) {
+        throw new Error('D1_ERROR: network');
+      }
+      return realBatch(stmts);
+    };
+    // Fail the standalone retry too, and ONLY it: send_paused and
+    // newsletter_send must still be writable or the assertion below would be
+    // proving something else.
+    db.prepare = (sql) => {
+      const stmt = realPrepare(sql);
+      if (!sql.includes('INSERT INTO email_log')) return stmt;
+      return {
+        ...stmt,
+        bind(...args) {
+          return { ...realPrepare(sql).bind(...args), async run() { throw new Error('D1_ERROR: log insert'); } };
+        },
+      };
+    };
+    const before = ses.calls.length;
+    const { status, body } = await call(db, { ...BODY, send: true });
+    db.batch = realBatch;
+    db.prepare = realPrepare;
+    assert.equal(status, 500);
+    assert.equal(body.reason, 'log-write-failed');
+    assert.equal(body.detail, 'log batch failed; read send_paused.detail');
+    const paused = await db.prepare("SELECT detail FROM send_paused WHERE campaign = 'sept-letter'").first();
+    assert.match(paused.detail, /DELIVERED BUT UNLOGGED: a@example\.com/,
+      'the human needs to know who may be mailed twice on resume');
+    const logged = await db.prepare("SELECT COUNT(*) AS c FROM email_log WHERE source = 'newsletter/bulk/sept-letter'").first();
+    assert.equal(logged.c, 0, 'no email_log row exists, which is exactly why the recipient is named');
+    assert.equal(ses.calls.length - before, 1);
   });
 });
 
