@@ -47,11 +47,28 @@ import { sqliteD1, SCHEMA_SQL } from './_d1-sqlite.mjs';
  */
 export const BULK_MAIL_MIGRATIONS = ['034-membership-state.sql', '041-bulk-mail-rail.sql', '042-bulk-campaign-lease.sql', '043-bulk-lease-unique.sql'];
 
+/**
+ * Same list, minus 043. Exists ONLY so a test can prove the schema-guard
+ * (send.js's pre-lease check for idx_nl_send_one_live_per_campaign) actually
+ * fires when a deploy has shipped 041+042 but not yet 043 -- see the finding
+ * this closes: isSchemaNotMigratedError matches column/table errors, but 043
+ * is an INDEX, so a missing 043 alone throws nothing and the mutex silently
+ * stops existing. Never use this for anything but that one negative case.
+ */
+export const BULK_MAIL_MIGRATIONS_NO_LEASE_INDEX = BULK_MAIL_MIGRATIONS.filter((n) => n !== '043-bulk-lease-unique.sql');
+
+function composeSchema(migrations) {
+  return migrations.reduce(
+    (sql, name) => sql + '\n' + readFileSync(new URL(`../migrations/${name}`, import.meta.url), 'utf8'),
+    SCHEMA_SQL,
+  );
+}
+
 /** schema.sql + the replay list + migrations 034, 041, 042 and 043, in that order. */
-export const BULK_MAIL_SCHEMA_SQL = BULK_MAIL_MIGRATIONS.reduce(
-  (sql, name) => sql + '\n' + readFileSync(new URL(`../migrations/${name}`, import.meta.url), 'utf8'),
-  SCHEMA_SQL,
-);
+export const BULK_MAIL_SCHEMA_SQL = composeSchema(BULK_MAIL_MIGRATIONS);
+
+/** The same, but without 043 -- see BULK_MAIL_MIGRATIONS_NO_LEASE_INDEX. */
+export const BULK_MAIL_SCHEMA_SQL_NO_LEASE_INDEX = composeSchema(BULK_MAIL_MIGRATIONS_NO_LEASE_INDEX);
 
 /**
  * Same option bag as sqliteD1({ seed, interleave }); schemaSql is supplied.
@@ -59,4 +76,9 @@ export const BULK_MAIL_SCHEMA_SQL = BULK_MAIL_MIGRATIONS.reduce(
  */
 export function bulkMailD1(opts = {}) {
   return sqliteD1({ ...opts, schemaSql: BULK_MAIL_SCHEMA_SQL });
+}
+
+/** Same, composed WITHOUT migration 043 -- see BULK_MAIL_MIGRATIONS_NO_LEASE_INDEX. */
+export function bulkMailD1NoLeaseIndex(opts = {}) {
+  return sqliteD1({ ...opts, schemaSql: BULK_MAIL_SCHEMA_SQL_NO_LEASE_INDEX });
 }

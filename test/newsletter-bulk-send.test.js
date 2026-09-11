@@ -16,7 +16,7 @@
  */
 import { describe, it, before, after } from 'node:test';
 import assert from 'node:assert/strict';
-import { bulkMailD1 } from './_bulk-mail-sqlite.mjs';
+import { bulkMailD1, bulkMailD1NoLeaseIndex } from './_bulk-mail-sqlite.mjs';
 import { mockRequest, mockEnv, mockWaitUntil, parseResponse } from './_helpers.js';
 import { onRequestPost } from '../functions/api/newsletter/send.js';
 
@@ -502,6 +502,165 @@ describe('logging and the day counter', () => {
       state.sent_today < 10,
       `sent_today (${state.sent_today}) must have RESET when the day rolled over, not kept incrementing the old day's count past 10`,
     );
+  });
+});
+
+describe('bulk run failure mid-page releases the lease (#1)', () => {
+  /** Every statement matching `match` throws instead of running. */
+  function throwOnPrepareMatch(db, match) {
+    const realPrepare = db.prepare.bind(db);
+    db.prepare = (sql) => {
+      if (sql.includes(match)) {
+        return {
+          bind: () => ({
+            async first() { throw new Error('D1_ERROR: injected failure'); },
+            async all() { throw new Error('D1_ERROR: injected failure'); },
+            async run() { throw new Error('D1_ERROR: injected failure'); },
+          }),
+        };
+      }
+      return realPrepare(sql);
+    };
+    return () => { db.prepare = realPrepare; };
+  }
+
+  it('mutation-proof #1a: a cohort-fetch throw after the lease is taken is a named 500, the lease is released, and the very next call proceeds with no 409', async () => {
+    const db = bulkMailD1();
+    await seedSubscriber(db, { id: 'sub-1', email: 'a@example.com' });
+    await seedDomainState(db, { first_send_at: YEAR_AGO, day: TODAY });
+    const restore = throwOnPrepareMatch(db, 's.last_clicked_at, s.last_opened_at, s.last_sent_at, s.subscribed_at');
+    const before = ses.calls.length;
+    const { status, body } = await call(db, { ...BODY, send: true });
+    restore();
+    assert.equal(status, 500);
+    assert.equal(body.error, 'bulk_run_failed');
+    assert.equal(body.sent, 0);
+    assert.ok(body.sendId, 'the sendId is reported so the operator can inspect the row');
+    assert.equal(ses.calls.length, before, 'nothing was ever sent');
+    const row = await db.prepare('SELECT status FROM newsletter_send WHERE id = ?').bind(body.sendId).first();
+    assert.equal(row.status, 'partial', 'the catch releases the lease even though nothing completed');
+
+    // Without the wrap, this row stays 'sending' and the immediate retry is
+    // refused 409 bulk_run_in_progress for the whole BULK_LEASE_SECONDS
+    // window instead of proceeding right away.
+    const again = await call(db, { ...BODY, send: true });
+    assert.equal(again.status, 200, 'the lease was released, so the retry is not refused');
+    assert.equal(again.body.sent, 1);
+  });
+
+  it('mutation-proof #1b: a renderEmail/unsubscribeHeaders/newsletter_event-batch failure for one recipient skips only that recipient', async () => {
+    const db = bulkMailD1();
+    await seedSubscriber(db, { id: 'sub-1', email: 'first@example.com' });
+    await seedSubscriber(db, { id: 'sub-2', email: 'second@example.com' });
+    await seedSubscriber(db, { id: 'sub-3', email: 'third@example.com' });
+    await seedDomainState(db, { first_send_at: YEAR_AGO, day: TODAY });
+
+    // db.batch call #1 is step 8's own lease-taking INSERT (the newsletter_send
+    // row), so the per-recipient batches start at call #2 -- the 3rd overall
+    // call is therefore the SECOND recipient's send-intent batch.
+    const realBatch = db.batch.bind(db);
+    let batchCalls = 0;
+    db.batch = async (stmts) => {
+      batchCalls += 1;
+      if (batchCalls === 3) throw new Error('D1_ERROR: injected prepare failure');
+      return realBatch(stmts);
+    };
+    const { status, body } = await call(db, { ...BODY, send: true });
+    db.batch = realBatch;
+
+    assert.equal(status, 200, 'one bad recipient does not abort the page');
+    assert.equal(body.sent, 2, 'the other two recipients still sent');
+    assert.equal(body.deferred, 1, 'the skipped recipient is still eligible and correctly counted as still-to-send');
+    const logged = await db.prepare(
+      "SELECT email FROM email_log WHERE source = 'newsletter/bulk/sept-letter' ORDER BY id ASC"
+    ).all();
+    assert.deepEqual(logged.results.map((r) => r.email), ['first@example.com', 'third@example.com']);
+    const row = await db.prepare('SELECT status FROM newsletter_send WHERE id = ?').bind(body.sendId).first();
+    assert.notEqual(row.status, 'sending', 'the row reaches a terminal status even though one recipient was skipped');
+  });
+
+  it('mutation-proof #1c: a failure in the final status UPDATE is a named 500, the row is released, and the reported sent count is exact', async () => {
+    const db = bulkMailD1();
+    await seedSubscriber(db, { id: 'sub-1', email: 'a@example.com' });
+    await seedSubscriber(db, { id: 'sub-2', email: 'b@example.com' });
+    await seedDomainState(db, { first_send_at: YEAR_AGO, day: TODAY });
+    const restore = throwOnPrepareMatch(db, 'status = ?, sent_at = CASE');
+    const { status, body } = await call(db, { ...BODY, send: true });
+    restore();
+    assert.equal(status, 500);
+    assert.equal(body.error, 'bulk_run_failed');
+    assert.equal(body.sent, 2, 'both recipients were actually mailed before the terminal write failed');
+    const row = await db.prepare('SELECT status FROM newsletter_send WHERE id = ?').bind(body.sendId).first();
+    assert.equal(row.status, 'partial', 'the catch releases the lease the failed UPDATE never got to set');
+    const logged = await db.prepare(
+      "SELECT COUNT(*) AS c FROM email_log WHERE source = 'newsletter/bulk/sept-letter'"
+    ).first();
+    assert.equal(logged.c, 2, 'both messages were genuinely sent and logged; only the bookkeeping UPDATE failed');
+  });
+});
+
+describe('the lease-index schema guard (#2)', () => {
+  it('a send is refused 503 when migration 043 has not been applied (034+041+042 only)', async () => {
+    const db = bulkMailD1NoLeaseIndex();
+    await seedSubscriber(db, { id: 'sub-1', email: 'a@example.com' });
+    await seedDomainState(db, { first_send_at: YEAR_AGO, day: TODAY });
+    const { status, body } = await call(db, { ...BODY, send: true });
+    assert.equal(status, 503);
+    assert.equal(body.error, 'bulk_schema_not_migrated');
+    assert.match(body.detail, /041-043/);
+    const c = await db.prepare('SELECT COUNT(*) AS c FROM newsletter_event').first();
+    assert.equal(c.c, 0, 'nothing was touched before the guard refused');
+  });
+
+  it('a dry run still works without migration 043 -- nothing takes a lease on a dry run', async () => {
+    const db = bulkMailD1NoLeaseIndex();
+    await seedSubscriber(db, { id: 'sub-1', email: 'a@example.com' });
+    await seedDomainState(db, { first_send_at: YEAR_AGO, day: TODAY });
+    const { status, body } = await call(db, BODY);
+    assert.equal(status, 200);
+    assert.equal(body.dryRun, true);
+  });
+});
+
+describe('the breaker-override audit write (#3)', () => {
+  async function seedTrailingWindow(db, { sends, complaints }) {
+    for (let i = 0; i < sends; i++) {
+      await db.prepare(
+        "INSERT INTO email_log (event, email, category, source, ses_message_id) VALUES ('send', ?, 'newsletter', 'newsletter/bulk/sept-letter', ?)"
+      ).bind(`ov${i}@example.com`, `ovmsg-${i}`).run();
+    }
+    for (let i = 0; i < complaints; i++) {
+      await db.prepare(
+        "INSERT INTO email_event (id, ses_message_id, event_type, email, ts) VALUES (?, ?, 'complaint', ?, ?)"
+      ).bind(`ovev-${i}`, `ovmsg-${i}`, `ov${i}@example.com`, new Date().toISOString()).run();
+    }
+  }
+
+  it('a failed override-audit write refuses the run before any recipient is touched', async () => {
+    const db = bulkMailD1();
+    await seedSubscriber(db, { id: 'sub-ov', email: 'next@example.com' });
+    await seedDomainState(db, { first_send_at: YEAR_AGO, day: TODAY });
+    await seedTrailingWindow(db, { sends: 1000, complaints: 3 });
+    await db.prepare(
+      "INSERT INTO send_paused (id, campaign, reason, detail) VALUES ('sp-ov1','sept-letter','complaint-rate','1000 sent, 3 complaints')"
+    ).run();
+
+    const realPrepare = db.prepare.bind(db);
+    db.prepare = (sql) => {
+      if (sql.includes("'breaker-overridden'")) {
+        return { bind: () => ({ async run() { throw new Error('D1_ERROR: injected override failure'); } }) };
+      }
+      return realPrepare(sql);
+    };
+    const before = ses.calls.length;
+    const { status, body } = await call(db, { ...BODY, send: true, resume: true });
+    db.prepare = realPrepare;
+
+    assert.equal(status, 503);
+    assert.equal(body.error, 'bulk_override_write_failed');
+    assert.equal(ses.calls.length, before, 'nothing was mailed when the override could not be recorded');
+    const c = await db.prepare('SELECT COUNT(*) AS c FROM newsletter_event').first();
+    assert.equal(c.c, 0);
   });
 });
 
