@@ -128,9 +128,19 @@ export const CF_SENDER_DOMAINS = {
   rrmf: ['mail.rrm.foundation'],
 };
 
-/** The SES sending domains that remain addressable per entity. */
+/**
+ * The SES sending domains that remain addressable per entity.
+ *
+ * `rrmacademy.com` joined the Academy's list on 2026-09-11 as the BULK SENDING
+ * IDENTITY, and it is not a second apex: the zone keeps its 301 to
+ * rrmacademy.org and holds exactly one mailbox-shaped identity, newsletter@.
+ * It exists because Google folds a subdomain's reputation into the apex's
+ * compliance verdict, so isolating multi-thousand sends needs a different
+ * REGISTRABLE domain, not a subdomain. Spec: rrm-academy-cf
+ * docs/superpowers/specs/2026-09-10-bulk-mail-rail-design.md section 4.
+ */
 export const SES_SENDER_DOMAINS = {
-  rrma: ['rrmacademy.org'],
+  rrma: ['rrmacademy.org', 'rrmacademy.com'],
   rrmf: ['rrm.foundation'],
 };
 
@@ -162,10 +172,12 @@ export const SES_PURPOSES = ['transactional', 'system', 'receipt'];
 export const EXEMPTIONS = {
   'newsletter-blast': {
     entity: 'rrma',
-    from: ['hello@rrmacademy.org', 'newsletter@mail.rrmacademy.org'],
+    from: ['hello@rrmacademy.org', 'newsletter@mail.rrmacademy.org', 'newsletter@rrmacademy.com'],
     reason:
       'the newsletter product is a bulk send from hello@rrmacademy.org through SES with list-unsubscribe headers; '
-      + 'the Workspace lane is one-at-a-time Gmail with a daily quota and refuses at volume; ruled by Brian 2026-09-09',
+      + 'the Workspace lane is one-at-a-time Gmail with a daily quota and refuses at volume; ruled by Brian 2026-09-09. '
+      + 'newsletter@rrmacademy.com added 2026-09-11: the bulk rail sends as a separate registrable domain so a '
+      + 'spam-rate day cannot reach rrmacademy.org, whose compliance verdict every transactional send shares',
   },
   'stuc-overdue-outreach': {
     entity: 'rrma',
@@ -314,9 +326,15 @@ export function resolveLane({ entity, purpose, from, clinicRail, exemption } = {
           { lane: 'workspace', how: LANES.workspace.how },
         );
       }
-      // A granted exemption still sends from an RRM Academy address: the
-      // exemption lifts the purpose rule, never the rail's sender rule.
-      if (!onDomain(address, 'mail.rrmacademy.org', 'rrmacademy.org')) throw refuseSender('ses_rrm', address);
+      // A granted exemption still sends from an address this entity is allowed
+      // to send from: the exemption lifts the PURPOSE rule, never the rail's
+      // sender rule. This reads the domain tables rather than a hardcoded pair,
+      // which is what it always meant; the literal list silently outranked
+      // SES_SENDER_DOMAINS and would have refused the bulk domain even after it
+      // was admitted there (found 2026-09-11 building the bulk rail).
+      if (!onDomain(address, ...CF_SENDER_DOMAINS[ent], ...SES_SENDER_DOMAINS[ent])) {
+        throw refuseSender('ses_rrm', address);
+      }
       return 'ses_rrm';
     }
     if (!SES_PURPOSES.includes(pur)) {

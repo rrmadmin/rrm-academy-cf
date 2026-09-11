@@ -1,25 +1,25 @@
 {
   "kitVersion": "0.8.4",
   "kitScope": "packages",
-  "syncedAt": "2026-09-09T17:40:59.157Z",
+  "syncedAt": "2026-09-11T16:28:32.057Z",
   "files": {},
   "packages": {
-    "report": {
-      "version": "1.2.2",
-      "files": {
-        "README.md": "1c9ecb08ad61bf336523491305c32dab02566b21e24202a7584737ca7e766ed2",
-        "index.js": "a44398e4ef8f958a59695a6b1242df608c84c0751fecbc9d562cdf6b39d67a05"
-      }
-    },
     "mail": {
-      "version": "1.5.0",
+      "version": "1.6.0",
       "files": {
+        "lanes.js": "7f37debd48384074fbae9382529a36b33d188a25075f0bb8edd0ccad1a0a25ea",
         "README.md": "354919fc277617d32f728a601de7d212dab2d8d969354969b6f464835d05e946",
         "cf-email.js": "1b8076af3efcbef118fbf691b884a83ef774122a61b3391184a1e9ba6dff5eb0",
         "graph.js": "e5e6e110695e7decffc6b062e0a75d3d2ce8c9657f02a575a17e3049aeb5ab9c",
         "index.js": "a41ca1259667456fbc15a5c2bbef8dd24842f816b4c649750006054efb2a4971",
-        "lanes.js": "2bd3ba9d8b1842f2a7fd13db91d9594092835a5841b7b19b999e71192ced2393",
         "ses.js": "111c27818ee954ed1d3382736e2c50c4d3dc49f127f83317ce0f3fefbc0f0446"
+      }
+    },
+    "report": {
+      "version": "1.3.2",
+      "files": {
+        "README.md": "1ec7fc28adf470eab89b64fbc212e6cfcf7c58baef088a24d4c0fe93945dbfc4",
+        "index.js": "e3339929f1b9415f44e0b54e83fd8c90536ea1f14a6f1469c51e7671ae93f0e7"
       }
     },
     "redteam": {
