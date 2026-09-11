@@ -262,6 +262,24 @@ describe('main', () => {
     assert.match(errors.join('\n'), /fetch failed/);
   });
 
+  it('a transport error on a DRY RUN also exits 7, not an unhandled rejection (I8)', async () => {
+    const errors = [];
+    const printed = [];
+    const d = {
+      posted: [],
+      fetch: async () => { throw new TypeError('fetch failed'); },
+      readFile: (p) => FILES[p],
+      secret: () => 'admin-secret',
+      git: () => '0\n',
+      log: (...args) => printed.push(args.join(' ')),
+      error: (...args) => errors.push(args.join(' ')),
+    };
+    const code = await main(ARGS, d);
+    assert.equal(code, 7);
+    assert.match(errors.join('\n'), /TRANSPORT ERROR/);
+    assert.match(errors.join('\n'), /fetch failed/);
+  });
+
   it('sends --resume on the FIRST page only, so one resume cannot disable the breaker for a whole run', async () => {
     const posted = [];
     const answers = [

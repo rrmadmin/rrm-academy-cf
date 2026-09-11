@@ -1043,6 +1043,13 @@ async function runBulkSend({ env, db, body, waitUntil }) {
     // as sent, so a resume will not double-mail this recipient -- so it costs
     // only a warn and a count lost by one, never a pause.
     try {
+      // A FRESH clock read for the day stamp, not `nowIso` (fixed for the
+      // whole invocation and used for the lease, the breaker window and the
+      // allowance). A page paces BULK_PACING_MS between up to BULK_PAGE_SIZE
+      // sends -- up to a minute and a quarter -- long enough to cross a UTC
+      // midnight mid-page, and the day a send counts against must be the day
+      // it actually went out, not the day the page started.
+      const sendDay = new Date().toISOString().slice(0, 10);
       // arise-ignore query-in-loop -- deliberate per-recipient guard, see above
       await db.prepare(
         `UPDATE mail_domain_state
@@ -1050,7 +1057,7 @@ async function runBulkSend({ env, db, body, waitUntil }) {
                 day = ?,
                 updated_at = datetime('now')
           WHERE domain = ?`
-      ).bind(nowIso.slice(0, 10), nowIso.slice(0, 10), BULK_DOMAIN).run();
+      ).bind(sendDay, sendDay, BULK_DOMAIN).run();
     } catch (err) { // arise-ignore silent-catch -- the message is already logged as sent; losing a count of one is deliberately smaller harm than pausing an already-delivered send, see the comment above
       log(env, waitUntil, 'newsletter', 'bulk_counter_write_failed', 'warn', String(err?.message || 'unknown').slice(0, 200), 0, 0);
     }

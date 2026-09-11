@@ -222,10 +222,30 @@ export async function main(argv, deps) {
     return EXIT_FOR_ERROR[answer.error] ?? 7;
   };
 
+  // A TRANSPORT ERROR IS A TRANSPORT ERROR whether it happens on the one call
+  // a dry run makes or on call N of a --send loop: DNS, a dropped connection,
+  // a Function killed mid-response. Both branches used to handle this
+  // differently -- the loop caught it, the dry run let it propagate as an
+  // unhandled rejection with a raw stack trace and no exit code this CLI's
+  // own contract promises. `safeCall` is the ONE place either branch reaches
+  // the network from, so a fetch that throws always resolves to the same
+  // answer: no answer, and the transport error itself.
+  const safeCall = async (opts) => {
+    try {
+      return { transportError: null, ...(await call(opts)) };
+    } catch (err) {
+      return { transportError: err, status: null, answer: null };
+    }
+  };
+
   // A dry run reports exactly one page and never loops: it sends nothing, so
   // there is nothing for a second call to advance past. See the file header.
   if (!args.send) {
-    const { status, answer } = await call({ withResume: true });
+    const { transportError, status, answer } = await safeCall({ withResume: true });
+    if (transportError) {
+      error(`TRANSPORT ERROR: ${transportError?.message || transportError}`);
+      return 7;
+    }
     const refusedExit = reportAndExitOnRefusal({ status, answer });
     if (refusedExit !== null) return refusedExit;
     log(renderReport({ ...answer, segmented }));
@@ -246,12 +266,9 @@ export async function main(argv, deps) {
   let totalSent = 0;
   let pages = 0;
   for (;;) {
-    let status;
-    let answer;
-    try {
-      ({ status, answer } = await call({ withResume: pages === 0 }));
-    } catch (err) {
-      error(`TRANSPORT ERROR: ${err?.message || err}`);
+    const { transportError, status, answer } = await safeCall({ withResume: pages === 0 });
+    if (transportError) {
+      error(`TRANSPORT ERROR: ${transportError?.message || transportError}`);
       error(`sent so far: ${totalSent} recipient(s) across ${pages} page(s) before the failure`);
       error('Re-run with --send when the endpoint answers again; already-sent recipients are excluded.');
       return 7;

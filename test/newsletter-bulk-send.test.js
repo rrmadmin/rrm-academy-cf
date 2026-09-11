@@ -460,6 +460,49 @@ describe('logging and the day counter', () => {
     const state = await db.prepare("SELECT sent_today FROM mail_domain_state WHERE domain = 'rrmacademy.com'").first();
     assert.equal(state.sent_today, 5);
   });
+
+  it('the day counter follows the clock at EACH send, not the page-start clock (I8: crossing midnight mid-page)', async () => {
+    const db = bulkMailD1();
+    for (let i = 0; i < 5; i++) await seedSubscriber(db, { id: `sub-${i}`, email: `m${i}@example.com` });
+    await seedDomainState(db, { first_send_at: YEAR_AGO, day: '2026-09-11', sent_today: 10 });
+
+    // A MONOTONIC fake clock, not a fixed script of exact call indices: other
+    // code in the send path (unsubscribeHeaders' quarterly-bucket calc) also
+    // reads `new Date()`, so pinning this test to an exact call count would
+    // make it fragile to unrelated changes. Starting 60s before midnight and
+    // advancing 20s on every no-arg `new Date()` guarantees midnight is
+    // crossed well before the run ends (five recipients is easily enough
+    // calls), without this test needing to know exactly which call is which.
+    const RealDate = globalThis.Date;
+    let cursor = RealDate.parse('2026-09-11T23:59:00.000Z');
+    class FakeDate extends RealDate {
+      constructor(...args) {
+        if (args.length === 0) { super(cursor); cursor += 20_000; }
+        else { super(...args); }
+      }
+    }
+    FakeDate.now = RealDate.now.bind(RealDate);
+    FakeDate.parse = RealDate.parse.bind(RealDate);
+    globalThis.Date = FakeDate;
+    const realSetTimeout = globalThis.setTimeout;
+    globalThis.setTimeout = (fn) => realSetTimeout(fn, 0);
+
+    let body;
+    try {
+      ({ body } = await call(db, { ...BODY, send: true }));
+    } finally {
+      globalThis.Date = RealDate;
+      globalThis.setTimeout = realSetTimeout;
+    }
+
+    assert.equal(body.sent, 5);
+    const state = await db.prepare("SELECT day, sent_today FROM mail_domain_state WHERE domain = 'rrmacademy.com'").first();
+    assert.notEqual(state.day, '2026-09-11', 'the counter follows the clock across midnight, not the page-start day');
+    assert.ok(
+      state.sent_today < 10,
+      `sent_today (${state.sent_today}) must have RESET when the day rolled over, not kept incrementing the old day's count past 10`,
+    );
+  });
 });
 
 describe('the circuit breaker', () => {
