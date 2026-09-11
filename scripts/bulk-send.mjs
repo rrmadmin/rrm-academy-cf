@@ -7,6 +7,13 @@
  *   node scripts/bulk-send.mjs --campaign sept-letter ... --send --first-send
  *   node scripts/bulk-send.mjs --campaign sept-letter ... --send --resume
  *
+ * --resume IS SENT ON THE FIRST REQUEST OF A RUN AND NO LATER ONE. It clears
+ * the open pause and overrides the trailing-24h breaker for the invocation that
+ * carries it, so a driver that resent it on every page would disable the
+ * breaker for the entire run: page two would re-override the same window rather
+ * than re-judge it. The override buys the first page of this run; later pages
+ * re-evaluate and pause again if the window is still over the line.
+ *
  * IT HOLDS NO SES CREDENTIAL, and a test asserts that by reading this file.
  * Only the Pages Function holds an SES key on this estate (spec section 5.4);
  * the CLI reads ADMIN_API_SECRET from 1Password and calls the endpoint.
@@ -186,12 +193,17 @@ export async function main(argv, deps) {
   const segmented = !!(args.segments && args.segments.length);
   const bearer = secret();
 
-  const call = async () => {
+  // `withResume` is the loop's, not the flag's. --resume clears the pause and
+  // overrides the breaker for the invocation that carries it, so resending it
+  // on every page would disable the breaker for the whole run: page two would
+  // re-override the same trailing window instead of re-judging it. One page,
+  // then the endpoint decides again.
+  const call = async ({ withResume = false } = {}) => {
     const payload = { lane: 'bulk', campaign: args.campaign, subject, body };
     if (args.segments) payload.segments = args.segments;
     if (args.send) payload.send = true;
     if (args.firstSend) payload.firstSend = true;
-    if (args.resume) payload.resume = true;
+    if (withResume && args.resume) payload.resume = true;
 
     const res = await doFetch(args.endpoint, {
       method: 'POST',
@@ -213,7 +225,7 @@ export async function main(argv, deps) {
   // A dry run reports exactly one page and never loops: it sends nothing, so
   // there is nothing for a second call to advance past. See the file header.
   if (!args.send) {
-    const { status, answer } = await call();
+    const { status, answer } = await call({ withResume: true });
     const refusedExit = reportAndExitOnRefusal({ status, answer });
     if (refusedExit !== null) return refusedExit;
     log(renderReport({ ...answer, segmented }));
@@ -237,7 +249,7 @@ export async function main(argv, deps) {
     let status;
     let answer;
     try {
-      ({ status, answer } = await call());
+      ({ status, answer } = await call({ withResume: pages === 0 }));
     } catch (err) {
       error(`TRANSPORT ERROR: ${err?.message || err}`);
       error(`sent so far: ${totalSent} recipient(s) across ${pages} page(s) before the failure`);

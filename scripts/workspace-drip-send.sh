@@ -80,7 +80,11 @@ case "${MAIL_CAP_MAX:-300}" in
     ;;
 esac
 
-CAP_COUNT=$(tail -n +2 "$ROSTER" | cut -d, -f1 | sed '/^$/d' | sort -u | wc -l | tr -d ' ')
+# The lowercase fold is not cosmetic: the real recipient set below folds case
+# before `sort -u`, so Ada@x.com and ada@x.com are ONE recipient there. A cap
+# pipeline without the fold counts two, and would refuse a roster the drip would
+# have sent inside the cap. Gate what is sent, not what is typed.
+CAP_COUNT=$(tail -n +2 "$ROSTER" | cut -d, -f1 | sed '/^$/d' | tr '[:upper:]' '[:lower:]' | sort -u | wc -l | tr -d ' ')
 if [ "$CAP_COUNT" -gt "${MAIL_CAP_MAX:-300}" ]; then
   cat >&2 <<MSG
 REFUSED: $CAP_COUNT recipients is over the Warm lane cap of ${MAIL_CAP_MAX:-300}.

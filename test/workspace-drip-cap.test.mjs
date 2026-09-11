@@ -89,6 +89,15 @@ test('the count is the drip own recipient set: header dropped, blanks dropped, d
   assert.match(r.log, /count=300/);
 });
 
+test('case-variant duplicates are one recipient, the same way the drip sends them', () => {
+  // The drip folds case before de-duplicating, so these two rows are ONE
+  // message. A cap pipeline that skipped the fold would count 302 here and
+  // refuse a roster the drip would have sent inside the cap.
+  const r = run(300, { extraRows: ['D0@Example.com,Person 0 shouting', 'd0@EXAMPLE.COM,Person 0 again'] });
+  assert.equal(r.code, 0);
+  assert.match(r.log, /count=300/);
+});
+
 test('a malformed MAIL_CAP_MAX refuses, it does not fall through uncapped', () => {
   const r = run(10, { max: '3OO' });
   assert.equal(r.code, 2);

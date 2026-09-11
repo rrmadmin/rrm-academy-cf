@@ -271,7 +271,9 @@ async function bulkTrailingCounts(db, sourcePrefix, nowIso) {
 /**
  * Write the pause and answer it. A pause is a STOP, not a retry: nothing in the
  * request path clears it, and the next run refuses until a human has read the
- * reason and passed --resume.
+ * reason and passed --resume. That flag buys the FIRST page of the run it is
+ * passed on, not the run: the CLI drops it from every later page, so a window
+ * that is still over the line pauses again on page two.
  *
  * `detail` is what D1 records and `responseDetail` is what the HTTP body says,
  * and they are separate because they have different readers. The breaker's
@@ -767,8 +769,13 @@ async function runBulkSend({ env, db, body, waitUntil }) {
   //    complaints, so the run the human just cleared re-trips on the identical
   //    numbers, writes a second pause and sends nothing. A human who has read
   //    the reason and passed --resume has overridden this window on purpose.
-  //    Nothing is remembered: the NEXT invocation, resume or not, re-evaluates
-  //    the breaker from scratch, so an override buys one page, never a campaign.
+  //    Nothing is remembered on this side: every invocation re-evaluates the
+  //    breaker from scratch and only honours `resume` if the caller sent it.
+  //    The CLI sends it on the FIRST request of a run and drops it from every
+  //    later page, so the override buys the first page of this run; later pages
+  //    re-evaluate and pause if the window is still over the line. A driver
+  //    that resent `resume` on every page would disable the breaker for a whole
+  //    run, which is the thing this gate exists to make impossible.
   const counts = await bulkTrailingCounts(db, sourcePrefix, nowIso);
   const verdict = breakerVerdict(counts);
   const breakerOverridden = verdict.tripped && resume === true && !dryRun;
