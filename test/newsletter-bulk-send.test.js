@@ -189,6 +189,41 @@ describe('membership routing (spec section 3)', () => {
     const { body } = await call(db, { ...BODY, send: true });
     assert.equal(body.sent, 0);
   });
+
+  it('a membership that starts AFTER the cohort is built is caught by the per-recipient recheck', async () => {
+    const db = bulkMailD1();
+    // Cohort order (subscribed_at tied) falls back to s.id ASC, so sub-1
+    // sends first and sub-2 second -- the send loop for sub-1 is where the
+    // membership is made active, exactly like a real concurrent signup.
+    await seedSubscriber(db, { id: 'sub-1', email: 'first@example.com' });
+    await seedSubscriber(db, { id: 'sub-2', email: 'second@example.com' });
+    await seedDomainState(db, { first_send_at: YEAR_AGO, day: TODAY });
+
+    const original = globalThis.fetch;
+    let calls = 0;
+    globalThis.fetch = async (input, init) => {
+      calls += 1;
+      if (calls === 1) {
+        await db.prepare(
+          `INSERT INTO wix_subscription (wix_subscription_id, contact_id, email, tier, amount_cents, status, started_at, last_order_at, product_id, product_source, updated_at)
+           VALUES ('ws-race','c-race','second@example.com','core',500,'active','2026-09-11','2026-09-11','p','wix','2026-09-11')`
+        ).run();
+      }
+      const url = (input && typeof input === 'object' && input.url) ? input.url : String(input);
+      const raw = init?.body ?? (input && typeof input.text === 'function' ? await input.text() : null);
+      JSON.parse(raw);
+      return new Response(JSON.stringify({ MessageId: `race-${calls}` }), { status: 200 });
+    };
+    let body;
+    try {
+      ({ body } = await call(db, { ...BODY, send: true }));
+    } finally {
+      globalThis.fetch = original;
+    }
+    assert.equal(body.sent, 1, 'only the first recipient, the one still eligible when SES was actually called, is sent');
+    const logged = await db.prepare("SELECT email FROM email_log WHERE source = 'newsletter/bulk/sept-letter'").all();
+    assert.deepEqual(logged.results.map((r) => r.email), ['first@example.com']);
+  });
 });
 
 describe('the cap and the cohort', () => {
@@ -339,42 +374,62 @@ describe('logging and the day counter', () => {
     assert.equal(state.sent_today, 8);
   });
 
-  it('a failed log batch PAUSES the run with reason log-write-failed', async () => {
+  // A stub that fails db.prepare().run() ONLY for statements matching `match`,
+  // by SQL substring, on the Nth call (1-based) that matches. Used to isolate
+  // the email_log write from the day-counter write, which are now two
+  // separate statements rather than one batch (I8).
+  function failNthMatchingRun(db, match, n = 1) {
+    const realPrepare = db.prepare.bind(db);
+    let seen = 0;
+    db.prepare = (sql) => {
+      const stmt = realPrepare(sql);
+      if (!sql.includes(match)) return stmt;
+      return {
+        ...stmt,
+        bind(...args) {
+          const bound = realPrepare(sql).bind(...args);
+          return {
+            ...bound,
+            async run() {
+              seen += 1;
+              if (seen === n) throw new Error('D1_ERROR: network');
+              return bound.run();
+            },
+          };
+        },
+      };
+    };
+    return () => { db.prepare = realPrepare; };
+  }
+
+  it('a failed email_log write PAUSES the run and names the recipient, with no retry', async () => {
     const db = bulkMailD1();
     await seedSubscriber(db, { id: 'sub-1', email: 'a@example.com' });
     await seedSubscriber(db, { id: 'sub-2', email: 'b@example.com' });
     await seedDomainState(db, { first_send_at: YEAR_AGO, day: TODAY });
-    const realBatch = db.batch.bind(db);
-    let n = 0;
-    db.batch = async (stmts) => {
-      const isLogBatch = stmts.some(s => String(s._sql || '').includes('mail_domain_state'));
-      if (isLogBatch && ++n === 1) throw new Error('D1_ERROR: network');
-      return realBatch(stmts);
-    };
+    const restore = failNthMatchingRun(db, 'INSERT INTO email_log');
     const before = ses.calls.length;
     const { status, body } = await call(db, { ...BODY, send: true });
-    db.batch = realBatch;
+    restore();
     assert.equal(status, 500);
     assert.equal(body.error, 'bulk_paused');
     assert.equal(body.reason, 'log-write-failed');
     assert.equal(
-      body.detail, 'log batch failed; read send_paused.detail',
+      body.detail, 'email_log write failed; read send_paused.detail',
       'the driver error string stays in D1; the response says where to read it',
     );
     const paused = await db.prepare("SELECT reason, detail, resumed_at FROM send_paused WHERE campaign = 'sept-letter'").first();
     assert.equal(paused.reason, 'log-write-failed');
     assert.equal(paused.resumed_at, null);
     assert.match(paused.detail, /D1_ERROR: network/, 'the raw driver message IS recorded, D1 side');
-    // The batch is gone but the email_log row is retried on its own, because
-    // that row is the already-sent guard: without it this recipient is mailed
-    // a second time on resume.
-    const logged = await db.prepare(
-      "SELECT email, ses_message_id FROM email_log WHERE source = 'newsletter/bulk/sept-letter'"
-    ).all();
-    assert.deepEqual(logged.results.map(r => r.email), ['a@example.com']);
-    assert.match(logged.results[0].ses_message_id, /^ses-/);
-    // The day counter rode in the failed batch and is deliberately NOT retried:
-    // losing a count of one beats a duplicate send.
+    assert.match(
+      paused.detail, /DELIVERED BUT UNLOGGED: a@example\.com/,
+      'the human needs to know who may be mailed twice on resume -- named immediately, no retry to complicate it',
+    );
+    const logged = await db.prepare("SELECT COUNT(*) AS c FROM email_log WHERE source = 'newsletter/bulk/sept-letter'").first();
+    assert.equal(logged.c, 0, 'no email_log row exists, which is exactly why the recipient is named');
+    // The day counter is never reached -- the email_log write is first, and it
+    // failed, so this message was already delivered but the counter never ran.
     const state = await db.prepare("SELECT sent_today FROM mail_domain_state WHERE domain = 'rrmacademy.com'").first();
     assert.equal(state.sent_today, 0);
     assert.equal(
@@ -383,45 +438,27 @@ describe('logging and the day counter', () => {
     );
   });
 
-  it('names the delivered-but-unlogged recipient in send_paused.detail when the retry ALSO fails', async () => {
+  it('a failed day-counter write does NOT pause the run: the email_log row already exists', async () => {
     const db = bulkMailD1();
     await seedSubscriber(db, { id: 'sub-1', email: 'a@example.com' });
-    await seedSubscriber(db, { id: 'sub-2', email: 'b@example.com' });
-    await seedDomainState(db, { first_send_at: YEAR_AGO, day: TODAY });
-    const realBatch = db.batch.bind(db);
-    const realPrepare = db.prepare.bind(db);
-    db.batch = async (stmts) => {
-      if (stmts.some(s => String(s._sql || '').includes('mail_domain_state'))) {
-        throw new Error('D1_ERROR: network');
-      }
-      return realBatch(stmts);
-    };
-    // Fail the standalone retry too, and ONLY it: send_paused and
-    // newsletter_send must still be writable or the assertion below would be
-    // proving something else.
-    db.prepare = (sql) => {
-      const stmt = realPrepare(sql);
-      if (!sql.includes('INSERT INTO email_log')) return stmt;
-      return {
-        ...stmt,
-        bind(...args) {
-          return { ...realPrepare(sql).bind(...args), async run() { throw new Error('D1_ERROR: log insert'); } };
-        },
-      };
-    };
-    const before = ses.calls.length;
+    await seedDomainState(db, { first_send_at: YEAR_AGO, day: TODAY, sent_today: 5 });
+    const restore = failNthMatchingRun(db, 'UPDATE mail_domain_state');
     const { status, body } = await call(db, { ...BODY, send: true });
-    db.batch = realBatch;
-    db.prepare = realPrepare;
-    assert.equal(status, 500);
-    assert.equal(body.reason, 'log-write-failed');
-    assert.equal(body.detail, 'log batch failed; read send_paused.detail');
-    const paused = await db.prepare("SELECT detail FROM send_paused WHERE campaign = 'sept-letter'").first();
-    assert.match(paused.detail, /DELIVERED BUT UNLOGGED: a@example\.com/,
-      'the human needs to know who may be mailed twice on resume');
-    const logged = await db.prepare("SELECT COUNT(*) AS c FROM email_log WHERE source = 'newsletter/bulk/sept-letter'").first();
-    assert.equal(logged.c, 0, 'no email_log row exists, which is exactly why the recipient is named');
-    assert.equal(ses.calls.length - before, 1);
+    restore();
+    assert.equal(status, 200, 'a lost count of one is not a reason to stop an already-delivered send');
+    assert.equal(body.ok, true);
+    assert.equal(body.sent, 1);
+    const logged = await db.prepare(
+      "SELECT email, ses_message_id FROM email_log WHERE source = 'newsletter/bulk/sept-letter'"
+    ).all();
+    assert.deepEqual(logged.results.map(r => r.email), ['a@example.com'],
+      'the email_log row -- the already-sent guard -- is written before the counter and survives its failure');
+    const paused = await db.prepare("SELECT COUNT(*) AS c FROM send_paused").first();
+    assert.equal(paused.c, 0, 'a counter failure is a warn, never a pause');
+    // The counter write itself failed, so sent_today is exactly what it was
+    // seeded at: the count really is lost by one, as documented.
+    const state = await db.prepare("SELECT sent_today FROM mail_domain_state WHERE domain = 'rrmacademy.com'").first();
+    assert.equal(state.sent_today, 5);
   });
 });
 
@@ -629,9 +666,17 @@ describe('--resume and the breaker (I4)', () => {
     assert.equal(resumed.body.sent, 2);
     assert.equal(ses.calls.length - before, 2, 'the page actually went out');
     assert.match(resumed.body.breaker_overridden, /complaints/, 'the override is on the response, not silent');
-    const pauses = await db.prepare('SELECT id, resumed_at FROM send_paused ORDER BY paused_at ASC').all();
-    assert.equal(pauses.results.length, 1, 'no SECOND pause row is written by the resumed run');
-    assert.ok(pauses.results[0].resumed_at, 'the cleared pause is stamped resumed');
+    // Two rows now: the original human-read pause, stamped resumed by gate 4,
+    // AND a second 'breaker-overridden' row the breaker gate itself writes,
+    // immediately stamped resumed -- the audit trail of WHO overrode WHAT.
+    const pauses = await db.prepare('SELECT id, reason, resumed_at FROM send_paused').all();
+    assert.equal(pauses.results.length, 2, 'the override itself is recorded, not just the human pause it cleared');
+    const cleared = pauses.results.find((r) => r.id === 'sp-r1');
+    const override = pauses.results.find((r) => r.id !== 'sp-r1');
+    assert.equal(cleared.reason, 'complaint-rate');
+    assert.ok(cleared.resumed_at, 'the cleared pause is stamped resumed');
+    assert.equal(override.reason, 'breaker-overridden');
+    assert.ok(override.resumed_at, 'the override row is inserted already-resumed');
 
     // The override bought one invocation. The next call re-evaluates.
     await seedSubscriber(db, { id: 'sub-z', email: 'third@example.com' });
@@ -641,6 +686,42 @@ describe('--resume and the breaker (I4)', () => {
     assert.equal(again.body.reason, 'complaint-rate');
     const after = await db.prepare("SELECT COUNT(*) AS c FROM send_paused WHERE resumed_at IS NULL").first();
     assert.equal(after.c, 1, 'the re-evaluation writes its own open pause');
+  });
+
+  it('resuming a NON-breaker pause does not override the breaker: 423 with a NEW breaker pause', async () => {
+    const db = bulkMailD1();
+    await seedSubscriber(db, { id: 'sub-x', email: 'next@example.com' });
+    await seedDomainState(db, { first_send_at: YEAR_AGO, day: TODAY });
+    await seedTrailingWindow(db, { sends: 1000, complaints: 3 });
+    await db.prepare(
+      "INSERT INTO send_paused (id, campaign, reason, detail) VALUES ('sp-r2','sept-letter','log-write-failed','a D1 blip')"
+    ).run();
+    const before = ses.calls.length;
+    const { status, body } = await call(db, { ...BODY, send: true, resume: true });
+    assert.equal(status, 423, 'a resumed log-write-failed pause has nothing to do with the breaker verdict');
+    assert.equal(body.error, 'bulk_paused');
+    assert.equal(body.reason, 'complaint-rate');
+    assert.equal(ses.calls.length, before, 'not one message went out');
+    const pauses = await db.prepare(
+      "SELECT reason, resumed_at FROM send_paused WHERE campaign = 'sept-letter'"
+    ).all();
+    assert.equal(pauses.results.length, 2);
+    const cleared = pauses.results.find((r) => r.reason === 'log-write-failed');
+    const fresh = pauses.results.find((r) => r.reason === 'complaint-rate');
+    assert.ok(cleared, 'the original log-write-failed pause is still there');
+    assert.ok(cleared.resumed_at, 'gate 4 still clears whatever pause was open');
+    assert.ok(fresh, 'the breaker writes its OWN pause');
+    assert.equal(fresh.resumed_at, null, 'the breaker pause it writes is still open');
+  });
+
+  it('resume with no open pause at all still 423s the tripped breaker', async () => {
+    const db = bulkMailD1();
+    await seedSubscriber(db, { id: 'sub-x', email: 'next@example.com' });
+    await seedDomainState(db, { first_send_at: YEAR_AGO, day: TODAY });
+    await seedTrailingWindow(db, { sends: 1000, complaints: 3 });
+    const { status, body } = await call(db, { ...BODY, send: true, resume: true });
+    assert.equal(status, 423, 'resume with nothing to clear overrides nothing');
+    assert.equal(body.reason, 'complaint-rate');
   });
 });
 
@@ -675,6 +756,68 @@ describe('the campaign lease (I6)', () => {
     const { status, body } = await call(db, { ...BODY, send: true });
     assert.equal(status, 200);
     assert.equal(body.sent, 1);
+  });
+
+  it('a lease held 10 seconds ago is fresh: 409, and no second row is left behind (I9)', async () => {
+    const db = bulkMailD1();
+    await seedSubscriber(db, { id: 'sub-1', email: 'a@example.com' });
+    await seedDomainState(db, { first_send_at: YEAR_AGO, day: TODAY });
+    await seedLeaseHolder(db, { ago: '10 seconds' });
+    const before = ses.calls.length;
+    const { status, body } = await call(db, { ...BODY, send: true });
+    assert.equal(status, 409);
+    assert.equal(body.error, 'bulk_run_in_progress');
+    assert.equal(ses.calls.length, before, 'not one message went out');
+    const rows = await db.prepare("SELECT id, status FROM newsletter_send WHERE campaign = 'sept-letter'").all();
+    assert.equal(rows.results.length, 1, 'the failed INSERT leaves no second row behind');
+    assert.equal(rows.results[0].id, 'ns-lease');
+    assert.equal(rows.results[0].status, 'sending', 'a FRESH holder is never flipped');
+  });
+
+  it('a lease held 4 minutes ago is stale: it is flipped to partial and the new run proceeds (I9)', async () => {
+    const db = bulkMailD1();
+    await seedSubscriber(db, { id: 'sub-1', email: 'a@example.com' });
+    await seedDomainState(db, { first_send_at: YEAR_AGO, day: TODAY });
+    await seedLeaseHolder(db, { ago: '4 minutes' });
+    const { status, body } = await call(db, { ...BODY, send: true });
+    assert.equal(status, 200);
+    assert.equal(body.sent, 1);
+    const old = await db.prepare("SELECT status FROM newsletter_send WHERE id = 'ns-lease'").first();
+    assert.equal(old.status, 'partial', 'the abandoned row is flipped so the unique index never wedges the campaign');
+    // This page ran to completion (one recipient, done:true), so its OWN row
+    // is already stamped 'sent' by the end of runBulkSend -- the assertion
+    // that matters is that no row for this campaign was left 'sending'.
+    const held = await db.prepare(
+      "SELECT COUNT(*) AS c FROM newsletter_send WHERE campaign = 'sept-letter' AND status = 'sending'"
+    ).first();
+    assert.equal(held.c, 0, 'no row holds the lease once the page is done');
+  });
+
+  it('two concurrent --send calls of the same campaign: exactly one 200 and one 409, no recipient mailed twice (I9)', async () => {
+    const db = bulkMailD1();
+    await seedSubscriber(db, { id: 'sub-1', email: 'a@example.com' });
+    await seedSubscriber(db, { id: 'sub-2', email: 'b@example.com' });
+    await seedDomainState(db, { first_send_at: YEAR_AGO, day: TODAY });
+    // Two calls, kicked off together with no await between them: node:sqlite's
+    // async-but-internally-synchronous prepare/run/batch (test/_d1-sqlite.mjs)
+    // means these interleave at await boundaries exactly like two isolates
+    // racing the same D1 database would, and migration 043's UNIQUE INDEX is
+    // what actually decides which one wins.
+    const [a, b] = await Promise.all([
+      call(db, { ...BODY, send: true }),
+      call(db, { ...BODY, send: true }),
+    ]);
+    const statuses = [a.status, b.status].sort();
+    assert.deepEqual(statuses, [200, 409], 'exactly one call sent, exactly one was refused');
+    const winner = a.status === 200 ? a : b;
+    assert.equal(winner.body.sent, 2, 'the winner mailed the whole page');
+    const logged = await db.prepare(
+      "SELECT email FROM email_log WHERE source = 'newsletter/bulk/sept-letter'"
+    ).all();
+    assert.deepEqual(
+      logged.results.map((r) => r.email).sort(), ['a@example.com', 'b@example.com'],
+      'each recipient appears exactly once, not twice',
+    );
   });
 
   it('another campaign is not blocked by this one, and a dry run is never refused', async () => {

@@ -45,9 +45,9 @@ import { sqliteD1, SCHEMA_SQL } from './_d1-sqlite.mjs';
  * test depends on -- but it lives in root migrations/ same as 041, and this
  * harness is what every bulk-path test loads, so it belongs here too.
  */
-export const BULK_MAIL_MIGRATIONS = ['034-membership-state.sql', '041-bulk-mail-rail.sql', '042-bulk-campaign-lease.sql'];
+export const BULK_MAIL_MIGRATIONS = ['034-membership-state.sql', '041-bulk-mail-rail.sql', '042-bulk-campaign-lease.sql', '043-bulk-lease-unique.sql'];
 
-/** schema.sql + the replay list + migrations 034, 041 and 042, in that order. */
+/** schema.sql + the replay list + migrations 034, 041, 042 and 043, in that order. */
 export const BULK_MAIL_SCHEMA_SQL = BULK_MAIL_MIGRATIONS.reduce(
   (sql, name) => sql + '\n' + readFileSync(new URL(`../migrations/${name}`, import.meta.url), 'utf8'),
   SCHEMA_SQL,

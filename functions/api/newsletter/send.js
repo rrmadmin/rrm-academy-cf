@@ -40,6 +40,7 @@ import { sendRawEmail, logEmailFailure, preflightLane, LaneRefused } from '../_s
 import {
   remainingAllowance, truncateToAllowance, breakerVerdict, feedbackId, isCampaignKey,
   dailyCap, COHORT_ORDER_SQL, BULK_DOMAIN, PAUSE_LOG_WRITE_FAILED,
+  PAUSE_COMPLAINT_RATE, PAUSE_BOUNCE_RATE,
 } from './_policy.js';
 import { renderEmail } from './_template.js';
 import { unsubscribeHeaders } from './_tracking.js';
@@ -175,20 +176,37 @@ const BULK_LEASE_SECONDS = 180;
  * prefix rather than a join on sendId, so a campaign that spans several runs,
  * several sendIds and several days still never mails the same person twice.
  */
+/**
+ * The two membership-exclusion subqueries, factored out so the audience query
+ * and the per-recipient recheck below (which re-asks the same question against
+ * a single subscriber, immediately before SES, to catch a membership that
+ * started AFTER the cohort was built) can never drift apart. Both sites alias
+ * newsletter_subscriber as `s`, which is what lets the identical text work in
+ * both places.
+ *
+ * Deliberately FROM/WHERE fragments, not complete `SELECT ... FROM ...`
+ * statements: scripts/gates/validate-sql-columns.mjs extracts every
+ * SELECT-shaped string literal in the tree and PREPAREs it standalone, and a
+ * self-contained fragment referencing `s.email` with no `s` in scope of its
+ * own fails that PREPARE even though every real caller supplies `s` from its
+ * own FROM clause. Splicing in only the part after `SELECT 1` sidesteps that
+ * false positive without changing what either call site sends to D1.
+ */
+const WIX_ACTIVE_MEMBER_FROM_WHERE = `
+    FROM wix_subscription ws
+   WHERE ws.email = s.email COLLATE NOCASE AND ws.status = 'active'`;
+const STUC_MEMBER_TAG_FROM_WHERE = `
+    FROM contact c
+    JOIN contact_tag ct ON ct.contact_id = c.id
+   WHERE c.email = s.email COLLATE NOCASE AND ct.tag = 'stuc:member'`;
+
 const BULK_AUDIENCE_SQL = `
   SELECT s.id, s.email, s.name, s.segments, s.source,
          s.last_clicked_at, s.last_opened_at, s.last_sent_at, s.subscribed_at
     FROM newsletter_subscriber s
    WHERE s.status = 'active'
-     AND NOT EXISTS (
-       SELECT 1 FROM wix_subscription ws
-        WHERE ws.email = s.email COLLATE NOCASE AND ws.status = 'active'
-     )
-     AND NOT EXISTS (
-       SELECT 1 FROM contact c
-        JOIN contact_tag ct ON ct.contact_id = c.id
-       WHERE c.email = s.email COLLATE NOCASE AND ct.tag = 'stuc:member'
-     )
+     AND NOT EXISTS (SELECT 1 ${WIX_ACTIVE_MEMBER_FROM_WHERE})
+     AND NOT EXISTS (SELECT 1 ${STUC_MEMBER_TAG_FROM_WHERE})
      AND NOT EXISTS (
        SELECT 1 FROM contact c2
         JOIN contact_tag ct2 ON ct2.contact_id = c2.id
@@ -763,27 +781,34 @@ async function runBulkSend({ env, db, body, waitUntil }) {
 
   // 6. The breaker, on the trailing 24h, before a single new message.
   //
-  //    --resume SUPPRESSES IT, FOR THIS ONE INVOCATION ONLY. Without that, a
-  //    resume is a loop rather than a decision: the trailing window that
-  //    tripped the breaker still contains the same sends and the same
-  //    complaints, so the run the human just cleared re-trips on the identical
-  //    numbers, writes a second pause and sends nothing. A human who has read
-  //    the reason and passed --resume has overridden this window on purpose.
-  //    Nothing is remembered on this side: every invocation re-evaluates the
-  //    breaker from scratch and only honours `resume` if the caller sent it.
-  //    The CLI sends it on the FIRST request of a run and drops it from every
-  //    later page, so the override buys the first page of this run; later pages
-  //    re-evaluate and pause if the window is still over the line. A driver
-  //    that resent `resume` on every page would disable the breaker for a whole
-  //    run, which is the thing this gate exists to make impossible.
+  //    --resume overrides it ONLY when the pause it just cleared (step 4) was
+  //    THIS gate's own pause: `paused` must be truthy, and its `reason` must be
+  //    one of the breaker's two reasons. A stateless `resume === true` is not
+  //    enough -- a caller resuming a log-write-failed pause, or resuming when
+  //    there was no open pause at all, has not read a breaker verdict and has
+  //    nothing to override, so the breaker still trips on its own numbers.
+  //    THIS INVOCATION ONLY: the pause step 4 clears is stamped resumed_at, so
+  //    a driver that resent `resume` on a later page finds no open pause to
+  //    clear and `paused` is null, and the breaker re-evaluates from scratch --
+  //    it cannot disable itself for a whole run. Every override is written to
+  //    send_paused, resumed the moment it is inserted, so the operator-facing
+  //    table carries a record of who overrode what and why, not merely a log
+  //    line.
   const counts = await bulkTrailingCounts(db, sourcePrefix, nowIso);
   const verdict = breakerVerdict(counts);
-  const breakerOverridden = verdict.tripped && resume === true && !dryRun;
+  const resumingBreakerPause = !!(
+    paused && (paused.reason === PAUSE_COMPLAINT_RATE || paused.reason === PAUSE_BOUNCE_RATE)
+    && resume === true && !dryRun
+  );
+  const breakerOverridden = verdict.tripped && resumingBreakerPause;
   if (verdict.tripped && !dryRun && !breakerOverridden) {
     log(env, waitUntil, 'newsletter', 'bulk_breaker_tripped', 'error', `${verdict.reason}: ${verdict.detail}`.slice(0, 200), 0, 423);
     return pauseRun(db, { campaign, reason: verdict.reason, detail: verdict.detail, status: 423, sent: 0 });
   }
   if (breakerOverridden) {
+    await db.prepare(
+      "INSERT INTO send_paused (id, campaign, reason, detail, resumed_at) VALUES (?, ?, 'breaker-overridden', ?, datetime('now'))"
+    ).bind(crypto.randomUUID(), campaign, verdict.detail ? String(verdict.detail).slice(0, 500) : null).run();
     log(env, waitUntil, 'newsletter', 'bulk_breaker_overridden', 'warn', `${verdict.reason}: ${verdict.detail}`.slice(0, 200), 0, 200);
   }
 
@@ -795,22 +820,72 @@ async function runBulkSend({ env, db, body, waitUntil }) {
     }, { status: 429 });
   }
 
+  // The page size, from the day's allowance and the caller's page cap. Known
+  // before the cohort is fetched, which is what lets the campaign lease below
+  // stamp `total_recipients` on the SAME write that takes the lease, rather
+  // than reading the cohort first and reopening the race this gate exists to
+  // close.
+  const pageLimit = Math.min(BULK_PAGE_SIZE, allowance.remaining);
+  const fetchLimit = Math.max(1, pageLimit) + 1;
+  const segmentLabel = segments && segments.length > 0 ? segments.join('-') : null;
+
   // 8. The campaign lease. A real send only: a dry run writes nothing and
   //    races nothing, so it is never refused and never takes the lease.
+  //
+  //    CHECK-THEN-INSERT IS NOT THE LOCK. Two near-simultaneous runs can both
+  //    pass a SELECT-only check before either writes; the SELECT below exists
+  //    to produce a readable retryAfterSeconds, not to serialize anything.
+  //    Migration 043's UNIQUE INDEX on newsletter_send(campaign) WHERE
+  //    status='sending' is the actual mutex: only one row for this campaign
+  //    can hold that status at a time, so a second concurrent INSERT throws a
+  //    UNIQUE constraint failure, caught below and answered exactly like a
+  //    SELECT-detected holder, 409 bulk_run_in_progress.
+  //
+  //    A row abandoned by a killed isolate never reaches a terminal status on
+  //    its own and would satisfy the unique index forever, wedging the
+  //    campaign. A 'sending' row older than BULK_LEASE_SECONDS is therefore
+  //    flipped to 'partial' in the SAME batch as this page's INSERT: the flip
+  //    and the new lease commit or fail together, and a genuinely LIVE holder
+  //    (fresh, so never flipped) still blocks the INSERT via the unique index
+  //    even though nothing here re-checks its freshness a second time.
+  let sendId;
   if (!dryRun) {
-    const holder = await db.prepare(
+    const existing = await db.prepare(
       `SELECT id, updated_at FROM newsletter_send
         WHERE campaign = ? AND status = 'sending' AND updated_at IS NOT NULL
-          AND updated_at >= datetime('now', ?)
         ORDER BY updated_at DESC LIMIT 1`
-    ).bind(campaign, `-${BULK_LEASE_SECONDS} seconds`).first();
-    if (holder) {
-      // updated_at is datetime('now'), 'YYYY-MM-DD HH:MM:SS' in UTC, which
-      // Date.parse only reads as UTC once it is given the ISO shape.
-      const heldSince = Date.parse(`${String(holder.updated_at).replace(' ', 'T')}Z`);
-      const ageSeconds = Number.isFinite(heldSince)
-        ? Math.floor((Date.parse(nowIso) - heldSince) / 1000)
-        : 0;
+    ).bind(campaign).first();
+    // updated_at is datetime('now'), 'YYYY-MM-DD HH:MM:SS' in UTC, which
+    // Date.parse only reads as UTC once it is given the ISO shape.
+    const ageSecondsOf = (updatedAt) => {
+      const heldSince = Date.parse(`${String(updatedAt).replace(' ', 'T')}Z`);
+      return Number.isFinite(heldSince) ? Math.floor((Date.parse(nowIso) - heldSince) / 1000) : 0;
+    };
+    const stale = !!existing && ageSecondsOf(existing.updated_at) >= BULK_LEASE_SECONDS;
+
+    sendId = crypto.randomUUID();
+    const writes = [];
+    if (stale) {
+      writes.push(db.prepare("UPDATE newsletter_send SET status = 'partial' WHERE id = ?").bind(existing.id));
+    }
+    // total_recipients is the page's UPPER BOUND (pageLimit), not the exact
+    // count -- the cohort has not been fetched yet, and fetching it before
+    // this INSERT is exactly the window that let two runs race in the first
+    // place.
+    writes.push(db.prepare(
+      "INSERT INTO newsletter_send (id, subject, html, segment_filter, status, total_recipients, commentary_slug, campaign, updated_at) VALUES (?, ?, ?, ?, 'sending', ?, ?, ?, datetime('now'))"
+    ).bind(sendId, subject, htmlBody, segmentLabel ? JSON.stringify(segments) : null, Math.max(1, pageLimit), null, campaign));
+
+    try {
+      await db.batch(writes);
+    } catch (err) {
+      if (!String(err?.message || '').includes('UNIQUE constraint')) throw err;
+      const holder = (existing && !stale) ? existing : await db.prepare(
+        `SELECT updated_at FROM newsletter_send
+          WHERE campaign = ? AND status = 'sending' AND updated_at IS NOT NULL
+          ORDER BY updated_at DESC LIMIT 1`
+      ).bind(campaign).first();
+      const ageSeconds = holder ? ageSecondsOf(holder.updated_at) : 0;
       return Response.json({
         ok: false, error: 'bulk_run_in_progress', campaign,
         retryAfterSeconds: Math.max(1, BULK_LEASE_SECONDS - ageSeconds),
@@ -831,12 +906,6 @@ async function runBulkSend({ env, db, body, waitUntil }) {
   // count does not account for a `segments` filter, which is applied in JS
   // below on the fetched page only -- a segment-filtered run's `deferred`
   // is therefore an upper bound on the truly-deferred count, not exact.
-  //
-  // The page is BULK_PAGE_SIZE or the day's remaining allowance, whichever is
-  // smaller: the allowance is the ceiling, the page size is what one invocation
-  // can actually pace through. The caller loops while `deferred > 0`.
-  const pageLimit = Math.min(BULK_PAGE_SIZE, allowance.remaining);
-  const fetchLimit = Math.max(1, pageLimit) + 1;
   let cohort = (await db.prepare(`${BULK_AUDIENCE_SQL} LIMIT ?`).bind(sourcePrefix, fetchLimit).all()).results;
   const audienceCount = (await db.prepare(BULK_AUDIENCE_COUNT_SQL).bind(sourcePrefix).first()).c;
   if (segments && segments.length > 0) {
@@ -846,7 +915,6 @@ async function runBulkSend({ env, db, body, waitUntil }) {
     });
   }
   const { send: page } = truncateToAllowance(cohort, pageLimit);
-  const segmentLabel = segments && segments.length > 0 ? segments.join('-') : null;
 
   if (dryRun) {
     const deferred = Math.max(0, audienceCount - page.length);
@@ -866,27 +934,36 @@ async function runBulkSend({ env, db, body, waitUntil }) {
     }, { status: 200 });
   }
 
-  // A real run gets a newsletter_send row, so the existing surfaces that read
-  // that table see a bulk campaign the same way they see any other send.
-  const sendId = crypto.randomUUID();
-  // The INSERT is also the lease stamp: campaign + status 'sending' +
-  // updated_at now. Every page of a run mints its own row, so the stamp is
-  // per page, which is what makes an abandoned page expire rather than wedge.
-  await db.prepare(
-    "INSERT INTO newsletter_send (id, subject, html, segment_filter, status, total_recipients, commentary_slug, campaign, updated_at) VALUES (?, ?, ?, ?, 'sending', ?, ?, ?, datetime('now'))"
-  ).bind(sendId, subject, htmlBody, segmentLabel ? JSON.stringify(segments) : null, page.length, null, campaign).run();
-
+  // The newsletter_send row -- and the lease it carries -- was already
+  // written in step 8, before the cohort was fetched, so the existing
+  // surfaces that read that table see a bulk campaign the same way they see
+  // any other send.
   let sentCount = 0;
   for (const sub of page) {
-    // Re-check status immediately before SES so a concurrent unsubscribe during
-    // a paced run is honoured, exactly as the legacy path does.
+    // Re-check status AND membership immediately before SES so a concurrent
+    // unsubscribe or a membership that started AFTER the cohort was built is
+    // honoured. The legacy path only re-checks status; the bulk path also has
+    // a membership routing rule (spec section 3), and a subscriber who became
+    // a paying member between the cohort query and this send would otherwise
+    // get mailed on the wrong lane. WIX_ACTIVE_MEMBER_FROM_WHERE and
+    // STUC_MEMBER_TAG_FROM_WHERE are the SAME text BULK_AUDIENCE_SQL excludes
+    // on, so the two questions cannot drift apart.
     // One read per recipient is the concurrent-unsubscribe guard the legacy path
     // also runs, and this loop is paced at BULK_PACING_MS between SES calls, so
     // a D1 round-trip is not the cost that matters here.
     // arise-ignore query-in-loop -- deliberate per-recipient guard, see above
-    const stillActive = await db.prepare('SELECT status FROM newsletter_subscriber WHERE id = ?').bind(sub.id).first();
-    if (stillActive?.status !== 'active') {
+    const recheck = await db.prepare(
+      `SELECT s.status AS status,
+              EXISTS (SELECT 1 ${WIX_ACTIVE_MEMBER_FROM_WHERE}) AS is_wix_active,
+              EXISTS (SELECT 1 ${STUC_MEMBER_TAG_FROM_WHERE}) AS is_stuc_member
+         FROM newsletter_subscriber s WHERE s.id = ?`
+    ).bind(sub.id).first();
+    if (recheck?.status !== 'active') {
       log(env, waitUntil, 'newsletter', 'bulk_skipped_status_changed', 'warn', sub.email, 0, 200);
+      continue;
+    }
+    if (recheck?.is_wix_active || recheck?.is_stuc_member) {
+      log(env, waitUntil, 'newsletter', 'bulk_skipped_member_now', 'warn', sub.email, 0, 200);
       continue;
     }
 
@@ -905,17 +982,18 @@ async function runBulkSend({ env, db, body, waitUntil }) {
       db.prepare("UPDATE newsletter_subscriber SET last_sent_at = datetime('now') WHERE id = ?").bind(sub.id),
     ]);
 
-    // Explicitly null so the log-batch catch below, which re-reads it for the
-    // standalone email_log retry, never meets an unassigned binding. eslint is
-    // right that the initialiser is dead on every reachable path (the SES catch
-    // `continue`s rather than falling through); it is kept anyway because a
-    // reader meeting `let messageId;` has to prove that for themselves.
+    // Explicitly null so the email_log-failure catch below, which names this
+    // recipient in send_paused.detail, never meets an unassigned binding.
+    // eslint is right that the initialiser is dead on every reachable path
+    // (the SES catch `continue`s rather than falling through); it is kept
+    // anyway because a reader meeting `let messageId;` has to prove that for
+    // themselves.
     // eslint-disable-next-line no-useless-assignment
     let messageId = null;
     try {
-      // No `log` block: this path writes its own email_log row below, in the
-      // SAME batch as the day counter, because insertEmailLog() swallows D1
-      // failures by design and the counter must not be able to fall behind.
+      // No `log` block: this path writes its own email_log row below, because
+      // insertEmailLog() swallows D1 failures by design and a swallowed
+      // failure here is exactly the already-sent guard this rail cannot lose.
       ({ messageId } = await sendRawEmail(env, {
         from: env.BULK_FROM,
         to: sub.email,
@@ -934,59 +1012,47 @@ async function runBulkSend({ env, db, body, waitUntil }) {
       continue;
     }
 
-    // The log row and the day counter, atomically. A failure here PAUSES the
-    // run: the message is already delivered and is never reclassified, but the
-    // cap has lost its only source of truth for the day, so sending stops.
+    // The email_log row FIRST, on its own statement -- it is the already-sent
+    // guard, so it must succeed on the same message SES already accepted
+    // before anything else happens. A failure here PAUSES the run: the
+    // message is delivered and is never reclassified, but without this row a
+    // resumed run would mail the same recipient again, so the recipient is
+    // named in send_paused.detail immediately, with no retry to complicate
+    // that answer.
     try {
-      await db.batch([
-        db.prepare(
-          "INSERT INTO email_log (event, email, category, source, subject, send_id, ses_message_id, lane) VALUES ('send', ?, 'newsletter', ?, ?, ?, ?, ?)"
-        ).bind(sub.email.toLowerCase(), source, subject, sendId, messageId, lane),
-        db.prepare(
-          `UPDATE mail_domain_state
-              SET sent_today = CASE WHEN day = ? THEN sent_today + 1 ELSE 1 END,
-                  day = ?,
-                  updated_at = datetime('now')
-            WHERE domain = ?`
-        ).bind(nowIso.slice(0, 10), nowIso.slice(0, 10), BULK_DOMAIN),
-      ]);
+      // arise-ignore query-in-loop -- deliberate per-recipient guard, see above
+      await db.prepare(
+        "INSERT INTO email_log (event, email, category, source, subject, send_id, ses_message_id, lane) VALUES ('send', ?, 'newsletter', ?, ?, ?, ?, ?)"
+      ).bind(sub.email.toLowerCase(), source, subject, sendId, messageId, lane).run();
     } catch (err) {
       sentCount++;
       log(env, waitUntil, 'newsletter', 'bulk_log_write_failed', 'error', String(err?.message || 'unknown').slice(0, 200), 0, 500);
-
-      // The batch is gone, so the day counter is lost for this message and the
-      // run stops. The email_log row is worth one more try ON ITS OWN, without
-      // the counter: it is the already-sent guard, and a delivered message
-      // missing from it is a person this campaign will mail a second time on
-      // resume. Losing a count of one is a smaller harm than a duplicate send,
-      // which is why this retry carries no increment.
-      let logged = true;
-      try {
-        // arise-ignore query-in-loop -- not per-iteration: this catch runs at most once, and the block returns out of the loop
-        await db.prepare(
-          "INSERT INTO email_log (event, email, category, source, subject, send_id, ses_message_id, lane) VALUES ('send', ?, 'newsletter', ?, ?, ?, ?, ?)"
-        ).bind(sub.email.toLowerCase(), source, subject, sendId, messageId, lane).run();
-      } catch (logErr) {
-        logged = false;
-        log(env, waitUntil, 'newsletter', 'bulk_log_retry_failed', 'error', String(logErr?.message || 'unknown').slice(0, 200), 0, 500);
-      }
-
-      // arise-ignore query-in-loop -- not per-iteration: this catch runs at most once, and the block returns out of the loop
+      // arise-ignore query-in-loop -- not per-iteration: this block returns out of the loop
       await db.prepare("UPDATE newsletter_send SET sent_count = sent_count + ?, status = 'failed' WHERE id = ?")
         .bind(sentCount, sendId).run();
-
-      // Name the recipient in send_paused.detail ONLY when the retry also
-      // failed. That row is D1-side and admin-read, and it is the only record
-      // of who is delivered but unlogged, which is who will receive this
-      // campaign twice if the run is resumed without checking.
-      const detail = logged
-        ? String(err?.message || 'unknown')
-        : `${String(err?.message || 'unknown')}; email_log retry also failed, DELIVERED BUT UNLOGGED: ${sub.email}`;
+      const detail = `${String(err?.message || 'unknown')}; DELIVERED BUT UNLOGGED: ${sub.email}`;
       return pauseRun(db, {
         campaign, reason: PAUSE_LOG_WRITE_FAILED, detail,
-        responseDetail: 'log batch failed; read send_paused.detail',
+        responseDetail: 'email_log write failed; read send_paused.detail',
         status: 500, sendId, sent: sentCount,
       });
+    }
+
+    // The day counter, on its OWN statement, second. Its failure is a smaller
+    // harm than the email_log failure above -- the message is already logged
+    // as sent, so a resume will not double-mail this recipient -- so it costs
+    // only a warn and a count lost by one, never a pause.
+    try {
+      // arise-ignore query-in-loop -- deliberate per-recipient guard, see above
+      await db.prepare(
+        `UPDATE mail_domain_state
+            SET sent_today = CASE WHEN day = ? THEN sent_today + 1 ELSE 1 END,
+                day = ?,
+                updated_at = datetime('now')
+          WHERE domain = ?`
+      ).bind(nowIso.slice(0, 10), nowIso.slice(0, 10), BULK_DOMAIN).run();
+    } catch (err) { // arise-ignore silent-catch -- the message is already logged as sent; losing a count of one is deliberately smaller harm than pausing an already-delivered send, see the comment above
+      log(env, waitUntil, 'newsletter', 'bulk_counter_write_failed', 'warn', String(err?.message || 'unknown').slice(0, 200), 0, 0);
     }
 
     sentCount++;
