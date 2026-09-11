@@ -1156,11 +1156,30 @@ async function runBulkSend({ env, db, body, waitUntil }) {
         ).bind(sub.email.toLowerCase(), source, subject, sendId, messageId, lane).run();
       } catch (err) {
         sentCount++;
-        log(env, waitUntil, 'newsletter', 'bulk_log_write_failed', 'error', String(err?.message || 'unknown').slice(0, 200), 0, 500);
-        // arise-ignore query-in-loop -- not per-iteration: this block returns out of the loop
-        await db.prepare("UPDATE newsletter_send SET sent_count = sent_count + ?, status = 'failed' WHERE id = ?")
-          .bind(sentCount, sendId).run();
+        // `detail` (names the recipient) is built and logged FIRST, before any
+        // further write, so a D1 outage that takes this INSERT down cannot also
+        // take down the one record of who this delivered-but-unlogged message
+        // was for -- see the comment above this try for why that name matters.
         const detail = `${String(err?.message || 'unknown')}; DELIVERED BUT UNLOGGED: ${sub.email}`;
+        log(env, waitUntil, 'newsletter', 'bulk_log_write_failed', 'error', detail.slice(0, 200), 0, 500);
+        // Its OWN try/catch: this status flip is a nicety (it marks the row
+        // 'failed' for a dashboard reader), not the safety property. If the
+        // same D1 outage that just took down the email_log INSERT also takes
+        // this UPDATE down, the throw must not escape to the outer catch --
+        // that catch has no `sub` in scope, writes no send_paused row, and
+        // answers a generic "re-run to continue" that would re-mail this exact
+        // recipient. Losing the status flip is a smaller harm than losing the
+        // pause below, so it only warns and falls through to pauseRun.
+        try {
+          // arise-ignore query-in-loop -- not per-iteration: this block returns out of the loop
+          await db.prepare("UPDATE newsletter_send SET sent_count = sent_count + ?, status = 'failed' WHERE id = ?")
+            .bind(sentCount, sendId).run();
+        } catch (statusErr) {
+          // arise-ignore silent-catch -- best-effort status flip; the pause
+          // written by pauseRun below is what actually protects the next run,
+          // and a failure here must not mask that write or the original error.
+          log(env, waitUntil, 'newsletter', 'bulk_status_update_failed', 'error', `${String(statusErr?.message || 'unknown')}; ${detail}`.slice(0, 300), 0, 500);
+        }
         return await pauseRun(db, env, waitUntil, {
           campaign, reason: PAUSE_LOG_WRITE_FAILED, detail,
           responseDetail: 'email_log write failed; read send_paused.detail',

@@ -438,6 +438,110 @@ describe('logging and the day counter', () => {
     );
   });
 
+  // A stub that fails EVERY .run() call whose SQL matches any string in
+  // `matches` -- unlike failNthMatchingRun above (which fails one call by
+  // ordinal), this is for asserting the status-update write is NOT the thing
+  // standing between a failed email_log write and a recorded pause.
+  function failEveryMatchingRun(db, matches) {
+    const realPrepare = db.prepare.bind(db);
+    db.prepare = (sql) => {
+      const stmt = realPrepare(sql);
+      if (!matches.some((m) => sql.includes(m))) return stmt;
+      return {
+        ...stmt,
+        bind(...args) {
+          const bound = realPrepare(sql).bind(...args);
+          return {
+            ...bound,
+            async run() { throw new Error('D1_ERROR: network'); },
+          };
+        },
+      };
+    };
+    return () => { db.prepare = realPrepare; };
+  }
+
+  it('the status-update write is unguarded no longer: a second D1 failure on the same outage still pauses and still names the recipient', async () => {
+    const db = bulkMailD1();
+    await seedSubscriber(db, { id: 'sub-1', email: 'a@example.com' });
+    await seedDomainState(db, { first_send_at: YEAR_AGO, day: TODAY });
+    const events = [];
+    // Both the email_log INSERT and the newsletter_send status UPDATE throw --
+    // the same D1 outage taking down the safety write AND the status-flip
+    // nicety -- while the send_paused INSERT (a different statement) still
+    // succeeds. Before the fix this UPDATE ran unguarded and its throw would
+    // have escaped past pauseRun entirely, reaching the outer catch instead.
+    const restore = failEveryMatchingRun(db, [
+      'INSERT INTO email_log',
+      "UPDATE newsletter_send SET sent_count = sent_count + ?, status = 'failed'",
+    ]);
+    const { status, body } = await call(
+      db, { ...BODY, send: true },
+      { EVENTS: { writeDataPoint: (p) => events.push(p) } },
+    );
+    restore();
+    assert.equal(status, 500);
+    assert.equal(body.error, 'bulk_paused', 'pauseRun still runs and still answers a named pause, not the generic outer-catch 500');
+    assert.equal(body.reason, 'log-write-failed');
+    const paused = await db.prepare(
+      "SELECT reason, detail, resumed_at FROM send_paused WHERE campaign = 'sept-letter'"
+    ).first();
+    assert.equal(paused.reason, 'log-write-failed');
+    assert.equal(paused.resumed_at, null);
+    assert.match(
+      paused.detail, /DELIVERED BUT UNLOGGED: a@example\.com/,
+      'send_paused.detail (a raw D1 write, never through the PII-redacting log() helper) still names the recipient',
+    );
+    // The row was never flipped to 'failed' -- that write is the one that just
+    // threw -- so it is left exactly where the campaign lease (step 8) put it:
+    // 'sending'. It is NOT released here and NOT terminal; nothing in this
+    // catch touches it again, so it stays lease-held until BULK_LEASE_SECONDS
+    // ages it out and a later --send flips it to 'partial' on its own.
+    const row = await db.prepare("SELECT status FROM newsletter_send WHERE campaign = 'sept-letter'").first();
+    assert.equal(row.status, 'sending', 'left lease-held, not flipped to failed and not released -- see comment above');
+    // Both failures are logged server-side, and the second (bulk_status_update_failed)
+    // still carries the same recipient-naming detail, even though the email is
+    // PII-redacted before it reaches Analytics Engine (see report-mapping.test.js).
+    const failureEvents = events.filter((p) => p.blobs[2] === 'bulk_log_write_failed' || p.blobs[2] === 'bulk_status_update_failed');
+    assert.equal(failureEvents.length, 2, 'both the email_log failure AND the status-update failure are logged, not just the first');
+    for (const p of failureEvents) {
+      assert.match(p.blobs[4], /DELIVERED BUT UNLOGGED: \[redacted-email\]/, `${p.blobs[2]} names that a recipient was delivered-but-unlogged`);
+    }
+  });
+
+  it('mutation-proof: when send_paused ALSO fails on the same outage, the run answers bulk_pause_write_failed, never the generic outer-catch 500', async () => {
+    const db = bulkMailD1();
+    await seedSubscriber(db, { id: 'sub-1', email: 'a@example.com' });
+    await seedDomainState(db, { first_send_at: YEAR_AGO, day: TODAY });
+    const events = [];
+    // Everything this catch touches fails on the same outage: the email_log
+    // INSERT, the status UPDATE, and now the send_paused INSERT itself.
+    const restore = failEveryMatchingRun(db, [
+      'INSERT INTO email_log',
+      "UPDATE newsletter_send SET sent_count = sent_count + ?, status = 'failed'",
+      'INSERT INTO send_paused',
+    ]);
+    const { status, body } = await call(
+      db, { ...BODY, send: true },
+      { EVENTS: { writeDataPoint: (p) => events.push(p) } },
+    );
+    restore();
+    assert.equal(status, 500);
+    assert.equal(body.error, 'bulk_pause_write_failed', 'pauseRun\'s own catch, not the outer bulk_run_failed catch');
+    assert.equal(
+      body.detail, 'the pause could not be recorded; DO NOT re-run until send_paused is checked by hand',
+    );
+    const paused = await db.prepare("SELECT COUNT(*) AS c FROM send_paused WHERE campaign = 'sept-letter'").first();
+    assert.equal(paused.c, 0, 'the pause write itself failed; nothing was recorded in D1');
+    // The recipient's identity did not vanish just because D1 refused every
+    // write: it survives in the server-side log calls, which is the only place
+    // left carrying it once send_paused itself is unreachable.
+    const failureEvents = events.filter((p) => ['bulk_log_write_failed', 'bulk_status_update_failed', 'bulk_pause_write_failed'].includes(p.blobs[2]));
+    assert.ok(failureEvents.length >= 2, 'at least the email_log failure and the pause-write failure are both logged');
+    const named = failureEvents.some((p) => /DELIVERED BUT UNLOGGED|delivered but unlogged/i.test(p.blobs[4]) || /log-write-failed/i.test(p.blobs[4]));
+    assert.ok(named, 'at least one server-side log call carries the recipient-naming detail from this pause attempt');
+  });
+
   it('a failed day-counter write does NOT pause the run: the email_log row already exists', async () => {
     const db = bulkMailD1();
     await seedSubscriber(db, { id: 'sub-1', email: 'a@example.com' });
