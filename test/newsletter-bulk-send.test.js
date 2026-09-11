@@ -1471,6 +1471,62 @@ describe('SES-call pacing on every attempted path, not only success (arise pass 
   });
 });
 
+describe('PRIV-02: bulk_send_error must never leak an address fragment (arise pass 6)', () => {
+  it('a SES MessageRejected body that echoes the admitted address is fully redacted, not truncated into a bare fragment', async () => {
+    // A real SESv2 MessageRejected body is a JSON envelope naming the
+    // exception type, with the human sentence -- ending in the admitted
+    // address -- inside `message`. permanentDetail() (vendor/mail/ses.js)
+    // slices that raw body to 200 chars and then prepends its own
+    // "MessageRejected: " label, so the string handed to send.js's catch can
+    // run past 200 chars even though the address survived the FIRST slice
+    // intact. localLen=45 is chosen so the full address (57 chars) fits
+    // inside permanentDetail's own 200-char body slice, but the label it
+    // then prepends pushes the '@' past column 200 -- exactly where the old
+    // call-site `.slice(0, 200)` in send.js used to cut, before log()'s
+    // redaction ever ran.
+    const localLen = 45;
+    const address = `${'a'.repeat(localLen)}@example.com`;
+    const preamble = 'Email address is not verified. The following identities failed the check in region us-east-1: ';
+    const sesBody = JSON.stringify({
+      __type: 'MessageRejectedException',
+      message: `${preamble}${address}`,
+    });
+
+    const db = bulkMailD1();
+    await seedSubscriber(db, { id: 'sub-1', email: 'target@example.com' });
+    await seedDomainState(db, { first_send_at: YEAR_AGO, day: TODAY });
+    const events = [];
+    const failing = stubSes({ answer: () => new Response(sesBody, { status: 400 }) });
+
+    let body;
+    try {
+      ({ body } = await call(
+        db, { ...BODY, send: true },
+        { EVENTS: { writeDataPoint: (p) => events.push(p) } },
+      ));
+    } finally {
+      failing.restore();
+    }
+
+    assert.equal(body.sent, 0, 'the only recipient was rejected by SES');
+    const bulkSendErrorEvents = events.filter((p) => p.blobs[2] === 'bulk_send_error');
+    assert.ok(bulkSendErrorEvents.length > 0, 'bulk_send_error must have logged at least one event');
+
+    const localFragment = 'a'.repeat(10);
+    for (const p of bulkSendErrorEvents) {
+      assert.ok(!p.blobs[4].includes('@'), `bulk_send_error detail must not contain '@': ${p.blobs[4]}`);
+      assert.ok(
+        !p.blobs[4].includes(localFragment),
+        `bulk_send_error detail must not contain a 10-char local-part fragment: ${p.blobs[4]}`,
+      );
+      assert.match(
+        p.blobs[4], /\[redacted-email\]/,
+        'the address must be replaced with the redaction marker, not silently dropped by a pre-redaction truncation',
+      );
+    }
+  });
+});
+
 describe('bulk_run_failed detail names whether a lease was ever taken (arise pass 3 #4)', () => {
   it('a dry-run throw before the lease is taken says the report failed, not that a lease is released', async () => {
     const db = bulkMailD1();

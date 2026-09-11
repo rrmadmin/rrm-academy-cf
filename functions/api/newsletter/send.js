@@ -1147,7 +1147,13 @@ async function runBulkSend({ env, db, body, waitUntil }) {
           configurationSet: BULK_CONFIGURATION_SET,
         }));
       } catch (err) {
-        log(env, waitUntil, 'newsletter', 'bulk_send_error', 'error', String(err?.message || 'unknown').slice(0, 200), 0, 0);
+        // PRIV-02: no call-site slice here -- a SES MessageRejected message
+        // echoes the admitted address after a preamble long enough that a
+        // pre-redaction .slice(0, 200) can cut it mid-string, past the point
+        // where EMAIL_PATTERN can match, shipping a bare address fragment to
+        // Analytics Engine. log()'s own redactPii runs BEFORE its slice, so
+        // handing it the unsliced message lets redaction see the whole '@'.
+        log(env, waitUntil, 'newsletter', 'bulk_send_error', 'error', String(err?.message || 'unknown'), 0, 0);
         await logEmailFailure(db, {
           email: sub.email, category: 'newsletter', source, subject, detail: err?.message,
         });
