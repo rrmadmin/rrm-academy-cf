@@ -49,7 +49,7 @@ The single entry for bulk is `POST /api/newsletter/send` in rrm-academy-cf. It g
 
 **5.0 Lane admission (console-kit dependency).** The Bulk From address is `newsletter@rrmacademy.com`. As built today, `vendor/mail/lanes.js` refuses it twice over: `EXEMPTIONS['newsletter-blast'].from` is a closed list (`hello@rrmacademy.org`, `newsletter@mail.rrmacademy.org`) and `SES_SENDER_DOMAINS.rrma` only admits `rrmacademy.org`. `resolveLane()` throws `exemption-sender-not-allowed` on every send from the bulk domain. The mail package changes ONLY in `console-kit/kit/packages/mail`, never in this repo's `vendor/mail/`, so the fix is not a local patch:
 
-1. In console-kit, add `newsletter@rrmacademy.com` to the `newsletter-blast` exemption's `from` list and add `rrmacademy.com` to `SES_SENDER_DOMAINS.rrma`.
+1. In console-kit, add `newsletter@rrmacademy.com` to the `newsletter-blast` exemption's `from` list and add `rrmacademy.com` to `SES_SENDER_DOMAINS.rrma`. There is a third refusal the plan found: the granted-exemption branch of `resolveLane()` checks the address against a hardcoded pair (`mail.rrmacademy.org`, `rrmacademy.org`) that outranks `SES_SENDER_DOMAINS`. That check must read the domain tables, or the first two edits change nothing.
 2. Version bump, `node bin/console-kit hash`, `sync --apply` into rrm-academy-cf in its own PR, kit tests green.
 3. This is phase 1 task zero (§9) -- nothing else in this build can go live before `resolveLane()` accepts the bulk From.
 
