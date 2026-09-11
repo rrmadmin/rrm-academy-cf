@@ -500,13 +500,77 @@ describe('logging and the day counter', () => {
     const row = await db.prepare("SELECT status FROM newsletter_send WHERE campaign = 'sept-letter'").first();
     assert.equal(row.status, 'sending', 'left lease-held, not flipped to failed and not released -- see comment above');
     // Both failures are logged server-side, and the second (bulk_status_update_failed)
-    // still carries the same recipient-naming detail, even though the email is
-    // PII-redacted before it reaches Analytics Engine (see report-mapping.test.js).
+    // still carries the same delivered-but-unlogged fact -- but PRIV-02: neither
+    // one carries the address itself, redacted or otherwise. The address is
+    // built into a SEPARATE string (pausedDetail) that never reaches log() at
+    // all, so a call-site slice can never cut it mid-string before redaction
+    // runs (see report-mapping.test.js for the redaction path this bypasses).
     const failureEvents = events.filter((p) => p.blobs[2] === 'bulk_log_write_failed' || p.blobs[2] === 'bulk_status_update_failed');
     assert.equal(failureEvents.length, 2, 'both the email_log failure AND the status-update failure are logged, not just the first');
     for (const p of failureEvents) {
-      assert.match(p.blobs[4], /DELIVERED BUT UNLOGGED: \[redacted-email\]/, `${p.blobs[2]} names that a recipient was delivered-but-unlogged`);
+      assert.match(p.blobs[4], /DELIVERED BUT UNLOGGED: recipient named in send_paused/, `${p.blobs[2]} names that a recipient was delivered-but-unlogged, without the address`);
+      assert.ok(!p.blobs[4].includes('@'), `${p.blobs[2]} detail must not contain an address fragment`);
     }
+  });
+
+  it('PRIV-02: a long address is never truncated INTO the Analytics Engine detail, even with a long driver error attached', async () => {
+    // A local part long enough that the old `detail.slice(0, 200)` call-site
+    // truncation, applied BEFORE log()'s redaction ever runs, would cut the
+    // string before it ever reaches the '@' -- so EMAIL_PATTERN has nothing to
+    // match and a bare fragment of the address ships unredacted. A 160-char
+    // driver message eats most of the 200-char budget on its own.
+    const localPart = 'a'.repeat(190);
+    const longEmail = `${localPart}@example.com`;
+    const db = bulkMailD1();
+    await seedSubscriber(db, { id: 'sub-1', email: longEmail });
+    await seedDomainState(db, { first_send_at: YEAR_AGO, day: TODAY });
+    const events = [];
+    const restore = failNthMatchingRun(db, 'INSERT INTO email_log');
+    // Stub SES to answer AFTER the failNthMatchingRun stub is set so the send
+    // itself goes through normally; only the email_log INSERT throws, with a
+    // long driver-style message.
+    const longMessage = 'D1_ERROR: ' + 'network timeout while writing to the replica '.repeat(3);
+    const realPrepare = db.prepare.bind(db);
+    db.prepare = (sql) => {
+      const stmt = realPrepare(sql);
+      if (!sql.includes('INSERT INTO email_log')) return stmt;
+      return {
+        ...stmt,
+        bind(...args) {
+          const bound = realPrepare(sql).bind(...args);
+          return { ...bound, async run() { throw new Error(longMessage); } };
+        },
+      };
+    };
+    const { status, body } = await call(
+      db, { ...BODY, send: true },
+      { EVENTS: { writeDataPoint: (p) => events.push(p) } },
+    );
+    restore();
+    db.prepare = realPrepare;
+    assert.equal(status, 500);
+    assert.equal(body.error, 'bulk_paused');
+
+    // Every argument handed to log() (every Analytics Engine event) must be
+    // fully free of the address: no '@' at all, and no run of the local part
+    // (a fragment surviving truncation would still be identifying even
+    // without the '@').
+    const localFragment = localPart.slice(0, 20);
+    for (const p of events) {
+      assert.ok(!p.blobs[4].includes('@'), `event ${p.blobs[2]} detail must not contain '@': ${p.blobs[4]}`);
+      assert.ok(
+        !p.blobs[4].includes(localFragment),
+        `event ${p.blobs[2]} detail must not contain a local-part fragment: ${p.blobs[4]}`,
+      );
+    }
+    assert.ok(events.length > 0, 'the failure path must have logged at least one event to make the assertions above meaningful');
+
+    // The full address DOES survive, but only in send_paused.detail -- a
+    // direct D1 write the PII-redacting log() helper never touches.
+    const paused = await db.prepare(
+      "SELECT detail FROM send_paused WHERE campaign = 'sept-letter'"
+    ).first();
+    assert.match(paused.detail, new RegExp(`DELIVERED BUT UNLOGGED: ${longEmail}`));
   });
 
   it('mutation-proof: when send_paused ALSO fails on the same outage, the run answers bulk_pause_write_failed, never the generic outer-catch 500', async () => {

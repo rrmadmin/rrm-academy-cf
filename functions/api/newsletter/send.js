@@ -319,9 +319,17 @@ async function pauseRun(db, env, waitUntil, { campaign, reason, detail, response
     ).bind(crypto.randomUUID(), campaign, reason, detail ? String(detail).slice(0, 500) : null).run();
   } catch (err) {
     if (isSchemaNotMigratedError(err)) return Response.json(SCHEMA_NOT_MIGRATED_RESPONSE, { status: 503 });
+    // PRIV-02: `detail` here can be the email_log-failure catch's
+    // pausedDetail, which names the recipient for the send_paused row this
+    // very INSERT just failed to write. It must never reach log() -- a
+    // call-site slice on a string built from an address can cut it mid-string
+    // before redaction runs, shipping a partial address to Analytics Engine.
+    // This event names only the reason; the recipient is lost with the pause
+    // row itself, which the response body already tells the operator to
+    // check by hand.
     log(
       env, waitUntil, 'newsletter', 'bulk_pause_write_failed', 'error',
-      `${String(err?.message || 'unknown')}; pause was for ${reason}: ${detail ? String(detail).slice(0, 200) : 'no detail'}`.slice(0, 300),
+      `${String(err?.message || 'unknown').slice(0, 150)}; pause write failed for reason ${reason}`,
       0, 500,
     );
     return Response.json({
@@ -1107,7 +1115,12 @@ async function runBulkSend({ env, db, body, waitUntil }) {
           db.prepare("UPDATE newsletter_subscriber SET last_sent_at = datetime('now') WHERE id = ?").bind(sub.id),
         ]);
       } catch (err) {
-        log(env, waitUntil, 'newsletter', 'bulk_skipped_prepare_failed', 'warn', `${sub.email}: ${String(err?.message || 'unknown')}`.slice(0, 200), 0, 0);
+        // PRIV-02: never fold sub.email into a string that is sliced here --
+        // a pre-slice can cut the address mid-string before log()'s redaction
+        // ever runs, shipping a partial address to Analytics Engine. This
+        // path is a skip, not a delivery, so the recipient identity is not
+        // needed in telemetry at all.
+        log(env, waitUntil, 'newsletter', 'bulk_skipped_prepare_failed', 'warn', String(err?.message || 'unknown').slice(0, 200), 0, 0);
         continue;
       }
 
@@ -1156,12 +1169,21 @@ async function runBulkSend({ env, db, body, waitUntil }) {
         ).bind(sub.email.toLowerCase(), source, subject, sendId, messageId, lane).run();
       } catch (err) {
         sentCount++;
-        // `detail` (names the recipient) is built and logged FIRST, before any
+        // `pausedDetail` (names the recipient) is built FIRST, before any
         // further write, so a D1 outage that takes this INSERT down cannot also
         // take down the one record of who this delivered-but-unlogged message
         // was for -- see the comment above this try for why that name matters.
-        const detail = `${String(err?.message || 'unknown')}; DELIVERED BUT UNLOGGED: ${sub.email}`;
-        log(env, waitUntil, 'newsletter', 'bulk_log_write_failed', 'error', detail.slice(0, 200), 0, 500);
+        // It goes to send_paused.detail (a D1 row) ONLY. `logDetail` is the
+        // separate, address-free string every log() call in this block uses --
+        // PRIV-02: a call-site .slice() on a string built from sub.email can
+        // cut the address mid-string before log()'s own redaction ever runs
+        // (redaction only sees the fragment left after truncation), shipping
+        // a partial address to Analytics Engine. Never hand log() a string
+        // that contains the address; build the two strings apart instead.
+        const rawMessage = String(err?.message || 'unknown');
+        const pausedDetail = `${rawMessage}; DELIVERED BUT UNLOGGED: ${sub.email}`;
+        const logDetail = `${rawMessage.slice(0, 150)}; DELIVERED BUT UNLOGGED: recipient named in send_paused`;
+        log(env, waitUntil, 'newsletter', 'bulk_log_write_failed', 'error', logDetail, 0, 500);
         // Its OWN try/catch: this status flip is a nicety (it marks the row
         // 'failed' for a dashboard reader), not the safety property. If the
         // same D1 outage that just took down the email_log INSERT also takes
@@ -1178,10 +1200,11 @@ async function runBulkSend({ env, db, body, waitUntil }) {
           // arise-ignore silent-catch -- best-effort status flip; the pause
           // written by pauseRun below is what actually protects the next run,
           // and a failure here must not mask that write or the original error.
-          log(env, waitUntil, 'newsletter', 'bulk_status_update_failed', 'error', `${String(statusErr?.message || 'unknown')}; ${detail}`.slice(0, 300), 0, 500);
+          // Uses logDetail (address-free), never pausedDetail -- see above.
+          log(env, waitUntil, 'newsletter', 'bulk_status_update_failed', 'error', `${String(statusErr?.message || 'unknown').slice(0, 100)}; ${logDetail}`, 0, 500);
         }
         return await pauseRun(db, env, waitUntil, {
-          campaign, reason: PAUSE_LOG_WRITE_FAILED, detail,
+          campaign, reason: PAUSE_LOG_WRITE_FAILED, detail: pausedDetail,
           responseDetail: 'email_log write failed; read send_paused.detail',
           status: 500, sendId, sent: sentCount,
         });
