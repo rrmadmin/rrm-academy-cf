@@ -36,7 +36,11 @@
  * unreadable filter is not the same as no filter.
  */
 import { log } from '../_log.js';
-import { sendRawEmail } from '../_ses.js';
+import { sendRawEmail, logEmailFailure, preflightLane, LaneRefused } from '../_ses.js';
+import {
+  remainingAllowance, truncateToAllowance, breakerVerdict, feedbackId, isCampaignKey,
+  COHORT_ORDER_SQL, BULK_DOMAIN, PAUSE_LOG_WRITE_FAILED,
+} from './_policy.js';
 import { renderEmail } from './_template.js';
 import { unsubscribeHeaders } from './_tracking.js';
 import { constantTimeEqual } from '../auth/_shared.js';
@@ -87,6 +91,161 @@ const BATCH_DELAY_MS = 500;     // pause between batches; 10 concurrent + networ
 // case) or FAILURE_RATE_MIN_SAMPLE (sustained-partial-failure case).
 const FAILURE_RATE_THRESHOLD = 0.5;   // 50%+ failures across the min sample below aborts the run
 const FAILURE_RATE_MIN_SAMPLE = 20;   // don't judge systemic failure on fewer than 2 batches' worth of attempts
+
+/**
+ * THE BULK LANE.
+ *
+ * A second path through this endpoint, selected by `lane: 'bulk'`. It exists
+ * because the 2026-09-06 to 09-08 drip sent about 2,880 messages as
+ * rrmacademy.org and put a 0.55% user-reported spam day on the domain in Google
+ * Postmaster Tools -- above the 0.3% policy line -- flipping its Compliance
+ * status to "Needs work", a verdict every transactional send from the domain
+ * shares. Bulk now leaves from a separate registrable domain under a ramp
+ * table, a per-UTC-day counter and a 24h complaint breaker.
+ *
+ * THE LEGACY PATH BELOW IS UNTOUCHED, deliberately. Its drivers are live, and
+ * the membership exclusion this path applies is the BULK audience's rule (a
+ * paying STUC member is routed to the Warm lane, spec section 3), not a new
+ * rule for every newsletter send. Narrowing the legacy audience without a
+ * mandate would be a silent cohort change nobody asked for.
+ */
+const BULK_CONFIGURATION_SET = 'rrm-bulk';
+const BULK_REPLY_TO = 'administrator@rrmacademy.org';
+/** Spec section 5.1: "Pacing is 1 to 2 s between SES calls." */
+const BULK_PACING_MS = 1500;
+
+/**
+ * The bulk audience. Two correlated NOT EXISTS clauses implement spec section
+ * 3's routing rule verbatim: a recipient is WARM when wix_subscription.status
+ * is 'active' for that email (COLLATE NOCASE) OR a contact carries the
+ * stuc:member tag, and everything else is BULK. There is no per-send override.
+ *
+ * membership_state is deliberately NOT consulted. Migration 034 added it as a
+ * LAPSE-REASON code: it is NULL for every active member and is populated only
+ * when a membership leaves active, and 034's own header names `status` as "the
+ * gating field other code depends on". Gating on membership_state would route
+ * every lapsed member to the Warm lane, which is the opposite of what it means.
+ *
+ * Three exclusions ride along: consent state (spec section 5.5), the ELV and
+ * wix suppression tags the legacy path already applies, and everyone this
+ * campaign key has already been sent to. The last is a LIKE on the source
+ * prefix rather than a join on sendId, so a campaign that spans several runs,
+ * several sendIds and several days still never mails the same person twice.
+ */
+const BULK_AUDIENCE_SQL = `
+  SELECT s.id, s.email, s.name, s.segments, s.source,
+         s.last_clicked_at, s.last_opened_at, s.last_sent_at, s.subscribed_at
+    FROM newsletter_subscriber s
+   WHERE s.status = 'active'
+     AND NOT EXISTS (
+       SELECT 1 FROM wix_subscription ws
+        WHERE ws.email = s.email COLLATE NOCASE AND ws.status = 'active'
+     )
+     AND NOT EXISTS (
+       SELECT 1 FROM contact c
+        JOIN contact_tag ct ON ct.contact_id = c.id
+       WHERE c.email = s.email COLLATE NOCASE AND ct.tag = 'stuc:member'
+     )
+     AND NOT EXISTS (
+       SELECT 1 FROM contact c2
+        JOIN contact_tag ct2 ON ct2.contact_id = c2.id
+       WHERE c2.email = s.email COLLATE NOCASE
+         AND ct2.tag IN ('elv:spamtrap', 'elv:email_disabled', 'elv:disposable',
+                         'elv:invalid', 'elv:dead_server', 'elv:invalid_mx',
+                         'wix:unsubscribed', 'email:bounced', 'wix:bounced', 'email:complained')
+     )
+     AND NOT EXISTS (
+       SELECT 1 FROM email_log el
+        WHERE el.email = s.email COLLATE NOCASE
+          AND el.event = 'send'
+          AND el.source LIKE ?
+     )
+   ORDER BY ${COHORT_ORDER_SQL}
+`;
+
+/**
+ * The TRUE size of the eligible audience, independent of any page LIMIT.
+ *
+ * runBulkSend fetches only `remaining + 1` cohort rows so it can answer
+ * `done` without a second query, but that means `cohort.length` is capped at
+ * the day's remaining allowance and cannot be used to report how many
+ * recipients are left for tomorrow -- a 12-person audience with a
+ * remaining-allowance of 5 would fetch 6 rows and, read naively, report a
+ * deferral of 1 instead of 7. This wraps BULK_AUDIENCE_SQL (same WHERE, same
+ * single sourcePrefix bind, ORDER BY is harmless inside a COUNT subquery) with
+ * no LIMIT, so `deferred` is computed from the real audience count minus what
+ * this call actually processed, not from how many rows happened to be fetched.
+ */
+const BULK_AUDIENCE_COUNT_SQL = `SELECT COUNT(*) AS c FROM (${BULK_AUDIENCE_SQL}) t`;
+
+/**
+ * The trailing-24h numbers the breaker judges.
+ *
+ * TWO TIME BOUNDS, TWO FORMATS, ON PURPOSE. email_log.created_at is written by
+ * datetime('now') -- 'YYYY-MM-DD HH:MM:SS' -- while email_event.ts is the SES
+ * event's own ISO 8601 stamp, 'YYYY-MM-DDTHH:MM:SS.sssZ'. The two differ at
+ * offset 10, ' ' against 'T', and ' ' sorts BELOW 'T', so a single
+ * datetime('now','-24 hours') bound compared against ts would silently admit
+ * events from outside the window. The sends bound is computed in SQL; the
+ * events bound is a JS ISO string bound as a parameter.
+ *
+ * Complaints and bounces are scoped to the campaign by joining email_event to
+ * email_log on ses_message_id, NOT by email_event.source: the mail package
+ * sends no SES message tags, so events.js has nothing to put in that column and
+ * it is NULL for every row this path produces.
+ */
+async function bulkTrailingCounts(db, sourcePrefix, nowIso) {
+  const since = new Date(Date.parse(nowIso) - 24 * 3600 * 1000).toISOString();
+  // The bound below is compared against email_log.created_at (datetime('now'));
+  // `since` is compared against email_event.ts (SES ISO 8601). One bound for
+  // both would widen the complaint window. See the comment above the function.
+  const sentRow = await db.prepare(
+    // arise-ignore datetime-format-mismatch -- the mismatch is the design, see above
+    "SELECT COUNT(*) AS c FROM email_log WHERE event = 'send' AND source LIKE ? AND created_at >= datetime('now','-24 hours')"
+  ).bind(sourcePrefix).first();
+  const events = (await db.prepare(
+    `SELECT ev.event_type AS event_type, ev.bounce_type AS bounce_type, COUNT(*) AS c
+       FROM email_event ev
+       JOIN email_log el ON el.ses_message_id = ev.ses_message_id
+      WHERE el.source LIKE ?
+        AND el.event = 'send'
+        AND ev.event_type IN ('complaint','bounce')
+        AND ev.ts >= ?
+      GROUP BY ev.event_type, ev.bounce_type`
+  ).bind(sourcePrefix, since).all()).results;
+  let complained = 0;
+  let bounced = 0;
+  for (const row of events) {
+    if (row.event_type === 'complaint') complained += row.c;
+    // Spec section 5.1: a HARD bounce is bounce_type = 'Permanent'. A transient
+    // bounce is a mailbox full, not a bad address, and counting it would pause
+    // a healthy run on somebody's holiday autoresponder.
+    else if (row.bounce_type === 'Permanent') bounced += row.c;
+  }
+  return { sent: sentRow?.c || 0, complained, bounced };
+}
+
+/**
+ * Write the pause and answer it. A pause is a STOP, not a retry: nothing in the
+ * request path clears it, and the next run refuses until a human has read the
+ * reason and passed --resume.
+ */
+async function pauseRun(db, { campaign, reason, detail, status, sendId, sent }) {
+  await db.prepare(
+    'INSERT INTO send_paused (id, campaign, reason, detail) VALUES (?, ?, ?, ?)'
+  ).bind(crypto.randomUUID(), campaign, reason, detail ? String(detail).slice(0, 500) : null).run();
+  return Response.json({
+    ok: false, error: 'bulk_paused', reason, detail: detail ? String(detail).slice(0, 300) : null,
+    campaign, sendId: sendId || null, sent: sent || 0,
+  }, { status });
+}
+
+/** The one open-pause question, asked before anything else touches a row. */
+async function openPause(db, campaign) {
+  return db.prepare(
+    'SELECT id, reason, detail, paused_at FROM send_paused WHERE campaign = ? AND resumed_at IS NULL ORDER BY paused_at DESC LIMIT 1'
+  ).bind(campaign).first();
+}
 
 export async function onRequestPost({ request, env, waitUntil }) {
   // Admin auth
@@ -146,6 +305,12 @@ export async function onRequestPost({ request, env, waitUntil }) {
   }
 
   const db = env.DB;
+
+  // The bulk lane is its own path. Everything below this line is the legacy
+  // newsletter send, unchanged; see the BULK LANE comment above for why.
+  if (body.lane === 'bulk') {
+    return runBulkSend({ env, db, body, waitUntil });
+  }
 
   // Effective filters used for this invocation's query/send logic. On the
   // first call these are just the validated request values; on a resume call
@@ -432,4 +597,267 @@ export async function onRequestPost({ request, env, waitUntil }) {
     sent: sentCount,
     remaining,
   });
+}
+
+/**
+ * THE BULK RUN. One call sends at most the day's remaining allowance, engaged
+ * recipients first, and leaves the rest for tomorrow.
+ *
+ * The order of the gates is the design, not an accident. Every gate that can
+ * refuse the WHOLE run runs before the first recipient row is read, so a
+ * refusal leaves no newsletter_event rows, no last_sent_at stamps and no
+ * newsletter_send row behind:
+ *
+ *   1. shape        -- campaign key, no cursor, dry-run default
+ *   2. BULK_FROM    -- 503 rather than a silent fall back to the apex sender
+ *   3. lane         -- preflightLane(), certain and total if it refuses
+ *   4. open pause   -- a human has stopped this campaign
+ *   5. first send   -- the domain has never sent and --first-send was not passed
+ *   6. breaker      -- the trailing 24h is already over the line
+ *   7. allowance    -- the day is spent
+ *
+ * Only then does it read the cohort.
+ */
+async function runBulkSend({ env, db, body, waitUntil }) {
+  const nowIso = new Date().toISOString();
+  const { subject, body: htmlBody, campaign, segments, send: doSend, firstSend, resume, cursor } = body;
+
+  // 1. Shape.
+  if (!isCampaignKey(campaign)) {
+    return Response.json({
+      ok: false, error: 'bulk_campaign_required',
+      detail: 'campaign must be a lowercase slug of 2 to 64 characters, e.g. "sept-letter"',
+    }, { status: 400 });
+  }
+  if (cursor) {
+    return Response.json({
+      ok: false, error: 'bulk_cursor_unsupported',
+      detail: 'the bulk lane orders by engagement, which an id cursor cannot paginate; resume by calling again, already-sent recipients are excluded',
+    }, { status: 400 });
+  }
+  const dryRun = doSend !== true;
+  const source = `newsletter/bulk/${campaign}`;
+  const sourcePrefix = `${source}%`;
+
+  // 2. The sender, or nothing.
+  if (!env.BULK_FROM) {
+    return Response.json({ ok: false, error: 'bulk_from_not_configured' }, { status: 503 });
+  }
+
+  // 3. The lane. Certain and total if it refuses, so it is asked here.
+  let lane;
+  try {
+    lane = preflightLane({ from: env.BULK_FROM, category: 'newsletter' });
+  } catch (err) {
+    if (err instanceof LaneRefused) {
+      log(env, waitUntil, 'newsletter', 'bulk_lane_refused', 'error', `${err.reason}: ${err.detail}`.slice(0, 200), 0, 400);
+      return Response.json({
+        ok: false, error: 'bulk_lane_refused', reason: err.reason,
+        detail: String(err.detail).slice(0, 300),
+      }, { status: 400 });
+    }
+    throw err;
+  }
+
+  // 4. A pause a human has not cleared.
+  const paused = await openPause(db, campaign);
+  if (paused && resume !== true) {
+    return Response.json({
+      ok: false, error: 'bulk_paused', reason: paused.reason,
+      detail: paused.detail, pausedAt: paused.paused_at, campaign,
+      action: 'read the reason, then re-run with --resume',
+    }, { status: 423 });
+  }
+  if (paused && resume === true && !dryRun) {
+    await db.prepare("UPDATE send_paused SET resumed_at = datetime('now') WHERE id = ?").bind(paused.id).run();
+  }
+
+  // 5. The first-send gate. The row's ABSENCE means the domain has never sent,
+  //    and --first-send creates it in its own write BEFORE any recipient is
+  //    touched, so nothing ever computes a day count against a missing fact.
+  let state = await db.prepare('SELECT first_send_at, day, sent_today FROM mail_domain_state WHERE domain = ?')
+    .bind(BULK_DOMAIN).first();
+  if ((!state || !state.first_send_at) && firstSend === true && !dryRun) {
+    await db.prepare(
+      `INSERT INTO mail_domain_state (domain, first_send_at, day, sent_today)
+       VALUES (?, ?, ?, 0)
+       ON CONFLICT(domain) DO UPDATE SET first_send_at = COALESCE(mail_domain_state.first_send_at, excluded.first_send_at)`
+    ).bind(BULK_DOMAIN, nowIso, nowIso.slice(0, 10)).run();
+    state = await db.prepare('SELECT first_send_at, day, sent_today FROM mail_domain_state WHERE domain = ?')
+      .bind(BULK_DOMAIN).first();
+  }
+  const allowance = remainingAllowance(state, nowIso);
+  if (!allowance.ok) {
+    return Response.json({
+      ok: false, error: 'bulk_first_send_required', reason: allowance.reason, campaign,
+      action: 'pass --first-send once, after reading the ramp table; it records the domain first-send and runs under the day 1 cap',
+    }, { status: 409 });
+  }
+
+  // 6. The breaker, on the trailing 24h, before a single new message.
+  const counts = await bulkTrailingCounts(db, sourcePrefix, nowIso);
+  const verdict = breakerVerdict(counts);
+  if (verdict.tripped && !dryRun) {
+    log(env, waitUntil, 'newsletter', 'bulk_breaker_tripped', 'error', `${verdict.reason}: ${verdict.detail}`.slice(0, 200), 0, 423);
+    return pauseRun(db, { campaign, reason: verdict.reason, detail: verdict.detail, status: 423, sent: 0 });
+  }
+
+  // 7. The day's allowance.
+  if (allowance.remaining === 0 && !dryRun) {
+    return Response.json({
+      ok: false, error: 'bulk_cap_exhausted', campaign,
+      cap: allowance.cap, ageDays: allowance.ageDays, sentToday: allowance.sentToday, remainingToday: 0,
+    }, { status: 429 });
+  }
+
+  // The cohort, already ordered and already excluding everyone this campaign
+  // has reached. Fetch one allowance's worth plus one, so `done` can be
+  // answered without a second query.
+  //
+  // `cohort.length` is capped at fetchLimit, so it CANNOT stand in for the
+  // true remaining audience: `deferred` must come from a separate COUNT(*)
+  // (BULK_AUDIENCE_COUNT_SQL) over the same WHERE with no LIMIT, or a
+  // 12-person audience with a remaining-allowance of 5 reports a deferral of
+  // 1 instead of 7 (found reviewing this task against its own test). The
+  // count does not account for a `segments` filter, which is applied in JS
+  // below on the fetched page only -- a segment-filtered run's `deferred`
+  // is therefore an upper bound on the truly-deferred count, not exact.
+  const fetchLimit = Math.max(1, allowance.remaining) + 1;
+  let cohort = (await db.prepare(`${BULK_AUDIENCE_SQL} LIMIT ?`).bind(sourcePrefix, fetchLimit).all()).results;
+  const audienceCount = (await db.prepare(BULK_AUDIENCE_COUNT_SQL).bind(sourcePrefix).first()).c;
+  if (segments && segments.length > 0) {
+    cohort = cohort.filter((sub) => {
+      const subSegments = parseSegments(sub.segments);
+      return segments.some((seg) => subSegments.includes(seg));
+    });
+  }
+  const { send: page } = truncateToAllowance(cohort, allowance.remaining);
+  const segmentLabel = segments && segments.length > 0 ? segments.join('-') : null;
+
+  if (dryRun) {
+    const deferred = Math.max(0, audienceCount - page.length);
+    return Response.json({
+      ok: true, dryRun: true, done: false, lane, campaign,
+      audience: audienceCount, wouldSend: page.length, deferred,
+      cap: allowance.cap, ageDays: allowance.ageDays, sentToday: allowance.sentToday,
+      remainingToday: allowance.remaining, sent: 0,
+      feedbackId: feedbackId(campaign, segmentLabel),
+      head: page.slice(0, 5).map((s) => s.email),
+      breaker: verdict.detail,
+      pausedNow: verdict.tripped ? verdict.reason : null,
+    }, { status: 200 });
+  }
+
+  // A real run gets a newsletter_send row, so the existing surfaces that read
+  // that table see a bulk campaign the same way they see any other send.
+  const sendId = crypto.randomUUID();
+  await db.prepare(
+    "INSERT INTO newsletter_send (id, subject, html, segment_filter, status, total_recipients, commentary_slug) VALUES (?, ?, ?, ?, 'sending', ?, ?)"
+  ).bind(sendId, subject, htmlBody, segmentLabel ? JSON.stringify(segments) : null, page.length, null).run();
+
+  let sentCount = 0;
+  for (const sub of page) {
+    // Re-check status immediately before SES so a concurrent unsubscribe during
+    // a paced run is honoured, exactly as the legacy path does.
+    // One read per recipient is the concurrent-unsubscribe guard the legacy path
+    // also runs, and this loop is paced at BULK_PACING_MS between SES calls, so
+    // a D1 round-trip is not the cost that matters here.
+    // arise-ignore query-in-loop -- deliberate per-recipient guard, see above
+    const stillActive = await db.prepare('SELECT status FROM newsletter_subscriber WHERE id = ?').bind(sub.id).first();
+    if (stillActive?.status !== 'active') {
+      log(env, waitUntil, 'newsletter', 'bulk_skipped_status_changed', 'warn', sub.email, 0, 200);
+      continue;
+    }
+
+    const { html, text } = await renderEmail({
+      body: htmlBody, sendId, subscriberId: sub.id, email: sub.email, secret: env.NEWSLETTER_SECRET,
+    });
+    const headers = {
+      ...(await unsubscribeHeaders(sub.email, env.NEWSLETTER_SECRET)),
+      'Feedback-ID': feedbackId(campaign, segmentLabel),
+    };
+
+    // Send intent first, same rule as the legacy path: on an SES failure a
+    // false-positive sent beats a double-send.
+    await db.batch([
+      db.prepare("INSERT INTO newsletter_event (send_id, subscriber_id, event) VALUES (?, ?, 'sent')").bind(sendId, sub.id),
+      db.prepare("UPDATE newsletter_subscriber SET last_sent_at = datetime('now') WHERE id = ?").bind(sub.id),
+    ]);
+
+    let messageId;
+    try {
+      // No `log` block: this path writes its own email_log row below, in the
+      // SAME batch as the day counter, because insertEmailLog() swallows D1
+      // failures by design and the counter must not be able to fall behind.
+      ({ messageId } = await sendRawEmail(env, {
+        from: env.BULK_FROM,
+        to: sub.email,
+        subject,
+        html,
+        text,
+        headers,
+        replyTo: BULK_REPLY_TO,
+        configurationSet: BULK_CONFIGURATION_SET,
+      }));
+    } catch (err) {
+      log(env, waitUntil, 'newsletter', 'bulk_send_error', 'error', String(err?.message || 'unknown').slice(0, 200), 0, 0);
+      await logEmailFailure(db, {
+        email: sub.email, category: 'newsletter', source, subject, detail: err?.message,
+      });
+      continue;
+    }
+
+    // The log row and the day counter, atomically. A failure here PAUSES the
+    // run: the message is already delivered and is never reclassified, but the
+    // cap has lost its only source of truth for the day, so sending stops.
+    try {
+      await db.batch([
+        db.prepare(
+          "INSERT INTO email_log (event, email, category, source, subject, send_id, ses_message_id, lane) VALUES ('send', ?, 'newsletter', ?, ?, ?, ?, ?)"
+        ).bind(sub.email.toLowerCase(), source, subject, sendId, messageId, lane),
+        db.prepare(
+          `UPDATE mail_domain_state
+              SET sent_today = CASE WHEN day = ? THEN sent_today + 1 ELSE 1 END,
+                  day = ?,
+                  updated_at = datetime('now')
+            WHERE domain = ?`
+        ).bind(nowIso.slice(0, 10), nowIso.slice(0, 10), BULK_DOMAIN),
+      ]);
+    } catch (err) {
+      sentCount++;
+      log(env, waitUntil, 'newsletter', 'bulk_log_write_failed', 'error', String(err?.message || 'unknown').slice(0, 200), 0, 500);
+      // arise-ignore query-in-loop -- not per-iteration: this catch runs at most once, and the next statement returns out of the loop
+      await db.prepare("UPDATE newsletter_send SET sent_count = sent_count + ?, status = 'failed' WHERE id = ?")
+        .bind(sentCount, sendId).run();
+      return pauseRun(db, {
+        campaign, reason: PAUSE_LOG_WRITE_FAILED, detail: err?.message, status: 500, sendId, sent: sentCount,
+      });
+    }
+
+    sentCount++;
+    if (sentCount < page.length) await new Promise((r) => setTimeout(r, BULK_PACING_MS));
+  }
+
+  // deferred is recomputed here against the true audience count, not the
+  // fetch-limited cohort -- see the comment above the cohort fetch. It uses
+  // sentCount (what this run actually got through, skips and failures
+  // excluded) rather than page.length, so a skip/failure correctly leaves
+  // that recipient counted as still-eligible for the next run.
+  const deferred = Math.max(0, audienceCount - sentCount);
+  const done = deferred === 0 && sentCount >= page.length;
+  await db.prepare(
+    `UPDATE newsletter_send SET sent_count = sent_count + ?, status = ?, sent_at = CASE WHEN ? = 1 THEN datetime('now') ELSE sent_at END WHERE id = ?`
+  ).bind(sentCount, done ? 'sent' : 'sending', done ? 1 : 0, sendId).run();
+
+  const after = remainingAllowance(
+    await db.prepare('SELECT first_send_at, day, sent_today FROM mail_domain_state WHERE domain = ?').bind(BULK_DOMAIN).first(),
+    nowIso,
+  );
+  log(env, waitUntil, 'newsletter', 'bulk_send_page', 'ok', `${campaign}: ${sentCount} sent, ${deferred} deferred`, 0, 200);
+
+  return Response.json({
+    ok: true, dryRun: false, done, lane, campaign, sendId,
+    sent: sentCount, deferred,
+    cap: after.cap, ageDays: after.ageDays, sentToday: after.sentToday, remainingToday: after.remaining,
+  }, { status: 200 });
 }
