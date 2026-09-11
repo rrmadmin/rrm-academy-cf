@@ -6,7 +6,7 @@
  * globalThis.fetch. That combination is what makes the assertions below mean
  * what their names say: the membership exclusion is a correlated subquery with
  * a COLLATE NOCASE comparison, the cohort order is an ORDER BY, and the
- * already-sent guard is a LIKE against email_log.source -- none of which a
+ * already-sent guard is an exact match against email_log.source -- none of which a
  * substring-matching mock can decide.
  *
  * The load-bearing one is the first. A lane refusal must leave NOTHING behind:

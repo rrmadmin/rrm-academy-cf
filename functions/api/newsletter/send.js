@@ -129,7 +129,7 @@ const BULK_PACING_MS = 1500;
  * pause, the allowance and the trailing-24h breaker before it touches a
  * recipient, so a pause or a spent day stops the loop at the next call rather
  * than at the end of the page. There is no cursor: already-sent recipients are
- * excluded by the LIKE on the campaign source prefix, so each call advances on
+ * excluded by the exact match on the campaign source, so each call advances on
  * its own.
  */
 const BULK_PAGE_SIZE = 50;
@@ -138,7 +138,7 @@ const BULK_PAGE_SIZE = 50;
  * THE CAMPAIGN LEASE, in seconds.
  *
  * Two --send runs of the same campaign started a minute apart both read the
- * same head of the cohort: the already-sent guard is a LIKE against
+ * same head of the cohort: the already-sent guard is an exact match against
  * email_log.source, and a recipient is only in that table AFTER their message
  * has been accepted by SES, so everything the first run has not reached yet is
  * still eligible for the second. Nothing bounded the overlap, and the pacing

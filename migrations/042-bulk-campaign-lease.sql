@@ -3,7 +3,7 @@
 --
 -- WHY
 -- Two --send runs of the same bulk campaign, started a minute apart, both read
--- the same head of the cohort. The already-sent guard is a LIKE against
+-- the same head of the cohort. The already-sent guard is an exact match against
 -- email_log.source and a recipient only lands there AFTER SES accepts their
 -- message, so everything the first run has not reached yet is still eligible
 -- for the second. The pacing (1.5 s per message, 50 per page) makes that window

@@ -222,7 +222,7 @@ export function feedbackId(campaign, segment) {
 
 /**
  * A campaign key is a lowercase slug of 2 to 64 characters. It is used as a
- * LIKE prefix against email_log.source and as a Feedback-ID part, so it is
+ * exact match against email_log.source and as a Feedback-ID part, so it is
  * validated at the boundary rather than sanitised silently: a caller that
  * mistypes a campaign must be told, not quietly given a different cohort's
  * already-sent set.
