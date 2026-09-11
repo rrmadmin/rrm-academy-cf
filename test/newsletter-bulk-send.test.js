@@ -532,6 +532,10 @@ describe('the circuit breaker', () => {
     assert.equal(ses.calls.length, before, 'not one more message went out');
     const paused = await db.prepare("SELECT reason FROM send_paused WHERE campaign = 'sept-letter' AND resumed_at IS NULL").first();
     assert.equal(paused.reason, 'complaint-rate');
+    assert.equal(
+      body.action, 'read the reason, then re-run with --resume',
+      'the breaker 423 carries the same action hint the open-pause 423 does (I7)',
+    );
   });
 
   it('does not pause on a tiny sample, which is the deliberate fail-open', async () => {
@@ -900,5 +904,73 @@ describe('the campaign lease (I6)', () => {
       "SELECT COUNT(*) AS c FROM newsletter_send WHERE campaign = 'sept-letter' AND status = 'sending'"
     ).first();
     assert.equal(held.c, 0, 'no page leaves the lease held after it ends');
+  });
+});
+
+describe('a deploy that outruns its own migrations (I8)', () => {
+  it('a "no such table" on the mail_domain_state read is a named 503, not an unhandled 500', async () => {
+    const db = bulkMailD1();
+    await seedSubscriber(db, { id: 'sub-1', email: 'a@example.com' });
+    const realPrepare = db.prepare.bind(db);
+    db.prepare = (sql) => {
+      if (sql.includes('FROM mail_domain_state WHERE domain')) {
+        return { bind: () => ({ async first() { throw new Error('D1_ERROR: no such table: mail_domain_state'); } }) };
+      }
+      return realPrepare(sql);
+    };
+    let status;
+    let body;
+    try {
+      ({ status, body } = await call(db, { ...BODY, send: true }));
+    } finally {
+      db.prepare = realPrepare;
+    }
+    assert.equal(status, 503);
+    assert.equal(body.error, 'bulk_schema_not_migrated');
+    assert.match(body.detail, /041-043/);
+  });
+
+  it('a "no such column" on the campaign lease SELECT is also a named 503', async () => {
+    const db = bulkMailD1();
+    await seedSubscriber(db, { id: 'sub-1', email: 'a@example.com' });
+    await seedDomainState(db, { first_send_at: YEAR_AGO, day: TODAY });
+    const realPrepare = db.prepare.bind(db);
+    db.prepare = (sql) => {
+      if (sql.includes("FROM newsletter_send") && sql.includes("status = 'sending'")) {
+        return { bind: () => ({ async first() { throw new Error('D1_ERROR: no such column: campaign'); } }) };
+      }
+      return realPrepare(sql);
+    };
+    let status;
+    let body;
+    try {
+      ({ status, body } = await call(db, { ...BODY, send: true }));
+    } finally {
+      db.prepare = realPrepare;
+    }
+    assert.equal(status, 503);
+    assert.equal(body.error, 'bulk_schema_not_migrated');
+  });
+
+  it('an unrelated D1 error is NOT swallowed into a 503 -- it still propagates', async () => {
+    const db = bulkMailD1();
+    await seedSubscriber(db, { id: 'sub-1', email: 'a@example.com' });
+    const realPrepare = db.prepare.bind(db);
+    db.prepare = (sql) => {
+      if (sql.includes('FROM mail_domain_state WHERE domain')) {
+        return { bind: () => ({ async first() { throw new Error('D1_ERROR: network timeout'); } }) };
+      }
+      return realPrepare(sql);
+    };
+    let threw = null;
+    try {
+      await call(db, { ...BODY, send: true });
+    } catch (err) {
+      threw = err;
+    } finally {
+      db.prepare = realPrepare;
+    }
+    assert.ok(threw, 'a non-schema D1 error is not caught and turned into a 503');
+    assert.match(threw.message, /network timeout/);
   });
 });

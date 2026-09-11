@@ -300,7 +300,7 @@ async function bulkTrailingCounts(db, sourcePrefix, nowIso) {
  * operator reads it and NOT in a response body. `responseDetail` defaults to
  * `detail`, so a caller that does not care says nothing.
  */
-async function pauseRun(db, { campaign, reason, detail, responseDetail, status, sendId, sent }) {
+async function pauseRun(db, { campaign, reason, detail, responseDetail, status, sendId, sent, action }) {
   await db.prepare(
     'INSERT INTO send_paused (id, campaign, reason, detail) VALUES (?, ?, ?, ?)'
   ).bind(crypto.randomUUID(), campaign, reason, detail ? String(detail).slice(0, 500) : null).run();
@@ -308,6 +308,7 @@ async function pauseRun(db, { campaign, reason, detail, responseDetail, status, 
   return Response.json({
     ok: false, error: 'bulk_paused', reason, detail: body ? String(body).slice(0, 300) : null,
     campaign, sendId: sendId || null, sent: sent || 0,
+    ...(action ? { action } : {}),
   }, { status });
 }
 
@@ -317,6 +318,23 @@ async function openPause(db, campaign) {
     'SELECT id, reason, detail, paused_at FROM send_paused WHERE campaign = ? AND resumed_at IS NULL ORDER BY paused_at DESC LIMIT 1'
   ).bind(campaign).first();
 }
+
+/**
+ * A deploy that ships this code before migrations 041-043 are applied to
+ * remote rrm-auth surfaces as an unhandled "no such column" / "no such
+ * table" the moment a read touches mail_domain_state, send_paused or
+ * newsletter_send.campaign -- a 500 with no name for the actual problem.
+ * Wrapping the two reads most likely to hit that ordering mistake (the day's
+ * mail_domain_state row, and the campaign lease's own SELECT) turns it into
+ * a named, actionable 503 instead. Anything else a read can throw is
+ * rethrown -- this is a schema-drift detector, not a catch-all.
+ */
+function isSchemaNotMigratedError(err) {
+  return /no such column|no such table/i.test(err?.message || '');
+}
+const SCHEMA_NOT_MIGRATED_RESPONSE = Object.freeze({
+  ok: false, error: 'bulk_schema_not_migrated', detail: 'apply migrations 041-043 to rrm-auth',
+});
 
 export async function onRequestPost({ request, env, waitUntil }) {
   // Admin auth
@@ -746,8 +764,14 @@ async function runBulkSend({ env, db, body, waitUntil }) {
   // 5. The first-send gate. The row's ABSENCE means the domain has never sent,
   //    and --first-send creates it in its own write BEFORE any recipient is
   //    touched, so nothing ever computes a day count against a missing fact.
-  let state = await db.prepare('SELECT first_send_at, day, sent_today FROM mail_domain_state WHERE domain = ?')
-    .bind(BULK_DOMAIN).first();
+  let state;
+  try {
+    state = await db.prepare('SELECT first_send_at, day, sent_today FROM mail_domain_state WHERE domain = ?')
+      .bind(BULK_DOMAIN).first();
+  } catch (err) {
+    if (!isSchemaNotMigratedError(err)) throw err;
+    return Response.json(SCHEMA_NOT_MIGRATED_RESPONSE, { status: 503 });
+  }
   if ((!state || !state.first_send_at) && firstSend === true && !dryRun) {
     await db.prepare(
       `INSERT INTO mail_domain_state (domain, first_send_at, day, sent_today)
@@ -803,7 +827,10 @@ async function runBulkSend({ env, db, body, waitUntil }) {
   const breakerOverridden = verdict.tripped && resumingBreakerPause;
   if (verdict.tripped && !dryRun && !breakerOverridden) {
     log(env, waitUntil, 'newsletter', 'bulk_breaker_tripped', 'error', `${verdict.reason}: ${verdict.detail}`.slice(0, 200), 0, 423);
-    return pauseRun(db, { campaign, reason: verdict.reason, detail: verdict.detail, status: 423, sent: 0 });
+    return pauseRun(db, {
+      campaign, reason: verdict.reason, detail: verdict.detail, status: 423, sent: 0,
+      action: 'read the reason, then re-run with --resume',
+    });
   }
   if (breakerOverridden) {
     await db.prepare(
@@ -850,11 +877,17 @@ async function runBulkSend({ env, db, body, waitUntil }) {
   //    even though nothing here re-checks its freshness a second time.
   let sendId;
   if (!dryRun) {
-    const existing = await db.prepare(
-      `SELECT id, updated_at FROM newsletter_send
-        WHERE campaign = ? AND status = 'sending' AND updated_at IS NOT NULL
-        ORDER BY updated_at DESC LIMIT 1`
-    ).bind(campaign).first();
+    let existing;
+    try {
+      existing = await db.prepare(
+        `SELECT id, updated_at FROM newsletter_send
+          WHERE campaign = ? AND status = 'sending' AND updated_at IS NOT NULL
+          ORDER BY updated_at DESC LIMIT 1`
+      ).bind(campaign).first();
+    } catch (err) {
+      if (!isSchemaNotMigratedError(err)) throw err;
+      return Response.json(SCHEMA_NOT_MIGRATED_RESPONSE, { status: 503 });
+    }
     // updated_at is datetime('now'), 'YYYY-MM-DD HH:MM:SS' in UTC, which
     // Date.parse only reads as UTC once it is given the ISO shape.
     const ageSecondsOf = (updatedAt) => {

@@ -13,6 +13,14 @@
 #   - each successful send inserted into D1 email_log (house rule), best-effort
 # NOTE: the 2026-07-10 campaign is COMPLETE (41/41). Inputs were moved to Trash;
 # preflight will refuse to run unless a new roster/body is staged deliberately.
+#
+# THE LOCK BELOW IS PER MACHINE, NOT PER CAMPAIGN. `mkdir "$LOCK"` only stops
+# two concurrent runs on the SAME machine from both walking the roster; it is
+# a local filesystem path (/tmp by default), invisible to any other host. The
+# Warm drip is a personal Workspace send (spec section 6) and is meant to run
+# from ONE machine at a time -- if that ever changes, this lock stops being
+# sufficient and needs a shared backstop (e.g. a D1 lease row, the same shape
+# the bulk rail's campaign lease uses in functions/api/newsletter/send.js).
 set -u
 # The paths keep their exact previous values when nothing is set, and are
 # overridable ONLY so test/workspace-drip-cap.test.mjs can drive the cap gate
