@@ -31,6 +31,14 @@
  * `deferred` is reported as "up to N remaining" on a segmented run so an
  * operator watching the log does not read the upper bound as an exact count.
  *
+ * ONE --send AT A TIME PER CAMPAIGN. The endpoint holds a lease on the
+ * campaign while a page is in flight (functions/api/newsletter/send.js,
+ * BULK_LEASE_SECONDS), because two runs of the same campaign started minutes
+ * apart both read the same head of the cohort: a recipient only joins the
+ * already-sent set once SES has accepted their message. A second run is
+ * refused `bulk_run_in_progress` (exit 8) with a retryAfterSeconds. Wait it
+ * out; do not start a second terminal to "go faster".
+ *
  * IT NEVER LOOPS ON A DRY RUN. A dry run reports one page and stops: it does
  * not send, so there is nothing for repeated calls to advance past, and
  * calling again would just describe the same first page.
@@ -42,7 +50,8 @@
  *   4  the run is paused (breaker or log-write-failed); read the reason, then --resume
  *   5  the first-send gate: pass --first-send once
  *   6  the day's cap is exhausted
- *   7  any other refusal from the endpoint
+ *   7  any other refusal from the endpoint, or a transport error mid-loop
+ *   8  another --send run holds this campaign; one at a time
  */
 import { readFileSync } from 'node:fs';
 import { execFileSync } from 'node:child_process';
@@ -134,6 +143,7 @@ const EXIT_FOR_ERROR = {
   bulk_paused: 4,
   bulk_first_send_required: 5,
   bulk_cap_exhausted: 6,
+  bulk_run_in_progress: 8,
 };
 
 export async function main(argv, deps) {
@@ -215,12 +225,29 @@ export async function main(argv, deps) {
   // the CLI keeps calling while the endpoint keeps sending. It stops on
   // `sent === 0` (the exact signal, even on a segmented run where `deferred`
   // is only an upper bound) or on `done: true`, whichever comes first.
+  //
+  // A TRANSPORT ERROR IS NOT A ZERO PAGE. If the fetch itself throws (DNS, a
+  // dropped connection, a Function killed mid-page), the pages that already
+  // succeeded DID send, and the operator's first question is how many. An
+  // unhandled throw would print a stack and lose that count, so the loop
+  // catches, says what got out, and exits 7 like any other refusal.
   let totalSent = 0;
+  let pages = 0;
   for (;;) {
-    const { status, answer } = await call();
+    let status;
+    let answer;
+    try {
+      ({ status, answer } = await call());
+    } catch (err) {
+      error(`TRANSPORT ERROR: ${err?.message || err}`);
+      error(`sent so far: ${totalSent} recipient(s) across ${pages} page(s) before the failure`);
+      error('Re-run with --send when the endpoint answers again; already-sent recipients are excluded.');
+      return 7;
+    }
     const refusedExit = reportAndExitOnRefusal({ status, answer });
     if (refusedExit !== null) return refusedExit;
 
+    pages += 1;
     totalSent += answer.sent || 0;
     log(renderReport({ ...answer, segmented }));
 

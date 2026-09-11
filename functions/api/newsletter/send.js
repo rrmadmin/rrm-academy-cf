@@ -39,7 +39,7 @@ import { log } from '../_log.js';
 import { sendRawEmail, logEmailFailure, preflightLane, LaneRefused } from '../_ses.js';
 import {
   remainingAllowance, truncateToAllowance, breakerVerdict, feedbackId, isCampaignKey,
-  COHORT_ORDER_SQL, BULK_DOMAIN, PAUSE_LOG_WRITE_FAILED,
+  dailyCap, COHORT_ORDER_SQL, BULK_DOMAIN, PAUSE_LOG_WRITE_FAILED,
 } from './_policy.js';
 import { renderEmail } from './_template.js';
 import { unsubscribeHeaders } from './_tracking.js';
@@ -132,6 +132,30 @@ const BULK_PACING_MS = 1500;
  * its own.
  */
 const BULK_PAGE_SIZE = 50;
+
+/**
+ * THE CAMPAIGN LEASE, in seconds.
+ *
+ * Two --send runs of the same campaign started a minute apart both read the
+ * same head of the cohort: the already-sent guard is a LIKE against
+ * email_log.source, and a recipient is only in that table AFTER their message
+ * has been accepted by SES, so everything the first run has not reached yet is
+ * still eligible for the second. Nothing bounded the overlap, and the pacing
+ * (1.5 s per message, 50 per page) makes the window wide rather than
+ * theoretical: two operators, or one operator and a retried terminal, can
+ * deliver the same letter twice to most of a page.
+ *
+ * So a real send holds a lease. Its newsletter_send row carries the campaign
+ * and an updated_at stamped when the page starts, and a second invocation that
+ * finds another row for the same campaign still 'sending' inside this window is
+ * refused 409 rather than racing it. The lease is SHORT on purpose: it must
+ * outlive one paced page (50 x 1.5 s = 75 s) with room to spare, and it must
+ * expire on its own if a Function is killed mid-page, because nothing else
+ * would ever clear it. A page that ends -- done, partial or paused -- stamps a
+ * terminal status, so the caller's own next page is never refused by the page
+ * before it.
+ */
+const BULK_LEASE_SECONDS = 180;
 
 /**
  * The bulk audience. Two correlated NOT EXISTS clauses implement spec section
@@ -713,20 +737,47 @@ async function runBulkSend({ env, db, body, waitUntil }) {
     state = await db.prepare('SELECT first_send_at, day, sent_today FROM mail_domain_state WHERE domain = ?')
       .bind(BULK_DOMAIN).first();
   }
-  const allowance = remainingAllowance(state, nowIso);
-  if (!allowance.ok) {
+  //    A DRY RUN IS NOT A SEND, so the missing row does not refuse it. The very
+  //    first thing an operator does with this rail is ask for a report, and a
+  //    409 with no audience, no cohort head and no cap is the one answer that
+  //    report cannot give: it hides exactly the numbers --first-send is
+  //    supposed to be read against. A dry run with no row is therefore computed
+  //    under the DAY 1 CAP, which is what the real run will get, and says so
+  //    with firstSendRequired plus a note. Only `send: true` is refused.
+  let allowance = remainingAllowance(state, nowIso);
+  const firstSendRequired = !allowance.ok;
+  if (firstSendRequired && !dryRun) {
     return Response.json({
       ok: false, error: 'bulk_first_send_required', reason: allowance.reason, campaign,
       action: 'pass --first-send once, after reading the ramp table; it records the domain first-send and runs under the day 1 cap',
     }, { status: 409 });
   }
+  if (firstSendRequired) {
+    allowance = {
+      ok: true, reason: allowance.reason, ageDays: 1,
+      cap: dailyCap(1), sentToday: 0, remaining: dailyCap(1),
+    };
+  }
 
   // 6. The breaker, on the trailing 24h, before a single new message.
+  //
+  //    --resume SUPPRESSES IT, FOR THIS ONE INVOCATION ONLY. Without that, a
+  //    resume is a loop rather than a decision: the trailing window that
+  //    tripped the breaker still contains the same sends and the same
+  //    complaints, so the run the human just cleared re-trips on the identical
+  //    numbers, writes a second pause and sends nothing. A human who has read
+  //    the reason and passed --resume has overridden this window on purpose.
+  //    Nothing is remembered: the NEXT invocation, resume or not, re-evaluates
+  //    the breaker from scratch, so an override buys one page, never a campaign.
   const counts = await bulkTrailingCounts(db, sourcePrefix, nowIso);
   const verdict = breakerVerdict(counts);
-  if (verdict.tripped && !dryRun) {
+  const breakerOverridden = verdict.tripped && resume === true && !dryRun;
+  if (verdict.tripped && !dryRun && !breakerOverridden) {
     log(env, waitUntil, 'newsletter', 'bulk_breaker_tripped', 'error', `${verdict.reason}: ${verdict.detail}`.slice(0, 200), 0, 423);
     return pauseRun(db, { campaign, reason: verdict.reason, detail: verdict.detail, status: 423, sent: 0 });
+  }
+  if (breakerOverridden) {
+    log(env, waitUntil, 'newsletter', 'bulk_breaker_overridden', 'warn', `${verdict.reason}: ${verdict.detail}`.slice(0, 200), 0, 200);
   }
 
   // 7. The day's allowance.
@@ -735,6 +786,30 @@ async function runBulkSend({ env, db, body, waitUntil }) {
       ok: false, error: 'bulk_cap_exhausted', campaign,
       cap: allowance.cap, ageDays: allowance.ageDays, sentToday: allowance.sentToday, remainingToday: 0,
     }, { status: 429 });
+  }
+
+  // 8. The campaign lease. A real send only: a dry run writes nothing and
+  //    races nothing, so it is never refused and never takes the lease.
+  if (!dryRun) {
+    const holder = await db.prepare(
+      `SELECT id, updated_at FROM newsletter_send
+        WHERE campaign = ? AND status = 'sending' AND updated_at IS NOT NULL
+          AND updated_at >= datetime('now', ?)
+        ORDER BY updated_at DESC LIMIT 1`
+    ).bind(campaign, `-${BULK_LEASE_SECONDS} seconds`).first();
+    if (holder) {
+      // updated_at is datetime('now'), 'YYYY-MM-DD HH:MM:SS' in UTC, which
+      // Date.parse only reads as UTC once it is given the ISO shape.
+      const heldSince = Date.parse(`${String(holder.updated_at).replace(' ', 'T')}Z`);
+      const ageSeconds = Number.isFinite(heldSince)
+        ? Math.floor((Date.parse(nowIso) - heldSince) / 1000)
+        : 0;
+      return Response.json({
+        ok: false, error: 'bulk_run_in_progress', campaign,
+        retryAfterSeconds: Math.max(1, BULK_LEASE_SECONDS - ageSeconds),
+        detail: 'another --send run holds this campaign; run one at a time',
+      }, { status: 409 });
+    }
   }
 
   // The cohort, already ordered and already excluding everyone this campaign
@@ -773,6 +848,10 @@ async function runBulkSend({ env, db, body, waitUntil }) {
       audience: audienceCount, wouldSend: page.length, deferred,
       cap: allowance.cap, ageDays: allowance.ageDays, sentToday: allowance.sentToday,
       remainingToday: allowance.remaining, sent: 0,
+      firstSendRequired,
+      ...(firstSendRequired
+        ? { note: 'rrmacademy.com has never sent: this report is computed under the day 1 cap, and the real send needs --first-send' }
+        : {}),
       feedbackId: feedbackId(campaign, segmentLabel),
       head: page.slice(0, 5).map((s) => s.email),
       breaker: verdict.detail,
@@ -783,9 +862,12 @@ async function runBulkSend({ env, db, body, waitUntil }) {
   // A real run gets a newsletter_send row, so the existing surfaces that read
   // that table see a bulk campaign the same way they see any other send.
   const sendId = crypto.randomUUID();
+  // The INSERT is also the lease stamp: campaign + status 'sending' +
+  // updated_at now. Every page of a run mints its own row, so the stamp is
+  // per page, which is what makes an abandoned page expire rather than wedge.
   await db.prepare(
-    "INSERT INTO newsletter_send (id, subject, html, segment_filter, status, total_recipients, commentary_slug) VALUES (?, ?, ?, ?, 'sending', ?, ?)"
-  ).bind(sendId, subject, htmlBody, segmentLabel ? JSON.stringify(segments) : null, page.length, null).run();
+    "INSERT INTO newsletter_send (id, subject, html, segment_filter, status, total_recipients, commentary_slug, campaign, updated_at) VALUES (?, ?, ?, ?, 'sending', ?, ?, ?, datetime('now'))"
+  ).bind(sendId, subject, htmlBody, segmentLabel ? JSON.stringify(segments) : null, page.length, null, campaign).run();
 
   let sentCount = 0;
   for (const sub of page) {
@@ -911,9 +993,12 @@ async function runBulkSend({ env, db, body, waitUntil }) {
   // that recipient counted as still-eligible for the next run.
   const deferred = Math.max(0, audienceCount - sentCount);
   const done = deferred === 0 && sentCount >= page.length;
+  // 'partial' rather than 'sending' when there is more to do: the status is
+  // what releases the lease, and leaving it 'sending' would have this page
+  // refuse the caller's very next one.
   await db.prepare(
     `UPDATE newsletter_send SET sent_count = sent_count + ?, status = ?, sent_at = CASE WHEN ? = 1 THEN datetime('now') ELSE sent_at END WHERE id = ?`
-  ).bind(sentCount, done ? 'sent' : 'sending', done ? 1 : 0, sendId).run();
+  ).bind(sentCount, done ? 'sent' : 'partial', done ? 1 : 0, sendId).run();
 
   const after = remainingAllowance(
     await db.prepare('SELECT first_send_at, day, sent_today FROM mail_domain_state WHERE domain = ?').bind(BULK_DOMAIN).first(),
@@ -924,6 +1009,7 @@ async function runBulkSend({ env, db, body, waitUntil }) {
   return Response.json({
     ok: true, dryRun: false, done, lane, campaign, sendId,
     sent: sentCount, deferred,
+    ...(breakerOverridden ? { breaker_overridden: verdict.detail } : {}),
     cap: after.cap, ageDays: after.ageDays, sentToday: after.sentToday, remainingToday: after.remaining,
   }, { status: 200 });
 }

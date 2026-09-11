@@ -558,3 +558,161 @@ describe('request validation', () => {
     assert.equal(log.source, 'newsletter/send (newsletter-blast)');
   });
 });
+
+// --- Final fix wave ------------------------------------------------------
+// I3 the first-send gate must not swallow the first dry run, I4 --resume must
+// not re-trip the breaker it just cleared, I6 two concurrent --send runs of one
+// campaign must not both mail the same head of the cohort.
+
+describe('the first-send gate and the dry run (I3)', () => {
+  it('a dry run with NO mail_domain_state row reports under the day 1 cap instead of 409ing', async () => {
+    const db = bulkMailD1();
+    await seedSubscriber(db, { id: 'sub-1', email: 'a@example.com' });
+    await seedSubscriber(db, { id: 'sub-2', email: 'b@example.com' });
+    const before = ses.calls.length;
+    const { status, body } = await call(db, BODY);
+    assert.equal(status, 200, 'the first thing an operator does is ask for the report');
+    assert.equal(body.dryRun, true);
+    assert.equal(body.firstSendRequired, true);
+    assert.equal(body.cap, 200, 'the day 1 cap, which is what the real run will get');
+    assert.equal(body.ageDays, 1);
+    assert.equal(body.remainingToday, 200);
+    assert.equal(body.audience, 2, 'the audience is reported, which is the point of the report');
+    assert.equal(body.wouldSend, 2);
+    assert.equal(body.deferred, 0);
+    assert.deepEqual(body.head, ['a@example.com', 'b@example.com']);
+    assert.match(body.note, /--first-send/);
+    assert.equal(ses.calls.length, before, 'a dry run is still a dry run');
+    const row = await db.prepare("SELECT COUNT(*) AS c FROM mail_domain_state").first();
+    assert.equal(row.c, 0, 'the report does not create the first-send row');
+  });
+
+  it('a real send with no row is still refused 409 until --first-send is passed', async () => {
+    const db = bulkMailD1();
+    await seedSubscriber(db, { id: 'sub-1', email: 'a@example.com' });
+    const { status, body } = await call(db, { ...BODY, send: true });
+    assert.equal(status, 409);
+    assert.equal(body.error, 'bulk_first_send_required');
+    const c = await db.prepare('SELECT COUNT(*) AS c FROM newsletter_event').first();
+    assert.equal(c.c, 0);
+  });
+});
+
+describe('--resume and the breaker (I4)', () => {
+  /** Real trailing rows: sends and complaints the breaker actually reads. */
+  async function seedTrailingWindow(db, { sends, complaints }) {
+    for (let i = 0; i < sends; i++) {
+      await db.prepare(
+        "INSERT INTO email_log (event, email, category, source, ses_message_id) VALUES ('send', ?, 'newsletter', 'newsletter/bulk/sept-letter', ?)"
+      ).bind(`t${i}@example.com`, `tmsg-${i}`).run();
+    }
+    for (let i = 0; i < complaints; i++) {
+      await db.prepare(
+        "INSERT INTO email_event (id, ses_message_id, event_type, email, ts) VALUES (?, ?, 'complaint', ?, ?)"
+      ).bind(`tev-${i}`, `tmsg-${i}`, `t${i}@example.com`, new Date().toISOString()).run();
+    }
+  }
+
+  it('resume sends the page and writes no new pause; the next run without resume re-trips', async () => {
+    const db = bulkMailD1();
+    await seedSubscriber(db, { id: 'sub-x', email: 'next@example.com' });
+    await seedSubscriber(db, { id: 'sub-y', email: 'after@example.com' });
+    await seedDomainState(db, { first_send_at: YEAR_AGO, day: TODAY });
+    await seedTrailingWindow(db, { sends: 1000, complaints: 3 });
+    await db.prepare(
+      "INSERT INTO send_paused (id, campaign, reason, detail) VALUES ('sp-r1','sept-letter','complaint-rate','1000 sent, 3 complaints')"
+    ).run();
+
+    const before = ses.calls.length;
+    const resumed = await call(db, { ...BODY, send: true, resume: true });
+    assert.equal(resumed.status, 200, 'the breaker the human just cleared must not re-trip on the same window');
+    assert.equal(resumed.body.sent, 2);
+    assert.equal(ses.calls.length - before, 2, 'the page actually went out');
+    assert.match(resumed.body.breaker_overridden, /complaints/, 'the override is on the response, not silent');
+    const pauses = await db.prepare('SELECT id, resumed_at FROM send_paused ORDER BY paused_at ASC').all();
+    assert.equal(pauses.results.length, 1, 'no SECOND pause row is written by the resumed run');
+    assert.ok(pauses.results[0].resumed_at, 'the cleared pause is stamped resumed');
+
+    // The override bought one invocation. The next call re-evaluates.
+    await seedSubscriber(db, { id: 'sub-z', email: 'third@example.com' });
+    const again = await call(db, { ...BODY, send: true });
+    assert.equal(again.status, 423);
+    assert.equal(again.body.error, 'bulk_paused');
+    assert.equal(again.body.reason, 'complaint-rate');
+    const after = await db.prepare("SELECT COUNT(*) AS c FROM send_paused WHERE resumed_at IS NULL").first();
+    assert.equal(after.c, 1, 'the re-evaluation writes its own open pause');
+  });
+});
+
+describe('the campaign lease (I6)', () => {
+  async function seedLeaseHolder(db, { campaign = 'sept-letter', status = 'sending', ago = '0 minutes' } = {}) {
+    await db.prepare(
+      `INSERT INTO newsletter_send (id, subject, html, status, total_recipients, campaign, updated_at)
+       VALUES ('ns-lease', 'held', '<p>held</p>', ?, 0, ?, datetime('now', ?))`
+    ).bind(status, campaign, `-${ago}`).run();
+  }
+
+  it('a second --send inside the lease window is refused 409 and sends nothing', async () => {
+    const db = bulkMailD1();
+    await seedSubscriber(db, { id: 'sub-1', email: 'a@example.com' });
+    await seedDomainState(db, { first_send_at: YEAR_AGO, day: TODAY });
+    await seedLeaseHolder(db);
+    const before = ses.calls.length;
+    const { status, body } = await call(db, { ...BODY, send: true });
+    assert.equal(status, 409);
+    assert.equal(body.error, 'bulk_run_in_progress');
+    assert.ok(body.retryAfterSeconds > 0 && body.retryAfterSeconds <= 180);
+    assert.equal(ses.calls.length, before, 'not one duplicate message went out');
+    const c = await db.prepare('SELECT COUNT(*) AS c FROM newsletter_event').first();
+    assert.equal(c.c, 0);
+  });
+
+  it('a lease older than the window has expired, and the run proceeds', async () => {
+    const db = bulkMailD1();
+    await seedSubscriber(db, { id: 'sub-1', email: 'a@example.com' });
+    await seedDomainState(db, { first_send_at: YEAR_AGO, day: TODAY });
+    await seedLeaseHolder(db, { ago: '4 minutes' });
+    const { status, body } = await call(db, { ...BODY, send: true });
+    assert.equal(status, 200);
+    assert.equal(body.sent, 1);
+  });
+
+  it('another campaign is not blocked by this one, and a dry run is never refused', async () => {
+    const db = bulkMailD1();
+    await seedSubscriber(db, { id: 'sub-1', email: 'a@example.com' });
+    await seedDomainState(db, { first_send_at: YEAR_AGO, day: TODAY });
+    await seedLeaseHolder(db);
+    const other = await call(db, { ...BODY, campaign: 'oct-letter', send: true });
+    assert.equal(other.status, 200);
+    const dry = await call(db, BODY);
+    assert.equal(dry.status, 200);
+    assert.equal(dry.body.dryRun, true);
+  });
+
+  it('the caller loop is never refused by its own previous page', async () => {
+    const db = bulkMailD1();
+    for (let i = 0; i < 52; i++) {
+      await seedSubscriber(db, { id: `sub-${String(i).padStart(3, '0')}`, email: `L${i}@example.com` });
+    }
+    await seedDomainState(db, { first_send_at: YEAR_AGO, day: TODAY, sent_today: 0 });
+    const realSetTimeout = globalThis.setTimeout;
+    globalThis.setTimeout = (fn) => realSetTimeout(fn, 0);
+    let first;
+    let second;
+    try {
+      first = await call(db, { ...BODY, send: true });
+      second = await call(db, { ...BODY, send: true });
+    } finally {
+      globalThis.setTimeout = realSetTimeout;
+    }
+    assert.equal(first.body.sent, 50);
+    assert.equal(first.body.done, false);
+    assert.equal(second.status, 200, 'the page before it released the lease when it ended');
+    assert.equal(second.body.sent, 2);
+    assert.equal(second.body.done, true);
+    const held = await db.prepare(
+      "SELECT COUNT(*) AS c FROM newsletter_send WHERE campaign = 'sept-letter' AND status = 'sending'"
+    ).first();
+    assert.equal(held.c, 0, 'no page leaves the lease held after it ends');
+  });
+});

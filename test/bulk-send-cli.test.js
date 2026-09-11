@@ -235,6 +235,43 @@ describe('main', () => {
     assert.equal(posted.length, 1);
   });
 
+  // --- Final fix wave -----------------------------------------------------
+
+  it('a transport error mid-loop names how much got out and exits 7', async () => {
+    const printed = [];
+    const errors = [];
+    let calls = 0;
+    const d = {
+      posted: [],
+      fetch: async (url, init) => {
+        calls += 1;
+        if (calls === 2) throw new TypeError('fetch failed');
+        d.posted.push({ url, body: JSON.parse(init.body) });
+        return new Response(JSON.stringify({ ok: true, dryRun: false, done: false, sent: 50, deferred: 130, cap: 200, ageDays: 5, remainingToday: 150 }), { status: 200, headers: { 'Content-Type': 'application/json' } });
+      },
+      readFile: (p) => FILES[p],
+      secret: () => 'admin-secret',
+      git: () => '0\n',
+      log: (...args) => printed.push(args.join(' ')),
+      error: (...args) => errors.push(args.join(' ')),
+    };
+    const code = await main([...ARGS, '--send'], d);
+    assert.equal(code, 7);
+    assert.equal(calls, 2, 'the throw came from the SECOND page');
+    assert.match(errors.join('\n'), /sent so far: 50 recipient\(s\) across 1 page\(s\)/);
+    assert.match(errors.join('\n'), /fetch failed/);
+  });
+
+  it('reports bulk_run_in_progress as its own exit code, not a generic failure', async () => {
+    const d = deps({ status: 409, files: FILES, answer: { ok: false, error: 'bulk_run_in_progress', retryAfterSeconds: 120, detail: 'another --send run holds this campaign; run one at a time' } });
+    assert.equal(await main([...ARGS, '--send'], d), 8);
+  });
+
+  it('says one --send at a time per campaign, in the header an operator reads', async () => {
+    const src = (await import('node:fs')).readFileSync(new URL('../scripts/bulk-send.mjs', import.meta.url), 'utf8');
+    assert.match(src, /ONE --send AT A TIME PER CAMPAIGN/);
+  });
+
   it('prints deferred as "up to N remaining" on a segmented run', async () => {
     const printed = [];
     const d = {
