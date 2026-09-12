@@ -167,7 +167,7 @@ export async function main(argv, deps) {
   const {
     fetch: doFetch = globalThis.fetch,
     readFile = (p) => readFileSync(p, 'utf8'),
-    secret = () => String(execFileSync('op', ['read', 'op://Automation/RRM Academy Admin API Secret/credential'], { encoding: 'utf8' })).trim(),
+    secret = () => String(execFileSync('op', ['read', 'op://Automation/RRM Academy ADMIN_API_SECRET/credential'], { encoding: 'utf8' })).trim(),
     git = (cmd, args, cwd) => execFileSync(cmd, args, { cwd: cwd || ROOT, encoding: 'utf8' }),
     log = console.log,
     error = console.error,
