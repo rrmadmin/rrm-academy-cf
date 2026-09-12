@@ -64,7 +64,7 @@ Copied verbatim from the spec. Every task's requirements implicitly include this
 | `vendor/mail/lanes.js`, `kit.lock.json` (written by sync, never hand-edited) | The synced copy of the kit change. |
 | `migrations/041-bulk-mail-rail.sql` (create) | `mail_domain_state` + `send_paused` DDL. Root numbered convention, the one rrm-auth migration history. |
 | `scripts/gates/validate-sql-columns.mjs` (modify) | Add the 041 `EXTRA_DDL` entry so the SQL and schema-drift gates compose the two new tables. |
-| `test/_bulk-mail-sqlite.mjs` (create) | A D1-shaped rrm-auth harness that is `SCHEMA_SQL` plus migration 041, mirroring `test/_community-sqlite.mjs`. |
+| `test/_bulk-mail-sqlite.mjs` (create) | A D1-shaped rrm-auth harness that is `SCHEMA_SQL` plus migrations 034 and 041, mirroring `test/_community-sqlite.mjs`. |
 | `functions/api/newsletter/_policy.js` (create) | Pure, I/O-free warm-up policy: ramp table, allowance arithmetic, truncation, first-send gate, breaker, cohort comparator, Feedback-ID, campaign-key validation, pause reasons. |
 | `test/newsletter-policy.test.js` (create) | Unit tests for every `_policy.js` export, plus the breaker and cap mutation proofs. |
 | `functions/api/newsletter/_tracking.js` (modify) | `unsubscribeHeaders()` appends the `mailto:` alternative to the same `List-Unsubscribe` header. |
@@ -114,7 +114,23 @@ Nothing else in this phase may start until this task is green in both repos. `re
   - `EXEMPTIONS['newsletter-blast'].from` is `['hello@rrmacademy.org', 'newsletter@mail.rrmacademy.org', 'newsletter@rrmacademy.com']`.
   - Vendored at `rrm-academy-cf/vendor/mail/lanes.js`, sha-locked in `kit.lock.json` under `packages.mail` at version `1.6.0`.
 
-- [ ] **Step 1: Write the failing tests in the kit**
+- [ ] **Step 1: Clone freshness gate, and branches off origin/main in both repos**
+
+This task lands work in two repos: console-kit (Steps 2 to 7) and rrm-academy-cf (Steps 8 to 11, the sync + its commit). Both are gated fresh and both get their own branch before anything else happens.
+
+```bash
+cd ~/iCode/projects/console-kit
+git fetch origin && [ "$(git rev-list --count HEAD..origin/main)" = "0" ] || { echo "console-kit clone behind origin/main, rebase first"; exit 1; }
+git switch -c bulk-mail-rail-task-0 origin/main
+
+cd ~/iCode/projects/rrm-academy-cf
+git fetch origin && [ "$(git rev-list --count HEAD..origin/main)" = "0" ] || { echo "rrm-academy-cf clone behind origin/main, rebase first"; exit 1; }
+git switch -c bulk-mail-rail-task-0-sync origin/main
+```
+
+Expected: both freshness checks print nothing and exit 0; `git switch -c` reports each new branch checked out, tracking `origin/main`. Steps 2 to 7 land on `bulk-mail-rail-task-0` in console-kit; Steps 8 to 11 land on `bulk-mail-rail-task-0-sync` in rrm-academy-cf.
+
+- [ ] **Step 2: Write the failing tests in the kit**
 
 Append to `~/iCode/projects/console-kit/test/mail-package.test.js`:
 
@@ -170,7 +186,7 @@ test('rrmacademy.com is an addressable SES domain for rrma, and only for rrma', 
 
 The fourth test uses a dynamic import inside a non-async callback; change its signature to `async () => {` when you paste it.
 
-- [ ] **Step 2: Run the kit suite and watch it fail**
+- [ ] **Step 3: Run the kit suite and watch it fail**
 
 ```bash
 cd ~/iCode/projects/console-kit && node --test test/mail-package.test.js
@@ -178,7 +194,7 @@ cd ~/iCode/projects/console-kit && node --test test/mail-package.test.js
 
 Expected: FAIL. The first test fails with `LaneRefused: exemption-sender-not-allowed: exemption "newsletter-blast" covers hello@rrmacademy.org and newsletter@mail.rrmacademy.org, not newsletter@rrmacademy.com`; the fourth fails on the `deepEqual` of `SES_SENDER_DOMAINS.rrma`. The second and third pass already.
 
-- [ ] **Step 3: Implement the three rule changes in `kit/packages/mail/lanes.js`**
+- [ ] **Step 4: Implement the three rule changes in `kit/packages/mail/lanes.js`**
 
 Replace the `SES_SENDER_DOMAINS` block:
 
@@ -229,7 +245,7 @@ Replace the hardcoded sender check inside `resolveLane`'s granted-exemption bran
       return 'ses_rrm';
 ```
 
-- [ ] **Step 4: Run the whole kit suite and watch it pass**
+- [ ] **Step 5: Run the whole kit suite and watch it pass**
 
 ```bash
 cd ~/iCode/projects/console-kit && node --test test/*.test.js
@@ -237,7 +253,7 @@ cd ~/iCode/projects/console-kit && node --test test/*.test.js
 
 Expected: PASS, 0 failing. `test/packages-class.test.js` may now report a manifest sha mismatch for `mail/lanes.js`; that is Step 5's job. If it does, note the failure and proceed.
 
-- [ ] **Step 5: Bump the package version and regenerate the manifest shas**
+- [ ] **Step 6: Bump the package version and regenerate the manifest shas**
 
 Edit `kit/manifest.json`, in `packages` -> the entry whose `name` is `mail`, change `"version": "1.5.0"` to `"version": "1.6.0"`. Then:
 
@@ -247,7 +263,7 @@ cd ~/iCode/projects/console-kit && node bin/console-kit hash && node --test test
 
 Expected: `hash` rewrites `kit/manifest.json`'s `sha256` values; the suite is PASS, 0 failing.
 
-- [ ] **Step 6: Commit the kit change**
+- [ ] **Step 7: Commit the kit change**
 
 ```bash
 cd ~/iCode/projects/console-kit
@@ -277,9 +293,10 @@ Co-Authored-By: Claude Opus 5 (1M context) <noreply@anthropic.com>
 MSG
 git add kit/packages/mail/lanes.js kit/manifest.json test/mail-package.test.js
 git commit -F /tmp/ck-commit.txt
+git push origin bulk-mail-rail-task-0
 ```
 
-- [ ] **Step 7: Dry-run the sync into rrm-academy-cf and read the plan**
+- [ ] **Step 8: Dry-run the sync into rrm-academy-cf and read the plan**
 
 ```bash
 cd ~/iCode/projects/console-kit && node bin/console-kit sync ~/iCode/projects/rrm-academy-cf
@@ -287,7 +304,7 @@ cd ~/iCode/projects/console-kit && node bin/console-kit sync ~/iCode/projects/rr
 
 Expected: an UPDATE line for `vendor/mail/lanes.js` and nothing else, then `(dry run; pass --apply to write)`. If any other file appears in the plan, STOP and read why before applying.
 
-- [ ] **Step 8: Apply the sync**
+- [ ] **Step 9: Apply the sync**
 
 ```bash
 cd ~/iCode/projects/console-kit && node bin/console-kit sync ~/iCode/projects/rrm-academy-cf --apply
@@ -296,7 +313,7 @@ cd ~/iCode/projects/rrm-academy-cf && node --test test/kit-lock.test.js test/_ma
 
 Expected: the sync writes `vendor/mail/lanes.js` plus `kit.lock.json`; the three test files are PASS, 0 failing.
 
-- [ ] **Step 9: Prove the vendored copy admits the bulk From**
+- [ ] **Step 10: Prove the vendored copy admits the bulk From**
 
 ```bash
 cd ~/iCode/projects/rrm-academy-cf && node -e "
@@ -308,7 +325,7 @@ import('./vendor/mail/index.js').then(({ resolveLane }) => {
 
 Expected: prints `ses_rrm`.
 
-- [ ] **Step 10: Commit the sync in rrm-academy-cf**
+- [ ] **Step 11: Commit the sync in rrm-academy-cf**
 
 ```bash
 cd ~/iCode/projects/rrm-academy-cf
@@ -327,6 +344,7 @@ Co-Authored-By: Claude Opus 5 (1M context) <noreply@anthropic.com>
 MSG
 git add vendor/mail/lanes.js kit.lock.json
 git commit -F /tmp/rac-commit.txt
+git push origin bulk-mail-rail-task-0-sync
 ```
 
 ---
@@ -354,6 +372,7 @@ An operator task. It produces no repository code; it produces the AWS and DNS fa
 - [ ] **Step 1: Export the AWS and Cloudflare credentials into this shell**
 
 ```bash
+source ~/.zshrc
 export AWS_ACCESS_KEY_ID=$(op item get "RRM AWS - IAM Access Key (rrm-ses-sender)" --vault Automation --fields "access key id" --reveal)
 export AWS_SECRET_ACCESS_KEY=$(op item get "RRM AWS - IAM Access Key (rrm-ses-sender)" --vault Automation --fields "secret access key" --reveal)
 export AWS_DEFAULT_REGION=us-east-1
@@ -386,15 +405,17 @@ Expected: three tokens, tab separated. Each becomes a record `<token>._domainkey
 - [ ] **Step 4: Publish the three DKIM CNAMEs**
 
 ```bash
+DNS_ID_FILE=~/.superpowers-bulk-mail-dns-ids.txt
 for T in $(aws sesv2 get-email-identity --email-identity rrmacademy.com --query 'DkimAttributes.Tokens' --output text); do
-  curl -sS -X POST "https://api.cloudflare.com/client/v4/zones/$CF_ZONE_ID/dns_records" \
+  RESP=$(curl -sS -X POST "https://api.cloudflare.com/client/v4/zones/$CF_ZONE_ID/dns_records" \
     -H "Authorization: Bearer $CLOUDFLARE_API_TOKEN" -H "Content-Type: application/json" \
-    --data "{\"type\":\"CNAME\",\"name\":\"${T}._domainkey\",\"content\":\"${T}.dkim.amazonses.com\",\"ttl\":300,\"proxied\":false}" \
-    | python3 -c 'import sys,json; d=json.load(sys.stdin); print(d["success"], d.get("errors"))'
+    --data "{\"type\":\"CNAME\",\"name\":\"${T}._domainkey\",\"content\":\"${T}.dkim.amazonses.com\",\"ttl\":300,\"proxied\":false}")
+  echo "$RESP" | python3 -c 'import sys,json; d=json.load(sys.stdin); print(d["success"], d.get("errors"))'
+  echo "$RESP" | python3 -c 'import sys,json; d=json.load(sys.stdin); rid=d.get("result",{}).get("id"); print(rid) if rid else None' >> "$DNS_ID_FILE"
 done
 ```
 
-Expected: three lines reading `True []`. A `81058` error means the record already exists; that is fine.
+Expected: three lines reading `True []`. A `81058` error means the record already exists; that is fine. Every created record's Cloudflare id is appended to `$DNS_ID_FILE`, one per line -- this is what the Revert subsection at the end of this task deletes by ID.
 
 - [ ] **Step 5: Set the custom MAIL FROM domain**
 
@@ -412,35 +433,42 @@ Expected: an empty JSON object `{}`.
 The MX host is region specific; for `us-east-1` it is `feedback-smtp.us-east-1.amazonses.com`.
 
 ```bash
+DNS_ID_FILE=~/.superpowers-bulk-mail-dns-ids.txt
 curl -sS -X POST "https://api.cloudflare.com/client/v4/zones/$CF_ZONE_ID/dns_records" \
   -H "Authorization: Bearer $CLOUDFLARE_API_TOKEN" -H "Content-Type: application/json" \
-  --data '{"type":"MX","name":"bounce","content":"feedback-smtp.us-east-1.amazonses.com","priority":10,"ttl":300,"proxied":false}'
+  --data '{"type":"MX","name":"bounce","content":"feedback-smtp.us-east-1.amazonses.com","priority":10,"ttl":300,"proxied":false}' \
+  | tee /dev/stderr | python3 -c 'import sys,json; d=json.load(sys.stdin); rid=d.get("result",{}).get("id"); print(rid) if rid else None' >> "$DNS_ID_FILE"
 curl -sS -X POST "https://api.cloudflare.com/client/v4/zones/$CF_ZONE_ID/dns_records" \
   -H "Authorization: Bearer $CLOUDFLARE_API_TOKEN" -H "Content-Type: application/json" \
-  --data '{"type":"TXT","name":"bounce","content":"v=spf1 include:amazonses.com -all","ttl":300,"proxied":false}'
+  --data '{"type":"TXT","name":"bounce","content":"v=spf1 include:amazonses.com -all","ttl":300,"proxied":false}' \
+  | tee /dev/stderr | python3 -c 'import sys,json; d=json.load(sys.stdin); rid=d.get("result",{}).get("id"); print(rid) if rid else None' >> "$DNS_ID_FILE"
 ```
 
-Expected: two responses with `"success": true`.
+Expected: two responses with `"success": true`. Both records' Cloudflare ids are appended to `$DNS_ID_FILE`.
 
 - [ ] **Step 7: Publish the apex SPF for rrmacademy.com**
 
 ```bash
+DNS_ID_FILE=~/.superpowers-bulk-mail-dns-ids.txt
 curl -sS -X POST "https://api.cloudflare.com/client/v4/zones/$CF_ZONE_ID/dns_records" \
   -H "Authorization: Bearer $CLOUDFLARE_API_TOKEN" -H "Content-Type: application/json" \
-  --data '{"type":"TXT","name":"@","content":"v=spf1 include:amazonses.com -all","ttl":300,"proxied":false}'
+  --data '{"type":"TXT","name":"@","content":"v=spf1 include:amazonses.com -all","ttl":300,"proxied":false}' \
+  | tee /dev/stderr | python3 -c 'import sys,json; d=json.load(sys.stdin); rid=d.get("result",{}).get("id"); print(rid) if rid else None' >> "$DNS_ID_FILE"
 ```
 
-Expected: `"success": true`. If the zone already carries an apex SPF TXT, edit that record instead of adding a second; two SPF records on one name is a permerror.
+Expected: `"success": true`, and the new record's id appended to `$DNS_ID_FILE`. If the zone already carries an apex SPF TXT, edit that record instead of adding a second (and do not record an id for an edit of a pre-existing record -- the revert must not delete a record this task did not create); two SPF records on one name is a permerror.
 
 - [ ] **Step 8: Publish the warm-up DMARC record at p=none**
 
 ```bash
+DNS_ID_FILE=~/.superpowers-bulk-mail-dns-ids.txt
 curl -sS -X POST "https://api.cloudflare.com/client/v4/zones/$CF_ZONE_ID/dns_records" \
   -H "Authorization: Bearer $CLOUDFLARE_API_TOKEN" -H "Content-Type: application/json" \
-  --data '{"type":"TXT","name":"_dmarc","content":"v=DMARC1; p=none; rua=mailto:dmarc@rrmacademy.org; fo=1; adkim=r; aspf=r","ttl":300,"proxied":false}'
+  --data '{"type":"TXT","name":"_dmarc","content":"v=DMARC1; p=none; rua=mailto:dmarc@rrmacademy.org; fo=1; adkim=r; aspf=r","ttl":300,"proxied":false}' \
+  | tee /dev/stderr | python3 -c 'import sys,json; d=json.load(sys.stdin); rid=d.get("result",{}).get("id"); print(rid) if rid else None' >> "$DNS_ID_FILE"
 ```
 
-Expected: `"success": true`. `p=quarantine` is phase 3, after two weeks of aligned-only reports; do not set it now.
+Expected: `"success": true`, and the new record's id appended to `$DNS_ID_FILE`. `p=quarantine` is phase 3, after two weeks of aligned-only reports; do not set it now.
 
 - [ ] **Step 9: PROOF GATE -- DNS and DKIM verification**
 
@@ -454,7 +482,34 @@ aws sesv2 get-email-identity --email-identity rrmacademy.com \
   --query '{dkim:DkimAttributes.Status,verified:VerifiedForSendingStatus,mailfrom:MailFromAttributes.MailFromDomainStatus}'
 ```
 
-Expected: the SPF and DMARC strings print; the MX prints `10 feedback-smtp.us-east-1.amazonses.com.`; the last command prints `{"dkim": "SUCCESS", "verified": true, "mailfrom": "SUCCESS"}`. DKIM can take up to 72 hours; re-run until `SUCCESS`. Do not proceed past Step 10 with `dkim` at `PENDING`.
+Expected: the SPF and DMARC strings print; the MX prints `10 feedback-smtp.us-east-1.amazonses.com.`; the last command prints `{"dkim": "SUCCESS", "verified": true, "mailfrom": "SUCCESS"}`.
+
+DKIM can take up to 72 hours, but the spec's own words never say wait indefinitely -- poll on a bound: every 30 minutes, up to 48 hours (96 checks). On timeout, write a sentinel carrying the last-seen status, append a BLOCKED line to the ledger, and stop the task rather than looping forever:
+
+```bash
+LEDGER=~/iCode/projects/rrm-academy-cf/.superpowers/sdd/2026-09-11-bulk-mail-rail-phase-1/progress.md
+SENTINEL=~/iCode/projects/rrm-academy-cf/.superpowers/sdd/2026-09-11-bulk-mail-rail-phase-1/task-1-dkim-pending.sentinel
+DEADLINE=$(( $(date +%s) + 48*3600 ))
+while true; do
+  STATUS_JSON=$(aws sesv2 get-email-identity --email-identity rrmacademy.com \
+    --query '{dkim:DkimAttributes.Status,verified:VerifiedForSendingStatus,mailfrom:MailFromAttributes.MailFromDomainStatus}')
+  DKIM=$(echo "$STATUS_JSON" | python3 -c 'import sys,json; print(json.load(sys.stdin)["dkim"])')
+  echo "$(date -u +%FT%TZ) dkim=$DKIM"
+  if [ "$DKIM" = "SUCCESS" ]; then
+    echo "DKIM verified."
+    break
+  fi
+  if [ "$(date +%s)" -ge "$DEADLINE" ]; then
+    echo "$STATUS_JSON" > "$SENTINEL"
+    echo "$(date -u +%FT%TZ) Task 1: BLOCKED dkim pending after 48h" >> "$LEDGER"
+    echo "Task 1: BLOCKED dkim pending after 48h. Sentinel written: $SENTINEL"
+    exit 1
+  fi
+  sleep 1800
+done
+```
+
+Do not proceed past Step 10 with `dkim` at `PENDING`; if the loop above exits 1, the task's status is BLOCKED and Step 10 onward does not run until a human resolves DKIM and re-runs from here.
 
 - [ ] **Step 10: Create the `rrm-bulk` configuration set**
 
@@ -542,14 +597,18 @@ curl -sS -o /dev/null -w '%{http_code}\n' -X POST "https://rrmacademy.org/api/em
 
 Expected: the first prints `401` (the secret is set, so the endpoint is no longer 503, and an absent secret is unauthorized). The second prints `401` as well, because the SNS signature is missing. A `503` on either means the secret did not reach production; redeploy the Pages project and retry.
 
-- [ ] **Step 17: Re-drive the SNS confirmation**
+- [ ] **Step 17: Re-drive the SNS confirmation, and capture the subscription ARN**
 
 ```bash
 aws sns list-subscriptions-by-topic --topic-arn "$SES_TOPIC_ARN" \
   --query 'Subscriptions[?Protocol==`https`].{arn:SubscriptionArn,endpoint:Endpoint}'
+export SES_SUBSCRIPTION_ARN=$(aws sns list-subscriptions-by-topic --topic-arn "$SES_TOPIC_ARN" \
+  --query 'Subscriptions[?Protocol==`https`].SubscriptionArn | [0]' --output text)
+echo "subscription: $SES_SUBSCRIPTION_ARN"
+echo "$(date -u +%FT%TZ) SNS subscription confirmed: $SES_SUBSCRIPTION_ARN" >> ~/iCode/.run-log/bulk-mail/wiring.log
 ```
 
-Expected: the subscription whose endpoint carries our path shows a real ARN, not `PendingConfirmation`. If it still reads `PendingConfirmation`, delete it and re-run Step 14; the endpoint auto-confirms a signed `SubscriptionConfirmation` whose `SubscribeURL` is on `.amazonaws.com`.
+Expected: the subscription whose endpoint carries our path shows a real ARN, not `PendingConfirmation`; `SES_SUBSCRIPTION_ARN` holds that same ARN (this is the value the Revert subsection at the end of this task unsubscribes). If it still reads `PendingConfirmation`, delete it and re-run Step 14; the endpoint auto-confirms a signed `SubscriptionConfirmation` whose `SubscribeURL` is on `.amazonaws.com`.
 
 - [ ] **Step 18: PROOF GATE -- register rrmacademy.com in Google Postmaster Tools**
 
@@ -561,14 +620,16 @@ Postmaster Tools has no provisioning API; registration is a dashboard action. In
 4. Publish it:
 
 ```bash
+DNS_ID_FILE=~/.superpowers-bulk-mail-dns-ids.txt
 curl -sS -X POST "https://api.cloudflare.com/client/v4/zones/$CF_ZONE_ID/dns_records" \
   -H "Authorization: Bearer $CLOUDFLARE_API_TOKEN" -H "Content-Type: application/json" \
-  --data '{"type":"TXT","name":"@","content":"google-site-verification=<PASTE THE VALUE FROM STEP 3>","ttl":300,"proxied":false}'
+  --data '{"type":"TXT","name":"@","content":"google-site-verification=<PASTE THE VALUE FROM STEP 3>","ttl":300,"proxied":false}' \
+  | tee /dev/stderr | python3 -c 'import sys,json; d=json.load(sys.stdin); rid=d.get("result",{}).get("id"); print(rid) if rid else None' >> "$DNS_ID_FILE"
 ```
 
 5. Back in Postmaster Tools, click **Verify**.
 
-Expected: the domain list shows BOTH `rrmacademy.org` and `rrmacademy.com` as verified. The dashboards stay empty until real volume arrives in phase 2; that is expected, not a failure.
+Expected: the domain list shows BOTH `rrmacademy.org` and `rrmacademy.com` as verified. The dashboards stay empty until real volume arrives in phase 2; that is expected, not a failure. The new record's id is appended to `$DNS_ID_FILE`.
 
 - [ ] **Step 19: Record the wiring facts**
 
@@ -583,6 +644,43 @@ cat ~/iCode/.run-log/bulk-mail/wiring.log
 ```
 
 Expected: five lines. There is nothing to commit in this task; the run log is deliberately outside any repository because it holds operational timestamps, not code.
+
+### Revert
+
+Everything this task creates is scoped to `rrmacademy.com` and nothing here ever touches `rrmacademy.org`: the Cloudflare calls throughout the task all run against `$CF_ZONE_ID`, which Step 1 resolves by filtering the zones list on `name=rrmacademy.com` exclusively, and the revert below deletes DNS records only by the ids that same zone-scoped filter produced -- it never queries or deletes by name, so it cannot reach a `rrmacademy.org` record even by accident.
+
+```bash
+# 1. SES: delete the domain identity and the configuration set.
+aws sesv2 delete-email-identity --email-identity rrmacademy.com
+aws sesv2 delete-configuration-set --configuration-set-name rrm-bulk
+
+# 2. SNS: unsubscribe the events endpoint. The ARN is the one Step 17 captured
+#    into $SES_SUBSCRIPTION_ARN (and logged to ~/iCode/.run-log/bulk-mail/wiring.log)
+#    after the subscription moved off PendingConfirmation.
+aws sns unsubscribe --subscription-arn "$SES_SUBSCRIPTION_ARN"
+
+# 3. Cloudflare DNS: delete every record this task created, by id, scoped to
+#    the rrmacademy.com zone Step 1 resolved. Steps 4, 6, 7, 8 and 18 each
+#    appended the id of every record they created to this file as they went;
+#    nothing here is looked up by name, so an edit to a PRE-EXISTING record
+#    (the apex-SPF caveat in Step 7) is correctly absent from it and correctly
+#    left untouched.
+DNS_ID_FILE=~/.superpowers-bulk-mail-dns-ids.txt
+if [ -f "$DNS_ID_FILE" ]; then
+  while read -r RID; do
+    [ -z "$RID" ] && continue
+    curl -sS -X DELETE "https://api.cloudflare.com/client/v4/zones/$CF_ZONE_ID/dns_records/$RID" \
+      -H "Authorization: Bearer $CLOUDFLARE_API_TOKEN" \
+      | python3 -c 'import sys,json; d=json.load(sys.stdin); print(d["success"], d.get("errors"))'
+  done < "$DNS_ID_FILE"
+fi
+
+# 4. Google Postmaster Tools has no delete API. In Comet, signed in as
+#    administrator@rrmacademy.org: open https://postmaster.google.com/managedomains,
+#    open the rrmacademy.com row's domain menu, click Remove.
+```
+
+Expected: `delete-email-identity` and `delete-configuration-set` each answer with an empty JSON object; `sns unsubscribe` answers with an empty JSON object; every DNS DELETE prints `True []`; Postmaster Tools no longer lists `rrmacademy.com`. `rrmacademy.org`'s SES identity, configuration sets, DNS records and Postmaster registration are untouched throughout, because nothing above ever names or queries that zone or domain.
 
 ---
 
@@ -768,6 +866,15 @@ Create `test/_bulk-mail-sqlite.mjs`:
  * test/_community-sqlite.mjs, whose action_area tables have the same problem for
  * the same reason.
  *
+ * Also composed: root migrations/034-membership-state.sql. It is a separate,
+ * earlier root migration (wix_subscription.membership_state), not part of the
+ * bulk rail's own DDL, but Task 6's bulk-send tests seed a lapsed member with
+ * that column (spec section 3: "membership_state is a lapse REASON, never a
+ * status", so a lapsed member must still be IN the bulk audience) and this
+ * harness is the one every bulk-path test loads. Without it here, that seed
+ * INSERT throws "no such column: membership_state" before the assertion under
+ * test ever runs.
+ *
  * Load the plain harness and every statement in functions/api/newsletter/send.js's
  * bulk path fails to PREPARE with "no such table: mail_domain_state". Under
  * test/_helpers.js mockDB the same statements would "succeed" against canned
@@ -775,10 +882,10 @@ Create `test/_bulk-mail-sqlite.mjs`:
  *
  * WHAT THIS FAKE CANNOT DISTINGUISH (read before trusting a green run)
  * -------------------------------------------------------------------
- *  1. Whether live rrm-auth matches migration 041. This reads the file; it
- *     cannot query Cloudflare. `npm run gates:schema-drift` is what compares the
- *     composed mirror to live, in both directions, once the EXTRA_DDL entry in
- *     scripts/gates/validate-sql-columns.mjs is in place.
+ *  1. Whether live rrm-auth matches migrations 034 and 041. This reads the
+ *     files; it cannot query Cloudflare. `npm run gates:schema-drift` is what
+ *     compares the composed mirror to live, in both directions, once the
+ *     EXTRA_DDL entry in scripts/gates/validate-sql-columns.mjs is in place.
  *  2. Everything test/_d1-sqlite.mjs already lists: D1-vs-SQLite engine
  *     differences, the ~100KB statement cap, real concurrency, and every
  *     non-database service (SES, SNS, KV).
@@ -786,10 +893,16 @@ Create `test/_bulk-mail-sqlite.mjs`:
 import { readFileSync } from 'node:fs';
 import { sqliteD1, SCHEMA_SQL } from './_d1-sqlite.mjs';
 
-/** Root-migrations files, in application order, that define the bulk rail. */
-export const BULK_MAIL_MIGRATIONS = ['041-bulk-mail-rail.sql'];
+/**
+ * Root-migrations files, in application (and numeric) order, composed onto
+ * schema.sql for the bulk rail's test harness. 034 is not bulk-rail DDL --
+ * it is the wix_subscription.membership_state column the Task 6 lapsed-member
+ * test depends on -- but it lives in root migrations/ same as 041, and this
+ * harness is what every bulk-path test loads, so it belongs here too.
+ */
+export const BULK_MAIL_MIGRATIONS = ['034-membership-state.sql', '041-bulk-mail-rail.sql'];
 
-/** schema.sql + the replay list + migration 041, in that order. */
+/** schema.sql + the replay list + migrations 034 and 041, in that order. */
 export const BULK_MAIL_SCHEMA_SQL = BULK_MAIL_MIGRATIONS.reduce(
   (sql, name) => sql + '\n' + readFileSync(new URL(`../migrations/${name}`, import.meta.url), 'utf8'),
   SCHEMA_SQL,
@@ -876,9 +989,12 @@ send_paused records a stop with its reason. An open row (resumed_at
 IS NULL) is a stop nothing in the request path can clear; a human
 passes --resume after reading the reason.
 
-Harness: test/_bulk-mail-sqlite.mjs composes schema.sql + 041 the way
-test/_community-sqlite.mjs composes the root action-area migrations,
-because the replay list only reads scripts/migrations/.
+Harness: test/_bulk-mail-sqlite.mjs composes schema.sql + 034 + 041
+the way test/_community-sqlite.mjs composes the root action-area
+migrations, because the replay list only reads scripts/migrations/.
+034 (wix_subscription.membership_state) is included because Task 6's
+lapsed-member test depends on that column and this is the harness
+every bulk-path test loads.
 
 Spec: docs/superpowers/specs/2026-09-10-bulk-mail-rail-design.md sections 5.1, 5.5
 
@@ -2012,7 +2128,7 @@ Three design decisions this task locks in, each because the alternative is worse
   - Tables `mail_domain_state` and `send_paused` (Task 2).
 - Produces:
   - `POST /api/newsletter/send` accepts three new body fields: `lane` (`'bulk'`), `campaign` (a campaign key), `firstSend` (boolean) and `resume` (boolean).
-  - Response on the bulk path: `{ ok, done, sendId, campaign, lane: 'bulk', sent, deferred, remainingToday, cap, ageDays, dryRun }`.
+  - Response on the bulk path: `{ ok, done, sendId, campaign, lane: 'bulk', sent, deferred, remainingToday, cap, ageDays, dryRun }` (a dry run also carries `audience` and `wouldSend`). `deferred` is `audienceCount - sent` (dry run: `audienceCount - wouldSend`), where `audienceCount` is a separate `BULK_AUDIENCE_COUNT_SQL` COUNT(*) over the full eligible audience, not the fetch-limited cohort -- the fetch only pulls `remaining + 1` rows, so `cohort.length` alone cannot report how many recipients are left for tomorrow.
   - Refusal codes the CLI branches on: `bulk_campaign_required`, `bulk_cursor_unsupported`, `bulk_from_not_configured`, `bulk_lane_refused`, `bulk_first_send_required`, `bulk_paused`, `bulk_cap_exhausted`.
   - `email_log` rows with `category = 'newsletter'`, `source = 'newsletter/bulk/<campaign>'`, `event = 'send'`, `ses_message_id` bound.
 
@@ -2025,7 +2141,7 @@ Create `test/newsletter-bulk-send.test.js`:
  * EXECUTED tests for the bulk path of POST /api/newsletter/send.
  *
  * These run the REAL handler against a REAL SQLite engine carrying schema.sql
- * plus migration 041 (test/_bulk-mail-sqlite.mjs), with SES stubbed at
+ * plus migrations 034 and 041 (test/_bulk-mail-sqlite.mjs), with SES stubbed at
  * globalThis.fetch. That combination is what makes the assertions below mean
  * what their names say: the membership exclusion is a correlated subquery with
  * a COLLATE NOCASE comparison, the cohort order is an ORDER BY, and the
@@ -2413,7 +2529,14 @@ describe('request validation', () => {
 
   it('refuses a cursor on the bulk path rather than silently ordering by id', async () => {
     const db = bulkMailD1();
-    const { status, body } = await call(db, { ...BODY, send: true, sendId: '0'.repeat(8), cursor: 'sub-1' });
+    // send.js's pre-existing cursor-format guard (the legacy path's own
+    // /^[0-9a-f-]+$/i check, which runs BEFORE the lane==='bulk' dispatch
+    // because the dispatch line sits immediately after `const db = env.DB;`,
+    // which is itself after that guard) rejects any cursor with non-hex
+    // characters as invalid_cursor before the bulk branch is ever reached.
+    // Use a well-formed hex cursor so the legacy guard lets it through and
+    // the bulk-specific `if (cursor)` check is what actually refuses it.
+    const { status, body } = await call(db, { ...BODY, send: true, sendId: '0'.repeat(8), cursor: 'aaaaaaaa-0000-0000-0000-000000000001' });
     assert.equal(status, 400);
     assert.equal(body.error, 'bulk_cursor_unsupported');
   });
@@ -2556,6 +2679,21 @@ const BULK_AUDIENCE_SQL = `
      )
    ORDER BY ${COHORT_ORDER_SQL}
 `;
+
+/**
+ * The TRUE size of the eligible audience, independent of any page LIMIT.
+ *
+ * runBulkSend fetches only `remaining + 1` cohort rows so it can answer
+ * `done` without a second query, but that means `cohort.length` is capped at
+ * the day's remaining allowance and cannot be used to report how many
+ * recipients are left for tomorrow -- a 12-person audience with a
+ * remaining-allowance of 5 would fetch 6 rows and, read naively, report a
+ * deferral of 1 instead of 7. This wraps BULK_AUDIENCE_SQL (same WHERE, same
+ * single sourcePrefix bind, ORDER BY is harmless inside a COUNT subquery) with
+ * no LIMIT, so `deferred` is computed from the real audience count minus what
+ * this call actually processed, not from how many rows happened to be fetched.
+ */
+const BULK_AUDIENCE_COUNT_SQL = `SELECT COUNT(*) AS c FROM (${BULK_AUDIENCE_SQL}) t`;
 ```
 
 Add these three helpers above `onRequestPost`:
@@ -2755,21 +2893,32 @@ async function runBulkSend({ env, db, body, waitUntil }) {
   // The cohort, already ordered and already excluding everyone this campaign
   // has reached. Fetch one allowance's worth plus one, so `done` can be
   // answered without a second query.
+  //
+  // `cohort.length` is capped at fetchLimit, so it CANNOT stand in for the
+  // true remaining audience: `deferred` must come from a separate COUNT(*)
+  // (BULK_AUDIENCE_COUNT_SQL) over the same WHERE with no LIMIT, or a
+  // 12-person audience with a remaining-allowance of 5 reports a deferral of
+  // 1 instead of 7 (found reviewing this task against its own test). The
+  // count does not account for a `segments` filter, which is applied in JS
+  // below on the fetched page only -- a segment-filtered run's `deferred`
+  // is therefore an upper bound on the truly-deferred count, not exact.
   const fetchLimit = Math.max(1, allowance.remaining) + 1;
   let cohort = (await db.prepare(`${BULK_AUDIENCE_SQL} LIMIT ?`).bind(sourcePrefix, fetchLimit).all()).results;
+  const audienceCount = (await db.prepare(BULK_AUDIENCE_COUNT_SQL).bind(sourcePrefix).first()).c;
   if (segments && segments.length > 0) {
     cohort = cohort.filter((sub) => {
       const subSegments = parseSegments(sub.segments);
       return segments.some((seg) => subSegments.includes(seg));
     });
   }
-  const { send: page, deferred } = truncateToAllowance(cohort, allowance.remaining);
+  const { send: page } = truncateToAllowance(cohort, allowance.remaining);
   const segmentLabel = segments && segments.length > 0 ? segments.join('-') : null;
 
   if (dryRun) {
+    const deferred = Math.max(0, audienceCount - page.length);
     return Response.json({
       ok: true, dryRun: true, done: false, lane, campaign,
-      audience: cohort.length, wouldSend: page.length, deferred,
+      audience: audienceCount, wouldSend: page.length, deferred,
       cap: allowance.cap, ageDays: allowance.ageDays, sentToday: allowance.sentToday,
       remainingToday: allowance.remaining, sent: 0,
       feedbackId: feedbackId(campaign, segmentLabel),
@@ -2864,7 +3013,13 @@ async function runBulkSend({ env, db, body, waitUntil }) {
     if (sentCount < page.length) await new Promise((r) => setTimeout(r, BULK_PACING_MS));
   }
 
-  const done = deferred === 0 && cohort.length <= page.length;
+  // deferred is recomputed here against the true audience count, not the
+  // fetch-limited cohort -- see the comment above the cohort fetch. It uses
+  // sentCount (what this run actually got through, skips and failures
+  // excluded) rather than page.length, so a skip/failure correctly leaves
+  // that recipient counted as still-eligible for the next run.
+  const deferred = Math.max(0, audienceCount - sentCount);
+  const done = deferred === 0 && sentCount >= page.length;
   await db.prepare(
     `UPDATE newsletter_send SET sent_count = sent_count + ?, status = ?, sent_at = CASE WHEN ? = 1 THEN datetime('now') ELSE sent_at END WHERE id = ?`
   ).bind(sentCount, done ? 'sent' : 'sending', done ? 1 : 0, sendId).run();
@@ -3763,7 +3918,16 @@ The Warm lane is a personal Workspace send from a human mailbox, and its cap is 
   - Environment overrides, both read at start: `MAIL_CAP_MAX` (integer, default 300) and `MAIL_CAP_RUN_LOG_DIR` (default `$HOME/iCode/.run-log/mail-cap`).
   - Run-log line format, appended to `<run-log-dir>/send-cap.log`: `<ISO8601 UTC>\t<allowed|refused>\tcount=<n>\tmax=<n>\tfile=<path>\tcmd=<argv0>`.
 
-- [ ] **Step 1: Write the failing test**
+- [ ] **Step 1: Clone freshness gate**
+
+```bash
+cd ~/iCode
+git fetch origin && [ "$(git rev-list --count HEAD..origin/main)" = "0" ] || { echo "clone behind origin/main, rebase first"; exit 1; }
+```
+
+Expected: no output (the count is 0) and the command exits 0. A nonzero count means this clone of `~/iCode` (the `rrm-tools` repo) is behind `origin/main` -- rebase before touching `tools/mail-cap/`, since this task's Step 9 commit pushes straight to `main` and a stale base makes that push a non-fast-forward.
+
+- [ ] **Step 2: Write the failing test**
 
 Create `~/iCode/tools/mail-cap/test/send-cap.test.mjs`:
 
@@ -3886,7 +4050,7 @@ test('MAIL_CAP_MAX lowers the cap but the default is 300 when it is unset', () =
 });
 ```
 
-- [ ] **Step 2: Run it and watch it fail**
+- [ ] **Step 3: Run it and watch it fail**
 
 ```bash
 cd ~/iCode/tools/mail-cap && node --test test/send-cap.test.mjs
@@ -3894,7 +4058,7 @@ cd ~/iCode/tools/mail-cap && node --test test/send-cap.test.mjs
 
 Expected: FAIL, every test, because `send-cap.sh` does not exist yet (`bash: .../send-cap.sh: No such file or directory`, exit 127).
 
-- [ ] **Step 3: Write the wrapper**
+- [ ] **Step 4: Write the wrapper**
 
 Create `~/iCode/tools/mail-cap/send-cap.sh`:
 
@@ -3990,7 +4154,7 @@ exec "$@"
 
 Then `chmod +x ~/iCode/tools/mail-cap/send-cap.sh`.
 
-- [ ] **Step 4: Run the test and watch it pass**
+- [ ] **Step 5: Run the test and watch it pass**
 
 ```bash
 cd ~/iCode/tools/mail-cap && node --test test/send-cap.test.mjs
@@ -3998,7 +4162,7 @@ cd ~/iCode/tools/mail-cap && node --test test/send-cap.test.mjs
 
 Expected: PASS, 9 tests, 0 failing.
 
-- [ ] **Step 5: MUTATION PROOF -- the cap actually caps**
+- [ ] **Step 6: MUTATION PROOF -- the cap actually caps**
 
 Change the comparison in `send-cap.sh` from `-gt` to `-ge`, which is the off-by-one that silently refuses a legitimate 300-name run, then change it to `if false; then` which is the off-by-one that silently allows everything. Run the suite after each:
 
@@ -4008,11 +4172,11 @@ cd ~/iCode/tools/mail-cap && node --test test/send-cap.test.mjs
 
 Expected: with `-ge`, FAIL on `300 recipients pass, and the wrapped command runs` and on `MAIL_CAP_MAX lowers the cap but the default is 300 when it is unset`. With `if false`, FAIL on `301 recipients are refused, and the wrapped command never runs`, `the refusal names the bulk rail`, `CRLF line endings do not change the count` and `blank lines cannot hide a 301st recipient`. Restore `-gt`, re-run, confirm PASS.
 
-- [ ] **Step 6: MUTATION PROOF -- the CR strip actually matters**
+- [ ] **Step 7: MUTATION PROOF -- the CR strip actually matters**
 
 Remove `tr -d '\r' |` from the COUNT line and re-run. Expected: the CRLF tests still pass under GNU and BSD grep, because `[^[:space:]]` treats CR as whitespace. That is the point of running the proof: it shows the strip is belt-and-braces here rather than load-bearing, so nobody later removes the `[^[:space:]]` class believing `tr` is carrying it. Restore the `tr` and record this finding in the README's Counting rules section.
 
-- [ ] **Step 7: Write the README**
+- [ ] **Step 8: Write the README**
 
 Create `~/iCode/tools/mail-cap/README.md`:
 
@@ -4090,25 +4254,12 @@ on Naomi's iMac is NOT removed; the cap is what changes.
     cd ~/iCode/tools/mail-cap && node --test test/send-cap.test.mjs
 ```
 
-- [ ] **Step 8: Prove it on the second Mac**
+- [ ] **Step 9: Commit and push to origin main of rrm-tools**
 
-On the MacBook (and on Naomi's iMac when next reachable):
-
-```bash
-cd ~/iCode && git pull --ff-only
-seq 1 301 | sed 's/$/@example.com/' > /tmp/roster-301.txt
-seq 1 300 | sed 's/$/@example.com/' > /tmp/roster-300.txt
-bash ~/iCode/tools/mail-cap/send-cap.sh /tmp/roster-301.txt echo SENT; echo "exit=$?"
-bash ~/iCode/tools/mail-cap/send-cap.sh /tmp/roster-300.txt echo SENT; echo "exit=$?"
-cat ~/iCode/.run-log/mail-cap/send-cap.log
-```
-
-Expected: the first prints the bulk-rail refusal and `exit=2`; the second prints `SENT` then `exit=0`; the log holds one `refused count=301` line and one `allowed count=300` line. Spec section 10 asks for exactly this on both Macs.
-
-- [ ] **Step 9: Commit**
+The commit is pushed to `origin main` of the `rrm-tools` repo (`~/iCode`) BEFORE the MacBook pulls in the next step -- a pull cannot see a commit that has not been pushed, so this step comes first.
 
 ```bash
-cd ~/iCode
+cd ~/iCode/tools
 cat > /tmp/tools-commit.txt <<'MSG'
 tools/mail-cap: the Warm lane's hard 300 cap, on every machine
 
@@ -4137,9 +4288,27 @@ Spec: rrm-academy-cf docs/superpowers/specs/2026-09-10-bulk-mail-rail-design.md 
 
 Co-Authored-By: Claude Opus 5 (1M context) <noreply@anthropic.com>
 MSG
-git add tools/mail-cap/send-cap.sh tools/mail-cap/README.md tools/mail-cap/test/send-cap.test.mjs
+git add mail-cap/send-cap.sh mail-cap/README.md mail-cap/test/send-cap.test.mjs
 git commit -F /tmp/tools-commit.txt
+git push origin main
 ```
+
+Expected: the commit and push both succeed, and `git log origin/main -1 --oneline` (run from `~/iCode`) shows the new commit on `origin/main`.
+
+- [ ] **Step 10: Prove it on the second Mac**
+
+Run only after Step 9's push has landed on `origin main` of rrm-tools. On the MacBook (and on Naomi's iMac when next reachable):
+
+```bash
+cd ~/iCode && git pull --ff-only
+seq 1 301 | sed 's/$/@example.com/' > /tmp/roster-301.txt
+seq 1 300 | sed 's/$/@example.com/' > /tmp/roster-300.txt
+bash ~/iCode/tools/mail-cap/send-cap.sh /tmp/roster-301.txt echo SENT; echo "exit=$?"
+bash ~/iCode/tools/mail-cap/send-cap.sh /tmp/roster-300.txt echo SENT; echo "exit=$?"
+cat ~/iCode/.run-log/mail-cap/send-cap.log
+```
+
+Expected: the `git pull --ff-only` picks up the commit Step 9 pushed (it fails if Step 9 has not landed yet, which is the point); the first send-cap.sh call prints the bulk-rail refusal and `exit=2`; the second prints `SENT` then `exit=0`; the log holds one `refused count=301` line and one `allowed count=300` line. Spec section 10 asks for exactly this on both Macs.
 
 ---
 
@@ -4160,7 +4329,17 @@ One task, in `~/iCode/projects/rrm-observatory`. Daily. It reads three things an
 - Produces: a default-exported daemon object with `name: 'bulk-mail-health'`, `domain: 'Infra/Deploy'`, `cadence: '20 12 * * *'`, `alertSink: ['digest', 'email']`, `alertSeverity: 'fail'`, and `run(env)` returning `{ recordsRead, recordsWritten, status: 'ok'|'warn'|'fail', shortReason, action? }`.
 - New Worker secrets it reads, all optional and all warn-skipping when absent: `POSTMASTER_CLIENT_ID`, `POSTMASTER_CLIENT_SECRET`, `POSTMASTER_REFRESH_TOKEN`.
 
-- [ ] **Step 1: Write the failing test**
+- [ ] **Step 1: Clone freshness gate, and a branch off origin/main**
+
+```bash
+cd ~/iCode/projects/rrm-observatory
+git fetch origin && [ "$(git rev-list --count HEAD..origin/main)" = "0" ] || { echo "clone behind origin/main, rebase first"; exit 1; }
+git switch -c bulk-mail-health-daemon origin/main
+```
+
+Expected: the freshness check prints nothing and exits 0 (a nonzero count means this clone is behind `origin/main` -- rebase before starting); `git switch -c` reports the new branch `bulk-mail-health-daemon` checked out, tracking `origin/main`. The rest of this task's work and its Step 11 commit land on this branch.
+
+- [ ] **Step 2: Write the failing test**
 
 Create `~/iCode/projects/rrm-observatory/tests/bulk-mail-health.test.mjs`:
 
@@ -4355,7 +4534,7 @@ test('the registry entry is shaped the way the fleet validator demands', async (
 });
 ```
 
-- [ ] **Step 2: Run it and watch it fail**
+- [ ] **Step 3: Run it and watch it fail**
 
 ```bash
 cd ~/iCode/projects/rrm-observatory && node --test tests/bulk-mail-health.test.mjs
@@ -4363,7 +4542,7 @@ cd ~/iCode/projects/rrm-observatory && node --test tests/bulk-mail-health.test.m
 
 Expected: FAIL with `Cannot find module '../src/daemons/bulk-mail-health.js'`.
 
-- [ ] **Step 3: Write the daemon**
+- [ ] **Step 4: Write the daemon**
 
 Create `~/iCode/projects/rrm-observatory/src/daemons/bulk-mail-health.js`:
 
@@ -4608,7 +4787,7 @@ export default {
 };
 ```
 
-- [ ] **Step 4: Run the test and watch it pass**
+- [ ] **Step 5: Run the test and watch it pass**
 
 ```bash
 cd ~/iCode/projects/rrm-observatory && node --test tests/bulk-mail-health.test.mjs
@@ -4616,7 +4795,7 @@ cd ~/iCode/projects/rrm-observatory && node --test tests/bulk-mail-health.test.m
 
 Expected: PASS, 10 tests, 0 failing.
 
-- [ ] **Step 5: Register the daemon**
+- [ ] **Step 6: Register the daemon**
 
 In `src/daemons/_manifest.js`, add the import beside the other Infra/Deploy imports:
 
@@ -4633,7 +4812,7 @@ import bulkMailHealth from './bulk-mail-health.js';
 
 and add `bulkMailHealth,` to the `REGISTRY` array, next to `offsiteBackupFreshness,`.
 
-- [ ] **Step 6: Add the spec registry row**
+- [ ] **Step 7: Add the spec registry row**
 
 In `docs/superpowers/specs/2026-05-20-daemon-fleet-spec.md`, append after the `fsp-ci-proof-freshness` row:
 
@@ -4641,7 +4820,7 @@ In `docs/superpowers/specs/2026-05-20-daemon-fleet-spec.md`, append after the `f
 | bulk-mail-health | Infra/Deploy | The daily reading on the bulk mail rail (rrmacademy.com): trailing-24h complaint and bounce rates for the rrm-bulk configuration set, counted out of email_event joined to email_log on ses_message_id, plus any open send_paused row, SES EnforcementStatus, and the two Postmaster domains' own spam-rate rows. Backstop for the hours when the in-request breaker refuses to judge a sub-50-send sample | `20 12 * * *` | D1 rrm-auth (email_log, email_event, send_paused), SES v2 GetAccount, Google Postmaster Tools API | open send_paused row / complaint rate >= 0.2% / hard bounce rate >= 2% / Postmaster spam rate >= 0.3% on either domain / SES enforcement not HEALTHY (fail), SES or Postmaster unreadable or uncredentialed (warn, refuses to judge) | n/a (read-only) | digest + email, armed at birth | rrm-observatory | NEW |
 ```
 
-- [ ] **Step 7: Run the fleet gates**
+- [ ] **Step 8: Run the fleet gates**
 
 ```bash
 cd ~/iCode/projects/rrm-observatory
@@ -4650,7 +4829,7 @@ node scripts/wave2-scaffold-checks.mjs && node tools/check-manifest-validates.mj
 
 Expected: all three gates exit 0, the manifest validator prints the new daemon count, the parity gate matches spec rows to REGISTRY names, and `npm test` is green.
 
-- [ ] **Step 8: Mint the Postmaster credential and bind it**
+- [ ] **Step 9: Mint the Postmaster credential and bind it**
 
 ```bash
 cd ~/iCode/projects/rrm-observatory
@@ -4666,10 +4845,12 @@ op read 'op://Automation/RRM Postmaster Tools OAuth/refresh token'  | npx wrangl
 
 Expected: three `Success!` lines. Until they are bound the daemon WARNS rather than reporting ok, which is the intended behaviour and is tested.
 
-- [ ] **Step 9: Deploy and force one tick**
+- [ ] **Step 10: Record the prior deployment id, deploy, and force one tick**
 
 ```bash
 cd ~/iCode/projects/rrm-observatory
+CLOUDFLARE_API_TOKEN=$(op read 'op://Automation/CF - Worker Deploy - account/credential') \
+   CLOUDFLARE_ACCOUNT_ID=ecf2c5bc8b5ebd634bcb587b3890910a npx wrangler deployments list | head -5
 node scripts/wave2-scaffold-checks.mjs && node tools/check-manifest-validates.mjs && node tools/check-spec-manifest-parity.mjs \
   && CLOUDFLARE_API_TOKEN=$(op read 'op://Automation/CF - Worker Deploy - account/credential') \
      CLOUDFLARE_ACCOUNT_ID=ecf2c5bc8b5ebd634bcb587b3890910a npx wrangler deploy
@@ -4679,9 +4860,9 @@ curl -sS "https://rrm-observatory.administrator-cloudflare.workers.dev/api/daemo
 bash scripts/wave1-smoke.sh
 ```
 
-Expected: the deploy succeeds after the three gates; the forced tick answers with `"status": "ok"` and a `shortReason` reading `0 bulk sends in the trailing 24h` (nothing has been sent yet, which is correct at this point in phase 1); `wave1-smoke.sh` reports 0 failures with its assertion count bumped by the new daemon.
+Expected: `wrangler deployments list` names the deployment id live BEFORE this deploy -- write it down, it is what `wrangler rollback <id>` in the Revert subsection below reverts to; the deploy succeeds after the three gates; the forced tick answers with `"status": "ok"` and a `shortReason` reading `0 bulk sends in the trailing 24h` (nothing has been sent yet, which is correct at this point in phase 1); `wave1-smoke.sh` reports 0 failures with its assertion count bumped by the new daemon.
 
-- [ ] **Step 10: Commit**
+- [ ] **Step 11: Commit**
 
 ```bash
 cd ~/iCode/projects/rrm-observatory
@@ -4720,7 +4901,22 @@ Co-Authored-By: Claude Opus 5 (1M context) <noreply@anthropic.com>
 MSG
 git add src/daemons/bulk-mail-health.js src/daemons/_manifest.js docs/superpowers/specs/2026-05-20-daemon-fleet-spec.md tests/bulk-mail-health.test.mjs
 git commit -F /tmp/obs-commit.txt
+git push origin bulk-mail-health-daemon
 ```
+
+### Reconciliation with the existing wave4 SES daemon
+
+`src/daemons/wave4/ses-bounce-complaint.js` already runs daily (`5 12 * * *`) against the account-wide SES `GetSendStatistics`, alerting at bounce >5% or complaint >0.1%. It is complementary, not superseded, and both stay armed: it reads an ACCOUNT-WIDE rolling window across every SES sender on the account, with no way to see which configuration set or campaign a bounce or complaint belongs to, while `bulk-mail-health` reads campaign-scoped D1 rows (`email_log`/`email_event` joined and filtered to `source LIKE 'newsletter/bulk/%'`), the two Postmaster domains individually, and the `send_paused` table -- none of which the account-wide read can see. A real SES reputation incident on the bulk rail may legitimately page through both channels at once; that duplication is accepted, not a bug to fix, because the two daemons are answering different questions from different data.
+
+### Revert
+
+```bash
+cd ~/iCode/projects/rrm-observatory
+CLOUDFLARE_API_TOKEN=$(op read 'op://Automation/CF - Worker Deploy - account/credential') \
+   CLOUDFLARE_ACCOUNT_ID=ecf2c5bc8b5ebd634bcb587b3890910a npx wrangler rollback <id-from-Step-10>
+```
+
+Expected: the worker serves the pre-Task-10 deployment again (`bulk-mail-health` no longer in `/api/daemons/run`'s registry, `wave1-smoke.sh`'s assertion count back to its pre-Task-10 value); `src/daemons/wave4/ses-bounce-complaint.js` is untouched by this rollback and keeps paging on its own account-wide numbers throughout, per the reconciliation note above.
 
 ---
 

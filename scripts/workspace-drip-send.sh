@@ -13,12 +13,24 @@
 #   - each successful send inserted into D1 email_log (house rule), best-effort
 # NOTE: the 2026-07-10 campaign is COMPLETE (41/41). Inputs were moved to Trash;
 # preflight will refuse to run unless a new roster/body is staged deliberately.
+#
+# THE LOCK BELOW IS PER MACHINE, NOT PER CAMPAIGN. `mkdir "$LOCK"` only stops
+# two concurrent runs on the SAME machine from both walking the roster; it is
+# a local filesystem path (/tmp by default), invisible to any other host. The
+# Warm drip is a personal Workspace send (spec section 6) and is meant to run
+# from ONE machine at a time -- if that ever changes, this lock stops being
+# sufficient and needs a shared backstop (e.g. a D1 lease row, the same shape
+# the bulk rail's campaign lease uses in functions/api/newsletter/send.js).
 set -u
-ROSTER=/tmp/laneA-roster.csv
-SENTLOG=$HOME/iCode/.run-log/fertility-rule-drip.sent
-RUNLOG=$HOME/iCode/.run-log/fertility-rule-drip.run.log
-TXT=/tmp/approved-B.txt
-HTML=/tmp/approved-B.html
+# The paths keep their exact previous values when nothing is set, and are
+# overridable ONLY so test/workspace-drip-cap.test.mjs can drive the cap gate
+# over its own fixture rosters instead of writing the live /tmp inputs a staged
+# campaign uses. No default, and no behaviour, changes.
+ROSTER=${ROSTER:-/tmp/laneA-roster.csv}
+SENTLOG=${SENTLOG:-$HOME/iCode/.run-log/fertility-rule-drip.sent}
+RUNLOG=${RUNLOG:-$HOME/iCode/.run-log/fertility-rule-drip.run.log}
+TXT=${TXT:-/tmp/approved-B.txt}
+HTML=${HTML:-/tmp/approved-B.html}
 SUBJ='Help shape what fertility benefits cover, by July 13'
 SRC=fertility-rule-drip
 DELAY=50
@@ -37,7 +49,7 @@ tg_alert() {
 }
 
 # --- concurrency lock (macOS has no flock; mkdir is atomic)
-LOCK=/tmp/${SRC}.lock
+LOCK=${LOCK:-/tmp/${SRC}.lock}
 if ! mkdir "$LOCK" 2>/dev/null; then
   echo "another drip is already running (lock: $LOCK) -- refusing"; exit 1
 fi
@@ -48,6 +60,67 @@ for f in "$ROSTER" "$TXT" "$HTML"; do
   [ -s "$f" ] || { echo "PREFLIGHT FAIL: missing/empty $f"; exit 1; }
 done
 echo "body sha256: $(shasum -a 256 "$TXT" "$HTML" | awk '{print $1}' | tr '\n' ' ')" | tee -a "$RUNLOG"
+
+# --- THE WARM LANE'S 300 CAP, SELF-ENFORCED (spec section 6).
+# This drip IS the Warm lane, and the cap is the lane's, not the wrapper's: run
+# straight from a shell rather than under tools/mail-cap/send-cap.sh and nothing
+# else counts the roster. The count below derives the drip's OWN recipient set,
+# the same way the roster is read further down, so the number gated is the
+# number mailed. The refusal is send-cap.sh's, verbatim in substance: it names
+# the bulk rail and the command, because an operator with a 3,000-name list
+# needs to be told where the run belongs, not merely stopped.
+CAP_RUN_LOG_DIR="${MAIL_CAP_RUN_LOG_DIR:-$HOME/iCode/.run-log/mail-cap}"
+mkdir -p "$CAP_RUN_LOG_DIR" 2>/dev/null || true
+cap_log_line() {
+  printf '%s\t%s\tcount=%s\tmax=%s\tfile=%s\tcmd=%s\n' \
+    "$(date -u +%Y-%m-%dT%H:%M:%SZ)" "$1" "$2" "${MAIL_CAP_MAX:-300}" "$ROSTER" "workspace-drip-send.sh" \
+    >> "$CAP_RUN_LOG_DIR/send-cap.log" 2>/dev/null || true
+}
+
+# A non-numeric MAIL_CAP_MAX is REFUSED, never treated as "no cap": an arithmetic
+# comparison against '3OO' errors, and a cap that fails open is not a cap.
+case "${MAIL_CAP_MAX:-300}" in
+  ''|*[!0-9]*)
+    echo "REFUSED: MAIL_CAP_MAX is not a number: '${MAIL_CAP_MAX:-300}'" >&2
+    echo "Unset it for the default of 300, or set it to digits only." >&2
+    cap_log_line refused 0
+    exit 2
+    ;;
+esac
+
+# The lowercase fold is not cosmetic: the real recipient set below folds case
+# before `sort -u`, so Ada@x.com and ada@x.com are ONE recipient there. A cap
+# pipeline without the fold counts two, and would refuse a roster the drip would
+# have sent inside the cap. Gate what is sent, not what is typed.
+CAP_COUNT=$(tail -n +2 "$ROSTER" | cut -d, -f1 | sed '/^$/d' | tr '[:upper:]' '[:lower:]' | sort -u | wc -l | tr -d ' ')
+if [ "$CAP_COUNT" -gt "${MAIL_CAP_MAX:-300}" ]; then
+  cat >&2 <<MSG
+REFUSED: $CAP_COUNT recipients is over the Warm lane cap of ${MAIL_CAP_MAX:-300}.
+
+The Warm lane is a personal Workspace send, reserved for paying STUC members.
+A run this size belongs on the BULK RAIL, which sends as
+newsletter@rrmacademy.com through SES under a warm-up ramp, a daily cap and a
+complaint circuit breaker:
+
+  cd ~/iCode/projects/rrm-academy-cf
+  node scripts/bulk-send.mjs --campaign <key> --subject <file> --body <file>
+
+That is a dry run. It prints the audience after exclusions, today's remaining
+cap and the cohort head before anything is sent.
+MSG
+  cap_log_line refused "$CAP_COUNT"
+  exit 2
+fi
+cap_log_line allowed "$CAP_COUNT"
+
+# DRIP_DRY_RUN=1 stops here, having proved the cap and nothing else. It exists
+# for the test that drives this script over a 301-row and a 300-row roster: the
+# drip has no other dry-run switch, and a cap gate nobody has watched refuse is
+# a decoration.
+if [ "${DRIP_DRY_RUN:-0}" = "1" ]; then
+  echo "DRIP_DRY_RUN: cap check passed at $CAP_COUNT recipients; nothing was sent"
+  exit 0
+fi
 
 # --- D1 exclusions: opt-outs/bounces/complaints + already-sent for this campaign
 export CLOUDFLARE_API_TOKEN=${CLOUDFLARE_API_TOKEN:-$(op read 'op://Automation/CF - D1 Operator - account/credential')}

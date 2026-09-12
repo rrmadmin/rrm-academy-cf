@@ -112,6 +112,7 @@ const RULES = [
   [/^scripts\/import-(wix|stuc)-.*\.mjs$/, 'ONE-OFF', 'Historical one-shot import from the retired Wix platform.'],
   [/^scripts\/make-.*\.mjs$/, 'ONE-OFF', 'One-shot commentary/cover image batch for a named post or date; finished creative operation.'],
   [/^scripts\/(insert-pakiz-d1|stage-pakiz-local|fix-crm-typo-emails|populate-avatars|upload-stuc-recordings|install-gitleaks-hook)\.mjs$/, 'ONE-OFF', 'One-shot local operation (data insert, staging helper, CRM fix, avatar backfill, recording upload, hook install); record of a finished operation.'],
+  [/^scripts\/bulk-send\.mjs$/, 'PRODUCT-CODE', 'The bulk mail rail driver (dry-run by default, --send loops the endpoint 50 recipients a page). Recurring, unit-tested in test/bulk-send-cli.test.js, and the only path an operator uses to put live mail on the rrmacademy.com identity; a wrong exit code or a skipped freshness gate ships a real send.'],
   [/^scripts\/(femtech-ab-send|fertility-rule-comment-send)\.mjs$/, 'ONE-OFF', 'One-off email trickle-send campaign (its own header says one-off); re-covering a finished send would prove nothing.'],
   [/^scripts\/(gen-image|stylize-from-photo|cover-add-title)\.mjs$/, 'ONE-OFF', 'Local creative operator tool; body is external image-AI API I/O plus sharp compositing, run by hand per asset, never in CI.'],
 

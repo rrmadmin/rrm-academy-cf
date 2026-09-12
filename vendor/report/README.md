@@ -66,11 +66,42 @@ were added to answer. A worker with nothing to report and a worker that has
 died both write zero rows, and no observatory query can separate them; the
 liveness row is what makes "silent for 72 hours" mean something.
 
-Per ISOLATE, not per request. Cloudflare keeps an isolate warm across many
-requests, so this is a trickle rather than a per-request cost, while a worker
-under steady traffic still writes several rows a day. A worker with no traffic
-at all for 72 hours writes none, and being named as silent is the right answer
-for it.
+Per ISOLATE, not per request. A Worker keeps an isolate warm across many
+requests, so a steady Worker writes a handful of rows a day. A busy Pages
+project spins isolates far more aggressively: rrm-academy-cf measured about
+24,000 `handler/start` rows a day on 2026-09-09. Both are far below one row per
+request and well inside Analytics Engine limits, but do not budget Pages at
+"several rows a day". A worker with no traffic at all for 72 hours writes none,
+and being named as silent is the right answer for it.
+
+## Status vocabulary
+
+`STATUSES` is exported: `ok`, `error`, `slow`, `start`, `warn`. The daemon that
+judges rows imports this list rather than keeping its own. `normalizeStatus()`
+maps legacy words a caller may still pass (`fail`, `failure`, `warning`,
+`success`, `skipped`, `completed`, `refused`, `timeout` and others) onto the
+canonical value and prepends the original word to the detail, so nothing the
+caller meant is lost and no row lands in the dataset with a foreign status.
+An unknown word maps to `warn` with the word kept in the detail.
+
+That fallback is why the alias table is short and stays short. A word that is
+already warn-shaped (`conflict`, `rejected`, `inconclusive`, `rate_limited`)
+needs no entry at all, because the fallback is the honest answer for it. An
+alias is added only where the fallback would misreport health, which is at the
+two ends of the scale: `pass`, `passed`, `idempotent`, `duplicate` and
+`deduped` mean `ok`, and `critical`, `fatal` and `email_unsent` mean `error`.
+
+1.3.2 adds the conditional sender's vocabulary for the same reason. A worker
+that sends only when it has something to say reports `sent`, `quiet` or
+`suppressed` on a healthy run and `send-failed` when the channel itself is
+broken; the first three are `ok` and the last is `error`. The outcome stays in
+the status for these rather than moving into the action, where an outcome
+usually belongs, because `rrm-observatory`'s `email-series-absence` scopes each
+series by the action and moving it would break that deadman rather than sharpen
+it.
+Adopt a word into the table when a real caller says it and warn is wrong; do
+not translate it at the call site, which is how the estate ended up with nine
+private vocabularies in the first place.
 
 `event()`, `error()` and `timed()` do not announce. Only `wrap()` does, because
 only `wrap()` knows it is standing at the entry point.

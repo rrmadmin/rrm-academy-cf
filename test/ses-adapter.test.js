@@ -18,7 +18,7 @@
  * `fallback: 'ses'`, which takes the SES leg when Cloudflare answers a 5xx or
  * nothing at all. A 4xx never falls back.
  */
-import test from 'node:test';
+import test, { describe, it } from 'node:test';
 import assert from 'node:assert/strict';
 import { mockEnv, mockDB } from './_helpers.js';
 import {
@@ -408,4 +408,63 @@ test('an unknown exemption name refuses, it does not fall through', () => {
     }),
     /unknown-exemption/,
   );
+});
+
+// ---------------------------------------------------------------------------
+// preflightLane -- the question the bulk path asks BEFORE it touches a row.
+//
+// send.js marks a recipient sent before calling SES, deliberately (a
+// false-positive sent beats a double-send on an SES flake). A lane refusal is
+// not that kind of failure: it is certain and total, so it must be discovered
+// before the first newsletter_event row exists, not after eighty of them do.
+// ---------------------------------------------------------------------------
+import { preflightLane, LaneRefused } from '../functions/api/_ses.js';
+
+describe('preflightLane', () => {
+  it('admits the bulk From on the newsletter category', () => {
+    assert.equal(
+      preflightLane({ from: '"Dr. Naomi Whittaker, RRM Academy" <newsletter@rrmacademy.com>', category: 'newsletter' }),
+      'ses_rrm',
+    );
+  });
+
+  it('admits the existing newsletter sender, unchanged', () => {
+    assert.equal(
+      preflightLane({ from: '"Naomi Whittaker" <newsletter@mail.rrmacademy.org>', category: 'newsletter' }),
+      'ses_rrm',
+    );
+  });
+
+  it('refuses a typo on the bulk domain with the exemption reason, not a generic error', () => {
+    let caught = null;
+    try {
+      preflightLane({ from: 'newsletters@rrmacademy.com', category: 'newsletter' });
+    } catch (err) { caught = err; }
+    assert.ok(caught instanceof LaneRefused);
+    assert.equal(caught.reason, 'exemption-sender-not-allowed');
+  });
+
+  it('refuses a foreign domain', () => {
+    assert.throws(
+      () => preflightLane({ from: 'naomi@whittaker.ai', category: 'newsletter' }),
+      (err) => err instanceof LaneRefused && err.reason === 'exemption-sender-not-allowed',
+    );
+  });
+
+  it('refuses an empty or malformed from address instead of resolving something', () => {
+    assert.throws(() => preflightLane({ from: '', category: 'newsletter' }), LaneRefused);
+    assert.throws(() => preflightLane({ from: 'not-an-address', category: 'newsletter' }), LaneRefused);
+  });
+
+  it('is pure: it neither sends nor logs', async () => {
+    const before = globalThis.fetch;
+    let called = false;
+    globalThis.fetch = async () => { called = true; throw new Error('preflightLane must not fetch'); };
+    try {
+      preflightLane({ from: 'newsletter@rrmacademy.com', category: 'newsletter' });
+    } finally {
+      globalThis.fetch = before;
+    }
+    assert.equal(called, false);
+  });
 });

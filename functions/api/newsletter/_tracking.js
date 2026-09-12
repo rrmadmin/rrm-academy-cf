@@ -46,10 +46,31 @@ export async function unsubscribeUrl(email, secret) {
   return `${SITE_URL}/api/newsletter/unsubscribe?e=${encodeURIComponent(email)}&t=${token}&b=${encodeURIComponent(bucket)}`;
 }
 
+/**
+ * The monitored inbox a mailto unsubscribe reaches. Spec section 3 names it as
+ * the Reply-To on BOTH lanes, so it is already a mailbox a human reads; a
+ * mailto alternative pointing anywhere else would be an opt-out request nobody
+ * sees, which is the failure the 2026-06-30 send already paid for once.
+ */
+export const UNSUBSCRIBE_MAILTO = 'administrator@rrmacademy.org';
+
+/**
+ * RFC 8058 one-click, plus a mailto alternative.
+ *
+ * ORDER IS LOAD-BEARING. `List-Unsubscribe-Post: List-Unsubscribe=One-Click`
+ * refers to the FIRST URI in the header, so the https form must stay in front.
+ * Put the mailto first and a Gmail one-click would open a mail composer instead
+ * of POSTing, which reads to the user as a broken unsubscribe and to Google as
+ * an unhonoured one.
+ *
+ * The mailto is an ALTERNATIVE, not a replacement: the https endpoint is what
+ * honours the request immediately, in code. A mailto arrival is handled by a
+ * human at administrator@, same day, well inside CAN-SPAM's ten business days.
+ */
 export async function unsubscribeHeaders(email, secret) {
   const url = await unsubscribeUrl(email, secret);
   return {
-    'List-Unsubscribe': `<${url}>`,
+    'List-Unsubscribe': `<${url}>, <mailto:${UNSUBSCRIBE_MAILTO}?subject=unsubscribe>`,
     'List-Unsubscribe-Post': 'List-Unsubscribe=One-Click',
   };
 }

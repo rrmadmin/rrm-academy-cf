@@ -1,0 +1,55 @@
+-- 043-bulk-lease-unique.sql
+-- Closes the bulk rail's campaign-lease race -- additive migration on rrm-auth (D1).
+--
+-- WHY
+-- Migration 042's lease was check-then-insert: send.js SELECTs for a live
+-- holder, then (much later, after a cohort fetch that can take a full D1
+-- round trip) INSERTs its own 'sending' row. Nothing stopped two invocations
+-- from both passing the SELECT before either INSERT lands -- the plain index
+-- 042 added on (campaign, status, updated_at) speeds the SELECT but enforces
+-- nothing. Two near-simultaneous --send runs of the same campaign both read
+-- the same head of the cohort and both mail it.
+--
+-- This index makes the WRITE itself the mutex: SQLite (and D1) refuse a
+-- second row for the same campaign while one is already 'sending', so the
+-- INSERT -- not the SELECT that precedes it -- is what a second invocation
+-- collides with. functions/api/newsletter/send.js's bulk path catches the
+-- UNIQUE constraint failure and answers 409 bulk_run_in_progress, exactly as
+-- it already does for the case the SELECT alone used to catch.
+--
+-- campaign IS NOT NULL in the WHERE clause because every legacy
+-- newsletter_send row (and the bulk path's own campaign column is NULL on
+-- rows the legacy path writes) has campaign = NULL, and this index must never
+-- constrain the legacy lane, which has its own sendId-scoped resume and no
+-- concept of "one campaign, one live sender".
+--
+-- A partial index over 'sending' status only, so a campaign is free to start
+-- a new lease the moment its last row reaches a terminal status ('sent',
+-- 'partial' or 'failed') -- the same posture 042's comment already documents
+-- for why a page always stamps a terminal status on the way out.
+--
+-- ADDITIVE ONLY: one index. No existing reader is touched.
+--
+-- RE-RUNNABLE: IF NOT EXISTS.
+--
+-- IF THIS CREATE FAILS with a bare UNIQUE constraint error, it means live
+-- newsletter_send already holds TWO OR MORE rows with status='sending' for
+-- the same campaign -- most likely an abandoned lease from before this
+-- rail's stale-lease flip existed. Scope the recovery UPDATE to the ONE
+-- campaign the CREATE named and to leases old enough to be abandoned; never
+-- run it unscoped, because a blanket WHERE campaign IS NOT NULL flips every
+-- campaign's row, including one that is genuinely mid-send right now for a
+-- DIFFERENT campaign. Run this first, then re-run the CREATE:
+--   UPDATE newsletter_send SET status = 'partial'
+--    WHERE status = 'sending' AND campaign = '<the campaign the CREATE named>'
+--      AND updated_at < datetime('now', '-180 seconds');
+--
+-- ROLLBACK: DROP INDEX idx_nl_send_one_live_per_campaign;
+--
+-- Apply (by hand; no runner):
+--   npx wrangler d1 execute rrm-auth --local  --file=migrations/043-bulk-lease-unique.sql
+--   npx wrangler d1 execute rrm-auth --remote --file=migrations/043-bulk-lease-unique.sql
+
+CREATE UNIQUE INDEX IF NOT EXISTS idx_nl_send_one_live_per_campaign
+  ON newsletter_send(campaign)
+  WHERE status = 'sending' AND campaign IS NOT NULL;

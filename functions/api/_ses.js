@@ -56,7 +56,7 @@
  * message that reaches the package unsanitised still cannot inject one.
  */
 import { AwsClient } from 'aws4fetch';
-import { send, MailPermanent } from '../../vendor/mail/index.js';
+import { send, MailPermanent, LaneRefused, resolveLane } from '../../vendor/mail/index.js';
 import { r } from '../_report.js';
 
 /** Every message this repo sends belongs to the Academy. */
@@ -115,6 +115,33 @@ function purposeOf({ purpose, category }) {
   if (purpose) return { purpose };
   if (category === 'newsletter') return { ...NEWSLETTER_PURPOSE };
   return { purpose: 'transactional' };
+}
+
+/**
+ * WOULD THIS FROM BE ADMITTED? Asked before a run touches a single row.
+ *
+ * `send.js` records send intent -- a `newsletter_event(event='sent')` row and a
+ * `last_sent_at` stamp -- BEFORE it calls SES, deliberately: on an SES flake a
+ * false-positive "sent" beats a double-send, because the recipient is skipped
+ * on retry rather than mailed twice. A LANE REFUSAL is not that kind of
+ * failure. It is certain, total and per-run rather than per-recipient, so
+ * discovering it inside the batch loop would mark a page of recipients sent for
+ * mail that never left, and every one of them would be skipped forever after.
+ *
+ * So the bulk path asks here first. This function resolves the lane and nothing
+ * else: no network, no D1, no env, no telemetry. It throws `LaneRefused` (also
+ * re-exported below), which the caller turns into a 4xx with no writes at all.
+ *
+ * The argument shape mirrors `sendRawEmail`'s `log` block on purpose, so the
+ * preflight and the send that follows it cannot be asking about different
+ * things: pass the same `from` and the same `category`.
+ *
+ * @param {{ from: string, category?: string, purpose?: string }} msg
+ * @returns {string} the resolved lane name, e.g. 'ses_rrm'
+ * @throws {LaneRefused}
+ */
+export function preflightLane({ from, category, purpose }) {
+  return resolveLane({ entity: ENTITY, ...purposeOf({ purpose, category }), from });
 }
 
 /**
@@ -264,4 +291,4 @@ export async function sendRawEmail(env, { from, to, subject, html, text, replyTo
   return unwrap(result, 'SES raw request');
 }
 
-export { MailPermanent };
+export { MailPermanent, LaneRefused };

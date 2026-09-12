@@ -52,6 +52,68 @@
  * the type checker to the TypeError below. fsp-dashboard type-checks its
  * vendored files and caught it.
  */
+/**
+ * THE canonical status vocabulary, exported so a daemon that judges rows reads
+ * the same list the writer uses instead of carrying its own copy. Anything a
+ * caller passes that is not in this set is folded onto the front of the detail
+ * and the row carries the nearest canonical value, so a legacy word like
+ * `fail`, `warning` or `skipped` never becomes a foreign shape in the dataset.
+ */
+export const STATUSES = Object.freeze(['ok', 'error', 'slow', 'start', 'warn']);
+
+/**
+ * An alias earns its place here only when the FALLBACK would be wrong.
+ *
+ * An unmapped word is not lost and does not become a foreign shape: it lands
+ * on `warn` and rides the front of the detail. So a word that already means
+ * something warn-shaped (`conflict`, `rejected`, `inconclusive`,
+ * `rate_limited`) needs no entry, and adding one would only grow a list that
+ * has to be maintained. What DOES need an entry is a word whose real meaning
+ * is at the other end of the scale, because there the fallback misreports
+ * health: `pass` is the healthy half of a pass/fail pair (rrm-seo-monitor says
+ * it at eight call sites) and `critical` is the unhealthy end of a severity
+ * ladder (rrm-wix-stuc-sync).
+ *
+ * THE CONDITIONAL SENDER VOCABULARY, added 1.3.2. Two workers reported the
+ * same gap independently on the day of the conversion sweep. A worker that
+ * sends only when it has something to say reports one of three outcomes per
+ * run: it `sent`, it was `quiet` or `suppressed` because nothing was worth
+ * sending, or the send failed. The first two are the healthy shape of that
+ * worker, and warn is not what a healthy run looks like. The third is the
+ * failure of the alert channel itself, which is the loudest condition a
+ * worker can have and the last one that should be reported as a warn.
+ *
+ * The outcome word still has to sit in the status for these two, rather than
+ * moving into the action where an outcome usually belongs, because a reader
+ * already depends on the action: rrm-observatory's `email-series-absence`
+ * scopes each series by blob3, so moving the outcome there would break the
+ * deadman rather than sharpen it.
+ */
+const STATUS_ALIASES = Object.freeze({
+  fail: 'error', failed: 'error', failure: 'error', err: 'error', exception: 'error', refused: 'error', not_found: 'error',
+  critical: 'error', fatal: 'error', email_unsent: 'error', 'send-failed': 'error', send_failed: 'error',
+  warning: 'warn', degraded: 'warn', partial: 'warn', 'lock-takeover': 'warn',
+  success: 'ok', succeeded: 'ok', done: 'ok', completed: 'ok', accepted: 'ok', released: 'ok', idle: 'ok', skipped: 'ok', skip: 'ok', info: 'ok', noop: 'ok',
+  pass: 'ok', passed: 'ok', idempotent: 'ok', duplicate: 'ok', deduped: 'ok',
+  sent: 'ok', quiet: 'ok', suppressed: 'ok', dampened: 'ok',
+  started: 'start', begin: 'start',
+  timeout: 'slow', timed_out: 'slow',
+});
+
+/**
+ * Normalise a caller-supplied status. Returns `{ status, prefix }`: the
+ * canonical value and, when the input was not already canonical, the original
+ * word to prepend to the detail so nothing the caller meant is lost.
+ */
+export function normalizeStatus(input) {
+  const raw = String(input ?? 'ok').trim();
+  const lower = raw.toLowerCase();
+  if (STATUSES.includes(lower)) return { status: lower, prefix: '' };
+  const mapped = STATUS_ALIASES[lower];
+  if (mapped) return { status: mapped, prefix: raw };
+  return { status: 'warn', prefix: raw };
+}
+
 export function configure({ worker, binding = 'EVENTS', detailMax = 200 }) {
   if (!worker) throw new TypeError('configure({ worker }) is required');
 
@@ -85,9 +147,11 @@ export function configure({ worker, binding = 'EVENTS', detailMax = 200 }) {
   function event(env, ev, action, status = 'ok', detail = '', { durationMs = 0, count = 1, doubles } = {}) {
     const ae = env && env[binding];
     if (!ae || typeof ae.writeDataPoint !== 'function') return false;
+    const norm = normalizeStatus(status);
+    const det = norm.prefix ? `${norm.prefix} ${String(detail ?? '')}`.trim() : detail;
     try {
       ae.writeDataPoint({
-        blobs: [worker, String(ev), String(action), String(status), clip(detail)],
+        blobs: [worker, String(ev), String(action), norm.status, clip(det)],
         doubles: Array.isArray(doubles) ? doubles : [Number(durationMs) || 0, Number(count) || 0, 0],
         indexes: [String(action)],
       });
@@ -135,9 +199,12 @@ export function configure({ worker, binding = 'EVENTS', detailMax = 200 }) {
    * apart. An error-only wrapper would have shipped the binding and left that
    * question exactly as unanswerable as it was.
    *
-   * Per ISOLATE, not per request: Cloudflare keeps an isolate warm across many
-   * requests, so this is a trickle, not a per-request cost, and a worker
-   * serving steady traffic still writes several rows a day. A worker with no
+   * Per ISOLATE, not per request. A Worker keeps an isolate warm across many
+   * requests, so a steady Worker writes a handful of rows a day; a busy Pages
+   * project spins isolates far more aggressively and can write tens of
+   * thousands (rrm-academy-cf measured about 24k a day on 2026-09-09). Both are
+   * far below one row per request and well inside Analytics Engine limits, but
+   * do not read this as "several rows a day" for Pages. A worker with no
    * traffic at all for 72 hours writes none, and being named as silent is the
    * correct answer for it.
    */

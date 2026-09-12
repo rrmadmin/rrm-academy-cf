@@ -79,7 +79,7 @@
       "note": "D1, KV, R2 bindings"
     },
     "functions/api/_ses.js": {
-      "hash": "8829630eaff0c4b89d172878b08ba9685a2e6241496d3dc087e5e50ee7dd1f40",
+      "hash": "86fff676fad91b9615e332e9eb218c977960ad91526943b278ec2f9f3b316b4f",
       "note": "SES email sending infrastructure"
     },
     "functions/api/_elv.js": {
@@ -103,7 +103,7 @@
       "note": "sendTracked: best-effort mail dispatch + email_log failure row + Telegram alert"
     },
     "functions/api/newsletter/send.js": {
-      "hash": "702393ddc19ac60b30c02768c9d1c8a58de4a7496af9c39491cb2e6cd9ce1a00",
+      "hash": "6a3fbb24f7ad3ac9569a317a00dcb24f8ea56baa7fc60555670153515a87aa7e",
       "note": "Mass email send (admin-only)"
     },
     "functions/api/newsletter/send-first-email.js": {
