@@ -23,6 +23,22 @@ import { fileURLToPath } from 'node:url';
 
 const SCRIPT = join(dirname(dirname(fileURLToPath(import.meta.url))), 'scripts', 'workspace-drip-send.sh');
 
+// The drip is a macOS operator script (#!/bin/zsh). The Linux CI runner ships
+// no zsh, and a missing interpreter surfaces here as `status: null` (spawn
+// ENOENT), which is not a cap verdict. Skip with a named reason there; the
+// cap is exercised on every Mac run of `npm test` and in tools/mail-cap's
+// own suite in rrm-tools.
+function zshAvailable() {
+  try {
+    execFileSync('zsh', ['-c', 'exit 0'], { stdio: 'ignore' });
+    return true;
+  } catch {
+    return false;
+  }
+}
+const HAVE_ZSH = zshAvailable();
+const SKIP_REASON = HAVE_ZSH ? false : 'zsh is not on PATH (Linux CI); the drip is a macOS operator script';
+
 /** Runs the drip in dry-run mode over a roster of n unique recipients. */
 function run(n, { max, extraRows = [] } = {}) {
   const dir = mkdtempSync(join(tmpdir(), 'drip-cap-'));
@@ -60,14 +76,14 @@ function run(n, { max, extraRows = [] } = {}) {
   return { code, stdout, stderr, log: existsSync(logPath) ? readFileSync(logPath, 'utf8') : '' };
 }
 
-test('a 300-recipient roster passes the cap', () => {
+test('a 300-recipient roster passes the cap', { skip: SKIP_REASON }, () => {
   const r = run(300);
   assert.equal(r.code, 0);
   assert.match(r.stdout, /DRIP_DRY_RUN/);
   assert.match(r.log, /\tallowed\tcount=300\tmax=300\t/);
 });
 
-test('a 301-recipient roster is refused, and the drip never reaches a recipient', () => {
+test('a 301-recipient roster is refused, and the drip never reaches a recipient', { skip: SKIP_REASON }, () => {
   const r = run(301);
   assert.equal(r.code, 2);
   assert.ok(!r.stdout.includes('DRIP_DRY_RUN'), 'nothing past the cap check ran');
@@ -75,21 +91,21 @@ test('a 301-recipient roster is refused, and the drip never reaches a recipient'
   assert.match(r.log, /\trefused\tcount=301\tmax=300\t/);
 });
 
-test('the refusal names the bulk rail and the command that belongs to a run this size', () => {
+test('the refusal names the bulk rail and the command that belongs to a run this size', { skip: SKIP_REASON }, () => {
   const r = run(301);
   assert.match(r.stderr, /BULK RAIL/i);
   assert.match(r.stderr, /bulk-send\.mjs/);
   assert.match(r.stderr, /newsletter@rrmacademy\.com/);
 });
 
-test('the count is the drip own recipient set: header dropped, blanks dropped, de-duplicated', () => {
+test('the count is the drip own recipient set: header dropped, blanks dropped, de-duplicated', { skip: SKIP_REASON }, () => {
   // 300 unique names plus a duplicate and a blank line is still 300 recipients.
   const r = run(300, { extraRows: ['d0@example.com,Person 0 again', ''] });
   assert.equal(r.code, 0);
   assert.match(r.log, /count=300/);
 });
 
-test('case-variant duplicates are one recipient, the same way the drip sends them', () => {
+test('case-variant duplicates are one recipient, the same way the drip sends them', { skip: SKIP_REASON }, () => {
   // The drip folds case before de-duplicating, so these two rows are ONE
   // message. A cap pipeline that skipped the fold would count 302 here and
   // refuse a roster the drip would have sent inside the cap.
@@ -98,14 +114,14 @@ test('case-variant duplicates are one recipient, the same way the drip sends the
   assert.match(r.log, /count=300/);
 });
 
-test('a malformed MAIL_CAP_MAX refuses, it does not fall through uncapped', () => {
+test('a malformed MAIL_CAP_MAX refuses, it does not fall through uncapped', { skip: SKIP_REASON }, () => {
   const r = run(10, { max: '3OO' });
   assert.equal(r.code, 2);
   assert.match(r.stderr, /MAIL_CAP_MAX is not a number/);
   assert.ok(!r.stdout.includes('DRIP_DRY_RUN'), 'the run stopped at the malformed cap');
 });
 
-test('MAIL_CAP_MAX lowers the cap for a test run', () => {
+test('MAIL_CAP_MAX lowers the cap for a test run', { skip: SKIP_REASON }, () => {
   assert.equal(run(11, { max: 10 }).code, 2);
   assert.equal(run(10, { max: 10 }).code, 0);
 });
