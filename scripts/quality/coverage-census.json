@@ -1,6 +1,6 @@
 {
  "_note": "Every first-party executable file (census-rules.mjs SURFACE_ROOTS) is accounted for here, and scripts/quality/coverage.mjs FAILS its run if the enumerated surface drifts from this file or a new file matches no classification rule. A file is either PRODUCT-CODE (inside the gated coverage denominator) or excluded below with a category and written reason — never silently. Regenerate with: node scripts/quality/coverage.mjs && node scripts/quality/census.mjs",
- "_generated": "2026-09-09",
+ "_generated": "2026-09-12",
  "_categories": {
   "PRODUCT-CODE": "Deployed or deploy-chain code whose defects ship to users: CF Pages Functions (every route + _helper under functions/), build-time data fetchers and shared logic (src/lib), client bundles (src/scripts), Astro build integrations, and the CI gate/guard/build scripts that decide whether a deploy is allowed. This is the gated denominator. Uncovered PRODUCT-CODE is debt, listed so it is visible and countable, never argued away.",
   "CONTENT-TEMPLATE": "Files where line coverage is the wrong instrument because they are content, data constants, or scaffolding: reference-only endpoint templates (header forbids importing), typed data constants consumed by Astro templates, and Astro endpoint modules (*.md.ts / rss.xml.ts) that only execute inside the Astro build container. Their correctness instruments are the build itself, verify-build-output, the data deploy-guard floors, and the e2e suite.",
@@ -15,20 +15,20 @@
   "ratchet_rule": "The floor may only move UP. Arm at the measured floor rounded down; never arm a number that is red on arrival. Raise it after a coverage drive lands, by editing this value to the new measured floor rounded down."
  },
  "_measured": {
-  "date": "2026-09-09",
+  "date": "2026-09-12",
   "instrument": "node scripts/quality/coverage.mjs (c8 --all over the full surface; full npm-test suite)",
   "full_surface": {
-   "files": 431,
-   "lines": 88762,
-   "covered": 42822,
-   "pct": 48.24
+   "files": 433,
+   "lines": 90250,
+   "covered": 44600,
+   "pct": 49.42
   },
   "by_category": {
    "PRODUCT-CODE": {
-    "files": 332,
-    "lines": 63211,
-    "covered": 33454,
-    "pct": 52.92
+    "files": 334,
+    "lines": 64699,
+    "covered": 35232,
+    "pct": 54.46
    },
    "CONTENT-TEMPLATE": {
     "files": 9,
@@ -56,13 +56,13 @@
    }
   },
   "product_code": {
-   "files": 332,
-   "lines": 63211,
-   "covered": 33454,
-   "pct": 52.92
+   "files": 334,
+   "lines": 64699,
+   "covered": 35232,
+   "pct": 54.46
   },
   "files_at_zero_in_full_report": 206,
-  "files_executed_in_full_report": 225,
+  "files_executed_in_full_report": 227,
   "highest_stakes_slice": {
    "slice": "national survey system (functions/api/survey/ + functions/api/endo-quiz/)",
    "files": [
@@ -88,14 +88,6 @@
   "CONTENT-TEMPLATE / E2E-DRIVER / ONE-OFF / GENERATED": "0h by design — wrong instrument; correctness held by builds, deploy-guard floors, and live runs"
  },
  "crap_top_functions": [
-  {
-   "file": "functions/api/email/events.js",
-   "fn": "processNotification",
-   "line": 194,
-   "cc": 96,
-   "coverage": 0,
-   "crap": 9312
-  },
   {
    "file": "scripts/css-audit/audit.mjs",
    "fn": "<anonymous>",
@@ -153,6 +145,14 @@
    "crap": 2001.5
   },
   {
+   "file": "functions/api/email/events.js",
+   "fn": "processNotification",
+   "line": 194,
+   "cc": 96,
+   "coverage": 0.45,
+   "crap": 1646.4
+  },
+  {
    "file": "scripts/generate-page-dates.mjs",
    "fn": "main",
    "line": 98,
@@ -175,14 +175,6 @@
    "cc": 32,
    "coverage": 0,
    "crap": 1056
-  },
-  {
-   "file": "functions/api/email/events.js",
-   "fn": "onRequestPost",
-   "line": 435,
-   "cc": 38,
-   "coverage": 0.13,
-   "crap": 1005.4
   },
   {
    "file": "scripts/gates/validate-fact-pipeline.mjs",
@@ -327,15 +319,17 @@
    "cc": 22,
    "coverage": 0,
    "crap": 506
+  },
+  {
+   "file": "scripts/augment-og-index.mjs",
+   "fn": "main",
+   "line": 130,
+   "cc": 21,
+   "coverage": 0,
+   "crap": 462
   }
  ],
  "crap_top_files": [
-  {
-   "file": "functions/api/email/events.js",
-   "worst": 9312,
-   "total": 10989,
-   "fns": 10
-  },
   {
    "file": "scripts/css-audit/audit.mjs",
    "worst": 7482,
@@ -407,6 +401,12 @@
    "worst": 756,
    "total": 1964,
    "fns": 11
+  },
+  {
+   "file": "functions/api/email/events.js",
+   "worst": 1646,
+   "total": 1866,
+   "fns": 10
   },
   {
    "file": "scripts/gates/validate-analytics-pipeline.mjs",
@@ -628,8 +628,8 @@
    "category": "PRODUCT-CODE",
    "reason": "CF Pages Function (routed endpoint, middleware, or _-prefixed shared helper). Deployed on every push; defects ship directly to users.",
    "present": true,
-   "lines": 267,
-   "covered": 267,
+   "lines": 294,
+   "covered": 294,
    "pct": 100
   },
   {
@@ -1556,8 +1556,8 @@
    "reason": "CF Pages Function (routed endpoint, middleware, or _-prefixed shared helper). Deployed on every push; defects ship directly to users.",
    "present": true,
    "lines": 546,
-   "covered": 77,
-   "pct": 14.1
+   "covered": 343,
+   "pct": 62.82
   },
   {
    "file": "functions/api/endo-quiz/download.js",
@@ -1686,6 +1686,15 @@
    "pct": 96.36
   },
   {
+   "file": "functions/api/newsletter/_policy.js",
+   "category": "PRODUCT-CODE",
+   "reason": "CF Pages Function (routed endpoint, middleware, or _-prefixed shared helper). Deployed on every push; defects ship directly to users.",
+   "present": true,
+   "lines": 232,
+   "covered": 229,
+   "pct": 98.7
+  },
+  {
    "file": "functions/api/newsletter/_signup-emails.js",
    "category": "PRODUCT-CODE",
    "reason": "CF Pages Function (routed endpoint, middleware, or _-prefixed shared helper). Deployed on every push; defects ship directly to users.",
@@ -1708,9 +1717,9 @@
    "category": "PRODUCT-CODE",
    "reason": "CF Pages Function (routed endpoint, middleware, or _-prefixed shared helper). Deployed on every push; defects ship directly to users.",
    "present": true,
-   "lines": 55,
-   "covered": 40,
-   "pct": 72.72
+   "lines": 76,
+   "covered": 72,
+   "pct": 94.73
   },
   {
    "file": "functions/api/newsletter/bounce.js",
@@ -1762,9 +1771,9 @@
    "category": "PRODUCT-CODE",
    "reason": "CF Pages Function (routed endpoint, middleware, or _-prefixed shared helper). Deployed on every push; defects ship directly to users.",
    "present": true,
-   "lines": 435,
-   "covered": 412,
-   "pct": 94.71
+   "lines": 1324,
+   "covered": 1287,
+   "pct": 97.2
   },
   {
    "file": "functions/api/newsletter/subscribe.js",
@@ -1781,8 +1790,8 @@
    "reason": "CF Pages Function (routed endpoint, middleware, or _-prefixed shared helper). Deployed on every push; defects ship directly to users.",
    "present": true,
    "lines": 81,
-   "covered": 33,
-   "pct": 40.74
+   "covered": 73,
+   "pct": 90.12
   },
   {
    "file": "functions/api/partners/_emails.js",
@@ -2260,6 +2269,15 @@
    "lines": 407,
    "covered": 0,
    "pct": 0
+  },
+  {
+   "file": "scripts/bulk-send.mjs",
+   "category": "PRODUCT-CODE",
+   "reason": "The bulk mail rail driver (dry-run by default, --send loops the endpoint 50 recipients a page). Recurring, unit-tested in test/bulk-send-cli.test.js, and the only path an operator uses to put live mail on the rrmacademy.com identity; a wrong exit code or a skipped freshness gate ships a real send.",
+   "present": true,
+   "lines": 307,
+   "covered": 297,
+   "pct": 96.74
   },
   {
    "file": "scripts/canary.mjs",
@@ -2743,9 +2761,9 @@
    "category": "PRODUCT-CODE",
    "reason": "Deterministic CI/pre-commit proof gate; it decides whether deploys are allowed and must itself be trustworthy.",
    "present": true,
-   "lines": 954,
-   "covered": 928,
-   "pct": 97.27
+   "lines": 966,
+   "covered": 940,
+   "pct": 97.3
   },
   {
    "file": "scripts/gates/verify-library-curation.mjs",
