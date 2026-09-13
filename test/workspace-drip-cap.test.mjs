@@ -125,3 +125,27 @@ test('MAIL_CAP_MAX lowers the cap for a test run', { skip: SKIP_REASON }, () => 
   assert.equal(run(11, { max: 10 }).code, 2);
   assert.equal(run(10, { max: 10 }).code, 0);
 });
+
+// --- the D1 send record's own vocabulary ---------------------------------
+//
+// NOT behind SKIP_REASON, unlike every cap case above: this reads the script's
+// source with fs rather than running it, so there is no zsh to be missing.
+
+test('the drip records its send with the estate send vocabulary: event=send, lane=workspace', () => {
+  const source = readFileSync(SCRIPT, 'utf8');
+  const insert = source.split('\n').find(line => line.includes('INSERT INTO email_log'));
+
+  assert.ok(insert, 'the drip still records its sends in D1');
+
+  // The column list and the value list, in the order the script writes them.
+  assert.match(insert, /INSERT INTO email_log \(event,email,category,source,subject,detail,lane\)/);
+  assert.match(insert, /VALUES \('send',/, "event is 'send', the verb every other lane's writer uses");
+  assert.ok(!/VALUES \('sent',/.test(insert), "'sent' was this script's own spelling and nothing else's");
+  assert.match(insert, /'workspace'\)/, 'the transport is named, so a row is not left NULL for the rail column');
+
+  // Unchanged by this edit, and asserted so a later reviewer can see what was
+  // deliberately NOT touched: the category, the source key and the detail.
+  assert.match(insert, /'campaign'/);
+  assert.match(insert, /'\$SRC'/);
+  assert.match(insert, /workspace-lane draft \$DID/);
+});
