@@ -4652,7 +4652,7 @@ async function postmasterSpamRates(env, signal) {
   for (const domain of [APEX_DOMAIN, BULK_DOMAIN]) {
     try {
       const res = await fetch(
-        `https://gmailpostmastertools.googleapis.com/v1beta1/domains/${domain}/trafficStats/${day}`,
+        `https://gmailpostmastertools.googleapis.com/v1beta1/domains/${domain}/trafficStats/${day}`, // RETIRED 2026-09-13; the shipped daemon uses the v2 domainStats:query POST
         { headers: { Authorization: `Bearer ${token}` }, signal },
       );
       // A 404 is "no traffic that day", which is a real answer during warm-up.
@@ -4837,7 +4837,7 @@ Follow the `/google-oauth-mint` skill, not a new 1Password item for the OAuth cl
 
 ```bash
 python3 ~/iCode/skills/google-oauth-mint/scripts/mint.py start \
-  --scopes "https://www.googleapis.com/auth/postmaster.readonly" \
+  --scopes "https://www.googleapis.com/auth/postmaster.traffic.readonly https://www.googleapis.com/auth/postmaster.domain" \
   --login-hint administrator@rrmacademy.org
 ```
 
@@ -4848,8 +4848,8 @@ python3 ~/iCode/skills/google-oauth-mint/scripts/mint.py finish --port <n>   # t
 ```
 
 2. **Verify before storing, two distinct probes.**
-   - **Identity fingerprint:** `GET https://gmailpostmastertools.googleapis.com/v1beta1/domains` with the fresh access token. Must list `rrmacademy.org` and `rrmacademy.com`. This is what actually confirms the token belongs to administrator@rrmacademy.org, not the login-hint alone.
-   - **Capability probe:** `GET https://gmailpostmastertools.googleapis.com/v1beta1/domains/rrmacademy.org/trafficStats/<YYYYMMDD>` (yesterday's date). A 200 or a domain-level 404 (no traffic that day) both pass; anything else means the scope or token is wrong.
+   - **Identity fingerprint:** `GET https://gmailpostmastertools.googleapis.com/v2/domains` with the fresh access token. Must list `domains/rrmacademy.org` and `domains/rrmacademy.com`, both `OWNER` and `VERIFIED`. This is what actually confirms the token belongs to administrator@rrmacademy.org, not the login-hint alone.
+   - **Capability probe:** `POST https://gmailpostmastertools.googleapis.com/v2/domains/rrmacademy.org/domainStats:query` with body `{"timeQuery":{"dateList":{"dates":[{"year":YYYY,"month":M,"day":D}]}},"metricDefinitions":[{"name":"spam","baseMetric":{"standardMetric":"SPAM_RATE"}}],"aggregationGranularity":"DAILY"}` for a recent date. A 200 whose `domainStats` carries a `floatValue` (a ratio: 0.0055 is 0.55%) passes; a 200 with an empty `domainStats` is a day with no data and also passes; a 403 naming the project means the Gmail Postmaster Tools API is not enabled on the OAuth client's Google Cloud project (enable it in the console, then retry). The old `v1beta1` `trafficStats` route is RETIRED: it answers `429 "This version of the Postmaster Tools API is no longer supported"`, and its `postmaster.readonly` scope does not reach v2.
 
 3. **Store in 1Password** (vault Automation, category API Credential): title `Google OAuth - Postmaster Read administrator`, `credential` = the refresh token only, Notes = scope (`postmaster.readonly`), account (`administrator@rrmacademy.org`), mint date, the fingerprint result verbatim, and `client: gogcli OAuth Client`. Verify the store: `op read 'op://Automation/Google OAuth - Postmaster Read administrator/credential'` must return the value.
 
@@ -4867,7 +4867,7 @@ op read 'op://Automation/Google OAuth - Postmaster Read administrator/credential
 
 Expected: three `Success!` lines. Until they are bound the daemon WARNS rather than reporting ok, which is the intended behaviour and is tested.
 
-As of 2026-09-13 this step had NOT been executed: the daemon was live and warning "Postmaster credentials not configured". The Postmaster API v1beta1 discovery document is live and its scope is `postmaster.readonly` (checked 2026-09-13).
+Executed 2026-09-13: token minted for administrator@ with the two v2 scopes, stored as `Google OAuth - Postmaster Read administrator`, the three secrets bound, and the Gmail Postmaster Tools API enabled on project 30475733994 (it was not, and answered 403 until it was). The daemon itself had to move from the retired `v1beta1` `trafficStats` GET to the v2 `domainStats:query` POST in the same session; the v1beta1 discovery document is still served, which is not evidence the data path works.
 
 - [ ] **Step 10: Record the prior deployment id, deploy, and force one tick**
 
