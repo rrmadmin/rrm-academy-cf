@@ -170,9 +170,15 @@ except Exception: pass" 2>>"$RUNLOG")
   if bash ~/.claude/skills/gmail/scripts/va-send.sh "$DID" >>"$RUNLOG" 2>&1; then
     echo "$EM" >> "$SENTLOG"
     echo "[$i/$TOTAL] sent -> $EM"
-    # house rule: record the send in D1 email_log (best-effort, never fatal)
+    # house rule: record the send in D1 email_log (best-effort, never fatal).
+    # event='send' and lane='workspace' are the estate's vocabulary, not this
+    # script's: insertEmailLog() (functions/api/_ses.js) writes 'send' plus a
+    # lane on every other sender, and the admin /emails screen counts a lane by
+    # `event = 'send'`. This script spelled it 'sent' with no lane, so its rows
+    # sat in no bucket and no rail. GOING FORWARD ONLY -- history keeps 'sent',
+    # which is why that screen's warm predicate is `event IN ('send','sent')`.
     npx --prefix "$HOME/iCode/projects/rrm-academy-cf" wrangler d1 execute rrm-auth --remote --command \
-      "INSERT INTO email_log (event,email,category,source,subject,detail) VALUES ('sent','${EM//\'/\'\'}','campaign','$SRC','${SUBJ//\'/\'\'}','workspace-lane draft $DID')" \
+      "INSERT INTO email_log (event,email,category,source,subject,detail,lane) VALUES ('send','${EM//\'/\'\'}','campaign','$SRC','${SUBJ//\'/\'\'}','workspace-lane draft $DID','workspace')" \
       >/dev/null 2>>"$RUNLOG" || echo "  WARN sent-but-unlogged-in-D1 $EM" | tee -a "$RUNLOG"
   else
     RC=$?
