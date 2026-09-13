@@ -4831,19 +4831,43 @@ Expected: all three gates exit 0, the manifest validator prints the new daemon c
 
 - [ ] **Step 9: Mint the Postmaster credential and bind it**
 
+Follow the `/google-oauth-mint` skill, not a new 1Password item for the OAuth client. The house convention: the CLIENT id/secret already live in the shared item `gogcli OAuth Client` (`credential` field = the whole `client_secret.json`, keys under `.installed`), and a mint stores ONLY the refresh token in a new purpose-named item. Never create a separate item holding client id/secret/refresh token together.
+
+1. **Mint.**
+
+```bash
+python3 ~/iCode/skills/google-oauth-mint/scripts/mint.py start \
+  --scopes "https://www.googleapis.com/auth/postmaster.readonly" \
+  --login-hint administrator@rrmacademy.org
+```
+
+Drive consent in Comet (claude-in-chrome, Brian's own logged-in session), then:
+
+```bash
+python3 ~/iCode/skills/google-oauth-mint/scripts/mint.py finish --port <n>   # the PORT from step 1
+```
+
+2. **Verify before storing, two distinct probes.**
+   - **Identity fingerprint:** `GET https://gmailpostmastertools.googleapis.com/v1beta1/domains` with the fresh access token. Must list `rrmacademy.org` and `rrmacademy.com`. This is what actually confirms the token belongs to administrator@rrmacademy.org, not the login-hint alone.
+   - **Capability probe:** `GET https://gmailpostmastertools.googleapis.com/v1beta1/domains/rrmacademy.org/trafficStats/<YYYYMMDD>` (yesterday's date). A 200 or a domain-level 404 (no traffic that day) both pass; anything else means the scope or token is wrong.
+
+3. **Store in 1Password** (vault Automation, category API Credential): title `Google OAuth - Postmaster Read administrator`, `credential` = the refresh token only, Notes = scope (`postmaster.readonly`), account (`administrator@rrmacademy.org`), mint date, the fingerprint result verbatim, and `client: gogcli OAuth Client`. Verify the store: `op read 'op://Automation/Google OAuth - Postmaster Read administrator/credential'` must return the value.
+
+4. **Bind the three secrets.** Client id/secret come from `gogcli OAuth Client`; the refresh token comes from the item just minted:
+
 ```bash
 cd ~/iCode/projects/rrm-observatory
-# Mint an OAuth refresh token for administrator@rrmacademy.org with the scope
-# https://www.googleapis.com/auth/postmaster.readonly via the /google-oauth-mint
-# skill, then store it in 1Password and bind all three secrets:
 export CLOUDFLARE_API_TOKEN=$(op read 'op://Automation/CF - Worker Deploy - account/credential')
 export CLOUDFLARE_ACCOUNT_ID=ecf2c5bc8b5ebd634bcb587b3890910a
-op read 'op://Automation/RRM Postmaster Tools OAuth/client id'      | npx wrangler secret put POSTMASTER_CLIENT_ID
-op read 'op://Automation/RRM Postmaster Tools OAuth/client secret'  | npx wrangler secret put POSTMASTER_CLIENT_SECRET
-op read 'op://Automation/RRM Postmaster Tools OAuth/refresh token'  | npx wrangler secret put POSTMASTER_REFRESH_TOKEN
+CLIENT_JSON=$(op read 'op://Automation/gogcli OAuth Client/credential')
+printf '%s' "$CLIENT_JSON" | jq -r '.installed.client_id'     | npx wrangler secret put POSTMASTER_CLIENT_ID
+printf '%s' "$CLIENT_JSON" | jq -r '.installed.client_secret' | npx wrangler secret put POSTMASTER_CLIENT_SECRET
+op read 'op://Automation/Google OAuth - Postmaster Read administrator/credential' | npx wrangler secret put POSTMASTER_REFRESH_TOKEN
 ```
 
 Expected: three `Success!` lines. Until they are bound the daemon WARNS rather than reporting ok, which is the intended behaviour and is tested.
+
+As of 2026-09-13 this step had NOT been executed: the daemon was live and warning "Postmaster credentials not configured". The Postmaster API v1beta1 discovery document is live and its scope is `postmaster.readonly` (checked 2026-09-13).
 
 - [ ] **Step 10: Record the prior deployment id, deploy, and force one tick**
 
