@@ -1,0 +1,19 @@
+# Throwaway eval worker for the /ask adversarial review (Phase 0b).
+# Same upstream (rrm-ai-search), same SYSTEM_PROMPT, no user, no cap.
+# Every answer is archived to rrm-analytics ask_answer with source 'eval'.
+# Deploy: cd scripts/ask-eval/worker && npx wrangler@4.62.0 deploy
+# Secrets: EVAL_TOKEN (1P "RRM Ask Eval Worker Token"), AI_SEARCH_WORKER_AUTH (1P "AI Search Worker Auth Token")
+name = "zz-ask-eval-delete-me"
+main = "index.js"
+compatibility_date = "2026-08-01"
+account_id = "ecf2c5bc8b5ebd634bcb587b3890910a"
+workers_dev = true
+
+[[services]]
+binding = "AI_SEARCH"
+service = "rrm-ai-search"
+
+[[d1_databases]]
+binding = "ANALYTICS_DB"
+database_name = "rrm-analytics"
+database_id = "8967f69e-1213-411f-a4a9-5586889ad401"

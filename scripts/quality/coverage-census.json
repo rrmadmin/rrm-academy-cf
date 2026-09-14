@@ -1,6 +1,6 @@
 {
  "_note": "Every first-party executable file (census-rules.mjs SURFACE_ROOTS) is accounted for here, and scripts/quality/coverage.mjs FAILS its run if the enumerated surface drifts from this file or a new file matches no classification rule. A file is either PRODUCT-CODE (inside the gated coverage denominator) or excluded below with a category and written reason — never silently. Regenerate with: node scripts/quality/coverage.mjs && node scripts/quality/census.mjs",
- "_generated": "2026-09-12",
+ "_generated": "2026-09-14",
  "_categories": {
   "PRODUCT-CODE": "Deployed or deploy-chain code whose defects ship to users: CF Pages Functions (every route + _helper under functions/), build-time data fetchers and shared logic (src/lib), client bundles (src/scripts), Astro build integrations, and the CI gate/guard/build scripts that decide whether a deploy is allowed. This is the gated denominator. Uncovered PRODUCT-CODE is debt, listed so it is visible and countable, never argued away.",
   "CONTENT-TEMPLATE": "Files where line coverage is the wrong instrument because they are content, data constants, or scaffolding: reference-only endpoint templates (header forbids importing), typed data constants consumed by Astro templates, and Astro endpoint modules (*.md.ts / rss.xml.ts) that only execute inside the Astro build container. Their correctness instruments are the build itself, verify-build-output, the data deploy-guard floors, and the e2e suite.",
@@ -15,20 +15,20 @@
   "ratchet_rule": "The floor may only move UP. Arm at the measured floor rounded down; never arm a number that is red on arrival. Raise it after a coverage drive lands, by editing this value to the new measured floor rounded down."
  },
  "_measured": {
-  "date": "2026-09-12",
+  "date": "2026-09-14",
   "instrument": "node scripts/quality/coverage.mjs (c8 --all over the full surface; full npm-test suite)",
   "full_surface": {
-   "files": 433,
-   "lines": 90250,
-   "covered": 44600,
-   "pct": 49.42
+   "files": 434,
+   "lines": 90328,
+   "covered": 44681,
+   "pct": 49.47
   },
   "by_category": {
    "PRODUCT-CODE": {
     "files": 334,
-    "lines": 64699,
-    "covered": 35232,
-    "pct": 54.46
+    "lines": 64701,
+    "covered": 35313,
+    "pct": 54.58
    },
    "CONTENT-TEMPLATE": {
     "files": 9,
@@ -37,10 +37,10 @@
     "pct": 11.88
    },
    "E2E-DRIVER": {
-    "files": 46,
-    "lines": 12776,
+    "files": 47,
+    "lines": 12852,
     "covered": 4085,
-    "pct": 31.97
+    "pct": 31.78
    },
    "GENERATED": {
     "files": 1,
@@ -57,12 +57,12 @@
   },
   "product_code": {
    "files": 334,
-   "lines": 64699,
-   "covered": 35232,
-   "pct": 54.46
+   "lines": 64701,
+   "covered": 35313,
+   "pct": 54.58
   },
   "files_at_zero_in_full_report": 206,
-  "files_executed_in_full_report": 227,
+  "files_executed_in_full_report": 228,
   "highest_stakes_slice": {
    "slice": "national survey system (functions/api/survey/ + functions/api/endo-quiz/)",
    "files": [
@@ -2100,6 +2100,15 @@
    "pct": 0
   },
   {
+   "file": "scripts/ask-eval/worker/index.js",
+   "category": "E2E-DRIVER",
+   "reason": "Throwaway eval Worker zz-ask-eval-delete-me (Phase 0b of the /ask review): bearer-guarded, unmetered mirror of the /api/ask v2 branch, archives to ask_answer with source eval. Deployed by hand, deleted when the review closes (2026-09-14).",
+   "present": false,
+   "lines": 76,
+   "covered": 0,
+   "pct": 0
+  },
+  {
    "file": "scripts/audit-author-coverage.mjs",
    "category": "E2E-DRIVER",
    "reason": "Operator tool whose body is live D1/R2/ELV I/O (audits, snapshots, content cleanup, CRM verification) against production data.",
@@ -2130,10 +2139,10 @@
    "file": "scripts/audit-glossary-links.mjs",
    "category": "PRODUCT-CODE",
    "reason": "Local deterministic analysis of glossary.json link classes; unit-tested (glossary-link-classifier.test.js), 80% covered today.",
-   "present": false,
+   "present": true,
    "lines": 101,
-   "covered": 0,
-   "pct": 0
+   "covered": 81,
+   "pct": 80.19
   },
   {
    "file": "scripts/audit-textbook-fact-coverage.mjs",
@@ -3364,7 +3373,7 @@
    "category": "PRODUCT-CODE",
    "reason": "The quality instrument itself (coverage/CRAP/mutation/census). A measurement tool that is wrong is worse than no tool; its pure logic is unit-testable.",
    "present": false,
-   "lines": 155,
+   "lines": 157,
    "covered": 0,
    "pct": 0
   },
