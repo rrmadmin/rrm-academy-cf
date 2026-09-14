@@ -63,3 +63,6 @@ tools/audit-tech-errors-output.json
 
 # image generator scratch output (gen-image.mjs)
 tools/generated-images/
+
+# /ask review ledgers quote failing clinical answers; they live in the private rrm-knowledge-harness repo
+docs/ask-eval/

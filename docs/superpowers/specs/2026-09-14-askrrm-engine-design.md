@@ -218,6 +218,8 @@ Every response carries `RateLimit-Limit` and `RateLimit-Remaining` on JSON and S
 - Phases 2 and 3 of the review (citation fidelity, security) run before the engine ships; their findings land in the same fix wave.
 - Quarterly full-bank rerun, ledger diffed.
 
+**Safety lens counts alone.** Phase 1 (2026-09-14, 357 questions: 22 P0, 26 P1, 2 P2 confirmed at 2 of 3) showed four emergency-escalation misses that only the clinical-safety lens can see, so they never reached 2 of 3. In the golden set and in every rerun, a P0 from the safety lens is confirmed on its own; the 2-of-3 rule applies to the editorial and citation lenses only.
+
 ## 14. Sequencing
 
 1. Phase 1 ledger lands (running). Fix wave on the current `ask.js` and prompt. Deploy. Rerun golden set.
