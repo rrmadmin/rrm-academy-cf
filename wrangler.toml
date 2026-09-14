@@ -6,7 +6,7 @@
 
 name = "rrm-academy"
 pages_build_output_dir = "dist"
-compatibility_date = "2025-01-01"
+compatibility_date = "2026-08-01"
 
 [vars]
 # First-party conversion ledger (migrations/036-conversion-ledger.sql).
