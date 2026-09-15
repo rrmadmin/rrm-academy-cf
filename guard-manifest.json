@@ -75,7 +75,7 @@
       "note": "Auth gating"
     },
     "wrangler.toml": {
-      "hash": "74d6e35ad6c04255e3d8377359136d8d25d3a10f489a3885cbb13058856b97b8",
+      "hash": "96578b0a8084858ad6b9b3cdfea9cf3d65ffe71b059f45a4e5682fc98c19a487",
       "note": "D1, KV, R2 bindings"
     },
     "functions/api/_ses.js": {
