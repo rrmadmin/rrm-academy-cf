@@ -71,7 +71,7 @@
  */
 
 import { log } from './_log.js';
-import { sendEmail } from './_ses.js';
+import { sendEmail, mailConfigured } from './_ses.js';
 import { checkRateLimit } from './auth/_shared.js';
 // GCLID_RE validates the click id passed directly to
 // sendGoogleAdsValueConversion (the webhook's Stripe metadata gclid_last has
@@ -262,7 +262,7 @@ async function alertAllowed(env, waitUntil, kind, conversionActionId, max, windo
 }
 
 async function sendConversionSuccessEmail(env, waitUntil, conversionActionId, gclid, requestId) {
-  if (!env.AWS_ACCESS_KEY_ID || !env.AWS_SECRET_ACCESS_KEY) {
+  if (!mailConfigured(env, ALERT_FROM, { purpose: 'system' })) {
     log(env, waitUntil, 'google_ads', 'conversion_alert_no_ses', 'warn', 'success', 0, 0);
     return;
   }
@@ -303,7 +303,7 @@ async function sendConversionSuccessEmail(env, waitUntil, conversionActionId, gc
 }
 
 async function sendConversionFailureEmail(env, waitUntil, conversionActionId, gclid, errorMessage) {
-  if (!env.AWS_ACCESS_KEY_ID || !env.AWS_SECRET_ACCESS_KEY) {
+  if (!mailConfigured(env, ALERT_FROM, { purpose: 'system' })) {
     log(env, waitUntil, 'google_ads', 'conversion_alert_no_ses', 'warn', 'failure', 0, 0);
     return;
   }

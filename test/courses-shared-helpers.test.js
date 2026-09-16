@@ -272,6 +272,8 @@ describe('_notify-admin.js -- enrolment alert', () => {
     const env = mockEnv({
       DB: db,
       AWS_ACCESS_KEY_ID: undefined,
+      EMAIL_SEND_ACCOUNT_ID: undefined,
+      EMAIL_SEND_TOKEN: undefined,
       EVENTS: { writeDataPoint: (p) => events.push(p) },
     });
 

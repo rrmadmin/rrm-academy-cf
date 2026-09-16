@@ -11,7 +11,7 @@ import {
   json, optionsResponse, generateId, generateToken, getSessionIdFromCookie,
   validateSession, checkRateLimit, EMAIL_VERIFY_TTL_S, sessionCookie, authHintCookie,
 } from './_shared.js';
-import { logEmailFailure } from '../_ses.js';
+import { logEmailFailure, mailConfigured } from '../_ses.js';
 import { sendTransactionalEmail } from '../_mail-lanes.js';
 import { log } from '../_log.js';
 
@@ -40,7 +40,7 @@ export async function onRequestPost({ request, env, waitUntil }) {
       return json({ ok: false, error: 'Please wait before requesting another code.' }, 429, responseHeaders);
     }
 
-    if (!env.AWS_ACCESS_KEY_ID) {
+    if (!mailConfigured(env, 'accounts@mail.rrmacademy.org')) {
       return json({ ok: false, error: 'Verification email service is temporarily unavailable. Please try again later or contact administrator@rrmacademy.org for help.' }, 503, responseHeaders);
     }
 

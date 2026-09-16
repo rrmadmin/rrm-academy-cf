@@ -16,7 +16,7 @@ import {
   verifyTurnstile, checkRateLimit, isValidEmail, RESET_TOKEN_TTL_S,
 } from './_shared.js';
 import { cleanupEmail } from './_email-validate.js';
-import { logEmailFailure } from '../_ses.js';
+import { logEmailFailure, mailConfigured } from '../_ses.js';
 import { sendTransactionalEmail } from '../_mail-lanes.js';
 import { log } from '../_log.js';
 
@@ -44,7 +44,7 @@ export async function onRequestPost({ request, env, waitUntil }) {
       return json({ ok: false, error: 'Too many attempts. Please try again later.' }, 429);
     }
 
-    if (!env.AWS_ACCESS_KEY_ID) {
+    if (!mailConfigured(env, 'accounts@mail.rrmacademy.org')) {
       return json({ ok: false, error: 'Reset link service is temporarily unavailable. Please try again in a few minutes or email administrator@rrmacademy.org for help.' }, 503);
     }
 

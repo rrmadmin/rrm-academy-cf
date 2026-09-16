@@ -13,10 +13,11 @@
  * SINCE 2026-09-09 THE DEFAULT RAIL IS CLOUDFLARE. Every sender in this repo
  * is on @mail.rrmacademy.org, the onboarded Email Sending subdomain, so the
  * lane rule resolves cf_rrm for them without a line changing at any call
- * site. SES is reachable two ways and only two: the apex from addresses (the
- * newsletter exemption's hello@rrmacademy.org above all) and the adapter's
- * `fallback: 'ses'`, which takes the SES leg when Cloudflare answers a 5xx or
- * nothing at all. A 4xx never falls back.
+ * site. The watched-cutover `fallback: 'ses'` came out 2026-09-16 after a
+ * clean week; SES is reachable only through the apex from addresses (the
+ * newsletter exemption's hello@rrmacademy.org above all). A Cloudflare
+ * failure on an `@mail.rrmacademy.org` sender now stays failed rather than
+ * quietly landing on SES.
  */
 import test, { describe, it } from 'node:test';
 import assert from 'node:assert/strict';
@@ -76,9 +77,8 @@ function stubCf({ status = 200, body = { success: true, errors: [], result: { me
 }
 
 /**
- * Cloudflare first, SES second: what the adapter's `fallback: 'ses'` is for.
- * The first call is answered by `cf`, every later one by `ses`, which is the
- * shape of a Cloudflare outage during the watched week.
+ * A Cloudflare answer, with an SES stub sitting behind it that must NEVER be
+ * called: the fallback that used to reach it came out 2026-09-16.
  */
 function stubCfThenSes({ cfStatus = 503, sesBody = '{"MessageId":"ses-fallback-1"}' } = {}) {
   const original = globalThis.fetch;
@@ -181,21 +181,21 @@ test('an apex from address still rides SES, which is the one-sender-at-a-time le
   } finally { stub.restore(); }
 });
 
-test('a Cloudflare 5xx falls back to SES and records which rail it came from', async () => {
+test('a Cloudflare 5xx on an @mail.rrmacademy.org sender stays failed, no SES fallback', async () => {
   const db = mockDB();
   const env = mockEnv({ DB: db });
-  const stub = stubCfThenSes();
+  const stub = stubCfThenSes({ cfStatus: 503 });
   try {
-    const r = await sendEmail(env, {
-      from: 'RRM Academy <accounts@mail.rrmacademy.org>',
-      to: 'user@example.com',
-      subject: 'Confirm your email',
-      text: 'hi',
-      log: { db, category: 'transactional', source: 'auth/signup' },
-    });
-    assert.equal(r.messageId, 'ses-fallback-1');
-    assert.deepEqual(stub.calls.map((c) => c.rail), ['cf', 'ses'], 'Cloudflare first, then the SES leg');
-    assert.equal(emailLogRows(db)[0].bound[8], 'ses_rrm', 'the row records the rail that actually sent');
+    await assert.rejects(
+      () => sendEmail(env, {
+        from: 'RRM Academy <accounts@mail.rrmacademy.org>',
+        to: 'user@example.com',
+        subject: 'Confirm your email',
+        text: 'hi',
+        log: { db, category: 'transactional', source: 'auth/signup' },
+      }),
+    );
+    assert.deepEqual(stub.calls.map((c) => c.rail), ['cf'], 'the fallback came out 2026-09-16; SES is never called');
   } finally { stub.restore(); }
 });
 
@@ -219,14 +219,27 @@ test('a send failure is a THROW, which is what every call site catches', async (
   } finally { stub.restore(); }
 });
 
-test('missing SES credentials still throw before anything is attempted', async () => {
+test('missing Cloudflare credentials still throw before anything is attempted', async () => {
+  const stub = stubCf();
+  try {
+    await assert.rejects(
+      () => sendEmail({ EMAIL_SEND_ACCOUNT_ID: '', EMAIL_SEND_TOKEN: '' }, {
+        from: 'x@mail.rrmacademy.org', to: 'a@b.c', subject: 's', text: 't',
+      }),
+      /Mail is not configured for this sender/,
+    );
+    assert.equal(stub.calls.length, 0);
+  } finally { stub.restore(); }
+});
+
+test('missing SES credentials still throw before anything is attempted, for an apex sender', async () => {
   const stub = stubSes();
   try {
     await assert.rejects(
       () => sendEmail({ AWS_ACCESS_KEY_ID: '', AWS_SECRET_ACCESS_KEY: '' }, {
-        from: 'x@mail.rrmacademy.org', to: 'a@b.c', subject: 's', text: 't',
+        from: 'x@rrmacademy.org', to: 'a@b.c', subject: 's', text: 't',
       }),
-      /AWS SES credentials not configured/,
+      /Mail is not configured for this sender/,
     );
     assert.equal(stub.calls.length, 0);
   } finally { stub.restore(); }
@@ -418,7 +431,7 @@ test('an unknown exemption name refuses, it does not fall through', () => {
 // not that kind of failure: it is certain and total, so it must be discovered
 // before the first newsletter_event row exists, not after eighty of them do.
 // ---------------------------------------------------------------------------
-import { preflightLane, LaneRefused } from '../functions/api/_ses.js';
+import { preflightLane, mailConfigured, LaneRefused } from '../functions/api/_ses.js';
 
 describe('preflightLane', () => {
   it('admits the bulk From on the newsletter category', () => {
@@ -466,5 +479,46 @@ describe('preflightLane', () => {
       globalThis.fetch = before;
     }
     assert.equal(called, false);
+  });
+});
+
+// ---------------------------------------------------------------------------
+// mailConfigured -- the readiness check that replaced thirteen callers'
+// `env.AWS_ACCESS_KEY_ID` reads, which asked the wrong question once
+// @mail.rrmacademy.org senders stopped riding SES.
+// ---------------------------------------------------------------------------
+
+describe('mailConfigured', () => {
+  it('is true for a cf_rrm sender when both CF Email Sending secrets are present', () => {
+    const env = { EMAIL_SEND_ACCOUNT_ID: 'acct', EMAIL_SEND_TOKEN: 'tok' };
+    assert.equal(mailConfigured(env, 'accounts@mail.rrmacademy.org'), true);
+  });
+
+  it('is false for a cf_rrm sender missing either CF Email Sending secret', () => {
+    assert.equal(mailConfigured({ EMAIL_SEND_ACCOUNT_ID: 'acct' }, 'accounts@mail.rrmacademy.org'), false);
+    assert.equal(mailConfigured({ EMAIL_SEND_TOKEN: 'tok' }, 'accounts@mail.rrmacademy.org'), false);
+    assert.equal(mailConfigured({}, 'accounts@mail.rrmacademy.org'), false);
+  });
+
+  it('is true for an apex sender when the AWS trio is present', () => {
+    const env = { AWS_ACCESS_KEY_ID: 'k', AWS_SECRET_ACCESS_KEY: 's', AWS_SES_REGION: 'us-east-1' };
+    assert.equal(mailConfigured(env, 'receipts@rrmacademy.org'), true);
+  });
+
+  it('is false for an apex sender missing any AWS credential', () => {
+    assert.equal(mailConfigured({ AWS_ACCESS_KEY_ID: 'k', AWS_SECRET_ACCESS_KEY: 's' }, 'receipts@rrmacademy.org'), false);
+    assert.equal(mailConfigured({}, 'receipts@rrmacademy.org'), false);
+  });
+
+  it('honours an explicit purpose, the way the ads alert mail does', () => {
+    const env = { EMAIL_SEND_ACCOUNT_ID: 'acct', EMAIL_SEND_TOKEN: 'tok' };
+    assert.equal(mailConfigured(env, 'alerts@mail.rrmacademy.org', { purpose: 'system' }), true);
+    assert.equal(mailConfigured({}, 'alerts@mail.rrmacademy.org', { purpose: 'system' }), false);
+  });
+
+  it('is false, not thrown, for a sender the lane rules refuse outright', () => {
+    const env = { AWS_ACCESS_KEY_ID: 'k', AWS_SECRET_ACCESS_KEY: 's', EMAIL_SEND_ACCOUNT_ID: 'a', EMAIL_SEND_TOKEN: 't' };
+    assert.equal(mailConfigured(env, 'someone@gmail.com'), false);
+    assert.equal(mailConfigured(env, 'community@rrmacademy.org', { purpose: 'member' }), false);
   });
 });

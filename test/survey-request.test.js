@@ -81,7 +81,7 @@ describe('survey/request -- configuration guards', () => {
   });
 
   it('refuses with 500 when SES credentials are absent', async () => {
-    const ctx = makeContext({ env: { AWS_ACCESS_KEY_ID: undefined } });
+    const ctx = makeContext({ env: { EMAIL_SEND_ACCOUNT_ID: undefined, EMAIL_SEND_TOKEN: undefined } });
     const stub = stubExternalFetch();
     try {
       const parsed = await run(ctx);

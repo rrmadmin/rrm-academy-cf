@@ -12,7 +12,7 @@ import {
 import { validateEmail } from './_email-validate.js';
 import { greetingLine } from '../_greeting.js';
 import { verifyAndTagEmail, verifyEmailELV } from '../_elv.js';
-import { logEmailFailure } from '../_ses.js';
+import { logEmailFailure, mailConfigured } from '../_ses.js';
 import { sendTransactionalEmail } from '../_mail-lanes.js';
 import { sendGA4Event } from '../_ga4.js';
 import { log } from '../_log.js';
@@ -161,7 +161,7 @@ export async function onRequestPost({ request, env, waitUntil }) {
       return json({ ok: false, error: pwErr }, 400);
     }
 
-    if (!env.AWS_ACCESS_KEY_ID) {
+    if (!mailConfigured(env, 'accounts@mail.rrmacademy.org')) {
       return json({ ok: false, error: 'Email service is temporarily unavailable. Please try again in a few minutes or contact administrator@rrmacademy.org for help.' }, 503);
     }
 

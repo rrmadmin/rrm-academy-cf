@@ -31,8 +31,14 @@ function googleAdsEnv(overrides = {}) {
     GOOGLE_ADS_CLIENT_ID: 'client-id',
     GOOGLE_ADS_CLIENT_SECRET: 'client-secret',
     GOOGLE_ADS_REFRESH_TOKEN: 'refresh-token',
+    // The alert mail is deliberately unconfigured here: this suite is about
+    // the conversion upload, not the alert, and mailConfigured now needs the
+    // Cloudflare pair (not the AWS trio) unset for the alerts@mail.rrmacademy.org
+    // sender to read as "not configured".
     AWS_ACCESS_KEY_ID: undefined,
     AWS_SECRET_ACCESS_KEY: undefined,
+    EMAIL_SEND_ACCOUNT_ID: undefined,
+    EMAIL_SEND_TOKEN: undefined,
     ...overrides,
   });
 }

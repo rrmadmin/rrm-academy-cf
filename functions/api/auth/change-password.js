@@ -9,7 +9,7 @@ import {
   generateSessionId, sessionCookie, authHintCookie, checkRateLimit, sessionInsertStatement,
   SESSION_DURATION_MS, hashToken, COMMON_PASSWORD_ERROR,
 } from './_shared.js';
-import { logEmailFailure } from '../_ses.js';
+import { logEmailFailure, mailConfigured } from '../_ses.js';
 import { sendTransactionalEmail } from '../_mail-lanes.js';
 import { log } from '../_log.js';
 
@@ -94,7 +94,7 @@ export async function onRequestPost({ request, env, waitUntil }) {
 
     // Notify the account owner that their password was changed.
     // Non-blocking: a notification failure never fails the change itself.
-    if (env.AWS_ACCESS_KEY_ID && user.email) {
+    if (mailConfigured(env, 'accounts@mail.rrmacademy.org') && user.email) {
       const changeDate = new Date().toUTCString();
       waitUntil(
         sendTransactionalEmail(env, {

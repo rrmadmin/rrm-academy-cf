@@ -7,23 +7,23 @@
       "note": "CORS, sessions, crypto, rate limiting"
     },
     "functions/api/auth/login.js": {
-      "hash": "34d0fb3fcedacec122f7906473208ed6d2c27b83dd47bd0e0f21d76ef3d2d407",
+      "hash": "e598e2b73927db5c2d133e2dc57813fad62733942d87b678e2a92791e2b3485c",
       "note": "Authentication"
     },
     "functions/api/auth/signup.js": {
-      "hash": "9266058af4e3164eafff3696bdcb5d952a2a4450a83baa9c3ea1e303280e217b",
+      "hash": "56945a741d591672e523fb8bd726c384dfaf590937de66bcec4b5ff11427c68d",
       "note": "Account creation"
     },
     "functions/api/auth/forgot-password.js": {
-      "hash": "0bbab4718b7a4677b2e8218cb665ea06b2d2626e557c33ca34ff9a1a4926e782",
+      "hash": "00fa58ab78e2e1d353ced761973d9d553950746f1861af529ba57980bb3a1aa0",
       "note": "Password reset tokens + email"
     },
     "functions/api/auth/reset-password.js": {
-      "hash": "0be76aad0dd14e63f672df62929cb02f53b2ef12f401565b3b36e8e3f50324a6",
+      "hash": "0fdfb3283e9c03c2f5b8062b73088c39706445426a377b9fd16f1d6d7a98db2c",
       "note": "Reset token consumption + password change"
     },
     "functions/api/auth/change-password.js": {
-      "hash": "ecd209baedcba31c8eea180d9cf71a6184db1c70b070e0c822f1a67beb2ab007",
+      "hash": "ff7e71eece293f855a601d58cfbde50124b0c57a49cd05ce70cc8e7fd58078c3",
       "note": "Authenticated password change"
     },
     "functions/api/auth/google.js": {
@@ -31,7 +31,7 @@
       "note": "OAuth redirect initiation"
     },
     "functions/api/auth/google-callback.js": {
-      "hash": "b2cf3b68d908b106e2548eebe62d4ccb60b62fa0d2d99daee6ebfa2b32332fa9",
+      "hash": "696625c73ed956abc00c8efccbd2f363deacde24856c22a6ea2721b70a872ac5",
       "note": "Google OAuth callback"
     },
     "functions/api/auth/_email-validate.js": {
@@ -79,7 +79,7 @@
       "note": "D1, KV, R2 bindings"
     },
     "functions/api/_ses.js": {
-      "hash": "86fff676fad91b9615e332e9eb218c977960ad91526943b278ec2f9f3b316b4f",
+      "hash": "7b33eb075037517933b496ff0ddcd2d5951df52bf5c2ad7a7e2c182f63baf58b",
       "note": "SES email sending infrastructure"
     },
     "functions/api/_elv.js": {
@@ -95,7 +95,7 @@
       "note": "Survey submission + PII pseudonymization"
     },
     "functions/api/survey/request.js": {
-      "hash": "539c0c7de1b32c73f8b4b536bc93600d59e73605f06b1cd8f76fed0538001fe3",
+      "hash": "a9a660ea3ad8dd16d14cde52846e652a44eb64b7e549815afde5f5c9705d053f",
       "note": "Magic-link token generation"
     },
     "functions/api/newsletter/_mail.js": {
@@ -199,7 +199,7 @@
       "note": "R2 image upload (file validation)"
     },
     "functions/api/pdf/request.js": {
-      "hash": "3c40e62d8e767326d3554ad7d5bfc622cae5a4d91fe978158ac8d28b3126a098",
+      "hash": "12dc84c8bcd03bdd6606db3a3fb71dc4b4ceeb380598ff1a93d51030971dc644",
       "note": "PDF magic-link token generation"
     },
     "functions/api/pdf/redeem.js": {
@@ -242,7 +242,7 @@
       "note": "SNS SES event ingestion (RSA signature + webhook_event dedup)"
     },
     "functions/api/_google-ads.js": {
-      "hash": "cde878c8e0d480fb8cc6528838ab8714a7edf3937bbb606c45ecb7125a42f86f"
+      "hash": "2cea21c4287d99db37f28da6757c1f7a2278ce90ea7b92177136b6b1a5265081"
     }
   }
 }
