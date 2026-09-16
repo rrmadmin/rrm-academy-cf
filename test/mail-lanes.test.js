@@ -270,8 +270,11 @@ describe('sendTransactionalEmail -- routing decisions', () => {
       dns: () => mxAnswer('tenant.mail.protection.outlook.com.'), // would be M365 if ever checked
     });
     try {
+      // The apex sender, not the onboarded @mail.rrmacademy.org subdomain: this
+      // test is about the M365 sniff short-circuit, not about which rail an
+      // ordinary transactional sender lands on since the 2026-09-09 cutover.
       const result = await sendTransactionalEmail(env, {
-        from: 'RRM Academy <accounts@mail.rrmacademy.org>',
+        from: 'RRM Academy <accounts@rrmacademy.org>',
         to: 'user@route-secrets-missing.test',
         subject: 'Test subject',
         text: 'Hello',
@@ -302,7 +305,7 @@ describe('sendTransactionalEmail -- routing decisions', () => {
     });
     try {
       const result = await sendTransactionalEmail(env, {
-        from: 'RRM Academy <accounts@mail.rrmacademy.org>',
+        from: 'RRM Academy <accounts@rrmacademy.org>',
         to: ['a@route-array.test', 'b@route-array.test'],
         subject: 'Test subject',
         text: 'Hello',
@@ -324,7 +327,7 @@ describe('sendTransactionalEmail -- routing decisions', () => {
     });
     try {
       const result = await sendTransactionalEmail(env, {
-        from: 'RRM Academy <accounts@mail.rrmacademy.org>',
+        from: 'RRM Academy <accounts@rrmacademy.org>',
         to: 'user@route-nonm365.test',
         subject: 'Test subject',
         text: 'Hello',
@@ -381,7 +384,7 @@ describe('sendTransactionalEmail -- routing decisions', () => {
     });
     try {
       const result = await sendTransactionalEmail(env, {
-        from: 'RRM Academy <accounts@mail.rrmacademy.org>',
+        from: 'RRM Academy <accounts@rrmacademy.org>',
         to: 'user@route-m365-fallback.test',
         subject: 'Test subject',
         text: 'Hello',
@@ -493,7 +496,7 @@ describe('sendTransactionalEmail -- routing decisions', () => {
     });
     try {
       await sendTransactionalEmail(env, {
-        from: 'RRM Academy <accounts@mail.rrmacademy.org>',
+        from: 'RRM Academy <accounts@rrmacademy.org>',
         to: 'someone@route-lane-bogus.test',
         subject: 'Test subject',
         text: 'Hello',
@@ -521,7 +524,7 @@ describe('sendTransactionalEmail -- routing decisions', () => {
     try {
       await assert.rejects(
         () => sendTransactionalEmail(env, {
-          from: 'RRM Academy <accounts@mail.rrmacademy.org>',
+          from: 'RRM Academy <accounts@rrmacademy.org>',
           to: 'user@route-throws.test',
           subject: 'Test subject',
           text: 'Hello',

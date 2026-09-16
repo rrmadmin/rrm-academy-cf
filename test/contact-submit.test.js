@@ -141,7 +141,7 @@ describe('contact-submit -- guard order', () => {
     // Order matters: a misconfigured account must not become an unmetered
     // endpoint that answers 500 as fast as it is asked.
     const ip = randomIp();
-    const env = mockEnv({ AWS_ACCESS_KEY_ID: undefined });
+    const env = mockEnv({ EMAIL_SEND_ACCOUNT_ID: undefined, EMAIL_SEND_TOKEN: undefined });
     const waitUntil = mockWaitUntil();
     const statuses = [];
     for (let i = 0; i < 5; i++) {

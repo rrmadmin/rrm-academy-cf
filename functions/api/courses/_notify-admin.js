@@ -1,8 +1,8 @@
-import { sendEmail, logEmailFailure } from '../_ses.js';
+import { sendEmail, logEmailFailure, mailConfigured } from '../_ses.js';
 import { log } from '../_log.js';
 
 export async function notifyAdminEnrollment(env, { studentEmail, studentName, courseTitle, courseId, isFree }) {
-  if (!env.AWS_ACCESS_KEY_ID) {
+  if (!mailConfigured(env, 'accounts@mail.rrmacademy.org')) {
     log(env, () => {}, 'courses', 'admin_notify_skipped', 'skipped', `${courseId} (SES not configured)`);
     return;
   }

@@ -8,7 +8,7 @@ import {
   isValidPassword, checkRateLimit, sessionInsertStatement, SESSION_DURATION_MS,
   COMMON_PASSWORD_ERROR,
 } from './_shared.js';
-import { logEmailFailure } from '../_ses.js';
+import { logEmailFailure, mailConfigured } from '../_ses.js';
 import { sendTransactionalEmail } from '../_mail-lanes.js';
 import { log } from '../_log.js';
 
@@ -112,7 +112,7 @@ export async function onRequestPost({ request, env, waitUntil }) {
 
     // Notify the account owner that their password was reset.
     // Non-blocking: a notification failure never fails the reset itself.
-    if (env.AWS_ACCESS_KEY_ID) {
+    if (mailConfigured(env, 'accounts@mail.rrmacademy.org')) {
       const notifyUser = await db.prepare('SELECT email, name FROM user WHERE id = ?')
         .bind(tokenRow.user_id).first();
       if (notifyUser) {

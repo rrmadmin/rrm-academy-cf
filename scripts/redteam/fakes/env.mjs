@@ -86,6 +86,15 @@ export const ADMIN_SECRET = ['R3dt3am', 'Admin', 'API', 'S3cret', '0000'].join('
 export const AWS_SECRET = ['R3dt3amAws', 'S3cretAccess', 'K3y000000000000000'].join('');
 export const TURNSTILE_SECRET = ['0x', 'R3dt3am', 'Turnstile', 'S3cret'].join('');
 const AWS_ACCESS_KEY_ID = ['AK', 'IA', 'R3DT3AMEXAMPLE00'].join('');
+/* Cloudflare Email Sending, the default rail for every @mail.rrmacademy.org
+   sender since 2026-09-09. Every RRM Academy endpoint that sends mail reads
+   `mailConfigured()`, which resolves the cf_rrm lane for those senders and
+   asks for these two rather than the AWS trio; unset, every one of those
+   endpoints would answer 500 before ever reaching the body it is supposed to
+   be red-teamed on. The account id must stay a plain alphanumeric string --
+   cloudflareSendUrl() refuses anything else. */
+const EMAIL_SEND_ACCOUNT_ID = ['R3dt3am', 'CfAccount', 'Id000000000000000'].join('').replace(/[^A-Za-z0-9]/g, '');
+const EMAIL_SEND_TOKEN = ['R3dt3am', 'CfEmail', 'S3ndT0ken'].join('-');
 /* The four machine lanes that read a shared secret from a header or a query
    string. They are SET here on purpose: unset, every one of those endpoints
    answers 503 and sends nothing, so a harness that left them unset would be
@@ -99,6 +108,7 @@ export const DEPLOY_SECRET = ['R3dt3am', 'D3ploy', 'S3cret'].join('-');
 export const SECRET_FRAGMENTS = Object.freeze([
   STRIPE_KEY, WEBHOOK_SECRET, ADMIN_SECRET, AWS_SECRET, TURNSTILE_SECRET,
   EVENTS_REMIND_KEY, SES_EVENTS_SECRET, NEWSLETTER_BOUNCE_SECRET, DEPLOY_SECRET,
+  EMAIL_SEND_TOKEN,
 ]);
 
 /** The six accounts, keyed by the name `targets.mjs` identities use. */
@@ -298,6 +308,8 @@ export async function redteamEnv(extra = {}) {
     AWS_ACCESS_KEY_ID,
     AWS_SECRET_ACCESS_KEY: AWS_SECRET,
     AWS_SES_REGION: 'us-east-1',
+    EMAIL_SEND_ACCOUNT_ID,
+    EMAIL_SEND_TOKEN,
     CF_TURNSTILE_SECRET: TURNSTILE_SECRET,
     GA4_MEASUREMENT_ID: 'G-REDTEAM',
     GA4_API_SECRET: 'redteam-ga4-secret',

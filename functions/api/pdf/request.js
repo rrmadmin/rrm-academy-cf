@@ -1,4 +1,4 @@
-import { logEmailFailure } from '../_ses.js';
+import { logEmailFailure, mailConfigured } from '../_ses.js';
 import { sendTransactionalEmail } from '../_mail-lanes.js';
 import { log } from '../_log.js';
 import { validateEmail } from '../auth/_email-validate.js';
@@ -22,7 +22,7 @@ export async function onRequestPost(context) {
     log(env, waitUntil, 'pdf', 'config_missing', 'error', 'DB binding not configured', 0, 500);
     return json({ ok: false, error: 'Server misconfigured' }, 500);
   }
-  if (!env.AWS_ACCESS_KEY_ID) {
+  if (!mailConfigured(env, 'info@mail.rrmacademy.org')) {
     return json({ ok: false, error: 'Server misconfigured' }, 500);
   }
 

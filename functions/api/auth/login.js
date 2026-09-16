@@ -9,7 +9,7 @@ import {
   DUMMY_PASSWORD_HASH, SESSION_DURATION_MS, hashToken, hashPassword, PBKDF2_ITERATIONS,
 } from './_shared.js';
 import { cleanupEmail } from './_email-validate.js';
-import { logEmailFailure } from '../_ses.js';
+import { logEmailFailure, mailConfigured } from '../_ses.js';
 import { sendTransactionalEmail } from '../_mail-lanes.js';
 import { log } from '../_log.js';
 import { fireFpLink } from '../_fp-link.js';
@@ -83,7 +83,7 @@ export async function onRequestPost({ request, env, waitUntil }) {
       const guidanceType = user.google_id ? 'google' : 'unprovisioned';
       waitUntil(
         (async () => {
-          if (!env.AWS_ACCESS_KEY_ID) return;
+          if (!mailConfigured(env, 'accounts@mail.rrmacademy.org')) return;
           const text = guidanceType === 'google'
             ? [
                 'Hi there,',

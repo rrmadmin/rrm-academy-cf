@@ -5,7 +5,7 @@
 import { json, optionsResponse, checkRateLimit, verifyTurnstile } from '../auth/_shared.js';
 import { validateEmail } from '../auth/_email-validate.js';
 import { verifyAndTagEmail } from '../_elv.js';
-import { sendEmail, logEmailFailure } from '../_ses.js';
+import { sendEmail, logEmailFailure, mailConfigured } from '../_ses.js';
 import { sendTransactionalEmail } from '../_mail-lanes.js';
 import { log } from '../_log.js';
 import { validateBody } from '../_validate.js';
@@ -32,7 +32,7 @@ async function _handlePost(context) {
       return json({ ok: false, error: 'Too many attempts. Please try again later.' }, 429);
     }
 
-    if (!env.AWS_ACCESS_KEY_ID) {
+    if (!mailConfigured(env, 'contact@mail.rrmacademy.org')) {
       return json({ ok: false, error: 'Server misconfigured' }, 500);
     }
 

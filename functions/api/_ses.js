@@ -56,7 +56,7 @@
  * message that reaches the package unsanitised still cannot inject one.
  */
 import { AwsClient } from 'aws4fetch';
-import { send, MailPermanent, LaneRefused, resolveLane } from '../../vendor/mail/index.js';
+import { send, MailPermanent, LaneRefused, resolveLane, LANES } from '../../vendor/mail/index.js';
 import { r } from '../_report.js';
 
 /** Every message this repo sends belongs to the Academy. */
@@ -157,17 +157,17 @@ export function preflightLane({ from, category, purpose }) {
  * `exemption` the package hands over has no column of its own and is appended
  * to `source`, where the send that used it is already named.
  *
- * `fallback: 'ses'` is the watched-cutover flag, added 2026-09-09 with the
- * Cloudflare rail. Every sender in this repo already sends from
- * `@mail.rrmacademy.org`, the onboarded Email Sending subdomain, so the lane
- * rule now resolves them to `cf_rrm` on its own; the flag is the ONLY way
- * back to SES at runtime, and only when Cloudflare answers a 5xx or nothing
- * at all. A 4xx never falls back. It comes out, with the `AWS_*` secrets,
- * once a week of `email_log.lane` is clean.
+ * The watched-cutover fallback flag came out 2026-09-16, after a clean week
+ * of `email_log.lane`: 105 `cf_rrm` sends, zero `fell-back-from` rows since
+ * 2026-09-09. SES stays a live lane in this file, but only for the three
+ * named senders it was never meant to leave: the newsletter exemption
+ * (`newsletter-blast`), the rrmacademy.com bulk rail, and the apex
+ * `@rrmacademy.org` senders (`community@rrmacademy.org` in particular). Every
+ * `@mail.rrmacademy.org` sender in this repo resolves to `cf_rrm` on its own
+ * and no longer has a runtime way back to SES.
  */
 function depsFor(env, { db, category, source, subject }) {
   return {
-    fallback: 'ses',
     signer: new AwsClient({
       accessKeyId: env.AWS_ACCESS_KEY_ID,
       secretAccessKey: env.AWS_SECRET_ACCESS_KEY,
@@ -219,9 +219,35 @@ function regionOf(env) {
   return env.AWS_SES_REGION || 'us-east-1';
 }
 
-function requireCredentials(env) {
-  if (!env.AWS_ACCESS_KEY_ID || !env.AWS_SECRET_ACCESS_KEY) {
-    throw new Error('AWS SES credentials not configured');
+/**
+ * IS MAIL CONFIGURED FOR THIS SENDER? Callers used to ask `env.AWS_ACCESS_KEY_ID`,
+ * which was the right question when every send in this repo rode SES and is
+ * the wrong one now: an `@mail.rrmacademy.org` sender resolves to `cf_rrm`,
+ * whose readiness is `EMAIL_SEND_ACCOUNT_ID` + `EMAIL_SEND_TOKEN`, not the AWS
+ * trio. This reads the lane table instead of naming an env var by hand, so a
+ * caller's readiness check tracks whatever lane the sender actually resolves
+ * to (`cf_rrm` today, `ses_rrm` for an apex sender) without editing every call
+ * site again the next time a lane moves.
+ *
+ * A `from` that refuses to resolve at all (unknown sender, unknown purpose)
+ * is treated as "not configured" rather than thrown: this function answers
+ * "can I send this" for a caller deciding whether to attempt the send, and a
+ * lane refusal is exactly a "no".
+ */
+export function mailConfigured(env, from, { purpose = 'transactional', category } = {}) {
+  let lane;
+  try {
+    lane = resolveLane({ entity: ENTITY, ...purposeOf({ purpose, category }), from });
+  } catch (err) {
+    if (err instanceof LaneRefused) return false;
+    throw err;
+  }
+  return LANES[lane].env.every((key) => Boolean(env[key]));
+}
+
+function requireCredentials(env, from) {
+  if (!mailConfigured(env, from)) {
+    throw new Error('Mail is not configured for this sender');
   }
 }
 
@@ -230,8 +256,8 @@ function requireCredentials(env) {
  * headers, which is what separates it from `sendRawEmail` below.
  */
 export async function sendEmail(env, { from, to, subject, html, text, replyTo, configurationSet, log, purpose }) {
-  requireCredentials(env);
   const category = log?.category || 'transactional';
+  requireCredentials(env, from, { purpose, category });
   const source = log?.source || '';
   const result = await send(
     env,
@@ -265,11 +291,11 @@ export async function sendEmail(env, { from, to, subject, html, text, replyTo, c
  * `List-Unsubscribe`.
  */
 export async function sendRawEmail(env, { from, to, subject, html, text, replyTo, headers, configurationSet, log }) {
-  requireCredentials(env);
+  const category = log?.category || 'newsletter';
+  requireCredentials(env, from, { category });
   if (!headers || !Object.keys(headers).length) {
     throw new Error('sendRawEmail requires headers; a message with none should use sendEmail');
   }
-  const category = log?.category || 'newsletter';
   const source = log?.source || '';
   const result = await send(
     env,

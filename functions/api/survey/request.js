@@ -2,7 +2,7 @@
  * POST /api/survey/request
  * Accepts { email }, generates a magic-link token, stores in KV, sends email via SES.
  */
-import { logEmailFailure } from '../_ses.js';
+import { logEmailFailure, mailConfigured } from '../_ses.js';
 import { sendTransactionalEmail } from '../_mail-lanes.js';
 import { sendGA4Event } from '../_ga4.js';
 import { log } from '../_log.js';
@@ -36,7 +36,7 @@ export async function onRequestPost(context) {
     if (!env.SURVEY_TOKENS) {
       return json({ ok: false, error: 'Server misconfigured' }, 500);
     }
-    if (!env.AWS_ACCESS_KEY_ID) {
+    if (!mailConfigured(env, 'survey@mail.rrmacademy.org')) {
       return json({ ok: false, error: 'Server misconfigured' }, 500);
     }
 

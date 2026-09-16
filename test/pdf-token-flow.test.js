@@ -159,7 +159,7 @@ describe('POST /api/pdf/request -- configuration and payload guards', () => {
 
   it('returns 500 when SES credentials are absent -- before any token is minted', async () => {
     const harness = db();
-    const env = mockEnv({ DB: harness, AWS_ACCESS_KEY_ID: undefined });
+    const env = mockEnv({ DB: harness, EMAIL_SEND_ACCOUNT_ID: undefined, EMAIL_SEND_TOKEN: undefined });
     const res = await onRequestPost(postCtx({ guide_slug: LIVE_SLUG, email: 'a@b.com' }, { env }));
     assert.equal((await parseResponse(res)).status, 500);
     assert.equal(allTokens(harness).length, 0, 'must not mint a token it cannot deliver');
