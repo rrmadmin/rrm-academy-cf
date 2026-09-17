@@ -87,6 +87,11 @@ CREATE TABLE IF NOT EXISTS email_log (
  * Caveat, same shape as EMAIL_LOG_MIRRORED_FROM_RRM_AUTH below: this is a doc
  * transcription, not a mirror of live rrm-survey. If someone ALTERed the live
  * table, these tests stay green over the old shape.
+ *
+ * Later changes to this table DO have committed migrations, listed in
+ * SURVEY_IDENTITIES_MIGRATIONS below and read from disk in application order
+ * after this transcription -- so the CREATE stays frozen at its 2026-03-09
+ * shape and every subsequent ALTER is the file that was applied to live.
  */
 const SURVEY_IDENTITIES_FROM_PSEUDONYMIZATION_PLAN = `
 CREATE TABLE IF NOT EXISTS survey_identities (
@@ -99,10 +104,27 @@ CREATE TABLE IF NOT EXISTS survey_identities (
 CREATE INDEX IF NOT EXISTS idx_survey_identities_email ON survey_identities(email);
 `;
 
+/**
+ * Migrations that ALTER survey_identities after the transcribed CREATE above,
+ * in application order. Unlike that CREATE these are committed files, so they
+ * are read verbatim rather than retyped.
+ *
+ *   2026-09-17-survey-identities-research-consent.sql
+ *     adds research_consent INTEGER NOT NULL DEFAULT 1. Applied to live
+ *     rrm-survey on 2026-09-17, before the endpoint change that binds it.
+ */
+export const SURVEY_IDENTITIES_MIGRATIONS = [
+  '2026-09-17-survey-identities-research-consent.sql',
+];
+
+const readMigration = (name) =>
+  readFileSync(new URL(`../scripts/migrations/${name}`, import.meta.url), 'utf8');
+
 export const SURVEY_SCHEMA_SQL =
-  SURVEY_MIGRATIONS
-    .map((name) => readFileSync(new URL(`../scripts/migrations/${name}`, import.meta.url), 'utf8'))
-    .join('\n') + EMAIL_LOG_MIRRORED_FROM_RRM_AUTH + SURVEY_IDENTITIES_FROM_PSEUDONYMIZATION_PLAN;
+  SURVEY_MIGRATIONS.map(readMigration).join('\n')
+  + EMAIL_LOG_MIRRORED_FROM_RRM_AUTH
+  + SURVEY_IDENTITIES_FROM_PSEUDONYMIZATION_PLAN
+  + SURVEY_IDENTITIES_MIGRATIONS.map(readMigration).join('\n');
 
 /**
  * @param {object} [opts]
@@ -126,9 +148,7 @@ export function surveyD1({ seed } = {}) {
  */
 export const SYMPTOMS_MIGRATIONS = ['2026-06-26-survey-symptoms.sql'];
 
-export const SYMPTOMS_SCHEMA_SQL = SYMPTOMS_MIGRATIONS
-  .map((name) => readFileSync(new URL(`../scripts/migrations/${name}`, import.meta.url), 'utf8'))
-  .join('\n');
+export const SYMPTOMS_SCHEMA_SQL = SYMPTOMS_MIGRATIONS.map(readMigration).join('\n');
 
 /**
  * @param {object} [opts]

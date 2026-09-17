@@ -119,6 +119,8 @@ export const MIGRATIONS_NOT_REPLAYED = {
     'Targets the rrm-survey-symptoms database (binding SURVEY_SYMPTOMS_DB), not rrm-auth. Loaded separately by test/_survey-sqlite.mjs symptomsD1(), which builds the SURVEY_SYMPTOMS_DB harness from this file.',
   '2026-07-02-quiz-events-and-rules-version.sql':
     'Targets the rrm-survey database (binding SURVEY_DB), not rrm-auth. Loaded by test/_survey-sqlite.mjs alongside the quiz_result migration.',
+  '2026-09-17-survey-identities-research-consent.sql':
+    'Targets the rrm-survey database (binding SURVEY_DB), not rrm-auth. It ALTERs survey_identities, whose CREATE is transcribed in test/_survey-sqlite.mjs; that harness reads this file itself via SURVEY_IDENTITIES_MIGRATIONS, after the transcription.',
   '2026-09-01-ask-answer.sql':
     'Targets the rrm-analytics database (binding ANALYTICS_DB), not rrm-auth -- same database as search_log, which also has no committed harness here. functions/api/_search_log.js writes both tables via env.ANALYTICS_DB; test/ask-answer-archive.test.js exercises logAskAnswer()/promptHash() with a purpose-built fake ANALYTICS_DB rather than this rrm-auth harness.',
   'ai-search-docs.sql':
