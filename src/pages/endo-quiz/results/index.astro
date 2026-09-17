@@ -210,12 +210,12 @@ const PAGE_URL = 'https://rrmacademy.org/endo-quiz/results/';
         const email = document.getElementById('ec-email').value.trim();
         if (!email || email.indexOf('@') < 1 || email.indexOf('.') < 0) { if (msg) msg.textContent = 'Please enter a valid email address.'; return; }
         const consent = document.getElementById('ec-consent');
-        const researchConsent = !!(consent && consent.checked);
+        if (!consent || !consent.checked) { if (msg) msg.textContent = 'Please check the research consent box.'; return; }
 
         setSubmitting(true);
         if (msg) msg.textContent = '';
 
-        const payload = { email: email, score: score, symptoms: handoff.symptoms, band: band, researchConsent: researchConsent, device: handoff.device || {} };
+        const payload = { email: email, score: score, symptoms: handoff.symptoms, band: band, researchConsent: 1, device: handoff.device || {} };
 
         if (typeof turnstile !== 'undefined' && turnstileWidgetId !== null) {
           pendingSubmit = payload;
