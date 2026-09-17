@@ -41,8 +41,10 @@
  *  - Turnstile, EmailListVerify, DNS/MX, SES and GA4 are stubbed by
  *    stubExternalFetch. What is proven is what this endpoint sends and how it
  *    reacts to each answer; nothing here proves those services behave that way.
- *  - survey_identities has no committed migration; its DDL is transcribed from
- *    the plan doc that created it (see test/_survey-sqlite.mjs).
+ *  - survey_identities' CREATE has no committed migration; it is transcribed
+ *    from the plan doc that created it (see test/_survey-sqlite.mjs). Its one
+ *    later ALTER does have a committed file, read from disk after that
+ *    transcription: scripts/migrations/2026-09-17-survey-identities-research-consent.sql.
  *  - The Google Ads conversion upload is a genuine no-op because the
  *    GOOGLE_ADS_* secrets are absent, which is the PRODUCTION-DEFAULT arm for
  *    any environment where the integration is not configured.
@@ -490,6 +492,11 @@ describe('POST /api/endo-quiz/request', () => {
         assert.equal(identities[0].email, 'taker@example.com');
         assert.equal(identities[0].source, 'endo-quiz-ads');
         assert.match(identities[0].airtable_record_id, /^[0-9a-f-]{36}$/);
+        // research_consent DEFAULTs to 1 in the migration (the backfill value
+        // for rows written when consent was mandatory), so a 0 here can only
+        // have come from the endpoint binding it. Dropping the column from the
+        // INSERT would read 1 and quietly mislabel this row as consented.
+        assert.equal(identities[0].research_consent, 0, 'an un-consented capture was stamped as consenting research');
 
         const send = resultsEmail();
         assert.ok(send, 'no results email was sent to the taker');
@@ -504,6 +511,7 @@ describe('POST /api/endo-quiz/request', () => {
       const { status } = await post({ ...VALID, researchConsent: 1 });
       assert.equal(status, 200);
       assert.equal(symptomRows().length, 1);
+      assert.equal(identityRows()[0].research_consent, 1);
     });
 
     it('writes the research record, the identity row, the email and the conversion when consent is given', async () => {
@@ -514,8 +522,24 @@ describe('POST /api/endo-quiz/request', () => {
       assert.equal(status, 200);
       assert.equal(symptomRows().length, 1);
       assert.equal(identityRows().length, 1);
+      assert.equal(identityRows()[0].research_consent, 1, 'a consented capture was not stamped as consenting');
       assert.ok(resultsEmail(), 'no results email was sent to the taker');
       assert.equal(uploads().length, 1);
+    });
+
+    it('records the consent decision on the identity row itself, both ways in one run', async () => {
+      // The whole point of the column: telling the two arms apart WITHOUT
+      // joining rec_id across two databases. Both arms in one table, so a
+      // constant (always 1, or always 0) cannot pass.
+      await post({ ...VALID, email: 'yes@example.com', researchConsent: true });
+      await post({ ...VALID, email: 'no@example.com', researchConsent: false });
+
+      const byEmail = Object.fromEntries(identityRows().map(r => [r.email, r.research_consent]));
+      assert.deepEqual(byEmail, { 'yes@example.com': 1, 'no@example.com': 0 });
+      assert.equal(symptomRows().length, 1, 'consent stopped deciding which arm writes a research record');
+
+      const consentedRecId = identityRows().find(r => r.email === 'yes@example.com').airtable_record_id;
+      assert.equal(symptomRows()[0].rec_id, consentedRecId, 'the research record belongs to the other arm');
     });
   });
 

@@ -12,9 +12,10 @@
  * checkbox gated the send). Delivery of the results email never depends on
  * it. Consent decides ONE thing: whether the survey_symptoms row is written,
  * because that table is the research record. Without consent the submission
- * still yields the identity row (email capture), the ELV verify-and-tag pass,
- * the results email and the Google Ads email conversion, and answers
- * { ok: true }. This endpoint never returns 400 over consent.
+ * still yields the identity row (email capture, stamped research_consent = 0
+ * so the two arms are distinguishable without a cross-database join), the ELV
+ * verify-and-tag pass, the results email and the Google Ads email conversion,
+ * and answers { ok: true }. This endpoint never returns 400 over consent.
  */
 import { sendEmail, logEmailFailure } from '../_ses.js';
 import { sendTransactionalEmail } from '../_mail-lanes.js';
@@ -145,8 +146,8 @@ export async function onRequestPost(context) {
 
     try { // arise-ignore unbatched-writes -- second half of the SURVEY_SYMPTOMS_DB/SURVEY_DB split above; db.batch() cannot span two D1 bindings, so this write is intentionally separate and alerted-on-failure below rather than transactional
       await env.SURVEY_DB.prepare(
-        'INSERT INTO survey_identities (email, airtable_record_id, source) VALUES (?, ?, ?)'
-      ).bind(email, recId, 'endo-quiz-ads').run();
+        'INSERT INTO survey_identities (email, airtable_record_id, source, research_consent) VALUES (?, ?, ?, ?)'
+      ).bind(email, recId, 'endo-quiz-ads', researchConsented ? 1 : 0).run();
     } catch (d1Err) {
       const detail = `D1 write failed: record=${recId} err=${d1Err.message}`;
       log(env, waitUntil, 'endo_quiz', 'd1_identity_write_error', 'error', detail, 0, 500);
