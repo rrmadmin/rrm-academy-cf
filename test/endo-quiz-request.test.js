@@ -19,8 +19,18 @@
  *      submission still counts, an alert email goes out, and the orphan is
  *      recoverable by rec_id -- that asymmetry is deliberate and is asserted in
  *      both directions.
- *   3. CONSENT. Every stored row is a research record. researchConsent must be
- *      an explicit true or 1; anything else is refused before either write.
+ *   3. CONSENT IS OPTIONAL, AND DECIDES ONE THING. Brian's ruling 2026-09-17:
+ *      email delivery must never depend on the research checkbox, which had
+ *      gated it while live measurement showed zero email requests ever from
+ *      ads visitors. So consent no longer decides whether the request is
+ *      accepted -- it decides only whether the survey_symptoms row is written,
+ *      because that table IS the research record. Without an explicit true or
+ *      1 the submission still answers 200, still keeps the address in
+ *      survey_identities, still mails the results and still uploads the Google
+ *      Ads email conversion. A regression that re-gated delivery on consent
+ *      would show up as a missing send in those cases, not merely as a status
+ *      change, which is why each one asserts the send and the upload rather
+ *      than the status alone.
  *
  * Both databases run on node:sqlite. survey_symptoms is built from its
  * COMMITTED migration (scripts/migrations/2026-06-26-survey-symptoms.sql), so
@@ -430,6 +440,36 @@ describe('POST /api/endo-quiz/request', () => {
   // --- consent -------------------------------------------------------------
 
   describe('research consent', () => {
+    /**
+     * Routes the two Google hosts the conversion upload talks to, so the
+     * upload is a real outbound call that can be asserted rather than the
+     * unconfigured no-op the rest of this file runs under. Mirrors
+     * test/endo-quiz-download.test.js's googleRoutes.
+     */
+    const googleRoutes = () => (call) => {
+      if (call.url.includes('oauth2.googleapis.com')) {
+        call.service = 'google-token';
+        return { ok: true, status: 200, json: async () => ({ access_token: 'ya29.stub' }) };
+      }
+      if (call.url.includes('datamanager.googleapis.com')) {
+        call.service = 'google-ingest';
+        return { ok: true, status: 200, text: async () => '{}' };
+      }
+      throw new Error(`unrouted request to ${call.url}`);
+    };
+
+    /** Arms the Ads integration so the email-conversion upload actually fires. */
+    function armConversionUpload() {
+      env.GOOGLE_ADS_CLIENT_ID = 'client-id';
+      env.GOOGLE_ADS_CLIENT_SECRET = 'client-secret';
+      env.GOOGLE_ADS_REFRESH_TOKEN = 'refresh-token';
+      stub.restore();
+      stub = stubExternalFetch({ default: googleRoutes() });
+    }
+
+    const uploads = () => stub.calls.filter(c => c.url.includes('datamanager.googleapis.com'));
+    const resultsEmail = () => stub.mail.find(m => m.to[0] === 'taker@example.com');
+
     for (const [label, researchConsent] of [
       ['absent', undefined],
       ['false', false],
@@ -437,12 +477,26 @@ describe('POST /api/endo-quiz/request', () => {
       ['the number 0', 0],
       ['the string "1"', '1'],
     ]) {
-      it(`refuses when consent is ${label}, storing nothing`, async () => {
-        const { status, body } = await post({ ...VALID, researchConsent });
-        assert.equal(status, 400);
-        assert.deepEqual(body, { error: 'consent_required' });
+      it(`still emails the results when consent is ${label}, writing no research record`, async () => {
+        armConversionUpload();
+        const { status, body } = await post({ ...VALID, researchConsent }, { headers: { Cookie: 'gclid=abcdefghijklmno' } });
+
+        assert.equal(status, 200, 'consent gated the response again');
+        assert.deepEqual(body, { ok: true });
         assert.equal(symptomRows().length, 0, 'an un-consented research record was stored');
-        assert.equal(identityRows().length, 0);
+
+        const identities = identityRows();
+        assert.equal(identities.length, 1, 'the email capture was discarded for want of consent');
+        assert.equal(identities[0].email, 'taker@example.com');
+        assert.equal(identities[0].source, 'endo-quiz-ads');
+        assert.match(identities[0].airtable_record_id, /^[0-9a-f-]{36}$/);
+
+        const send = resultsEmail();
+        assert.ok(send, 'no results email was sent to the taker');
+        assert.equal(send.subject, 'Your endometriosis symptom quiz results');
+        assert.match(send.text, /Your score: 54 out of 81/);
+
+        assert.equal(uploads().length, 1, 'the Google Ads email conversion was not uploaded');
       });
     }
 
@@ -450,6 +504,18 @@ describe('POST /api/endo-quiz/request', () => {
       const { status } = await post({ ...VALID, researchConsent: 1 });
       assert.equal(status, 200);
       assert.equal(symptomRows().length, 1);
+    });
+
+    it('writes the research record, the identity row, the email and the conversion when consent is given', async () => {
+      // The consented arm of the same four assertions, so "consent changes
+      // only the survey_symptoms row" is pinned from both sides.
+      armConversionUpload();
+      const { status } = await post({ ...VALID, researchConsent: true }, { headers: { Cookie: 'gclid=abcdefghijklmno' } });
+      assert.equal(status, 200);
+      assert.equal(symptomRows().length, 1);
+      assert.equal(identityRows().length, 1);
+      assert.ok(resultsEmail(), 'no results email was sent to the taker');
+      assert.equal(uploads().length, 1);
     });
   });
 

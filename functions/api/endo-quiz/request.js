@@ -6,6 +6,15 @@
  *   - symptoms/score -> SURVEY_SYMPTOMS_DB (rrm-survey-symptoms), no email
  *   - email identity  -> SURVEY_DB (rrm-survey) survey_identities, joined by rec_id
  * Does not touch functions/api/survey/* (guarded, off-limits).
+ *
+ * RESEARCH CONSENT IS OPTIONAL (Brian's ruling 2026-09-17, after live
+ * measurement showed zero email requests ever from ads visitors while the
+ * checkbox gated the send). Delivery of the results email never depends on
+ * it. Consent decides ONE thing: whether the survey_symptoms row is written,
+ * because that table is the research record. Without consent the submission
+ * still yields the identity row (email capture), the ELV verify-and-tag pass,
+ * the results email and the Google Ads email conversion, and answers
+ * { ok: true }. This endpoint never returns 400 over consent.
  */
 import { sendEmail, logEmailFailure } from '../_ses.js';
 import { sendTransactionalEmail } from '../_mail-lanes.js';
@@ -96,10 +105,7 @@ export async function onRequestPost(context) {
       }
     }
 
-    const researchConsentInt = (researchConsent === true || researchConsent === 1) ? 1 : 0;
-    if (researchConsentInt !== 1) {
-      return json({ error: 'consent_required' }, 400);
-    }
+    const researchConsented = researchConsent === true || researchConsent === 1;
 
     waitUntil(
       verifyAndTagEmail(email, env, { source: 'endo-quiz-ads' }).catch(() => {})
@@ -110,27 +116,31 @@ export async function onRequestPost(context) {
     const vw = (typeof device?.viewport_width === 'number' && Number.isFinite(device.viewport_width)
       && device.viewport_width > 0 && device.viewport_width <= 10000) ? device.viewport_width : null;
 
-    try { // arise-ignore unbatched-writes -- writes span SURVEY_SYMPTOMS_DB (rrm-survey-symptoms) and SURVEY_DB (rrm-survey); db.batch() only works within a single binding so cross-DB atomicity is impossible. Mirrors functions/api/survey/submit.js's identical split; identity-link failure below is alerted, not silently dropped.
-      await env.SURVEY_SYMPTOMS_DB.prepare(
-        "INSERT INTO survey_symptoms (rec_id, score_total, score_tier1, score_tier2, score_tier3, tier1_symptoms, tier2_symptoms, tier3_symptoms, source, user_origin, viewport_width, device_type, referrer, submitted_at) VALUES (?,?,?,?,?,?,?,?,'ads',?,?,?,?,datetime('now'))"
-      ).bind(
-        recId,
-        score.total,
-        score.tier1,
-        score.tier2,
-        score.tier3,
-        symptoms.tier1.join('\n'),
-        symptoms.tier2.join('\n'),
-        symptoms.tier3.join('\n'),
-        null,
-        vw,
-        vw ? (vw <= 768 ? 'Mobile' : vw <= 1024 ? 'Tablet' : 'Desktop') : null,
-        referrer,
-      ).run();
-    } catch (err) {
-      console.error('endo-quiz symptom insert failed:', err.message);
-      log(env, waitUntil, 'endo_quiz', 'symptom_write_dropped', 'error', 'insert failed', 0, 500);
-      return json({ error: 'server_error' }, 500);
+    // The research record is written only with explicit consent. Without it the
+    // submission carries on to the identity row and the email below.
+    if (researchConsented) {
+      try { // arise-ignore unbatched-writes -- writes span SURVEY_SYMPTOMS_DB (rrm-survey-symptoms) and SURVEY_DB (rrm-survey); db.batch() only works within a single binding so cross-DB atomicity is impossible. Mirrors functions/api/survey/submit.js's identical split; identity-link failure below is alerted, not silently dropped.
+        await env.SURVEY_SYMPTOMS_DB.prepare(
+          "INSERT INTO survey_symptoms (rec_id, score_total, score_tier1, score_tier2, score_tier3, tier1_symptoms, tier2_symptoms, tier3_symptoms, source, user_origin, viewport_width, device_type, referrer, submitted_at) VALUES (?,?,?,?,?,?,?,?,'ads',?,?,?,?,datetime('now'))"
+        ).bind(
+          recId,
+          score.total,
+          score.tier1,
+          score.tier2,
+          score.tier3,
+          symptoms.tier1.join('\n'),
+          symptoms.tier2.join('\n'),
+          symptoms.tier3.join('\n'),
+          null,
+          vw,
+          vw ? (vw <= 768 ? 'Mobile' : vw <= 1024 ? 'Tablet' : 'Desktop') : null,
+          referrer,
+        ).run();
+      } catch (err) {
+        console.error('endo-quiz symptom insert failed:', err.message);
+        log(env, waitUntil, 'endo_quiz', 'symptom_write_dropped', 'error', 'insert failed', 0, 500);
+        return json({ error: 'server_error' }, 500);
+      }
     }
 
     try { // arise-ignore unbatched-writes -- second half of the SURVEY_SYMPTOMS_DB/SURVEY_DB split above; db.batch() cannot span two D1 bindings, so this write is intentionally separate and alerted-on-failure below rather than transactional
