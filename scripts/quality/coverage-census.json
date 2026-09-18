@@ -18,17 +18,17 @@
   "date": "2026-09-18",
   "instrument": "node scripts/quality/coverage.mjs (c8 --all over the full surface; full npm-test suite)",
   "full_surface": {
-   "files": 435,
-   "lines": 90601,
-   "covered": 47485,
-   "pct": 52.41
+   "files": 436,
+   "lines": 90985,
+   "covered": 47998,
+   "pct": 52.75
   },
   "by_category": {
    "PRODUCT-CODE": {
-    "files": 335,
-    "lines": 64962,
-    "covered": 38105,
-    "pct": 58.66
+    "files": 336,
+    "lines": 65346,
+    "covered": 38618,
+    "pct": 59.1
    },
    "CONTENT-TEMPLATE": {
     "files": 9,
@@ -56,13 +56,13 @@
    }
   },
   "product_code": {
-   "files": 335,
-   "lines": 64962,
-   "covered": 38105,
-   "pct": 58.66
+   "files": 336,
+   "lines": 65346,
+   "covered": 38618,
+   "pct": 59.1
   },
-  "files_at_zero_in_full_report": 202,
-  "files_executed_in_full_report": 233,
+  "files_at_zero_in_full_report": 201,
+  "files_executed_in_full_report": 235,
   "highest_stakes_slice": {
    "slice": "national survey system (functions/api/survey/ + functions/api/endo-quiz/)",
    "files": [
@@ -2563,9 +2563,9 @@
    "category": "PRODUCT-CODE",
    "reason": "Deterministic CI/pre-commit proof gate; it decides whether deploys are allowed and must itself be trustworthy.",
    "present": true,
-   "lines": 95,
-   "covered": 78,
-   "pct": 82.1
+   "lines": 120,
+   "covered": 120,
+   "pct": 100
   },
   {
    "file": "scripts/gates/faq-no-affirmative-lead.mjs",
@@ -2582,8 +2582,8 @@
    "reason": "Deterministic CI/pre-commit proof gate; it decides whether deploys are allowed and must itself be trustworthy.",
    "present": true,
    "lines": 71,
-   "covered": 33,
-   "pct": 46.47
+   "covered": 56,
+   "pct": 78.87
   },
   {
    "file": "scripts/gates/validate-analytics-pipeline.mjs",
@@ -2634,10 +2634,10 @@
    "file": "scripts/gates/validate-email-trickle.mjs",
    "category": "PRODUCT-CODE",
    "reason": "Deterministic CI/pre-commit proof gate; it decides whether deploys are allowed and must itself be trustworthy.",
-   "present": false,
-   "lines": 107,
-   "covered": 0,
-   "pct": 0
+   "present": true,
+   "lines": 115,
+   "covered": 111,
+   "pct": 96.52
   },
   {
    "file": "scripts/gates/validate-email-verification.mjs",
@@ -2716,9 +2716,9 @@
    "category": "PRODUCT-CODE",
    "reason": "Deterministic CI/pre-commit proof gate; it decides whether deploys are allowed and must itself be trustworthy.",
    "present": true,
-   "lines": 97,
-   "covered": 58,
-   "pct": 59.79
+   "lines": 164,
+   "covered": 164,
+   "pct": 100
   },
   {
    "file": "scripts/gates/validate-page-function-methods.mjs",
@@ -2744,8 +2744,8 @@
    "reason": "Deterministic CI/pre-commit proof gate; it decides whether deploys are allowed and must itself be trustworthy.",
    "present": true,
    "lines": 69,
-   "covered": 38,
-   "pct": 55.07
+   "covered": 68,
+   "pct": 98.55
   },
   {
    "file": "scripts/gates/validate-quiz-parity.mjs",
@@ -3333,6 +3333,15 @@
    "pct": 0
   },
   {
+   "file": "scripts/quality/audit-abstract-stripper.mjs",
+   "category": "PRODUCT-CODE",
+   "reason": "The quality instrument itself (coverage/CRAP/mutation/census). A measurement tool that is wrong is worse than no tool; its pure logic is unit-testable.",
+   "present": true,
+   "lines": 219,
+   "covered": 136,
+   "pct": 62.1
+  },
+  {
    "file": "scripts/quality/census.mjs",
    "category": "PRODUCT-CODE",
    "reason": "The quality instrument itself (coverage/CRAP/mutation/census). A measurement tool that is wrong is worse than no tool; its pure logic is unit-testable.",
@@ -3832,8 +3841,8 @@
    "category": "PRODUCT-CODE",
    "reason": "Build-time data fetcher / shared logic. Feeds every deploy (fetch-all -> src/data -> astro build); silent failure here is a data-loss deploy.",
    "present": true,
-   "lines": 43,
-   "covered": 43,
+   "lines": 108,
+   "covered": 108,
    "pct": 100
   },
   {

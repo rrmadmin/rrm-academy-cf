@@ -29,7 +29,20 @@
 // separator: stripping "Background " would risk eating real prose, and it only
 // affects ~0.7% of abstracts. Corpus-audited: 0 over-strips.
 export const ABSTRACT_LABEL_WORDS =
-  'background(?: and objectives?)?|objectives?|introduction|purpose(?: of review)?|aims?|methods?(?: and materials)?|materials(?: and methods)?|results?(?: and the role of chance)?|conclusions?|design|setting|participants|patients|subjects|interventions?|main outcome measures?|outcome measures?|measurements|study design|study question|research question|study objective|context|importance|problem(?:\\/condition)?|in brief|summary(?: answer)?|discussion|limitations?|implications?|what is known already|reasons for caution|wider implications(?: of the findings)?|trial registration(?: number)?|study funding(?:\\/competing interests?)?|funding|clinical relevance|significance|data analysis';
+  'background(?: and objectives?)?|objectives?|introduction|purpose(?: of review)?|aims?|methods?(?: and materials)?|materials(?: and methods)?|results?(?: and the role of chance)?|conclusions?|design|setting|participants|patients|subjects|interventions?|main outcome measures?|outcome measures?|measurements|study design|study question|research question|study objective|context|importance|problem(?:\\/condition)?|in brief|summary(?: answer)?|discussion|limitations?|implications?|what is known already|reasons for caution|wider implications(?: of the findings)?|trial registration(?: number)?|study funding(?:\\/competing interests?)?|funding|clinical relevance|significance|data analysis'
+  // Added 2026-09-18, after the `i`-flag fix stopped the generic arm eating
+  // unlisted labels as collateral. These three were left showing at the head
+  // of a snippet and are genuine section labels, so they belong in the
+  // vocabulary, which is the declared mechanism for exactly this. Measured on
+  // the live corpus before adding: Disclosure 3, "To the Editor" 3 (NOT added,
+  // that is the opening of a letter and real content), Rationale 1,
+  // Description 1.
+  //
+  // "description" is the borderline one and it is deliberately included: as a
+  // label it must still be followed by a colon or newline AT a whitespace
+  // boundary, which is what keeps it from matching the word in running prose.
+  // The corpus check below the fix records that it removes nothing else.
+  + '|disclosures?|rationale|description';
 
 /** The vocabulary, letter by letter, so it matches any case WITHOUT an `i`
  *  flag on the whole pattern.
