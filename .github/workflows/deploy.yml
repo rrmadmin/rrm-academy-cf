@@ -294,13 +294,23 @@ jobs:
         run: |
           fail=0
           # Minimum expected record counts (fail deploy if below these)
-          declare -A MIN_COUNTS=( [articles.json]=2500 [posts.json]=5 [faqs.json]=10 [courses.json]=1 )
+          # partners.json is in this list as of 2026-09-17: its baseline was being
+          # WRITTEN on every deploy and read by nothing, so a partners.json
+          # emptied to zero records deployed green and silently blanked the page
+          # that renders it. Unlike articles/glossary (fetched and cached) it is
+          # git-tracked, so a regression there arrives via a reviewed commit
+          # rather than a bad fetch -- lower risk, which is why it was easy to
+          # miss, not a reason to leave it uncovered.
+          declare -A MIN_COUNTS=( [articles.json]=2500 [posts.json]=5 [faqs.json]=10 [courses.json]=1 [partners.json]=1 )
           # Max allowed drop per data file (articles churn with retractions; posts/faqs/courses should not drop)
-          declare -A MAX_DROP=( [articles.json]=50 [posts.json]=1 [faqs.json]=1 [courses.json]=1 )
+          declare -A MAX_DROP=( [articles.json]=50 [posts.json]=1 [faqs.json]=1 [courses.json]=1 [partners.json]=1 )
           # Absolute floor: baseline auto-update can ratchet down by max_drop per deploy,
           # but count below this floor fails immediately regardless of baseline. Prevents
           # slow cumulative data loss across N deploys (each within max_drop) from going
           # undetected. Set above MIN_COUNTS so it actually constrains.
+          # No partners.json floor: at 1 live record a floor above MIN_COUNTS is
+          # impossible, and MIN_COUNTS=1 already refuses the only real failure
+          # (an emptied file). Add one if the partner list ever grows.
           declare -A ABSOLUTE_FLOOR=( [articles.json]=3600 [posts.json]=20 [faqs.json]=23 [courses.json]=9 )
 
           # Load baselines for regression detection
@@ -315,7 +325,7 @@ jobs:
             ")
           fi
 
-          for f in src/data/articles.json src/data/posts.json src/data/faqs.json src/data/courses.json; do
+          for f in src/data/articles.json src/data/posts.json src/data/faqs.json src/data/courses.json src/data/partners.json; do
             base=$(basename "$f")
             if [ ! -f "$f" ]; then
               echo "ERROR: $f not found. Cannot build without data files."
@@ -401,31 +411,91 @@ jobs:
           fi
 
           # Glossary has a nested structure: { terms, references, abbreviations }
+          #
+          # THREE COUNTS, AND UNTIL 2026-09-17 ONLY ONE WAS FULLY GUARDED.
+          # `.baselines.json` records all three on every deploy, which reads as
+          # regression protection for all three -- but only `glossary.terms` was
+          # ever compared against its baseline. `glossary.references` and
+          # `glossary.abbreviations` were written every deploy and never read by
+          # anything, so with live counts of 369 refs and 86 abbrs against
+          # minimums of 140 and 63, a single deploy could drop 229 references
+          # (62% of them) or 23 abbreviations and pass green. Baselines written
+          # and never compared are the most expensive kind of guard: they look
+          # like coverage in the diff and in the file.
+          #
+          # AND TERMS HAD NO ABSOLUTE FLOOR, which is the same cumulative-loss
+          # hole ABSOLUTE_FLOOR exists to plug for articles/posts/faqs/courses
+          # (see its comment above: "Prevents slow cumulative data loss across N
+          # deploys (each within max_drop) from going undetected"). The glossary
+          # auto-ratchets like every other file, so terms could bleed 5 per
+          # deploy from 230 all the way to the 180 minimum -- 22% of the
+          # glossary, in ten ordinary green deploys, with no single one of them
+          # looking wrong. The glossary is actively curated by the review loop
+          # and normally GROWS, so a sustained decline is a defect, not churn.
+          #
+          # Floors sit meaningfully above the minimums (or they constrain
+          # nothing) and below current counts with headroom for real editorial
+          # pruning. A deliberate prune past a floor is meant to require editing
+          # this file, exactly as it does for articles.
           gloss_file="src/data/glossary.json"
           if [ -f "$gloss_file" ]; then
-            gloss_terms=$(node -e "console.log(JSON.parse(require('fs').readFileSync('$gloss_file','utf8')).terms.length)")
-            gloss_refs=$(node -e "console.log(JSON.parse(require('fs').readFileSync('$gloss_file','utf8')).references.length)")
+            gloss_terms=$(node -e "console.log((JSON.parse(require('fs').readFileSync('$gloss_file','utf8')).terms || []).length)")
+            gloss_refs=$(node -e "console.log((JSON.parse(require('fs').readFileSync('$gloss_file','utf8')).references || []).length)")
             gloss_abbrs=$(node -e "console.log((JSON.parse(require('fs').readFileSync('$gloss_file','utf8')).abbreviations || []).length)")
             gloss_min_terms=180
             gloss_min_refs=140
             gloss_min_abbrs=63
+            # Absolute floors: auto-baseline can never ratchet below these.
+            gloss_floor_terms=200
+            gloss_floor_refs=300
+            gloss_floor_abbrs=75
             gloss_baseline=${BASELINES[glossary.terms]:-0}
+            gloss_base_refs=${BASELINES[glossary.references]:-0}
+            gloss_base_abbrs=${BASELINES[glossary.abbreviations]:-0}
             gloss_max_drop=5
+            gloss_max_drop_refs=10
+            gloss_max_drop_abbrs=3
+
+            # EVERY CHECK RUNS. The old chain was elif-joined, so a deploy that
+            # lost terms AND references reported only the terms line and the
+            # operator fixed half a problem.
             if [ "$gloss_terms" -lt "$gloss_min_terms" ]; then
               echo "ERROR: $gloss_file has only $gloss_terms terms (minimum: $gloss_min_terms). Possible data loss."
               fail=1
-            elif [ "$gloss_refs" -lt "$gloss_min_refs" ]; then
+            fi
+            if [ "$gloss_refs" -lt "$gloss_min_refs" ]; then
               echo "ERROR: $gloss_file has only $gloss_refs references (minimum: $gloss_min_refs). Possible data loss."
               fail=1
-            elif [ "$gloss_abbrs" -lt "$gloss_min_abbrs" ]; then
+            fi
+            if [ "$gloss_abbrs" -lt "$gloss_min_abbrs" ]; then
               echo "ERROR: $gloss_file has only $gloss_abbrs abbreviations (minimum: $gloss_min_abbrs). Possible data loss."
               fail=1
-            elif [ "$gloss_baseline" -gt "0" ] && [ "$gloss_terms" -lt "$((gloss_baseline - gloss_max_drop))" ]; then
+            fi
+            if [ "$gloss_terms" -lt "$gloss_floor_terms" ]; then
+              echo "ERROR: $gloss_file has $gloss_terms terms (absolute floor: $gloss_floor_terms). Auto-baseline cannot ratchet below this."
+              fail=1
+            fi
+            if [ "$gloss_refs" -lt "$gloss_floor_refs" ]; then
+              echo "ERROR: $gloss_file has $gloss_refs references (absolute floor: $gloss_floor_refs). Auto-baseline cannot ratchet below this."
+              fail=1
+            fi
+            if [ "$gloss_abbrs" -lt "$gloss_floor_abbrs" ]; then
+              echo "ERROR: $gloss_file has $gloss_abbrs abbreviations (absolute floor: $gloss_floor_abbrs). Auto-baseline cannot ratchet below this."
+              fail=1
+            fi
+            if [ "$gloss_baseline" -gt "0" ] && [ "$gloss_terms" -lt "$((gloss_baseline - gloss_max_drop))" ]; then
               echo "ERROR: $gloss_file terms dropped from $gloss_baseline to $gloss_terms (max allowed drop: $gloss_max_drop)."
               fail=1
-            else
-              echo "OK: $gloss_file has $gloss_terms terms + $gloss_refs refs + $gloss_abbrs abbrs (baseline terms: $gloss_baseline)"
             fi
+            if [ "$gloss_base_refs" -gt "0" ] && [ "$gloss_refs" -lt "$((gloss_base_refs - gloss_max_drop_refs))" ]; then
+              echo "ERROR: $gloss_file references dropped from $gloss_base_refs to $gloss_refs (max allowed drop: $gloss_max_drop_refs)."
+              fail=1
+            fi
+            if [ "$gloss_base_abbrs" -gt "0" ] && [ "$gloss_abbrs" -lt "$((gloss_base_abbrs - gloss_max_drop_abbrs))" ]; then
+              echo "ERROR: $gloss_file abbreviations dropped from $gloss_base_abbrs to $gloss_abbrs (max allowed drop: $gloss_max_drop_abbrs)."
+              fail=1
+            fi
+            echo "Glossary: $gloss_terms terms (min $gloss_min_terms, floor $gloss_floor_terms, baseline $gloss_baseline), $gloss_refs refs (min $gloss_min_refs, floor $gloss_floor_refs, baseline $gloss_base_refs), $gloss_abbrs abbrs (min $gloss_min_abbrs, floor $gloss_floor_abbrs, baseline $gloss_base_abbrs)"
           else
             echo "WARN: $gloss_file not found. Skipping glossary guard (push events skip fetch)."
           fi
