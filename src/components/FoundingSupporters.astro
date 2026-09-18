@@ -116,10 +116,13 @@ const bandShowScarcity = !bandClosed && (isBand ? bandLeft > 0 : false);
           }
         }
 
-        // Scarcity line shows ONLY while founding is open. When closed: no line, and
-        // there is no acquisition CTA anywhere in this component.
+        // Scarcity line shows ONLY while founding is open AND known. When closed, or
+        // when total_gifts_partial has forced founding_left/founding_closed to null
+        // (a truncated Stripe scan -- the real count is unknown), suppress the line
+        // rather than guess: this component makes no "still counting" claim of its
+        // own, it just says nothing until the count is trustworthy again.
         if (scarcity && leftEl && capEl) {
-          if (!data.founding_closed && data.founding_left > 0) {
+          if (data.founding_closed === false && data.founding_left !== null && data.founding_left > 0) {
             leftEl.textContent = String(data.founding_left);
             capEl.textContent = String(data.founding_cap);
             scarcity.hidden = false;

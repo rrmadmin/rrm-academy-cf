@@ -127,7 +127,16 @@ const foundingLeftInit = s ? Math.max(0, Math.round(Number(s.founding_left) || 0
         if (rEl) { rEl.dataset.countTo = String(raised); fireOnView(rEl, () => countUp(rEl, raised)); }
 
         if (foundingEl && foundingCard) {
-          if (sup.founding_closed) {
+          if (sup.founding_left === null || sup.founding_closed === null) {
+            // total_gifts_partial: the Stripe fallback scan was truncated, so
+            // total_gifts is a lower bound, not the real count. Showing "N
+            // remaining" or "Complete" off that number would be a guess
+            // dressed up as a fact -- render a neutral line instead of
+            // fabricating either.
+            foundingCard.dataset.closed = 'false';
+            foundingEl.textContent = 'Still counting';
+            const fs = subOf('founding'); if (fs) fs.textContent = 'tallying gifts';
+          } else if (sup.founding_closed) {
             foundingCard.dataset.closed = 'true';
             foundingEl.textContent = 'Complete';
             const fs = subOf('founding'); if (fs) fs.textContent = `all ${sup.founding_cap} claimed`;

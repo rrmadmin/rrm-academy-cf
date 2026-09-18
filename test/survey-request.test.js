@@ -537,6 +537,38 @@ describe('survey/request -- resend guard write order', () => {
       );
     } finally { stub.restore(); }
   });
+
+  it('logs survey_guard_rollback_failed distinctly when the compensating delete also throws', async () => {
+    // A double KV failure (token write throws, THEN the guard-key delete
+    // also throws) used to swallow the rollback failure silently -- the
+    // person is locked out for 10 minutes by a half-write and nothing in
+    // the digest says so. The rollback failure must be logged under its own
+    // action name, separate from the original token-write failure that
+    // still drives the 500.
+    const email = 'kvdoublefail@example.com';
+    const events = [];
+    const ctx = makeContext({ body: { email }, env: { EVENTS: { writeDataPoint: (dp) => events.push(dp) } } });
+    const realPut = ctx.env.SURVEY_TOKENS.put.bind(ctx.env.SURVEY_TOKENS);
+    ctx.env.SURVEY_TOKENS.put = async (key, value, opts) => {
+      if (key.startsWith('token:')) throw new Error('KV write failed');
+      return realPut(key, value, opts);
+    };
+    ctx.env.SURVEY_TOKENS.delete = async () => { throw new Error('KV delete also failed'); };
+    const stub = stubExternalFetch();
+    try {
+      const parsed = await run(ctx);
+      assert.equal(parsed.status, 500, 'the original token-write failure still drives the 500');
+
+      const rollbackLog = events.find((dp) => dp.blobs?.[2] === 'survey_guard_rollback_failed');
+      assert.ok(rollbackLog, `expected a survey_guard_rollback_failed event; got: ${JSON.stringify(events.map((dp) => dp.blobs))}`);
+      assert.equal(rollbackLog.blobs[3], 'error');
+      assert.match(rollbackLog.blobs[4], /KV delete also failed/);
+
+      const requestFailLog = events.find((dp) => dp.blobs?.[2] === 'request_fail');
+      assert.ok(requestFailLog, 'the original failure must still be logged under its own action name');
+      assert.match(requestFailLog.blobs[4], /KV write failed/);
+    } finally { stub.restore(); }
+  });
 });
 
 describe('survey/request -- production defaults (no env override in play)', () => {

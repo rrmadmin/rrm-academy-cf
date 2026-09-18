@@ -530,6 +530,31 @@ describe('stripe-webhook -- join-denylist reversal failures force a retry', () =
       assert.ok(db._rows.get(evt.id)?.completed_at, 'phase 2 must mark the event completed on the successful retry');
     } finally { recoveredStub.restore(); }
   });
+
+  it('rolls the dedup row back and answers 5xx when the subscription has no latest_invoice to refund', async () => {
+    // A trialing/incomplete/zero-total-first-invoice subscription retrieves
+    // with latest_invoice: null. The old code fell through the final `else`
+    // (logged "no payment_intent found") without marking a failure, so the
+    // subscription was cancelled, nothing was ever refunded, and the webhook
+    // still acked 200 with no retry -- a denied member whose card had
+    // already been charged for a real invoice would keep the money.
+    const db = webhookDb();
+    const evt = event('checkout.session.completed', denylistSession({
+      subscription: 'sub_denylist_no_invoice',
+    }));
+    const stripeStub = stubExternalFetch({ stripe: stripeRoutes({
+      '/v1/subscriptions/sub_denylist_no_invoice': {
+        id: 'sub_denylist_no_invoice', object: 'subscription', status: 'trialing',
+        latest_invoice: null,
+      },
+    }) });
+    try {
+      const parsed = await parseResponse(await onRequestPost(makeCtx({ db, request: signedRequest(evt) })));
+      assert.equal(parsed.status, 500, 'a missing invoice/payment_intent must not be acked as 200');
+      assert.deepEqual(parsed.body, { ok: false, error: 'Internal error' });
+      assert.equal(db._rows.has(evt.id), false, 'the dedup row must be gone so Stripe redelivers the event');
+    } finally { stripeStub.restore(); }
+  });
 });
 
 // -------------------------------------------------- outermost error net ---

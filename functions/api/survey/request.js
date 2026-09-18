@@ -118,7 +118,9 @@ export async function onRequestPost(context) {
         { expirationTtl: TOKEN_TTL }
       );
     } catch (err) {
-      await env.SURVEY_TOKENS.delete(`email:${email}`).catch(() => {});
+      await env.SURVEY_TOKENS.delete(`email:${email}`).catch((rollbackErr) => {
+        log(env, waitUntil, 'survey', 'survey_guard_rollback_failed', 'error', rollbackErr.message);
+      });
       throw err;
     }
 

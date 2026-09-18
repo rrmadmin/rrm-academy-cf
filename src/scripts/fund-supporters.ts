@@ -16,18 +16,23 @@ export interface Supporter {
 export interface SupportersPayload {
   ok: boolean;
   total_gifts: number;
+  /** True when total_gifts is a lower bound from a truncated Stripe scan, not the
+   *  real total. founding_left/founding_closed are null whenever this is true --
+   *  never trust them as a total while this flag is set. */
+  total_gifts_partial: boolean;
   consented_count: number;
   recent: Supporter[];
   founding: Supporter[];
   founding_cap: number;
-  founding_left: number;
-  founding_closed: boolean;
+  founding_left: number | null;
+  founding_closed: boolean | null;
   anonymous_founders: number;
 }
 
 export const EMPTY_SUPPORTERS: SupportersPayload = {
   ok: false,
   total_gifts: 0,
+  total_gifts_partial: false,
   consented_count: 0,
   recent: [],
   founding: [],
@@ -79,15 +84,19 @@ export function sanitizeSupporters(d: unknown): SupportersPayload {
   const o = d as Record<string, unknown>;
   const cap = Math.max(1, Math.round(num(o.founding_cap, 100)));
   const total = Math.max(0, Math.round(num(o.total_gifts)));
+  const partial = o.total_gifts_partial === true;
   return {
     ok: o.ok === true,
     total_gifts: total,
+    total_gifts_partial: partial,
     consented_count: Math.max(0, Math.round(num(o.consented_count))),
     recent: coerceSupporters(o.recent),
     founding: coerceSupporters(o.founding),
     founding_cap: cap,
-    founding_left: Math.max(0, Math.round(num(o.founding_left, cap))),
-    founding_closed: o.founding_closed === true,
+    // A partial total is a lower bound, not the real count -- never coerce a null
+    // founding_left/founding_closed back into a number/boolean while partial.
+    founding_left: partial ? null : Math.max(0, Math.round(num(o.founding_left, cap))),
+    founding_closed: partial ? null : o.founding_closed === true,
     anonymous_founders: Math.max(0, Math.round(num(o.anonymous_founders))),
   };
 }

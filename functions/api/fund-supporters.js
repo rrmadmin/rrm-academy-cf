@@ -66,10 +66,14 @@ export async function onRequestGet({ request, env, waitUntil }) {
       ).bind(CAMPAIGN).first();
       consented = c?.n || 0;
     }
-    const founding_left = Math.max(0, FOUNDING_CAP - total);
+    // A partial (truncated-scan) total is a lower bound, not the real count -- it must
+    // never drive founding_left/founding_closed (a wrong "spots remaining" or, worse, a
+    // false "Complete"). Both go null so the client renders neutral copy instead.
+    const founding_left = totalPartial ? null : Math.max(0, FOUNDING_CAP - total);
+    const founding_closed = totalPartial ? null : founding_left === 0;
     const result = {
       ok: true, total_gifts: total, total_gifts_partial: totalPartial, consented_count: consented, recent, founding,
-      founding_cap: FOUNDING_CAP, founding_left, founding_closed: founding_left === 0,
+      founding_cap: FOUNDING_CAP, founding_left, founding_closed,
       anonymous_founders: Math.max(0, Math.min(total, FOUNDING_CAP) - founding.length),
     };
     // Only cache when total came from a reliable source (KV hit OR successful Stripe recompute).

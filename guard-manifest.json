@@ -55,7 +55,7 @@
       "note": "Stripe portal"
     },
     "functions/api/billing/_webhook-checkout.js": {
-      "hash": "d5022a54dd504f3d678e3413d0c8c53816d77fd5a4908672bdaee5f273a655bf",
+      "hash": "808d3e167a2b446d1edf15c49891592e2acb5c8b3d580bd8d9d2f7a3385fdbcc",
       "note": "Stripe checkout completion handler"
     },
     "functions/api/billing/_webhook-subscription.js": {
@@ -95,7 +95,7 @@
       "note": "Survey submission + PII pseudonymization"
     },
     "functions/api/survey/request.js": {
-      "hash": "feebc7984ede4acb72c77c665482ac4c1aab19b8b6dc550a0b0a9e3ae61050c2",
+      "hash": "190bb3f2fd53ce7d33825a2e91619750204f14d1a5f213227f295c384aa0e15c",
       "note": "Magic-link token generation"
     },
     "functions/api/newsletter/_mail.js": {

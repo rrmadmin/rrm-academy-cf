@@ -1111,6 +1111,7 @@ async function reverseJoinDenylistCheckout(session, env, waitUntil) {
   } else {
     log(env, waitUntil, 'billing', 'join_denylist_refund_error', 'error',
       `no payment_intent found for session ${session.id}`);
+    hadFailure = true;
   }
 
   if (hadFailure) {
