@@ -289,22 +289,55 @@ if [ -x ~/iCode/tools/lint-canonical-names/precommit.sh ]; then
 fi
 
 # --- Abstract-snippet leak guard: staged ArticleCard or the shared stripper ---
-# Snippets must not leak structured-abstract labels. Runs against committed
-# src/data/articles.json. Bypass: --no-verify
+# Snippets must not leak structured-abstract labels. Reads the GENERATED,
+# gitignored src/data/articles.json. Bypass: --no-verify
+#
+# Exit 2 is handled separately from exit 1 on purpose. Both gates below exit 2
+# for "data file not found", and both data files are generated and gitignored,
+# so they are ABSENT in every fresh clone and worktree. Written as
+# `node ... || { echo "a section label survives" }` the hook announced a
+# specific content defect whenever it had not managed to look at the content at
+# all. On 2026-09-18 that printed "a section label survives in a snippet" for a
+# commit whose only problem was a missing generated file, and the commit was
+# blocked while the push that followed reported success on a branch containing
+# none of the work. Same distinction the gates' own harnesses test: exit 2 is
+# "I could not look", exit 1 is "I looked and it is wrong".
+#
+# Both still BLOCK. A guard that cannot run must not wave a commit through; it
+# just has to say which of the two things happened.
 if echo "$STAGED" | grep -qE '^src/components/ArticleCard\.astro$|^src/lib/abstract-snippet\.mjs$|^scripts/gates/validate-abstract-snippets\.mjs$'; then
-  node scripts/gates/validate-abstract-snippets.mjs || {
+  node scripts/gates/validate-abstract-snippets.mjs
+  rc=$?
+  if [ "$rc" -eq 2 ]; then
+    echo ""
+    echo "abstract-snippet guard COULD NOT RUN (exit 2), so it has proven nothing."
+    echo "src/data/articles.json is generated and gitignored, so it is absent in a fresh"
+    echo "clone or worktree. Populate it (npm run fetch-data), or symlink it from a clone"
+    echo "that has it, then commit again."
+    exit 1
+  elif [ "$rc" -ne 0 ]; then
     echo "Commit blocked by abstract-snippet leak guard (a section label survives in a snippet)."
     exit 1
-  }
+  fi
 fi
 
 # --- Post-body Markdown guard: staged posts.json ---
 # Commentary bodies must be Markdown, never block HTML (2026-07-10 burn).
+# See the exit-2 note above: src/data/posts.json is generated and gitignored too.
 if echo "$STAGED" | grep -qE '^src/data/posts\.json$|^scripts/gates/validate-post-markdown\.mjs$'; then
-  node scripts/gates/validate-post-markdown.mjs || {
+  node scripts/gates/validate-post-markdown.mjs
+  rc=$?
+  if [ "$rc" -eq 2 ]; then
+    echo ""
+    echo "post-markdown guard COULD NOT RUN (exit 2), so it has proven nothing."
+    echo "src/data/posts.json is generated and gitignored, so it is absent in a fresh"
+    echo "clone or worktree. Populate it (npm run fetch-data), or symlink it from a clone"
+    echo "that has it, then commit again."
+    exit 1
+  elif [ "$rc" -ne 0 ]; then
     echo "Commit blocked by post-markdown guard (a post body contains block HTML)."
     exit 1
-  }
+  fi
 fi
 
 # --- Unfinished-state copy guard: any staged page/component ---

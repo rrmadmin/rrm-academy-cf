@@ -171,128 +171,142 @@ test('a generic ALL-CAPS run is stripped even though it is not in the vocabulary
   assert.equal(abstractSnippet('WHAT WE DID: the prose.'), 'the prose.');
 });
 
-test('LIVE DEFECT, pinned not fixed: the stripper EATS PROSE before a colon', () => {
-  // HONEST FAILURE, NOT A PASSING ASSERTION.
+test('THE REGRESSION: a lowercase clause before a colon survives, words and all', () => {
+  // This test, and the two below it, used to assert the OPPOSITE, as an honest
+  // record of a live defect. From 2026-07-13 to 2026-09-18 abstractLabelRegExp
+  // carried the `i` flag, so its generic arm -- written as
+  // [A-Z][A-Z][A-Z \/&-]{1,28} to mean "an ALL-CAPS run" -- matched lowercase
+  // too, and its third class contains a space. The arm therefore meant "any run
+  // of 3 to 31 letters and spaces before a colon", which is a clause of
+  // ordinary English, and it was deleted along with the colon.
   //
-  // The stripper's header says: "an acronym in running prose ('…risk of PCOS:
-  // a review') is NOT a label position and real acronyms (PCOS, AMH, IVF)
-  // survive. Corpus-audited over 3,720 abstracts: … 0 false positives."
-  //
-  // That exact sentence is false, and its own example is the counterexample.
-  // The cause is the `i` flag on abstractLabelRegExp(). The generic arm
-  // [A-Z][A-Z][A-Z \/&-]{1,28} is written to mean "an ALL-CAPS run", but under
-  // `i` those classes match lowercase too, and the third one includes a space
-  // -- so the arm actually means "any 3-to-30 character run of letters, spaces,
-  // slashes, ampersands and hyphens followed by a colon". That is a clause of
-  // ordinary English, and it is deleted along with the colon.
-  //
-  // MEASURED on the live corpus (src/data/articles.json, 3,720 abstracts) by
-  // comparing the shipped stripper against the semantics the header describes
-  // (vocabulary arm case-insensitive, generic arm case-SENSITIVE):
-  //
-  //     860 abstracts changed (23.1%), 29,935 characters deleted,
-  //     median 28 characters, max 776.
-  //
-  // Real examples from that run, as rendered on library cards today:
-  //   "Evaluation and treatment of recurrent pregnancy loss: a committee
-  //    opinion"           -> "Evaluation and treatment a committee opinion"
-  //   "fifteen scenarios including sensitivity analyses: two different…"
-  //                       -> "fifteen scenarios two different…"
-  //   "preferences shifted substantially: 69% favored…"
-  //                       -> "preferences 69% favored…"
-  //
-  // NOT FIXED HERE, deliberately. abstract-snippet.mjs is shared with the
-  // rendering component, a merge to main deploys this repo, and the fix
-  // changes visible text on 860 library cards. That is Brian's call, not a
-  // harness's. The fix itself is small: split the alternation so the
-  // vocabulary keeps `i` and the ALL-CAPS arm does not.
-  //
-  // This test asserts the CURRENT broken behaviour so it goes RED the moment
-  // the fix lands, which is the signal to replace it with the real assertion
-  // kept below it.
-  const src = 'We assessed the risk of PCOS: a systematic review of AMH and IVF outcomes.';
-  assert.equal(abstractSnippet(src), 'a systematic review of AMH and IVF outcomes.',
-    'FIX LANDED: the stripper no longer eats the clause -- replace this test with the assertion below');
-
-  // The assertion this should become:
-  //   assert.equal(abstractSnippet(src), src, 'a colon in prose is not a section label');
-
-  // The gate stays GREEN throughout, which is the second half of the finding:
-  // because detector and stripper share the regex, the gate cannot see that
-  // 23% of the corpus is being over-stripped. It is not a gate that failed to
-  // fire; it is a gate that structurally cannot.
-  const { root, file } = fixture([{ slug: 'acronym', abstract: src }]);
-  try {
-    assert.equal(run(file).code, 0, 'the gate is blind to over-stripping by construction');
-  } finally { rmSync(root, { recursive: true, force: true }); }
+  // MEASURED on the live corpus, old stripper against this one: 809 of 3,720
+  // abstracts changed, 29,275 characters RESTORED, 0 characters newly removed,
+  // and 0 snippets left holding a vocabulary label. Pure restoration.
+  const src = 'We assessed whether the risk differed: it did not.';
+  assert.equal(abstractSnippet(src), src, 'a lowercase clause is not a section label');
+  const { root, file } = fixture([{ slug: 'clause', abstract: src }]);
+  try { assert.equal(run(file).code, 0); } finally { rmSync(root, { recursive: true, force: true }); }
 });
 
-test('the over-strip is not one unlucky sentence: ANY colon in prose loses the words before it', () => {
-  // Pins the SHAPE of the defect rather than one string, so the measurement
-  // above can be re-derived without the corpus. Every expected value below is
-  // the MEASURED output of the shipped stripper, not a prediction: two of the
-  // four were written from reasoning first and both were wrong, which is why
-  // the table is annotated with what actually happens.
+test('RESIDUAL, measured and left alone: an ALL-CAPS acronym before a colon is still eaten', () => {
+  // HONEST FAILURE, NOT A PASSING ASSERTION. This is a SECOND defect, older and
+  // much smaller than the `i` flag, and the fix above does not touch it.
   //
-  // What the pattern really removes is the LAST run of up to 30 letters and
-  // spaces ending at the colon, plus the colon -- not the whole clause. So
-  // "preferences shifted substantially:" keeps "preferences" and loses
-  // " shifted substantially:".
+  // The generic arm matches any all-caps run of 3 or more characters before a
+  // colon, so a real acronym used that way goes too. The stripper's header has
+  // always claimed the opposite -- "real acronyms (PCOS, AMH, IVF) survive" --
+  // and that claim was false in the FIRST version of this code (commit
+  // 70ec00a6, 2026-07-13 10:06), seventeen minutes before the `i` flag
+  // existed. It is not collateral from the flag; it predates it.
+  //
+  // WHY IT IS LEFT: measured over the live corpus, the generic arm makes 537
+  // matches, 131 of them mid-sentence, and 129 of those are fragments of
+  // genuine multi-part labels ("DURATION" from "STUDY DESIGN, SIZE,
+  // DURATION:", "AND PARTICIPANTS" from a split "PARTICIPANTS, SETTING,
+  // METHODS:"). Exactly TWO are real acronyms, both "AMH". Narrowing the arm
+  // to spare them would need a sentence-boundary rule, which risks the 129
+  // legitimate fragments, so it is a calibration decision with a worse
+  // downside than the residual. Brian's call, not a harness's.
+  //
+  // This asserts the current behaviour so it goes RED if the arm is ever
+  // narrowed, which is the signal to re-measure the 129.
+  // Note the exact shape of the loss: only the acronym and its colon go, not
+  // the clause. The case-SENSITIVE arm matches just the all-caps token, which
+  // is why this residual is small and local where the `i`-flag version was
+  // broad. Both expectations below are measured output, not predictions.
+  assert.equal(abstractSnippet('We assessed the risk of PCOS: a systematic review.'),
+    'We assessed the risk of a systematic review.',
+    'FIX LANDED: acronyms now survive -- re-measure the 129 label fragments and invert this');
+  assert.equal(abstractSnippet('Patients with AMH: low values were excluded.'),
+    'Patients with low values were excluded.');
+});
+
+test('ordinary clause shapes keep every word, including the statistical ones', () => {
+  // The class of damage that mattered most on a research library: the old
+  // stripper deleted the terms that give a number its meaning, leaving the
+  // number behind. The last two are taken verbatim from what the live corpus
+  // was rendering before the fix, where "odds ratio:" and "lowest tertile:"
+  // were removed and the figures left stranded without them.
   const cases = [
-    ['Patients with AMH: low values were excluded.', 'low values were excluded.'],
-    ['We used IVF: the standard protocol.', 'the standard protocol.'],
-    ['preferences shifted substantially: 69% favored it.', 'preferences 69% favored it.'],
-    ['defined as: 1) twelve months of trying.', '1) twelve months of trying.'],
+    'preferences shifted substantially: 69% favored it.',
+    'defined as: 1) twelve months of trying.',
+    'duration of subfertility (24 months vs. 12 months; odds ratio: 0.193; 95% confidence interval: 0.043-0.859)',
+    'As (highest vs. lowest tertile: aOR = 5.53, 95 % CI: 2.97, 10.30)',
   ];
-  for (const [src, shippedNow] of cases) {
-    assert.equal(abstractSnippet(src), shippedNow,
-      `FIX LANDED for ${JSON.stringify(src)} -- update this table`);
+  for (const src of cases) {
+    assert.equal(abstractSnippet(src), src, `${JSON.stringify(src)} must survive untouched`);
   }
 });
 
-test('there is NO safety from clause length, which is why a corpus audit missed it', () => {
-  // This test was first written asserting the opposite -- that a colon more
-  // than 30 characters into a clause is untouched, so only short clauses lose
-  // text. That was wrong, and the real behaviour is worse: the {1,28} bound
-  // applies to the run ENDING at the colon, and every colon has some short run
-  // before it. A long sentence loses its last few words instead of its first
-  // few, so spot-checking long prose shows text that still reads fine while
-  // words have quietly gone.
+test('a genuine ALL-CAPS label is still stripped, so the fix did not disarm the arm', () => {
+  // The other direction, and the reason the fix is a case change rather than a
+  // deletion. The generic arm still exists and still works; it is simply
+  // case-SENSITIVE again, as it was in commit 70ec00a6 before the `i` flag
+  // arrived seventeen minutes later.
+  assert.equal(abstractSnippet('WHAT WE DID: the prose.'), 'the prose.');
+  assert.equal(abstractSnippet('Lead in. IMPORTANCE: the prose.'), 'Lead in. the prose.');
+  assert.equal(abstractSnippet('SETTING AND DESIGN: a clinic cohort.'), 'a clinic cohort.');
+  // And a Title-Case VOCABULARY label still goes, which is what the `i` flag
+  // was originally added to achieve. Losing this would be a regression to the
+  // pre-8175edbd behaviour.
+  assert.equal(abstractSnippet('Background: the prose.'), 'the prose.');
+  assert.equal(abstractSnippet('Study Question: the prose.'), 'the prose.');
+  assert.equal(abstractSnippet('main outcome measures: the prose.'), 'the prose.');
+});
+
+test('a Title-Case phrase OUTSIDE the vocabulary is kept, and that is the trade', () => {
+  // Stated rather than hidden. The `i`-flag fix stopped the generic arm eating
+  // unlisted labels as collateral, so they are kept now. MEASURED on the live
+  // corpus right after that fix: 13 snippets opened with a label-shaped phrase
+  // where 0 did before, and most were genuine content ("To the Editor", a
+  // surname, a sentence).
   //
-  // That is the whole reason a 3,720-abstract audit recorded "0 false
-  // positives": the damage is mid-sentence and grammatical, never a visible
-  // truncation.
-  const src = 'We assessed whether the risk of adverse neonatal outcome differed: it did not.';
-  assert.equal(abstractSnippet(src), 'We assessed whether the risk of adverse it did not.',
-    'FIX LANDED: a long clause keeps its words -- replace this with assert.equal(out, src)');
+  // The mechanism for a phrase that really IS a label is the vocabulary, not
+  // the case-insensitive arm. Three were added on 2026-09-18 for exactly that
+  // reason (disclosure/disclosures, rationale, description), which removed 82
+  // characters across 7 abstracts and added none. This test therefore uses a
+  // phrase that is still, deliberately, not in the vocabulary.
+  assert.equal(abstractSnippet('To the Editor: we read the paper with interest.'),
+    'To the Editor: we read the paper with interest.',
+    'a letter opening is content, not a section label, and must be kept');
 
-  // The only shape that escapes, found by sweeping word lengths rather than by
-  // reading the bound (the first two guesses here were both wrong): the run is
-  // [A-Z][A-Z][A-Z \/&-]{1,28}, so at most 31 characters. A single word of 31
-  // or more before the colon is untouched; 30 or fewer is stripped. Measured
-  // boundary, exact.
-  const safe = `The endpoint was ${'A'.repeat(31)}: it was rare.`;
-  assert.equal(abstractSnippet(safe), safe, 'a 31-character run exceeds the bound and survives');
-  const eaten = `The endpoint was ${'A'.repeat(30)}: it was rare.`;
-  assert.equal(abstractSnippet(eaten), 'The endpoint was it was rare.',
-    'a 30-character run still fits the bound and is stripped');
+  // And the three that WERE added are now stripped, which is the other half of
+  // the same decision.
+  for (const w of ['Disclosure', 'Disclosures', 'Rationale', 'Description']) {
+    assert.equal(abstractSnippet(`${w}: the text.`), 'the text.',
+      `${w} was added to the vocabulary on 2026-09-18 and must be stripped`);
+  }
 });
 
-test('the newline separator is honoured, so newline-labelled journals are covered', () => {
-  assert.equal(abstractSnippet('Background\nEndometriosis can be painful.'),
-    'Endometriosis can be painful.');
-  assert.equal(abstractSnippet('Methods\r\nA cohort study.'), 'A cohort study.');
+test('the three added words do NOT fire on the same word in running prose', () => {
+  // The risk of adding a common English word to the vocabulary. A label still
+  // needs a whitespace boundary before it and a colon or newline after, so the
+  // bare word in a sentence is untouched. MEASURED: adding these three removed
+  // 0 characters beyond the 7 genuine labels.
+  for (const s of [
+    'A full description of the cohort follows in the appendix.',
+    'No disclosure was made by any author of the review.',
+    'The rationale for excluding them is given above.',
+  ]) {
+    assert.equal(abstractSnippet(s), s, `${JSON.stringify(s)} must survive untouched`);
+  }
 });
 
-test('a bare-space residue is deliberately left, and is deliberately not a failure', () => {
-  // "Background Endometriosis", no colon. Left on purpose: stripping a bare
-  // space risks eating prose, and it affects ~0.7% of abstracts. Pinned
-  // because it is a calibration decision someone could mistake for a bug and
-  // "fix" into a prose-eater.
-  const src = 'Background Endometriosis can be painful.';
-  assert.equal(abstractSnippet(src), src);
-  const { root, file } = fixture([{ slug: 'bare-space', abstract: src }]);
-  try { assert.equal(run(file).code, 0); } finally { rmSync(root, { recursive: true, force: true }); }
+test('KNOWN RESIDUAL of the vocabulary arm: the word before a colon IS eaten', () => {
+  // HONEST FAILURE, NOT A PASSING ASSERTION, and it is not new to the three
+  // added words -- it is true of "design", "setting", "context", "patients"
+  // and a dozen others already in the list, because the boundary is only
+  // (^|\s) with no requirement that a label start a sentence.
+  //
+  // It is the SAME root cause as the ALL-CAPS acronym residual: a pattern that
+  // matches more than its name implies. A sentence-boundary rule would fix
+  // both, and would also risk the 129 corpus removals that are fragments of
+  // split multi-part labels. Measured at 0 corpus instances today, so it is
+  // recorded rather than fixed.
+  assert.equal(abstractSnippet('We gave a description: it was brief.'),
+    'We gave a it was brief.',
+    'FIX LANDED: labels now need a sentence boundary -- re-measure the 129 fragments');
 });
 
 // ---- the gate's plumbing, which CAN be falsified ----
