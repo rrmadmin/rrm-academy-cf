@@ -115,7 +115,52 @@ export function removedSpans(original, snippet) {
     if (k >= aw.length) break;
   }
   if (i < aw.length) pushSpan(i, aw.length);
-  return spans.filter((s) => s.text.length > 0);
+  // SELF-CHECK, and it is the most important line in this file.
+  //
+  // A span is only a removal if its text is genuinely ABSENT from the snippet.
+  // The word walk can still over-report: after deleting a label, the snippet
+  // resumes with words that recur later in the abstract, so the two-word
+  // re-sync anchor can land at the later copy and swallow the prose in
+  // between. That produced 42 confident "possible over-strips" on the corpus,
+  // and spot-checking four of them against the actual snippet showed the prose
+  // was still there in all four.
+  //
+  // Verifying the output against the snippet catches that, and would have
+  // caught all five earlier broken versions of this function too. An audit
+  // that cannot check its own findings has no business reporting them: this
+  // whole file exists because the original stripper audit measured the wrong
+  // thing and was believed for 67 days.
+  //
+  // Artifacts are RETURNED, marked, not silently dropped, so the report can
+  // say how many it discarded. A differ quietly throwing away its own mistakes
+  // is how the count stops meaning anything.
+  const hay = norm(snippet);
+  const PHRASE = 3; // words that must co-occur before a tail counts as surviving
+  const trimmed = [];
+  for (const s of spans) {
+    if (!s.text) continue;
+    let words = s.text.split(' ');
+    let cut = 0;
+    // Drop trailing words while the last PHRASE of them still appear, in
+    // order, in the snippet. A checking `hay.includes(s.text)` alone is not
+    // enough: the span is "LABEL: prose" and the snippet holds "prose" but
+    // never the concatenation, so the whole-string test fired on only 3 of
+    // 42 over-reaching spans.
+    while (words.length > PHRASE && hay.includes(words.slice(-PHRASE).join(' '))) {
+      words = words.slice(0, -1);
+      cut += 1;
+    }
+    const text = words.join(' ');
+    trimmed.push({
+      ...s,
+      text,
+      // Marked, never silently dropped: a differ that quietly discards its own
+      // mistakes stops being countable.
+      artifact: hay.includes(text) || text.length === 0,
+      overreached: cut,
+    });
+  }
+  return trimmed.filter((s) => s.text.length > 0);
 }
 
 /** Classify one removed span. */
@@ -156,7 +201,7 @@ if (import.meta.url === `file://${process.argv[1]}`) {
   const raw = JSON.parse(fs.readFileSync(dataPath, 'utf8'));
   const articles = Array.isArray(raw) ? raw : raw.articles || Object.values(raw);
 
-  const tally = { abstracts: 0, removals: 0, vocabulary: 0, 'caps-run': 0, NEITHER: 0, midSentence: 0 };
+  const tally = { abstracts: 0, removals: 0, vocabulary: 0, 'caps-run': 0, NEITHER: 0, midSentence: 0, artifacts: 0, unresolved: 0 };
   const suspects = [];
   const capsMid = [];
   for (const a of articles) {
@@ -164,6 +209,15 @@ if (import.meta.url === `file://${process.argv[1]}`) {
     tally.abstracts += 1;
     const snippet = abstractSnippet(a.abstract);
     for (const span of removedSpans(a.abstract, snippet)) {
+      if (span.artifact) { tally.artifacts += 1; continue; }
+      // A span that had to be trimmed, or that is far longer than any label,
+      // is a REGION containing several removals plus the surviving prose
+      // between them. A greedy word walk cannot resolve those into individual
+      // removals, and pretending otherwise is what produced 42 confident
+      // "possible over-strips" that spot-checking showed were still present in
+      // the snippet. They are counted and set aside, not classified and not
+      // reported as findings.
+      if (span.overreached > 0 || span.text.length > 120) { tally.unresolved += 1; continue; }
       const c = classify(span);
       tally.removals += 1;
       tally[c.kind] += 1;
@@ -186,6 +240,8 @@ if (import.meta.url === `file://${process.argv[1]}`) {
   console.log(`    an ALL-CAPS run        ${tally['caps-run']}`);
   console.log(`    NEITHER                ${tally.NEITHER}   <-- over-strip suspects`);
   console.log(`  removed mid-sentence     ${tally.midSentence}`);
+  console.log(`  discarded, text still in the snippet      ${tally.artifacts}`);
+  console.log(`  multi-removal regions, not resolved       ${tally.unresolved}`);
   console.log('');
   if (suspects.length === 0) {
     console.log('  No removal failed to look like a label. That is the clean result, and it is');
