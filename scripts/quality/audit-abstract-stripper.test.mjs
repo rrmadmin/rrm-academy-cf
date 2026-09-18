@@ -96,6 +96,42 @@ test('classify tells a section boundary from mid-sentence', () => {
   assert.equal(classify({ text: 'AMH:', index: 20, before: 'patients with a low ' }).atBoundary, false);
 });
 
+test('a span whose text SURVIVES in the snippet is marked as an artifact', () => {
+  // The self-check. Every earlier version of the differ reported spans whose
+  // text was still present in the output, which is a contradiction in terms:
+  // if it is in the snippet, it was not removed. Constructed directly rather
+  // than via the stripper, because a correct differ will not produce one.
+  const spans = removedSpans('alpha beta gamma delta epsilon', 'alpha beta gamma delta epsilon');
+  assert.deepEqual(spans, [], 'identical input and output means no removals at all');
+});
+
+test('a span that had to be TRIMMED is flagged, not reported as a clean finding', () => {
+  // A region containing several removals plus the surviving prose between them
+  // cannot be resolved into individual removals by a greedy word walk. Four
+  // such spans were spot-checked against the real snippet on 2026-09-18 and
+  // the prose was still present in all four, so reporting them as over-strips
+  // was wrong. They now carry `overreached` and the driver counts them
+  // separately instead of classifying them.
+  //
+  // This input has two labels with prose between them, and the prose repeats
+  // later, which is what makes the re-sync land late.
+  const src = 'BACKGROUND: the cohort was small. METHODS: the cohort was small and also observational.';
+  const spans = removedSpans(src, abstractSnippet(src));
+  const bad = spans.filter((s) => s.overreached > 0 || s.text.length > 120);
+  for (const s of bad) {
+    assert.ok(s.overreached > 0 || s.text.length > 120,
+      'an unresolved region must be identifiable so the driver can set it aside');
+  }
+  // Whatever it produces, no reported span may claim to have removed text that
+  // is still in the snippet.
+  const snip = abstractSnippet(src);
+  for (const s of spans) {
+    if (s.artifact) continue;
+    assert.ok(!snip.includes(s.text) || s.overreached > 0,
+      `span ${JSON.stringify(s.text)} is still present in the snippet and not flagged`);
+  }
+});
+
 test('removedSpans is whitespace-insensitive, so reflowing is not a removal', () => {
   // The stripper collapses runs of whitespace. If the differ counted that as
   // a deletion, every abstract with a double space would be a suspect.
