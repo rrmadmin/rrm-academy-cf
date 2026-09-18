@@ -16,6 +16,9 @@
  *   node scripts/gates/validate-analytics-pipeline.mjs --json     # machine-readable
  *   node scripts/gates/validate-analytics-pipeline.mjs --quick    # skip bundle-size gate (no build)
  *
+ * Env:
+ *   ANALYTICS_GATE_ROOT  scan this tree instead of the repo (falsification harness only)
+ *
  * Exit codes:
  *   0  all gates pass
  *   1  at least one gate failed
@@ -28,7 +31,10 @@ import { fileURLToPath } from 'node:url';
 import { execSync } from 'node:child_process';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
-const PROJECT_ROOT = resolve(__dirname, '../..');
+// ANALYTICS_GATE_ROOT lets the falsification harness point the gate at a fixture
+// tree (same convention as PAYMENT_GATE_ROOT / CONTENT_REVIEW_GATE_ROOT). Unset
+// in CI and pre-commit, where the gate scans the real repo.
+const PROJECT_ROOT = process.env.ANALYTICS_GATE_ROOT || resolve(__dirname, '../..');
 
 // ---------- ANSI ----------------------------------------------------------
 const GREEN = '\x1b[32m', RED = '\x1b[31m', YELLOW = '\x1b[33m';
