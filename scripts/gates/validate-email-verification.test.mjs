@@ -167,27 +167,32 @@ test('EV1: an unrelated slice elsewhere in the file is not a false positive', ()
   } finally { clean(root); }
 });
 
-test('EV1 WEAKNESS, pinned not fixed: only the FIRST token assignment is inspected', () => {
-  // HONEST FAILURE, NOT A PASSING ASSERTION.
-  //
-  // mintsStrongToken uses src.match(), which returns the FIRST match only. A
-  // file with a strong assignment followed by a weak one passes EV1 while the
-  // weak token is the one that ends up in the link, depending on which branch
-  // runs. Today each file has exactly one assignment (verified: signup.js:247,
-  // resend-verification.js:57), so this is latent rather than live.
-  //
-  // NOT FIXED HERE: switching to matchAll and requiring EVERY assignment to be
-  // strong is a gate change, and this harness is entitled only to the
-  // EMAIL_VERIFY_GATE_ROOT seam. It is a small fix and this test goes RED when
-  // it lands, which is the signal to invert it.
+test('THE REGRESSION: a weak SECOND assignment fails, not just the first', () => {
+  // This test used to assert the opposite. mintsStrongToken used src.match(),
+  // which returns the FIRST match only, so a file with a strong mint followed
+  // by a weak one passed while the weak token was the one that could reach the
+  // link. Latent when found on 2026-09-18 (each file had exactly one
+  // assignment) and fixed the same day, because "latent" there meant one
+  // refactor away from a brute-forceable magic link that no gate would report.
   const root = fixture();
   try {
     patch(root, SIGNUP, 'const token = generateToken();',
       'const token = generateToken();\n    if (retry) { const token = generateToken().slice(0, 6); }');
+    const r = expectRed(root, 'EV1', /truncated by \.slice\(0, 6\)/u);
+    assert.match(got(r, 'EV1').message, /2 assignments/u,
+      'the failure must say how many assignments were inspected, or "first only" is indistinguishable from "all"');
+  } finally { clean(root); }
+});
+
+test('EV1 counts EVERY assignment, so a strong second mint is not a false positive', () => {
+  // The other direction. A file may legitimately mint more than one token; the
+  // rule is that every one is full strength, not that there is exactly one.
+  const root = fixture();
+  try {
+    patch(root, SIGNUP, 'const token = generateToken();',
+      'const token = generateToken();\n    if (retry) { const token = generateToken(); }');
     const r = run(root);
-    assert.equal(r.code, 0,
-      'FIX LANDED: EV1 now checks every assignment -- invert this test to expectRed');
-    assert.ok(got(r, 'EV1')?.ok, 'EV1 still reports a pass on a file containing a weak second mint');
+    assert.equal(r.code, 0, `two strong assignments must pass:\n${JSON.stringify(r.results)}`);
   } finally { clean(root); }
 });
 
@@ -243,29 +248,54 @@ test('EV3: consuming by a DIFFERENT column does not count', () => {
   } finally { clean(root); }
 });
 
-test('EV3 GAP, pinned not fixed: the EXPIRY condition is not required', () => {
-  // HONEST FAILURE, NOT A PASSING ASSERTION.
-  //
-  // The live statement is
-  //     DELETE FROM email_verification WHERE token = ? AND expires_at > ?
-  // and EV3's pattern only requires the prefix up to `token = ?`. Drop
-  // `AND expires_at > ?` and EV3 stays green while every expired magic link
-  // becomes valid forever. Single-use is still enforced, so this is a weaker
-  // hole than replay, but "the link expires" is a real property of the flow
-  // that no gate currently guards.
-  //
-  // NOT FIXED HERE: requiring the expiry clause is a gate change and a
-  // judgement about how tightly to pin SQL text. This test asserts the current
-  // behaviour so it goes RED when it lands.
+test('THE REGRESSION: a consume with no EXPIRY bound fails', () => {
+  // This test used to assert the opposite. EV3's pattern required only the
+  // prefix up to `token = ?`, so dropping `AND expires_at > ?` kept it green
+  // while every expired magic link became valid forever. Single-use was still
+  // enforced, which is why it went unnoticed: a link that never expires has no
+  // visible symptom until someone uses an old one.
   const root = fixture();
   try {
     patch(root, VERIFY, 'DELETE FROM email_verification WHERE token = ? AND expires_at > ?',
       'DELETE FROM email_verification WHERE token = ?');
-    const r = run(root);
-    assert.equal(r.code, 0,
-      'FIX LANDED: EV3 now requires the expiry condition -- invert this test to expectRed');
-    assert.ok(got(r, 'EV3')?.ok, 'EV3 passes a consume with no expiry check');
+    expectRed(root, 'EV3', /does NOT bound the consume by expires_at/u);
   } finally { clean(root); }
+});
+
+test('EV3 names WHICH of its two properties failed', () => {
+  // Replay and never-expires are different defects with different fixes.
+  // Sharing one message would send the reader at the wrong one.
+  const noToken = fixture();
+  try {
+    patch(noToken, VERIFY, 'DELETE FROM email_verification WHERE token = ? AND expires_at > ?',
+      'DELETE FROM email_verification WHERE user_id = ? AND expires_at > ?');
+    expectRed(noToken, 'EV3', /replay risk/u);
+  } finally { clean(noToken); }
+
+  const noExpiry = fixture();
+  try {
+    patch(noExpiry, VERIFY, 'DELETE FROM email_verification WHERE token = ? AND expires_at > ?',
+      'DELETE FROM email_verification WHERE token = ?');
+    const r = expectRed(noExpiry, 'EV3', /stays valid forever/u);
+    assert.doesNotMatch(got(r, 'EV3').message, /replay risk/u,
+      'a missing expiry bound must not be reported as replay');
+  } finally { clean(noExpiry); }
+});
+
+test('EV3 accepts the two conditions in either order, and tolerates a third', () => {
+  // Matched as two independent conditions rather than one rigid SQL string, so
+  // an ordinary rewrite of the statement does not false-fail the gate.
+  for (const stmt of [
+    'DELETE FROM email_verification WHERE expires_at > ? AND token = ?',
+    'DELETE FROM email_verification WHERE token = ? AND expires_at > ? AND user_id = ?',
+  ]) {
+    const root = fixture();
+    try {
+      patch(root, VERIFY, 'DELETE FROM email_verification WHERE token = ? AND expires_at > ?', stmt);
+      const r = run(root);
+      assert.equal(r.code, 0, `${stmt} must satisfy EV3:\n${JSON.stringify(r.results)}`);
+    } finally { clean(root); }
+  }
 });
 
 // ---- the runner's own error path ----------------------------------------
