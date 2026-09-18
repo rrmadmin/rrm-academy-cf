@@ -1,4 +1,5 @@
 import { json, optionsResponse, checkRateLimit } from './auth/_shared.js';
+import { log } from './_log.js';
 import { getStripeClient } from './billing/_shared.js';
 import { countCampaignGifts } from './billing/_campaign-count.js';
 
@@ -47,7 +48,13 @@ export async function onRequestGet({ request, env, waitUntil }) {
         total = counted.count;
         totalPartial = !counted.complete;
         stripeRecomputed = true;
-      } catch { /* fail-soft: Stripe recompute is best-effort; total stays 0 */ }
+        if (totalPartial) {
+          log(env, waitUntil, 'billing', 'fund_supporters_count_partial', 'warn',
+            `scannedPages=${counted.scannedPages}`);
+        }
+      } catch (err) { /* fail-soft: Stripe recompute is best-effort; total stays 0 */
+        log(env, waitUntil, 'billing', 'fund_supporters_count_fail', 'error', err.message);
+      }
     }
     let recent = [], founding = [], consented = 0;
     if (env.DB) {
@@ -78,11 +85,12 @@ export async function onRequestGet({ request, env, waitUntil }) {
     };
     // Only cache when total came from a reliable source (KV hit OR successful Stripe recompute).
     // A cold read with STRIPE_SECRET_KEY absent yields total=0 -- do not pin that for 60s.
-    if (env.COMMUNITY_KV && (kvHit || stripeRecomputed)) {
+    if (env.COMMUNITY_KV && (kvHit || (stripeRecomputed && !totalPartial))) {
       waitUntil(env.COMMUNITY_KV.put(KV_KEY, JSON.stringify(result), { expirationTtl: KV_TTL }).catch(() => {}));
     }
     return json(result);
-  } catch {
+  } catch (err) {
+    log(env, waitUntil, 'billing', 'fund_supporters_error', 'error', err.message);
     return json(EMPTY);  // always-200, page always renders
   }
 }

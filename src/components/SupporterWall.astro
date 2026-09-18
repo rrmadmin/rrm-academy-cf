@@ -24,6 +24,7 @@ interface Snapshot {
   consented_count?: number;
   founding_left?: number;
   founding_closed?: boolean;
+  total_gifts_partial?: boolean;
 }
 
 interface Props {
@@ -40,7 +41,8 @@ const bandTotal = isBand && snapshot && typeof snapshot.total_gifts === 'number'
   ? Math.max(0, Math.round(snapshot.total_gifts)) : 0;
 const bandConsented = isBand && snapshot && typeof snapshot.consented_count === 'number'
   ? Math.max(0, Math.round(snapshot.consented_count)) : 0;
-const bandAnon = Math.max(0, bandTotal - bandConsented);
+const bandPartial = isBand && snapshot?.total_gifts_partial === true;
+const bandAnon = bandPartial ? 0 : Math.max(0, bandTotal - bandConsented);
 
 // Band renders nothing when total_gifts is 0; card always emits the skeleton and
 // decides at runtime.
@@ -93,7 +95,7 @@ const render = variant === 'card' || bandTotal > 0;
             grid.appendChild(li);
           }
         }
-        const anon = Math.max(0, data.total_gifts - data.consented_count);
+        const anon = data.total_gifts_partial === true ? 0 : Math.max(0, data.total_gifts - data.consented_count);
         if (anonP && anonCount) {
           anonCount.textContent = String(anon);
           anonP.hidden = anon <= 0;
