@@ -361,11 +361,22 @@ jobs:
           import { buildState } from './state.mjs';
           import { evaluate } from './client.mjs';
           import { verdict } from './verdict.mjs';
-          import { renderComment } from './render.mjs';
+          import { renderComment, MARKER } from './render.mjs';
 
           // Jev 1.13 list price per million input tokens; output tokens are free.
           // Display only. Update when the models page changes.
           export const USD_PER_MTOK = Number(process.env.TYPESAFE_USD_PER_MTOK || '0.042');
+
+          // The note posted when triage could not run. The reason is classified, never
+          // echoed: an upstream error body is not something to paste onto a PR.
+          export function didNotRunComment(err) {
+            const m = String(err?.message || '');
+            const why = /\b402\b|billing|credits/i.test(m) ? 'the TypeSafe account has no API credits'
+              : /\b401\b|TYPESAFE_API_KEY/.test(m) ? 'the TypeSafe API key is missing or was rejected'
+              : /\b429\b|\b529\b/.test(m) ? 'TypeSafe was rate limited or overloaded after retries'
+              : 'the triage call failed';
+            return `${MARKER}\n### PR triage: did not run\n\nNo verdict for this push: ${why}. This is not a finding about the change, and it does not block the merge. It re-runs on the next push.\n`;
+          }
 
           export async function run(env = process.env, deps = {}) {
             const apiKey = env.TYPESAFE_API_KEY;
@@ -391,6 +402,11 @@ jobs:
               console.log(`pr-triage: ${r.verdict.level} (${r.usage?.input_tokens ?? '?'} input tokens)`);
             }).catch((err) => {
               console.error(`pr-triage: could not run: ${err.message}`);
+              // Say so ON THE PR. On 2026-09-18 the TypeSafe account ran out of credits
+              // (402) and three PRs merged with a red triage job and no comment, so
+              // nothing a reviewer reads said the triage had not happened. The exit code
+              // stays 1: a red job still means "did not run".
+              try { writeFileSync(process.env.TRIAGE_OUT_MD || 'triage-comment.md', didNotRunComment(err)); } catch { /* the comment is best effort */ }
               process.exit(1);
             });
           }
@@ -499,6 +515,9 @@ jobs:
         run: node fsp-ci/src/pr-triage/triage.mjs
 
       - name: Upsert the comment
+        # always(): when Triage could not run it still writes a "did not run"
+        # note, and that note must reach the PR.
+        if: always() && hashFiles('triage-comment.md') != ''
         env:
           GH_TOKEN: ${{ github.token }}
           PR: ${{ github.event.pull_request.number }}
