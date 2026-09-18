@@ -54,12 +54,27 @@ function read(rel) {
 }
 
 // A strong token is `const token = generateToken()` with NO `.slice(...)` after it.
+// EVERY assignment must be strong, not just the first.
+//
+// This used to be src.match(), which returns the FIRST match only, so a file
+// with a strong mint followed by a weak one passed while the weak token was
+// the one that could reach the link. Latent rather than live when found on
+// 2026-09-18 (each file had exactly one assignment), and fixed the same day
+// because "latent" here means one refactor away from a brute-forceable magic
+// link that no gate would report.
 function mintsStrongToken(src) {
-  const re = /\btoken\s*=\s*generateToken\(\)(\s*\.slice\([^)]*\))?/;
-  const m = src.match(re);
-  if (!m) return { ok: false, reason: 'no `token = generateToken()` assignment found' };
-  if (m[1]) return { ok: false, reason: `link token is truncated by ${m[1].trim()} — must be the full 64-hex token` };
-  return { ok: true };
+  const re = /\btoken\s*=\s*generateToken\(\)(\s*\.slice\([^)]*\))?/gu;
+  const all = [...src.matchAll(re)];
+  if (all.length === 0) return { ok: false, reason: 'no `token = generateToken()` assignment found' };
+  const sliced = all.filter((m) => m[1]);
+  if (sliced.length > 0) {
+    const which = all.length > 1 ? ` (${sliced.length} of ${all.length} assignments)` : '';
+    return {
+      ok: false,
+      reason: `link token is truncated by ${sliced.map((m) => m[1].trim()).join(', ')}${which} -- must be the full 64-hex token`,
+    };
+  }
+  return { ok: true, count: all.length };
 }
 
 const results = [];
@@ -89,11 +104,37 @@ try {
       : `${VERIFY_JS} is missing onRequestGet — the magic-link entry point is gone`);
 
   // EV3 — single-use atomic consume keyed on the token.
-  const consumes = /DELETE\s+FROM\s+email_verification\s+WHERE\s+token\s*=\s*\?/i.test(verifySrc);
-  rec('EV3', consumes,
-    consumes
-      ? 'verify-email.js consumes the token atomically (DELETE ... WHERE token = ?)'
-      : `${VERIFY_JS} does not single-use-consume by token — replay risk`);
+  // The consume must be keyed on the token AND bounded by expiry.
+  //
+  // This used to require only the prefix up to `token = ?`, so dropping
+  // `AND expires_at > ?` kept EV3 green while every expired magic link became
+  // valid forever. Single-use was still enforced, which is why it went
+  // unnoticed: the weaker property (a link never expires) has no visible
+  // symptom until someone uses an old one. Found and fixed 2026-09-18 while
+  // harnessing this gate.
+  //
+  // Matched as two independent conditions rather than one rigid SQL string, so
+  // reordering the clauses or adding a third does not false-fail.
+  const consumeStmt = verifySrc.match(
+    /DELETE\s+FROM\s+email_verification\s+WHERE\s+[^'"`;]*/iu,
+  );
+  const consumeText = consumeStmt ? consumeStmt[0] : '';
+  const keyedOnToken = /\btoken\s*=\s*\?/iu.test(consumeText);
+  const boundedByExpiry = /\bexpires_at\s*>\s*\?/iu.test(consumeText);
+  const consumes = keyedOnToken && boundedByExpiry;
+  // The two failures are different defects and must not share a message: one
+  // is replay, the other is a link that never expires.
+  let ev3msg;
+  if (consumes) {
+    ev3msg = 'verify-email.js consumes the token atomically and only while unexpired '
+      + '(DELETE ... WHERE token = ? AND expires_at > ?)';
+  } else if (!keyedOnToken) {
+    ev3msg = `${VERIFY_JS} does not single-use-consume by token -- replay risk`;
+  } else {
+    ev3msg = `${VERIFY_JS} consumes by token but does NOT bound the consume by expires_at `
+      + '-- an expired magic link stays valid forever';
+  }
+  rec('EV3', consumes, ev3msg);
 } catch (err) {
   if (JSON_MODE) console.log(JSON.stringify({ ok: false, error: err.message }, null, 2));
   else console.error(`${RED}${BOLD}email-verification gate ERRORED${RESET}: ${err.message}`);
