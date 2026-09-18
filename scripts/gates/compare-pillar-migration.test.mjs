@@ -323,59 +323,76 @@ test('a slug missing from either guides file fails rather than comparing undefin
   } finally { rmSync(root, { recursive: true, force: true }); }
 });
 
-test('WEAKNESS, pinned not fixed: two of the three flags SILENTLY SKIP the guides check', () => {
-  // HONEST FAILURE, NOT A PASSING ASSERTION.
-  //
-  // The guides leg runs only when gi > -1 && gj > -1 && si > -1. Give it two
-  // of the three -- the easiest possible typo, and the shape a half-remembered
-  // command line takes -- and the whole comparison is skipped with no warning
-  // and exit 0. The guides files below have DIFFERENT titles, which the test
-  // above proves is a failure when all three flags are present.
-  //
-  // NOT FIXED HERE: erroring on a partial flag set is a CLI contract change.
-  // It is a few lines (warn or exit 2 when some-but-not-all are present) and
-  // this test goes RED when it lands.
+test('THE REGRESSION: a PARTIAL flag set is refused, not silently skipped', () => {
+  // This test used to assert the opposite. The guides leg ran only when all
+  // three of gi/gj/si were present, and a partial set -- the easiest possible
+  // typo, and the shape a half-remembered command line takes -- skipped the
+  // whole comparison with no warning and exit 0. The guides files below have
+  // DIFFERENT titles, which the tests above prove is a failure when all three
+  // flags are given, so every one of these invocations was silently passing a
+  // real regression. Fixed 2026-09-18 to exit 2.
   const root = fixture(page(), page(), {
     'g0.json': GUIDES('What is RRM', 'Intro'),
     'g1.json': GUIDES('COMPLETELY DIFFERENT', 'Also different'),
   });
   try {
-    for (const args of [
-      ['pre.html', 'post.html', '--guides-pre', 'g0.json', '--guides-post', 'g1.json'], // no --slug
-      ['pre.html', 'post.html', '--slug', 'what-is-rrm', '--guides-pre', 'g0.json'], // no --guides-post
-      ['pre.html', 'post.html', '--slug', 'what-is-rrm', '--guides-post', 'g1.json'], // no --guides-pre
+    for (const [args, missing] of [
+      [['pre.html', 'post.html', '--guides-pre', 'g0.json', '--guides-post', 'g1.json'], '--slug'],
+      [['pre.html', 'post.html', '--slug', 'what-is-rrm', '--guides-pre', 'g0.json'], '--guides-post'],
+      [['pre.html', 'post.html', '--slug', 'what-is-rrm', '--guides-post', 'g1.json'], '--guides-pre'],
     ]) {
       const r = run(root, args);
-      assert.equal(r.code, 0,
-        `FIX LANDED: a partial flag set is now refused -- invert this test. args: ${args.join(' ')}`);
+      assert.equal(r.code, 2, `a partial set must be refused, not skipped. args: ${args.join(' ')}\n${r.out}`);
+      assert.match(r.out, /REFUSING: the guides\.json comparison needs/u);
+      assert.match(r.out, new RegExp(`missing: .*${missing}`, 'u'),
+        'the refusal must name which flag is missing, or it is a riddle');
     }
   } finally { rmSync(root, { recursive: true, force: true }); }
 });
 
-test('WEAKNESS, pinned not fixed: the success line CLAIMS guides.json on --guides-pre alone', () => {
-  // HONEST FAILURE, NOT A PASSING ASSERTION.
+test('exit 2 for a refusal is distinct from exit 1 for a real finding', () => {
+  // A refusal collapsed into exit 1 would read as a non-additive migration and
+  // send someone hunting a schema diff that does not exist; collapsed into 0
+  // it is the original bug. Both neighbours asserted.
+  const root = fixture(page(), page({ title: 'Changed' }), { 'g0.json': GUIDES('A', 'B') });
+  try {
+    assert.equal(run(root, ['pre.html', 'post.html']).code, 1, 'a real change is still exit 1');
+    assert.equal(run(root, ['pre.html', 'post.html', '--guides-pre', 'g0.json']).code, 2,
+      'a refusal outranks the finding, because the run was not the run that was asked for');
+  } finally { rmSync(root, { recursive: true, force: true }); }
+});
+
+test('THE REGRESSION: the success line no longer claims guides.json it did not read', () => {
+  // The success message used to append ", guides.json" whenever --guides-pre
+  // was present, regardless of whether the comparison ran. Combined with the
+  // silent skip above, a command missing --slug printed
+  //     ADDITIVE: … head, body, byline, guides.json
+  // while guides.json was never opened. The operator's only evidence that the
+  // check ran was the sentence saying it ran. The suffix is now gated on the
+  // same condition as the check.
   //
-  // The success message appends ", guides.json" whenever gi > -1, i.e. when
-  // --guides-pre is present, regardless of whether the comparison actually
-  // ran. Combined with the skip above, a command missing --slug prints
+  // HONEST NOTE ON THIS TEST'S TEETH, measured rather than assumed. With the
+  // refusal in place, `gi > -1` and `checkGuides` are equivalent at every
+  // point the success line is reachable, so the suffix fix has NO independent
+  // tooth: reverting it alone turns nothing red here, and reverting it
+  // together with the refusal turns only the two refusal tests red. It is
+  // belt-and-braces behind the refusal, kept because the two conditions
+  // drifting apart again is exactly how the false claim arose.
   //
-  //     ADDITIVE: pre == post for all schema nodes, head, body, byline, guides.json
-  //
-  // while guides.json was never opened. That is a false claim in a success
-  // line, which is worse than the skip itself: the operator's evidence that
-  // the check ran is the sentence saying it ran.
-  //
-  // NOT FIXED HERE for the same reason as above. One-line fix: gate the suffix
-  // on the same condition as the check.
+  // What this test does pin is that the claim is truthful in both reachable
+  // states: no flags means no claim, all three means a true claim.
   const root = fixture(page(), page(), {
     'g0.json': GUIDES('What is RRM', 'Intro'),
-    'g1.json': GUIDES('COMPLETELY DIFFERENT', 'Also different'),
+    'g1.json': GUIDES('What is RRM', 'Intro'),
   });
   try {
-    const r = run(root, ['pre.html', 'post.html', '--guides-pre', 'g0.json']);
-    assert.equal(r.code, 0);
-    assert.match(r.out, /, guides\.json/u,
-      'FIX LANDED: the suffix is now gated on the check actually running -- invert this assertion');
+    const none = run(root, ['pre.html', 'post.html']);
+    assert.equal(none.code, 0);
+    assert.doesNotMatch(none.out, /guides\.json/u, 'no flags, no claim');
+
+    const all = run(root, ['pre.html', 'post.html', '--slug', 'what-is-rrm', '--guides-pre', 'g0.json', '--guides-post', 'g1.json']);
+    assert.equal(all.code, 0);
+    assert.match(all.out, /, guides\.json/u, 'all three flags, and the claim is now earned');
   } finally { rmSync(root, { recursive: true, force: true }); }
 });
 

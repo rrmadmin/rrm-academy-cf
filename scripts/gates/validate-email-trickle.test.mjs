@@ -210,32 +210,56 @@ test('ET4: a DELETED constant fails rather than reading as absent-and-fine', () 
   }
 });
 
-test('ET4 WEAKNESS, pinned not fixed: a PREFIXED constant name still satisfies the check', () => {
-  // HONEST FAILURE, NOT A PASSING ASSERTION.
+test('THE REGRESSION: a PREFIXED constant name does NOT satisfy ET4', () => {
+  // This test used to assert the opposite, as an honest record of a live
+  // weakness: ET4's patterns were /BROADCAST_BATCH_SIZE\s*=\s*(\d+)/ with no
+  // leading \b, so any identifier ENDING in that name matched and the value
+  // read belonged to a constant the helper does not use. Renaming the real
+  // constant turned the pacing off at runtime with a green gate, and
+  // ET1-ET3 cannot see it either.
   //
-  // Found while writing the deleted-constant test above, which originally
-  // renamed the constants to RENAMED_BROADCAST_BATCH_SIZE and expected a
-  // failure. The gate passed, because its patterns are
-  // /BROADCAST_BATCH_SIZE\s*=\s*(\d+)/ with no leading \b -- so any identifier
-  // ENDING in that name matches, and the value it reads belongs to a constant
-  // the helper does not use.
-  //
-  // Concretely: rename the real constant and add nothing else, and ET4 reads
-  // the renamed one's value and passes while sendBroadcastTrickle references
-  // an undefined BROADCAST_BATCH_SIZE at runtime. ET3 does not catch it either,
-  // since it only checks for a for-loop, slice and setTimeout.
-  //
-  // NOT FIXED HERE: adding \b to two patterns is a gate change, and this
-  // harness is only entitled to the EMAIL_TRICKLE_FILE seam the gate already
-  // offers. It is a one-character-per-pattern fix (`\bBROADCAST_BATCH_SIZE`)
-  // and this test goes RED when it lands, which is the signal to invert it.
+  // Found 2026-09-18 by this very fixture: it was written to prove ET4 would
+  // fail on a rename, and instead watched it pass. \b was added to both
+  // patterns the same day; this now asserts the refusal.
   for (const konst of ['BROADCAST_BATCH_SIZE = 5;', 'BROADCAST_BATCH_DELAY_MS = 1800;']) {
     const { root, file } = fixture((s) => swap(s, `const ${konst}`, `const RENAMED_${konst}`));
     try {
-      assert.equal(run(file).code, 0,
-        `FIX LANDED: ET4 now anchors the constant name -- invert this test to expectRed for ${konst}`);
+      const r = expectRed(file, 'ET4');
+      assert.match(r.checks.find((c) => c.id === 'ET4').detail, /=null/u,
+        'a renamed constant must read as absent, not as whatever the prefixed one holds');
     } finally { rmSync(root, { recursive: true, force: true }); }
   }
+});
+
+test('ET4 still matches the real constant, so \\b did not break the ordinary case', () => {
+  // The other direction. A \b in the wrong place would make ET4 read null for
+  // the genuine declaration and fail every run, which is the shape of fix
+  // that gets reverted rather than debugged.
+  const { root, file } = fixture();
+  try {
+    const r = run(file);
+    assert.equal(r.code, 0);
+    assert.match(r.checks.find((c) => c.id === 'ET4').detail,
+      /BROADCAST_BATCH_SIZE=5 BROADCAST_BATCH_DELAY_MS=1800/u,
+      'the real values must still be read exactly');
+  } finally { rmSync(root, { recursive: true, force: true }); }
+});
+
+test('ET4 reads the constant even when it is the first thing on a line or file', () => {
+  // \b is satisfied by a line start as well as by whitespace, but that is
+  // worth pinning rather than assuming: a pattern anchored on \s instead
+  // would silently miss a declaration at position 0.
+  const root = mkdtempSync(join(tmpdir(), 'email-trickle-gate-'));
+  const file = join(root, '_email.js');
+  try {
+    writeFileSync(file, `BROADCAST_BATCH_SIZE = 5;\nBROADCAST_BATCH_DELAY_MS = 1800;\n`
+      + readFileSync(REAL, 'utf8')
+        .replace('const BROADCAST_BATCH_SIZE = 5;', '')
+        .replace('const BROADCAST_BATCH_DELAY_MS = 1800;', ''));
+    const r = run(file);
+    assert.match(r.checks.find((c) => c.id === 'ET4').detail,
+      /BROADCAST_BATCH_SIZE=5 BROADCAST_BATCH_DELAY_MS=1800/u);
+  } finally { rmSync(root, { recursive: true, force: true }); }
 });
 
 test('ET4 boundary: 25 passes and 26 fails, so the bound is the stated one', () => {

@@ -1,5 +1,19 @@
 # unfinished-copy-allowlist.txt
-# One unique substring per line. A file containing any listed substring is
-# skipped by scripts/gates/validate-no-unfinished-copy.mjs. Use for legitimate
-# matches (e.g. a genuine editorial note that is intentional, or a component
-# that renders user-supplied text that happens to match).
+#
+# One substring of real shipped copy per line. An entry suppresses the rule
+# matches that fall INSIDE it, and nothing else in the file.
+#
+# So the entry has to quote enough of the page to cover the match it excuses,
+# which is deliberate: it makes each line say what it is forgiving and why it
+# is legitimate, and it cannot accidentally forgive the rest of the file.
+#
+# Before 2026-09-18 an entry skipped the whole FILE, so one legitimate phrase
+# exempted that page from all six rules. The list was empty when that was
+# fixed, so no entry here ever relied on the old behaviour.
+#
+# The substring is looked for in the SHIPPED body, after HTML/JS comments and
+# the Astro frontmatter are stripped. Quoting a comment will not suppress
+# anything, because the rules never read comments either.
+#
+# Example, for a page that legitimately documents the phrase:
+#   Our placeholder text policy is documented on this page
