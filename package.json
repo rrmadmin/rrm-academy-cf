@@ -98,7 +98,8 @@
     "gates:faq-lead": "node scripts/gates/faq-no-affirmative-lead.mjs --dir=dist --guides-registry=ssot/guides.json",
     "gates:abstract-snippets": "node scripts/gates/validate-abstract-snippets.mjs",
     "gates:post-markdown": "node scripts/gates/validate-post-markdown.mjs",
-    "gates:unfinished-copy": "node scripts/gates/validate-no-unfinished-copy.mjs"
+    "gates:unfinished-copy": "node scripts/gates/validate-no-unfinished-copy.mjs",
+    "gates:have-tests": "node scripts/gates/validate-gates-have-tests.mjs"
   },
   "dependencies": {
     "@astrojs/sitemap": "^3.7.4",
