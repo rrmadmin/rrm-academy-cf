@@ -74,7 +74,7 @@ test('THE REAL REPO SATISFIES THIS GATE (the only test here that is not a fixtur
   const out = execFileSync(process.execPath, [GATE, '--json'], { encoding: 'utf8' });
   const r = JSON.parse(out);
   assert.equal(r.failures, 0, `the real scripts/gates directory does not satisfy this gate:\n${out}`);
-  assert.ok(r.gates >= 20, `expected the real gate directory, found only ${r.gates} gates — is the root override leaking?`);
+  assert.ok(r.gates >= 20, `expected the real gate directory, found only ${r.gates} gates -- is the root override leaking?`);
   assert.equal(r.tested + r.exempt, r.gates,
     'every gate must be either tested or exempt, with nothing unaccounted for');
 });
@@ -170,7 +170,7 @@ test('THE REGRESSION: the summary row never credits a written reason that does n
   // The original row read "<n> exempt with written reasons" for every untested
   // gate whether or not any reason existed, and was a hardcoded pass. Run
   // against the real repo on 2026-09-18 it printed a GREEN row claiming 15
-  // written reasons against an exemption list that did not exist yet — the
+  // written reasons against an exemption list that did not exist yet -- the
   // gate's own defect class, in the gate. One untested gate, no exemptions:
   // the row must count it as unexplained and must not read as a pass.
   const root = fixture({ gates: ['validate-bare'] });
