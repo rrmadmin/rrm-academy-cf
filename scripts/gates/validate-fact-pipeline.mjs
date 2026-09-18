@@ -16,6 +16,9 @@
  *   node scripts/gates/validate-fact-pipeline.mjs --gate G1  # specific gate
  *   node scripts/gates/validate-fact-pipeline.mjs --json     # machine-readable output
  *
+ * Env:
+ *   FACT_PIPELINE_GATE_ROOT  scan this tree instead of the repo (falsification harness only)
+ *
  * Exit codes:
  *   0  all gates pass
  *   1  at least one gate failed
@@ -29,7 +32,10 @@ import { fileURLToPath } from 'node:url';
 import { ENTITIES } from '../lib/canonical-facts-schema.mjs';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
-const PROJECT_ROOT = resolve(__dirname, '../..');
+// FACT_PIPELINE_GATE_ROOT lets the falsification harness point the gate at a
+// fixture tree (same convention as PAYMENT_GATE_ROOT / CONTENT_REVIEW_GATE_ROOT).
+// Unset in CI and pre-commit, where the gate scans the real repo.
+const PROJECT_ROOT = process.env.FACT_PIPELINE_GATE_ROOT || resolve(__dirname, '../..');
 const NEOFERTILITY_ROOT = resolve(PROJECT_ROOT, '../neofertility-ie');
 
 // ANSI colors — match guard.mjs
