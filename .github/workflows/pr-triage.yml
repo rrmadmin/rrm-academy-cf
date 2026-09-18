@@ -130,8 +130,8 @@ jobs:
             },
             breaks_api: {
               type: NOUL,
-              instructions: 'Does the diff change a contract that other code or other systems depend on in a non-backward-compatible way: a removed or renamed route, a changed response shape, a removed field, a changed status code, a renamed exported function, a changed CLI flag, or a changed environment variable name?',
-              criteria: { true: 'An existing caller would break without a matching change', false: 'Changes are additive or internal' },
+              instructions: 'Does the diff change a contract that other code or other systems depend on in a non-backward-compatible way (a removed or renamed route, a changed response shape, a removed field, a changed status code, a renamed exported function, a changed CLI flag, or a changed environment variable name) AND leave a caller behind: the diff does not update every caller it contains, and the description does not state that the change is deliberate and names how callers are handled? A deliberate tightening that the description explains (fail closed, verify a signature, require a role, go live for everyone) is a NO. Judge the unhandled breakage, not the fact of a change.',
+              criteria: { true: 'An existing caller would break and nothing in the diff or description accounts for it', false: 'Changes are additive or internal, every caller in the diff is updated, or the description states the change is deliberate and how callers are handled' },
             },
             has_migration: {
               type: NOUL,
@@ -150,7 +150,7 @@ jobs:
             },
             ships_held_content: {
               type: NOUL,
-              instructions: 'Does the change publish, enable, or merge to the default branch something that the head branch name, the description, file paths, or comments in the diff mark as held, draft, WIP, pending review, awaiting sign-off, unvetted, or not yet approved? A branch named held/... or draft/... that adds user-facing pages is a strong YES unless the description states the hold was lifted and by whom. Judge the signal, not the code quality.',
+              instructions: 'Does the change publish, enable, or merge to the default branch something that the head branch name, the description, file paths, or comments in the diff mark as held, draft, WIP, pending review, awaiting sign-off, unvetted, or not yet approved? A branch named held/... or draft/... that adds user-facing pages is a strong YES unless the description states the hold was lifted and by whom. A hold on RUNNING something after merge is a NO: a migration file marked hold for apply, a job marked do not schedule yet, a feature behind a flag that stays off. The question is whether merging itself publishes held content. Judge the signal, not the code quality.',
               criteria: { true: 'Held or unapproved content is being shipped without a stated release of the hold', false: 'Nothing indicates a hold, or the hold is explicitly stated as lifted' },
             },
             touches_money: {
@@ -165,8 +165,8 @@ jobs:
             },
             risky_data_write: {
               type: NOUL,
-              instructions: 'Does the diff add or change code that can destroy or overwrite live data at scale: DELETE without a narrow WHERE, TRUNCATE or DROP, a replace-all sync that removes rows absent from its input, a bulk UPDATE, an rclone or rsync with delete semantics, or a cache or KV flush?',
-              criteria: { true: 'A bulk destructive or overwriting write is added or widened', false: 'Writes are row-scoped, additive, or absent' },
+              instructions: 'Does the diff add or change code that can destroy or overwrite live data at scale: DELETE without a narrow WHERE, TRUNCATE or DROP of a populated table, a replace-all sync that removes rows absent from its input, a bulk UPDATE, an rclone or rsync with delete semantics, or a cache or KV flush? Schema DDL that adds a table, column, index or constraint is a NO. A table rebuild inside a migration (create the new shape, INSERT ... SELECT every row, DROP the old table, rename) is a NO when the copy precedes the drop; a DROP or column removal with no preceding copy is a YES.',
+              criteria: { true: 'A bulk destructive or overwriting write is added or widened', false: 'Writes are row-scoped, additive, or absent, or the change is additive schema DDL' },
             },
             missing_tests_for_logic: {
               type: NOUL,
