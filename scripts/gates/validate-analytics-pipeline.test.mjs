@@ -418,29 +418,50 @@ test('AG7: a comment documenting a forbidden origin is not flagged', () => {
 
 // ---------- AG8: CSP lockdown ----------------------------------------------
 
-test('AG8 IS VACUOUS ON THE REAL CSP: adding gtag.js to script-src does NOT fail', () => {
-  // HONEST FAILURE, NOT A PASSING ASSERTION.
+test('THE REGRESSION: adding gtag.js to script-src fails, behind the quoted keywords', () => {
+  // This test used to assert the OPPOSITE, as an honest record of a live
+  // defect: AG8 captured the policy with
+  // /CSP_VALUE\s*=\s*['"`]([^'"`]+)['"`]/, and because the character class
+  // excludes the single quote the capture stopped at the first `'self'` -- 12
+  // characters of a 644-character policy, the string "default-src ". Every
+  // real CSP begins that way, so AG8 had never inspected a single directive
+  // and its "excludes all 4 forbidden origins" line was an all-clear over
+  // nothing. The test pinned that so it would go red when the capture was
+  // fixed, which is what happened on 2026-09-18; the gate now anchors on the
+  // opening delimiter and closes on the same one.
   //
-  // AG8 captures the policy with /CSP_VALUE\s*=\s*['"`]([^'"`]+)['"`]/. The
-  // character class excludes the single quote, so the capture STOPS at the
-  // first `'self'` -- 12 characters of a 644-character policy
-  // ("default-src "). Every real CSP begins that way, so AG8 has never
-  // inspected any directive and its "excludes all 4 forbidden origins" line is
-  // an all-clear over nothing. This is precisely the lockdown the 2026-09-18
-  // audit was worried about.
-  //
-  // This test pins the defect instead of hiding it: it asserts the CURRENT
-  // (broken) behaviour, so it goes RED the moment the capture is fixed, which
-  // is the signal to replace it with the real expectRed below it. Fixing AG8 is
-  // a gate change, and this harness is only permitted the ANALYTICS_GATE_ROOT
-  // override -- so the fix is reported, not applied.
+  // `script-src` sits AFTER `default-src 'self'`, so this planting is
+  // unreachable to the old regex and reachable to the new one. It is the whole
+  // difference, which is why it is the regression test rather than a variant
+  // of the one below.
   const root = fixture();
   patch(root, MIDDLEWARE, "script-src 'self' 'unsafe-inline'",
     "script-src 'self' 'unsafe-inline' https://www.googletagmanager.com");
-  const { code, out } = run(root, ['--gate', 'AG8', '--quick']);
-  assert.equal(code, 0,
-    'AG8 now catches an origin behind a quoted keyword: FIX LANDED, replace this test with expectRed');
-  assert.match(items(out)[0].msg, /CSP_VALUE excludes all 4 forbidden origins/);
+  expectRed(root, 'AG8', /contains forbidden origin 'googletagmanager\.com'/);
+  clean(root);
+});
+
+test('AG8 reads the WHOLE policy: an origin in the LAST directive is still caught', () => {
+  // The far end of the string, past every quoted keyword in the policy. A
+  // capture that is merely longer than 12 characters would pass the test above
+  // and still miss this, so the two together pin the full span rather than an
+  // improvement in it.
+  const root = fixture();
+  patch(root, MIDDLEWARE, "frame-ancestors 'self'",
+    "frame-ancestors 'self' https://connect.facebook.net");
+  expectRed(root, 'AG8', /contains forbidden origin 'connect\.facebook\.net'/);
+  clean(root);
+});
+
+test('AG8 fails loudly when its own capture is too short to be a real policy', () => {
+  // The length floor. Without it, any future regex slip returns to a truncated
+  // capture wearing a green pass, which is exactly how this gate spent its
+  // whole life. A one-directive CSP is indistinguishable from a broken capture
+  // and is treated as one deliberately.
+  const root = fixture();
+  patch(root, MIDDLEWARE, readF(root, MIDDLEWARE).match(/CSP_VALUE = "[^\n]*";/u)[0],
+    'CSP_VALUE = "default-src \'self\'";');
+  expectRed(root, 'AG8', /captured only \d+ characters of CSP_VALUE/);
   clean(root);
 });
 
@@ -458,22 +479,34 @@ test('AG8: the origin comparison itself works; the defect is isolated to the cap
   }
 });
 
-test('AG8 SOFT SPOT BY DESIGN: a CSP built by concatenation WARNS and cannot go red', () => {
+test('THE REGRESSION: a CSP built by concatenation now FAILS instead of warning', () => {
+  // This test also used to assert the opposite, and said so: refactoring
+  // CSP_VALUE to a join() made AG8 skip the origin check with a warn and exit
+  // 0, and the harness called that the gate's calibration rather than a bug it
+  // was allowed to fix. Promoting it was a decision, and it was taken on
+  // 2026-09-18 alongside the capture fix, for one reason: the fixture below
+  // puts googletagmanager.com in the policy and the OLD behaviour shipped that
+  // with a green exit. A CSP this gate cannot read is a CSP this gate is not
+  // checking, and silently skipping is the failure mode that let the truncated
+  // capture survive in the first place.
   const root = fixture();
-  // AG8 can only read CSP_VALUE as a single string literal. Refactoring it to
-  // a join() makes the gate skip the origin check with a warn and exit 0. That
-  // is the gate's calibration, not a bug this harness may fix -- promoting it
-  // to a hard failure is a decision, not a test. The teeth here are the WARN
-  // ITEM, pinned through --json: if AG8 is ever promoted, the exit-code
-  // assertion below is what flags the change.
   patch(root, MIDDLEWARE, 'const CSP_VALUE = "',
     "const CSP_PARTS = [\"script-src 'self' https://www.googletagmanager.com\"];\n" +
     'const CSP_VALUE = CSP_PARTS.join("; ") + "');
-  const out = expectGreen(root, 'AG8');
-  const w = items(out).find((i) => i.ok === null);
-  assert.ok(w, `expected a warn when CSP_VALUE is not a literal; got:\n${out}`);
-  assert.match(w.msg, /does not define CSP_VALUE as a string literal; skipping CSP origin check/);
-  assert.ok(!items(out).some((i) => i.ok === false), 'AG8 is warn-only in this shape by design');
+  expectRed(root, 'AG8', /does not define CSP_VALUE as a single string literal, so AG8 cannot read the policy/);
+  clean(root);
+});
+
+test('AG8 still reads a BACKTICK policy, so the promotion above is not a ban on templates', () => {
+  // The promotion must not mean "only double quotes work". A template literal
+  // is a single string literal and stays readable, origins and all -- otherwise
+  // the hard failure would be a tripwire on ordinary refactors rather than on
+  // an unreadable policy.
+  const root = fixture();
+  const decl = readF(root, MIDDLEWARE).match(/const CSP_VALUE = "[^\n]*";/u)[0];
+  const body = decl.slice('const CSP_VALUE = "'.length, -2);
+  patch(root, MIDDLEWARE, decl, `const CSP_VALUE = \`${body} https://stats.g.doubleclick.net\`;`);
+  expectRed(root, 'AG8', /contains forbidden origin 'stats\.g\.doubleclick\.net'/);
   clean(root);
 });
 

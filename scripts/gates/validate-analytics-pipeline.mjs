@@ -564,12 +564,34 @@ function gateAG8() {
   const results = [];
   const src = read(MIDDLEWARE);
   if (!src) return [fail(`${MIDDLEWARE} not found`)];
-  // Locate CSP_VALUE constant body
-  const cspMatch = src.match(/CSP_VALUE\s*=\s*['"`]([^'"`]+)['"`]/);
+  // Locate CSP_VALUE constant body.
+  //
+  // This regex used to be /CSP_VALUE\s*=\s*['"`]([^'"`]+)['"`]/, and a CSP is
+  // full of `'self'` and `'unsafe-inline'`. The character class stopped dead at
+  // the first single quote, so the capture was the 12 characters
+  // "default-src " out of 644 — and the loop below searched those 12
+  // characters for four tracker hostnames. It could not fail. Every green
+  // "CSP_VALUE excludes all 4 forbidden origins" line AG8 has ever printed
+  // proved nothing about the other 632 characters, where the origins would
+  // actually appear. Found 2026-09-18 by measuring the capture rather than
+  // reading the pass line.
+  //
+  // Anchoring on the opening delimiter and closing on the SAME delimiter is
+  // what makes the quotes inside the value ordinary content.
+  const cspMatch = src.match(/CSP_VALUE\s*=\s*(['"`])((?:\\.|(?!\1)[\s\S])*?)\1/u);
   if (!cspMatch) {
-    return [warn(`${MIDDLEWARE} does not define CSP_VALUE as a string literal; skipping CSP origin check`)];
+    // A CSP this gate cannot read is a CSP this gate is not checking, which is
+    // the whole of AG8. It fails rather than warning: the previous warn-and-skip
+    // would have gone quiet the moment CSP_VALUE was built by concatenation.
+    return [fail(`${MIDDLEWARE} does not define CSP_VALUE as a single string literal, so AG8 cannot read the policy it exists to check`)];
   }
-  const csp = cspMatch[1];
+  const csp = cspMatch[2];
+  if (csp.length < 100) {
+    // A short capture means the delimiter matching has gone wrong again. The
+    // live policy is ~644 characters; anything tiny is a parse failure wearing
+    // a pass, which is exactly how this gate spent its whole life.
+    return [fail(`AG8 captured only ${csp.length} characters of CSP_VALUE (${JSON.stringify(csp.slice(0, 40))}...), which is too short to be the real policy; the capture is broken, not the CSP`)];
+  }
   let bad = 0;
   for (const origin of FORBIDDEN_CSP_ORIGINS) {
     if (csp.includes(origin)) {
