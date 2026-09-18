@@ -18,6 +18,25 @@ on:
       - 'docs/cta-map.json'
       - 'scripts/check-cta-map.mjs'
       - 'scripts/lib/cta-*.mjs'
+      # THE GATES THIS WORKFLOW RUNS, so editing one triggers the run that
+      # exercises it. Added 2026-09-18; before this they were absent and the
+      # consequence was specific: a pull request touching ONLY
+      # scripts/gates/validate-payment-pipeline.mjs got `tests.yml` (which
+      # runs unfiltered but has no harness for that file) and never got this
+      # workflow at all, because this `paths:` list excluded it. The weakened
+      # gate merged green and then validated every subsequent payment deploy.
+      # merge.yml runs the same gates but only on `claude/**` pushes, so it
+      # covers neither a PR nor a push to main.
+      #
+      # Four had no falsification harness either -- payment, analytics,
+      # fact-pipeline and guard.mjs itself, the site's own secret-scanning
+      # self-guard. `validate-courses-schema.mjs` is partly covered by
+      # test/admin-courses-crud.test.js. Writing harnesses for the rest is the
+      # better long-term answer and is not what this one-line class of fix is;
+      # this makes the edit trigger the gate, which is the floor.
+      - 'scripts/gates/**'
+      - 'scripts/guard.mjs'
+      - 'scripts/guard-manifest.json'
       # This workflow is its own input: an edit to the deploy steps must rebuild.
       # Workflow-file pushes from this machine route through the RRM Admin
       # Automation App credential helper (git config credential.https://github.com/rrmadmin.helper).
