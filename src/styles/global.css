@@ -1377,6 +1377,29 @@ article.glossary-content .term-spoke-link a:hover {
   font-weight: 600;
 }
 
+/* Hero figure — the "at a glance" image + caption that opens a method or
+   compare pillar page. The image frame and the caption are identical on every
+   page that uses it, so they live here; the figure's own vertical margin is
+   page placement and stays in the page. `--wide` opts out of the 720px cap for
+   a figure that needs the full article column (the seven-method comparison). */
+.hero-figure img {
+  display: block;
+  width: 100%;
+  height: auto;
+  max-width: 720px;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border-color);
+}
+.hero-figure--wide img {
+  max-width: none;
+}
+.hero-figure figcaption {
+  margin-top: var(--space-2);
+  font-size: 0.8125rem;
+  color: var(--text-secondary);
+  line-height: 1.5;
+}
+
 /* Author byline */
 .author-byline {
   font-size: 0.875rem;
