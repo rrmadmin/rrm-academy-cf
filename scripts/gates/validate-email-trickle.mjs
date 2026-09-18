@@ -89,8 +89,16 @@ else {
 }
 
 // ET4 — pacing constants are sane (not a disguised blast)
-const sizeM = src.match(/BROADCAST_BATCH_SIZE\s*=\s*(\d+)/);
-const delayM = src.match(/BROADCAST_BATCH_DELAY_MS\s*=\s*(\d+)/);
+//
+// \b matters here. Without it these patterns matched any identifier ENDING in
+// the name, so `const RENAMED_BROADCAST_BATCH_SIZE = 5` satisfied ET4 while
+// sendBroadcastTrickle referenced an undefined BROADCAST_BATCH_SIZE at
+// runtime: a rename would have turned the pacing off with a green gate, and
+// ET1-ET3 cannot see it either. Found 2026-09-18 while writing this gate's
+// harness, when a test that renamed the constants to prove ET4 would fail
+// instead watched it pass.
+const sizeM = src.match(/\bBROADCAST_BATCH_SIZE\s*=\s*(\d+)/);
+const delayM = src.match(/\bBROADCAST_BATCH_DELAY_MS\s*=\s*(\d+)/);
 const size = sizeM ? parseInt(sizeM[1], 10) : null;
 const delay = delayM ? parseInt(delayM[1], 10) : null;
 check('ET4', 'BROADCAST_BATCH_SIZE in 1..25 and BROADCAST_BATCH_DELAY_MS > 0',

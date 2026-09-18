@@ -1,6 +1,7 @@
 // scripts/gates/compare-pillar-migration.mjs
 // Usage: node scripts/gates/compare-pillar-migration.mjs <pre.html> <post.html> [--slug <slug>] [--guides-pre <file>] [--guides-post <file>]
-// Exit 0 = additive-only; exit 1 = a removal/change detected.
+// Exit 0 = additive-only; exit 1 = a removal/change detected; exit 2 = refused
+// to run (the three guides.json flags must be given together, or not at all).
 import { readFileSync } from 'fs';
 
 // Astro stamps a per-component-FILE scope hash (data-astro-cid-<hash>) on every
@@ -78,8 +79,29 @@ export function compare(preHtml, postHtml) {
 if (import.meta.url === `file://${process.argv[1]}`) {
   const [pre, post] = process.argv.slice(2).filter((a) => !a.startsWith('--'));
   const gi = process.argv.indexOf('--guides-pre'), gj = process.argv.indexOf('--guides-post'), si = process.argv.indexOf('--slug');
+
+  // The guides.json leg needs all three flags. A partial set used to SKIP the
+  // comparison silently and exit 0, and the success line still appended
+  // ", guides.json" whenever --guides-pre alone was present -- so a command
+  // missing --slug printed "ADDITIVE: … , guides.json" while guides.json was
+  // never opened. A success line that claims a check ran is worse than the
+  // skip. Refuse the partial set instead, with exit 2 so it cannot be confused
+  // with a real non-additive finding. Found 2026-09-18 writing this gate's
+  // harness.
+  const given = [['--slug', si], ['--guides-pre', gi], ['--guides-post', gj]].filter(([, i]) => i > -1);
+  const checkGuides = given.length === 3;
+  if (given.length > 0 && !checkGuides) {
+    const missing = [['--slug', si], ['--guides-pre', gi], ['--guides-post', gj]]
+      .filter(([, i]) => i === -1).map(([n]) => n);
+    console.error(`REFUSING: the guides.json comparison needs --slug, --guides-pre and --guides-post.`);
+    console.error(`  given:   ${given.map(([n]) => n).join(' ')}`);
+    console.error(`  missing: ${missing.join(' ')}`);
+    console.error('  Pass all three, or none. A partial set used to skip the check silently.');
+    process.exit(2);
+  }
+
   const issues = compare(readFileSync(pre, 'utf-8'), readFileSync(post, 'utf-8'));
-  if (gi > -1 && gj > -1 && si > -1) {
+  if (checkGuides) {
     const slug = process.argv[si + 1];
     const g0 = JSON.parse(readFileSync(process.argv[gi + 1], 'utf-8')).find((g) => g.slug === slug);
     const g1 = JSON.parse(readFileSync(process.argv[gj + 1], 'utf-8')).find((g) => g.slug === slug);
@@ -90,6 +112,9 @@ if (import.meta.url === `file://${process.argv[1]}`) {
     }
   }
   if (issues.length) { console.error(`NOT ADDITIVE (${issues.length}):`); for (const i of issues) console.error('  - ' + i); process.exit(1); }
-  console.log('ADDITIVE: pre == post for all schema nodes, head, body, byline' + (gi > -1 ? ', guides.json' : ''));
+  // The suffix is gated on the SAME condition as the check, not on --guides-pre
+  // alone. That mismatch is what let the success line claim a comparison that
+  // never happened.
+  console.log('ADDITIVE: pre == post for all schema nodes, head, body, byline' + (checkGuides ? ', guides.json' : ''));
   process.exit(0);
 }

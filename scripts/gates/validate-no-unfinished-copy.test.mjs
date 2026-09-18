@@ -241,44 +241,107 @@ test('allowlist comments and blank lines are ignored, not treated as substrings'
   } finally { rmSync(root, { recursive: true, force: true }); }
 });
 
-test('WEAKNESS, pinned not fixed: an allowlist entry disables ALL SIX rules for that file', () => {
-  // HONEST FAILURE, NOT A PASSING ASSERTION.
-  //
-  // The allowlist is applied per FILE, not per match:
+test('THE REGRESSION: an allowlist entry suppresses ONLY the match inside it', () => {
+  // This test used to assert the opposite. The allowlist was applied per FILE
   //     if (allow.some((a) => src.includes(a))) continue;
-  // so one legitimate phrase anywhere in a file exempts that file from every
-  // rule. A page allowlisted for a documented "placeholder text" policy can
-  // then ship "actively edited", "Owner TBC" and lorem ipsum with a green run.
+  // so one legitimate phrase exempted that page from all six rules, and an
+  // allowlisted page could ship "actively edited", "Owner TBC" and lorem
+  // ipsum with a green run. Fixed 2026-09-18 to positional suppression; the
+  // live list was empty at the time, so no entry depended on the old
+  // behaviour.
   //
-  // The gate's own header describes the list as "one substring per line" for
-  // "a false positive", which reads as per-match suppression. It is not.
-  //
-  // NOT FIXED HERE: making it per-match means changing the gate's contract and
-  // re-checking the live allowlist's entries against it, which is Brian's
-  // call. This test asserts the current behaviour so it goes RED when that
-  // lands, which is the signal to invert it.
+  // The page below legitimately documents the phrase "placeholder text" AND
+  // carries four pieces of real debris. Exactly one is forgiven.
+  const page = '<p>Our placeholder text policy is documented.</p>\n'
+    + '<p>This guide is actively edited and may change.</p>\n'
+    + '<td>Owner TBC</td>\n<p>Lorem ipsum dolor.</p>\n<p>TODO finish</p>\n';
+  const root = fixture({ 'src/pages/exempted.astro': page },
+    'Our placeholder text policy is documented\n');
+  try {
+    const r = run(root);
+    assert.equal(r.code, 1, `the four unforgiven markers must still fail:\n${r.out}`);
+    assert.match(r.out, /4 unfinished-state marker\(s\)/u, 'four of the five survive the allowlist');
+    for (const p of [/actively edited/u, /Owner TBC/u, /Lorem ipsum/iu, /TODO/u]) {
+      assert.match(r.out, p, 'every unforgiven marker is still reported');
+    }
+    assert.doesNotMatch(r.out, /placeholder text/u, 'the forgiven one is not reported');
+    // And the rules really do see all five, so the count above is suppression
+    // and not a rule failing to fire.
+    assert.equal(checkSource(page).length, 5);
+  } finally { rmSync(root, { recursive: true, force: true }); }
+});
+
+test('an entry that does NOT contain the match suppresses nothing', () => {
+  // The failure mode of a positional allowlist: an entry that quotes the wrong
+  // part of the page reads as an attempt to forgive and forgives nothing. It
+  // must fail loudly rather than appear to work.
   const root = fixture(
-    {
-      'src/pages/exempted.astro':
-        '<p>Our placeholder text policy is documented.</p>\n'
-        + '<p>This guide is actively edited and may change.</p>\n'
-        + '<td>Owner TBC</td>\n<p>Lorem ipsum dolor.</p>\n<p>TODO finish</p>\n',
-    },
-    'placeholder text policy is documented\n',
+    { 'src/pages/p.astro': '<p>Unrelated sentence here.</p>\n<p>Lorem ipsum dolor.</p>\n' },
+    'Unrelated sentence here\n',
   );
   try {
     const r = run(root);
-    assert.equal(r.code, 0,
-      'FIX LANDED: suppression is now per-match -- invert this test and assert the four other markers fail');
-    // Proof that the debris really is there and really is detectable: the pure
-    // function finds five markers in the same string the driver passes.
-    const hits = checkSource(
-      '<p>Our placeholder text policy is documented.</p>\n'
-      + '<p>This guide is actively edited and may change.</p>\n'
-      + '<td>Owner TBC</td>\n<p>Lorem ipsum dolor.</p>\n<p>TODO finish</p>\n');
-    assert.equal(hits.length, 5,
-      'the rules do fire on this content; only the file-level allowlist hides them');
+    assert.equal(r.code, 1, 'an entry elsewhere on the page must not forgive the debris');
+    assert.match(r.out, /Lorem ipsum/iu);
   } finally { rmSync(root, { recursive: true, force: true }); }
+});
+
+test('suppression is reported in the success line, never silent', () => {
+  // A carve-out that leaves no trace is how it outlives its reason. "0
+  // markers" and "0 markers, 1 suppressed" are different claims.
+  const root = fixture(
+    { 'src/pages/p.astro': '<p>Our placeholder text policy is documented.</p>\n' },
+    'Our placeholder text policy is documented\n',
+  );
+  try {
+    const r = run(root);
+    assert.equal(r.code, 0, r.out);
+    assert.match(r.out, /1 suppressed by the allowlist/u);
+  } finally { rmSync(root, { recursive: true, force: true }); }
+});
+
+test('an entry living only in a COMMENT suppresses nothing, since rules ignore comments', () => {
+  // Spans are located in the stripped body. Quoting a comment cannot forgive
+  // shipped copy, which is the consistent reading: the rules never looked at
+  // comments either.
+  const root = fixture(
+    { 'src/pages/p.astro': '<!-- Our placeholder text policy is documented -->\n<p>placeholder text here</p>\n' },
+    'Our placeholder text policy is documented\n',
+  );
+  try {
+    const r = run(root);
+    assert.equal(r.code, 1, 'a comment-only entry must not suppress the shipped match');
+    assert.match(r.out, /placeholder text/u);
+  } finally { rmSync(root, { recursive: true, force: true }); }
+});
+
+test('two occurrences of the same marker are two offenders, and one can be forgiven alone', () => {
+  // The clearest consequence of indexing matches rather than rules: the gate
+  // can now forgive the legitimate instance and still refuse the other, which
+  // the old file-level list could not express at all.
+  const root = fixture(
+    {
+      'src/pages/p.astro': '<p>The phrase lorem ipsum is discussed in our typography notes.</p>\n'
+        + '<p>lorem ipsum dolor sit amet.</p>\n',
+    },
+    'The phrase lorem ipsum is discussed\n',
+  );
+  try {
+    const r = run(root);
+    assert.equal(r.code, 1, 'the second occurrence is still debris');
+    assert.match(r.out, /1 unfinished-state marker\(s\)/u, 'exactly one of the two is forgiven');
+  } finally { rmSync(root, { recursive: true, force: true }); }
+});
+
+test('checkSource reports EVERY occurrence, not the first per rule', () => {
+  // The change that makes positional suppression possible. Previously
+  // body.match() returned one hit per rule, so a second lorem ipsum was
+  // invisible until the first was fixed.
+  const hits = checkSource('<p>lorem ipsum</p><p>lorem ipsum</p><p>lorem ipsum</p>');
+  assert.equal(hits.length, 3);
+  assert.ok(hits.every((h) => typeof h.index === 'number' && h.end > h.index),
+    'each hit carries the span the allowlist is compared against');
+  assert.ok(hits[0].index < hits[1].index && hits[1].index < hits[2].index, 'in source order');
 });
 
 test('a missing allowlist file is treated as no allowlist, not as a crash', () => {

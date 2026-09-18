@@ -13,8 +13,15 @@
 // Banned markers are the ones that read as dev/editorial debris:
 //   actively edited · Owner TBC · lorem ipsum · visible TODO/FIXME · placeholder
 //   text · a stale "Soon" status pill.
-// Add a false positive to scripts/gates/unfinished-copy-allowlist.txt (one
-// substring per line) if a match is legitimate.
+// Add a false positive to scripts/gates/unfinished-copy-allowlist.txt if a
+// match is legitimate: one substring of the real copy per line, and it must
+// CONTAIN the match it excuses. Suppression is positional and silences only
+// the matches inside that substring.
+//
+// Until 2026-09-18 it was file-level -- any listed substring appearing anywhere
+// in a file skipped that file's six rules entirely, so one legitimate phrase
+// exempted the whole page. The list was empty at the time, so nothing was
+// actually being suppressed when it was fixed.
 import fs from 'node:fs';
 import path from 'node:path';
 
@@ -54,14 +61,61 @@ function collect(dir) {
   return out;
 }
 
+/** Every rule match in `src`, with its index into the STRIPPED body.
+ *
+ *  Returns ALL occurrences, not the first per rule: two lorem-ipsum blocks in
+ *  one file are two things to fix, and the index is what lets the driver
+ *  suppress one of them without suppressing the other. */
 export function checkSource(src, rules = RULES) {
   const body = stripComments(src);
   const hits = [];
   for (const rule of rules) {
-    const m = body.match(rule.re);
-    if (m) hits.push({ label: rule.label, match: m[0].replace(/\s+/g, ' ').slice(0, 60) });
+    // Rules are authored as non-global literals, so clone with /g rather than
+    // mutating the shared RegExp: a /g literal in RULES would carry lastIndex
+    // between files and silently skip matches.
+    const re = new RegExp(rule.re.source, rule.re.flags.includes('g') ? rule.re.flags : `${rule.re.flags}g`);
+    for (const m of body.matchAll(re)) {
+      hits.push({
+        label: rule.label,
+        match: m[0].replace(/\s+/gu, ' ').slice(0, 60),
+        index: m.index,
+        end: m.index + m[0].length,
+      });
+    }
   }
   return hits;
+}
+
+/** Character spans in `body` covered by an allowlist entry, all occurrences. */
+export function allowedSpans(body, allow) {
+  const spans = [];
+  for (const entry of allow) {
+    let from = 0;
+    for (;;) {
+      const at = body.indexOf(entry, from);
+      if (at === -1) break;
+      spans.push([at, at + entry.length]);
+      from = at + 1;
+    }
+  }
+  return spans;
+}
+
+/** True when a hit lies entirely inside an allowlisted span.
+ *
+ *  This is the whole of the 2026-09-18 fix. The driver used to do
+ *      if (allow.some((a) => src.includes(a))) continue;
+ *  which skipped the ENTIRE FILE on any match, so one legitimate phrase
+ *  exempted that file from all six rules and an allowlisted page could ship
+ *  "actively edited", "Owner TBC" and lorem ipsum with a green run. The gate's
+ *  own header described the list as "one substring per line" for "a false
+ *  positive", which reads as per-match suppression. It was not.
+ *
+ *  Suppression is now positional: an entry silences the matches that occur
+ *  INSIDE it and nothing else. That also makes an entry self-documenting, since
+ *  it has to quote enough of the real copy to cover the match it excuses. */
+export function isAllowed(hit, spans) {
+  return spans.some(([start, end]) => hit.index >= start && hit.end <= end);
 }
 
 function loadAllowlist() {
@@ -77,10 +131,17 @@ if (import.meta.url === `file://${process.argv[1]}`) {
   const allow = loadAllowlist();
   const files = SCAN_DIRS.flatMap(collect);
   const offenders = [];
+  let suppressed = 0;
   for (const f of files) {
     const src = fs.readFileSync(f, 'utf8');
-    if (allow.some((a) => src.includes(a))) continue; // file-level allowlist by substring
+    // Spans are located in the STRIPPED body, because that is the string the
+    // rules matched against and the only one the hit indices refer to. An
+    // allowlist entry that exists solely inside a comment or the Astro
+    // frontmatter therefore no longer suppresses anything, which is correct:
+    // those are not shipped copy and the rules never looked at them.
+    const spans = allowedSpans(stripComments(src), allow);
     for (const hit of checkSource(src)) {
+      if (isAllowed(hit, spans)) { suppressed += 1; continue; }
       offenders.push({ file: f, ...hit });
     }
   }
@@ -89,9 +150,15 @@ if (import.meta.url === `file://${process.argv[1]}`) {
     for (const o of offenders) {
       console.error(`  ${o.file}: ${o.label} -> "${o.match}"`);
     }
-    console.error(`If a match is legitimate, add a unique substring of it to ${ALLOWLIST_PATH}.`);
+    console.error(`If a match is legitimate, add to ${ALLOWLIST_PATH} a substring of the real copy`);
+    console.error('that CONTAINS the match above. Suppression is positional: an entry silences only');
+    console.error('the matches inside it, never the rest of the file.');
     process.exit(1);
   }
-  console.log(`OK: no unfinished-state markers in ${files.length} page/component file(s)`);
+  // The suppressed count is printed on purpose. A silent allowlist is how a
+  // carve-out outlives its reason, and "0 markers" reads very differently from
+  // "0 markers, 4 suppressed".
+  const note = suppressed > 0 ? `, ${suppressed} suppressed by the allowlist` : '';
+  console.log(`OK: no unfinished-state markers in ${files.length} page/component file(s)${note}`);
   process.exit(0);
 }
