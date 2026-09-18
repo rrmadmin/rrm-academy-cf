@@ -1,6 +1,7 @@
 ---
 import BaseLayout from '../layouts/BaseLayout.astro';
 import { TURNSTILE_SITE_KEY } from '../lib/turnstile';
+import { SAFE_REDIRECT_CLIENT_SRC } from '../lib/safe-redirect.js';
 ---
 <BaseLayout
   title="Sign In"
@@ -56,7 +57,7 @@ import { TURNSTILE_SITE_KEY } from '../lib/turnstile';
         <div class="auth-links">
           <a href="/forgot-password/">Forgot your password?</a>
           <span class="auth-links__sep">&middot;</span>
-          <a href="/signup/">Create an account</a>
+          <a id="signup-link" href="/signup/">Create an account</a>
         </div>
       </div>
     </div>
@@ -65,6 +66,8 @@ import { TURNSTILE_SITE_KEY } from '../lib/turnstile';
   {TURNSTILE_SITE_KEY && (
     <script src="https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit" async defer is:inline></script>
   )}
+
+  <script is:inline set:html={SAFE_REDIRECT_CLIENT_SRC}></script>
 
   <script is:inline>
     (function () {
@@ -76,11 +79,16 @@ import { TURNSTILE_SITE_KEY } from '../lib/turnstile';
       var turnstileWidgetId = null;
       var pendingSubmit = null;
 
-      // Pass redirect param to Google OAuth link
+      // Pass redirect param to Google OAuth link and to the signup link.
+      // Both carry the VALIDATED value, so an unsafe redirect is dropped here
+      // rather than handed on.
       var params = new URLSearchParams(window.location.search);
       var redirect = params.get('redirect');
-      if (redirect && googleBtn) {
-        googleBtn.href = '/api/auth/google?redirect=' + encodeURIComponent(redirect);
+      var safeDest = redirect ? window.rrmSafeRedirect(redirect, window.location.origin) : '';
+      if (safeDest && safeDest !== '/account/') {
+        if (googleBtn) googleBtn.href = '/api/auth/google?redirect=' + encodeURIComponent(safeDest);
+        var signupLink = document.getElementById('signup-link');
+        if (signupLink) signupLink.href = '/signup/?next=' + encodeURIComponent(safeDest);
       }
 
       // Show OAuth error messages from query params
@@ -90,7 +98,8 @@ import { TURNSTILE_SITE_KEY } from '../lib/turnstile';
         account_blocked: 'This account has been blocked.',
         account_conflict: 'This Google account is already linked to a different RRM Academy account. Sign in with that Google account, or email administrator@rrmacademy.org to merge.',
         email_conflict: 'A different account already uses this email. Try signing in with email/password instead.',
-        oauth_unavailable: 'Google sign-in is temporarily unavailable. Try email/password.'
+        oauth_unavailable: 'Google sign-in is temporarily unavailable. Try email/password.',
+        redirect_too_long: 'That return link is too long for Google sign-in. Sign in with email and password instead.'
       };
       var errorParam = params.get('error');
       if (errorParam && oauthErrors[errorParam]) {
@@ -150,13 +159,7 @@ import { TURNSTILE_SITE_KEY } from '../lib/turnstile';
           .then(function (data) {
             if (data.ok) {
               var params = new URLSearchParams(window.location.search);
-              var dest = params.get('redirect') || '/account/';
-              try {
-                var u = new URL(dest, window.location.origin);
-                if (u.origin !== window.location.origin || dest.charAt(0) !== '/' || dest.length > 500) dest = '/account/';
-                else dest = u.pathname + u.search + u.hash;
-              } catch (e) { dest = '/account/'; }
-              if (dest.length > 1 && dest.charAt(dest.length - 1) !== '/' && dest.indexOf('?') === -1 && dest.indexOf('#') === -1) dest += '/';
+              var dest = window.rrmSafeRedirect(params.get('redirect'), window.location.origin);
               window.location.href = dest;
             } else {
               showError(data.error || 'Sign in failed.');

@@ -1,6 +1,7 @@
 ---
 import BaseLayout from '../layouts/BaseLayout.astro';
 import { TURNSTILE_SITE_KEY } from '../lib/turnstile';
+import { SAFE_REDIRECT_CLIENT_SRC } from '../lib/safe-redirect.js';
 ---
 <BaseLayout
   title="Create Account"
@@ -87,6 +88,8 @@ import { TURNSTILE_SITE_KEY } from '../lib/turnstile';
     <script src="https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit" async defer is:inline></script>
   )}
 
+  <script is:inline set:html={SAFE_REDIRECT_CLIENT_SRC}></script>
+
   <script is:inline>
     (function () {
       var signupForm = document.getElementById('signup-form');
@@ -103,14 +106,16 @@ import { TURNSTILE_SITE_KEY } from '../lib/turnstile';
       var turnstileWidgetId = null;
       var pendingSubmit = null;
 
-      // Parse ?next= param -- if present and safe, tag signup source and redirect post-verify.
+      // Parse ?next= param -- if present and safe, tag signup source.
+      // Shared validator, so the cap and the same-origin checks match the
+      // login page exactly (4096 characters; the OAuth identity hop is long).
       var nextParam = '';
       try {
         var params = new URLSearchParams(window.location.search);
         var raw = params.get('next') || '';
-        if (raw && raw.charAt(0) === '/' && raw.length <= 500) {
-          var u = new URL(raw, window.location.origin);
-          if (u.origin === window.location.origin) nextParam = u.pathname + u.search + u.hash;
+        if (raw) {
+          var checked = window.rrmSafeRedirect(raw, window.location.origin);
+          if (checked !== '/account/') nextParam = checked;
         }
       } catch (_) {}
 

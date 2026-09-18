@@ -11,7 +11,7 @@
       "note": "Authentication"
     },
     "functions/api/auth/signup.js": {
-      "hash": "56945a741d591672e523fb8bd726c384dfaf590937de66bcec4b5ff11427c68d",
+      "hash": "5ce4288488ae6e020d54b9e5df4fd96ab727a30848e87b1188a0496b91479025",
       "note": "Account creation"
     },
     "functions/api/auth/forgot-password.js": {
@@ -27,7 +27,7 @@
       "note": "Authenticated password change"
     },
     "functions/api/auth/google.js": {
-      "hash": "65c8f36fceb1ee85824bb3fda34225616dff0c06a925dc6464f1422d8c9c0ab6",
+      "hash": "3c46eaac6c9d1b109baa5178625f7a1ae399ae4e15730b68fbec89a8783b1cec",
       "note": "OAuth redirect initiation"
     },
     "functions/api/auth/google-callback.js": {

@@ -144,7 +144,10 @@ export async function onRequestPost({ request, env, waitUntil }) {
       firstName: { type: 'string', required: true, maxLength: 100 },
       lastName:  { type: 'string', required: true, maxLength: 100 },
       email:     { type: 'email',  required: true },
-      next:      { type: 'string', required: false, maxLength: 200 },
+      // 4096 matches the login and signup pages' redirect cap. The OAuth
+      // identity hop is a legitimate ~3.8 KB path, and a 200 cap answered 400
+      // to the whole signup rather than merely dropping the attribution hint.
+      next:      { type: 'string', required: false, maxLength: 4096 },
     });
     if (!validated.valid) return json({ ok: false, error: validated.error }, validated.status);
 

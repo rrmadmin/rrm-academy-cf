@@ -10,6 +10,9 @@
  * 2. src/pages/login.astro validated the redirect param with a path-only regex
  *    that rejected ? and =, falling back to /account/ silently.
  *
+ * The login page's validation now lives in src/lib/safe-redirect.js, which the
+ * page injects into its inline script, so the checks below read both files.
+ *
  * These tests are static source-level checks that detect the exact patterns that
  * caused the regression, so they will catch any future reintroduction.
  */
@@ -23,10 +26,18 @@ const middleware = readFileSync(
   'utf8'
 );
 
-const login = readFileSync(
+const loginPage = readFileSync(
   new URL('../src/pages/login.astro', import.meta.url),
   'utf8'
 );
+
+const validator = readFileSync(
+  new URL('../src/lib/safe-redirect.js', import.meta.url),
+  'utf8'
+);
+
+/** The page plus the validator it loads: the whole redirect path the browser runs. */
+const login = loginPage + validator;
 
 describe('middleware preserves URL search on auth redirect (fix UX bug)', () => {
   it('encodeURIComponent calls include url.search alongside pathname', () => {
@@ -69,6 +80,17 @@ describe('login.astro redirect validation allows query strings', () => {
     assert.ok(
       login.includes("charAt(0) !== '/'") || login.includes("charAt(0) === '/'"),
       'login.astro should use structural redirect validation (charAt check) not a path-only regex'
+    );
+  });
+
+  it('loads the shared validator rather than a page-local copy', () => {
+    assert.ok(
+      loginPage.includes("import { SAFE_REDIRECT_CLIENT_SRC } from '../lib/safe-redirect.js';"),
+      'login.astro must import the shared validator so the page and its tests cannot diverge'
+    );
+    assert.ok(
+      loginPage.includes('window.rrmSafeRedirect('),
+      'login.astro must call the shared validator for the post-login destination'
     );
   });
 });
