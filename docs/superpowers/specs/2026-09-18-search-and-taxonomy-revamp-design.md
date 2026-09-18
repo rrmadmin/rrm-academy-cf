@@ -1,6 +1,6 @@
 # RRM Academy search and taxonomy revamp
 
-Date: 2026-09-18. Owner: Brian. Status: design, awaiting Brian's review before the plan.
+Date: 2026-09-18. Owner: Brian. Status: design v2, CONDITIONALLY APPROVED by the brian reviewer 2026-09-18 (8 issues, all folded in below); awaiting Brian's answers to section 9 before the plan.
 Decision already made: **the patient wins a tie.** A patient typing "endo" gets the endometriosis guide above
 fifty papers; a clinician's query is recognized by its shape (author, journal, "RCT", "meta-analysis",
 a DOI or PMID) and only then do papers lead.
@@ -26,7 +26,7 @@ the person wants a doctor, an explanation, or a study.
 
 The topic taxonomy that the library browse pages depend on is in worse shape (audit 2026-09-18, mechanics):
 
-- Two disconnected taxonomies. `domain` is a closed 21-value enum, 0 percent null, written by the guarded
+- Two disconnected taxonomies. `domain` is a closed enum (23 values in the live `check_domain` trigger; the audit's 21 was a count of populated values), 0 percent null, written by the guarded
   `/classify-result` endpoint. The topics UI (`/library/topics/`, 16 cards from a hand list in
   `src/data/library-topics.ts`) reads a different field, `topics`, a free-text "Domain > Category > Subcategory"
   array written by a one-off script (`scripts/reclassify-chunk.mjs`, raw `UPDATE`, no CAS, no proof gate).
@@ -70,7 +70,17 @@ about 4,400 calls, cents. Below 0.5 confidence at any level the paper goes to a 
 tree; the queue is worked through the classify-library skill, never silently filled.
 
 **Writes.** Through `/classify-result` extended to accept `topics` (paths as slugs), CAS-guarded, proof-gated,
-identity-coherence checked, the same as `domain` today. `scripts/reclassify-chunk.mjs` is retired. The
+identity-coherence checked, the same as `domain` today. **Known trap:** the route's idempotency short-circuit
+compares only the six existing fields and answers `{ok:true, idempotent:true}` when they match, so a call that
+changes only `topics` on an already-classified paper (which is most of the 3,045) would be dropped as a no-op.
+`topics` joins that comparison in the same change, and a test pins it. `scripts/reclassify-chunk.mjs` is retired.
+**The existing per-paper `topics` values are superseded, not preserved:** they feed the vocabulary clustering
+as input and are then overwritten by the new classification. **Before the run:** `wrangler d1 export` of
+`articles(id, domain, topics, traditions)` to the run directory, named in the plan's revert section, so a bad
+pass at scale is one restore, not 4,400 CAS writes backward.
+**Review-queue papers on the live site:** they keep their old `domain` for the browse pages and render under no
+topic path (excluded from G4's per-topic counts); the queue count is shown on the topics index for operators
+only, never to visitors. The
 `topics` column stores slug paths only; labels come from the taxonomy file at render time, so a rename never
 touches D1.
 
@@ -114,6 +124,12 @@ on a FAIL and runs in CI on every deploy (the neofertility-ie shape).
 
 ## 5. D3: the ranker
 
+**Clinician-shaped queries are detected in code, before any model call.** A DOI (`10.\d{4,9}/`), a bare PMID
+(`^\d{7,8}$`), "et al.", a journal abbreviation from a short list, or the tokens RCT / meta-analysis / cohort /
+systematic review set intent = research deterministically and skip the Jev intent call. The battery carries a
+slice of these queries and asserts they route to research without a model; that is what makes the opening
+decision falsifiable rather than asserted.
+
 **Retrieval stays.** Pagefind and Vectorize as now, plus alias spans for short forms and misspellings that
 the visible copy avoids (endo, ttc, napro, progestrone), and the care team page and every tool page in the index
 with their tags. Titles no longer truncate at 70 characters in the result list.
@@ -126,9 +142,12 @@ the weights live in `src/data/search-weights.json` with the fit's date and its h
 the patient wins a tie is a constraint on the fit, not a hope: intent find_doctor or learn_condition may not
 rank a research page above a guide that carries the same condition.
 
-**Jev at runtime, inside the existing 300 ms budget, server side in `/api/search/semantic.js`:** a Choice on
-the query's intent (one call, about 300 ms, cached by normalized query in KV for a day), and when there is
-budget, a rerank of the top 30 fused candidates by `answers_query` Nouls over title, excerpt and tags. When the
+**Jev at runtime, server side in `/api/search/semantic.js`, and this is a decision for Brian (section 9):** it
+would be the first paid third-party model call inline on a user-facing request path on rrmacademy.org. Today's
+semantic call is the free Workers AI binding; citation-check, the only Jev precedent, is batch. If approved: a
+Choice on the query's intent (one call, about 300 ms, cached by normalized query in KV for a day), **dispatched
+in parallel with retrieval under the same 300 ms race the search bar already runs for Vectorize, never chained
+after fusion**, and when there is budget, a rerank of the top 30 fused candidates by `answers_query` Nouls over title, excerpt and tags. When the
 call misses the budget the fitted weights alone stand, which is already the measured improvement; the rerank is
 the last few points. Rate limit and query cap as today. Cost at current volume (about 120 searches a day) is
 under a dollar a month.
@@ -139,17 +158,18 @@ the taxonomy path under each title; course leads with courses. Preview limits pe
 
 **Gates.** R1: battery pass rate before and after, on the same queries; adoption needs top-1 agreement at or
 above 0.85 and no lens under 0.75. R2: the four failing queries in section 1 pass. R3: p95 search latency at or
-under today's, measured in the harness. R4: the non-English demotion is reproduced by the `language` tag with
+under today's, measured in the harness **on a cold KV (cache miss on every query)**, since the warm path hides the
+real number. R4: the non-English demotion is reproduced by the `language` tag with
 the same or better precision on a 50-title sample, then the heuristic is deleted.
 
 ## 6. Data, privacy, cost
 
 - Jev sees: paper titles, abstracts and fulltext excerpts (already public), site page text (public), and query
   strings from the log (no IP, the log stores a hash). Nothing about a user leaves the estate.
-- All Jev calls at build or batch time run from a session or a CI job with `TYPESAFE_API_KEY`; the runtime
-  intent call runs in the Pages Function with the key as a Pages secret, same posture as the Workers AI calls
-  today. Runtime model rule: Jev is a paid API in a deployed surface, which the estate's rule allows only for
-  classification with a code fallback, which this is; the fallback is exercised in the harness.
+- All Jev calls at build or batch time run from a session or a CI job with `TYPESAFE_API_KEY`. The runtime
+  intent call would put the key in the Pages Function as a secret and make an outbound paid call per uncached
+  search; the code fallback (fitted weights alone) is exercised in the harness. Whether that call is allowed at
+  all is section 9's fourth question; nothing in D3 depends on it except the last few points of R1.
 - Cost: D1 and D2 about 5,000 calls once, cents; runtime under a dollar a month; refits are free.
 
 ## 7. What is deliberately not in this spec
@@ -173,6 +193,12 @@ the same or better precision on a 50-title sample, then the heuristic is deleted
 
 Each step is a converge component; the build runs subagent-driven with the jev-controller helpers.
 
+**Repos and landing order.** The `/classify-result` extension (topics field, idempotency fix, test) lands in
+`rrm-library-worker` FIRST, through that repo's own ritual (worktree, PR, `deploy:safe` with its smoke), and is
+proven live before any classification script calls it. The taxonomy file, the topics pages, the tags, the
+battery, the ranker and the runtime call land in `rrm-academy-cf` (direct push deploys). The classification
+and tagging scripts run from a session against the deployed worker, never against D1 directly.
+
 ## 9. Open questions for Brian
 
 - The 16 browsable topics: keep the number, or let the tree decide it (the audit suggests 3 are oversized and
@@ -180,3 +206,8 @@ Each step is a converge component; the build runs subagent-driven with the jev-c
 - Should clinician-register pages (technical FAQs, protocol commentary) be a fourth audience value or fold into
   `both`?
 - Is the review queue for low-confidence papers Gianna's or a Sonnet pass with Gianna spot-checking?
+- **Is a paid Jev call authorized inline on every uncached live search?** It is the first paid model on a
+  user-facing request path here. Under a dollar a month at today's volume, a new vendor dependency in the hot
+  path, and a code fallback that is already most of the gain. No is a fine answer; D3 ships without it.
+- The 3,045 papers' existing hand-picked `topics` values are fully superseded by the new classification
+  (they only seed the vocabulary). Confirm that is acceptable.
