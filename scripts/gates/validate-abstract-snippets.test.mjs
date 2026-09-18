@@ -255,19 +255,58 @@ test('a genuine ALL-CAPS label is still stripped, so the fix did not disarm the 
   assert.equal(abstractSnippet('main outcome measures: the prose.'), 'the prose.');
 });
 
-test('a Title-Case phrase OUTSIDE the vocabulary is now kept, and that is the trade', () => {
-  // Stated rather than hidden. The old behaviour ate unlisted labels as
-  // collateral damage; the fix keeps them. MEASURED on the live corpus: 13
-  // snippets now open with a label-shaped phrase where 0 did before, and most
-  // are genuine content ("To the Editor", a surname, a sentence). Three look
-  // like real section labels (Disclosure, Rationale, Description).
+test('a Title-Case phrase OUTSIDE the vocabulary is kept, and that is the trade', () => {
+  // Stated rather than hidden. The `i`-flag fix stopped the generic arm eating
+  // unlisted labels as collateral, so they are kept now. MEASURED on the live
+  // corpus right after that fix: 13 snippets opened with a label-shaped phrase
+  // where 0 did before, and most were genuine content ("To the Editor", a
+  // surname, a sentence).
   //
-  // The mechanism for those is the vocabulary, not the case-insensitive arm:
-  // add the word to ABSTRACT_LABEL_WORDS. Deliberately NOT done in the same
-  // change as the fix, so "0 characters newly removed" stays exactly true.
-  assert.equal(abstractSnippet('Disclosure: the authors report none.'),
-    'Disclosure: the authors report none.',
-    'an unlisted label is kept; add it to the vocabulary if it should go');
+  // The mechanism for a phrase that really IS a label is the vocabulary, not
+  // the case-insensitive arm. Three were added on 2026-09-18 for exactly that
+  // reason (disclosure/disclosures, rationale, description), which removed 82
+  // characters across 7 abstracts and added none. This test therefore uses a
+  // phrase that is still, deliberately, not in the vocabulary.
+  assert.equal(abstractSnippet('To the Editor: we read the paper with interest.'),
+    'To the Editor: we read the paper with interest.',
+    'a letter opening is content, not a section label, and must be kept');
+
+  // And the three that WERE added are now stripped, which is the other half of
+  // the same decision.
+  for (const w of ['Disclosure', 'Disclosures', 'Rationale', 'Description']) {
+    assert.equal(abstractSnippet(`${w}: the text.`), 'the text.',
+      `${w} was added to the vocabulary on 2026-09-18 and must be stripped`);
+  }
+});
+
+test('the three added words do NOT fire on the same word in running prose', () => {
+  // The risk of adding a common English word to the vocabulary. A label still
+  // needs a whitespace boundary before it and a colon or newline after, so the
+  // bare word in a sentence is untouched. MEASURED: adding these three removed
+  // 0 characters beyond the 7 genuine labels.
+  for (const s of [
+    'A full description of the cohort follows in the appendix.',
+    'No disclosure was made by any author of the review.',
+    'The rationale for excluding them is given above.',
+  ]) {
+    assert.equal(abstractSnippet(s), s, `${JSON.stringify(s)} must survive untouched`);
+  }
+});
+
+test('KNOWN RESIDUAL of the vocabulary arm: the word before a colon IS eaten', () => {
+  // HONEST FAILURE, NOT A PASSING ASSERTION, and it is not new to the three
+  // added words -- it is true of "design", "setting", "context", "patients"
+  // and a dozen others already in the list, because the boundary is only
+  // (^|\s) with no requirement that a label start a sentence.
+  //
+  // It is the SAME root cause as the ALL-CAPS acronym residual: a pattern that
+  // matches more than its name implies. A sentence-boundary rule would fix
+  // both, and would also risk the 129 corpus removals that are fragments of
+  // split multi-part labels. Measured at 0 corpus instances today, so it is
+  // recorded rather than fixed.
+  assert.equal(abstractSnippet('We gave a description: it was brief.'),
+    'We gave a it was brief.',
+    'FIX LANDED: labels now need a sentence boundary -- re-measure the 129 fragments');
 });
 
 // ---- the gate's plumbing, which CAN be falsified ----
