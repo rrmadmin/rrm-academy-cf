@@ -8,10 +8,15 @@
 
 import { createHash } from 'node:crypto';
 import { readFileSync, writeFileSync, readdirSync, statSync } from 'node:fs';
-import { join, relative } from 'node:path';
+import { join, relative, resolve } from 'node:path';
 import { exit, argv } from 'node:process';
 
-const ROOT = new URL('..', import.meta.url).pathname.replace(/\/$/, '');
+// GUARD_ROOT points the guard at a fixture tree instead of the repo. Same
+// convention as PAYMENT_GATE_ROOT / CONTENT_REVIEW_GATE_ROOT: falsification
+// harness only, never set in CI or in npm run guard.
+const ROOT = process.env.GUARD_ROOT
+  ? resolve(process.env.GUARD_ROOT)
+  : new URL('..', import.meta.url).pathname.replace(/\/$/, '');
 const MANIFEST_PATH = join(ROOT, 'guard-manifest.json');
 const UPDATE_MODE = argv.includes('--update');
 
