@@ -55,6 +55,7 @@ const ROUTE_TABLE = [
   ['/api/auth/verify-email', '../../../functions/api/auth/verify-email.js'],
   ['/api/account/mcp-keys', '../../../functions/api/account/mcp-keys/index.js'],
   ['/api/account/mcp-keys/:id', '../../../functions/api/account/mcp-keys/[id].js'],
+  ['/api/account/oauth-identity', '../../../functions/api/account/oauth-identity.js'],
   ['/api/saved', '../../../functions/api/saved.js'],
   ['/api/ask/saved', '../../../functions/api/ask/saved.js'],
   ['/api/billing/status', '../../../functions/api/billing/status.js'],

@@ -105,10 +105,16 @@ export const EVENTS_REMIND_KEY = ['R3dt3am', 'Ev3nts', 'R3mind', 'K3y'].join('-'
 export const SES_EVENTS_SECRET = ['R3dt3am', 'S3sEv3nts', 'S3cret'].join('-');
 export const NEWSLETTER_BOUNCE_SECRET = ['R3dt3am', 'Bounc3', 'S3cret'].join('-');
 export const DEPLOY_SECRET = ['R3dt3am', 'D3ploy', 'S3cret'].join('-');
+/* Signs and verifies the areq/grant blobs the oauth-identity endpoint hands
+   to rrm-mcp. cases.mjs signs its own fixture blobs with this exact value so
+   a "valid" areq is one the harness's own env would accept, and a case that
+   wants a signature failure signs with a DIFFERENT value or corrupts the
+   result instead of touching this constant. */
+export const OAUTH_GRANT_SECRET = ['R3dt3am', 'Oauth', 'Grant', 'S3cret'].join('-');
 export const SECRET_FRAGMENTS = Object.freeze([
   STRIPE_KEY, WEBHOOK_SECRET, ADMIN_SECRET, AWS_SECRET, TURNSTILE_SECRET,
   EVENTS_REMIND_KEY, SES_EVENTS_SECRET, NEWSLETTER_BOUNCE_SECRET, DEPLOY_SECRET,
-  EMAIL_SEND_TOKEN,
+  EMAIL_SEND_TOKEN, OAUTH_GRANT_SECRET,
 ]);
 
 /** The six accounts, keyed by the name `targets.mjs` identities use. */
@@ -323,6 +329,8 @@ export async function redteamEnv(extra = {}) {
     NEWSLETTER_BOUNCE_SECRET,
     DEPLOY_SECRET,
     SITE_URL: 'https://rrmacademy.org',
+    OAUTH_GRANT_SECRET,
+    MCP_ORIGIN: 'https://mcp.rrmacademy.org',
     ...extra,
   };
 
