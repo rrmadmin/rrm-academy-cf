@@ -1,6 +1,6 @@
 # RRM Academy search and taxonomy revamp
 
-Date: 2026-09-18. Owner: Brian. Status: design v2, CONDITIONALLY APPROVED by the brian reviewer 2026-09-18 (8 issues, all folded in below); awaiting Brian's answers to section 9 before the plan.
+Date: 2026-09-18. Owner: Brian. Status: design v3, approved for planning 2026-09-18 (brian reviewer's 8 issues folded in, Brian's five rulings in section 9).
 Decision already made: **the patient wins a tie.** A patient typing "endo" gets the endometriosis guide above
 fifty papers; a clinician's query is recognized by its shape (author, journal, "RCT", "meta-analysis",
 a DOI or PMID) and only then do papers lead.
@@ -176,7 +176,8 @@ the same or better precision on a 50-title sample, then the heuristic is deleted
 
 - A knowledge graph. The tags are its node set and stay closed-vocabulary so one can grow from them; building
   relations is a separate project.
-- AskRRM changes. It consumes D1 and D2 later through `rrm-ai-search`; nothing here touches `/api/ask`.
+- AskRRM changes. It consumes D1 and D2 later through `rrm-ai-search`; nothing here touches `/api/ask`. Brian
+  expects the runtime intent and rerank call to help there too; that is the first follow-up once D3 is measured.
 - Search v2 (`feature:search_v2`, the AI Search Worker path). It stays behind its flag; D3 applies to the v1
   fused path that serves everyone. Folding v2 in is a follow-up once D3 is measured.
 - Renaming topics or writing descriptors. Gianna and Naomi own the words.
@@ -199,15 +200,18 @@ proven live before any classification script calls it. The taxonomy file, the to
 battery, the ranker and the runtime call land in `rrm-academy-cf` (direct push deploys). The classification
 and tagging scripts run from a session against the deployed worker, never against D1 directly.
 
-## 9. Open questions for Brian
+## 9. Brian's rulings (2026-09-18)
 
-- The 16 browsable topics: keep the number, or let the tree decide it (the audit suggests 3 are oversized and
-  5 demoted ones are hidden today)?
-- Should clinician-register pages (technical FAQs, protocol commentary) be a fourth audience value or fold into
-  `both`?
-- Is the review queue for low-confidence papers Gianna's or a Sonnet pass with Gianna spot-checking?
-- **Is a paid Jev call authorized inline on every uncached live search?** It is the first paid model on a
-  user-facing request path here. Under a dollar a month at today's volume, a new vendor dependency in the hot
-  path, and a code fallback that is already most of the gain. No is a fine answer; D3 ships without it.
-- The 3,045 papers' existing hand-picked `topics` values are fully superseded by the new classification
-  (they only seed the vocabulary). Confirm that is acceptable.
+1. **Browsable topics: the tree decides the number.** 16 is not a constraint; G4's size band (20 to 800) is.
+2. **Clinician-register pages fold into `both`.** Three audience values, not four.
+3. **Gianna works the review queue**, and her acceptance criteria are tuned WITH Jev: her rulings on the first
+   batch become the answer key, Jev is scored against them, disagreements go back to her, and the criteria text
+   is revised until Jev agrees at or above 0.85 on the next batch. The queue shrinks as the criteria sharpen.
+   The criteria wording is hers; this session never writes it.
+4. **Jev on the live site is allowed, on one condition: it must be genuinely helpful, measured.** The runtime
+   intent call ships behind a flag, and the flag stays on only if the battery shows a real gain over the fitted
+   weights alone (R1 delta of at least 3 points top-1, cold p95 held). If the gain is inside the noise, the call
+   comes out. Brian also sees the same call helping AskRRM (intent and rerank on its retrieval); that is a
+   follow-up consumer of D2, noted in section 7, not built here.
+5. **Old topics: back up, then overwrite.** The pre-run D1 export in section 3 is the backup; it is kept in the
+   run directory and in R2 under `backups/taxonomy/` with the run date, then the classification overwrites.
