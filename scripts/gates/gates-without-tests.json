@@ -32,11 +32,18 @@
     "name for want of a word boundary, and validate-no-unfinished-copy applies its",
     "allowlist per FILE so one entry disables all six rules there. compare-pillar-migration",
     "also silently skips its guides.json leg on a partial flag set while still printing",
-    "\", guides.json\" in the success line."
+    "\", guides.json\" in the success line.",
+    "",
+    "UPDATE 2026-09-18: validate-email-verification harnessed (15 tests, 9 mutations",
+    "proven) after EMAIL_VERIFY_GATE_ROOT was added to it. That is the first of the",
+    "seven NEEDS ROOT gates, and the pattern for the rest: one override line, a",
+    "fixture copy of the real surface, one planted regression per check. It turned",
+    "up two latent gate weaknesses, both pinned as failing-state tests: EV1 inspects",
+    "only the FIRST token assignment in a file, and EV3 does not require the expiry",
+    "condition the live DELETE actually carries."
   ],
   "gates": {
     "check-removed-ids.mjs": "NEEDS ROOT, and a git seam besides. Its input is execSync('git diff --cached'), hardcoded with no cwd or diff-source parameter, so a fixture must be a real git repo with a real staged change. parseDiff, extractRemovedIds, idStillPresentInFile and grepConsumers are each separately callable and testable today, which is the way in.",
-    "validate-email-verification.mjs": "NEEDS ROOT. Three auth files read through resolve(__dirname, '../..') with no env override. Worth doing early despite that: its three gates guard a magic-link token against truncation and replay, which is the highest-consequence assertion in this directory and the one whose silent weakening would be hardest to notice.",
     "validate-share-button.mjs": "NEEDS ROOT. Four pure regex gates over two hardcoded paths under resolve(__dirname, '../..'), so a fixture tree would have to reproduce src/pages/library/[...slug].astro and src/components/ArticleHero.astro at those exact paths. One override line turns this into a CHEAP entry.",
     "validate-guides-registry.mjs": "NEEDS ROOT, more than one line of it. ROOT, SSOT_PATH and a hardcoded six-entry CONSUMERS list all resolve off __dirname, and gateG5 additionally reads a SIBLING repo (../rrm-router/src/index.js), silently skipping when absent, which is its own untested branch. gateG7 already accepts an injectable readFile, so the pattern is half established.",
     "validate-infographic-svg.mjs": "NEEDS ROOT in the form of module injection, not a path. It imports SAMPLES, renderInfographic, ASPECTS and houseStyleErrors as static ESM specifiers, so a fixture spec set cannot be substituted without editing src/lib/infographic/. It is otherwise fully hermetic (no network, no D1), so a seam here is cheaper than most.",

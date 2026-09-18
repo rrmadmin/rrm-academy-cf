@@ -30,7 +30,14 @@ import { dirname, resolve, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
-const PROJECT_ROOT = resolve(__dirname, '../..');
+// EMAIL_VERIFY_GATE_ROOT lets a falsification harness point this gate at a
+// fixture tree. Unset in CI and pre-commit, where it scans the real repo. Same
+// convention as PAYMENT_GATE_ROOT / ANALYTICS_GATE_ROOT / CONTENT_REVIEW_GATE_ROOT.
+//
+// Added 2026-09-18 so this gate could be harnessed at all. It guards a
+// magic-link token against truncation and replay, and it had never been watched
+// fail: an edit weakening any of the three checks produced a green run.
+const PROJECT_ROOT = process.env.EMAIL_VERIFY_GATE_ROOT || resolve(__dirname, '../..');
 
 const GREEN = '\x1b[32m', RED = '\x1b[31m', BOLD = '\x1b[1m', RESET = '\x1b[0m', DIM = '\x1b[2m';
 
