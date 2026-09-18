@@ -156,6 +156,10 @@ export const EXTRA_DDL = [
     why: 'idx_nl_send_one_live_per_campaign is the unique index that makes the bulk mail rail\'s campaign lease an actual mutex (the write collides, not just the check-then-insert SELECT); it lives in the ROOT migrations/ directory, which the test replay list does not read, and postdates the 2026-05-27 snapshot; added 2026-09-11 alongside 041 and 042. The migration is applied to remote rrm-auth before the code that relies on the UNIQUE constraint deploys, so gates:schema-drift stays level with live; until that apply lands, SD2 (STALE-PRESENT) is the expected and intended signal. Order matters: this file indexes newsletter_send.campaign, which 042 adds, so it must stay after the 042 entry in this array.',
   },
   {
+    path: 'migrations/044-oauth.sql',
+    why: 'oauth_client / oauth_code / oauth_token are the OAuth 2.1 authorization server tables read and written by the rrm-mcp Worker (mcp.rrmacademy.org); they live in the ROOT migrations/ directory, which the test replay list does not read, and postdate the 2026-05-27 snapshot; added 2026-09-18 with the migration in the same change. The migration is applied to remote rrm-auth before the Worker that binds these tables deploys, so gates:schema-drift stays level with live; until that apply lands, SD2 (STALE-PRESENT) is the expected and intended signal.',
+  },
+  {
     path: 'migrations/038-posts-meta-description.sql',
     why: 'posts.meta_description is read by functions/api/blog/posts.js and src/pages/commentary/[...slug].astro (dedicated SEO meta description, falling back to excerpt); it lives in the ROOT migrations/ directory, which the test replay list does not read, and postdates the 2026-05-27 snapshot. Applied to remote rrm-auth before this ships (verified via PRAGMA table_info), so gates:schema-drift already sees it live -- this entry keeps the composed mirror level with production. Order matters: this file ALTERs posts, which schema.sql creates, so it must stay after schema.sql in the composition (EXTRA_DDL is applied last).',
   },
