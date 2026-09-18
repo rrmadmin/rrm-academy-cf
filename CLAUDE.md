@@ -883,6 +883,30 @@ The gate **parses both sides and compares value-sets** — it does NOT diff DDL 
 
 **Auto-fires:** pre-commit on staged `ssot/guides.json` or `src/data/*.json`; CI deploy step "Validate content review sign-off gates (always)".
 
+## Every Gate Has a Harness (the meta-gate)
+
+`scripts/gates/validate-gates-have-tests.mjs` (`npm run gates:have-tests`) makes a gate unable to be BORN untested. Every `.mjs` in `scripts/gates/` must have a sibling `.test.mjs`, or an entry in `scripts/gates/gates-without-tests.json` with a reason of at least 40 characters saying why not yet. **The list may only shrink:** an entry whose gate has since gained a test, or that names a gate that no longer exists, is a hard failure, the same carve-out-rot check PG0 runs on its own `EXCLUDED` list.
+
+It is enforced, not merely present. `npm test` globs `scripts/gates/*.test.mjs` and `scripts/quality/*.test.mjs`, and the harness's one non-fixture test runs the gate against the real directory with no root override, so a new untested gate reddens the suite without a workflow edit.
+
+**What it proves and what it cannot.** It proves a test FILE exists. It cannot prove the test has teeth -- proving that for `validate-payment-pipeline.mjs` took sixteen hand-run weaken-and-restore cycles. A green run means somebody wrote a test, never that the gate is falsifiable. Read a new harness the way you would read any other test: ask what it would take for it to pass while the gate is broken.
+
+**State 2026-09-18: 18 of 27 gates harnessed, 9 exempt.** Each exemption names its blocker class, which is also the order to work them: **NEEDS ROOT** (6 -- the gate hardcodes `resolve(__dirname, '../..')`; the fix is one line copying `PAYMENT_GATE_ROOT` / `ANALYTICS_GATE_ROOT` / `EMAIL_VERIFY_GATE_ROOT`) and **NEEDS LIVE** (3 -- the only input is a remote D1 read through wrangler with no injectable query function, so a seam has to be designed first).
+
+**Harnessing a gate finds defects, reliably.** Eight across the first six harnessed: AG8's CSP capture read 12 characters of a 644-character policy (an assertion that could not fail); ET4 matched a prefixed constant name for want of a `\b`; `validate-no-unfinished-copy` suppressed per FILE rather than per match, so one allowlist entry disabled all six rules for that page; `compare-pillar-migration` silently skipped its guides.json leg on a partial flag set while still printing `, guides.json` in the success line. A defect that is fixed gets its pinned test flipped; one that is not stays as a failing-state test that names the cause and goes red when a fix lands.
+
+**Two gates are structurally weaker than they look and say so in their own headers.** `validate-abstract-snippets`' detector IS the stripper's own regex, so it asks whether a fixed point is a fixed point; replacing its `exit(1)` with `exit(0)` turns no test red. `validate-email-trickle` scopes to `notifyNewPost` only, so a roster blast added to a sibling function would pass.
+
+## Abstract Stripper Over-Strip Audit
+
+`scripts/quality/audit-abstract-stripper.mjs` (`npm run audit:stripper`) is a REPORT, not a gate: exit 0 means it ran, never that it approved; exit 2 means it could not find the data file and measured nothing.
+
+It exists because `src/lib/abstract-snippet.mjs` deleted real prose from 860 of 3,720 abstracts for 67 days (2026-07-13 to 2026-09-18, 29,935 characters) while its own header claimed `0 false positives, corpus-audited`. That audit was real and measured the wrong thing: it counted labels REMOVED and labels LEFT LEADING, both of which stayed true throughout, and never asked what else had gone. The damage was mid-sentence and grammatical, so nothing looked broken.
+
+So this audit asks the opposite question -- of every span the stripper removed, which ones do not look like a label -- and derives removals by diffing original against snippet rather than by re-running the regex, because re-running it would inherit whatever bug it has. `validate-abstract-snippets` guards the leaked-label direction and structurally cannot see over-stripping; this is the other half.
+
+Known residuals, measured and deliberately left, both pinned as tests that go red if anyone narrows the arm: an ALL-CAPS acronym before a colon is still eaten (537 generic-arm matches, 131 mid-sentence, of which 129 are fragments of genuine multi-part labels like `DURATION` from `STUDY DESIGN, SIZE, DURATION:` and only 2 are real acronyms, both `AMH`), and a vocabulary word immediately before a colon is eaten in running prose (true of `design`, `setting`, `context` and `patients` since July, because the boundary is only `(^|\s)`).
+
 ## Citation Integrity
 
 **Never insert academic citations from model knowledge.** Hallucinated PMIDs, DOIs, and references are an existential threat to a medical education site.
