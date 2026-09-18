@@ -224,9 +224,26 @@ function buildEntity(entitySlug) {
       existing = JSON.parse(readFileSync(outPath, 'utf-8'));
     } catch (err) {
       if (!flags.force) {
+        // LEADS WITH RECOVERY, NOT DESTRUCTION. This message used to say only
+        // "Re-run with --force to overwrite and wipe _manual overrides" --
+        // recommending the destruction of curator overrides the script had
+        // just failed to read, and therefore could not describe. An
+        // unparseable JSON file is usually one stray character, and the
+        // content is almost always recoverable by hand or from the .bak; a
+        // wipe is the one action that cannot be undone.
+        //
+        // --force stays, and is still the right escape once recovery is
+        // genuinely impossible. It also tries the .bak first (below), which
+        // the old wording never mentioned, so an operator following that
+        // advice did not know a recovery path already existed.
+        const bakHint = existsSync(`${outPath}.bak`)
+          ? `a ${outPath}.bak exists and --force would try to recover _manual from it`
+          : `no ${outPath}.bak exists, so --force would lose the _manual block outright`;
         console.error(
           `  ✗ existing ${outPath} not parseable: ${err.message}\n` +
-            `    Re-run with --force to overwrite and wipe _manual overrides.`
+            `    Fix the JSON (usually one character) or restore the file from git, then re-run.\n` +
+            `    Its _manual block holds curator overrides this script cannot see while the file is broken.\n` +
+            `    Last resort: --force overwrites it -- ${bakHint}.`
         );
         process.exit(1);
       }
