@@ -17,6 +17,9 @@
  *   node scripts/gates/validate-payment-pipeline.mjs --gate PG1 # specific gate
  *   node scripts/gates/validate-payment-pipeline.mjs --json     # machine-readable
  *
+ * Env:
+ *   PAYMENT_GATE_ROOT  scan this tree instead of the repo (falsification harness only)
+ *
  * Exit codes:
  *   0  all gates pass
  *   1  at least one gate failed
@@ -28,7 +31,10 @@ import { dirname, resolve, join, relative, extname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
-const PROJECT_ROOT = resolve(__dirname, '../..');
+// PAYMENT_GATE_ROOT lets the falsification harness point the gate at a fixture
+// tree (same convention as CONTENT_REVIEW_GATE_ROOT). Unset in CI and
+// pre-commit, where the gate scans the real repo.
+const PROJECT_ROOT = process.env.PAYMENT_GATE_ROOT || resolve(__dirname, '../..');
 
 // ---------- ANSI ----------------------------------------------------------
 const GREEN = '\x1b[32m', RED = '\x1b[31m', YELLOW = '\x1b[33m';
