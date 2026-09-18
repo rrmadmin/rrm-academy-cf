@@ -10,23 +10,32 @@
  * goes RED and NAMES it. A gate nobody has watched fail is a decoration.
  *
  * Fixtures are DERIVED from the real surface, not hand-authored:
- *   - G2/G5: the four repo SSOTs plus the out-of-repo neofertility SSOT are read
- *     for real and re-serialised with their first 8 source-bearing facts and a
- *     corrected record_count. A straight cpSync is 14 MB per fixture across ~20
- *     fixtures; the slice keeps every field shape, ID convention and tradition
- *     array authentic (so the clean case is green by construction and cannot
- *     drift out of sync with FACT_ID_PATTERNS / ALLOWED_TRADITIONS) at 1/1000th
- *     the I/O. The orchestrators and both system-prompt.md files ARE cpSync
- *     copies — they are small and G3/G4 parse their exact syntax.
+ *   - G2/G5: the four in-repo SSOTs are read for real and re-serialised with
+ *     their first 8 source-bearing facts and a corrected record_count. A
+ *     straight cpSync is 14 MB per fixture across ~20 fixtures; the slice keeps
+ *     every field shape, ID convention and tradition array authentic (so the
+ *     clean case is green by construction and cannot drift out of sync with
+ *     FACT_ID_PATTERNS / ALLOWED_TRADITIONS) at 1/1000th the I/O. The
+ *     orchestrators and both system-prompt.md files ARE cpSync copies — they are
+ *     small and G3/G4 parse their exact syntax.
+ *   - The fifth SSOT, neofertility, is SYNTHESIZED into the fixture's own temp
+ *     sibling directory. The gate resolves it through ../neofertility-ie, and
+ *     that clone exists here but not on a GitHub runner: copying from it turned
+ *     all 12 fixture-backed G2 tests red in CI on PR #184 while they were green
+ *     locally. Nothing in this file reads a clone other than this repo.
  *   - G1: G1 reads ENTITIES through a static import resolved from the gate's own
  *     directory, which no root override can redirect. So the G1 fixture is a
  *     byte-identical cpSync copy of the gate beside a copy of
  *     scripts/lib/canonical-facts-schema.mjs, and the schema copy is what gets
- *     mutated. fixtureGateIsByteIdentical() asserts the copy still equals the
- *     real gate, so a drifted copy cannot quietly pass for it.
+ *     mutated. schemaFixture() asserts the copy still equals the real gate, so a
+ *     drifted copy cannot quietly pass for it.
  *
- * If `the real fact surface passes G1-G4 unmodified` is the only red test, the
- * real repo is red, not this harness.
+ * Only ONE test reads the real surface end to end, and it asserts G1/G3/G4 —
+ * the gates that need no out-of-repo checkout. G2's dependency on the sibling
+ * clone is named and proven by two further tests rather than skipped: one
+ * asserts G2 is green where the sibling exists and that a missing sibling is its
+ * only tolerated failure, and one builds a runner-shaped sibling-less checkout
+ * so that contract is executed on every machine.
  *
  * No network, no D1, no wrangler. G5's live half is unreachable offline; the two
  * G5 tests here pin its --quick skip contract and its SSOT-read failure path,
@@ -34,7 +43,7 @@
  */
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { mkdtempSync, mkdirSync, cpSync, rmSync, readFileSync, writeFileSync } from 'node:fs';
+import { mkdtempSync, mkdirSync, cpSync, rmSync, readFileSync, writeFileSync, existsSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join, dirname } from 'node:path';
 import { execFileSync } from 'node:child_process';
@@ -65,15 +74,17 @@ const IN_REPO_ENTITIES = ['naprotechnology', 'creighton', 'rrm', 'femm'];
 const ALL_ENTITIES = [...IN_REPO_ENTITIES, 'neofertility'];
 const SLICE = 8;
 
+/** Does the out-of-repo neofertility checkout exist beside this one? */
+const SIBLING_SSOT = join(REPO, '..', 'neofertility-ie', 'docs/fact-check/neofertility-canonical-facts.json');
+const SIBLING_PRESENT = existsSync(SIBLING_SSOT);
+
 const ssotCache = new Map();
 
-/** Real SSOT reduced to SLICE source-bearing facts with record_count fixed. */
+/** Real in-repo SSOT reduced to SLICE source-bearing facts, record_count fixed. */
 function slicedSsot(entity) {
   if (ssotCache.has(entity)) return ssotCache.get(entity);
-  const src = entity === 'neofertility'
-    ? join(REPO, '..', 'neofertility-ie', 'docs/fact-check/neofertility-canonical-facts.json')
-    : join(REPO, 'docs/fact-check', `${entity}-canonical-facts.json`);
-  const doc = JSON.parse(readFileSync(src, 'utf-8'));
+  assert.ok(IN_REPO_ENTITIES.includes(entity), `${entity} has no in-repo SSOT to slice`);
+  const doc = JSON.parse(readFileSync(join(REPO, 'docs/fact-check', `${entity}-canonical-facts.json`), 'utf-8'));
   // Source-bearing only, so the clean fixture carries zero empty-source_id warns
   // and the G2 warn test can assert an exact count of 1.
   const facts = doc.facts
@@ -86,26 +97,90 @@ function slicedSsot(entity) {
   return out;
 }
 
+/**
+ * The neofertility fixture SSOT is SYNTHESIZED, never copied from the sibling
+ * clone. That clone exists on the Blue iMac and does NOT exist on a GitHub
+ * runner, and reading it here turned every G2 fixture test red in CI on PR #184
+ * while the same tests were green locally. Content is a real in-repo slice with
+ * its tradition retagged to 'neofertility' so the entity matcher routes it, so
+ * the fields, ID formats and source blocks stay authentic and the fixture runs
+ * anywhere. The gate's real ../neofertility-ie resolution is still exercised —
+ * it lands inside the fixture's own temp parent, not on the machine's clone.
+ */
+function synthesizedNeofertilitySsot() {
+  if (ssotCache.has('neofertility')) return ssotCache.get('neofertility');
+  const donor = slicedSsot('femm');
+  const out = {
+    _meta: {
+      ...donor._meta,
+      entity: 'neofertility',
+      entity_name: 'NeoFertility',
+      source: 'synthesized fixture (falsification harness) — not the live SSOT',
+      record_count: donor.facts.length,
+    },
+    _manual: donor._manual,
+    facts: donor.facts.map((f) => ({ ...f, tradition: ['neofertility'] })),
+  };
+  ssotCache.set('neofertility', out);
+  return out;
+}
+
+const fixtureSsot = (entity) =>
+  (entity === 'neofertility' ? synthesizedNeofertilitySsot() : slicedSsot(entity));
+
 function ssotPath(root, entity) {
   return entity === 'neofertility'
     ? join(root, '..', 'neofertility-ie', 'docs/fact-check/neofertility-canonical-facts.json')
     : join(root, 'docs/fact-check', `${entity}-canonical-facts.json`);
 }
 
-/** A reduced copy of the real fact surface: SSOTs, orchestrators, prompts. */
+/**
+ * A reduced copy of the real fact surface: SSOTs, orchestrators, prompts.
+ * PROJECT_ROOT sits at <tmp>/project so the gate's own `../neofertility-ie`
+ * resolution lands at <tmp>/neofertility-ie, inside the fixture. Nothing here
+ * reads or writes any clone on the machine.
+ */
 function fixture() {
   const base = mkdtempSync(join(tmpdir(), 'fact-gate-'));
   const root = join(base, 'project');
   for (const entity of ALL_ENTITIES) {
     const p = ssotPath(root, entity);
     mkdirSync(dirname(p), { recursive: true });
-    writeFileSync(p, JSON.stringify(slicedSsot(entity), null, 1));
+    writeFileSync(p, JSON.stringify(fixtureSsot(entity), null, 1));
+  }
+  assert.ok(existsSync(join(base, 'neofertility-ie/docs/fact-check/neofertility-canonical-facts.json')),
+    'the fixture must synthesize its own sibling checkout, not borrow the machine\'s');
+  for (const rel of SCRIPT_COPIES) {
+    const dest = join(root, rel);
+    mkdirSync(dirname(dest), { recursive: true });
+    cpSync(join(REPO, rel), dest);
+  }
+  return root;
+}
+
+/**
+ * A full copy of the real IN-REPO surface with no sibling checkout beside it —
+ * the exact shape of a GitHub runner. Runs a byte-identical copy of the gate so
+ * PROJECT_ROOT is the copy's own root and `../neofertility-ie` does not exist.
+ */
+function siblinglessCheckout() {
+  const base = mkdtempSync(join(tmpdir(), 'fact-gate-nosibling-'));
+  const root = join(base, 'repo');
+  mkdirSync(join(root, 'scripts/gates'), { recursive: true });
+  mkdirSync(join(root, 'scripts/lib'), { recursive: true });
+  cpSync(GATE, join(root, 'scripts/gates/validate-fact-pipeline.mjs'));
+  cpSync(join(REPO, SCHEMA_REL), join(root, SCHEMA_REL));
+  for (const entity of IN_REPO_ENTITIES) {
+    const p = ssotPath(root, entity);
+    mkdirSync(dirname(p), { recursive: true });
+    cpSync(join(REPO, 'docs/fact-check', `${entity}-canonical-facts.json`), p);
   }
   for (const rel of SCRIPT_COPIES) {
     const dest = join(root, rel);
     mkdirSync(dirname(dest), { recursive: true });
     cpSync(join(REPO, rel), dest);
   }
+  assert.ok(!existsSync(join(base, 'neofertility-ie')), 'the sibling-less fixture must have no sibling');
   return root;
 }
 
@@ -195,7 +270,6 @@ function expectGreen(root, gate, runner = run) {
   return out;
 }
 
-/** The checks array of the single gate in a --gate run's JSON output. */
 /** Assert some FAILED check's message matches `re` (parsed, so quotes are raw). */
 function failedCheck(out, re) {
   const c = checksOf(out).find((x) => x.ok === false && re.test(x.msg));
@@ -203,28 +277,78 @@ function failedCheck(out, re) {
   return c;
 }
 
+/** The checks array of the single gate in a --gate run's JSON output. */
 function checksOf(out) {
   const report = JSON.parse(out);
   assert.equal(report.gates.length, 1, `expected one gate in the report; got:\n${out}`);
   return report.gates[0].checks;
 }
 
+/** Run the real gate over the real repo, with no root override. */
+function runReal(args = []) {
+  const env = { ...process.env };
+  delete env.FACT_PIPELINE_GATE_ROOT;
+  try {
+    return { code: 0, out: execFileSync(process.execPath, [GATE, '--json', ...args], { env, encoding: 'utf8' }) };
+  } catch (err) {
+    return { code: err.status ?? 1, out: `${err.stdout || ''}${err.stderr || ''}` };
+  }
+}
+
+const failuresOf = (gate) => gate.checks.filter((c) => c.ok === false).map((c) => c.msg);
+
 // ---------- baseline -------------------------------------------------------
 
-test('the real fact surface passes G1-G4 unmodified', () => {
-  const { code, out } = (() => {
-    const env = { ...process.env };
-    delete env.FACT_PIPELINE_GATE_ROOT;
-    try {
-      return { code: 0, out: execFileSync(process.execPath, [GATE, '--json', '--quick'], { env, encoding: 'utf8' }) };
-    } catch (err) {
-      return { code: err.status ?? 1, out: `${err.stdout || ''}${err.stderr || ''}` };
-    }
-  })();
-  assert.equal(code, 0, `the real fact surface must be green; got:\n${out}`);
+test('the real surface passes every gate that needs no out-of-repo checkout', () => {
+  // G1, G3 and G4 read only this repo, so this assertion holds on a laptop and
+  // on a GitHub runner alike. G2 is asserted by the two tests below, split by
+  // whether the sibling checkout is present, because G2 alone reaches outside.
+  const { out } = runReal(['--quick']);
   const report = JSON.parse(out);
   assert.deepEqual(report.gates.map((g) => g.id), ['G1', 'G2', 'G3', 'G4', 'G5']);
-  assert.ok(report.gates.every((g) => g.pass));
+  for (const id of ['G1', 'G3', 'G4']) {
+    const g = report.gates.find((x) => x.id === id);
+    assert.deepEqual(failuresOf(g), [], `${id} must be green on the real surface`);
+  }
+});
+
+test('G2 on the real surface: green with the sibling checkout, and nothing else red without it', () => {
+  // The dependency, named rather than skipped. On the Blue iMac the sibling
+  // clone is there and G2 must be fully green. On a runner it is absent, and the
+  // ONLY tolerated failure is that one missing file — any second failure is a
+  // real regression, not the environment. PR #184 went red here because the
+  // fixtures borrowed the machine's clone; that is fixed, but the real-surface
+  // run still legitimately depends on it, so the contract is stated explicitly.
+  const { code, out } = runReal(['--gate', 'G2', '--quick']);
+  const failures = failuresOf(JSON.parse(out).gates[0]);
+  if (SIBLING_PRESENT) {
+    assert.equal(code, 0, `sibling checkout present at ${SIBLING_SSOT}, so G2 must be green; got:\n${out}`);
+    assert.deepEqual(failures, []);
+  } else {
+    assert.equal(code, 1, 'without the sibling checkout G2 cannot pass, and must not pretend to');
+    assert.equal(failures.length, 1,
+      `the missing sibling SSOT must be G2's only failure; got:\n${failures.join('\n')}`);
+    assert.match(failures[0], /^neofertility: SSOT file not found: .*neofertility-ie/);
+  }
+});
+
+test('G2 in a sibling-less checkout fails on exactly the missing neofertility SSOT', () => {
+  // Proves the above branch on EVERY machine, including this one, by building a
+  // runner-shaped checkout: the real four in-repo SSOTs, no sibling beside them.
+  // Without this, the sibling-present machine would never execute the contract
+  // it claims for CI.
+  const root = siblinglessCheckout();
+  const { code, out } = runCopy(root, ['--quick']);
+  assert.equal(code, 1, `a sibling-less checkout must not pass; got:\n${out}`);
+  const report = JSON.parse(out);
+  for (const id of ['G1', 'G3', 'G4']) {
+    assert.deepEqual(failuresOf(report.gates.find((x) => x.id === id)), [],
+      `${id} must not be collateral damage of the missing sibling`);
+  }
+  const g2 = failuresOf(report.gates.find((x) => x.id === 'G2'));
+  assert.equal(g2.length, 1, `G2 must fail on the sibling alone; got:\n${g2.join('\n')}`);
+  assert.match(g2[0], /^neofertility: SSOT file not found: .*neofertility-ie/);
+  clean(root);
 });
 
 test('FACT_PIPELINE_GATE_ROOT actually redirects the scan', () => {
