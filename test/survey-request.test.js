@@ -484,6 +484,61 @@ describe('survey/request -- unexpected failure', () => {
   });
 });
 
+describe('survey/request -- resend guard write order', () => {
+  it('never mints an orphaned token when the resend-guard key write fails', async () => {
+    // Regression for the half-write bug: the reverse-lookup key (`email:`,
+    // the resend guard) must be written BEFORE the token. If it were written
+    // second and that write failed, a live, usable token would already exist
+    // in KV with no guard key enforcing the 10-minute cooldown -- a person
+    // could mint unlimited tokens for one address. With the guard written
+    // first, a failure on that write must abort before the token is ever
+    // created.
+    const email = 'kvpartial@example.com';
+    const ctx = makeContext({ body: { email } });
+    const realPut = ctx.env.SURVEY_TOKENS.put.bind(ctx.env.SURVEY_TOKENS);
+    ctx.env.SURVEY_TOKENS.put = async (key, value, opts) => {
+      if (key.startsWith('email:')) throw new Error('KV write failed');
+      return realPut(key, value, opts);
+    };
+    const stub = stubExternalFetch();
+    try {
+      const parsed = await run(ctx);
+      assert.equal(parsed.status, 500);
+      assert.equal(stub.mail.length, 0, 'must not send a link for a request that failed to guard itself');
+      assert.equal(
+        mintedToken(ctx.env),
+        null,
+        'no token may exist without the resend-guard key backing it'
+      );
+    } finally { stub.restore(); }
+  });
+
+  it('deletes the email: reverse-lookup key when the token write fails, so the sender is not locked out', async () => {
+    // The guard key is written first; if the token write that follows
+    // throws, the guard key must be rolled back too, or a person who got no
+    // token and no email would be locked out of retrying for 10 minutes by a
+    // write they never benefited from.
+    const email = 'kvpartial2@example.com';
+    const ctx = makeContext({ body: { email } });
+    const realPut = ctx.env.SURVEY_TOKENS.put.bind(ctx.env.SURVEY_TOKENS);
+    ctx.env.SURVEY_TOKENS.put = async (key, value, opts) => {
+      if (key.startsWith('token:')) throw new Error('KV write failed');
+      return realPut(key, value, opts);
+    };
+    const stub = stubExternalFetch();
+    try {
+      const parsed = await run(ctx);
+      assert.equal(parsed.status, 500);
+      assert.equal(stub.mail.length, 0, 'must not send a link for a token that was never stored');
+      assert.equal(
+        ctx.env.SURVEY_TOKENS.read(`email:${email}`),
+        null,
+        'the guard key must not survive a failed token write'
+      );
+    } finally { stub.restore(); }
+  });
+});
+
 describe('survey/request -- production defaults (no env override in play)', () => {
   it('falls back to the "unknown" rate-limit bucket when the edge sends no client IP', async () => {
     // The `|| 'unknown'` arm is the one that runs for any request that reaches

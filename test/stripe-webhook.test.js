@@ -439,6 +439,99 @@ describe('stripe-webhook -- idempotent replay (two-phase dedup)', () => {
   });
 });
 
+// ------------------------------------ join-denylist reversal failures -----
+
+/**
+ * reverseJoinDenylistCheckout (_webhook-checkout.js) used to swallow every
+ * Stripe error internally and always return, so handleCheckoutCompleted
+ * always returned null and the dispatcher always marked the event completed
+ * and answered 200 -- even when the refund never actually went through and
+ * no reconcile sweep exists anywhere in this repo to pick it up later
+ * (Phase 7 cron was never built; see maybeCompleteMigrationHandoff's doc
+ * comment in _webhook-subscription.js). A real refund failure now propagates
+ * out of reverseJoinDenylistCheckout, so it lands here at the dispatch
+ * try/catch exactly like any other handler throw: the dedup row is rolled
+ * back and Stripe redelivers the same event, which is safe because the
+ * cancel/refund calls are each independently idempotent against Stripe's own
+ * "already cancelled"/"already refunded" errors (see the STUC join-denylist
+ * idempotent-redelivery test in webhook-checkout-exec.test.js).
+ */
+describe('stripe-webhook -- join-denylist reversal failures force a retry', () => {
+  const DENIED_EMAIL = 'drduane@factsaboutfertility.org';
+
+  function denylistSession(overrides = {}) {
+    return {
+      id: 'cs_denylist_retry',
+      mode: 'subscription',
+      customer: 'cus_denied',
+      customer_details: { email: DENIED_EMAIL, name: 'D. Duane' },
+      subscription: 'sub_denylist_retry',
+      payment_intent: null,
+      amount_total: 1900,
+      metadata: { tier: 'hero' },
+      ...overrides,
+    };
+  }
+
+  it('rolls the dedup row back and answers 500 when the refund fails for a real reason (not "already refunded")', async () => {
+    const db = webhookDb();
+    const evt = event('checkout.session.completed', denylistSession());
+    const stripeStub = stubExternalFetch({ stripe: stripeRoutes({
+      '/v1/subscriptions/sub_denylist_retry': {
+        id: 'sub_denylist_retry', object: 'subscription', status: 'active',
+        latest_invoice: { id: 'in_x', payment_intent: 'pi_denylist_retry' },
+      },
+      '/v1/refunds': new Response(
+        JSON.stringify({ error: { message: 'Your card was declined.' } }),
+        { status: 402, headers: { 'content-type': 'application/json' } }
+      ),
+    }) });
+    try {
+      const parsed = await parseResponse(await onRequestPost(makeCtx({ db, request: signedRequest(evt) })));
+      assert.equal(parsed.status, 500, 'a real refund failure must not be acked as 200');
+      assert.deepEqual(parsed.body, { ok: false, error: 'Internal error' });
+      assert.equal(db._rows.has(evt.id), false, 'the dedup row must be gone so Stripe redelivers the event');
+    } finally { stripeStub.restore(); }
+  });
+
+  it('succeeds on Stripe redelivery once the refund can go through, and marks the event completed', async () => {
+    const db = webhookDb();
+    const evt = event('checkout.session.completed', denylistSession());
+
+    const failingStub = stubExternalFetch({ stripe: stripeRoutes({
+      '/v1/subscriptions/sub_denylist_retry': {
+        id: 'sub_denylist_retry', object: 'subscription', status: 'active',
+        latest_invoice: { id: 'in_x', payment_intent: 'pi_denylist_retry' },
+      },
+      '/v1/refunds': new Response(
+        JSON.stringify({ error: { message: 'Your card was declined.' } }),
+        { status: 402, headers: { 'content-type': 'application/json' } }
+      ),
+    }) });
+    const first = await parseResponse(await onRequestPost(makeCtx({ db, request: signedRequest(evt) })));
+    failingStub.restore();
+    assert.equal(first.status, 500);
+    assert.equal(db._rows.has(evt.id), false);
+
+    // Stripe redelivers the same event id. The subscription is already
+    // cancelled from the first attempt's cancel() call, so this retry only
+    // needs the refund to succeed.
+    const recoveredStub = stubExternalFetch({ stripe: stripeRoutes({
+      '/v1/subscriptions/sub_denylist_retry': {
+        id: 'sub_denylist_retry', object: 'subscription', status: 'canceled',
+        latest_invoice: { id: 'in_x', payment_intent: 'pi_denylist_retry' },
+      },
+      '/v1/refunds': { id: 're_denylist_retry', payment_intent: 'pi_denylist_retry' },
+    }) });
+    try {
+      const second = await parseResponse(await onRequestPost(makeCtx({ db, request: signedRequest(evt) })));
+      assert.equal(second.status, 200, 'the retried delivery must succeed once the refund goes through');
+      assert.deepEqual(second.body, { received: true });
+      assert.ok(db._rows.get(evt.id)?.completed_at, 'phase 2 must mark the event completed on the successful retry');
+    } finally { recoveredStub.restore(); }
+  });
+});
+
 // -------------------------------------------------- outermost error net ---
 
 describe('stripe-webhook -- outermost handler', () => {

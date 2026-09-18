@@ -55,7 +55,7 @@
       "note": "Stripe portal"
     },
     "functions/api/billing/_webhook-checkout.js": {
-      "hash": "6a49d620f0b96928a8af2b1041c8b0b711781a34028bb37e4037073de3f3aa57",
+      "hash": "d5022a54dd504f3d678e3413d0c8c53816d77fd5a4908672bdaee5f273a655bf",
       "note": "Stripe checkout completion handler"
     },
     "functions/api/billing/_webhook-subscription.js": {
@@ -95,7 +95,7 @@
       "note": "Survey submission + PII pseudonymization"
     },
     "functions/api/survey/request.js": {
-      "hash": "a9a660ea3ad8dd16d14cde52846e652a44eb64b7e549815afde5f5c9705d053f",
+      "hash": "feebc7984ede4acb72c77c665482ac4c1aab19b8b6dc550a0b0a9e3ae61050c2",
       "note": "Magic-link token generation"
     },
     "functions/api/newsletter/_mail.js": {
@@ -191,7 +191,7 @@
       "note": "Supporter recognition helpers (derive/consent/record/remove)"
     },
     "functions/api/billing/_campaign-count.js": {
-      "hash": "ae3e61314ddadb51c36117397c6a543ca650164b34831653e3088fbe009ec69f",
+      "hash": "2940feb80effa432d36c682ebb9d48f2c6c73c2fd46b6d67feac300db8a3c0d9",
       "note": "Shared Stripe campaign gift count (net-of-refunds, used by fund-supporters + webhook)"
     },
     "functions/api/community/upload.js": {

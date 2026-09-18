@@ -100,19 +100,27 @@ export async function onRequestPost(context) {
       if (gaSnValid) ga4Overrides.session_number = gaSn;
     }
 
-    // Store token → email mapping
-    await env.SURVEY_TOKENS.put(
-      `token:${token}`,
-      JSON.stringify({ email, created: now, used: false, userorigin, utmSource }),
-      { expirationTtl: TOKEN_TTL }
-    );
-
-    // Store email → token reverse lookup (for rate limiting)
+    // Store email → token reverse lookup FIRST -- this is the resend guard.
+    // If the token write below fails, we must not leave this key behind
+    // without a token to back it, or the sender is locked out for 10 minutes
+    // by a half-write instead of a real send.
     await env.SURVEY_TOKENS.put(
       `email:${email}`,
       JSON.stringify({ token, created: now }),
       { expirationTtl: RATE_LIMIT_SECONDS }
     );
+
+    // Store token → email mapping
+    try {
+      await env.SURVEY_TOKENS.put(
+        `token:${token}`,
+        JSON.stringify({ email, created: now, used: false, userorigin, utmSource }),
+        { expirationTtl: TOKEN_TTL }
+      );
+    } catch (err) {
+      await env.SURVEY_TOKENS.delete(`email:${email}`).catch(() => {});
+      throw err;
+    }
 
     // Build magic link
     let surveyUrl = `https://rrmacademy.org/endo-survey/take/?token=${token}`;

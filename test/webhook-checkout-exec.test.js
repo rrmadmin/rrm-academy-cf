@@ -1275,6 +1275,42 @@ describe('_webhook-checkout -- supporter sequence via the list fallback', () => 
       assert.equal(row.bound[3], 2, 'only succeeded gifts for THIS campaign count');
     } finally { stub.restore(); }
   });
+
+  it('writes the 0-sentinel, never a truncated count, when the fallback scan hits its page cap', async () => {
+    // Regression for the silent-partial-count bug in _campaign-count.js: when
+    // the list fallback runs out its MAX_FALLBACK_PAGES cap (50) because the
+    // account genuinely has more pages than that, the scan is a lower bound,
+    // not the real position. Writing that lower bound as gift_seq would
+    // permanently record the wrong "Founding Member #N" for this donor. Every
+    // page here reports has_more:true with one matching payment intent, so
+    // the loop always exhausts the cap rather than ever finishing naturally.
+    let listCalls = 0;
+    const stub = withStripe({
+      '/v1/payment_intents/search': new Response(
+        JSON.stringify({ error: { type: 'invalid_request_error', message: 'search unavailable' } }),
+        { status: 400, headers: { 'content-type': 'application/json' } }
+      ),
+      '/v1/payment_intents': () => {
+        listCalls++;
+        return {
+          object: 'list',
+          has_more: true,
+          data: [{ id: `pi_${listCalls}`, status: 'succeeded', metadata: { campaign: 'provider-directory' } }],
+        };
+      },
+    });
+    try {
+      const ctx = ctxFor(session({
+        metadata: { campaign: 'provider-directory' },
+        custom_fields: [{ key: 'show_supporter', dropdown: { value: 'yes' } }],
+      }));
+      await run(ctx, stub);
+      assert.equal(listCalls, 50, 'the fallback must stop at the page cap, not run unbounded');
+      const row = stmts(ctx, 'INSERT INTO supporter_recognition')[0];
+      assert.ok(row);
+      assert.equal(row.bound[3], 0, 'a truncated scan must fall back to the unavailable-count sentinel, never a wrong position');
+    } finally { stub.restore(); }
+  });
 });
 
 // ------------------------------------------- executed concurrent-race link ---
