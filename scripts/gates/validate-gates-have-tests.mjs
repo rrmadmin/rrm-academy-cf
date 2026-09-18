@@ -106,7 +106,7 @@ for (const gate of gates) {
 
 const untested = gates.filter((g) => !existsSync(join(GATES_DIR, `${g.replace(/\.mjs$/u, '')}.test.mjs`)));
 // This summary row USED to read "<n> exempt with written reasons" for every
-// untested gate unconditionally, and was an `add(true, ...)` — so on a repo
+// untested gate unconditionally, and was an `add(true, ...)` -- so on a repo
 // with 15 untested gates and an EMPTY exemption list it printed a green row
 // claiming 15 written reasons that did not exist. It is the shape this whole
 // gate exists to refuse (an assertion that cannot fail, stating something
@@ -133,7 +133,7 @@ for (const gate of Object.keys(exemptions).sort()) {
   if (!gates.includes(gate)) {
     add(false, `gates-without-tests.json names ${gate}, which is not a gate in this directory (renamed or deleted?)`);
   } else if (existsSync(join(GATES_DIR, `${gate.replace(/\.mjs$/u, '')}.test.mjs`))) {
-    add(false, `gates-without-tests.json still exempts ${gate}, but it now HAS a test — remove the entry`);
+    add(false, `gates-without-tests.json still exempts ${gate}, but it now HAS a test -- remove the entry`);
   }
 }
 if (Object.keys(exemptions).length > 0) {
