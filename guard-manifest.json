@@ -39,7 +39,7 @@
       "note": "Email validation + disposable/typo detection"
     },
     "functions/api/stripe-webhook.js": {
-      "hash": "e6e353532d384ef106106d33816d84233f71de1930c4e467832e9a4e65e53e76",
+      "hash": "b2099bf792c3b82fb304929d35c2b249323211fa900ed33b9a0a535c5b8702d7",
       "note": "Webhook + signature verification"
     },
     "functions/api/create-checkout.js": {
@@ -171,7 +171,7 @@
       "note": "Invoice event handler"
     },
     "functions/api/billing/_shared.js": {
-      "hash": "d3ced5ba4c1bf4bae01189e8118c12bfcce34bfcd79c39b1029d93f649c0a018",
+      "hash": "a1032e8e235afb5126766f18074c44592ed45c43202b4084d1969fcb22586a5f",
       "note": "Shared Stripe constants + webhook dedup helpers"
     },
     "functions/api/billing/_webhook-refund.js": {

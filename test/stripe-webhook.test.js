@@ -28,6 +28,7 @@ import './_json-module-hook.mjs';
 import { mockRequest, mockEnv, mockWaitUntil, parseResponse, stubExternalFetch, stripeRoutes } from './_helpers.js';
 
 const { onRequestPost } = await import('../functions/api/stripe-webhook.js');
+const { rollbackWebhookDedup } = await import('../functions/api/billing/_shared.js');
 
 const WEBHOOK_SECRET = 'whsec_test_secret';
 const nowSec = () => Math.floor(Date.now() / 1000);
@@ -97,7 +98,23 @@ function webhookDb({ rows = new Map(), forceChanges = {}, fail = {}, firstRows =
           return { success: true, meta: { changes: override ?? (row ? 1 : 0) } };
         }
         if (sql.includes('DELETE FROM webhook_event')) {
-          const existed = rows.delete(bound[0]);
+          const eventId = bound[0];
+          const current = rows.get(eventId);
+          if (sql.includes('processed_at <= ?')) {
+            const cutoff = bound[1];
+            const matches = !!current && current.completed_at === null && current.processed_at <= cutoff;
+            const changes = override ?? (matches ? 1 : 0);
+            if (changes) rows.delete(eventId);
+            return { success: true, meta: { changes } };
+          }
+          if (sql.includes('processed_at = ?') && sql.includes('completed_at IS NULL')) {
+            const processedAt = bound[1];
+            const matches = !!current && current.completed_at === null && current.processed_at === processedAt;
+            const changes = override ?? (matches ? 1 : 0);
+            if (changes) rows.delete(eventId);
+            return { success: true, meta: { changes } };
+          }
+          const existed = rows.delete(eventId);
           return { success: true, meta: { changes: override ?? (existed ? 1 : 0) } };
         }
         return { success: true, meta: { changes: 1 } };
@@ -436,6 +453,33 @@ describe('stripe-webhook -- idempotent replay (two-phase dedup)', () => {
     assert.equal(parsed.status, 500);
     assert.deepEqual(parsed.body, { ok: false, error: 'Internal error' });
     assert.equal(ran(db, 'UPDATE enrollment').length, 0, 'no side effects without a dedup guarantee');
+  });
+
+  it('does not erase a completed redelivery\'s row when an earlier, TTL-expired delivery finally rolls back', async () => {
+    // D1 claims evt_28 and hangs past the 60s in-flight TTL (processedAt = t0).
+    // D2 arrives, reclaims the stale claim (a fresh processedAt), the handler
+    // runs and the dispatcher stamps completed_at. Only THEN does D1's original
+    // attempt finally throw and call rollbackWebhookDedup with ITS OWN
+    // (now stale) processedAt. The unscoped DELETE used to erase D2's completed
+    // row outright; the scoped DELETE must find nothing to delete instead.
+    const evt = event('charge.refunded', { id: 'ch_28', refunded: true, payment_intent: 'pi_28', amount_refunded: 4900 });
+    const d1ProcessedAt = nowSec() - 300;
+    const rows = new Map([[evt.id, { completed_at: null, processed_at: d1ProcessedAt }]]);
+    const db = webhookDb({ rows });
+
+    const parsed = await parseResponse(await onRequestPost(makeCtx({ db, request: signedRequest(evt) })));
+    assert.equal(parsed.status, 200, 'D2\'s reclaim and reprocess must succeed');
+    const survivor = db._rows.get(evt.id);
+    assert.ok(survivor, 'D2\'s row must exist after it completes');
+    assert.ok(survivor.completed_at, 'D2\'s row must be marked completed');
+    assert.notEqual(survivor.processed_at, d1ProcessedAt, 'D2\'s reclaim must carry a fresh processed_at');
+
+    await rollbackWebhookDedup(db, evt.id, d1ProcessedAt, makeCtx({ db }).env, mockWaitUntil());
+
+    const afterLateRollback = db._rows.get(evt.id);
+    assert.ok(afterLateRollback, 'D1\'s late, stale-owned rollback must not erase D2\'s completed row');
+    assert.ok(afterLateRollback.completed_at, 'the surviving row must still read as completed');
+    assert.equal(afterLateRollback.processed_at, survivor.processed_at, 'the surviving row must remain D2\'s claim');
   });
 });
 

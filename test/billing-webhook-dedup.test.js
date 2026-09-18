@@ -70,10 +70,35 @@ describe('dedupWebhookEvent -- first delivery', () => {
 
   it('rolls the claim back on a 5xx so Stripe can retry', async () => {
     const db = dedupDb();
-    await dedup(db);
-    await rollbackWebhookDedup(db, 'evt_1', mockEnv({ DB: db }), mockWaitUntil());
+    const claimed = await dedup(db);
+    await rollbackWebhookDedup(db, 'evt_1', claimed.processedAt, mockEnv({ DB: db }), mockWaitUntil());
     assert.equal(row(db, 'evt_1'), undefined, 'a rolled-back event must be redeliverable');
     assert.equal((await dedup(db)).skip, false, 'and the redelivery must be processed, not skipped');
+    db.close();
+  });
+
+  it('does not erase a newer redelivery\'s completed claim when a stale-owned rollback fires late', async () => {
+    // D1 claims the event, hangs past the in-flight TTL. D2 arrives, reclaims
+    // (fresh processed_at), completes and gets marked completed. D1's handler
+    // then throws and its rollback finally runs -- scoped to D1's OWN
+    // processed_at, it must not touch the row D2 owns and finished.
+    const db = dedupDb();
+    const staleProcessedAt = nowSec() - (TTL + 30);
+    claim(db, 'evt_1', { ageSec: TTL + 30 });
+    assert.equal(row(db, 'evt_1').processed_at, staleProcessedAt);
+
+    const reclaimed = await dedup(db);
+    assert.equal(reclaimed.skip, false, 'the reclaiming delivery must be allowed to run');
+    assert.notEqual(reclaimed.processedAt, staleProcessedAt, 'the reclaim must mint a new processed_at');
+    await markWebhookEventCompleted(db, 'evt_1', mockEnv({ DB: db }), mockWaitUntil());
+    assert.ok(row(db, 'evt_1').completed_at, 'the reclaiming delivery must be marked completed');
+
+    await rollbackWebhookDedup(db, 'evt_1', staleProcessedAt, mockEnv({ DB: db }), mockWaitUntil());
+
+    const survivor = row(db, 'evt_1');
+    assert.ok(survivor, 'the completed reclaim row must survive the late, stale-owned rollback');
+    assert.ok(survivor.completed_at, 'the surviving row must still be marked completed');
+    assert.equal(survivor.processed_at, reclaimed.processedAt, 'the surviving row must be the reclaiming delivery\'s own claim');
     db.close();
   });
 });

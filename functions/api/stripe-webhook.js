@@ -110,7 +110,7 @@ async function handleWebhook(request, env, waitUntil) {
   } catch (dispatchErr) {
     log(env, waitUntil, 'billing', 'webhook_dispatch_throw', 'error',
       `${event.id} (${event.type}): ${dispatchErr.message}`, 0, 500);
-    await rollbackWebhookDedup(db, event.id, env, waitUntil);
+    await rollbackWebhookDedup(db, event.id, dedup.processedAt, env, waitUntil);
     return new Response(JSON.stringify({ ok: false, error: 'Internal error' }), {
       status: 500,
       headers: { 'Content-Type': 'application/json' },
@@ -119,7 +119,7 @@ async function handleWebhook(request, env, waitUntil) {
 
   if (result) {
     if (result.status >= 500) {
-      await rollbackWebhookDedup(db, event.id, env, waitUntil);
+      await rollbackWebhookDedup(db, event.id, dedup.processedAt, env, waitUntil);
     } else {
       await markWebhookEventCompleted(db, event.id, env, waitUntil);
     }
