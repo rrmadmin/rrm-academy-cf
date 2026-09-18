@@ -14,6 +14,7 @@ interface Snapshot {
   raised_cents?: number;
   supporters?: number;
   total_gifts?: number;
+  total_gifts_partial?: boolean;
   founding_left?: number;
   founding_closed?: boolean;
 }
@@ -35,10 +36,12 @@ const raisedSub = goalCents > 0 ? `toward ${goalText}` : 'given so far';
 // Server-render values: band reads the snapshot; card starts at 0 and the
 // client script fetches + counts up to the live values.
 const s = variant === 'band' && snapshot ? snapshot : null;
+const totalGiftsPartial = s ? s.total_gifts_partial === true : false;
 const supportersInit = s ? Math.max(0, Math.round(Number(s.total_gifts) || 0)) : 0;
 const raisedInit = s ? Math.max(0, Math.round((Number(s.raised_cents) || 0) / 100)) : 0;
-const foundingClosedInit = s ? s.founding_closed === true : false;
-const foundingLeftInit = s ? Math.max(0, Math.round(Number(s.founding_left) || 0)) : 100;
+const foundingUnknown = s ? (totalGiftsPartial || s.founding_left == null || s.founding_closed == null) : false;
+const foundingClosedInit = s && !foundingUnknown ? s.founding_closed === true : false;
+const foundingLeftInit = s && !foundingUnknown ? Math.max(0, Math.round(Number(s.founding_left) || 0)) : 100;
 ---
 <section class={`stat-cards stat-cards--${variant}`} aria-label="Campaign at a glance" data-pagefind-ignore>
   <div class="stat-cards__grid">
@@ -56,11 +59,11 @@ const foundingLeftInit = s ? Math.max(0, Math.round(Number(s.founding_left) || 0
       <span class="stat-card__sub">{raisedSub}</span>
     </div>
 
-    <div class="stat-card" data-stat="founding" data-closed={foundingClosedInit ? 'true' : 'false'}>
+    <div class="stat-card" data-stat="founding" data-closed={foundingClosedInit ? 'true' : 'false'} data-unknown={foundingUnknown ? 'true' : 'false'}>
       <span class="stat-card__bar" aria-hidden="true"></span>
       <span class="stat-card__pill">Founding spots</span>
-      <div class="stat-card__metric" data-count-to={foundingLeftInit} data-fmt="int">{foundingClosedInit ? 'Complete' : foundingLeftInit.toLocaleString('en-US')}</div>
-      <span class="stat-card__sub">{foundingClosedInit ? 'all 100 claimed' : 'of 100 remaining'}</span>
+      <div class="stat-card__metric" data-count-to={foundingLeftInit} data-fmt="int">{foundingUnknown ? 'Still counting' : (foundingClosedInit ? 'Complete' : foundingLeftInit.toLocaleString('en-US'))}</div>
+      <span class="stat-card__sub">{foundingUnknown ? 'tallying gifts' : (foundingClosedInit ? 'all 100 claimed' : 'of 100 remaining')}</span>
     </div>
   </div>
 </section>
@@ -123,11 +126,28 @@ const foundingLeftInit = s ? Math.max(0, Math.round(Number(s.founding_left) || 0
 
         const sEl = metricOf('supporters');
         const rEl = metricOf('raised');
-        if (sEl) { sEl.dataset.countTo = String(supporters); fireOnView(sEl, () => countUp(sEl, supporters)); }
+        if (sEl) {
+          if (sup.total_gifts_partial) {
+            sEl.textContent = 'Still counting';
+            const ss = subOf('supporters'); if (ss) ss.textContent = 'tallying gifts';
+          } else {
+            sEl.dataset.countTo = String(supporters);
+            fireOnView(sEl, () => countUp(sEl, supporters));
+          }
+        }
         if (rEl) { rEl.dataset.countTo = String(raised); fireOnView(rEl, () => countUp(rEl, raised)); }
 
         if (foundingEl && foundingCard) {
-          if (sup.founding_closed) {
+          if (sup.founding_left === null || sup.founding_closed === null) {
+            // total_gifts_partial: the Stripe fallback scan was truncated, so
+            // total_gifts is a lower bound, not the real count. Showing "N
+            // remaining" or "Complete" off that number would be a guess
+            // dressed up as a fact -- render a neutral line instead of
+            // fabricating either.
+            foundingCard.dataset.closed = 'false';
+            foundingEl.textContent = 'Still counting';
+            const fs = subOf('founding'); if (fs) fs.textContent = 'tallying gifts';
+          } else if (sup.founding_closed) {
             foundingCard.dataset.closed = 'true';
             foundingEl.textContent = 'Complete';
             const fs = subOf('founding'); if (fs) fs.textContent = `all ${sup.founding_cap} claimed`;
@@ -144,6 +164,7 @@ const foundingLeftInit = s ? Math.max(0, Math.round(Number(s.founding_left) || 0
         const el = card.querySelector<HTMLElement>('.stat-card__metric');
         if (!el) continue;
         if (card.dataset.stat === 'founding' && card.dataset.closed === 'true') continue; // "Complete", no count
+        if (card.dataset.stat === 'founding' && card.dataset.unknown === 'true') continue;
         const to = Number(el.dataset.countTo) || 0;
         fireOnView(el, () => countUp(el, to));
       }

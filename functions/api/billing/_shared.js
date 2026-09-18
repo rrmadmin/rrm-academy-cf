@@ -5,9 +5,10 @@
  * Exports:
  *   getStripeClient(env)               -- configured Stripe client (throws if key missing)
  *   requireWebhookConfig(env)          -- validates STRIPE_SECRET_KEY + STRIPE_WEBHOOK_SECRET
- *   dedupWebhookEvent(db, id, ...)     -- two-phase dedup; returns { skip, response? }
+ *   dedupWebhookEvent(db, id, ...)     -- two-phase dedup; returns { skip, response?, processedAt? }
  *   markWebhookEventCompleted(db, id)  -- UPDATE completed_at after sub-handler success
- *   rollbackWebhookDedup(db, id)       -- DELETE on 5xx so Stripe can retry
+ *   rollbackWebhookDedup(db, id, processedAt, ...) -- DELETE on 5xx so Stripe can retry,
+ *                                       scoped to the delivery that claimed processedAt
  *   json                               -- barrel re-export from auth/_shared.js
  *
  * Two-phase dedup contract (migration 023):
@@ -62,18 +63,20 @@ export function requireWebhookConfig(env) {
  * INSERT writes event_id (processed_at default; completed_at NULL = in-flight).
  *
  * Returns:
- *   { skip: false }                                -- new event, OR stale crashed-attempt reprocess; caller proceeds + must call markWebhookEventCompleted on success
+ *   { skip: false, processedAt }                   -- new event, OR stale crashed-attempt reprocess; caller proceeds + must call markWebhookEventCompleted on success, and must
+ *                                                      pass processedAt through to rollbackWebhookDedup on failure so the rollback only removes the delivery it claimed
  *   { skip: true,  response: <Response 200> }      -- duplicate completed; safe skip
  *   { skip: true,  response: <Response 500> }      -- duplicate in-flight; force Stripe retry
  *   { skip: false, error: <Response 500> }         -- DB error; caller returns error
  */
 export async function dedupWebhookEvent(db, eventId, env, waitUntil) {
   try {
-    const ins = await db.prepare('INSERT OR IGNORE INTO webhook_event (event_id) VALUES (?)').bind(eventId).run();
+    const insertNowSec = Math.floor(Date.now() / 1000);
+    const ins = await db.prepare('INSERT OR IGNORE INTO webhook_event (event_id, processed_at) VALUES (?, ?)').bind(eventId, insertNowSec).run();
     if (ins.meta.changes === 0) {
       const row = await db.prepare('SELECT completed_at, processed_at FROM webhook_event WHERE event_id = ?').bind(eventId).first();
       if (!row) {
-        return { skip: false };
+        return { skip: false, processedAt: insertNowSec };
       }
       if (row.completed_at !== null && row.completed_at !== undefined) {
         log(env, waitUntil, 'billing', 'webhook_duplicate', 'skipped', `${eventId} (completed)`);
@@ -108,7 +111,7 @@ export async function dedupWebhookEvent(db, eventId, env, waitUntil) {
             }),
           };
         }
-        const reins = await db.prepare('INSERT OR IGNORE INTO webhook_event (event_id) VALUES (?)').bind(eventId).run();
+        const reins = await db.prepare('INSERT OR IGNORE INTO webhook_event (event_id, processed_at) VALUES (?, ?)').bind(eventId, nowSec).run();
         if (reins.meta.changes === 0) {
           log(env, waitUntil, 'billing', 'webhook_in_flight', 'skipped', `${eventId} (lost-reclaim-race)`);
           return {
@@ -119,7 +122,7 @@ export async function dedupWebhookEvent(db, eventId, env, waitUntil) {
             }),
           };
         }
-        return { skip: false };
+        return { skip: false, processedAt: nowSec };
       }
       log(env, waitUntil, 'billing', 'webhook_in_flight', 'skipped', `${eventId} (age-${ageSec}s)`);
       return {
@@ -130,7 +133,7 @@ export async function dedupWebhookEvent(db, eventId, env, waitUntil) {
         }),
       };
     }
-    return { skip: false };
+    return { skip: false, processedAt: insertNowSec };
   } catch (_e) {
     log(env, waitUntil, 'billing', 'dedup_check_fail', 'error', _e.message, 0, 500);
     return {
@@ -158,11 +161,21 @@ export async function markWebhookEventCompleted(db, eventId, env, waitUntil) {
 
 /**
  * Delete the dedup row so Stripe can retry on 5xx sub-handler failures.
+ * Scoped to the delivery that claimed processedAt and never completed, so a
+ * late rollback for a delivery that lost the in-flight TTL race cannot erase
+ * a row a newer, already-completed redelivery owns. If nothing matches, a
+ * newer delivery owns the event -- log and no-op, do not delete blind.
  * Logs errors but does not throw.
  */
-export async function rollbackWebhookDedup(db, eventId, env, waitUntil) {
+export async function rollbackWebhookDedup(db, eventId, processedAt, env, waitUntil) {
   try {
-    await db.prepare('DELETE FROM webhook_event WHERE event_id = ?').bind(eventId).run();
+    const del = await db
+      .prepare('DELETE FROM webhook_event WHERE event_id = ? AND processed_at = ? AND completed_at IS NULL')
+      .bind(eventId, processedAt)
+      .run();
+    if (del.meta.changes === 0) {
+      log(env, waitUntil, 'billing', 'dedup_rollback_noop', 'warn', `${eventId} (owned by a newer delivery)`);
+    }
   } catch (_delErr) {
     log(env, waitUntil, 'billing', 'dedup_cleanup_fail', 'error', `${eventId}: ${_delErr.message}`);
   }

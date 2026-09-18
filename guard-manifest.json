@@ -39,7 +39,7 @@
       "note": "Email validation + disposable/typo detection"
     },
     "functions/api/stripe-webhook.js": {
-      "hash": "e6e353532d384ef106106d33816d84233f71de1930c4e467832e9a4e65e53e76",
+      "hash": "b2099bf792c3b82fb304929d35c2b249323211fa900ed33b9a0a535c5b8702d7",
       "note": "Webhook + signature verification"
     },
     "functions/api/create-checkout.js": {
@@ -55,7 +55,7 @@
       "note": "Stripe portal"
     },
     "functions/api/billing/_webhook-checkout.js": {
-      "hash": "6a49d620f0b96928a8af2b1041c8b0b711781a34028bb37e4037073de3f3aa57",
+      "hash": "808d3e167a2b446d1edf15c49891592e2acb5c8b3d580bd8d9d2f7a3385fdbcc",
       "note": "Stripe checkout completion handler"
     },
     "functions/api/billing/_webhook-subscription.js": {
@@ -95,7 +95,7 @@
       "note": "Survey submission + PII pseudonymization"
     },
     "functions/api/survey/request.js": {
-      "hash": "a9a660ea3ad8dd16d14cde52846e652a44eb64b7e549815afde5f5c9705d053f",
+      "hash": "190bb3f2fd53ce7d33825a2e91619750204f14d1a5f213227f295c384aa0e15c",
       "note": "Magic-link token generation"
     },
     "functions/api/newsletter/_mail.js": {
@@ -171,7 +171,7 @@
       "note": "Invoice event handler"
     },
     "functions/api/billing/_shared.js": {
-      "hash": "d3ced5ba4c1bf4bae01189e8118c12bfcce34bfcd79c39b1029d93f649c0a018",
+      "hash": "a1032e8e235afb5126766f18074c44592ed45c43202b4084d1969fcb22586a5f",
       "note": "Shared Stripe constants + webhook dedup helpers"
     },
     "functions/api/billing/_webhook-refund.js": {
@@ -191,7 +191,7 @@
       "note": "Supporter recognition helpers (derive/consent/record/remove)"
     },
     "functions/api/billing/_campaign-count.js": {
-      "hash": "ae3e61314ddadb51c36117397c6a543ca650164b34831653e3088fbe009ec69f",
+      "hash": "2940feb80effa432d36c682ebb9d48f2c6c73c2fd46b6d67feac300db8a3c0d9",
       "note": "Shared Stripe campaign gift count (net-of-refunds, used by fund-supporters + webhook)"
     },
     "functions/api/community/upload.js": {

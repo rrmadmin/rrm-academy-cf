@@ -28,6 +28,7 @@ import './_json-module-hook.mjs';
 import { mockRequest, mockEnv, mockWaitUntil, parseResponse, stubExternalFetch, stripeRoutes } from './_helpers.js';
 
 const { onRequestPost } = await import('../functions/api/stripe-webhook.js');
+const { rollbackWebhookDedup } = await import('../functions/api/billing/_shared.js');
 
 const WEBHOOK_SECRET = 'whsec_test_secret';
 const nowSec = () => Math.floor(Date.now() / 1000);
@@ -97,7 +98,23 @@ function webhookDb({ rows = new Map(), forceChanges = {}, fail = {}, firstRows =
           return { success: true, meta: { changes: override ?? (row ? 1 : 0) } };
         }
         if (sql.includes('DELETE FROM webhook_event')) {
-          const existed = rows.delete(bound[0]);
+          const eventId = bound[0];
+          const current = rows.get(eventId);
+          if (sql.includes('processed_at <= ?')) {
+            const cutoff = bound[1];
+            const matches = !!current && current.completed_at === null && current.processed_at <= cutoff;
+            const changes = override ?? (matches ? 1 : 0);
+            if (changes) rows.delete(eventId);
+            return { success: true, meta: { changes } };
+          }
+          if (sql.includes('processed_at = ?') && sql.includes('completed_at IS NULL')) {
+            const processedAt = bound[1];
+            const matches = !!current && current.completed_at === null && current.processed_at === processedAt;
+            const changes = override ?? (matches ? 1 : 0);
+            if (changes) rows.delete(eventId);
+            return { success: true, meta: { changes } };
+          }
+          const existed = rows.delete(eventId);
           return { success: true, meta: { changes: override ?? (existed ? 1 : 0) } };
         }
         return { success: true, meta: { changes: 1 } };
@@ -436,6 +453,151 @@ describe('stripe-webhook -- idempotent replay (two-phase dedup)', () => {
     assert.equal(parsed.status, 500);
     assert.deepEqual(parsed.body, { ok: false, error: 'Internal error' });
     assert.equal(ran(db, 'UPDATE enrollment').length, 0, 'no side effects without a dedup guarantee');
+  });
+
+  it('does not erase a completed redelivery\'s row when an earlier, TTL-expired delivery finally rolls back', async () => {
+    // D1 claims evt_28 and hangs past the 60s in-flight TTL (processedAt = t0).
+    // D2 arrives, reclaims the stale claim (a fresh processedAt), the handler
+    // runs and the dispatcher stamps completed_at. Only THEN does D1's original
+    // attempt finally throw and call rollbackWebhookDedup with ITS OWN
+    // (now stale) processedAt. The unscoped DELETE used to erase D2's completed
+    // row outright; the scoped DELETE must find nothing to delete instead.
+    const evt = event('charge.refunded', { id: 'ch_28', refunded: true, payment_intent: 'pi_28', amount_refunded: 4900 });
+    const d1ProcessedAt = nowSec() - 300;
+    const rows = new Map([[evt.id, { completed_at: null, processed_at: d1ProcessedAt }]]);
+    const db = webhookDb({ rows });
+
+    const parsed = await parseResponse(await onRequestPost(makeCtx({ db, request: signedRequest(evt) })));
+    assert.equal(parsed.status, 200, 'D2\'s reclaim and reprocess must succeed');
+    const survivor = db._rows.get(evt.id);
+    assert.ok(survivor, 'D2\'s row must exist after it completes');
+    assert.ok(survivor.completed_at, 'D2\'s row must be marked completed');
+    assert.notEqual(survivor.processed_at, d1ProcessedAt, 'D2\'s reclaim must carry a fresh processed_at');
+
+    await rollbackWebhookDedup(db, evt.id, d1ProcessedAt, makeCtx({ db }).env, mockWaitUntil());
+
+    const afterLateRollback = db._rows.get(evt.id);
+    assert.ok(afterLateRollback, 'D1\'s late, stale-owned rollback must not erase D2\'s completed row');
+    assert.ok(afterLateRollback.completed_at, 'the surviving row must still read as completed');
+    assert.equal(afterLateRollback.processed_at, survivor.processed_at, 'the surviving row must remain D2\'s claim');
+  });
+});
+
+// ------------------------------------ join-denylist reversal failures -----
+
+/**
+ * reverseJoinDenylistCheckout (_webhook-checkout.js) used to swallow every
+ * Stripe error internally and always return, so handleCheckoutCompleted
+ * always returned null and the dispatcher always marked the event completed
+ * and answered 200 -- even when the refund never actually went through and
+ * no reconcile sweep exists anywhere in this repo to pick it up later
+ * (Phase 7 cron was never built; see maybeCompleteMigrationHandoff's doc
+ * comment in _webhook-subscription.js). A real refund failure now propagates
+ * out of reverseJoinDenylistCheckout, so it lands here at the dispatch
+ * try/catch exactly like any other handler throw: the dedup row is rolled
+ * back and Stripe redelivers the same event, which is safe because the
+ * cancel/refund calls are each independently idempotent against Stripe's own
+ * "already cancelled"/"already refunded" errors (see the STUC join-denylist
+ * idempotent-redelivery test in webhook-checkout-exec.test.js).
+ */
+describe('stripe-webhook -- join-denylist reversal failures force a retry', () => {
+  const DENIED_EMAIL = 'drduane@factsaboutfertility.org';
+
+  function denylistSession(overrides = {}) {
+    return {
+      id: 'cs_denylist_retry',
+      mode: 'subscription',
+      customer: 'cus_denied',
+      customer_details: { email: DENIED_EMAIL, name: 'D. Duane' },
+      subscription: 'sub_denylist_retry',
+      payment_intent: null,
+      amount_total: 1900,
+      metadata: { tier: 'hero' },
+      ...overrides,
+    };
+  }
+
+  it('rolls the dedup row back and answers 500 when the refund fails for a real reason (not "already refunded")', async () => {
+    const db = webhookDb();
+    const evt = event('checkout.session.completed', denylistSession());
+    const stripeStub = stubExternalFetch({ stripe: stripeRoutes({
+      '/v1/subscriptions/sub_denylist_retry': {
+        id: 'sub_denylist_retry', object: 'subscription', status: 'active',
+        latest_invoice: { id: 'in_x', payment_intent: 'pi_denylist_retry' },
+      },
+      '/v1/refunds': new Response(
+        JSON.stringify({ error: { message: 'Your card was declined.' } }),
+        { status: 402, headers: { 'content-type': 'application/json' } }
+      ),
+    }) });
+    try {
+      const parsed = await parseResponse(await onRequestPost(makeCtx({ db, request: signedRequest(evt) })));
+      assert.equal(parsed.status, 500, 'a real refund failure must not be acked as 200');
+      assert.deepEqual(parsed.body, { ok: false, error: 'Internal error' });
+      assert.equal(db._rows.has(evt.id), false, 'the dedup row must be gone so Stripe redelivers the event');
+    } finally { stripeStub.restore(); }
+  });
+
+  it('succeeds on Stripe redelivery once the refund can go through, and marks the event completed', async () => {
+    const db = webhookDb();
+    const evt = event('checkout.session.completed', denylistSession());
+
+    const failingStub = stubExternalFetch({ stripe: stripeRoutes({
+      '/v1/subscriptions/sub_denylist_retry': {
+        id: 'sub_denylist_retry', object: 'subscription', status: 'active',
+        latest_invoice: { id: 'in_x', payment_intent: 'pi_denylist_retry' },
+      },
+      '/v1/refunds': new Response(
+        JSON.stringify({ error: { message: 'Your card was declined.' } }),
+        { status: 402, headers: { 'content-type': 'application/json' } }
+      ),
+    }) });
+    const first = await parseResponse(await onRequestPost(makeCtx({ db, request: signedRequest(evt) })));
+    failingStub.restore();
+    assert.equal(first.status, 500);
+    assert.equal(db._rows.has(evt.id), false);
+
+    // Stripe redelivers the same event id. The subscription is already
+    // cancelled from the first attempt's cancel() call, so this retry only
+    // needs the refund to succeed.
+    const recoveredStub = stubExternalFetch({ stripe: stripeRoutes({
+      '/v1/subscriptions/sub_denylist_retry': {
+        id: 'sub_denylist_retry', object: 'subscription', status: 'canceled',
+        latest_invoice: { id: 'in_x', payment_intent: 'pi_denylist_retry' },
+      },
+      '/v1/refunds': { id: 're_denylist_retry', payment_intent: 'pi_denylist_retry' },
+    }) });
+    try {
+      const second = await parseResponse(await onRequestPost(makeCtx({ db, request: signedRequest(evt) })));
+      assert.equal(second.status, 200, 'the retried delivery must succeed once the refund goes through');
+      assert.deepEqual(second.body, { received: true });
+      assert.ok(db._rows.get(evt.id)?.completed_at, 'phase 2 must mark the event completed on the successful retry');
+    } finally { recoveredStub.restore(); }
+  });
+
+  it('rolls the dedup row back and answers 5xx when the subscription has no latest_invoice to refund', async () => {
+    // A trialing/incomplete/zero-total-first-invoice subscription retrieves
+    // with latest_invoice: null. The old code fell through the final `else`
+    // (logged "no payment_intent found") without marking a failure, so the
+    // subscription was cancelled, nothing was ever refunded, and the webhook
+    // still acked 200 with no retry -- a denied member whose card had
+    // already been charged for a real invoice would keep the money.
+    const db = webhookDb();
+    const evt = event('checkout.session.completed', denylistSession({
+      subscription: 'sub_denylist_no_invoice',
+    }));
+    const stripeStub = stubExternalFetch({ stripe: stripeRoutes({
+      '/v1/subscriptions/sub_denylist_no_invoice': {
+        id: 'sub_denylist_no_invoice', object: 'subscription', status: 'trialing',
+        latest_invoice: null,
+      },
+    }) });
+    try {
+      const parsed = await parseResponse(await onRequestPost(makeCtx({ db, request: signedRequest(evt) })));
+      assert.equal(parsed.status, 500, 'a missing invoice/payment_intent must not be acked as 200');
+      assert.deepEqual(parsed.body, { ok: false, error: 'Internal error' });
+      assert.equal(db._rows.has(evt.id), false, 'the dedup row must be gone so Stripe redelivers the event');
+    } finally { stripeStub.restore(); }
   });
 });
 

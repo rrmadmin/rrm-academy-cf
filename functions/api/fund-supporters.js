@@ -1,4 +1,5 @@
 import { json, optionsResponse, checkRateLimit } from './auth/_shared.js';
+import { log } from './_log.js';
 import { getStripeClient } from './billing/_shared.js';
 import { countCampaignGifts } from './billing/_campaign-count.js';
 
@@ -7,7 +8,7 @@ const FOUNDING_CAP = 100;
 const KV_KEY = `fund-supporters:${CAMPAIGN}`;
 const KV_TTL = 60;
 const EMPTY = {
-  ok: true, total_gifts: 0, consented_count: 0, recent: [], founding: [],
+  ok: true, total_gifts: 0, total_gifts_partial: false, consented_count: 0, recent: [], founding: [],
   founding_cap: FOUNDING_CAP, founding_left: FOUNDING_CAP, founding_closed: false, anonymous_founders: 0,
 };
 
@@ -30,6 +31,7 @@ export async function onRequestGet({ request, env, waitUntil }) {
     let total = 0;
     let kvHit = false;
     let stripeRecomputed = false;
+    let totalPartial = false;
     if (env.COMMUNITY_KV) {
       try {
         const fp = await env.COMMUNITY_KV.get(`fund-progress:${CAMPAIGN}`);
@@ -42,9 +44,17 @@ export async function onRequestGet({ request, env, waitUntil }) {
     if (!kvHit && env.STRIPE_SECRET_KEY) {
       try {
         const stripe = getStripeClient(env);
-        total = await countCampaignGifts(stripe, CAMPAIGN);
+        const counted = await countCampaignGifts(stripe, CAMPAIGN);
+        total = counted.count;
+        totalPartial = !counted.complete;
         stripeRecomputed = true;
-      } catch { /* fail-soft: Stripe recompute is best-effort; total stays 0 */ }
+        if (totalPartial) {
+          log(env, waitUntil, 'billing', 'fund_supporters_count_partial', 'warn',
+            `scannedPages=${counted.scannedPages}`);
+        }
+      } catch (err) { /* fail-soft: Stripe recompute is best-effort; total stays 0 */
+        log(env, waitUntil, 'billing', 'fund_supporters_count_fail', 'error', err.message);
+      }
     }
     let recent = [], founding = [], consented = 0;
     if (env.DB) {
@@ -63,19 +73,24 @@ export async function onRequestGet({ request, env, waitUntil }) {
       ).bind(CAMPAIGN).first();
       consented = c?.n || 0;
     }
-    const founding_left = Math.max(0, FOUNDING_CAP - total);
+    // A partial (truncated-scan) total is a lower bound, not the real count -- it must
+    // never drive founding_left/founding_closed (a wrong "spots remaining" or, worse, a
+    // false "Complete"). Both go null so the client renders neutral copy instead.
+    const founding_left = totalPartial ? null : Math.max(0, FOUNDING_CAP - total);
+    const founding_closed = totalPartial ? null : founding_left === 0;
     const result = {
-      ok: true, total_gifts: total, consented_count: consented, recent, founding,
-      founding_cap: FOUNDING_CAP, founding_left, founding_closed: founding_left === 0,
+      ok: true, total_gifts: total, total_gifts_partial: totalPartial, consented_count: consented, recent, founding,
+      founding_cap: FOUNDING_CAP, founding_left, founding_closed,
       anonymous_founders: Math.max(0, Math.min(total, FOUNDING_CAP) - founding.length),
     };
     // Only cache when total came from a reliable source (KV hit OR successful Stripe recompute).
     // A cold read with STRIPE_SECRET_KEY absent yields total=0 -- do not pin that for 60s.
-    if (env.COMMUNITY_KV && (kvHit || stripeRecomputed)) {
+    if (env.COMMUNITY_KV && (kvHit || (stripeRecomputed && !totalPartial))) {
       waitUntil(env.COMMUNITY_KV.put(KV_KEY, JSON.stringify(result), { expirationTtl: KV_TTL }).catch(() => {}));
     }
     return json(result);
-  } catch {
+  } catch (err) {
+    log(env, waitUntil, 'billing', 'fund_supporters_error', 'error', err.message);
     return json(EMPTY);  // always-200, page always renders
   }
 }

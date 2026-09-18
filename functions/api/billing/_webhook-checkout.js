@@ -892,7 +892,16 @@ Manually set migration_status='stripe_active' and stripe_subscription_id to the 
       let giftSeq = null;
       try {
         const stripe = getStripeClient(env);
-        giftSeq = await countCampaignGifts(stripe, 'provider-directory');
+        const counted = await countCampaignGifts(stripe, 'provider-directory');
+        // A truncated fallback scan is a lower bound, not the real position -- writing
+        // it as the gift_seq would permanently record a wrong "Founding Member #N".
+        // Fall back to the same unavailable-count sentinel (null -> 0) the DB write
+        // already handles, rather than shown as a total.
+        giftSeq = counted.complete ? counted.count : null;
+        if (!counted.complete) {
+          log(env, waitUntil, 'billing', 'supporter_seq_count_partial', 'warn',
+            `scannedPages=${counted.scannedPages}`);
+        }
       } catch (seqErr) {
         log(env, waitUntil, 'billing', 'supporter_seq_count_fail', 'warn', seqErr.message);
       }
@@ -1035,12 +1044,22 @@ export async function handleCheckoutExpired(db, event, env, waitUntil) {
  * checkout that belongs to a denied email. Idempotent: a redelivered webhook
  * re-running against an already-cancelled subscription or already-refunded
  * payment_intent must not throw uncaught -- both "already" error shapes from
- * Stripe are caught and treated as success (a real failure is logged so it
- * surfaces to the admin digest, per join_denylist_refund_error).
+ * Stripe are caught and treated as success.
+ *
+ * No reconcile sweep exists for stuck reversals (Phase 7 cron was never built --
+ * see maybeCompleteMigrationHandoff in _webhook-subscription.js). So a real
+ * (non-"already") failure on the cancel or the refund call is NOT swallowed:
+ * it is logged for the admin digest AND re-thrown. The caller (handleCheckoutCompleted)
+ * does not catch it, so it propagates to stripe-webhook.js's dispatch try/catch,
+ * which rolls back the webhook_event dedup row (Phase 1 only; Phase 2's
+ * markWebhookEventCompleted never ran) and answers 5xx -- Stripe redelivers the
+ * same event, and the next attempt is safe because each step is independently
+ * idempotent against Stripe's own "already cancelled"/"already refunded" errors.
  */
 async function reverseJoinDenylistCheckout(session, env, waitUntil) {
   const stripe = getStripeClient(env);
   let paymentIntentId = null;
+  let hadFailure = false;
 
   if (session.mode === 'subscription' && session.subscription) {
     let subscription = null;
@@ -1049,6 +1068,7 @@ async function reverseJoinDenylistCheckout(session, env, waitUntil) {
     } catch (err) {
       log(env, waitUntil, 'billing', 'join_denylist_refund_error', 'error',
         `subscription retrieve ${session.subscription}: ${err.message}`);
+      hadFailure = true;
     }
     if (subscription?.latest_invoice && typeof subscription.latest_invoice === 'object') {
       paymentIntentId = subscription.latest_invoice.payment_intent || null;
@@ -1060,6 +1080,7 @@ async function reverseJoinDenylistCheckout(session, env, waitUntil) {
         if (!/already.*cancel|no such subscription/i.test(err.message || '')) {
           log(env, waitUntil, 'billing', 'join_denylist_refund_error', 'error',
             `subscription cancel ${session.subscription}: ${err.message}`);
+          hadFailure = true;
         }
       }
     }
@@ -1072,6 +1093,7 @@ async function reverseJoinDenylistCheckout(session, env, waitUntil) {
       } catch (err) {
         log(env, waitUntil, 'billing', 'join_denylist_refund_error', 'error',
           `session retrieve ${session.id}: ${err.message}`);
+        hadFailure = true;
       }
     }
   }
@@ -1083,11 +1105,17 @@ async function reverseJoinDenylistCheckout(session, env, waitUntil) {
       if (!/already.*refund/i.test(err.message || '')) {
         log(env, waitUntil, 'billing', 'join_denylist_refund_error', 'error',
           `refund ${paymentIntentId}: ${err.message}`);
+        hadFailure = true;
       }
     }
   } else {
     log(env, waitUntil, 'billing', 'join_denylist_refund_error', 'error',
       `no payment_intent found for session ${session.id}`);
+    hadFailure = true;
+  }
+
+  if (hadFailure) {
+    throw new Error(`join-denylist reversal incomplete for session ${session.id}`);
   }
 }
 
