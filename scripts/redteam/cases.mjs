@@ -753,6 +753,40 @@ add({
   live: { skip: 'requires an areq signed with the production OAUTH_GRANT_SECRET, which this harness does not hold' },
 });
 
+add({
+  id: 'auth-oauth-identity-blocked-redirects-not-grant',
+  family: 'auth',
+  description: "a blocked user's otherwise-valid session gets the login redirect, never a grant",
+  as: 'blocked',
+  host: 'apex',
+  method: 'GET',
+  path: '/api/account/oauth-identity',
+  query: `?areq=${encodeURIComponent(oauthValidAreq)}`,
+  expect: {
+    status: 302,
+    headerMatches: { location: /^\/login\/\?redirect=/ },
+    headerAbsentSubstring: { location: '://' },
+  },
+  live: { skip: 'needs a seeded blocked account with a live session' },
+});
+
+add({
+  id: 'auth-oauth-identity-expired-session-redirects-not-grant',
+  family: 'auth',
+  description: 'an expired session row gets the login redirect, never a grant',
+  as: 'expired',
+  host: 'apex',
+  method: 'GET',
+  path: '/api/account/oauth-identity',
+  query: `?areq=${encodeURIComponent(oauthValidAreq)}`,
+  expect: {
+    status: 302,
+    headerMatches: { location: /^\/login\/\?redirect=/ },
+    headerAbsentSubstring: { location: '://' },
+  },
+  live: { skip: 'an expired session row can only be planted in the database this harness seeds' },
+});
+
 // ===========================================================================
 // money -- a payment that did not happen
 // ===========================================================================

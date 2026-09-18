@@ -7,7 +7,11 @@
  *
  * There is no caller-supplied redirect target: the browser always goes to
  * MCP_ORIGIN, a fixed environment value, so this endpoint cannot be turned
- * into an open redirect by anyone who can mint a URL.
+ * into an open redirect by anyone who can mint a URL. MCP_ORIGIN has no
+ * fallback: a missing MCP_ORIGIN joins the same fail-closed guard as a
+ * missing OAUTH_GRANT_SECRET, because a silent default here would be exactly
+ * the kind of caller-invisible redirect target this endpoint exists to
+ * avoid, not a convenience worth keeping.
  *
  * Both blobs this endpoint handles carry a `typ` discriminator (`areq` in,
  * `grant` out). An incoming blob that verifies but is not typed `areq` (a
@@ -24,9 +28,9 @@ function redirect(location, status = 302) {
   return new Response(null, { status, headers: { Location: location, 'Cache-Control': 'no-store' } });
 }
 
-function bad(message) {
+function bad(message, status = 400) {
   return new Response(JSON.stringify({ ok: false, error: message }), {
-    status: 400,
+    status,
     headers: { 'Content-Type': 'application/json', 'Cache-Control': 'no-store' },
   });
 }
@@ -34,7 +38,7 @@ function bad(message) {
 export async function onRequestGet({ request, env, waitUntil }) {
   try {
     const db = env.DB;
-    if (!db || !env.OAUTH_GRANT_SECRET) return bad('server_misconfigured');
+    if (!db || !env.OAUTH_GRANT_SECRET || !env.MCP_ORIGIN) return bad('server_misconfigured', 503);
 
     const url = new URL(request.url);
     const areq = url.searchParams.get('areq') || '';
@@ -63,7 +67,7 @@ export async function onRequestGet({ request, env, waitUntil }) {
     );
 
     log(env, waitUntil, 'account', 'oauth_identity_issued', 'ok', user.id, 0, 302);
-    const target = `${env.MCP_ORIGIN || 'https://mcp.rrmacademy.org'}/oauth/authorize?areq=${encodeURIComponent(areq)}&grant=${encodeURIComponent(grant)}`;
+    const target = `${env.MCP_ORIGIN}/oauth/authorize?areq=${encodeURIComponent(areq)}&grant=${encodeURIComponent(grant)}`;
     return redirect(target);
   } catch (err) {
     log(env, waitUntil, 'account', 'oauth_identity_error', 'error', err.message, 0, 500);
