@@ -15,10 +15,12 @@ const hasBio = bios.length > 0;
 const academyRole = member.academy_role?.trim() || '';
 const foundationRole = member.foundation_role?.trim() || '';
 // Render the Academy line only when the member holds an Academy role (Bailey
-// Long holds none). Render the Foundation line whenever it differs from the
-// Academy role, which includes the empty-Academy-role case.
+// Long holds none). Render the Foundation line whenever the member holds a
+// Foundation role at all, even when it is textually identical to the Academy
+// role (Brian and Naomi hold the same title at both entities and both lines
+// must show, one per entity).
 const showAcademyRole = Boolean(academyRole);
-const showFoundationRole = Boolean(foundationRole) && foundationRole !== academyRole;
+const showFoundationRole = Boolean(foundationRole);
 ---
 
 <article class="team-card" id={member.ssot_id?.split('#')[1] || undefined}>
