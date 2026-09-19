@@ -12,7 +12,13 @@ const bios = (member.bio_paragraphs || []).filter(
   (p) => p && !/^TODO/i.test(p)
 );
 const hasBio = bios.length > 0;
-const showFoundationRole = member.foundation_role && member.foundation_role !== member.academy_role;
+const academyRole = member.academy_role?.trim() || '';
+const foundationRole = member.foundation_role?.trim() || '';
+// Render the Academy line only when the member holds an Academy role (Bailey
+// Long holds none). Render the Foundation line whenever it differs from the
+// Academy role, which includes the empty-Academy-role case.
+const showAcademyRole = Boolean(academyRole);
+const showFoundationRole = Boolean(foundationRole) && foundationRole !== academyRole;
 ---
 
 <article class="team-card" id={member.ssot_id?.split('#')[1] || undefined}>
@@ -38,9 +44,11 @@ const showFoundationRole = member.foundation_role && member.foundation_role !== 
     {member.credentials && (
       <p class="team-card__credentials">{member.credentials}</p>
     )}
-    <p class="team-card__role">{member.academy_role}</p>
+    {showAcademyRole && (
+      <p class="team-card__role">{academyRole}</p>
+    )}
     {showFoundationRole && (
-      <p class="team-card__foundation-role">RRM Foundation: {member.foundation_role}</p>
+      <p class="team-card__foundation-role">RRM Foundation: {foundationRole}</p>
     )}
     {hasBio && (
       <div class="team-card__bio">
