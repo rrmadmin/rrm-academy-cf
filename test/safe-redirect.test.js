@@ -46,6 +46,19 @@ describe('safeRedirect', () => {
     assert.equal(safeRedirect('/\\evil.example/path', ORIGIN), DEFAULT_REDIRECT);
   });
 
+  it('rejects a dot-segment collapse into a protocol-relative host', () => {
+    assert.equal(safeRedirect('/.//evil.example', ORIGIN), DEFAULT_REDIRECT);
+    assert.equal(safeRedirect('/..//evil.example', ORIGIN), DEFAULT_REDIRECT);
+    assert.equal(safeRedirect('/a/..//evil.example', ORIGIN), DEFAULT_REDIRECT);
+    assert.equal(safeRedirect('/%2e%2e//evil.example', ORIGIN), DEFAULT_REDIRECT);
+    assert.equal(safeRedirect('/./\\evil.example', ORIGIN), DEFAULT_REDIRECT);
+    assert.equal(safeRedirect('/.//evil.example?x=1#y', ORIGIN), DEFAULT_REDIRECT);
+  });
+
+  it('keeps an encoded dot-segment because the collapse never reaches the browser-decoded path', () => {
+    assert.equal(safeRedirect('/%2e/%2fevil.example', ORIGIN), '/%2fevil.example/');
+  });
+
   it('rejects an absolute same-origin URL because it does not start with a slash', () => {
     assert.equal(safeRedirect(`${ORIGIN}/account/`, ORIGIN), DEFAULT_REDIRECT);
   });
@@ -86,6 +99,14 @@ describe('SAFE_REDIRECT_CLIENT_SRC', () => {
     assert.equal(typeof scope.window.rrmSafeRedirect, 'function');
     assert.equal(scope.window.rrmSafeRedirect(oauthIdentityRedirect(), ORIGIN), oauthIdentityRedirect());
     assert.equal(scope.window.rrmSafeRedirect('//evil.example', ORIGIN), DEFAULT_REDIRECT);
+  });
+
+  it('signup sets the Google button redirect for any validated non-default next, not only /ask', () => {
+    const src = readFileSync(new URL('../src/pages/signup.astro', import.meta.url), 'utf8');
+    const setterMatch = src.match(/if \(nextParam\) \{\s*\n\s*if \(googleBtn\) googleBtn\.setAttribute\('href', '\/api\/auth\/google\?redirect=' \+ encodeURIComponent\(nextParam\)\);\s*\n\s*\}/);
+    assert.ok(setterMatch, 'expected an unconditional if (nextParam) block setting the Google button href');
+    const askBlockStart = src.indexOf("nextParam === '/ask'");
+    assert.ok(askBlockStart > setterMatch.index, 'the unconditional setter must run before the /ask-specific messaging block');
   });
 
   it('is the validator the login and signup pages actually load', () => {

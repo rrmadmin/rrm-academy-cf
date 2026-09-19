@@ -36,7 +36,10 @@ export function safeRedirect(raw, origin) {
   try {
     var u = new URL(dest, origin);
     if (u.origin !== origin || dest.charAt(0) !== '/' || dest.length > MAX) dest = FALLBACK;
-    else dest = u.pathname + u.search + u.hash;
+    else {
+      dest = u.pathname + u.search + u.hash;
+      if (dest.charAt(0) !== '/' || dest.charAt(1) === '/' || dest.charAt(1) === '\\') dest = FALLBACK;
+    }
   } catch (e) {
     dest = FALLBACK;
   }
