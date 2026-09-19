@@ -536,3 +536,58 @@ describe('POST /api/auth/signup -- CORS headers', () => {
     assert.equal(headers['access-control-allow-origin'], 'https://rrmacademy.org');
   });
 });
+
+describe('POST /api/auth/signup -- next parameter length', () => {
+  const BASE_ROWS = {
+    'INSERT INTO contact': { run: { success: true } },
+    'SELECT id FROM contact': { first: { id: 'contact-1' } },
+    'INSERT OR REPLACE INTO contact_tag': { run: { success: true } },
+    'INSERT INTO user': { run: { success: true } },
+    'INSERT INTO email_verification': { run: { success: true } },
+    'INSERT INTO session': { run: { success: true } },
+    'FROM user WHERE': { first: null },
+  };
+
+  /**
+   * The OAuth identity hop is a legitimate ~3.8 KB path. The old 200 character
+   * cap answered 400 to the entire signup, so a first-time user arriving from
+   * a connector could not create an account at all.
+   */
+  it('accepts a 3800 character next instead of refusing the signup', async () => {
+    const restore = stubAllExternalFetchSuccess();
+    try {
+      const next = `/api/account/oauth-identity?areq=${'A'.repeat(3700)}`;
+      assert.ok(next.length > 3700 && next.length <= 4096);
+      const req = mockRequest('POST', {
+        body: {
+          firstName: 'Alice', lastName: 'Smith', email: 'alice-next@example.com',
+          password: 'aaaa-bbbb-cccc-dddd', turnstileToken: 'tok', next,
+        },
+        headers: { 'CF-Connecting-IP': randomIp() },
+      });
+      const res = await onRequestPost(makeContext(req, mockEnv({ DB: mockDB(BASE_ROWS) }), mockWaitUntil()));
+      const { status } = await parseResponse(res);
+      assert.equal(status, 201);
+    } finally {
+      restore();
+    }
+  });
+
+  it('still refuses a next longer than the shared 4096 cap', async () => {
+    const restore = stubAllExternalFetchSuccess();
+    try {
+      const req = mockRequest('POST', {
+        body: {
+          firstName: 'Alice', lastName: 'Smith', email: 'alice-long@example.com',
+          password: 'aaaa-bbbb-cccc-dddd', turnstileToken: 'tok', next: '/' + 'a'.repeat(4096),
+        },
+        headers: { 'CF-Connecting-IP': randomIp() },
+      });
+      const res = await onRequestPost(makeContext(req, mockEnv({ DB: mockDB(BASE_ROWS) }), mockWaitUntil()));
+      const { status } = await parseResponse(res);
+      assert.equal(status, 400);
+    } finally {
+      restore();
+    }
+  });
+});

@@ -1,29 +1,35 @@
 {
-  "issuer": "https://rrmacademy.org",
-  "userinfo_endpoint": "https://rrmacademy.org/api/auth/profile",
-  "scopes_supported": ["openid", "profile", "email", "mcp:read", "mcp:invoke"],
-  "response_types_supported": ["none"],
-  "grant_types_supported": [
-    "urn:ietf:params:oauth:grant-type:api-key"
-  ],
-  "x-endpoint-note": "No OAuth authorization_endpoint or token_endpoint is advertised: RRM Academy does not operate an interactive OAuth flow. Credentials are self-service Bearer API keys minted at https://rrmacademy.org/account/mcp-keys (see agent_auth and x-auth-flow).",
+  "issuer": "https://mcp.rrmacademy.org",
+  "authorization_endpoint": "https://mcp.rrmacademy.org/oauth/authorize",
+  "token_endpoint": "https://mcp.rrmacademy.org/oauth/token",
+  "registration_endpoint": "https://mcp.rrmacademy.org/oauth/register",
+  "revocation_endpoint": "https://mcp.rrmacademy.org/oauth/revoke",
+  "scopes_supported": ["public"],
+  "response_types_supported": ["code"],
+  "response_modes_supported": ["query"],
+  "grant_types_supported": ["authorization_code", "refresh_token"],
+  "code_challenge_methods_supported": ["S256"],
+  "token_endpoint_auth_methods_supported": ["none"],
+  "revocation_endpoint_auth_methods_supported": ["none"],
   "subject_types_supported": ["public"],
   "service_documentation": "https://rrmacademy.org/connect",
-  "x-account-signup-url": "https://rrmacademy.org/signup",
   "op_policy_uri": "https://rrmacademy.org/terms-of-use/",
   "op_tos_uri": "https://rrmacademy.org/terms-of-use/",
-  "x-access-model": "self-service",
-  "x-access-instructions": "Self-service Bearer API key issuance via https://rrmacademy.org/account/mcp-keys. No interactive OIDC code flow.",
+  "x-oidc": false,
+  "x-oidc-note": "This server issues OAuth 2.1 access tokens only. No id_token is minted and there is no jwks_uri; this document exists because several MCP hosts probe this path before the RFC 8414 one.",
+  "x-authoritative-metadata": "https://mcp.rrmacademy.org/.well-known/openid-configuration",
   "x-auth-flow": [
-    "Step 1: Create a free RRM Academy account at https://rrmacademy.org/signup (or sign in if you already have one).",
-    "Step 2: Visit https://rrmacademy.org/account/mcp-keys.",
-    "Step 3: Click 'Generate new key', label it (e.g. 'Claude Desktop', 'Perplexity'), copy the displayed token. The token is shown once.",
-    "Step 4: Configure your MCP client with server URL https://mcp.rrmacademy.org/mcp and Authorization: Bearer <token>.",
-    "Step 5: tools/list and initialize work without auth so clients can enumerate capabilities; tools/call requires the Bearer token.",
-    "Step 6: Revoke or rotate keys at any time from the same page; revocation takes effect immediately."
+    "Step 1: Register the client at POST https://mcp.rrmacademy.org/oauth/register (RFC 7591 dynamic client registration, public clients only).",
+    "Step 2: Send the account holder to https://mcp.rrmacademy.org/oauth/authorize with response_type=code, client_id, redirect_uri, code_challenge and code_challenge_method=S256.",
+    "Step 3: The account holder signs in at rrmacademy.org if needed, then approves the connection on the consent page.",
+    "Step 4: Exchange the code at POST https://mcp.rrmacademy.org/oauth/token with the PKCE code_verifier. The response carries an access token (1 hour) and a rotating refresh token (30 days).",
+    "Step 5: Call https://mcp.rrmacademy.org/mcp with Authorization: Bearer <access token>. tools/list and initialize stay unauthenticated.",
+    "Step 6: OAuth access ends when the account holder disconnects the connector in the AI app, which calls POST https://mcp.rrmacademy.org/oauth/revoke. API keys are managed separately at https://rrmacademy.org/account/mcp-keys, which does not list OAuth grants."
   ],
   "x-streaming": true,
   "x-mcp-server": "https://mcp.rrmacademy.org/mcp",
   "x-connect-page": "https://rrmacademy.org/connect",
-  "x-contact": "info@rrmacademy.org"
+  "x-contact": "info@rrmacademy.org",
+  "x-legacy-api-keys": "Personal Bearer API keys issued at https://rrmacademy.org/account/mcp-keys remain valid alongside OAuth.",
+  "x-account-signup-url": "https://rrmacademy.org/signup"
 }

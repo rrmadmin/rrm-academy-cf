@@ -145,6 +145,15 @@ export const ROUTES = Object.freeze([
   { path: '/api/account/mcp-keys', method: 'GET', auth: 'session', writes: false },
   { path: '/api/account/mcp-keys', method: 'POST', auth: 'session', writes: true },
   { path: `/api/account/mcp-keys/${VICTIM_KEY_ID}`, method: 'DELETE', auth: 'session', writes: true },
+  /* NOT `auth: 'session'`, deliberately: the generic anon-refusal sweep below
+     asserts 401 for every SESSION_ROUTES entry, and this endpoint answers a
+     signed-in-required request with a 302 to /login (a redirect hop, not a
+     JSON API), which would make that sweep a false failure. Its own cases
+     live in cases.mjs's "OAuth identity hop" section instead, aimed at the
+     areq/grant blob contract and the login-redirect shape directly. Kept out
+     of SESSION_ROUTES/PRIVILEGED_ROUTES/MACHINE_ROUTES/PUBLIC_*_ROUTES the
+     same way `/api/auth/session` (auth: 'probe') is. */
+  { path: '/api/account/oauth-identity', method: 'GET', auth: 'oauth', writes: false },
   { path: '/api/saved', method: 'GET', auth: 'session', writes: false },
   { path: '/api/saved', method: 'POST', auth: 'session', writes: true },
   { path: '/api/ask/saved', method: 'GET', auth: 'session', writes: false },

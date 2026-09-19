@@ -29,7 +29,8 @@ import {
   NOBODYS_POST_ID, NOBODYS_KEY_ID, NOBODYS_TOKEN, NOBODYS_SHARE_ID, NOBODYS_SHARE_TOKEN,
 } from './targets.mjs';
 import { bodyFor } from './fakes/bodies.mjs';
-import { VICTIM_EMAIL, VICTIM_NAME, ATTACKER_EMAIL, ABSENT_EMAIL, SUPERADMIN_EMAIL } from './fakes/env.mjs';
+import { VICTIM_EMAIL, VICTIM_NAME, ATTACKER_EMAIL, ABSENT_EMAIL, SUPERADMIN_EMAIL, OAUTH_GRANT_SECRET } from './fakes/env.mjs';
+import { signBlob } from '../../functions/api/account/_oauth-blob.js';
 
 export const FAMILIES = Object.freeze({
   auth: 'session forgery, expiry, role escalation and IDOR across every gated route',
@@ -562,6 +563,228 @@ add({
   body: JSON.stringify({ currentPassword: 'Redteam-Wr0ng-Horse-Nope', newPassword: 'Redteam-N3w-Horse-Battery' }),
   expect: { status: [400, 401, 403] },
   live: { skip: 'a live run never changes a real password' },
+});
+
+/**
+ * THE OAUTH IDENTITY HOP (`/api/account/oauth-identity`).
+ *
+ * The one place `functions/api/account/_oauth-blob.js` reaches a browser: it
+ * verifies the `areq` blob rrm-mcp signed, and either bounces an anonymous
+ * caller to `/login/` or hands back a `grant` blob rrm-mcp trusts as
+ * identity. `OAUTH_GRANT_SECRET` here is the harness's OWN test secret (see
+ * fakes/env.mjs), so a blob these cases sign with it is one the hermetic env
+ * would genuinely accept -- the same reason a "valid session cookie" case
+ * names a row this harness itself seeded rather than one it invented.
+ *
+ * Not swept in with SESSION_ROUTES: see the comment on this route's entry in
+ * targets.mjs for why.
+ */
+const OAUTH_FUTURE_EXP = Math.floor(Date.now() / 1000) + 600;
+const OAUTH_PAST_EXP = Math.floor(Date.now() / 1000) - 60;
+
+/** A validly-signed, correctly-typed authorization request. */
+const oauthValidAreq = await signBlob(
+  {
+    v: 1,
+    typ: 'areq',
+    client_id: 'redteam-client',
+    redirect_uri: 'https://redteam.example/cb',
+    code_challenge: 'redteam-challenge',
+    code_challenge_method: 'S256',
+    scope: 'public',
+    state: 'redteam-state',
+    exp: OAUTH_FUTURE_EXP,
+  },
+  OAUTH_GRANT_SECRET,
+);
+
+/** Same shape, signed, but its own `exp` is already in the past. */
+const oauthExpiredAreq = await signBlob(
+  { v: 1, typ: 'areq', client_id: 'redteam-client', exp: OAUTH_PAST_EXP },
+  OAUTH_GRANT_SECRET,
+);
+
+/** Correctly signed and not expired, but typed as the OUTGOING blob, not the incoming one. */
+const oauthWrongTypAreq = await signBlob(
+  { v: 1, typ: 'grant', client_id: 'redteam-client', exp: OAUTH_FUTURE_EXP },
+  OAUTH_GRANT_SECRET,
+);
+
+/** Correctly signed and not expired, but carrying no `typ` at all. */
+const oauthMissingTypAreq = await signBlob(
+  { v: 1, client_id: 'redteam-client', exp: OAUTH_FUTURE_EXP },
+  OAUTH_GRANT_SECRET,
+);
+
+/** A well-formed, correctly-typed blob whose signature half has been flipped. */
+const oauthTamperedAreq = (() => {
+  const [body, sig] = oauthValidAreq.split('.');
+  const flipped = sig.length && sig[0] === 'a' ? 'b' : 'a';
+  return `${body}.${flipped}${sig.slice(1)}`;
+})();
+
+add({
+  id: 'auth-oauth-identity-missing-areq',
+  family: 'auth',
+  description: 'oauth-identity with no areq at all is refused, not treated as anonymous',
+  as: 'none',
+  host: 'apex',
+  method: 'GET',
+  path: '/api/account/oauth-identity',
+  expect: { status: 400, bodyEquals: { ok: false, error: 'bad_request' } },
+  live: { expect: { status: 400 } },
+});
+
+add({
+  id: 'auth-oauth-identity-garbage-areq',
+  family: 'auth',
+  description: 'a string that is not a signed blob at all is refused',
+  as: 'none',
+  host: 'apex',
+  method: 'GET',
+  path: '/api/account/oauth-identity',
+  query: '?areq=not-a-real-blob-at-all',
+  expect: { status: 400, bodyEquals: { ok: false, error: 'bad_request' } },
+  live: { expect: { status: 400 } },
+});
+
+add({
+  id: 'auth-oauth-identity-tampered-signature',
+  family: 'auth',
+  description: 'a well-formed areq whose signature half was flipped is refused',
+  as: 'none',
+  host: 'apex',
+  method: 'GET',
+  path: '/api/account/oauth-identity',
+  query: `?areq=${encodeURIComponent(oauthTamperedAreq)}`,
+  expect: { status: 400, bodyEquals: { ok: false, error: 'bad_request' }, mustNotContain: [oauthTamperedAreq, OAUTH_GRANT_SECRET] },
+  live: { expect: { status: 400 } },
+});
+
+add({
+  id: 'auth-oauth-identity-expired-areq',
+  family: 'auth',
+  description: 'a correctly-signed areq past its own exp is refused',
+  as: 'none',
+  host: 'apex',
+  method: 'GET',
+  path: '/api/account/oauth-identity',
+  query: `?areq=${encodeURIComponent(oauthExpiredAreq)}`,
+  expect: { status: 400, bodyEquals: { ok: false, error: 'bad_request' } },
+  /* Live cannot mint anything signed with the production OAUTH_GRANT_SECRET,
+     so a live send of this fixture fails on signature mismatch rather than on
+     expiry -- still a true 400, just not proof of the expiry check
+     specifically. The expiry check itself is proven hermetically. */
+  live: { expect: { status: 400 } },
+});
+
+add({
+  id: 'auth-oauth-identity-typ-grant-not-areq',
+  family: 'auth',
+  description: 'a blob typed grant cannot be replayed into the areq slot',
+  as: 'none',
+  host: 'apex',
+  method: 'GET',
+  path: '/api/account/oauth-identity',
+  query: `?areq=${encodeURIComponent(oauthWrongTypAreq)}`,
+  expect: { status: 400, bodyEquals: { ok: false, error: 'bad_request' } },
+  live: { expect: { status: 400 } },
+});
+
+add({
+  id: 'auth-oauth-identity-typ-missing',
+  family: 'auth',
+  description: 'a signed blob with no typ field at all is refused the same as a bad signature',
+  as: 'none',
+  host: 'apex',
+  method: 'GET',
+  path: '/api/account/oauth-identity',
+  query: `?areq=${encodeURIComponent(oauthMissingTypAreq)}`,
+  expect: { status: 400, bodyEquals: { ok: false, error: 'bad_request' } },
+  live: { expect: { status: 400 } },
+});
+
+/**
+ * OPEN-REDIRECT FAMILY: the ONLY two redirect targets this endpoint ever
+ * emits are `/login/?redirect=<path-only self URL>` and `MCP_ORIGIN`, a fixed
+ * environment value. Neither case below supplies anything that could steer a
+ * redirect anywhere else, so the Location header asserted here is checked for
+ * being PATH-ONLY (no scheme, no host) -- a caller-influenced query string
+ * landing in a scheme-and-host redirect is exactly the shape an open redirect
+ * takes.
+ */
+add({
+  id: 'auth-oauth-identity-anon-redirects-path-only',
+  family: 'auth',
+  description: 'a valid areq with no session cookie redirects to a path-only /login/, never a grant',
+  as: 'none',
+  host: 'apex',
+  method: 'GET',
+  path: '/api/account/oauth-identity',
+  query: `?areq=${encodeURIComponent(oauthValidAreq)}`,
+  expect: {
+    status: 302,
+    headerMatches: { location: /^\/login\/\?redirect=/ },
+    headerAbsentSubstring: { location: '://' },
+  },
+  live: {
+    /* The harness's own OAUTH_GRANT_SECRET does not match production's, so a
+       blob signed here fails verification live before the session check is
+       ever reached -- a 400, not the 302 this case is really about. The
+       redirect shape is proven hermetically instead. */
+    skip: 'requires an areq signed with the production OAUTH_GRANT_SECRET, which this harness does not hold',
+  },
+});
+
+add({
+  id: 'auth-oauth-identity-forged-cookie-redirects-not-grant',
+  family: 'auth',
+  description: 'a forged/unknown session cookie gets the same path-only login redirect, never a grant',
+  as: 'forged',
+  host: 'apex',
+  method: 'GET',
+  path: '/api/account/oauth-identity',
+  query: `?areq=${encodeURIComponent(oauthValidAreq)}`,
+  expect: {
+    status: 302,
+    headerMatches: { location: /^\/login\/\?redirect=/ },
+    headerAbsentSubstring: { location: '://' },
+  },
+  live: { skip: 'requires an areq signed with the production OAUTH_GRANT_SECRET, which this harness does not hold' },
+});
+
+add({
+  id: 'auth-oauth-identity-blocked-redirects-not-grant',
+  family: 'auth',
+  description: "a blocked user's otherwise-valid session gets the login redirect, never a grant",
+  as: 'blocked',
+  host: 'apex',
+  method: 'GET',
+  path: '/api/account/oauth-identity',
+  query: `?areq=${encodeURIComponent(oauthValidAreq)}`,
+  expect: {
+    status: 302,
+    headerMatches: { location: /^\/login\/\?redirect=/ },
+    headerAbsentSubstring: { location: '://' },
+  },
+  live: { skip: 'needs a seeded blocked account with a live session' },
+});
+
+add({
+  id: 'auth-oauth-identity-expired-session-redirects-not-grant',
+  family: 'auth',
+  description: 'an expired session row gets the login redirect, never a grant',
+  as: 'expired',
+  host: 'apex',
+  method: 'GET',
+  path: '/api/account/oauth-identity',
+  query: `?areq=${encodeURIComponent(oauthValidAreq)}`,
+  expect: {
+    status: 302,
+    headerMatches: { location: /^\/login\/\?redirect=/ },
+    headerAbsentSubstring: { location: '://' },
+  },
+  live: { skip: 'an expired session row can only be planted in the database this harness seeds' },
 });
 
 // ===========================================================================

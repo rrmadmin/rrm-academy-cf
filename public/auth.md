@@ -15,7 +15,7 @@ articles plus glossary lookup and FAQ retrieval.
 | Resource | URL |
 | --- | --- |
 | Protected resource metadata | https://rrmacademy.org/.well-known/oauth-protected-resource |
-| Authorization server metadata | https://rrmacademy.org/.well-known/oauth-authorization-server |
+| Authorization server metadata | https://mcp.rrmacademy.org/.well-known/oauth-authorization-server (authoritative; a copy is served at https://rrmacademy.org/.well-known/oauth-authorization-server) |
 | MCP server | https://mcp.rrmacademy.org/mcp |
 | Agent card | https://rrmacademy.org/.well-known/agent-card.json |
 | OpenAPI 3.1 | https://rrmacademy.org/openapi.json |
@@ -27,10 +27,12 @@ and `_mcp._agents.rrmacademy.org` (SVCB, DNSSEC-signed).
 ## Identity and credential model
 
 - **Identity type:** verified email (a free RRM Academy account)
-- **Credential type:** personal Bearer API key, self-service, displayed once at creation
-- **No interactive OAuth code flow.** Keys are minted on a web page after sign-in.
+- **Two ways to get a token.** An OAuth 2.1 authorization code flow with PKCE
+  at `https://mcp.rrmacademy.org`, or a personal Bearer API key, self-service
+  and displayed once at creation. Both are free.
+- **OAuth scope:** `public`, the only scope this server grants.
 - MCP `initialize` and `tools/list` are unauthenticated so clients can
-  enumerate capabilities; `tools/call` requires the Bearer key.
+  enumerate capabilities; `tools/call` requires the Bearer token.
 
 ## Register
 
@@ -50,8 +52,8 @@ Configure your MCP client with server URL `https://mcp.rrmacademy.org/mcp`
 Authorization: Bearer <key>
 ```
 
-Scopes granted to every key: `mcp:read`, `mcp:invoke`, `library:read`,
-`faq:read`.
+An API key carries full tool access; it is not scoped. An OAuth access token
+carries the single scope `public`.
 
 ## Revoke and rotate
 

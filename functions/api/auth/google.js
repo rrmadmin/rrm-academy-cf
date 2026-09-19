@@ -10,6 +10,13 @@
  */
 import { googleAuthUrl, isSafeRedirect, SITE_URL } from './_shared.js';
 
+/**
+ * Bytes available for `oauth_state=<nonce>:<base64 redirect>`. Browsers cap a
+ * single cookie at about 4096 bytes including the attributes, so this leaves
+ * headroom for `; Path=...; HttpOnly; Secure; SameSite=Lax; Max-Age=600`.
+ */
+const COOKIE_VALUE_BUDGET = 3800;
+
 export async function onRequestGet({ env, request }) {
   if (!env.GOOGLE_CLIENT_ID || !env.GOOGLE_CLIENT_SECRET) {
     const errTarget = `${SITE_URL}/login/?error=oauth_unavailable`;
@@ -31,6 +38,22 @@ export async function onRequestGet({ env, request }) {
   const nonce = crypto.randomUUID();
   const redirectB64 = btoa(String.fromCharCode(...new TextEncoder().encode(redirect)));
   const state = `${nonce}:${redirectB64}`;
+
+  // This leg cannot carry the 4096 characters the login page accepts: the
+  // return path rides back in a cookie, base64 expands it by a third, and a
+  // browser drops a cookie whose name plus value passes about 4 KB. A dropped
+  // cookie looks like a CSRF failure at the callback, so refuse here, loudly,
+  // instead of silently rewriting the destination to /account/ after the user
+  // has already signed in. Measured ceiling: about 2811 bytes of redirect.
+  if (`oauth_state=${state}`.length > COOKIE_VALUE_BUDGET) {
+    const tooLong = `${SITE_URL}/login/?error=redirect_too_long`;
+    const tooLongEscaped = tooLong.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+    const tooLongHtml = `<!DOCTYPE html><html><head><meta http-equiv="refresh" content="0;url=${tooLongEscaped}"></head><body><script>window.location.href=${JSON.stringify(tooLong).replace(/</g, '\\u003c')}</script></body></html>`;
+    return new Response(tooLongHtml, {
+      status: 302,
+      headers: { Location: tooLong, 'Content-Type': 'text/html;charset=UTF-8' },
+    });
+  }
 
   const target = `${authUrl}&state=${encodeURIComponent(state)}`;
   const escapedTarget = target.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#39;');

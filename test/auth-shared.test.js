@@ -138,6 +138,20 @@ describe('isSafeRedirect', () => {
     assert.ok(!isSafeRedirect('https://evil.com/steal'));
     assert.ok(!isSafeRedirect('//evil.com'));
   });
+
+  it('rejects control characters and backslashes', () => {
+    assert.ok(!isSafeRedirect('/account\r\nSet-Cookie: evil=1'));
+    assert.ok(!isSafeRedirect('/account\r'));
+    assert.ok(!isSafeRedirect('/account\n'));
+    assert.ok(!isSafeRedirect('/account\t'));
+    assert.ok(!isSafeRedirect('/account\u0000'));
+    assert.ok(!isSafeRedirect('/account\\evil'));
+  });
+
+  it('still accepts ordinary relative and absolute same-origin values', () => {
+    assert.ok(isSafeRedirect('/account/'));
+    assert.ok(isSafeRedirect('https://rrmacademy.org/account/'));
+  });
 });
 
 // KV stub with put-error injection and write recording — mockKV() in _helpers

@@ -502,6 +502,8 @@ export const COMMON_PASSWORD_ERROR = 'This password is too common. Please choose
 // --- Redirect validation ---
 
 export function isSafeRedirect(path) {
+  // eslint-disable-next-line no-control-regex -- intentional: block control-char/backslash header injection
+  if (/[\u0000-\u001F\u007F\\]/.test(path)) return false;
   try {
     const url = new URL(path, SITE_URL);
     return url.origin === SITE_URL;
