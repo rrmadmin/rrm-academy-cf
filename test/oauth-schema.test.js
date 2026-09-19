@@ -37,8 +37,32 @@ describe('oauth schema', () => {
     ]);
     assert.ok(cols(db, 'oauth_code').includes('grant_jti'));
     assert.ok(cols(db, 'oauth_code').includes('consumed_at'));
+    assert.ok(cols(db, 'oauth_code').includes('lineage_revoked_at'));
     assert.ok(cols(db, 'oauth_token').includes('parent_hash'));
     assert.ok(cols(db, 'oauth_token').includes('code_hash'));
+  });
+
+  it('gates token issuance on the lineage marker, so a revocation cannot be outrun', () => {
+    const db = oauthD1({ seed: (s) => insertUser(s, { id: 'u_a', email: 'a@example.com' }) });
+    const s = db._sqlite;
+    s.prepare(`INSERT INTO oauth_client (client_id, client_name, redirect_uris, grant_types, token_endpoint_auth_method, scope, registration_json)
+               VALUES ('c1','C','["https://example.com/cb"]','["authorization_code"]','none','public','{}')`).run();
+    s.prepare(`INSERT INTO oauth_code (code_hash, client_id, user_id, redirect_uri, code_challenge, code_challenge_method, scope, grant_jti, expires_at)
+               VALUES ('ch-1', 'c1', 'u_a', 'https://example.com/cb', 'chal', 'S256', 'public', 'jti-gate', 9999999999)`).run();
+    const issue = `INSERT INTO oauth_token (token_hash, token_type, client_id, user_id, scope, code_hash, parent_hash, expires_at)
+                   SELECT ?, 'access', 'c1', 'u_a', 'public', 'ch-1', NULL, 9999999999
+                   WHERE NOT EXISTS (SELECT 1 FROM oauth_code WHERE code_hash = 'ch-1' AND lineage_revoked_at IS NOT NULL)`;
+    assert.equal(s.prepare(issue).run('tok-1').changes, 1);
+    s.prepare("UPDATE oauth_code SET lineage_revoked_at = datetime('now') WHERE code_hash = 'ch-1'").run();
+    assert.equal(s.prepare(issue).run('tok-2').changes, 0);
+  });
+
+  it('indexes oauth_token by client_id, so revoking a client\'s tokens is not a scan', () => {
+    const db = oauthD1({ seed: (s) => insertUser(s, { id: 'u_a', email: 'a@example.com' }) });
+    const plan = db._sqlite.prepare(
+      "EXPLAIN QUERY PLAN UPDATE oauth_token SET revoked_at = datetime('now') WHERE client_id = 'c1' AND revoked_at IS NULL",
+    ).all().map((r) => r.detail).join(' ');
+    assert.match(plan, /idx_oauth_token_client/);
   });
 
   it('rejects a second code minted from the same consent grant', () => {

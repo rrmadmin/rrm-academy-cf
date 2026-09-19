@@ -20,6 +20,10 @@
 --   mint exactly one code even under a replayed decision POST.
 -- oauth_token.code_hash  lineage: a refresh-token reuse revokes every token
 --   descended from the same authorization code.
+-- oauth_code.lineage_revoked_at  set when that lineage is killed. Issuing a
+--   token pair is gated on this column being NULL, so a lineage revocation
+--   that lands between another request's checks and its INSERT cannot leave a
+--   freshly minted pair alive behind the revocation.
 --
 -- ON DELETE CASCADE on the client_id and user_id foreign keys documents the
 -- same deletion behavior mcp_api_key follows (a deleted client or user takes
@@ -55,7 +59,8 @@ CREATE TABLE IF NOT EXISTS oauth_code (
   grant_jti TEXT NOT NULL UNIQUE,
   expires_at INTEGER NOT NULL,
   created_at TEXT NOT NULL DEFAULT (datetime('now')),
-  consumed_at TEXT
+  consumed_at TEXT,
+  lineage_revoked_at TEXT
 );
 
 CREATE TABLE IF NOT EXISTS oauth_token (
@@ -73,3 +78,4 @@ CREATE TABLE IF NOT EXISTS oauth_token (
 
 CREATE INDEX IF NOT EXISTS idx_oauth_token_user ON oauth_token(user_id, token_type);
 CREATE INDEX IF NOT EXISTS idx_oauth_token_lineage ON oauth_token(code_hash) WHERE code_hash IS NOT NULL;
+CREATE INDEX IF NOT EXISTS idx_oauth_token_client ON oauth_token(client_id);
