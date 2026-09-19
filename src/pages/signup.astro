@@ -110,7 +110,10 @@ import { TURNSTILE_SITE_KEY } from '../lib/turnstile';
         var raw = params.get('next') || '';
         if (raw && raw.charAt(0) === '/' && raw.length <= 500) {
           var u = new URL(raw, window.location.origin);
-          if (u.origin === window.location.origin) nextParam = u.pathname + u.search + u.hash;
+          if (u.origin === window.location.origin) {
+            var rebuilt = u.pathname + u.search + u.hash;
+            if (rebuilt.charAt(0) === '/' && rebuilt.charAt(1) !== '/' && rebuilt.charAt(1) !== '\\') nextParam = rebuilt;
+          }
         }
       } catch (_) {}
 

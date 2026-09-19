@@ -154,7 +154,10 @@ import { TURNSTILE_SITE_KEY } from '../lib/turnstile';
               try {
                 var u = new URL(dest, window.location.origin);
                 if (u.origin !== window.location.origin || dest.charAt(0) !== '/' || dest.length > 500) dest = '/account/';
-                else dest = u.pathname + u.search + u.hash;
+                else {
+                  dest = u.pathname + u.search + u.hash;
+                  if (dest.charAt(0) !== '/' || dest.charAt(1) === '/' || dest.charAt(1) === '\\') dest = '/account/';
+                }
               } catch (e) { dest = '/account/'; }
               if (dest.length > 1 && dest.charAt(dest.length - 1) !== '/' && dest.indexOf('?') === -1 && dest.indexOf('#') === -1) dest += '/';
               window.location.href = dest;
